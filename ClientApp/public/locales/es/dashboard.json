@@ -1,0 +1,104 @@
+{
+  "loading": "Autenticando...",
+  "header": {
+    "title": "Dashboard",
+    "subtitle": "Bienvenido a tu panel de control de Decatron"
+  },
+  "botModAlert": {
+    "title": "⚠️ Importante: Dale mod al bot en tu chat",
+    "description": "Para que {{botUsername}} funcione correctamente, debe tener permisos de moderador en tu canal de Twitch.",
+    "instructions": "Escribe en tu chat de Twitch:",
+    "command": "/mod {{botUsername}}"
+  },
+  "botStatus": {
+    "title": "Estado del Bot",
+    "active": "ACTIVO",
+    "inactive": "INACTIVO",
+    "connectedChannels": "{{count}} canal(es) conectado(s)",
+    "configureButton": "Configurar"
+  },
+  "quickButtons": {
+    "title": "Botones Rápido",
+    "settings": {
+      "title": "Configuración",
+      "description": "Ajustes"
+    },
+    "twitch": {
+      "title": "Twitch",
+      "description": "Ir al chat"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Dashboard"
+    },
+    "overlay": {
+      "title": "Overlay",
+      "description": "Shoutout"
+    }
+  },
+  "commands": {
+    "title": "Comandos",
+    "default": {
+      "title": "Comandos Default",
+      "description": "Comandos predefinidos del sistema"
+    },
+    "microcommands": {
+      "title": "Microcomandos",
+      "description": "Comandos rápidos con variables"
+    },
+    "custom": {
+      "title": "Comandos Custom",
+      "description": "Tus comandos personalizados"
+    },
+    "scripting": {
+      "title": "Scripting",
+      "description": "Comandos avanzados con código"
+    }
+  },
+  "overlays": {
+    "title": "Overlays",
+    "viewAll": {
+      "title": "Ver Todos",
+      "description": "Lista completa de overlays"
+    },
+    "shoutout": {
+      "title": "Shoutout",
+      "description": "Configurar overlay de shoutouts"
+    },
+    "soundAlerts": {
+      "title": "Sound Alerts",
+      "description": "Alertas de audio/video personalizadas"
+    }
+  },
+  "features": {
+    "title": "Funciones",
+    "timers": {
+      "title": "Timers",
+      "description": "Mensajes automáticos programados"
+    },
+    "soundAlerts": {
+      "title": "Sound Alerts",
+      "description": "Alertas multimedia para canjes"
+    },
+    "decatronChat": {
+      "title": "Decatron Chat IA",
+      "description": "Chat privado con IA avanzada"
+    },
+    "bannedWords": {
+      "title": "Palabras Prohibidas",
+      "description": "Moderación automática del chat"
+    },
+    "giveaways": {
+      "title": "Giveaways",
+      "description": "Sistema de sorteos en vivo"
+    },
+    "followAlerts": {
+      "title": "Follow Alerts",
+      "description": "Alertas de nuevos seguidores"
+    },
+    "followers": {
+      "title": "Seguidores",
+      "description": "Gestión de seguidores"
+    }
+  }
+}

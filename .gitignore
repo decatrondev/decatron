@@ -1,0 +1,239 @@
+# =========================
+# .NET / Visual Studio / Build
+# =========================
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.apphost
+*.user
+*.userosscache
+*.suo
+*.cache
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Visual Studio folders
+.vs/
+.vscode/
+.idea/
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.rsuser
+
+# Mono auto generated files
+mono_crash.*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio publish profiles
+PublishProfiles/
+*.pubxml
+*.publishproj
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# =========================
+# Uploads / archivos de usuario
+# =========================
+ClientApp/public/uploads/
+ClientApp/public/timerextensible/
+wwwroot/uploads/
+wwwroot/timer-media/
+uploads/
+
+# =========================
+# Multimedia (solo archivos grandes de prueba/temporales)
+# =========================
+# Comentado para permitir assets del proyecto
+# *.mp3
+# *.mp4
+# *.webm
+# *.png
+# *.jpg
+# *.jpeg
+# *.gif
+# *.wav
+# *.ogg
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Production build
+dist/
+dist-ssr/
+build/
+*.local
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# React/Vite
+.cache/
+.parcel-cache/
+.next/
+out/
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+
+# Vim
+*~
+*.swp
+*.swo
+*.swn
+
+# Emacs
+\#*\#
+.\#*
+
+# =========================
+# Environment & Config
+# =========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Secrets (si los usas)
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+secrets.json
+
+# =========================
+# Database
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+tmp/
+temp/
+*.bak
+*.backup
+
+# =========================
+# Project analysis reports
+# =========================
+project-analysis.txt
+
+# =========================
+# Decatron - Archivos específicos excluidos
+# =========================
+
+# Downloads de clips (7.7GB de mp4)
+ClientApp/public/downloads/
+
+# Dev workspace (planes, debug, scripts internos)
+.dev/
+
+# Backups locales
+backups/
+
+# Staging config
+appsettings.Staging.json
+
+# Archivos residuales del template .NET
+WeatherForecast.cs
+nginx-config.conf
+
+# Carpeta reutilizar (código viejo)
+reutilizar/
+
+# Decatron.http (testing local)
+Decatron.http
+
+# appsettings example (ya está el .example)
+appsettings.Secrets.json.example

@@ -1,0 +1,118 @@
+﻿import { useState, useEffect } from 'react';
+import api from '../services/api';
+import { onTokenChanged, onTokenRemoved } from '../utils/tokenEvents';
+
+interface PermissionsData {
+    isOwner: boolean;
+    accessLevel: string | null;
+    sections: {
+        [key: string]: boolean;
+    };
+}
+
+export function usePermissions() {
+    const [permissions, setPermissions] = useState<PermissionsData>({
+        isOwner: false,
+        accessLevel: null,
+        sections: {}
+    });
+    const [loading, setLoading] = useState(true);
+
+    const loadPermissions = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get('/user/permissions');
+            if (res.data.success) {
+                console.log('🔐 Permisos cargados:', {
+                    userId: res.data.permissions.userId,
+                    channelOwnerId: res.data.permissions.channelOwnerId,
+                    accessLevel: res.data.permissions.accessLevel,
+                    isOwner: res.data.permissions.isOwner,
+                    sections: res.data.permissions.sections
+                });
+                setPermissions(res.data.permissions);
+            }
+        } catch (err) {
+            console.error('Error loading permissions:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        // Verificar si hay un token en la URL que está siendo procesado
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenInUrl = urlParams.get('token');
+
+        // Si hay token en URL, esperar un momento para que se guarde en localStorage
+        if (tokenInUrl && !localStorage.getItem('token')) {
+            console.log('Token detectado en URL, esperando a que se guarde...');
+            const timer = setTimeout(() => {
+                loadPermissions();
+            }, 500); // Esperar 500ms para que Dashboard guarde el token
+            return () => clearTimeout(timer);
+        }
+
+        // Si no hay token en URL, cargar permisos normalmente
+        loadPermissions();
+    }, []);
+
+    // Escuchar cambios de token (nuevo login después de expiración)
+    useEffect(() => {
+        console.log('🎧 usePermissions: Registrando listener de cambio de token');
+
+        const unsubscribeTokenChanged = onTokenChanged(() => {
+            console.log('🔄 usePermissions: Detectado nuevo token, recargando permisos...');
+            loadPermissions();
+        });
+
+        const unsubscribeTokenRemoved = onTokenRemoved(() => {
+            console.log('🚪 usePermissions: Token removido, limpiando permisos...');
+            setPermissions({
+                isOwner: false,
+                accessLevel: null,
+                sections: {}
+            });
+            setLoading(false);
+        });
+
+        return () => {
+            unsubscribeTokenChanged();
+            unsubscribeTokenRemoved();
+        };
+    }, []);
+
+    const hasAccess = (section: string): boolean => {
+        if (permissions.isOwner) return true;
+        return permissions.sections[section] === true;
+    };
+
+    const hasMinimumLevel = (requiredLevel: 'commands' | 'moderation' | 'control_total'): boolean => {
+        if (permissions.isOwner) {
+            console.log(`✅ hasMinimumLevel(${requiredLevel}): true (es owner)`);
+            return true;
+        }
+
+        const levels = {
+            'commands': 1,
+            'moderation': 2,
+            'control_total': 3
+        };
+
+        const userLevelValue = levels[permissions.accessLevel as keyof typeof levels] || 0;
+        const requiredLevelValue = levels[requiredLevel];
+
+        const hasLevel = userLevelValue >= requiredLevelValue;
+        console.log(`🔍 hasMinimumLevel(${requiredLevel}): ${hasLevel} (user: ${permissions.accessLevel}=${userLevelValue}, required=${requiredLevelValue})`);
+
+        return hasLevel;
+    };
+
+    return {
+        permissions,
+        loading,
+        hasAccess,
+        hasMinimumLevel,
+        refreshPermissions: loadPermissions
+    };
+}

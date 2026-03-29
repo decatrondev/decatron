@@ -1,0 +1,104 @@
+{
+  "loading": "Authenticating...",
+  "header": {
+    "title": "Dashboard",
+    "subtitle": "Welcome to your Decatron control panel"
+  },
+  "botModAlert": {
+    "title": "⚠️ Important: Give the bot mod in your chat",
+    "description": "For {{botUsername}} to work correctly, it must have moderator permissions in your Twitch channel.",
+    "instructions": "Type in your Twitch chat:",
+    "command": "/mod {{botUsername}}"
+  },
+  "botStatus": {
+    "title": "Bot Status",
+    "active": "ACTIVE",
+    "inactive": "INACTIVE",
+    "connectedChannels": "{{count}} channel(s) connected",
+    "configureButton": "Configure"
+  },
+  "quickButtons": {
+    "title": "Quick Buttons",
+    "settings": {
+      "title": "Settings",
+      "description": "Preferences"
+    },
+    "twitch": {
+      "title": "Twitch",
+      "description": "Go to chat"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Dashboard"
+    },
+    "overlay": {
+      "title": "Overlay",
+      "description": "Shoutout"
+    }
+  },
+  "commands": {
+    "title": "Commands",
+    "default": {
+      "title": "Default Commands",
+      "description": "System predefined commands"
+    },
+    "microcommands": {
+      "title": "Microcommands",
+      "description": "Quick commands with variables"
+    },
+    "custom": {
+      "title": "Custom Commands",
+      "description": "Your personalized commands"
+    },
+    "scripting": {
+      "title": "Scripting",
+      "description": "Advanced commands with code"
+    }
+  },
+  "overlays": {
+    "title": "Overlays",
+    "viewAll": {
+      "title": "View All",
+      "description": "Complete list of overlays"
+    },
+    "shoutout": {
+      "title": "Shoutout",
+      "description": "Configure shoutout overlay"
+    },
+    "soundAlerts": {
+      "title": "Sound Alerts",
+      "description": "Custom audio/video alerts"
+    }
+  },
+  "features": {
+    "title": "Features",
+    "timers": {
+      "title": "Timers",
+      "description": "Scheduled automatic messages"
+    },
+    "soundAlerts": {
+      "title": "Sound Alerts",
+      "description": "Multimedia alerts for redemptions"
+    },
+    "decatronChat": {
+      "title": "Decatron Chat AI",
+      "description": "Private chat with advanced AI"
+    },
+    "bannedWords": {
+      "title": "Banned Words",
+      "description": "Automatic chat moderation"
+    },
+    "giveaways": {
+      "title": "Giveaways",
+      "description": "Live giveaway system"
+    },
+    "followAlerts": {
+      "title": "Follow Alerts",
+      "description": "New follower alerts"
+    },
+    "followers": {
+      "title": "Followers",
+      "description": "Follower management"
+    }
+  }
+}

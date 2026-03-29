@@ -1,0 +1,104 @@
+{
+  "title": "Configuración",
+  "subtitle": "Administra las preferencias de tu cuenta",
+  "general": {
+    "title": "Configuración General",
+    "botStatus": {
+      "title": "Estado del Bot",
+      "description": "Activar o desactivar completamente el bot"
+    }
+  },
+  "language": {
+    "title": "Idioma de la interfaz",
+    "description": "Selecciona el idioma en el que quieres ver la aplicación",
+    "label": "Idioma",
+    "spanish": "Español",
+    "english": "English",
+    "selectLanguage": "Seleccionar idioma",
+    "currentLanguage": "Idioma actual",
+    "changeSuccess": "Idioma cambiado exitosamente",
+    "changeError": "Error al cambiar el idioma",
+    "updating": "Actualizando idioma...",
+    "autoDetected": "Auto-detectado",
+    "note": "Los cambios se aplicarán inmediatamente sin necesidad de recargar la página"
+  },
+  "systemInfo": {
+    "title": "Información del Sistema",
+    "version": "Versión:",
+    "uniqueId": "ID Único:",
+    "channel": "Canal:",
+    "memberSince": "Miembro Desde:",
+    "lastUpdate": "Última Actualización:",
+    "yourAccessLevel": "Tu Nivel de Acceso",
+    "accessLevelDescription": "Este es tu nivel de acceso actual en el sistema"
+  },
+  "accessManagement": {
+    "title": "Gestión de Accesos",
+    "addAccess": "Agregar Acceso",
+    "owner": "Propietario",
+    "usersWithAccess": "Usuarios con Acceso",
+    "noUsers": "No hay usuarios con acceso adicional",
+    "addUserModal": {
+      "title": "Agregar Usuario",
+      "uniqueIdLabel": "ID Único del Usuario",
+      "uniqueIdPlaceholder": "Ej: TB4D1-61428-5BQ1F-22Q9Q-51EB3",
+      "permissionLabel": "Nivel de Permisos",
+      "permissionCommands": "Solo Comandos",
+      "permissionModeration": "Moderación",
+      "permissionControlTotal": "Control Total",
+      "cancel": "Cancelar",
+      "add": "Agregar",
+      "adding": "Agregando..."
+    },
+    "removeUserModal": {
+      "title": "Remover Usuario",
+      "message": "¿Estás seguro de remover a @{{username}}? Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar y Eliminar",
+      "deleting": "Eliminando..."
+    },
+    "tableHeaders": {
+      "name": "NOMBRE",
+      "username": "USUARIO",
+      "permissions": "PERMISOS",
+      "addedBy": "AGREGADO POR",
+      "actions": "ACCIONES"
+    }
+  },
+  "integrations": {
+    "title": "Integraciones",
+    "spotify": "Spotify",
+    "steam": "Steam",
+    "youtube": "YouTube",
+    "comingSoon": "Próximamente"
+  },
+  "accessLevels": {
+    "owner": "PROPIETARIO",
+    "controlTotal": "CONTROL TOTAL",
+    "moderation": "MODERACIÓN",
+    "commands": "COMANDOS"
+  },
+  "messages": {
+    "botStatusUpdated": "Estado del bot actualizado",
+    "userAdded": "Usuario agregado",
+    "userRemoved": "Usuario eliminado",
+    "errorUpdating": "Error al actualizar",
+    "errorLoading": "Error al cargar",
+    "enterUserId": "Ingresa un ID de usuario",
+    "errorAddingUser": "Error agregando usuario",
+    "errorRemovingUser": "Error removiendo usuario",
+    "errorLoadingBotStatus": "Error al cargar estado del bot",
+    "errorLoadingUsers": "Error al cargar usuarios",
+    "errorLoadingChannel": "Error al cargar info del canal",
+    "errorSavingSettings": "Error guardando configuración"
+  },
+  "loading": {
+    "verifyingPermissions": "Verificando permisos...",
+    "loadingSettings": "Cargando configuración..."
+  },
+  "accessDenied": {
+    "title": "Acceso Denegado",
+    "message": "No tienes permisos suficientes para acceder a la configuración. Se requiere nivel de acceso \"Control Total\".",
+    "backToDashboard": "Volver al Dashboard"
+  }
+}

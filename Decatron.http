@@ -1,0 +1,6 @@
+@Decatron_HostAddress = http://localhost:5030
+
+GET {{Decatron_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

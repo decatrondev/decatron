@@ -1,0 +1,76 @@
+{
+  "loading": "Verifying permissions...",
+  "accessDenied": {
+    "title": "Access Denied",
+    "message": "You don't have sufficient permissions to access overlays. \"Moderation\" access level or higher is required.",
+    "backButton": "Back to Dashboard"
+  },
+  "header": {
+    "title": "Overlays",
+    "subtitle": "Manage visual overlays for your Twitch stream"
+  },
+  "status": {
+    "available": "✓ Available",
+    "comingSoon": "⏳ Coming Soon"
+  },
+  "features": "FEATURES:",
+  "usage": "CHAT USAGE:",
+  "configureButton": "Configure",
+  "comingSoonButton": "Coming Soon",
+  "overlays": {
+    "shoutout": {
+      "name": "Shoutouts (!so)",
+      "description": "Visual overlay to shoutout other streamers showing their latest clip and profile",
+      "features": [
+        "Shows streamer's latest clip",
+        "User profile and photo",
+        "Full customization of colors and texts",
+        "Configurable duration and layout"
+      ],
+      "usage": "!so @username"
+    },
+    "timer": {
+      "name": "Timer",
+      "description": "On-screen timer with event alerts, visual progress and full customization",
+      "features": [
+        "Countdown/countup timer",
+        "Configurable event alerts",
+        "Visual progress bar",
+        "Custom multimedia and sounds"
+      ],
+      "usage": "!dtimer start/pause/stop"
+    },
+    "giveaway": {
+      "name": "Giveaway",
+      "description": "Live giveaway system with animations and chat participation",
+      "features": [
+        "Real-time giveaways",
+        "Chat command participation",
+        "Winner selection animation",
+        "Winner history"
+      ],
+      "usage": "!giveaway join"
+    },
+    "soundAlerts": {
+      "name": "Sound Alerts",
+      "description": "Custom audio/video alerts for channel points redemptions",
+      "features": [
+        "Plays videos and audios",
+        "Channel points integration",
+        "Multiple configurable alerts",
+        "Volume and duration control"
+      ],
+      "usage": "Channel points redemptions"
+    },
+    "gacha": {
+      "name": "Gacha",
+      "description": "Random reward system with visual animations for your stream",
+      "features": [
+        "Random reward system",
+        "Attractive visual animations",
+        "Configurable item rarity",
+        "Channel points integration"
+      ]
+    }
+  }
+}

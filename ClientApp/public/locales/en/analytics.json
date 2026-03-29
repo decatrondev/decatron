@@ -1,0 +1,122 @@
+{
+  "title": "Analytics",
+  "subtitle": "Channel statistics and logs",
+  "refresh": "Refresh",
+  "exportCSV": "Export CSV",
+  "csvIncludes": "CSV includes:",
+  "csvTimer": "Timer Events (follows, subs, bits, etc.)",
+  "csvModeration": "Moderation Actions",
+  "csvHistory": "Game and Title History",
+  "csvChat": "Chat Messages",
+
+  "tabs": {
+    "overview": "Overview",
+    "timerEvents": "Timer Events",
+    "moderation": "Moderation",
+    "streamHistory": "Stream History",
+    "chatMessages": "Chat",
+    "activity": "Activity"
+  },
+
+  "overview": {
+    "timerEvents": "Timer Events",
+    "timeAdded": "Time Added",
+    "moderationActions": "Mod. Actions",
+    "gameChanges": "Game Changes",
+    "topEventTypes": "Top Event Types",
+    "eventsPerDay": "Events Per Day"
+  },
+
+  "timerEvents": {
+    "historyTitle": "Event History",
+    "eventsInPeriod": "events in selected period",
+    "date": "Date",
+    "type": "Type",
+    "username": "Username",
+    "time": "Time",
+    "details": "Details",
+    "noEvents": "No events in this period",
+    "follow": "Follow",
+    "subscribe": "Sub",
+    "subscribePrime": "Prime",
+    "cheer": "Bits",
+    "raid": "Raid",
+    "giftsub": "Gift",
+    "tip": "Tip",
+    "command": "Command",
+    "hypetrain": "Hype Train"
+  },
+
+  "moderation": {
+    "totalActions": "Total Actions",
+    "severeActions": "Severe",
+    "uniqueWords": "Unique Words",
+    "topWords": "Top Detected Words",
+    "historyTitle": "Moderation History",
+    "date": "Date",
+    "username": "Username",
+    "word": "Word",
+    "severity": "Severity",
+    "action": "Action",
+    "strike": "Strike",
+    "noActions": "No moderation actions in this period"
+  },
+
+  "streamHistory": {
+    "categoryChanges": "Category Changes",
+    "titleChanges": "Title Changes",
+    "historyTitle": "Change History",
+    "changesInPeriod": "changes in selected period",
+    "filterAll": "All",
+    "filterCategory": "Category",
+    "filterTitle": "Title",
+    "date": "Date",
+    "type": "Type",
+    "value": "Value",
+    "changedBy": "Changed By",
+    "category": "Category",
+    "titleLabel": "Title",
+    "by": "by",
+    "noChanges": "No changes in this period"
+  },
+
+  "chatMessages": {
+    "totalMessages": "Total Messages",
+    "uniqueUsers": "Unique Users",
+    "historyTitle": "Chat History",
+    "messagesInPeriod": "messages in period",
+    "searchPlaceholder": "Search user or message...",
+    "date": "Date",
+    "username": "Username",
+    "message": "Message",
+    "noMessages": "No messages in this period",
+    "noResults": "No messages found"
+  },
+
+  "activity": {
+    "newFollowers": "New Followers",
+    "totalTips": "Total Tips",
+    "followersPerDay": "Followers Per Day",
+    "tipsPerDay": "Tips Per Day",
+    "topSupporters": "Top Supporters",
+    "noFollowers": "No follower data in this period",
+    "noTips": "No tips data in this period"
+  },
+
+  "pagination": {
+    "showing": "Showing",
+    "of": "of",
+    "perPage": "Per page:",
+    "first": "First",
+    "last": "Last"
+  },
+
+  "dateRange": {
+    "last7Days": "Last 7 days",
+    "last30Days": "Last 30 days",
+    "last90Days": "Last 90 days",
+    "custom": "Custom",
+    "from": "From",
+    "to": "To"
+  }
+}

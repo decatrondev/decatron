@@ -1,0 +1,393 @@
+{
+  "loading": "Loading commands...",
+  "accessDenied": {
+    "title": "Access Denied",
+    "message": "You don't have sufficient permissions to manage commands. Required access level: commands.",
+    "backButton": "Back to Dashboard"
+  },
+  "botDisabledWarning": {
+    "title": "⚠️ Bot Disabled",
+    "message": "The bot is currently disabled. Enable it from settings for commands to work."
+  },
+  "permissionInfo": {
+    "title": "ℹ️ Read-Only Mode",
+    "message": "You can view commands but cannot modify their state. Contact the channel owner for changes."
+  },
+  "header": {
+    "title": "Default Commands",
+    "subtitle": "Manage system predefined commands"
+  },
+  "card": {
+    "alias": "ALIASES:",
+    "usage": "USAGE EXAMPLES:",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "readOnlyLabel": "View only",
+    "configureButton": "Configure"
+  },
+  "defaultCommands": {
+    "title": {
+      "name": "!title",
+      "description": "Change or check the stream title",
+      "aliases": ["!t"],
+      "usage": ["!title", "!title New stream title"]
+    },
+    "t": {
+      "name": "!t",
+      "description": "Alias for !title - Change or check the stream title",
+      "aliases": [],
+      "usage": ["!t", "!t New title"]
+    },
+    "game": {
+      "name": "!game",
+      "description": "Change or check the stream category/game",
+      "aliases": ["!g"],
+      "usage": ["!game", "!game Just Chatting"]
+    },
+    "g": {
+      "name": "!g",
+      "description": "Category and micro commands management",
+      "aliases": [],
+      "usage": ["!g", "!g Just Chatting"]
+    },
+    "dstart": {
+      "name": "!dstart",
+      "description": "Start the timer with a specific duration",
+      "aliases": [],
+      "usage": ["!dstart 5m", "!dstart 1h30m", "!dstart 300"]
+    },
+    "dpause": {
+      "name": "!dpause",
+      "description": "Pause the current timer",
+      "aliases": [],
+      "usage": ["!dpause"]
+    },
+    "dplay": {
+      "name": "!dplay",
+      "description": "Resume or start the paused timer",
+      "aliases": [],
+      "usage": ["!dplay"]
+    },
+    "dreset": {
+      "name": "!dreset",
+      "description": "Reset the timer to the configured total time",
+      "aliases": [],
+      "usage": ["!dreset"]
+    },
+    "dstop": {
+      "name": "!dstop",
+      "description": "Stop the timer completely and hide it from overlay",
+      "aliases": [],
+      "usage": ["!dstop"]
+    },
+    "dtimer": {
+      "name": "!dtimer",
+      "description": "Manage timer: start, add or remove time",
+      "aliases": [],
+      "usage": ["!dtimer 5m", "!dtimer add 1h", "!dtimer remove 30s"]
+    },
+    "so": {
+      "name": "!so",
+      "description": "Shoutout a user showing their latest clip and profile",
+      "aliases": [],
+      "usage": ["!so @username", "!so username"]
+    },
+    "raffle": {
+      "name": "!raffle",
+      "description": "Raffle system with chat participation",
+      "aliases": [],
+      "usage": ["!raffle join", "!raffle create Raffle name", "!raffle close", "!raffle draw"]
+    },
+    "ia": {
+      "name": "!ia",
+      "description": "Ask Decatron AI (developed by AnthonyDeca)",
+      "aliases": [],
+      "usage": ["!ia What is the meaning of life?", "!ia give me a fun fact"]
+    },
+    "join": {
+      "name": "!join",
+      "description": "Join the active giveaway in the channel",
+      "aliases": [],
+      "usage": ["!join"]
+    },
+    "hola": {
+      "name": "hola",
+      "description": "Greet the user in chat",
+      "aliases": [],
+      "usage": ["hola"]
+    }
+  },
+  "microCommands": {
+    "loading": "Loading micro commands...",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You don't have sufficient permissions to access microcommands. Required access level: \"Commands\" or higher.",
+      "backButton": "Back to Dashboard"
+    },
+    "header": {
+      "title": "Micro Commands",
+      "subtitle": "Manage custom shortcuts for game categories - Channel: {{channel}}",
+      "createButton": "Create Micro Command"
+    },
+    "permissionInfo": {
+      "message": "Limited mode - \"Moderation\" level or higher required to delete micro commands"
+    },
+    "empty": {
+      "title": "No micro commands",
+      "message": "Create your first micro command to get started",
+      "createButton": "Create Micro Command"
+    },
+    "table": {
+      "headers": {
+        "command": "Command",
+        "category": "Category",
+        "createdBy": "Created By",
+        "createdAt": "Created At",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      }
+    },
+    "createModal": {
+      "title": "Create Micro Command",
+      "commandLabel": "Command",
+      "commandPlaceholder": "e.g.: lol, cs, val",
+      "commandHelper": "The \"!\" prefix will be added automatically",
+      "gamePlaceholder": "Search game... e.g.: lol, valorant, minecraft",
+      "createButton": "Create",
+      "cancelButton": "Cancel"
+    },
+    "editModal": {
+      "title": "Edit Micro Command",
+      "commandLabel": "Command",
+      "commandHelper": "The command cannot be modified",
+      "gamePlaceholder": "Search new game... e.g.: lol, valorant, minecraft",
+      "currentLabel": "Current:",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    },
+    "messages": {
+      "loadError": "Error loading micro commands",
+      "createError": "Error creating micro command",
+      "updateError": "Error updating micro command",
+      "deleteError": "Error deleting micro command",
+      "deleteNoPermission": "You don't have permission to delete micro commands",
+      "deleteConfirm": "Are you sure you want to delete the micro command {{command}}?",
+      "fieldsRequired": "Command and category are required"
+    }
+  },
+  "customCommands": {
+    "loading": "Loading custom commands...",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You don't have sufficient permissions to access custom commands. Required access level: \"Commands\" or higher.",
+      "backButton": "Back to Dashboard"
+    },
+    "header": {
+      "title": "Custom Commands",
+      "subtitle": "Manage custom text commands for your channel",
+      "createButton": "Create Command",
+      "importButton": "Import",
+      "exportButton": "Export"
+    },
+    "permissionInfo": {
+      "message": "Limited mode - \"Moderation\" level or higher required to delete commands"
+    },
+    "empty": {
+      "title": "No custom commands",
+      "message": "Create your first custom command to get started",
+      "createButton": "Create Command"
+    },
+    "table": {
+      "headers": {
+        "command": "Command",
+        "response": "Response",
+        "restriction": "Restriction",
+        "status": "Status",
+        "createdBy": "Created By",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "statusBadges": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all"
+    },
+    "restrictions": {
+      "all": "Everyone",
+      "mod": "Moderators",
+      "vip": "VIPs",
+      "sub": "Subscribers"
+    },
+    "createModal": {
+      "title": "Create Custom Command",
+      "commandLabel": "Command Name",
+      "commandPlaceholder": "e.g.: rules, discord, socials",
+      "commandHelper": "The \"!\" prefix will be added automatically",
+      "responseLabel": "Response",
+      "responsePlaceholder": "The response the bot will send...",
+      "restrictionLabel": "Restriction",
+      "statusLabel": "Initial status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "createButton": "Create",
+      "cancelButton": "Cancel"
+    },
+    "editModal": {
+      "title": "Edit Custom Command",
+      "commandLabel": "Command",
+      "commandHelper": "The command name cannot be modified",
+      "responseLabel": "Response",
+      "restrictionLabel": "Restriction",
+      "statusLabel": "Status",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    },
+    "exportModal": {
+      "title": "Export Commands",
+      "message": "Select the commands you want to export",
+      "selectedCount": "{{count}} command(s) selected",
+      "exportButton": "Export Selected",
+      "cancelButton": "Cancel"
+    },
+    "importModal": {
+      "title": "Import Commands",
+      "dropzoneText": "Drag a JSON file here or click to select",
+      "fileSelected": "File selected:",
+      "previewTitle": "Import preview",
+      "previewStats": {
+        "total": "Total commands:",
+        "valid": "Valid:",
+        "duplicates": "Duplicates:",
+        "invalid": "Invalid:",
+        "ready": "Ready to import:"
+      },
+      "commandStatus": {
+        "valid": "Valid",
+        "duplicate": "Already exists",
+        "invalid": "Invalid"
+      },
+      "importButton": "Import {{count}} Command(s)",
+      "cancelButton": "Cancel"
+    },
+    "messages": {
+      "loadError": "Error loading custom commands",
+      "createSuccess": "Command created successfully",
+      "createError": "Error creating command",
+      "updateSuccess": "Command updated successfully",
+      "updateError": "Error updating command",
+      "deleteSuccess": "Command deleted successfully",
+      "deleteError": "Error deleting command",
+      "deleteNoPermission": "You don't have permission to delete commands",
+      "deleteConfirm": "Are you sure you want to delete the command {{command}}?",
+      "fieldsRequired": "Command name and response are required",
+      "exportSuccess": "Commands exported successfully",
+      "exportError": "Select at least one command to export",
+      "importSuccess": "{{count}} command(s) imported successfully",
+      "importError": "Error importing commands",
+      "importNoValid": "No valid commands to import",
+      "importInvalidFile": "Invalid file. Must be a JSON with correct format."
+    }
+  },
+  "scripting": {
+    "loading": "Loading scripts...",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You don't have sufficient permissions to access scripts. Required access level: \"Commands\" or higher.",
+      "backButton": "Back to Dashboard"
+    },
+    "header": {
+      "title": "Scripting Commands",
+      "subtitle": "Create custom commands with advanced logic using scripting",
+      "createButton": "Create Script"
+    },
+    "permissionInfo": {
+      "message": "Limited mode - \"Moderation\" level or higher required to delete scripts"
+    },
+    "empty": {
+      "title": "No scripts",
+      "message": "Create your first script for advanced commands",
+      "createButton": "Create Script"
+    },
+    "table": {
+      "headers": {
+        "command": "Command",
+        "content": "Content",
+        "status": "Status",
+        "lastUpdate": "Last Update",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "statusBadges": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "editor": {
+      "loadingTitle": "Loading...",
+      "titleCreate": "Create New Script",
+      "titleEdit": "Edit Script",
+      "backButton": "Back to Scripts",
+      "validateButton": "Validate Syntax",
+      "testButton": "Test Script",
+      "saveButton": "Save Changes",
+      "createButton": "Create Script",
+      "cancelButton": "Cancel",
+      "saving": "Saving...",
+      "commandNameLabel": "Command Name",
+      "commandNamePlaceholder": "e.g.: counter, stats, info",
+      "commandNameHelper": "Command name without the ! prefix",
+      "scriptCodeLabel": "Script Code",
+      "statusLabel": "Script Status",
+      "statusActive": "Script active",
+      "statusInactive": "Script inactive",
+      "validationValid": "✅ Valid script",
+      "validationError": "❌ Syntax error",
+      "validationErrorDetails": "Error on line {{line}}: {{message}}",
+      "testResultTitle": "Test result",
+      "testResultSuccess": "✅ Script executed successfully",
+      "testResultOutput": "Output:",
+      "testResultError": "❌ Error executing script",
+      "examplesTitle": "Syntax Examples",
+      "exampleBasic": "Basic",
+      "exampleVariables": "Variables",
+      "exampleConditionals": "Conditionals",
+      "exampleCounters": "Counters",
+      "exampleComplete": "Complete Script",
+      "clearButton": "Clear",
+      "insertButton": "Insert",
+      "undoButton": "Undo",
+      "redoButton": "Redo",
+      "historyEmpty": "No history"
+    },
+    "messages": {
+      "loadError": "Error loading scripts",
+      "deleteSuccess": "Script deleted successfully",
+      "deleteError": "Error deleting script",
+      "deleteNoPermission": "You don't have permission to delete scripts",
+      "deleteConfirm": "Are you sure you want to delete the script \"{{command}}\"?",
+      "saveSuccess": "Script saved successfully",
+      "saveError": "Error saving script",
+      "createSuccess": "Script created successfully",
+      "createError": "Error creating script",
+      "updateSuccess": "Script updated successfully",
+      "updateError": "Error updating script",
+      "validationError": "Validation error",
+      "testError": "Error testing script",
+      "fieldRequired": "Command name is required",
+      "scriptRequired": "Script content is required"
+    }
+  }
+}

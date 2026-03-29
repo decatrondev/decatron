@@ -1,0 +1,45 @@
+--- Decatron.Services/CommandService.cs
++++ Decatron.Services/CommandService.cs
+@@ -56,14 +56,20 @@
+ 
+         private void LoadCommands()
+         {
+-            // Comandos básicos
+-            RegisterCommand(new Commands.HolaCommand());
+-
+-            // Comandos por defecto (todos con ! ahora)
+-            RegisterCommand(new TitleCommand(_configuration, _loggerFactory.CreateLogger<TitleCommand>(), _commandStateService));
+-            RegisterCommand(new TCommand(_configuration, _loggerFactory.CreateLogger<TCommand>(), _commandStateService));
+-            RegisterCommand(new GameCommand(_configuration, _loggerFactory.CreateLogger<GameCommand>(), _commandStateService));
+-
++            // Comandos con servicios de traducción
++            using (var scope = _serviceScopeFactory.CreateScope())
++            {
++                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
++
++                // Comandos básicos
++                RegisterCommand(new Commands.HolaCommand(_configuration, messagesService));
++
++                // Comandos por defecto
++                RegisterCommand(new TitleCommand(_configuration, _loggerFactory.CreateLogger<TitleCommand>(), _commandStateService, messagesService));
++                RegisterCommand(new TCommand(_configuration, _loggerFactory.CreateLogger<TCommand>(), _commandStateService, messagesService));
++                RegisterCommand(new GameCommand(_configuration, _loggerFactory.CreateLogger<GameCommand>(), _commandStateService, messagesService));
++            }
++
+             // Registrar ShoutoutCommand (necesita resolver dependencias del scope)
+             RegisterShoutoutCommand();
+ 
+@@ -115,9 +121,12 @@
+ 
+         private void RegisterDecatronAICommand()
+         {
+             try
+             {
++                using var scope = _serviceScopeFactory.CreateScope();
++                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
++
+                 // Pasar IServiceScopeFactory para que el comando cree su propio scope en cada ejecución
+                 var decatronAICommand = new Decatron.Default.Commands.DecatronAICommand(
+                     _serviceScopeFactory,
+-                    _loggerFactory.CreateLogger<Decatron.Default.Commands.DecatronAICommand>()
++                    _loggerFactory.CreateLogger<Decatron.Default.Commands.DecatronAICommand>(),

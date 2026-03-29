@@ -1,0 +1,62 @@
+{
+  "loadingPermissions": "Cargando permisos...",
+  "navigation": {
+    "dashboard": "Dashboard",
+    "followers": "Seguidores",
+    "commands": {
+      "title": "Comandos",
+      "default": "Por Defecto",
+      "microcommands": "Micro Comandos",
+      "custom": "Personalizados",
+      "scripting": "Scripts"
+    },
+    "overlays": {
+      "title": "Overlays",
+      "viewAll": "Ver Todos",
+      "shoutout": "Shoutouts",
+      "timer": "Timer",
+      "gacha": "Gacha",
+      "giveaway": "Giveaway"
+    },
+    "features": {
+      "title": "Funciones",
+      "timers": "Temporizadores",
+      "giveaways": "Giveaways",
+      "soundAlerts": "Sound Alerts",
+      "followAlerts": "Follow Alerts",
+      "decatronChat": "Decatron Chat IA",
+      "decatronAI": "Decatron IA"
+    },
+    "moderation": {
+      "title": "Chat Moderation",
+      "bannedWords": "Palabras Prohibidas"
+    },
+    "admin": {
+      "title": "Admin",
+      "decatronAI": "Decatron IA",
+      "decatronChat": "Decatron Chat IA"
+    },
+    "analytics": "Analytics",
+    "settings": "Configuración",
+    "documentation": {
+      "title": "Documentación",
+      "home": "Inicio",
+      "variables": "Variables del Sistema",
+      "commands": "Comandos",
+      "overlays": "Overlays",
+      "apiReference": "API Reference"
+    },
+    "logout": "Cerrar Sesión"
+  },
+  "comingSoon": "Pronto",
+  "tokenExpiration": {
+    "title": "Tu sesión está por expirar",
+    "message": "Tiempo restante: {{minutes}} minutos. Por favor, guarda tu trabajo. Serás redirigido al login automáticamente.",
+    "renewButton": "Renovar sesión"
+  },
+  "channelSwitcher": {
+    "owner": "Propietario",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "title": "Analytics",
+  "subtitle": "Estadísticas y logs de tu canal",
+  "refresh": "Actualizar",
+  "exportCSV": "Exportar CSV",
+  "csvIncludes": "El CSV incluye:",
+  "csvTimer": "Eventos del Timer (follows, subs, bits, etc.)",
+  "csvModeration": "Acciones de Moderación",
+  "csvHistory": "Historial de Juegos y Títulos",
+  "csvChat": "Mensajes de Chat",
+
+  "tabs": {
+    "overview": "Resumen",
+    "timerEvents": "Eventos Timer",
+    "moderation": "Moderación",
+    "streamHistory": "Historial Stream",
+    "chatMessages": "Chat",
+    "activity": "Actividad"
+  },
+
+  "overview": {
+    "timerEvents": "Eventos Timer",
+    "timeAdded": "Tiempo Agregado",
+    "moderationActions": "Acc. Moderación",
+    "gameChanges": "Cambios de Juego",
+    "topEventTypes": "Top Tipos de Evento",
+    "eventsPerDay": "Eventos por Día"
+  },
+
+  "timerEvents": {
+    "historyTitle": "Historial de Eventos",
+    "eventsInPeriod": "eventos en el período seleccionado",
+    "date": "Fecha",
+    "type": "Tipo",
+    "username": "Usuario",
+    "time": "Tiempo",
+    "details": "Detalles",
+    "noEvents": "No hay eventos en este período",
+    "follow": "Follow",
+    "subscribe": "Sub",
+    "subscribePrime": "Prime",
+    "cheer": "Bits",
+    "raid": "Raid",
+    "giftsub": "Gift",
+    "tip": "Tip",
+    "command": "Comando",
+    "hypetrain": "Hype Train"
+  },
+
+  "moderation": {
+    "totalActions": "Total Acciones",
+    "severeActions": "Severas",
+    "uniqueWords": "Palabras Únicas",
+    "topWords": "Top Palabras Detectadas",
+    "historyTitle": "Historial de Moderación",
+    "date": "Fecha",
+    "username": "Usuario",
+    "word": "Palabra",
+    "severity": "Severidad",
+    "action": "Acción",
+    "strike": "Strike",
+    "noActions": "No hay acciones de moderación en este período"
+  },
+
+  "streamHistory": {
+    "categoryChanges": "Cambios de Categoría",
+    "titleChanges": "Cambios de Título",
+    "historyTitle": "Historial de Cambios",
+    "changesInPeriod": "cambios en el período seleccionado",
+    "filterAll": "Todos",
+    "filterCategory": "Categoría",
+    "filterTitle": "Título",
+    "date": "Fecha",
+    "type": "Tipo",
+    "value": "Valor",
+    "changedBy": "Cambiado Por",
+    "category": "Categoría",
+    "titleLabel": "Título",
+    "by": "por",
+    "noChanges": "Sin cambios en este período"
+  },
+
+  "chatMessages": {
+    "totalMessages": "Total Mensajes",
+    "uniqueUsers": "Usuarios Únicos",
+    "historyTitle": "Historial de Chat",
+    "messagesInPeriod": "mensajes en el período",
+    "searchPlaceholder": "Buscar usuario o mensaje...",
+    "date": "Fecha",
+    "username": "Usuario",
+    "message": "Mensaje",
+    "noMessages": "No hay mensajes en este período",
+    "noResults": "No se encontraron mensajes"
+  },
+
+  "activity": {
+    "newFollowers": "Nuevos Followers",
+    "totalTips": "Total Tips",
+    "followersPerDay": "Followers por Día",
+    "tipsPerDay": "Tips por Día",
+    "topSupporters": "Top Supporters",
+    "noFollowers": "Sin datos de followers en este período",
+    "noTips": "Sin datos de tips en este período"
+  },
+
+  "pagination": {
+    "showing": "Mostrando",
+    "of": "de",
+    "perPage": "Por página:",
+    "first": "Primera",
+    "last": "Última"
+  },
+
+  "dateRange": {
+    "last7Days": "Últimos 7 días",
+    "last30Days": "Últimos 30 días",
+    "last90Days": "Últimos 90 días",
+    "custom": "Personalizado",
+    "from": "Desde",
+    "to": "Hasta"
+  }
+}

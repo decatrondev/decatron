@@ -1,0 +1,51 @@
+
+            // 4. Obtener Listas de Exclusión (Mods/VIPs) desde BD
+            var excludedUsers = new HashSet<string>();
+            var requirements = config.TryGetProperty("requirements", out var r) ? r : default;
+            
+            bool excludeMods = true;
+            bool excludeVips = true;
+            bool excludeBroadcaster = true;
+
+            if (requirements.ValueKind != JsonValueKind.Undefined) {
+                if (requirements.TryGetProperty("excludeMods", out var em)) excludeMods = em.GetBoolean();
+                if (requirements.TryGetProperty("excludeVips", out var ev)) excludeVips = em.GetBoolean();
+                if (requirements.TryGetProperty("excludeBroadcaster", out var eb)) excludeBroadcaster = eb.GetBoolean();
+            }
+
+            // Excluir Broadcaster
+            if (excludeBroadcaster) {
+                excludedUsers.Add(raffle.ChannelName.ToLower());
+            }
+
+            // Consultar permisos en BD (Mods y VIPs)
+            if (excludeMods || excludeVips)
+            {
+                var channelOwner = await _context.Users.FirstOrDefaultAsync(u => u.Login == raffle.ChannelName);
+                if (channelOwner != null)
+                {
+                    var privilegedUsers = await _context.UserChannelPermissions
+                        .Include(p => p.GrantedUser)
+                        .Where(p => p.ChannelOwnerId == channelOwner.Id && p.IsActive)
+                        .ToListAsync();
+
+                    foreach (var perm in privilegedUsers)
+                    {
+                        if (excludeMods && perm.AccessLevel == "moderator") excludedUsers.Add(perm.GrantedUser.Login.ToLower());
+                        if (excludeVips && perm.AccessLevel == "vip") excludedUsers.Add(perm.GrantedUser.Login.ToLower());
+                    }
+                }
+            }
+
+            // 5. Agrupar y Filtrar
+            // Diccionario: Username -> Tickets
+            var candidates = new Dictionary<string, int>();
+
+            foreach (var log in logs)
+            {
+                string user = log.Username.ToLower();
+                
+                // VALIDACIÓN DE ROL: Si está en la lista negra, saltar
+                if (excludedUsers.Contains(user)) continue;
+
+                string type = log.EventType.ToLower();

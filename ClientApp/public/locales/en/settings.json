@@ -1,0 +1,104 @@
+{
+  "title": "Settings",
+  "subtitle": "Manage your account preferences",
+  "general": {
+    "title": "General Settings",
+    "botStatus": {
+      "title": "Bot Status",
+      "description": "Enable or disable the bot completely"
+    }
+  },
+  "language": {
+    "title": "Interface Language",
+    "description": "Select the language you want to see the application in",
+    "label": "Language",
+    "spanish": "Español",
+    "english": "English",
+    "selectLanguage": "Select language",
+    "currentLanguage": "Current language",
+    "changeSuccess": "Language changed successfully",
+    "changeError": "Error changing language",
+    "updating": "Updating language...",
+    "autoDetected": "Auto-detected",
+    "note": "Changes will apply immediately without needing to reload the page"
+  },
+  "systemInfo": {
+    "title": "System Information",
+    "version": "Version:",
+    "uniqueId": "Unique ID:",
+    "channel": "Channel:",
+    "memberSince": "Member Since:",
+    "lastUpdate": "Last Update:",
+    "yourAccessLevel": "Your Access Level",
+    "accessLevelDescription": "This is your current access level in the system"
+  },
+  "accessManagement": {
+    "title": "Access Management",
+    "addAccess": "Add Access",
+    "owner": "Owner",
+    "usersWithAccess": "Users with Access",
+    "noUsers": "No users with additional access",
+    "addUserModal": {
+      "title": "Add User",
+      "uniqueIdLabel": "User Unique ID",
+      "uniqueIdPlaceholder": "Ex: TB4D1-61428-5BQ1F-22Q9Q-51EB3",
+      "permissionLabel": "Permission Level",
+      "permissionCommands": "Commands Only",
+      "permissionModeration": "Moderation",
+      "permissionControlTotal": "Full Control",
+      "cancel": "Cancel",
+      "add": "Add",
+      "adding": "Adding..."
+    },
+    "removeUserModal": {
+      "title": "Remove User",
+      "message": "Are you sure you want to remove @{{username}}? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm and Delete",
+      "deleting": "Deleting..."
+    },
+    "tableHeaders": {
+      "name": "NAME",
+      "username": "USERNAME",
+      "permissions": "PERMISSIONS",
+      "addedBy": "ADDED BY",
+      "actions": "ACTIONS"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "spotify": "Spotify",
+    "steam": "Steam",
+    "youtube": "YouTube",
+    "comingSoon": "Coming Soon"
+  },
+  "accessLevels": {
+    "owner": "OWNER",
+    "controlTotal": "FULL CONTROL",
+    "moderation": "MODERATION",
+    "commands": "COMMANDS"
+  },
+  "messages": {
+    "botStatusUpdated": "Bot status updated",
+    "userAdded": "User added",
+    "userRemoved": "User removed",
+    "errorUpdating": "Error updating",
+    "errorLoading": "Error loading",
+    "enterUserId": "Enter a user ID",
+    "errorAddingUser": "Error adding user",
+    "errorRemovingUser": "Error removing user",
+    "errorLoadingBotStatus": "Error loading bot status",
+    "errorLoadingUsers": "Error loading users",
+    "errorLoadingChannel": "Error loading channel info",
+    "errorSavingSettings": "Error saving settings"
+  },
+  "loading": {
+    "verifyingPermissions": "Verifying permissions...",
+    "loadingSettings": "Loading settings..."
+  },
+  "accessDenied": {
+    "title": "Access Denied",
+    "message": "You don't have sufficient permissions to access settings. \"Full Control\" access level is required.",
+    "backToDashboard": "Back to Dashboard"
+  }
+}

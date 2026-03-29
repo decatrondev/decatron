@@ -1,0 +1,393 @@
+{
+  "loading": "Cargando comandos...",
+  "accessDenied": {
+    "title": "Acceso Denegado",
+    "message": "No tienes permisos suficientes para gestionar comandos. Requiere nivel de acceso: comandos.",
+    "backButton": "Volver al Dashboard"
+  },
+  "botDisabledWarning": {
+    "title": "⚠️ Bot Desactivado",
+    "message": "El bot está actualmente desactivado. Actívalo desde la configuración para que los comandos funcionen."
+  },
+  "permissionInfo": {
+    "title": "ℹ️ Modo Solo Lectura",
+    "message": "Puedes ver los comandos pero no modificar su estado. Contacta al propietario del canal para cambios."
+  },
+  "header": {
+    "title": "Comandos Por Defecto",
+    "subtitle": "Gestiona los comandos predefinidos del sistema"
+  },
+  "card": {
+    "alias": "ALIAS:",
+    "usage": "EJEMPLOS DE USO:",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado",
+    "readOnlyLabel": "Solo visualización",
+    "configureButton": "Configurar"
+  },
+  "defaultCommands": {
+    "title": {
+      "name": "!title",
+      "description": "Cambia o consulta el título del stream",
+      "aliases": ["!t"],
+      "usage": ["!title", "!title Nuevo título del stream"]
+    },
+    "t": {
+      "name": "!t",
+      "description": "Alias de !title - Cambia o consulta el título del stream",
+      "aliases": [],
+      "usage": ["!t", "!t Nuevo título"]
+    },
+    "game": {
+      "name": "!game",
+      "description": "Cambia o consulta la categoría/juego del stream",
+      "aliases": ["!g"],
+      "usage": ["!game", "!game Just Chatting"]
+    },
+    "g": {
+      "name": "!g",
+      "description": "Comando de gestión de categorías y micro comandos",
+      "aliases": [],
+      "usage": ["!g", "!g Just Chatting"]
+    },
+    "dstart": {
+      "name": "!dstart",
+      "description": "Inicia el timer con una duración específica",
+      "aliases": [],
+      "usage": ["!dstart 5m", "!dstart 1h30m", "!dstart 300"]
+    },
+    "dpause": {
+      "name": "!dpause",
+      "description": "Pausa el timer actual",
+      "aliases": [],
+      "usage": ["!dpause"]
+    },
+    "dplay": {
+      "name": "!dplay",
+      "description": "Resume o inicia el timer pausado",
+      "aliases": [],
+      "usage": ["!dplay"]
+    },
+    "dreset": {
+      "name": "!dreset",
+      "description": "Reinicia el timer al tiempo total configurado",
+      "aliases": [],
+      "usage": ["!dreset"]
+    },
+    "dstop": {
+      "name": "!dstop",
+      "description": "Detiene el timer completamente y lo oculta del overlay",
+      "aliases": [],
+      "usage": ["!dstop"]
+    },
+    "dtimer": {
+      "name": "!dtimer",
+      "description": "Gestiona el timer: iniciar, añadir o remover tiempo",
+      "aliases": [],
+      "usage": ["!dtimer 5m", "!dtimer add 1h", "!dtimer remove 30s"]
+    },
+    "so": {
+      "name": "!so",
+      "description": "Hace shoutout a un usuario mostrando su último clip y perfil",
+      "aliases": [],
+      "usage": ["!so @username", "!so username"]
+    },
+    "raffle": {
+      "name": "!raffle",
+      "description": "Sistema de sorteos con participación de chat",
+      "aliases": [],
+      "usage": ["!raffle join", "!raffle create Nombre del sorteo", "!raffle close", "!raffle draw"]
+    },
+    "ia": {
+      "name": "!ia",
+      "description": "Pregunta a Decatron IA (desarrollado por AnthonyDeca)",
+      "aliases": [],
+      "usage": ["!ia ¿Cuál es el sentido de la vida?", "!ia dame un dato curioso"]
+    },
+    "join": {
+      "name": "!join",
+      "description": "Únete al giveaway activo en el canal",
+      "aliases": [],
+      "usage": ["!join"]
+    },
+    "hola": {
+      "name": "hola",
+      "description": "Saluda al usuario en el chat",
+      "aliases": [],
+      "usage": ["hola"]
+    }
+  },
+  "microCommands": {
+    "loading": "Cargando micro comandos...",
+    "accessDenied": {
+      "title": "Acceso Denegado",
+      "message": "No tienes permisos suficientes para acceder a microcomandos. Se requiere nivel de acceso \"Comandos\" o superior.",
+      "backButton": "Volver al Dashboard"
+    },
+    "header": {
+      "title": "Micro Comandos",
+      "subtitle": "Gestiona atajos personalizados para categorías de juegos - Canal: {{channel}}",
+      "createButton": "Crear Micro Comando"
+    },
+    "permissionInfo": {
+      "message": "Modo limitado - Se requiere nivel \"Moderación\" o superior para eliminar micro comandos"
+    },
+    "empty": {
+      "title": "No hay micro comandos",
+      "message": "Crea tu primer micro comando para comenzar",
+      "createButton": "Crear Micro Comando"
+    },
+    "table": {
+      "headers": {
+        "command": "Comando",
+        "category": "Categoría",
+        "createdBy": "Creado Por",
+        "createdAt": "Fecha Creación",
+        "actions": "Acciones"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Eliminar"
+      }
+    },
+    "createModal": {
+      "title": "Crear Micro Comando",
+      "commandLabel": "Comando",
+      "commandPlaceholder": "ej: lol, cs, val",
+      "commandHelper": "Se agregará automáticamente el prefijo \"!\"",
+      "gamePlaceholder": "Buscar juego... ej: lol, valorant, minecraft",
+      "createButton": "Crear",
+      "cancelButton": "Cancelar"
+    },
+    "editModal": {
+      "title": "Editar Micro Comando",
+      "commandLabel": "Comando",
+      "commandHelper": "El comando no se puede modificar",
+      "gamePlaceholder": "Buscar nuevo juego... ej: lol, valorant, minecraft",
+      "currentLabel": "Actual:",
+      "saveButton": "Guardar",
+      "cancelButton": "Cancelar"
+    },
+    "messages": {
+      "loadError": "Error al cargar micro comandos",
+      "createError": "Error al crear micro comando",
+      "updateError": "Error al actualizar micro comando",
+      "deleteError": "Error al eliminar micro comando",
+      "deleteNoPermission": "No tienes permisos para eliminar micro comandos",
+      "deleteConfirm": "¿Estás seguro de eliminar el micro comando {{command}}?",
+      "fieldsRequired": "Comando y categoría son requeridos"
+    }
+  },
+  "customCommands": {
+    "loading": "Cargando comandos personalizados...",
+    "accessDenied": {
+      "title": "Acceso Denegado",
+      "message": "No tienes permisos suficientes para acceder a comandos personalizados. Se requiere nivel de acceso \"Comandos\" o superior.",
+      "backButton": "Volver al Dashboard"
+    },
+    "header": {
+      "title": "Comandos Personalizados",
+      "subtitle": "Gestiona comandos de texto personalizados para tu canal",
+      "createButton": "Crear Comando",
+      "importButton": "Importar",
+      "exportButton": "Exportar"
+    },
+    "permissionInfo": {
+      "message": "Modo limitado - Se requiere nivel \"Moderación\" o superior para eliminar comandos"
+    },
+    "empty": {
+      "title": "No hay comandos personalizados",
+      "message": "Crea tu primer comando personalizado para comenzar",
+      "createButton": "Crear Comando"
+    },
+    "table": {
+      "headers": {
+        "command": "Comando",
+        "response": "Respuesta",
+        "restriction": "Restricción",
+        "status": "Estado",
+        "createdBy": "Creado Por",
+        "actions": "Acciones"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Eliminar"
+      },
+      "statusBadges": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "selectAll": "Seleccionar todo",
+      "deselectAll": "Deseleccionar todo"
+    },
+    "restrictions": {
+      "all": "Todos",
+      "mod": "Moderadores",
+      "vip": "VIPs",
+      "sub": "Suscriptores"
+    },
+    "createModal": {
+      "title": "Crear Comando Personalizado",
+      "commandLabel": "Nombre del Comando",
+      "commandPlaceholder": "ej: reglas, discord, redes",
+      "commandHelper": "Se agregará automáticamente el prefijo \"!\"",
+      "responseLabel": "Respuesta",
+      "responsePlaceholder": "La respuesta que enviará el bot...",
+      "restrictionLabel": "Restricción",
+      "statusLabel": "Estado inicial",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "createButton": "Crear",
+      "cancelButton": "Cancelar"
+    },
+    "editModal": {
+      "title": "Editar Comando Personalizado",
+      "commandLabel": "Comando",
+      "commandHelper": "El nombre del comando no se puede modificar",
+      "responseLabel": "Respuesta",
+      "restrictionLabel": "Restricción",
+      "statusLabel": "Estado",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "saveButton": "Guardar",
+      "cancelButton": "Cancelar"
+    },
+    "exportModal": {
+      "title": "Exportar Comandos",
+      "message": "Selecciona los comandos que deseas exportar",
+      "selectedCount": "{{count}} comando(s) seleccionado(s)",
+      "exportButton": "Exportar Seleccionados",
+      "cancelButton": "Cancelar"
+    },
+    "importModal": {
+      "title": "Importar Comandos",
+      "dropzoneText": "Arrastra un archivo JSON aquí o haz clic para seleccionar",
+      "fileSelected": "Archivo seleccionado:",
+      "previewTitle": "Vista previa de importación",
+      "previewStats": {
+        "total": "Total de comandos:",
+        "valid": "Válidos:",
+        "duplicates": "Duplicados:",
+        "invalid": "Inválidos:",
+        "ready": "Listos para importar:"
+      },
+      "commandStatus": {
+        "valid": "Válido",
+        "duplicate": "Ya existe",
+        "invalid": "Inválido"
+      },
+      "importButton": "Importar {{count}} Comando(s)",
+      "cancelButton": "Cancelar"
+    },
+    "messages": {
+      "loadError": "Error al cargar comandos personalizados",
+      "createSuccess": "Comando creado exitosamente",
+      "createError": "Error al crear comando",
+      "updateSuccess": "Comando actualizado exitosamente",
+      "updateError": "Error al actualizar comando",
+      "deleteSuccess": "Comando eliminado exitosamente",
+      "deleteError": "Error al eliminar comando",
+      "deleteNoPermission": "No tienes permisos para eliminar comandos",
+      "deleteConfirm": "¿Estás seguro de eliminar el comando {{command}}?",
+      "fieldsRequired": "Nombre de comando y respuesta son requeridos",
+      "exportSuccess": "Comandos exportados exitosamente",
+      "exportError": "Selecciona al menos un comando para exportar",
+      "importSuccess": "{{count}} comando(s) importado(s) exitosamente",
+      "importError": "Error al importar comandos",
+      "importNoValid": "No hay comandos válidos para importar",
+      "importInvalidFile": "Archivo inválido. Debe ser un JSON con formato correcto."
+    }
+  },
+  "scripting": {
+    "loading": "Cargando scripts...",
+    "accessDenied": {
+      "title": "Acceso Denegado",
+      "message": "No tienes permisos suficientes para acceder a scripts. Se requiere nivel de acceso \"Comandos\" o superior.",
+      "backButton": "Volver al Dashboard"
+    },
+    "header": {
+      "title": "Scripting Commands",
+      "subtitle": "Crea comandos personalizados con lógica avanzada usando scripting",
+      "createButton": "Crear Script"
+    },
+    "permissionInfo": {
+      "message": "Modo limitado - Se requiere nivel \"Moderación\" o superior para eliminar scripts"
+    },
+    "empty": {
+      "title": "No hay scripts",
+      "message": "Crea tu primer script para comandos avanzados",
+      "createButton": "Crear Script"
+    },
+    "table": {
+      "headers": {
+        "command": "Comando",
+        "content": "Contenido",
+        "status": "Estado",
+        "lastUpdate": "Última Actualización",
+        "actions": "Acciones"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Eliminar"
+      },
+      "statusBadges": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      }
+    },
+    "editor": {
+      "loadingTitle": "Cargando...",
+      "titleCreate": "Crear Nuevo Script",
+      "titleEdit": "Editar Script",
+      "backButton": "Volver a Scripts",
+      "validateButton": "Validar Sintaxis",
+      "testButton": "Probar Script",
+      "saveButton": "Guardar Cambios",
+      "createButton": "Crear Script",
+      "cancelButton": "Cancelar",
+      "saving": "Guardando...",
+      "commandNameLabel": "Nombre del Comando",
+      "commandNamePlaceholder": "ej: contador, stats, info",
+      "commandNameHelper": "Nombre del comando sin el prefijo !",
+      "scriptCodeLabel": "Código del Script",
+      "statusLabel": "Estado del Script",
+      "statusActive": "Script activo",
+      "statusInactive": "Script inactivo",
+      "validationValid": "✅ Script válido",
+      "validationError": "❌ Error de sintaxis",
+      "validationErrorDetails": "Error en línea {{line}}: {{message}}",
+      "testResultTitle": "Resultado de la prueba",
+      "testResultSuccess": "✅ El script se ejecutó correctamente",
+      "testResultOutput": "Salida:",
+      "testResultError": "❌ Error al ejecutar el script",
+      "examplesTitle": "Ejemplos de Sintaxis",
+      "exampleBasic": "Básico",
+      "exampleVariables": "Variables",
+      "exampleConditionals": "Condicionales",
+      "exampleCounters": "Contadores",
+      "exampleComplete": "Script Completo",
+      "clearButton": "Limpiar",
+      "insertButton": "Insertar",
+      "undoButton": "Deshacer",
+      "redoButton": "Rehacer",
+      "historyEmpty": "Sin historial"
+    },
+    "messages": {
+      "loadError": "Error al cargar scripts",
+      "deleteSuccess": "Script eliminado exitosamente",
+      "deleteError": "Error al eliminar script",
+      "deleteNoPermission": "No tienes permisos para eliminar scripts",
+      "deleteConfirm": "¿Estás seguro de eliminar el script \"{{command}}\"?",
+      "saveSuccess": "Script guardado exitosamente",
+      "saveError": "Error al guardar script",
+      "createSuccess": "Script creado exitosamente",
+      "createError": "Error al crear script",
+      "updateSuccess": "Script actualizado exitosamente",
+      "updateError": "Error al actualizar script",
+      "validationError": "Error de validación",
+      "testError": "Error al probar script",
+      "fieldRequired": "El nombre del comando es requerido",
+      "scriptRequired": "El contenido del script es requerido"
+    }
+  }
+}

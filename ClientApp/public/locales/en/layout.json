@@ -1,0 +1,62 @@
+{
+  "loadingPermissions": "Loading permissions...",
+  "navigation": {
+    "dashboard": "Dashboard",
+    "followers": "Followers",
+    "commands": {
+      "title": "Commands",
+      "default": "Default",
+      "microcommands": "Micro Commands",
+      "custom": "Custom",
+      "scripting": "Scripts"
+    },
+    "overlays": {
+      "title": "Overlays",
+      "viewAll": "View All",
+      "shoutout": "Shoutouts",
+      "timer": "Timer",
+      "gacha": "Gacha",
+      "giveaway": "Giveaway"
+    },
+    "features": {
+      "title": "Features",
+      "timers": "Timers",
+      "giveaways": "Giveaways",
+      "soundAlerts": "Sound Alerts",
+      "followAlerts": "Follow Alerts",
+      "decatronChat": "Decatron Chat AI",
+      "decatronAI": "Decatron AI"
+    },
+    "moderation": {
+      "title": "Chat Moderation",
+      "bannedWords": "Banned Words"
+    },
+    "admin": {
+      "title": "Admin",
+      "decatronAI": "Decatron AI",
+      "decatronChat": "Decatron Chat AI"
+    },
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "documentation": {
+      "title": "Documentation",
+      "home": "Home",
+      "variables": "System Variables",
+      "commands": "Commands",
+      "overlays": "Overlays",
+      "apiReference": "API Reference"
+    },
+    "logout": "Logout"
+  },
+  "comingSoon": "Coming Soon",
+  "tokenExpiration": {
+    "title": "Your session is about to expire",
+    "message": "Time remaining: {{minutes}} minutes. Please save your work. You will be redirected to login automatically.",
+    "renewButton": "Renew session"
+  },
+  "channelSwitcher": {
+    "owner": "Owner",
+    "settings": "Settings",
+    "logout": "Logout"
+  }
+}

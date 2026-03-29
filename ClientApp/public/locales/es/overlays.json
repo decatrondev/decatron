@@ -1,0 +1,76 @@
+{
+  "loading": "Verificando permisos...",
+  "accessDenied": {
+    "title": "Acceso Denegado",
+    "message": "No tienes permisos suficientes para acceder a overlays. Se requiere nivel de acceso \"Moderación\" o superior.",
+    "backButton": "Volver al Dashboard"
+  },
+  "header": {
+    "title": "Overlays",
+    "subtitle": "Gestiona los overlays visuales para tu stream de Twitch"
+  },
+  "status": {
+    "available": "✓ Disponible",
+    "comingSoon": "⏳ Próximamente"
+  },
+  "features": "CARACTERÍSTICAS:",
+  "usage": "USO EN CHAT:",
+  "configureButton": "Configurar",
+  "comingSoonButton": "Próximamente",
+  "overlays": {
+    "shoutout": {
+      "name": "Shoutouts (!so)",
+      "description": "Overlay visual para hacer shoutouts a otros streamers mostrando su último clip y perfil",
+      "features": [
+        "Muestra el último clip del streamer",
+        "Perfil y foto del usuario",
+        "Personalización completa de colores y textos",
+        "Duración y layout configurable"
+      ],
+      "usage": "!so @usuario"
+    },
+    "timer": {
+      "name": "Timer",
+      "description": "Temporizador en pantalla con alertas de eventos, progreso visual y personalización completa",
+      "features": [
+        "Contador regresivo/progresivo",
+        "Alertas de eventos configurables",
+        "Barra de progreso visual",
+        "Multimedia y sonidos personalizados"
+      ],
+      "usage": "!dtimer start/pause/stop"
+    },
+    "giveaway": {
+      "name": "Giveaway",
+      "description": "Sistema de sorteos en vivo con animaciones y participación del chat",
+      "features": [
+        "Sorteos en tiempo real",
+        "Participación por comandos del chat",
+        "Animación de selección de ganador",
+        "Historial de ganadores"
+      ],
+      "usage": "!sorteo participar"
+    },
+    "soundAlerts": {
+      "name": "Sound Alerts",
+      "description": "Alertas de audio/video personalizadas para canjes de puntos del canal",
+      "features": [
+        "Reproduce videos y audios",
+        "Integración con puntos del canal",
+        "Múltiples alertas configurables",
+        "Control de volumen y duración"
+      ],
+      "usage": "Canjes de puntos del canal"
+    },
+    "gacha": {
+      "name": "Gacha",
+      "description": "Sistema de recompensas aleatorias con animaciones visuales para tu stream",
+      "features": [
+        "Sistema de recompensas aleatorias",
+        "Animaciones visuales atractivas",
+        "Rareza de items configurable",
+        "Integración con puntos del canal"
+      ]
+    }
+  }
+}
