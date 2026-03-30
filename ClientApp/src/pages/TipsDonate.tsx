@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Heart, DollarSign, MessageSquare, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface DonationPageConfig {
@@ -45,6 +46,7 @@ declare global {
 type DonationStatus = 'idle' | 'processing' | 'success' | 'error';
 
 export default function TipsDonate() {
+    const { t } = useTranslation('tips');
     const { channelName } = useParams<{ channelName: string }>();
 
     const [config, setConfig] = useState<DonationPageConfig | null>(null);
@@ -70,9 +72,9 @@ export default function TipsDonate() {
                 const response = await fetch(`/api/tips/page/${channelName}`);
                 if (!response.ok) {
                     if (response.status === 404) {
-                        setError('Este streamer no tiene habilitadas las donaciones.');
+                        setError(t('errorDonationsNotEnabled'));
                     } else {
-                        setError('Error al cargar la página de donaciones.');
+                        setError(t('errorLoadingPage'));
                     }
                     return;
                 }
@@ -85,7 +87,7 @@ export default function TipsDonate() {
                     setAmount(suggested[0]);
                 }
             } catch (err) {
-                setError('Error de conexión. Intenta de nuevo.');
+                setError(t('errorConnection'));
             } finally {
                 setLoading(false);
             }
@@ -158,7 +160,7 @@ export default function TipsDonate() {
             },
             createOrder: async () => {
                 setStatus('processing');
-                setStatusMessage('Creando orden...');
+                setStatusMessage(t('creatingOrder'));
 
                 const response = await fetch('/api/tips/paypal/create-order', {
                     method: 'POST',
@@ -174,13 +176,13 @@ export default function TipsDonate() {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.error || 'Error al crear orden');
+                    throw new Error(data.error || t('errorCreatingOrder'));
                 }
 
                 return data.orderId;
             },
             onApprove: async (data) => {
-                setStatusMessage('Procesando pago...');
+                setStatusMessage(t('processingPayment'));
 
                 try {
                     const response = await fetch('/api/tips/paypal/capture-order', {
@@ -197,18 +199,18 @@ export default function TipsDonate() {
                     if (response.ok && result.success) {
                         setStatus('success');
                         setTimeAdded(result.timeAdded || 0);
-                        setStatusMessage('¡Gracias por tu donación!');
+                        setStatusMessage(t('thankYouDonation'));
                     } else {
-                        throw new Error(result.error || 'Error al procesar pago');
+                        throw new Error(result.error || t('errorProcessingPayment'));
                     }
                 } catch (err) {
                     setStatus('error');
-                    setStatusMessage(err instanceof Error ? err.message : 'Error al procesar pago');
+                    setStatusMessage(err instanceof Error ? err.message : t('errorProcessingPayment'));
                 }
             },
             onError: (err) => {
                 setStatus('error');
-                setStatusMessage('Error en el pago. Intenta de nuevo.');
+                setStatusMessage(t('paymentError'));
                 console.error('PayPal error:', err);
             },
             onCancel: () => {
@@ -221,8 +223,8 @@ export default function TipsDonate() {
     const formatCurrency = (value: number) => {
         const symbols: Record<string, string> = {
             USD: '$',
-            EUR: '€',
-            GBP: '£',
+            EUR: '\u20ac',
+            GBP: '\u00a3',
             MXN: '$',
             BRL: 'R$'
         };
@@ -248,7 +250,7 @@ export default function TipsDonate() {
             <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center p-4">
                 <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 max-w-md text-center">
                     <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-white mb-2">No disponible</h1>
+                    <h1 className="text-2xl font-bold text-white mb-2">{t('notAvailableTitle')}</h1>
                     <p className="text-gray-400">{error}</p>
                 </div>
             </div>
@@ -266,13 +268,13 @@ export default function TipsDonate() {
                     >
                         <CheckCircle className="w-12 h-12 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">¡Gracias!</h1>
+                    <h1 className="text-3xl font-bold text-white mb-2">{t('thankYouTitle')}</h1>
                     <p className="text-xl text-gray-300 mb-4">
-                        Tu donación de {formatCurrency(getEffectiveAmount())} ha sido recibida
+                        {t('donationReceived', { amount: formatCurrency(getEffectiveAmount()) })}
                     </p>
                     {timeAdded > 0 && (
                         <p className="text-lg text-purple-400">
-                            +{Math.floor(timeAdded / 60)}m {timeAdded % 60}s añadidos al timer
+                            {t('timeAdded', { minutes: Math.floor(timeAdded / 60), seconds: timeAdded % 60 })}
                         </p>
                     )}
                     <button
@@ -283,7 +285,7 @@ export default function TipsDonate() {
                         className="mt-6 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
                         style={{ backgroundColor: config.pageAccentColor }}
                     >
-                        Donar de nuevo
+                        {t('donateAgain')}
                     </button>
                 </div>
             </div>
@@ -313,7 +315,7 @@ export default function TipsDonate() {
                         <p className="text-gray-400">{config.pageDescription}</p>
                     )}
                     <p className="text-lg text-purple-400 mt-2">
-                        Apoyar a <span className="font-bold">{config.channelName}</span>
+                        {t('supportChannel', { channelName: config.channelName })}
                     </p>
                 </div>
 
@@ -322,13 +324,13 @@ export default function TipsDonate() {
                     {/* Donor Name */}
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Tu nombre (se mostrará en el stream)
+                            {t('donorNameLabel')}
                         </label>
                         <input
                             type="text"
                             value={donorName}
                             onChange={(e) => setDonorName(e.target.value)}
-                            placeholder="Ingresa tu nombre"
+                            placeholder={t('donorNamePlaceholder')}
                             maxLength={50}
                             className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
                         />
@@ -337,7 +339,7 @@ export default function TipsDonate() {
                     {/* Amount Selection */}
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Cantidad a donar
+                            {t('donationAmountLabel')}
                         </label>
 
                         {/* Suggested Amounts */}
@@ -375,7 +377,7 @@ export default function TipsDonate() {
                                     setUseCustomAmount(true);
                                 }}
                                 onFocus={() => setUseCustomAmount(true)}
-                                placeholder="Cantidad personalizada"
+                                placeholder={t('customAmountPlaceholder')}
                                 min={config.minAmount}
                                 max={config.maxAmount}
                                 step="0.01"
@@ -387,7 +389,7 @@ export default function TipsDonate() {
                             />
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Mínimo: {formatCurrency(config.minAmount)} - Máximo: {formatCurrency(config.maxAmount)}
+                            {t('amountRange', { min: formatCurrency(config.minAmount), max: formatCurrency(config.maxAmount) })}
                         </p>
                     </div>
 
@@ -395,12 +397,12 @@ export default function TipsDonate() {
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
                             <MessageSquare className="inline w-4 h-4 mr-1" />
-                            Mensaje {config.requireMessage ? '(requerido)' : '(opcional)'}
+                            {t('messageLabel')} {config.requireMessage ? t('messageRequired') : t('messageOptional')}
                         </label>
                         <textarea
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Escribe un mensaje para el streamer..."
+                            placeholder={t('messagePlaceholder')}
                             maxLength={config.maxMessageLength}
                             rows={3}
                             className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
@@ -413,17 +415,17 @@ export default function TipsDonate() {
                     {/* Validation Errors */}
                     {!donorName.trim() && (
                         <p className="text-yellow-500 text-sm">
-                            Ingresa tu nombre para continuar
+                            {t('enterNameToContinue')}
                         </p>
                     )}
                     {config.requireMessage && !message.trim() && (
                         <p className="text-yellow-500 text-sm">
-                            El mensaje es requerido
+                            {t('messageIsRequired')}
                         </p>
                     )}
                     {(getEffectiveAmount() < config.minAmount || getEffectiveAmount() > config.maxAmount) && (
                         <p className="text-red-500 text-sm">
-                            La cantidad debe estar entre {formatCurrency(config.minAmount)} y {formatCurrency(config.maxAmount)}
+                            {t('amountOutOfRange', { min: formatCurrency(config.minAmount), max: formatCurrency(config.maxAmount) })}
                         </p>
                     )}
 
@@ -450,7 +452,7 @@ export default function TipsDonate() {
                     {/* Total */}
                     <div className="border-t border-gray-700 pt-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-400">Total a pagar:</span>
+                            <span className="text-gray-400">{t('totalToPay')}</span>
                             <span className="text-2xl font-bold text-white">
                                 {formatCurrency(getEffectiveAmount())}
                             </span>
@@ -460,17 +462,17 @@ export default function TipsDonate() {
 
                 {/* Footer */}
                 <div className="text-center mt-6 text-gray-500 text-sm">
-                    <p>Pagos seguros procesados por PayPal</p>
+                    <p>{t('securePaypal')}</p>
                     <div className="mt-2 flex items-center justify-center gap-4">
                         <Link to="/tip/privacy" className="hover:text-purple-400 underline">
-                            Privacy Policy
+                            {t('privacyPolicy')}
                         </Link>
                         <span>•</span>
                         <Link to="/tip/terms" className="hover:text-purple-400 underline">
-                            Terms of Service
+                            {t('termsOfService')}
                         </Link>
                     </div>
-                    <p className="mt-2">Powered by Decatron</p>
+                    <p className="mt-2">{t('poweredBy')}</p>
                 </div>
             </div>
         </div>

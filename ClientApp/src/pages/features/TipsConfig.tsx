@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     DollarSign, Settings, Bell, Clock, Shield, ExternalLink,
     Check, X, AlertCircle, Info, Zap, Link2, Copy, Eye,
@@ -71,6 +72,7 @@ const DEFAULT_SETTINGS: TipsSettings = {
 };
 
 export default function TipsConfig() {
+    const { t } = useTranslation('features');
     const [searchParams, setSearchParams] = useSearchParams();
     const [settings, setSettings] = useState<TipsSettings>(DEFAULT_SETTINGS);
     const [loading, setLoading] = useState(true);
@@ -104,7 +106,7 @@ export default function TipsConfig() {
                 console.error('Error decoding email:', e);
             }
         } else if (paypalStatus === 'error') {
-            alert('Error al conectar con PayPal. Intenta de nuevo.');
+            alert(t('tipsConfig.paypalError'));
             setSearchParams({});
         }
     }, [searchParams]);
@@ -255,7 +257,7 @@ export default function TipsConfig() {
     };
 
     const disconnectPayPal = async () => {
-        if (!confirm('¿Desconectar tu cuenta de PayPal?')) return;
+        if (!confirm(t('tipsConfig.disconnectConfirm'))) return;
         try {
             const token = localStorage.getItem('token');
             await fetch('/api/tips/paypal/disconnect', {
@@ -327,10 +329,10 @@ export default function TipsConfig() {
                 <div>
                     <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-3">
                         <DollarSign className="w-8 h-8 text-green-500" />
-                        Tips & Donaciones
+                        {t('tipsConfig.title')}
                     </h1>
                     <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                        Recibe donaciones de tu comunidad a través de PayPal
+                        {t('tipsConfig.subtitle')}
                     </p>
                 </div>
 
@@ -341,7 +343,7 @@ export default function TipsConfig() {
                         className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg font-bold flex items-center gap-2 transition-all hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50"
                     >
                         <Play className="w-4 h-4" />
-                        {testing ? 'Enviando...' : 'Test'}
+                        {testing ? t('tipsConfig.sending') : t('tipsConfig.test')}
                     </button>
                     <button
                         onClick={saveSettings}
@@ -355,7 +357,7 @@ export default function TipsConfig() {
                         ) : (
                             <Check className="w-4 h-4" />
                         )}
-                        {copied === 'saved' ? 'Guardado' : 'Guardar'}
+                        {copied === 'saved' ? t('tipsConfig.saved') : t('tipsConfig.save')}
                     </button>
                 </div>
             </div>
@@ -375,17 +377,17 @@ export default function TipsConfig() {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                Cuenta de PayPal
+                                {t('tipsConfig.paypalAccount')}
                             </h2>
                             {settings.paypalConnected && settings.paypalEmail ? (
                                 <div className="flex items-center gap-2 mt-1">
                                     <Check className="w-4 h-4 text-green-500" />
-                                    <span className="text-green-600 dark:text-green-400 font-semibold">Conectado</span>
+                                    <span className="text-green-600 dark:text-green-400 font-semibold">{t('tipsConfig.connected')}</span>
                                     <span className="text-[#64748b] dark:text-[#94a3b8]">· {settings.paypalEmail}</span>
                                 </div>
                             ) : (
                                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                    Conecta tu cuenta para recibir donaciones
+                                    {t('tipsConfig.connectDesc')}
                                 </p>
                             )}
                         </div>
@@ -397,7 +399,7 @@ export default function TipsConfig() {
                             className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center gap-2 hover:bg-red-200 dark:hover:bg-red-900/50"
                         >
                             <Unlink className="w-4 h-4" />
-                            Desconectar
+                            {t('tipsConfig.disconnect')}
                         </button>
                     ) : (
                         <button
@@ -410,7 +412,7 @@ export default function TipsConfig() {
                             ) : (
                                 <ExternalLink className="w-5 h-5" />
                             )}
-                            {connecting ? 'Conectando...' : 'Conectar con PayPal'}
+                            {connecting ? t('tipsConfig.connecting') : t('tipsConfig.connectPayPal')}
                         </button>
                     )}
                 </div>
@@ -419,8 +421,7 @@ export default function TipsConfig() {
                     <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
                         <div className="flex items-start gap-3">
                             <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                            <div className="text-sm text-green-700 dark:text-green-300">
-                                Las donaciones se enviarán a <strong>{settings.paypalEmail}</strong>
+                            <div className="text-sm text-green-700 dark:text-green-300" dangerouslySetInnerHTML={{ __html: t('tipsConfig.donationsSentTo', { email: settings.paypalEmail }) }}>
                             </div>
                         </div>
                     </div>
@@ -433,7 +434,7 @@ export default function TipsConfig() {
                 <div className={cardClass}>
                     <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-3">
                         <Link2 className="w-4 h-4" />
-                        Página de donaciones
+                        {t('tipsConfig.donationPage')}
                     </h3>
                     <div className="flex items-center gap-2">
                         <div className="flex-1 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
@@ -466,7 +467,7 @@ export default function TipsConfig() {
                 <div className={cardClass}>
                     <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-3">
                         <Eye className="w-4 h-4" />
-                        Overlay para OBS
+                        {t('tipsConfig.overlayObs')}
                     </h3>
                     <div className="flex items-center gap-2">
                         <div className="flex-1 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
@@ -491,12 +492,12 @@ export default function TipsConfig() {
             {/* Tabs */}
             <div className="flex gap-2 border-b border-[#e2e8f0] dark:border-[#374151] pb-4 overflow-x-auto">
                 {[
-                    { id: 'general', icon: <Settings className="w-4 h-4" />, label: 'General' },
-                    { id: 'page', icon: <ImageIcon className="w-4 h-4" />, label: 'Página' },
-                    { id: 'alerts', icon: <Bell className="w-4 h-4" />, label: 'Alertas' },
-                    { id: 'timer', icon: <Clock className="w-4 h-4" />, label: 'Timer' },
-                    { id: 'security', icon: <Shield className="w-4 h-4" />, label: 'Seguridad' },
-                    { id: 'history', icon: <History className="w-4 h-4" />, label: 'Historial' },
+                    { id: 'general', icon: <Settings className="w-4 h-4" />, label: t('tipsConfig.tabs.general') },
+                    { id: 'page', icon: <ImageIcon className="w-4 h-4" />, label: t('tipsConfig.tabs.page') },
+                    { id: 'alerts', icon: <Bell className="w-4 h-4" />, label: t('tipsConfig.tabs.alerts') },
+                    { id: 'timer', icon: <Clock className="w-4 h-4" />, label: t('tipsConfig.tabs.timer') },
+                    { id: 'security', icon: <Shield className="w-4 h-4" />, label: t('tipsConfig.tabs.security') },
+                    { id: 'history', icon: <History className="w-4 h-4" />, label: t('tipsConfig.tabs.history') },
                 ].map(tab => (
                     <button
                         key={tab.id}

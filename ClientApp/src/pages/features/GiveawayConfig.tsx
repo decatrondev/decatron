@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
 
 // Hooks personalizados
@@ -32,6 +33,7 @@ import type { GiveawayTabType } from './giveaway-extension/types';
 
 const GiveawayConfig = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
 
     // ========================================================================
@@ -168,13 +170,13 @@ const GiveawayConfig = () => {
     // ========================================================================
 
     const tabs: { id: GiveawayTabType; label: string; icon: string }[] = [
-        { id: 'create', label: 'Crear', icon: '🎁' },
-        { id: 'requirements', label: 'Requisitos', icon: '🛡️' },
-        { id: 'weights', label: 'Pesos', icon: '⚖️' },
-        { id: 'active', label: 'Activo', icon: '🎲' },
-        { id: 'history', label: 'Historial', icon: '📋' },
-        { id: 'settings', label: 'Configuración', icon: '⚙️' },
-        { id: 'debug', label: 'Debug', icon: '🧪' },
+        { id: 'create', label: t('giveaway.tabs.create'), icon: '🎁' },
+        { id: 'requirements', label: t('giveaway.tabs.requirements'), icon: '🛡️' },
+        { id: 'weights', label: t('giveaway.tabs.weights'), icon: '⚖️' },
+        { id: 'active', label: t('giveaway.tabs.active'), icon: '🎲' },
+        { id: 'history', label: t('giveaway.tabs.history'), icon: '📋' },
+        { id: 'settings', label: t('giveaway.tabs.settings'), icon: '⚙️' },
+        { id: 'debug', label: t('giveaway.tabs.debug'), icon: '🧪' },
     ];
 
     // ========================================================================
@@ -186,7 +188,7 @@ const GiveawayConfig = () => {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Cargando configuración...</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('giveaway.loadingConfig')}</p>
                 </div>
             </div>
         );
@@ -206,10 +208,10 @@ const GiveawayConfig = () => {
                         </button>
                         <div>
                             <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                🎉 Sistema de Giveaways
+                                🎉 {t('giveaway.title')}
                             </h1>
                             <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                Crea sorteos profesionales con requisitos, pesos y validaciones
+                                {t('giveaway.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -218,7 +220,7 @@ const GiveawayConfig = () => {
                         <button
                             onClick={handleSave}
                             disabled={persistence.saving || giveawayState.isActive}
-                            title={giveawayState.isActive ? '⏸️ No puedes guardar mientras hay un giveaway activo' : 'Guardar configuración'}
+                            title={giveawayState.isActive ? t('giveaway.cannotSaveActive') : t('giveaway.saveConfig')}
                             className={`px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg ${
                                 persistence.saving || giveawayState.isActive
                                     ? 'bg-gray-400 cursor-not-allowed text-gray-200'
@@ -226,7 +228,7 @@ const GiveawayConfig = () => {
                             }`}
                         >
                             <Save className="w-5 h-5" />
-                            {persistence.saving ? 'Guardando...' : 'Guardar Configuración'}
+                            {persistence.saving ? t('giveaway.saving') : t('giveaway.saveConfig')}
                         </button>
                     </div>
                 </div>

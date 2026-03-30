@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Save, ArrowLeft, Check, Copy, Play, X, Volume2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { useEventAlertsConfig } from './event-alerts-extension/hooks/useEventAlertsConfig';
 import { useEventAlertsPersistence } from './event-alerts-extension/hooks/useEventAlertsPersistence';
@@ -405,6 +406,7 @@ function AlertPreview({
     raidsConfig, resubsConfig, hypeTrainConfig,
     overlayUrl,
 }: AlertPreviewProps) {
+    const { t } = useTranslation('features');
     const [copied, setCopied] = React.useState(false);
     const [showFullPreview, setShowFullPreview] = React.useState(false);
 
@@ -468,12 +470,12 @@ function AlertPreview({
                     style={{ width: `${previewWidth}px`, height: `${previewHeight}px` }}
                 >
                     <p className="text-[#64748b] dark:text-[#94a3b8] text-sm text-center px-4">
-                        Selecciona un tab de evento para ver el preview
+                        {t('eventAlerts.selectEventTab')}
                     </p>
                 </div>
                 {overlayUrl && (
                     <div className="p-3 bg-white dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                        <div className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">🔗 Link OBS</div>
+                        <div className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('eventAlerts.obsLink')}</div>
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -486,7 +488,7 @@ function AlertPreview({
                                 className="px-2 py-1 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white rounded text-xs font-bold flex items-center gap-1 whitespace-nowrap"
                             >
                                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                {copied ? '✓' : 'Copiar'}
+                                {copied ? '✓' : t('eventAlerts.copy')}
                             </button>
                         </div>
                     </div>
@@ -573,7 +575,7 @@ function AlertPreview({
                                     lineHeight: 1.3,
                                 }}
                             >
-                                ¡Gracias por el Follow!
+                                {t('eventAlerts.thanksFollow')}
                             </div>
                         </div>
                     )}
@@ -608,7 +610,7 @@ function AlertPreview({
 
                 {overlayUrl && (
                     <div className="p-3 bg-white dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                        <div className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">🔗 Link OBS</div>
+                        <div className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('eventAlerts.obsLink')}</div>
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -621,7 +623,7 @@ function AlertPreview({
                                 className="px-2 py-1 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white rounded text-xs font-bold flex items-center gap-1 whitespace-nowrap"
                             >
                                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                {copied ? '✓' : 'Copiar'}
+                                {copied ? '✓' : t('eventAlerts.copy')}
                             </button>
                         </div>
                     </div>
@@ -636,7 +638,7 @@ function AlertPreview({
             <div className="space-y-3">
                 <div className="aspect-video bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151] flex items-center justify-center">
                     <p className="text-[#64748b] dark:text-[#94a3b8] text-sm text-center px-4">
-                        No hay configuración de alerta disponible
+                        {t('eventAlerts.noAlertConfig')}
                     </p>
                 </div>
             </div>
@@ -782,15 +784,15 @@ function AlertPreview({
             {/* Quick stats */}
             <div className="grid grid-cols-3 gap-2 text-xs">
                 <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-2 text-center">
-                    <div className="text-[#64748b] dark:text-[#94a3b8]">Duración</div>
+                    <div className="text-[#64748b] dark:text-[#94a3b8]">{t('eventAlerts.duration')}</div>
                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{alert.duration}s</div>
                 </div>
                 <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-2 text-center">
-                    <div className="text-[#64748b] dark:text-[#94a3b8]">Animación</div>
+                    <div className="text-[#64748b] dark:text-[#94a3b8]">{t('eventAlerts.animation')}</div>
                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc] capitalize">{animLabel}</div>
                 </div>
                 <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-2 text-center">
-                    <div className="text-[#64748b] dark:text-[#94a3b8]">Volumen</div>
+                    <div className="text-[#64748b] dark:text-[#94a3b8]">{t('eventAlerts.volume')}</div>
                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{alert.volume}%</div>
                 </div>
             </div>
@@ -801,7 +803,7 @@ function AlertPreview({
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                     : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
             }`}>
-                {alert.enabled ? '✅ Alerta activa' : '❌ Alerta desactivada'}
+                {alert.enabled ? t('eventAlerts.alertActive') : t('eventAlerts.alertDisabled')}
             </div>
 
             {/* Play Preview Button */}
@@ -811,13 +813,13 @@ function AlertPreview({
                     className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
                 >
                     <Play className="w-5 h-5" />
-                    Play Preview con Sonido
+                    {t('eventAlerts.playPreview')}
                 </button>
             )}
 
             {overlayUrl && (
                 <div className="p-3 bg-white dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                    <div className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">🔗 Link OBS</div>
+                    <div className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('eventAlerts.obsLink')}</div>
                     <div className="flex gap-2">
                         <input
                             type="text"
@@ -830,7 +832,7 @@ function AlertPreview({
                             className="px-2 py-1 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white rounded text-xs font-bold flex items-center gap-1 whitespace-nowrap"
                         >
                             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                            {copied ? '✓' : 'Copiar'}
+                            {copied ? '✓' : t('eventAlerts.copy')}
                         </button>
                     </div>
                 </div>
@@ -859,6 +861,7 @@ const EVENT_TABS_SET = new Set(['follow', 'bits', 'subs', 'giftSubs', 'raids', '
 
 const EventAlertsConfig = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const [activeTab, setActiveTab] = useState<TabType>('global');
     const [lastEventTab, setLastEventTab] = useState<string>('follow'); // Último evento seleccionado
     const [channelName, setChannelName] = useState('');
@@ -924,18 +927,18 @@ const EventAlertsConfig = () => {
     // Configuración de tabs
     // Orden: Global → Eventos → Editor (carga config de eventos) → Extras
     const tabs: { id: TabType; label: string; icon: string; disabled?: boolean }[] = [
-        { id: 'global', label: 'Global', icon: '⚙️' },
-        { id: 'follow', label: 'Follows', icon: '❤️' },
-        { id: 'bits', label: 'Bits', icon: '💎' },
-        { id: 'subs', label: 'Subs', icon: '⭐' },
-        { id: 'giftSubs', label: 'Gift Subs', icon: '🎁' },
-        { id: 'raids', label: 'Raids', icon: '🚀' },
-        { id: 'resubs', label: 'Resubs', icon: '🎉' },
-        { id: 'hypeTrain', label: 'Hype Train', icon: '🔥' },
-        { id: 'overlay', label: 'Editor', icon: '🎨' }, // Editor carga config de los eventos
-        { id: 'media', label: 'Media', icon: '📁' },
-        { id: 'testing', label: 'Testing', icon: '🧪' },
-        { id: 'style', label: 'Avanzado', icon: '⚡' },
+        { id: 'global', label: t('eventAlerts.tabs.global'), icon: '⚙️' },
+        { id: 'follow', label: t('eventAlerts.tabs.follows'), icon: '❤️' },
+        { id: 'bits', label: t('eventAlerts.tabs.bits'), icon: '💎' },
+        { id: 'subs', label: t('eventAlerts.tabs.subs'), icon: '⭐' },
+        { id: 'giftSubs', label: t('eventAlerts.tabs.giftSubs'), icon: '🎁' },
+        { id: 'raids', label: t('eventAlerts.tabs.raids'), icon: '🚀' },
+        { id: 'resubs', label: t('eventAlerts.tabs.resubs'), icon: '🎉' },
+        { id: 'hypeTrain', label: t('eventAlerts.tabs.hypeTrain'), icon: '🔥' },
+        { id: 'overlay', label: t('eventAlerts.tabs.editor'), icon: '🎨' },
+        { id: 'media', label: t('eventAlerts.tabs.media'), icon: '📁' },
+        { id: 'testing', label: t('eventAlerts.tabs.testing'), icon: '🧪' },
+        { id: 'style', label: t('eventAlerts.tabs.advanced'), icon: '⚡' },
     ];
 
     // Handlers
@@ -945,9 +948,9 @@ const EventAlertsConfig = () => {
     };
 
     const handleReset = () => {
-        if (window.confirm('¿Estás seguro de resetear toda la configuración?')) {
+        if (window.confirm(t('eventAlerts.resetConfirm'))) {
             resetToDefaults();
-            alert('Configuración reseteada a valores por defecto');
+            alert(t('eventAlerts.resetDone'));
         }
     };
 
@@ -956,7 +959,7 @@ const EventAlertsConfig = () => {
             await api.post('/eventalerts/test', { eventType, ...data });
         } catch (error) {
             console.error('❌ Error sending test alert:', error);
-            alert('Error al enviar la alerta de prueba. Verifica que el overlay esté abierto.');
+            alert(t('eventAlerts.testError'));
         }
     };
 
@@ -965,7 +968,7 @@ const EventAlertsConfig = () => {
             <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] flex items-center justify-center">
                 <div className="text-center">
                     <div className="text-4xl mb-4">🎉</div>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] font-bold">Cargando Event Alerts...</p>
+                    <p className="text-[#64748b] dark:text-[#94a3b8] font-bold">{t('eventAlerts.loadingEventAlerts')}</p>
                 </div>
             </div>
         );
@@ -985,10 +988,10 @@ const EventAlertsConfig = () => {
                         </button>
                         <div>
                             <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                🎉 Event Alerts
+                                🎉 {t('eventAlerts.title')}
                             </h1>
                             <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                Configura alertas para follows, bits, subs, raids y más eventos de Twitch
+                                {t('eventAlerts.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -1015,7 +1018,7 @@ const EventAlertsConfig = () => {
                             className="px-6 py-3 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-60 text-white rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg"
                         >
                             <Save className="w-5 h-5" />
-                            {saving ? 'Guardando...' : 'Guardar Configuración'}
+                            {saving ? t('eventAlerts.saving') : t('eventAlerts.saveConfig')}
                         </button>
                     </div>
                 </div>
@@ -1125,7 +1128,7 @@ const EventAlertsConfig = () => {
                     <div className="xl:col-span-1">
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg sticky top-6">
                             <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                                📺 Preview — {tabs.find(t => t.id === activeTab)?.label}
+                                {t('eventAlerts.preview')} — {tabs.find(tab => tab.id === activeTab)?.label}
                             </h3>
                             <AlertPreview
                                 activeTab={activeTab}
@@ -1148,7 +1151,7 @@ const EventAlertsConfig = () => {
                     <div className="mt-6">
                         <details className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
                             <summary className="cursor-pointer font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                🔧 Debug Config
+                                {t('eventAlerts.debugConfig')}
                             </summary>
                             <pre className="mt-4 text-xs overflow-auto text-[#64748b] dark:text-[#94a3b8] bg-[#f8fafc] dark:bg-[#262626] p-4 rounded-lg">
                                 {JSON.stringify(getCompleteConfig(), null, 2)}

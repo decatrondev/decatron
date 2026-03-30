@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Lock, Save, Plus, Trash2, Users, BarChart3, AlertCircle, ExternalLink, Cpu, Settings } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
@@ -32,6 +33,7 @@ interface Stats {
 
 export default function DecatronAIConfig() {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const [canConfigure, setCanConfigure] = useState(false);
     const [noAccess, setNoAccess] = useState(false);
@@ -112,7 +114,7 @@ export default function DecatronAIConfig() {
             }
             if (statsRes.data.success) setStats(statsRes.data.stats);
         } catch {
-            showMessage('error', 'Error cargando datos');
+            showMessage('error', t('decatronAI.errorLoading'));
         }
     };
 
@@ -125,10 +127,10 @@ export default function DecatronAIConfig() {
                 blacklistUsers: config.blacklistUsers
             });
             if (response.data.success) {
-                showMessage('success', 'Configuracion guardada');
+                showMessage('success', t('decatronAI.configSaved'));
             }
         } catch {
-            showMessage('error', 'Error guardando configuracion');
+            showMessage('error', t('decatronAI.errorSaving'));
         } finally {
             setSaving(false);
         }
@@ -166,7 +168,7 @@ export default function DecatronAIConfig() {
     };
 
     if (permissionsLoading || loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">Cargando...</div>;
+        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('decatronAI.loading')}</div>;
     }
 
     // Sin permiso control_total
@@ -175,15 +177,15 @@ export default function DecatronAIConfig() {
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
                     <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">Acceso Denegado</h2>
+                    <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">{t('decatronAI.accessDenied')}</h2>
                     <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
-                        No tienes permisos suficientes para acceder a Decatron IA. Se requiere nivel de acceso "Control Total".
+                        {t('decatronAI.noPermission')}
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
                         className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
                     >
-                        Volver al Dashboard
+                        {t('decatronAI.backToDashboard')}
                     </button>
                 </div>
             </div>
@@ -196,10 +198,9 @@ export default function DecatronAIConfig() {
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-8 max-w-md text-center">
                     <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-yellow-600 dark:text-yellow-400 mb-2">Acceso Restringido</h2>
+                    <h2 className="text-2xl font-black text-yellow-600 dark:text-yellow-400 mb-2">{t('decatronAI.accessRestricted')}</h2>
                     <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
-                        Necesitas permisos especiales para configurar Decatron IA en este canal.
-                        Contacta con el desarrollador para solicitar acceso.
+                        {t('decatronAI.needSpecialPermission')}
                     </p>
                     <div className="space-y-3">
                         <a
@@ -224,7 +225,7 @@ export default function DecatronAIConfig() {
                             onClick={() => navigate('/dashboard')}
                             className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] rounded-lg font-bold transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
                         >
-                            Volver al Dashboard
+                            {t('decatronAI.backToDashboard')}
                         </button>
                     </div>
                 </div>
@@ -241,10 +242,10 @@ export default function DecatronAIConfig() {
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <Cpu className="w-8 h-8 text-[#2563eb]" />
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Decatron IA</h1>
+                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('decatronAI.title')}</h1>
                     </div>
                     <p className="text-[#64748b] dark:text-[#94a3b8]">
-                        Configura la IA para el canal <span className="font-bold text-[#2563eb]">{channelName}</span>
+                        {t('decatronAI.configureForChannel')} <span className="font-bold text-[#2563eb]">{channelName}</span>
                     </p>
                 </div>
             </div>
@@ -262,19 +263,19 @@ export default function DecatronAIConfig() {
                     onClick={() => setActiveTab('config')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'config' ? 'bg-[#2563eb] text-white' : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
                 >
-                    <Settings className="w-4 h-4" /> Configuracion
+                    <Settings className="w-4 h-4" /> {t('decatronAI.tabs.config')}
                 </button>
                 <button
                     onClick={() => setActiveTab('users')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'users' ? 'bg-[#2563eb] text-white' : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
                 >
-                    <Users className="w-4 h-4" /> Usuarios
+                    <Users className="w-4 h-4" /> {t('decatronAI.tabs.users')}
                 </button>
                 <button
                     onClick={() => setActiveTab('stats')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'stats' ? 'bg-[#2563eb] text-white' : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
                 >
-                    <BarChart3 className="w-4 h-4" /> Estadisticas
+                    <BarChart3 className="w-4 h-4" /> {t('decatronAI.tabs.stats')}
                 </button>
             </div>
 
@@ -283,22 +284,22 @@ export default function DecatronAIConfig() {
                 <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">NIVEL DE PERMISO</label>
+                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('decatronAI.config.permissionLevel')}</label>
                             <select
                                 value={config.permissionLevel}
                                 onChange={(e) => setConfig({ ...config, permissionLevel: e.target.value })}
                                 className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
                             >
-                                <option value="everyone">Todos</option>
-                                <option value="subscriber">Suscriptores+</option>
-                                <option value="vip">VIPs+</option>
-                                <option value="moderator">Moderadores+</option>
-                                <option value="broadcaster">Solo Streamer</option>
+                                <option value="everyone">{t('decatronAI.config.everyone')}</option>
+                                <option value="subscriber">{t('decatronAI.config.subscribers')}</option>
+                                <option value="vip">{t('decatronAI.config.vips')}</option>
+                                <option value="moderator">{t('decatronAI.config.moderators')}</option>
+                                <option value="broadcaster">{t('decatronAI.config.broadcasterOnly')}</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">
-                                COOLDOWN CANAL (seg) - Min: {globalDefaults.minCooldown}
+                                {t('decatronAI.config.channelCooldown', { min: globalDefaults.minCooldown })}
                             </label>
                             <input
                                 type="number"
@@ -309,21 +310,21 @@ export default function DecatronAIConfig() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">COOLDOWN USUARIO (seg) - Opcional</label>
+                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('decatronAI.config.userCooldown')}</label>
                             <input
                                 type="number"
                                 value={config.userCooldownSeconds || ''}
-                                placeholder="Sin limite"
+                                placeholder={t('decatronAI.config.noLimit')}
                                 onChange={(e) => setConfig({ ...config, userCooldownSeconds: e.target.value ? parseInt(e.target.value) : null })}
                                 className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">PREFIJO PERSONALIZADO</label>
+                            <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('decatronAI.config.customPrefix')}</label>
                             <input
                                 type="text"
                                 value={config.customPrefix || ''}
-                                placeholder="Usar default global"
+                                placeholder={t('decatronAI.config.useGlobalDefault')}
                                 onChange={(e) => setConfig({ ...config, customPrefix: e.target.value || null })}
                                 className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
                             />
@@ -331,10 +332,10 @@ export default function DecatronAIConfig() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">PROMPT PERSONALIZADO</label>
+                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('decatronAI.config.customPrompt')}</label>
                         <textarea
                             value={config.customSystemPrompt || ''}
-                            placeholder="Usar prompt global por defecto..."
+                            placeholder={t('decatronAI.config.useGlobalPrompt')}
                             onChange={(e) => setConfig({ ...config, customSystemPrompt: e.target.value || null })}
                             rows={3}
                             className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
@@ -346,7 +347,7 @@ export default function DecatronAIConfig() {
                         disabled={saving}
                         className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
                     >
-                        <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Configuracion'}
+                        <Save className="w-4 h-4" /> {saving ? t('decatronAI.config.saving') : t('decatronAI.config.saveConfig')}
                     </button>
                 </div>
             )}
@@ -357,7 +358,7 @@ export default function DecatronAIConfig() {
                     {/* Whitelist */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Whitelist</h3>
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('decatronAI.users.whitelist')}</h3>
                             <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
@@ -365,7 +366,7 @@ export default function DecatronAIConfig() {
                                     onChange={(e) => setConfig({ ...config, whitelistEnabled: e.target.checked })}
                                     className="rounded border-[#e2e8f0] dark:border-[#374151]"
                                 />
-                                <span className="text-sm font-semibold text-[#64748b] dark:text-[#94a3b8]">Activar whitelist</span>
+                                <span className="text-sm font-semibold text-[#64748b] dark:text-[#94a3b8]">{t('decatronAI.users.enableWhitelist')}</span>
                             </label>
                         </div>
                         {config.whitelistEnabled && (
@@ -375,7 +376,7 @@ export default function DecatronAIConfig() {
                                         type="text"
                                         value={newWhitelistUser}
                                         onChange={(e) => setNewWhitelistUser(e.target.value)}
-                                        placeholder="Usuario..."
+                                        placeholder={t('decatronAI.users.userPlaceholder')}
                                         className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
                                     />
                                     <button onClick={addWhitelistUser} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all">
@@ -395,19 +396,19 @@ export default function DecatronAIConfig() {
                             </>
                         )}
                         {!config.whitelistEnabled && (
-                            <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">Whitelist desactivada. Se usa el nivel de permiso configurado.</p>
+                            <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">{t('decatronAI.users.whitelistDisabled')}</p>
                         )}
                     </div>
 
                     {/* Blacklist */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Blacklist</h3>
+                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('decatronAI.users.blacklist')}</h3>
                         <div className="flex gap-2 mb-4">
                             <input
                                 type="text"
                                 value={newBlacklistUser}
                                 onChange={(e) => setNewBlacklistUser(e.target.value)}
-                                placeholder="Usuario a bloquear..."
+                                placeholder={t('decatronAI.users.blockUserPlaceholder')}
                                 className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
                             />
                             <button onClick={addBlacklistUser} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-all">
@@ -424,7 +425,7 @@ export default function DecatronAIConfig() {
                                 </span>
                             ))}
                             {config.blacklistUsers.length === 0 && (
-                                <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">No hay usuarios bloqueados</p>
+                                <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">{t('decatronAI.users.noBlockedUsers')}</p>
                             )}
                         </div>
                     </div>
@@ -434,7 +435,7 @@ export default function DecatronAIConfig() {
                         disabled={saving}
                         className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
                     >
-                        <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Cambios'}
+                        <Save className="w-4 h-4" /> {saving ? t('decatronAI.config.saving') : t('decatronAI.config.saveChanges')}
                     </button>
                 </div>
             )}
@@ -444,33 +445,33 @@ export default function DecatronAIConfig() {
                 <div className="space-y-6">
                     <div className="grid grid-cols-3 gap-4">
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">TOTAL</p>
+                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">{t('decatronAI.stats.total')}</p>
                             <p className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{stats.totalUsage}</p>
                         </div>
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">HOY</p>
+                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">{t('decatronAI.stats.today')}</p>
                             <p className="text-3xl font-black text-[#2563eb]">{stats.todayUsage}</p>
                         </div>
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">ESTA SEMANA</p>
+                            <p className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">{t('decatronAI.stats.thisWeek')}</p>
                             <p className="text-3xl font-black text-green-500">{stats.weekUsage}</p>
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Top Usuarios</h3>
+                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('decatronAI.stats.topUsers')}</h3>
                         <div className="space-y-2">
                             {stats.topUsers.map((item, i) => (
                                 <div key={i} className="flex justify-between p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
                                     <span className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">{item.username}</span>
-                                    <span className="font-bold text-[#2563eb]">{item.count} usos</span>
+                                    <span className="font-bold text-[#2563eb]">{t('decatronAI.stats.uses', { count: item.count })}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">Uso Reciente</h3>
+                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('decatronAI.stats.recentUsage')}</h3>
                         <div className="space-y-2">
                             {stats.recentUsage.map((item, i) => (
                                 <div key={i} className="p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">

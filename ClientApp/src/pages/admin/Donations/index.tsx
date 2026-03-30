@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Heart, BarChart3, List, Trophy, RefreshCw, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../../../services/api';
 import { StatsGrid } from './components/StatsGrid';
 import { DonationHistory } from './components/DonationHistory';
@@ -25,22 +26,23 @@ interface Stats {
 type Period = 'today' | 'week' | 'month' | 'year' | '';
 type Tab = 'analytics' | 'history' | 'top';
 
-const PERIOD_LABELS: Record<Period, string> = {
-    today: 'Hoy',
-    week: 'Semana',
-    month: 'Mes',
-    year: 'Año',
-    '': 'Todo',
-};
-
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'analytics', label: 'Analíticas', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'history',   label: 'Historial',  icon: <List className="w-4 h-4" /> },
-    { id: 'top',       label: 'Top Donantes', icon: <Trophy className="w-4 h-4" /> },
-];
-
 export default function AdminDonations() {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
+
+    const PERIOD_LABELS: Record<Period, string> = {
+        today: t('donations.periods.today'),
+        week: t('donations.periods.week'),
+        month: t('donations.periods.month'),
+        year: t('donations.periods.year'),
+        '': t('donations.periods.all'),
+    };
+
+    const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+        { id: 'analytics', label: t('donations.tabs.analytics'), icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'history',   label: t('donations.tabs.history'),  icon: <List className="w-4 h-4" /> },
+        { id: 'top',       label: t('donations.tabs.topDonors'), icon: <Trophy className="w-4 h-4" /> },
+    ];
     const [tab, setTab] = useState<Tab>('analytics');
     const [period, setPeriod] = useState<Period>('month');
     const [stats, setStats] = useState<Stats | null>(null);
@@ -77,10 +79,10 @@ export default function AdminDonations() {
                     </div>
                     <div>
                         <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                            Mis Donaciones
+                            {t('donations.title')}
                         </h1>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Analíticas e historial de tips recibidos
+                            {t('donations.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -106,7 +108,7 @@ export default function AdminDonations() {
                     {/* Refresh */}
                     <button
                         onClick={refresh}
-                        title="Actualizar"
+                        title={t('donations.refresh')}
                         className="p-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] hover:bg-[#f8fafc] dark:hover:bg-[#374151] transition-colors"
                     >
                         <RefreshCw className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
@@ -118,7 +120,7 @@ export default function AdminDonations() {
                         className="flex items-center gap-2 px-3 py-2 text-sm font-semibold border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] hover:bg-[#f8fafc] dark:hover:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] rounded-xl transition-colors"
                     >
                         <ExternalLink className="w-4 h-4" />
-                        Configurar Tips
+                        {t('donations.configureTips')}
                     </button>
                 </div>
             </div>
@@ -158,14 +160,14 @@ export default function AdminDonations() {
                         <div className="flex items-center justify-between mb-1">
                             <h2 className="font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
                                 <Trophy className="w-5 h-5 text-yellow-500" />
-                                Ranking de donantes
+                                {t('donations.donorRanking')}
                             </h2>
                             <span className="text-sm text-[#94a3b8]">
                                 {PERIOD_LABELS[period]}
                             </span>
                         </div>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-5">
-                            Top 20 donantes ordenados por monto total
+                            {t('donations.top20')}
                         </p>
                         <TopDonors period={period} refreshKey={refreshKey} />
                     </div>

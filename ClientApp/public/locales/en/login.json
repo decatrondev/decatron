@@ -1,0 +1,18 @@
+{
+  "welcome": "Welcome",
+  "subtitle": "Sign in to manage your Twitch bot",
+  "authFailed": "Authentication failed. Please try again.",
+  "connectWithTwitch": "Connect with Twitch",
+  "continueWithTwitch": "Continue with Twitch",
+  "whyTwitchOAuth": "Why Twitch OAuth?",
+  "whyTwitchOAuthDescription": "Secure authentication via Twitch. We never store your password.",
+  "termsNotice": "By continuing, you agree to the",
+  "termsOfService": "Terms of Service",
+  "powerYourChannel": "Power Up Your Channel",
+  "featureCustomCommandsTitle": "Custom Commands",
+  "featureCustomCommandsDescription": "Create unique commands for your community",
+  "featureModerationTitle": "Automatic Moderation",
+  "featureModerationDescription": "24/7 protection for your chat",
+  "featureRealtimeTitle": "Real-Time Management",
+  "featureRealtimeDescription": "Full control from your dashboard"
+}

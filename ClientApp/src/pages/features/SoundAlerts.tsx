@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     ArrowLeft, Save, Volume2, AlertCircle, CheckCircle, Gift,
     Type, Palette, LayoutIcon as Layout, Zap, Clock, Plus, Eye, EyeOff,
@@ -25,6 +26,7 @@ import {
 
 export default function SoundAlerts() {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const previewRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -219,7 +221,7 @@ export default function SoundAlerts() {
 
     const handleSave = async () => {
         if (duration < 3 || duration > 30) {
-            setSaveMessage({ type: 'error', text: 'La duración debe estar entre 3 y 30 segundos' });
+            setSaveMessage({ type: 'error', text: t('soundAlerts.durationError') });
             setTimeout(() => setSaveMessage(null), 3000);
             return;
         }
@@ -244,10 +246,10 @@ export default function SoundAlerts() {
 
             await api.post('/soundalerts/config', configData);
 
-            setSaveMessage({ type: 'success', text: '✅ Configuración guardada exitosamente' });
+            setSaveMessage({ type: 'success', text: t('soundAlerts.saveSuccess') });
             setTimeout(() => setSaveMessage(null), 3000);
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Error al guardar la configuración';
+            const message = error.response?.data?.message || t('soundAlerts.saveError');
             setSaveMessage({ type: 'error', text: message });
             console.error('🎵 [ERROR] Error guardando configuración:', error);
         } finally {
@@ -256,7 +258,7 @@ export default function SoundAlerts() {
     };
 
     const handleReset = () => {
-        if (!confirm('¿Estás seguro de restaurar la configuración por defecto?')) return;
+        if (!confirm(t('soundAlerts.resetConfirm'))) return;
 
         setGlobalVolume(70);
         setGlobalEnabled(true);
@@ -305,11 +307,11 @@ export default function SoundAlerts() {
             setTesting(true);
             const res = await api.post('/soundalerts/test');
             if (res.data.success) {
-                setSaveMessage({ type: 'success', text: '🎉 Alerta de prueba enviada!' });
+                setSaveMessage({ type: 'success', text: t('soundAlerts.testSuccess') });
                 setTimeout(() => setSaveMessage(null), 3000);
             }
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Error al enviar alerta de prueba';
+            const message = error.response?.data?.message || t('soundAlerts.testError');
             setSaveMessage({ type: 'error', text: message });
             setTimeout(() => setSaveMessage(null), 3000);
         } finally {
@@ -331,13 +333,13 @@ export default function SoundAlerts() {
                 fileType: systemFile.type
             });
 
-            setSaveMessage({ type: 'success', text: `Archivo del sistema asignado: ${systemFile.name}` });
+            setSaveMessage({ type: 'success', text: t('soundAlerts.systemFileAssigned', { name: systemFile.name }) });
             setTimeout(() => setSaveMessage(null), 3000);
             await loadFiles();
             setShowFileDialog(false);
             setSelectedRewardForFile(null);
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Error al asignar archivo del sistema';
+            const message = error.response?.data?.message || t('soundAlerts.systemFileError');
             setSaveMessage({ type: 'error', text: message });
         } finally {
             setUploading({ ...uploading, [selectedRewardForFile.id]: false });
@@ -347,10 +349,10 @@ export default function SoundAlerts() {
     const handleCopyUrl = async () => {
         try {
             await navigator.clipboard.writeText(overlayUrl);
-            setSaveMessage({ type: 'success', text: 'URL copiada al portapapeles' });
+            setSaveMessage({ type: 'success', text: t('soundAlerts.urlCopied') });
             setTimeout(() => setSaveMessage(null), 2000);
         } catch {
-            setSaveMessage({ type: 'error', text: 'Error al copiar URL' });
+            setSaveMessage({ type: 'error', text: t('soundAlerts.urlCopyError') });
         }
     };
 
@@ -359,7 +361,7 @@ export default function SoundAlerts() {
     };
 
     const addTextLine = () => {
-        setTextLines([...textLines, { text: 'Nueva línea de texto', fontSize: 24, fontWeight: '600', enabled: true }]);
+        setTextLines([...textLines, { text: t('soundAlerts.newTextLine'), fontSize: 24, fontWeight: '600', enabled: true }]);
     };
 
     const updateTextLine = (index: number, field: keyof TextLine, value: TextLine[keyof TextLine]) => {
@@ -374,7 +376,7 @@ export default function SoundAlerts() {
 
     const removeTextLine = (index: number) => {
         if (textLines.length <= 1) {
-            setSaveMessage({ type: 'error', text: 'Debe haber al menos una línea de texto' });
+            setSaveMessage({ type: 'error', text: t('soundAlerts.minTextLine') });
             setTimeout(() => setSaveMessage(null), 2000);
             return;
         }
@@ -504,11 +506,11 @@ export default function SoundAlerts() {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            setSaveMessage({ type: 'success', text: `Archivo subido exitosamente: ${file.name}` });
+            setSaveMessage({ type: 'success', text: t('soundAlerts.fileUploaded', { name: file.name }) });
             setTimeout(() => setSaveMessage(null), 3000);
             await loadFiles();
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Error al subir archivo';
+            const message = error.response?.data?.message || t('soundAlerts.fileUploadError');
             setSaveMessage({ type: 'error', text: message });
         } finally {
             setUploading({ ...uploading, [rewardId]: false });
@@ -516,15 +518,15 @@ export default function SoundAlerts() {
     };
 
     const handleDeleteFile = async (rewardId: string) => {
-        if (!confirm('¿Estás seguro de eliminar este archivo?')) return;
+        if (!confirm(t('soundAlerts.deleteConfirm'))) return;
 
         try {
             await api.delete(`/soundalerts/file/${rewardId}`);
-            setSaveMessage({ type: 'success', text: 'Archivo eliminado' });
+            setSaveMessage({ type: 'success', text: t('soundAlerts.fileDeleted') });
             setTimeout(() => setSaveMessage(null), 3000);
             await loadFiles();
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Error al eliminar archivo';
+            const message = error.response?.data?.message || t('soundAlerts.fileDeleteError');
             setSaveMessage({ type: 'error', text: message });
         }
     };
@@ -543,7 +545,7 @@ export default function SoundAlerts() {
     };
 
     if (permissionsLoading || loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">Cargando...</div>;
+        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('soundAlerts.loading')}</div>;
     }
 
     if (!hasMinimumLevel('moderation')) {
@@ -564,10 +566,10 @@ export default function SoundAlerts() {
                     </button>
                     <div>
                         <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                            Sound Alerts
+                            {t('soundAlerts.title')}
                         </h1>
                         <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                            Personaliza alertas de sonido/video activadas por Puntos de Canal
+                            {t('soundAlerts.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -577,7 +579,7 @@ export default function SoundAlerts() {
                         className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
                     >
                         <RotateCcw className="w-4 h-4" />
-                        Resetear
+                        {t('soundAlerts.reset')}
                     </button>
                     <button
                         onClick={handleTestAlert}
@@ -586,7 +588,7 @@ export default function SoundAlerts() {
                         title="Envía una alerta de prueba al overlay"
                     >
                         <Play className="w-4 h-4" />
-                        {testing ? 'Enviando...' : 'Test'}
+                        {testing ? t('soundAlerts.sending') : t('soundAlerts.test')}
                     </button>
                     <button
                         onClick={handleSave}
@@ -594,7 +596,7 @@ export default function SoundAlerts() {
                         className="flex items-center gap-2 px-6 py-2 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
                     >
                         <Save className="w-5 h-5" />
-                        {saving ? 'Guardando...' : 'Guardar'}
+                        {saving ? t('soundAlerts.saving') : t('soundAlerts.save')}
                     </button>
                 </div>
             </div>
@@ -639,7 +641,7 @@ export default function SoundAlerts() {
                                 }`}
                             >
                                 <Clock className="w-4 h-4" />
-                                <span className="hidden lg:inline">Básico</span>
+                                <span className="hidden lg:inline">{t('soundAlerts.tabs.basic')}</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('typography')}
@@ -650,7 +652,7 @@ export default function SoundAlerts() {
                                 }`}
                             >
                                 <Type className="w-4 h-4" />
-                                <span className="hidden lg:inline">Texto</span>
+                                <span className="hidden lg:inline">{t('soundAlerts.tabs.text')}</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('background')}
@@ -661,7 +663,7 @@ export default function SoundAlerts() {
                                 }`}
                             >
                                 <Palette className="w-4 h-4" />
-                                <span className="hidden lg:inline">Fondo</span>
+                                <span className="hidden lg:inline">{t('soundAlerts.tabs.background')}</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('layout')}
@@ -672,7 +674,7 @@ export default function SoundAlerts() {
                                 }`}
                             >
                                 <Layout className="w-4 h-4" />
-                                <span className="hidden lg:inline">Layout</span>
+                                <span className="hidden lg:inline">{t('soundAlerts.tabs.layout')}</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('animations')}
@@ -683,7 +685,7 @@ export default function SoundAlerts() {
                                 }`}
                             >
                                 <Zap className="w-4 h-4" />
-                                <span className="hidden lg:inline">Animación</span>
+                                <span className="hidden lg:inline">{t('soundAlerts.tabs.animation')}</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('rewards')}
@@ -694,7 +696,7 @@ export default function SoundAlerts() {
                                 }`}
                             >
                                 <Gift className="w-4 h-4" />
-                                <span className="hidden lg:inline">Archivos</span>
+                                <span className="hidden lg:inline">{t('soundAlerts.tabs.files')}</span>
                             </button>
                         </div>
                     </div>

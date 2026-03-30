@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Save, ArrowLeft } from 'lucide-react';
 import { usePermissions } from '../../contexts/PermissionsContext';
 
@@ -30,6 +31,7 @@ import type { GoalsTabType } from './goals-extension/types';
 
 const GoalsConfig = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
 
     // Tab state
@@ -63,17 +65,17 @@ const GoalsConfig = () => {
 
     // Tabs configuration
     const tabs: { id: GoalsTabType; label: string; icon: string }[] = [
-        { id: 'guide', label: 'Guía', icon: '📚' },
-        { id: 'basic', label: 'Metas', icon: '🎯' },
-        { id: 'sources', label: 'Fuentes', icon: '⚡' },
-        { id: 'design', label: 'Diseño', icon: '🎨' },
-        { id: 'milestones', label: 'Hitos', icon: '🏁' },
-        { id: 'notifications', label: 'Alertas', icon: '🔔' },
-        { id: 'timer-integration', label: 'Timer', icon: '⏱️' },
-        { id: 'commands', label: 'Comandos', icon: '💬' },
-        { id: 'history', label: 'Historial', icon: '📊' },
-        { id: 'media', label: 'Media', icon: '📁' },
-        { id: 'overlay', label: 'Overlay', icon: '🖥️' }
+        { id: 'guide', label: t('goals.tabs.guide'), icon: '📚' },
+        { id: 'basic', label: t('goals.tabs.goals'), icon: '🎯' },
+        { id: 'sources', label: t('goals.tabs.sources'), icon: '⚡' },
+        { id: 'design', label: t('goals.tabs.design'), icon: '🎨' },
+        { id: 'milestones', label: t('goals.tabs.milestones'), icon: '🏁' },
+        { id: 'notifications', label: t('goals.tabs.alerts'), icon: '🔔' },
+        { id: 'timer-integration', label: t('goals.tabs.timer'), icon: '⏱️' },
+        { id: 'commands', label: t('goals.tabs.commands'), icon: '💬' },
+        { id: 'history', label: t('goals.tabs.history'), icon: '📊' },
+        { id: 'media', label: t('goals.tabs.media'), icon: '📁' },
+        { id: 'overlay', label: t('goals.tabs.overlay'), icon: '🖥️' }
     ];
 
     // Render active tab content
@@ -190,7 +192,7 @@ const GoalsConfig = () => {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Cargando configuración...</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('goals.loadingConfig')}</p>
                 </div>
             </div>
         );
@@ -210,10 +212,10 @@ const GoalsConfig = () => {
                         </button>
                         <div>
                             <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                🎯 Sistema de Metas
+                                🎯 {t('goals.title')}
                             </h1>
                             <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                Configura metas interactivas con múltiples fuentes y milestones
+                                {t('goals.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -229,7 +231,7 @@ const GoalsConfig = () => {
                             }`}
                         >
                             <Save className="w-5 h-5" />
-                            {persistence.saving ? 'Guardando...' : 'Guardar Configuración'}
+                            {persistence.saving ? t('goals.saving') : t('goals.saveConfig')}
                         </button>
                     </div>
                 </div>

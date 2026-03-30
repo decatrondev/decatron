@@ -23,7 +23,7 @@ i18n
     lng: undefined,
 
     // Namespaces (translation files)
-    ns: ['common', 'settings', 'layout', 'dashboard', 'overlays', 'commands', 'analytics'],
+    ns: ['common', 'settings', 'layout', 'dashboard', 'overlays', 'commands', 'analytics', 'login', 'landing', 'supporters', 'tips', 'features'],
     defaultNS: 'common',
 
     // Backend options for loading translations

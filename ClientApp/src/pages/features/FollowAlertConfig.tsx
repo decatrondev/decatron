@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Save, Heart, TrendingUp, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
@@ -18,6 +19,7 @@ interface FollowStats {
 
 export default function FollowAlertConfig() {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
 
     const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ export default function FollowAlertConfig() {
             }
         } catch (error) {
             console.error('Error loading follow alert data:', error);
-            showMessage('error', 'Error al cargar configuración');
+            showMessage('error', t('followAlert.errorLoading'));
         } finally {
             setLoading(false);
         }
@@ -74,11 +76,11 @@ export default function FollowAlertConfig() {
             const res = await api.post('/followalert/config', config);
 
             if (res.data.success) {
-                showMessage('success', 'Configuración guardada exitosamente');
+                showMessage('success', t('followAlert.savedSuccess'));
             }
         } catch (error) {
             console.error('Error saving config:', error);
-            showMessage('error', 'Error al guardar la configuración');
+            showMessage('error', t('followAlert.errorSaving'));
         } finally {
             setSaving(false);
         }
@@ -102,16 +104,16 @@ export default function FollowAlertConfig() {
                     className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    Volver al Dashboard
+                    {t('followAlert.backToDashboard')}
                 </button>
 
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                            Follow Alerts
+                            {t('followAlert.title')}
                         </h1>
                         <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                            Agradece automáticamente a tus nuevos seguidores
+                            {t('followAlert.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -131,7 +133,7 @@ export default function FollowAlertConfig() {
 
             {loading ? (
                 <div className="max-w-5xl mx-auto text-center py-12">
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">Cargando configuración...</p>
+                    <p className="text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.loadingConfig')}</p>
                 </div>
             ) : (
                 <div className="max-w-5xl mx-auto space-y-6">
@@ -140,7 +142,7 @@ export default function FollowAlertConfig() {
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Follows Hoy</p>
+                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.followsToday')}</p>
                                     <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">
                                         {stats.followsToday}
                                     </p>
@@ -152,7 +154,7 @@ export default function FollowAlertConfig() {
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Total Follows</p>
+                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.totalFollows')}</p>
                                     <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">
                                         {stats.totalFollows}
                                     </p>
@@ -164,7 +166,7 @@ export default function FollowAlertConfig() {
                         <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Mensajes Enviados</p>
+                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('followAlert.messagesSent')}</p>
                                     <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">
                                         {stats.messagesSent}
                                     </p>
@@ -177,7 +179,7 @@ export default function FollowAlertConfig() {
                     {/* Configuration Card */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                         <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">
-                            Configuración
+                            {t('followAlert.configuration')}
                         </h2>
 
                         <div className="space-y-6">
@@ -185,10 +187,10 @@ export default function FollowAlertConfig() {
                             <div className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
                                 <div>
                                     <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
-                                        Activar Follow Alerts
+                                        {t('followAlert.enableFollowAlerts')}
                                     </label>
                                     <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                        Enviar mensaje automático cuando alguien siga tu canal
+                                        {t('followAlert.enableDescription')}
                                     </p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
@@ -205,7 +207,7 @@ export default function FollowAlertConfig() {
                             {/* Message Template */}
                             <div>
                                 <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
-                                    Mensaje Personalizado
+                                    {t('followAlert.customMessage')}
                                 </label>
                                 <input
                                     type="text"
@@ -215,11 +217,11 @@ export default function FollowAlertConfig() {
                                     className="w-full px-4 py-3 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500"
                                 />
                                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
-                                    💡 Variables disponibles: <code className="bg-[#f1f5f9] dark:bg-[#374151] px-2 py-1 rounded">{'{username}'}</code>
+                                    {t('followAlert.availableVars')} <code className="bg-[#f1f5f9] dark:bg-[#374151] px-2 py-1 rounded">{'{username}'}</code>
                                 </p>
                                 {config.message && (
                                     <div className="mt-3 p-3 bg-[#f1f5f9] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                        <p className="text-xs font-semibold text-[#64748b] dark:text-[#94a3b8] mb-1">Vista previa:</p>
+                                        <p className="text-xs font-semibold text-[#64748b] dark:text-[#94a3b8] mb-1">{t('followAlert.preview')}</p>
                                         <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
                                             {config.message.replace('{username}', 'Usuario123')}
                                         </p>
@@ -230,7 +232,7 @@ export default function FollowAlertConfig() {
                             {/* Cooldown */}
                             <div>
                                 <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
-                                    Cooldown (minutos)
+                                    {t('followAlert.cooldownMinutes')}
                                 </label>
                                 <input
                                     type="number"
@@ -241,7 +243,7 @@ export default function FollowAlertConfig() {
                                     className="w-full px-4 py-3 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500"
                                 />
                                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
-                                    ⏱️ Tiempo mínimo entre mensajes para el mismo usuario (evita spam por unfollow/follow)
+                                    {t('followAlert.cooldownDescription')}
                                 </p>
                             </div>
 
@@ -252,7 +254,7 @@ export default function FollowAlertConfig() {
                                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
                             >
                                 <Save className="w-5 h-5" />
-                                {saving ? 'Guardando...' : 'Guardar Configuración'}
+                                {saving ? t('followAlert.saving') : t('followAlert.saveConfig')}
                             </button>
                         </div>
                     </div>
@@ -260,8 +262,7 @@ export default function FollowAlertConfig() {
                     {/* Info Card */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                         <p className="text-sm text-blue-700 dark:text-blue-300">
-                            <strong>ℹ️ Importante:</strong> Los follow alerts solo funcionan si tienes EventSub configurado correctamente.
-                            Asegúrate de haber registrado el evento <code className="bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded">channel.follow</code> en la configuración de tu bot.
+                            <strong>{t('followAlert.importantLabel')}</strong> {t('followAlert.importantNote')} <code className="bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded">channel.follow</code>.
                         </p>
                     </div>
                 </div>

@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Save, ArrowLeft, Terminal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
 import * as signalR from '@microsoft/signalr';
@@ -47,6 +48,7 @@ import type { TabType } from './timer-extension/types';
 
 const TimerConfig = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
 
     // Estado para el timer activo (solo para mostrar, NO para guardar)
@@ -205,23 +207,23 @@ const TimerConfig = () => {
     // ========================================================================
 
     const tabs: { id: TabType; label: string; icon: string }[] = [
-        { id: 'guide', label: 'Guía', icon: '📚' },         // 1. Empezar aquí
-        { id: 'basic', label: 'Básico', icon: '⚙️' },       // 2. Configurar tiempo
-        { id: 'events', label: 'Eventos', icon: '🎁' },     // 3. Reglas de dinero/tiempo (Vital)
-        { id: 'theme', label: 'Tema', icon: '🎨' },         // 4. Estilo General
-        { id: 'progressbar', label: 'Barra', icon: '📊' },  // 5. Visual Principal
-        { id: 'display', label: 'Display', icon: '👁️' },    // 6. Qué mostrar
-        { id: 'typography', label: 'Fuentes', icon: '🔤' }, // 7. Detalles de texto
-        { id: 'alerts', label: 'Alertas', icon: '🔔' },     // 8. Feedback visual
-        { id: 'commands', label: 'Comandos', icon: '💬' },  // 9. Control Chat
-        { id: 'info-commands', label: 'Comandos Info', icon: '📢' }, // 10. Información
-        { id: 'goal', label: 'Metas', icon: '🎯' },         // 10. Objetivos
-        { id: 'raffles', label: 'Sorteos', icon: '🎲' },    // 11. Dinámica extra
-        { id: 'animations', label: 'Animación', icon: '✨' },// 12. Pulido
-        { id: 'advanced', label: 'Avanzado', icon: '🔧' },  // 13. Power users
-        { id: 'history', label: 'Historial', icon: '📈' },  // 14. Logs
-        { id: 'media', label: 'Media', icon: '🎬' },        // 15. Archivos
-        { id: 'overlay', label: 'Overlay', icon: '🖥️' }     // 16. Salida final
+        { id: 'guide', label: t('timerConfig.tabs.guide'), icon: '📚' },
+        { id: 'basic', label: t('timerConfig.tabs.basic'), icon: '⚙️' },
+        { id: 'events', label: t('timerConfig.tabs.events'), icon: '🎁' },
+        { id: 'theme', label: t('timerConfig.tabs.theme'), icon: '🎨' },
+        { id: 'progressbar', label: t('timerConfig.tabs.progressbar'), icon: '📊' },
+        { id: 'display', label: t('timerConfig.tabs.display'), icon: '👁️' },
+        { id: 'typography', label: t('timerConfig.tabs.typography'), icon: '🔤' },
+        { id: 'alerts', label: t('timerConfig.tabs.alerts'), icon: '🔔' },
+        { id: 'commands', label: t('timerConfig.tabs.commands'), icon: '💬' },
+        { id: 'info-commands', label: t('timerConfig.tabs.infoCommands'), icon: '📢' },
+        { id: 'goal', label: t('timerConfig.tabs.goal'), icon: '🎯' },
+        { id: 'raffles', label: t('timerConfig.tabs.raffles'), icon: '🎲' },
+        { id: 'animations', label: t('timerConfig.tabs.animations'), icon: '✨' },
+        { id: 'advanced', label: t('timerConfig.tabs.advanced'), icon: '🔧' },
+        { id: 'history', label: t('timerConfig.tabs.history'), icon: '📈' },
+        { id: 'media', label: t('timerConfig.tabs.media'), icon: '🎬' },
+        { id: 'overlay', label: t('timerConfig.tabs.overlay'), icon: '🖥️' }
     ];
 
     // ========================================================================
@@ -233,7 +235,7 @@ const TimerConfig = () => {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Cargando configuración...</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('timerConfig.loadingConfig')}</p>
                 </div>
             </div>
         );
@@ -253,10 +255,10 @@ const TimerConfig = () => {
                         </button>
                         <div>
                             <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                ⏱️ Timer Extensible
+                                {t('timerConfig.title')}
                             </h1>
                             <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                Configura tu timer con eventos, comandos y alertas personalizadas
+                                {t('timerConfig.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -267,12 +269,12 @@ const TimerConfig = () => {
                             className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition-colors flex items-center gap-2 font-bold shadow-lg"
                         >
                             <Terminal className="w-4 h-4" />
-                            Debug
+                            {t('timerConfig.debug')}
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={persistence.saving || activeTimerStatus === 'running'}
-                            title={activeTimerStatus === 'running' ? '⏸️ Debes PAUSAR el timer para poder guardar cambios y evitar reinicios accidentales.' : 'Guardar cambios'}
+                            title={activeTimerStatus === 'running' ? t('timerConfig.savePausedWarning') : t('timerConfig.saveTooltip')}
                             className={`px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg ${
                                 persistence.saving || activeTimerStatus === 'running'
                                     ? 'bg-gray-400 cursor-not-allowed text-gray-200'
@@ -280,7 +282,7 @@ const TimerConfig = () => {
                             }`}
                         >
                             <Save className="w-5 h-5" />
-                            {persistence.saving ? 'Guardando...' : 'Guardar Configuración'}
+                            {persistence.saving ? t('timerConfig.saving') : t('timerConfig.saveConfig')}
                         </button>
                     </div>
                 </div>

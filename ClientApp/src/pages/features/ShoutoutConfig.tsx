@@ -4,6 +4,7 @@ import {
     RotateCcw, Bug, Zap, Shield
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useState, useEffect, useRef } from 'react';
 import api from '../../services/api';
@@ -19,6 +20,7 @@ import { PreviewPanel } from './shoutout-extension/components/PreviewPanel';
 
 export default function ShoutoutConfig() {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -124,12 +126,12 @@ export default function ShoutoutConfig() {
 
     const handleSave = async () => {
         if (duration < 5 || duration > 30) {
-            setSaveMessage({ type: 'error', text: 'La duración debe estar entre 5 y 30 segundos' });
+            setSaveMessage({ type: 'error', text: t('shoutout.durationError') });
             return;
         }
 
         if (cooldown < 10 || cooldown > 300) {
-            setSaveMessage({ type: 'error', text: 'El cooldown debe estar entre 10 y 300 segundos' });
+            setSaveMessage({ type: 'error', text: t('shoutout.cooldownError') });
             return;
         }
 
@@ -156,15 +158,15 @@ export default function ShoutoutConfig() {
                 whitelist
             });
 
-            setSaveMessage({ type: 'success', text: 'Configuración guardada exitosamente' });
+            setSaveMessage({ type: 'success', text: t('shoutout.saveSuccess') });
 
             setTimeout(() => {
                 setSaveMessage(null);
             }, 3000);
         } catch (error) {
             const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al guardar la configuración'
-                : 'Error al guardar la configuración';
+                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || t('shoutout.saveError')
+                : t('shoutout.saveError');
             setSaveMessage({ type: 'error', text: message });
         } finally {
             setSaving(false);
@@ -194,7 +196,7 @@ export default function ShoutoutConfig() {
             });
         } catch (error) {
             console.error('Error al auto-guardar listas:', error);
-            setSaveMessage({ type: 'error', text: 'Error al guardar la lista' });
+            setSaveMessage({ type: 'error', text: t('shoutout.listSaveError') });
             setTimeout(() => setSaveMessage(null), 3000);
         }
     };
@@ -229,12 +231,12 @@ export default function ShoutoutConfig() {
         try {
             setTesting(true);
             await api.post('/shoutout/test');
-            setSaveMessage({ type: 'success', text: '🧪 Shoutout de prueba enviado al overlay' });
+            setSaveMessage({ type: 'success', text: t('shoutout.testSuccess') });
             setTimeout(() => setSaveMessage(null), 3000);
         } catch (error) {
             const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Error al enviar shoutout de prueba'
-                : 'Error al enviar shoutout de prueba';
+                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || t('shoutout.testError')
+                : t('shoutout.testError');
             setSaveMessage({ type: 'error', text: message });
         } finally {
             setTesting(false);
@@ -242,7 +244,7 @@ export default function ShoutoutConfig() {
     };
 
     const handleReset = () => {
-        if (!confirm('¿Estás seguro de restaurar la configuración por defecto?')) return;
+        if (!confirm(t('shoutout.resetConfirm'))) return;
 
         setDuration(DEFAULT_DURATION);
         setCooldown(DEFAULT_COOLDOWN);
@@ -265,10 +267,10 @@ export default function ShoutoutConfig() {
     const handleCopyUrl = async () => {
         try {
             await navigator.clipboard.writeText(overlayUrl);
-            setSaveMessage({ type: 'success', text: 'URL copiada al portapapeles' });
+            setSaveMessage({ type: 'success', text: t('shoutout.urlCopied') });
             setTimeout(() => setSaveMessage(null), 2000);
         } catch {
-            setSaveMessage({ type: 'error', text: 'Error al copiar URL' });
+            setSaveMessage({ type: 'error', text: t('shoutout.urlCopyError') });
         }
     };
 
@@ -277,7 +279,7 @@ export default function ShoutoutConfig() {
     };
 
     const addTextLine = () => {
-        setTextLines([...textLines, { text: 'Nueva línea de texto', fontSize: 24, fontWeight: '600', enabled: true }]);
+        setTextLines([...textLines, { text: t('shoutout.newTextLine'), fontSize: 24, fontWeight: '600', enabled: true }]);
     };
 
     const updateTextLine = (index: number, field: keyof TextLine, value: TextLine[keyof TextLine]) => {
@@ -288,7 +290,7 @@ export default function ShoutoutConfig() {
 
     const removeTextLine = (index: number) => {
         if (textLines.length <= 1) {
-            setSaveMessage({ type: 'error', text: 'Debe haber al menos una línea de texto' });
+            setSaveMessage({ type: 'error', text: t('shoutout.minTextLine') });
             setTimeout(() => setSaveMessage(null), 2000);
             return;
         }
@@ -300,7 +302,7 @@ export default function ShoutoutConfig() {
     };
 
     if (permissionsLoading || loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">Cargando...</div>;
+        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.loading')}</div>;
     }
 
     if (!hasMinimumLevel('moderation')) {
@@ -322,10 +324,10 @@ export default function ShoutoutConfig() {
                         </button>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                Configuración de Shoutouts
+                                {t('shoutout.title')}
                             </h1>
                             <p className="text-sm sm:text-base text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                Personaliza tu overlay de shoutouts con control visual completo
+                                {t('shoutout.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -335,7 +337,7 @@ export default function ShoutoutConfig() {
                             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
                         >
                             <RotateCcw className="w-4 h-4" />
-                            Resetear
+                            {t('shoutout.reset')}
                         </button>
                         <button
                             onClick={handleSave}
@@ -343,7 +345,7 @@ export default function ShoutoutConfig() {
                             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
                         >
                             <Save className="w-5 h-5" />
-                            {saving ? 'Guardando...' : 'Guardar'}
+                            {saving ? t('shoutout.saving') : t('shoutout.save')}
                         </button>
                     </div>
                 </div>
@@ -388,7 +390,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <Clock className="w-4 h-4" />
-                                Básico
+                                {t('shoutout.tabs.basic')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('typography')}
@@ -399,7 +401,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <Type className="w-4 h-4" />
-                                Tipografía
+                                {t('shoutout.tabs.typography')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('background')}
@@ -410,7 +412,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <Palette className="w-4 h-4" />
-                                Fondo
+                                {t('shoutout.tabs.background')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('layout')}
@@ -421,7 +423,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <LayoutIcon className="w-4 h-4" />
-                                Layout
+                                {t('shoutout.tabs.layout')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('animations')}
@@ -432,7 +434,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <Zap className="w-4 h-4" />
-                                Animaciones
+                                {t('shoutout.tabs.animations')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('management')}
@@ -443,7 +445,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <Shield className="w-4 h-4" />
-                                Gestión
+                                {t('shoutout.tabs.management')}
                             </button>
                             <button
                                 onClick={() => setActiveTab('debug')}
@@ -454,7 +456,7 @@ export default function ShoutoutConfig() {
                                 }`}
                             >
                                 <Bug className="w-4 h-4" />
-                                Debug
+                                {t('shoutout.tabs.debug')}
                             </button>
                         </div>
                     </div>

@@ -1,0 +1,18 @@
+{
+  "welcome": "Bienvenido",
+  "subtitle": "Inicia sesión para gestionar tu bot de Twitch",
+  "authFailed": "Authentication failed. Please try again.",
+  "connectWithTwitch": "Conecta con Twitch",
+  "continueWithTwitch": "Continuar con Twitch",
+  "whyTwitchOAuth": "¿Por qué Twitch OAuth?",
+  "whyTwitchOAuthDescription": "Autenticación segura mediante Twitch. Nunca almacenamos tu contraseña.",
+  "termsNotice": "Al continuar, aceptas los",
+  "termsOfService": "Términos de Servicio",
+  "powerYourChannel": "Potencia tu Canal",
+  "featureCustomCommandsTitle": "Comandos Personalizados",
+  "featureCustomCommandsDescription": "Crea comandos únicos para tu comunidad",
+  "featureModerationTitle": "Moderación Automática",
+  "featureModerationDescription": "Protección 24/7 para tu chat",
+  "featureRealtimeTitle": "Gestión en Tiempo Real",
+  "featureRealtimeDescription": "Control total desde tu dashboard"
+}

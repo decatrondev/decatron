@@ -1,7 +1,19 @@
-﻿import { Bot, Zap, Shield, Settings, Users, BarChart } from 'lucide-react';
+import { Bot, Zap, Shield, Settings, Users, BarChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function Index() {
+    const { t } = useTranslation('landing');
+
+    const features = [
+        { icon: Bot, title: t('featureCommandsTitle'), description: t('featureCommandsDescription') },
+        { icon: Shield, title: t('featureModerationTitle'), description: t('featureModerationDescription') },
+        { icon: Settings, title: t('featureSettingsTitle'), description: t('featureSettingsDescription') },
+        { icon: Users, title: t('featureMultiChannelTitle'), description: t('featureMultiChannelDescription') },
+        { icon: BarChart, title: t('featureStatsTitle'), description: t('featureStatsDescription') },
+        { icon: Zap, title: t('featurePerformanceTitle'), description: t('featurePerformanceDescription') }
+    ];
+
     return (
         <div className="min-h-screen bg-white dark:bg-[#1B1C1D]">
             <section className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1B1C1D] px-4">
@@ -9,24 +21,24 @@ export default function Index() {
                     <div className="space-y-8">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-600 rounded-full text-blue-600 dark:text-blue-400 font-semibold">
                             <Bot className="w-5 h-5" />
-                            <span>Powered by Twitch</span>
+                            <span>{t('poweredBy')}</span>
                         </div>
 
                         <h1 className="text-5xl md:text-6xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                            Decatron
+                            {t('title')}
                         </h1>
 
                         <p className="text-xl text-[#64748b] dark:text-[#94a3b8]">
-                            El bot de Twitch más completo para automatizar tu canal.
+                            {t('heroDescription')}
                         </p>
 
                         <div className="flex gap-4">
                             <Link to="/login" className="inline-flex items-center gap-2 px-8 py-4 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg transition-all">
-                                <span>Iniciar Sesión</span>
+                                <span>{t('loginButton')}</span>
                                 <Zap className="w-5 h-5" />
                             </Link>
                             <a href="#features" className="inline-flex items-center gap-2 px-8 py-4 border-2 border-[#2563eb] text-[#2563eb] dark:text-blue-400 font-bold rounded-lg">
-                                Ver Características
+                                {t('viewFeatures')}
                             </a>
                         </div>
                     </div>
@@ -46,7 +58,7 @@ export default function Index() {
 
             <section id="features" className="py-24 px-4 bg-white dark:bg-[#1B1C1D]">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-4xl font-black mb-4 text-center text-[#2563eb]">Características</h2>
+                    <h2 className="text-4xl font-black mb-4 text-center text-[#2563eb]">{t('featuresHeading')}</h2>
                     <div className="grid md:grid-cols-3 gap-8">
                         {features.map((f, i) => (
                             <div key={i} className="p-8 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
@@ -60,17 +72,8 @@ export default function Index() {
             </section>
 
             <footer className="py-12 px-4 bg-[#f8fafc] dark:bg-[#1B1C1D] border-t border-[#e2e8f0] dark:border-[#374151]">
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8]">© 2025 Decatron</p>
+                <p className="text-center text-[#64748b] dark:text-[#94a3b8]">{t('copyright')}</p>
             </footer>
         </div>
     );
 }
-
-const features = [
-    { icon: Bot, title: 'Comandos', description: 'Crea comandos únicos' },
-    { icon: Shield, title: 'Moderación', description: 'Protege tu chat' },
-    { icon: Settings, title: 'Configuración', description: 'Ajusta todo' },
-    { icon: Users, title: 'Multi-Canal', description: 'Gestiona varios canales' },
-    { icon: BarChart, title: 'Estadísticas', description: 'Métricas en tiempo real' },
-    { icon: Zap, title: 'Rendimiento', description: 'Respuestas instantáneas' }
-];

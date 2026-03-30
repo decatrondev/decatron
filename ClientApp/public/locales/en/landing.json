@@ -1,0 +1,21 @@
+{
+  "poweredBy": "Powered by Twitch",
+  "title": "Decatron",
+  "heroDescription": "The most complete Twitch bot to automate your channel.",
+  "loginButton": "Sign In",
+  "viewFeatures": "View Features",
+  "featuresHeading": "Features",
+  "featureCommandsTitle": "Commands",
+  "featureCommandsDescription": "Create unique commands",
+  "featureModerationTitle": "Moderation",
+  "featureModerationDescription": "Protect your chat",
+  "featureSettingsTitle": "Settings",
+  "featureSettingsDescription": "Adjust everything",
+  "featureMultiChannelTitle": "Multi-Channel",
+  "featureMultiChannelDescription": "Manage multiple channels",
+  "featureStatsTitle": "Statistics",
+  "featureStatsDescription": "Real-time metrics",
+  "featurePerformanceTitle": "Performance",
+  "featurePerformanceDescription": "Instant responses",
+  "copyright": "\u00a9 2025 Decatron"
+}

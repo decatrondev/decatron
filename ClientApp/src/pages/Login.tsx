@@ -1,9 +1,11 @@
-﻿import { Bot, Shield, Clock } from 'lucide-react';
+import { Bot, Shield, Clock } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 
 export default function Login() {
+    const { t } = useTranslation('login');
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const error = searchParams.get('error');
@@ -26,7 +28,7 @@ export default function Login() {
                     }
                 })
                 .catch(() => {
-                    setExchangeError('Authentication failed. Please try again.');
+                    setExchangeError(t('authFailed'));
                 });
         }
     }, [exchangeCode, navigate, redirect]);
@@ -37,6 +39,24 @@ export default function Login() {
         window.location.href = `/api/auth/login${redirectParam}`;
     };
 
+    const features = [
+        {
+            icon: Bot,
+            title: t('featureCustomCommandsTitle'),
+            description: t('featureCustomCommandsDescription')
+        },
+        {
+            icon: Shield,
+            title: t('featureModerationTitle'),
+            description: t('featureModerationDescription')
+        },
+        {
+            icon: Clock,
+            title: t('featureRealtimeTitle'),
+            description: t('featureRealtimeDescription')
+        }
+    ];
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#1B1C1D] px-4">
             <div className="max-w-6xl w-full grid md:grid-cols-2 bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
@@ -45,10 +65,10 @@ export default function Login() {
                 <div className="p-12 flex flex-col justify-center">
                     <div className="mb-8">
                         <h1 className="text-4xl font-black mb-3 text-[#1e293b] dark:text-[#f8fafc]">
-                            Bienvenido
+                            {t('welcome')}
                         </h1>
                         <p className="text-[#64748b] dark:text-[#94a3b8]">
-                            Inicia sesión para gestionar tu bot de Twitch
+                            {t('subtitle')}
                         </p>
                     </div>
 
@@ -62,7 +82,7 @@ export default function Login() {
 
                     <div className="mb-8">
                         <p className="text-[#1e293b] dark:text-[#f8fafc] font-semibold mb-4">
-                            Conecta con Twitch
+                            {t('connectWithTwitch')}
                         </p>
 
                         <button
@@ -72,21 +92,21 @@ export default function Login() {
                             <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
                             </svg>
-                            <span>Continuar con Twitch</span>
+                            <span>{t('continueWithTwitch')}</span>
                         </button>
                     </div>
 
                     <div className="p-6 bg-blue-50 dark:bg-blue-900/20 border border-[#e2e8f0] dark:border-[#374151] rounded-lg mb-6">
-                        <h3 className="text-[#2563eb] font-bold mb-2">¿Por qué Twitch OAuth?</h3>
+                        <h3 className="text-[#2563eb] font-bold mb-2">{t('whyTwitchOAuth')}</h3>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Autenticación segura mediante Twitch. Nunca almacenamos tu contraseña.
+                            {t('whyTwitchOAuthDescription')}
                         </p>
                     </div>
 
                     <p className="text-center text-sm text-[#64748b] dark:text-[#94a3b8]">
-                        Al continuar, aceptas los{' '}
+                        {t('termsNotice')}{' '}
                         <a href="#" className="text-[#2563eb] font-semibold hover:underline">
-                            Términos de Servicio
+                            {t('termsOfService')}
                         </a>
                     </p>
                 </div>
@@ -99,7 +119,7 @@ export default function Login() {
 
                     <div className="relative z-10 text-white">
                         <h2 className="text-3xl font-black mb-8">
-                            Potencia tu Canal
+                            {t('powerYourChannel')}
                         </h2>
 
                         <div className="space-y-6">
@@ -119,21 +139,3 @@ export default function Login() {
         </div>
     );
 }
-
-const features = [
-    {
-        icon: Bot,
-        title: 'Comandos Personalizados',
-        description: 'Crea comandos únicos para tu comunidad'
-    },
-    {
-        icon: Shield,
-        title: 'Moderación Automática',
-        description: 'Protección 24/7 para tu chat'
-    },
-    {
-        icon: Clock,
-        title: 'Gestión en Tiempo Real',
-        description: 'Control total desde tu dashboard'
-    }
-];

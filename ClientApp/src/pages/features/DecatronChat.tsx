@@ -1,6 +1,7 @@
 import { MessageSquare, Lock, Plus, Trash2, Send, Loader2, Copy, Check, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -39,6 +40,7 @@ interface AccessInfo {
 
 export default function DecatronChat() {
     const navigate = useNavigate();
+    const { t } = useTranslation('features');
     const [accessInfo, setAccessInfo] = useState<AccessInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -136,12 +138,12 @@ export default function DecatronChat() {
             }
         } catch (err: any) {
             console.error('Error creating conversation:', err);
-            alert(err.response?.data?.message || 'Error al crear conversación');
+            alert(err.response?.data?.message || t('decatronChat.errorCreating'));
         }
     };
 
     const deleteConversation = async (conversationId: string) => {
-        if (!confirm('¿Eliminar esta conversación? No se puede deshacer.')) return;
+        if (!confirm(t('decatronChat.deleteConfirm'))) return;
 
         try {
             const res = await api.delete(`/chat/conversations/${conversationId}`);
@@ -203,7 +205,7 @@ export default function DecatronChat() {
             }
         } catch (err: any) {
             console.error('Error sending message:', err);
-            alert(err.response?.data?.message || 'Error al enviar mensaje');
+            alert(err.response?.data?.message || t('decatronChat.errorSending'));
             setMessageInput(content); // Restaurar el mensaje
             setIsThinking(false);
             // Quitar mensaje temporal del usuario
@@ -352,7 +354,7 @@ export default function DecatronChat() {
             }
         } catch (err: any) {
             console.error('Error continuing message:', err);
-            alert(err.response?.data?.message || 'Error al continuar mensaje');
+            alert(err.response?.data?.message || t('decatronChat.errorContinuing'));
             setIsThinking(false);
         } finally {
             setIsContinuing(false);
@@ -367,7 +369,7 @@ export default function DecatronChat() {
     };
 
     if (loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">Cargando...</div>;
+        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('decatronChat.loading')}</div>;
     }
 
     if (!accessInfo?.canView) {
@@ -375,17 +377,17 @@ export default function DecatronChat() {
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
                     <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">Acceso Denegado</h2>
+                    <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">{t('decatronChat.accessDenied')}</h2>
                     <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
                         {accessInfo?.reason === 'system_disabled'
-                            ? 'El sistema de chat está deshabilitado.'
-                            : 'No tienes permisos para acceder al chat IA.'}
+                            ? t('decatronChat.systemDisabled')
+                            : t('decatronChat.noPermission')}
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
                         className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
                     >
-                        Volver al Dashboard
+                        {t('decatronChat.backToDashboard')}
                     </button>
                 </div>
             </div>
@@ -398,12 +400,12 @@ export default function DecatronChat() {
             <div className="w-80 bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] flex flex-col overflow-hidden">
                 <div className="p-4 border-b border-[#e2e8f0] dark:border-[#374151]">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Conversaciones</h2>
+                        <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{t('decatronChat.conversations')}</h2>
                         {accessInfo.canChat && (
                             <button
                                 onClick={createConversation}
                                 className="p-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all"
-                                title="Nueva conversación"
+                                title={t('decatronChat.newConversation')}
                             >
                                 <Plus className="w-5 h-5" />
                             </button>
@@ -411,7 +413,7 @@ export default function DecatronChat() {
                     </div>
                     {!accessInfo.canChat && (
                         <div className="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded">
-                            Solo puedes ver conversaciones
+                            {t('decatronChat.viewOnly')}
                         </div>
                     )}
                 </div>
@@ -419,7 +421,7 @@ export default function DecatronChat() {
                 <div className="flex-1 overflow-y-auto p-2 space-y-2">
                     {conversations.length === 0 ? (
                         <div className="text-center text-[#64748b] dark:text-[#94a3b8] py-8 text-sm">
-                            {accessInfo.canChat ? 'Crea una conversación para comenzar' : 'No hay conversaciones'}
+                            {accessInfo.canChat ? t('decatronChat.createToStart') : t('decatronChat.noConversations')}
                         </div>
                     ) : (
                         conversations.map(conv => (
@@ -437,7 +439,7 @@ export default function DecatronChat() {
                                             {conv.title}
                                         </h3>
                                         <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                            {conv.messageCount} mensajes
+                                            {t('decatronChat.messages_count', { count: conv.messageCount })}
                                         </p>
                                     </div>
                                     <button
@@ -446,7 +448,7 @@ export default function DecatronChat() {
                                             deleteConversation(conv.id);
                                         }}
                                         className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-all"
-                                        title="Eliminar"
+                                        title={t('decatronChat.delete')}
                                     >
                                         <Trash2 className="w-4 h-4 text-red-500" />
                                     </button>
@@ -463,7 +465,7 @@ export default function DecatronChat() {
                     <div className="flex-1 flex items-center justify-center text-[#64748b] dark:text-[#94a3b8]">
                         <div className="text-center">
                             <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                            <p className="text-lg">Selecciona una conversación o crea una nueva</p>
+                            <p className="text-lg">{t('decatronChat.selectOrCreate')}</p>
                         </div>
                     </div>
                 ) : (
@@ -476,7 +478,7 @@ export default function DecatronChat() {
                                 </div>
                             ) : messages.length === 0 ? (
                                 <div className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">
-                                    Envía un mensaje para comenzar
+                                    {t('decatronChat.sendToStart')}
                                 </div>
                             ) : (
                                 <>
@@ -501,7 +503,7 @@ export default function DecatronChat() {
                                                         <span className="animate-bounce" style={{ animationDelay: '150ms' }}>●</span>
                                                         <span className="animate-bounce" style={{ animationDelay: '300ms' }}>●</span>
                                                     </div>
-                                                    <span className="text-sm italic">{isContinuing ? 'Continuando' : 'Pensando'}</span>
+                                                    <span className="text-sm italic">{isContinuing ? t('decatronChat.continuing') : t('decatronChat.thinking')}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -512,7 +514,7 @@ export default function DecatronChat() {
                                                 onClick={stopTypewriter}
                                                 className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-md"
                                             >
-                                                ⏹ Detener
+                                                {t('decatronChat.stop')}
                                             </button>
                                         </div>
                                     )}
@@ -529,7 +531,7 @@ export default function DecatronChat() {
                                         value={messageInput}
                                         onChange={(e) => setMessageInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
-                                        placeholder="Escribe tu mensaje... (Shift+Enter para nueva línea)"
+                                        placeholder={t('decatronChat.inputPlaceholder')}
                                         className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#0f1011] border border-[#e2e8f0] dark:border-[#374151] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#1e293b] dark:text-[#f8fafc]"
                                         rows={3}
                                         disabled={sending}
@@ -563,6 +565,7 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({ message, onEditCode, isStreaming, onContinue }: MessageBubbleProps) {
+    const { t } = useTranslation('features');
     const isAssistant = message.role === 'assistant';
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -704,10 +707,10 @@ ${code}
                                     <button
                                         onClick={() => openPreview(codeString, language)}
                                         className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
-                                        title="Ver preview"
+                                        title={t('decatronChat.preview')}
                                     >
                                         <ExternalLink className="w-3 h-3" />
-                                        Preview
+                                        {t('decatronChat.preview')}
                                     </button>
                                 )}
                                 {onEditCode && (
@@ -722,28 +725,28 @@ ${code}
                                             }, 100);
                                         }}
                                         className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
-                                        title="Editar código"
+                                        title={t('decatronChat.edit')}
                                     >
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
-                                        Editar
+                                        {t('decatronChat.edit')}
                                     </button>
                                 )}
                                 <button
                                     onClick={() => copyToClipboard(codeString, codeId)}
                                     className="flex items-center gap-1 px-2 py-1 text-xs bg-[#2563eb] hover:bg-blue-700 text-white rounded transition-colors"
-                                    title="Copiar código"
+                                    title={t('decatronChat.copy')}
                                 >
                                     {copiedCode === codeId ? (
                                         <>
                                             <Check className="w-3 h-3" />
-                                            Copiado
+                                            {t('decatronChat.copied')}
                                         </>
                                     ) : (
                                         <>
                                             <Copy className="w-3 h-3" />
-                                            Copiar
+                                            {t('decatronChat.copy')}
                                         </>
                                     )}
                                 </button>
@@ -784,7 +787,7 @@ ${code}
                         }`}
                 >
                     <div className={`text-xs font-bold mb-2 ${isAssistant ? 'text-[#64748b] dark:text-[#94a3b8]' : 'text-blue-100'}`}>
-                        {isAssistant ? '🤖 Decatron IA' : 'Tú'}
+                        {isAssistant ? '🤖 Decatron IA' : t('decatronChat.you')}
                     </div>
                     {isAssistant ? (
                         <div className="prose dark:prose-invert prose-sm max-w-none text-[#1e293b] dark:text-[#e2e8f0]">
@@ -808,7 +811,7 @@ ${code}
                                         className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors"
                                         title="Continuar generando desde donde se quedó"
                                     >
-                                        ▶ Continuar
+                                        ▶ {t('decatronChat.continue')}
                                     </button>
                                 )}
                             </div>
@@ -830,7 +833,7 @@ ${code}
                         <div className="flex items-center justify-between p-4 border-b border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#0f1011]">
                             <div className="flex items-center gap-2">
                                 <ExternalLink className="w-5 h-5 text-green-600" />
-                                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Preview en Vivo</h3>
+                                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{t('decatronChat.livePreview')}</h3>
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -838,15 +841,15 @@ ${code}
                                         setPreviewKey(prev => prev + 1);
                                     }}
                                     className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-semibold"
-                                    title="Recargar preview"
+                                    title={t('decatronChat.reload')}
                                 >
-                                    Recargar
+                                    {t('decatronChat.reload')}
                                 </button>
                                 <button
                                     onClick={() => setShowPreview(false)}
                                     className="px-4 py-2 bg-[#e2e8f0] dark:bg-[#262626] hover:bg-[#cbd5e1] dark:hover:bg-[#374151] text-[#1e293b] dark:text-[#f8fafc] rounded-lg transition-colors font-semibold"
                                 >
-                                    Cerrar
+                                    {t('decatronChat.close')}
                                 </button>
                             </div>
                         </div>
