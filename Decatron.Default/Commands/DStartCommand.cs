@@ -24,6 +24,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dstart";
         public string Description => "Inicia el timer con una duración (ej: !dstart 5m, !dstart 1h30m)";
@@ -33,13 +34,15 @@ namespace Decatron.Default.Commands
             ILogger<DStartCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -63,6 +66,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Obtener idioma del canal
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Verificar permisos (solo broadcaster/mods)
                 var hasPermission = await HasPermissionAsync(username, channel);
                 if (!hasPermission)
@@ -77,7 +83,7 @@ namespace Decatron.Default.Commands
                 if (parts.Length < 2)
                 {
                     await messageSender.SendMessageAsync(channel,
-                        "⏱️ Uso: !dstart <tiempo> (ej: !dstart 5m, !dstart 1h30m, !dstart 300)");
+                        _messagesService.GetMessage("dstart_cmd", "usage", lang));
                     return;
                 }
 
@@ -85,13 +91,13 @@ namespace Decatron.Default.Commands
 
                 if (!TimeParser.TryParseTimeToSeconds(timeArg, out var seconds))
                 {
-                    await messageSender.SendMessageAsync(channel, "❌ Tiempo inválido. Usa: 5m, 1h30m, 300 (segundos), etc.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstart_cmd", "invalid_time", lang));
                     return;
                 }
 
                 if (seconds > 604800) // Máximo 7 días
                 {
-                    await messageSender.SendMessageAsync(channel, "❌ El tiempo máximo es 7 días.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstart_cmd", "max_duration", lang));
                     return;
                 }
 
@@ -144,13 +150,36 @@ namespace Decatron.Default.Commands
                 await _overlayNotificationService.SendStartTimerAsync(channelLower, seconds);
 
                 var timeString = TimeParser.FormatSeconds(seconds);
-                await messageSender.SendMessageAsync(channel, $"⏱️ Timer iniciado: {timeString}");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstart_cmd", "started", lang, timeString));
                 _logger.LogInformation($"✅ Timer iniciado en {channel}: {timeString}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !dstart en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al iniciar el timer.");
+                var lang = await GetChannelLanguageAsync(channel);
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstart_cmd", "error_generic", lang));
+            }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channelLogin)
+        {
+            try
+            {
+                var channelUser = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                if (channelUser == null)
+                {
+                    _logger.LogWarning($"[DStartCommand] No se pudo obtener info del canal: {channelLogin}");
+                    return "es";
+                }
+
+                var language = channelUser.PreferredLanguage ?? "es";
+                _logger.LogDebug($"[DStartCommand] Idioma del canal {channelLogin}: '{language}'");
+                return language;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[DStartCommand] Error obteniendo idioma del canal: {channelLogin}");
+                return "es";
             }
         }
 

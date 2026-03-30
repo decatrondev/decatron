@@ -21,6 +21,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dpause";
         public string Description => "Pausa el timer";
@@ -30,13 +31,15 @@ namespace Decatron.Default.Commands
             ILogger<DPauseCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -60,6 +63,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Obtener idioma del canal
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Verificar permisos (solo broadcaster/mods)
                 var hasPermission = await HasPermissionAsync(username, channel);
                 if (!hasPermission)
@@ -76,13 +82,13 @@ namespace Decatron.Default.Commands
 
                 if (state == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "❌ No hay un timer activo.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dpause_cmd", "no_active", lang));
                     return;
                 }
 
                 if (state.Status != "running")
                 {
-                    await messageSender.SendMessageAsync(channel, "⏱️ El timer no está corriendo.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dpause_cmd", "not_running", lang));
                     return;
                 }
 
@@ -104,13 +110,36 @@ namespace Decatron.Default.Commands
                 // Emitir evento SignalR para pausar el timer
                 await _overlayNotificationService.SendPauseTimerAsync(channelLower);
 
-                await messageSender.SendMessageAsync(channel, "⏸️ Timer pausado");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dpause_cmd", "paused", lang));
                 _logger.LogInformation($"✅ Timer pausado en {channel}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !dpause en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al ejecutar el comando.");
+                var lang = await GetChannelLanguageAsync(channel);
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dpause_cmd", "error_generic", lang));
+            }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channelLogin)
+        {
+            try
+            {
+                var channelUser = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                if (channelUser == null)
+                {
+                    _logger.LogWarning($"[DPauseCommand] No se pudo obtener info del canal: {channelLogin}");
+                    return "es";
+                }
+
+                var language = channelUser.PreferredLanguage ?? "es";
+                _logger.LogDebug($"[DPauseCommand] Idioma del canal {channelLogin}: '{language}'");
+                return language;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[DPauseCommand] Error obteniendo idioma del canal: {channelLogin}");
+                return "es";
             }
         }
 

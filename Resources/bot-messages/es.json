@@ -1,0 +1,259 @@
+{
+  "game": {
+    "error_channel_info": "Error: No se pudo obtener información del canal.",
+    "current_category": "Categoría actual: {0}",
+    "error_get_category": "No se pudo obtener la categoría actual del stream.",
+    "permission_denied": "Solo los moderadores o el propietario del canal pueden cambiar la categoría del stream.",
+    "error_validation": "Error: {0}",
+    "success": "¡Categoría cambiada a: {0}!",
+    "error_change": "Error al cambiar la categoría del stream.",
+    "error_generic": "Error al procesar el comando de categoría."
+  },
+  "ia": {
+    "channel_cooldown": "@{0}, debes esperar {1} antes de usar !ia de nuevo.",
+    "user_cooldown": "@{0}, debes esperar {1} antes de usar !ia de nuevo.",
+    "usage": "@{0}, uso: !ia <tu pregunta>",
+    "prompt_too_long": "@{0}, tu pregunta es muy larga (máx {1} caracteres).",
+    "error_processing": "@{0}, no pude procesar tu pregunta. Intenta de nuevo.",
+    "error_generic": "@{0}, ocurrió un error. Intenta más tarde.",
+    "permission_denied_broadcaster": "@{0}, solo el streamer puede usar !ia en este canal.",
+    "permission_denied_level": "@{0}, no tienes el nivel de permiso requerido para usar !ia."
+  },
+  "title": {
+    "error_channel_info": "Error: No se pudo obtener información del canal.",
+    "current_title": "Título actual: {0}",
+    "error_get_title": "No se pudo obtener el título actual del stream.",
+    "permission_denied": "Solo los moderadores o el propietario del canal pueden cambiar el título del stream.",
+    "error_validation": "Error: {0}",
+    "success": "¡Título cambiado a: {0}!",
+    "error_change": "Error al cambiar el título del stream.",
+    "error_generic": "Error al procesar el comando de título."
+  },
+  "dstart": {
+    "usage": "Uso: !dstart <duración> (ej: !dstart 5m, !dstart 1h30m, !dstart 300)",
+    "error_parse": "Error: Formato de tiempo inválido. Usa: 5m, 1h30m, o segundos (300)",
+    "success": "Timer iniciado: {0}",
+    "error_generic": "Error al iniciar el timer."
+  },
+  "dpause": {
+    "success": "Timer pausado",
+    "error_not_running": "No hay timer en ejecución.",
+    "error_generic": "Error al pausar el timer."
+  },
+  "dplay": {
+    "success": "Timer reanudado",
+    "error_not_paused": "El timer no está pausado.",
+    "error_generic": "Error al reanudar el timer."
+  },
+  "dreset": {
+    "success": "Timer reiniciado",
+    "error_generic": "Error al reiniciar el timer."
+  },
+  "dstop": {
+    "success": "Timer detenido",
+    "error_generic": "Error al detener el timer."
+  },
+  "dtimer": {
+    "usage": "Uso: !dtimer <duración>, !dtimer add <tiempo>, !dtimer remove <tiempo>",
+    "time_added": "Tiempo añadido: {0}",
+    "time_removed": "Tiempo removido: {0}",
+    "error_generic": "Error al gestionar el timer."
+  },
+  "so": {
+    "usage": "Uso: !so @usuario o !so usuario",
+    "error_user_not_found": "No se pudo encontrar al usuario {0}",
+    "error_generic": "Error al hacer shoutout."
+  },
+  "raffle": {
+    "usage": "Uso: !raffle <create|join|close|draw|status>",
+    "created": "¡Sorteo creado! Usa !raffle join para participar.",
+    "joined": "@{0}, te has unido al sorteo.",
+    "already_joined": "@{0}, ya estás participando.",
+    "no_active_raffle": "No hay sorteo activo.",
+    "winner": "🎉 ¡Ganador del sorteo: @{0}!",
+    "error_generic": "Error al procesar el comando de sorteo."
+  },
+  "join": {
+    "success": "@{0}, te has unido al giveaway.",
+    "already_joined": "@{0}, ya estás participando.",
+    "no_active_giveaway": "No hay giveaway activo.",
+    "error_generic": "Error al unirse al giveaway."
+  },
+  "hola": {
+    "greeting": "¡Hola @{0}! 👋 ¿Cómo estás?"
+  },
+  "g": {
+    "error_channel_info": "Error: No se pudo obtener información del canal.",
+    "current_category": "Categoría actual: {0}",
+    "error_get_category": "No se pudo obtener la categoría actual del stream.",
+    "permission_denied": "Solo los moderadores o el propietario del canal pueden cambiar la categoría.",
+    "permission_denied_micro": "Solo los moderadores o el propietario del canal pueden gestionar micro comandos.",
+    "error_validation": "Error: {0}",
+    "success": "¡Categoría cambiada a: {0}!",
+    "error_change": "Error al cambiar la categoría.",
+    "error_generic": "Error al procesar el comando !g.",
+    "help": "Uso: !g = categoría actual | !g [categoría] = cambiar | !g help | !g list | !g set [!cmd] [categoría] | !g remove [!cmd]",
+    "micro_list": "Micro comandos disponibles: {0}",
+    "micro_list_empty": "No hay micro comandos configurados. Usa !g set [!comando] [categoría] para crear uno.",
+    "micro_set_usage": "Uso: !g set [!comando] [categoría]. Ejemplo: !g set !apex Apex Legends",
+    "micro_reserved": "'{0}' es una palabra reservada y no se puede usar.",
+    "micro_created": "Micro comando {0} creado para: {1}",
+    "micro_updated": "Micro comando {0} actualizado a: {1}",
+    "micro_error_create": "Error al crear el micro comando.",
+    "micro_remove_usage": "Uso: !g remove [!comando]. Ejemplo: !g remove !apex",
+    "micro_not_found": "Micro comando {0} no encontrado.",
+    "micro_removed": "Micro comando {0} eliminado.",
+    "micro_error_remove": "Error al eliminar el micro comando.",
+    "micro_error_list": "Error al listar micro comandos."
+  },
+  "micro": {
+    "permission_denied": "Solo los moderadores o el propietario del canal pueden usar {0}.",
+    "error_validation": "Error: La categoría '{0}' no es válida.",
+    "success": "¡Categoría cambiada a: {0}! (usando {1})",
+    "error_change": "Error al cambiar la categoría usando {0}.",
+    "error_generic": "Error al procesar el micro comando.",
+    "error_channel_info": "Error: No se pudo obtener información del canal."
+  },
+  "dtimer_cmd": {
+    "usage": "⏱️ Uso: !dtimer 5m | !dtimer 1h30m | !dtimer add 1h | !dtimer remove 30s",
+    "error_generic": "❌ Error al ejecutar el comando.",
+    "invalid_time": "❌ Tiempo inválido. Usa: 5m, 1h30m, 300 (segundos), etc.",
+    "max_duration": "❌ El tiempo máximo es 7 días.",
+    "already_active": "⚠️ El timer ya está activo ({0} restantes). Usa !dstop para detenerlo, o añade tiempo con: !dtimer add {1}",
+    "started": "⏱️ Timer iniciado: {0}",
+    "no_active": "❌ No hay un timer activo. Usa !dtimer 5m para iniciarlo.",
+    "time_added": "⏱️ +{0} añadidos al timer",
+    "time_removed": "⏱️ -{0} removidos del timer"
+  },
+  "dstart_cmd": {
+    "usage": "⏱️ Uso: !dstart <tiempo> (ej: !dstart 5m, !dstart 1h30m, !dstart 300)",
+    "invalid_time": "❌ Tiempo inválido. Usa: 5m, 1h30m, 300 (segundos), etc.",
+    "max_duration": "❌ El tiempo máximo es 7 días.",
+    "started": "⏱️ Timer iniciado: {0}",
+    "error_generic": "❌ Error al iniciar el timer."
+  },
+  "dpause_cmd": {
+    "no_active": "❌ No hay un timer activo.",
+    "not_running": "⏱️ El timer no está corriendo.",
+    "paused": "⏸️ Timer pausado",
+    "error_generic": "❌ Error al ejecutar el comando."
+  },
+  "dplay_cmd": {
+    "no_active": "❌ No hay un timer activo. Usa !dtimer <segundos> para iniciarlo.",
+    "already_running": "⏱️ El timer ya está corriendo.",
+    "resumed": "▶️ Timer reanudado",
+    "started": "▶️ Timer iniciado",
+    "error_generic": "❌ Error al ejecutar el comando."
+  },
+  "dstop_cmd": {
+    "no_active": "❌ No hay un timer activo.",
+    "stopped": "⏹️ Timer detenido y ocultado",
+    "error_generic": "❌ Error al ejecutar el comando."
+  },
+  "dreset_cmd": {
+    "no_active": "❌ No hay un timer activo.",
+    "reset": "🔄 Timer reiniciado a {0}",
+    "error_generic": "❌ Error al ejecutar el comando."
+  },
+  "dtop": {
+    "no_active_session": "🥇 No hay sesión activa del timer.",
+    "no_contributors": "🥇 Nadie ha contribuido tiempo aún.",
+    "top_contributors": "🥇 Top contribuidores: {0}",
+    "current_session": "sesión actual"
+  },
+  "drecord": {
+    "no_sessions": "🏆 {0} aún no tiene sesiones registradas.",
+    "record": "🏆 El récord del extensible de {0} es {1}"
+  },
+  "dstats": {
+    "no_active_session": "📊 No hay sesión activa del timer.",
+    "stats": "📊 Esta sesión: Subs {0} · Bits {1} · Raids {2} · Total {3}"
+  },
+  "so_cmd": {
+    "usage": "Uso: !so @usuario o !so usuario",
+    "blacklist_1": "🚫 Lo siento, @{0} está en la lista negra. ¡No hay shoutouts aquí!",
+    "blacklist_2": "❌ @{0}? Nah, ese nombre no me suena... 🤐",
+    "blacklist_3": "🙅 @{0} está tomando unas vacaciones permanentes de los shoutouts.",
+    "blacklist_4": "🚷 @{0} ha sido vetado del salón de la fama de shoutouts.",
+    "blacklist_5": "⛔ Error 404: Shoutout para @{0} no encontrado (y nunca lo estará).",
+    "cooldown": "⏰ Espera {0}s antes de hacer otro shoutout a @{1}",
+    "user_not_found": "❌ El usuario @{0} no existe en Twitch.",
+    "error_generic": "❌ Error al ejecutar el shoutout.",
+    "message_with_game": "Denle amor a @{0} que estuvo jugando {1} en twitch.tv/{2}",
+    "message_no_game": "Denle amor a @{0} en twitch.tv/{1}"
+  },
+  "followage": {
+    "error_channel": "@{0}, error: canal no configurado.",
+    "following_self": "@{0}, llevas siguiendo a {1} por {2} (desde {3} UTC)",
+    "following_other": "@{0} lleva siguiendo a {1} por {2} (desde {3} UTC)",
+    "not_following_self": "@{0}, no sigues el canal {1}. Dale follow!",
+    "not_following_other": "@{0} no sigue el canal {1}",
+    "followage_short": "@{0}, {1}",
+    "error_generic": "@{0}, hubo un error al obtener el followage.",
+    "error_find_user": "Error al buscar usuario",
+    "error_user_not_found": "Usuario no encontrado",
+    "error_token_expired": "Token expirado, el streamer debe reconectar",
+    "error_no_permission": "Sin permisos para ver followers",
+    "error_verify": "Error al verificar seguimiento",
+    "not_following": "No sigue el canal",
+    "error_get_followage": "Error al obtener followage",
+    "year": "año",
+    "years": "años",
+    "month": "mes",
+    "months": "meses",
+    "week": "semana",
+    "weeks": "semanas",
+    "day": "día",
+    "days": "días",
+    "hour": "hora",
+    "hours": "horas",
+    "minute": "minuto",
+    "minutes": "minutos",
+    "second": "segundo",
+    "seconds": "segundos"
+  },
+  "raffle_cmd": {
+    "help": "🎁 Comandos: !raffle join (participar) | !raffle status (ver estado)",
+    "no_active": "@{0} ❌ No hay ningún sorteo activo en este momento.",
+    "already_participating": "@{0} ✅ Ya estás participando en el sorteo '{1}' ({2} tickets)",
+    "joined": "@{0} 🎫 ¡Te has unido al sorteo '{1}'! Total de participantes: {2}",
+    "permission_denied": "@{0} ❌ Solo moderadores y el broadcaster pueden crear sorteos.",
+    "specify_name": "@{0} ❌ Debes especificar un nombre para el sorteo. Ej: !raffle create Teclado RGB",
+    "already_active": "@{0} ❌ Ya existe un sorteo activo: '{1}'. Ciérralo primero con !raffle close",
+    "created": "🎁 ¡Sorteo '{0}' creado! Escribe !raffle join para participar. Total de participantes: 0",
+    "no_active_to_close": "@{0} ❌ No hay ningún sorteo activo para cerrar.",
+    "closed": "🔒 ¡Sorteo '{0}' cerrado! Total de participantes: {1}. Usa !raffle draw para sortear.",
+    "no_closed_to_draw": "@{0} ❌ No hay ningún sorteo cerrado para sortear. Cierra uno primero con !raffle close",
+    "no_participants": "@{0} ❌ El sorteo '{1}' no tiene participantes.",
+    "winner_singular": "🎉 ¡GANADOR del sorteo '{0}': @{1}! ¡Felicidades! 🎊",
+    "winners_plural": "🎉 ¡GANADORES del sorteo '{0}': {1}! ¡Felicidades! 🎊",
+    "no_active_status": "📊 No hay ningún sorteo activo en este momento.",
+    "status": "📊 Sorteo '{0}': {1} participantes | Abierto hace {2} | !raffle join para participar",
+    "no_completed_reroll": "@{0} ❌ No hay ningún sorteo completado para re-sortear.",
+    "no_winner_reroll": "@{0} ❌ No se encontró ganador para re-sortear.",
+    "reroll": "🔄 Re-roll ejecutado! Nuevo ganador: @{0}! 🎉",
+    "invalid_subcommand": "❌ Subcomando '{0}' no reconocido. Usa: join, create, close, draw, status",
+    "error_generic": "❌ Error al ejecutar el comando."
+  },
+  "crear": {
+    "usage": "Uso: !crear <nombre_comando> <respuesta/script> [restricción] [activo/inactivo]\nPara scripting usa: set, when, then, else, end, send, roll(), pick(), count()",
+    "no_permission": "No tienes permiso para usar este comando.",
+    "no_broadcaster_id": "No se encontró el broadcaster ID.",
+    "error_generic": "Ocurrió un error al crear el comando. Por favor, inténtalo de nuevo más tarde.",
+    "already_exists": "El comando {0} ya existe. Usa !editar para modificarlo.",
+    "script_created": "Comando con script {0} creado correctamente para el canal {1} con restricción: {2} y estado: {3}.",
+    "script_error": "Error en el script: {0}",
+    "script_error_generic": "Error al crear el comando con script.",
+    "command_created": "Comando {0} creado correctamente para el canal {1} con restricción: {2} y estado: {3}.",
+    "command_create_failed": "No se pudo crear el comando. Por favor, inténtalo de nuevo.",
+    "command_error_generic": "Error al crear el comando.",
+    "active": "activo",
+    "inactive": "inactivo"
+  },
+  "giveaway_bg": {
+    "no_more_participants": "❌ No hay más participantes disponibles para re-sorteo."
+  },
+  "command_service": {
+    "error_generic": "Error ejecutando comando."
+  }
+}

@@ -27,6 +27,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dtimer";
         public string Description => "Inicia el timer o añade/remueve tiempo (ej: !dtimer 5m, !dtimer add 1h)";
@@ -36,13 +37,15 @@ namespace Decatron.Default.Commands
             ILogger<DTimerCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -66,6 +69,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Obtener idioma del canal
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Verificar permisos (solo broadcaster/mods)
                 var hasPermission = await HasPermissionAsync(username, channel);
                 if (!hasPermission)
@@ -80,7 +86,7 @@ namespace Decatron.Default.Commands
                 if (parts.Length < 2)
                 {
                     await messageSender.SendMessageAsync(channel,
-                        "⏱️ Uso: !dtimer 5m | !dtimer 1h30m | !dtimer add 1h | !dtimer remove 30s");
+                        _messagesService.GetMessage("dtimer_cmd", "usage", lang));
                     return;
                 }
 
@@ -104,21 +110,24 @@ namespace Decatron.Default.Commands
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !dtimer en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al ejecutar el comando.");
+                var errorLang = await GetChannelLanguageAsync(channel);
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "error_generic", errorLang));
             }
         }
 
         private async Task HandleStartTimerAsync(string channel, string timeArg, IMessageSender messageSender)
         {
+            var lang = await GetChannelLanguageAsync(channel);
+
             if (!TimeParser.TryParseTimeToSeconds(timeArg, out var seconds))
             {
-                await messageSender.SendMessageAsync(channel, "❌ Tiempo inválido. Usa: 5m, 1h30m, 300 (segundos), etc.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "invalid_time", lang));
                 return;
             }
 
             if (seconds > 604800) // Máximo 7 días
             {
-                await messageSender.SendMessageAsync(channel, "❌ El tiempo máximo es 7 días.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "max_duration", lang));
                 return;
             }
 
@@ -151,8 +160,7 @@ namespace Decatron.Default.Commands
                 {
                     var currentTimeStr = TimeParser.FormatSeconds(state.CurrentTime);
                     await messageSender.SendMessageAsync(channel,
-                        $"⚠️ El timer ya está activo ({currentTimeStr} restantes). " +
-                        $"Usa !dstop para detenerlo, o añade tiempo con: !dtimer add {timeArg}");
+                        _messagesService.GetMessage("dtimer_cmd", "already_active", lang, currentTimeStr, timeArg));
                     return;
                 }
 
@@ -205,15 +213,17 @@ namespace Decatron.Default.Commands
             await _overlayNotificationService.SendStartTimerAsync(channelLower, seconds);
 
             var timeString = TimeParser.FormatSeconds(seconds);
-            await messageSender.SendMessageAsync(channel, $"⏱️ Timer iniciado: {timeString}");
+            await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "started", lang, timeString));
             _logger.LogInformation($"✅ Timer iniciado en {channel}: {timeString}");
         }
 
         private async Task HandleAddTimeAsync(string channel, string timeValue, IMessageSender messageSender)
         {
+            var lang = await GetChannelLanguageAsync(channel);
+
             if (!TimeParser.TryParseTimeToSeconds(timeValue, out var seconds))
             {
-                await messageSender.SendMessageAsync(channel, "❌ Tiempo inválido. Usa: 1h, 30m, 45s, etc.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "invalid_time", lang));
                 return;
             }
 
@@ -225,7 +235,7 @@ namespace Decatron.Default.Commands
 
             if (state == null)
             {
-                await messageSender.SendMessageAsync(channel, "❌ No hay un timer activo. Usa !dtimer 5m para iniciarlo.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "no_active", lang));
                 return;
             }
 
@@ -259,15 +269,17 @@ namespace Decatron.Default.Commands
             await _overlayNotificationService.SendAddTimeAsync(channelLower, seconds);
 
             var timeString = TimeParser.FormatSeconds(seconds);
-            await messageSender.SendMessageAsync(channel, $"⏱️ +{timeString} añadidos al timer");
+            await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "time_added", lang, timeString));
             _logger.LogInformation($"✅ Tiempo añadido en {channel}: +{timeString}");
         }
 
         private async Task HandleRemoveTimeAsync(string channel, string timeValue, IMessageSender messageSender)
         {
+            var lang = await GetChannelLanguageAsync(channel);
+
             if (!TimeParser.TryParseTimeToSeconds(timeValue, out var seconds))
             {
-                await messageSender.SendMessageAsync(channel, "❌ Tiempo inválido. Usa: 1h, 30m, 45s, etc.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "invalid_time", lang));
                 return;
             }
 
@@ -279,7 +291,7 @@ namespace Decatron.Default.Commands
 
             if (state == null)
             {
-                await messageSender.SendMessageAsync(channel, "❌ No hay un timer activo. Usa !dtimer 5m para iniciarlo.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "no_active", lang));
                 return;
             }
 
@@ -313,8 +325,30 @@ namespace Decatron.Default.Commands
             await _overlayNotificationService.SendAddTimeAsync(channelLower, -removedSeconds);
 
             var timeString = TimeParser.FormatSeconds(removedSeconds);
-            await messageSender.SendMessageAsync(channel, $"⏱️ -{timeString} removidos del timer");
+            await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtimer_cmd", "time_removed", lang, timeString));
             _logger.LogInformation($"✅ Tiempo removido en {channel}: -{timeString}");
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channelLogin)
+        {
+            try
+            {
+                var channelUser = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                if (channelUser == null)
+                {
+                    _logger.LogWarning($"[DTimerCommand] No se pudo obtener info del canal: {channelLogin}");
+                    return "es";
+                }
+
+                var language = channelUser.PreferredLanguage ?? "es";
+                _logger.LogDebug($"[DTimerCommand] Idioma del canal {channelLogin}: '{language}'");
+                return language;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[DTimerCommand] Error obteniendo idioma del canal: {channelLogin}");
+                return "es";
+            }
         }
 
         private async Task<bool> HasPermissionAsync(string username, string channel)

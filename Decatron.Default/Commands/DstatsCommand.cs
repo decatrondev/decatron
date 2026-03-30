@@ -24,6 +24,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dstats";
         public string Description => "Estadísticas de la sesión activa del timer";
@@ -33,13 +34,15 @@ namespace Decatron.Default.Commands
             ILogger<DstatsCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -94,11 +97,13 @@ namespace Decatron.Default.Commands
                 }
                 _cooldowns[cooldownKey] = TimerDateTimeHelper.NowForDb();
 
+                var lang = await GetChannelLanguageAsync(channel);
+
                 var state = await dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
                 if (state == null || state.Status == "stopped" || state.CurrentSessionId == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "📊 No hay sesión activa del timer.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstats", "no_active_session", lang));
                     return;
                 }
 
@@ -128,7 +133,7 @@ namespace Decatron.Default.Commands
                     .Sum(s => s.Total);
 
                 var msgTemplate = cmdCfg?.Template
-                    ?? "📊 Esta sesión: Subs {subs} · Bits {bits} · Raids {raids} · Total {total}";
+                    ?? _messagesService.GetMessage("dstats", "stats", lang, "{subs}", "{bits}", "{raids}", "{total}");
 
                 var msg = msgTemplate
                     .Replace("{total}", TimerTimeFormatter.FormatSecondsSpanish(totalSeconds, null))
@@ -182,6 +187,21 @@ namespace Decatron.Default.Commands
                 _logger.LogError(ex, $"Error verificando si !dstats está habilitado para {channelLogin}");
                 return true;
             }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var lang = await db.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
     }
 }

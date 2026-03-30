@@ -24,6 +24,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dtop";
         public string Description => "Top contribuidores de la sesión activa";
@@ -33,13 +34,15 @@ namespace Decatron.Default.Commands
             ILogger<DtopCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -94,11 +97,13 @@ namespace Decatron.Default.Commands
                 }
                 _cooldowns[cooldownKey] = TimerDateTimeHelper.NowForDb();
 
+                var lang = await GetChannelLanguageAsync(channel);
+
                 var state = await dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
                 if (state == null || state.Status == "stopped" || state.CurrentSessionId == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "🥇 No hay sesión activa del timer.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtop", "no_active_session", lang));
                     return;
                 }
 
@@ -114,7 +119,7 @@ namespace Decatron.Default.Commands
 
                 if (!topContributors.Any())
                 {
-                    await messageSender.SendMessageAsync(channel, "🥇 Nadie ha contribuido tiempo aún.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dtop", "no_contributors", lang));
                     return;
                 }
 
@@ -124,10 +129,10 @@ namespace Decatron.Default.Commands
                     .ToList();
                 var topText = string.Join(" · ", topList);
 
-                var msgTemplate = cmdCfg?.Template ?? "🥇 Top contribuidores: {top}";
+                var msgTemplate = cmdCfg?.Template ?? _messagesService.GetMessage("dtop", "top_contributors", lang, "{top}");
                 var msg = msgTemplate
                     .Replace("{top}", topText)
-                    .Replace("{periodo}", "sesión actual")
+                    .Replace("{periodo}", _messagesService.GetMessage("dtop", "current_session", lang))
                     .Replace("{streamer}", channel);
 
                 await messageSender.SendMessageAsync(channel, msg);
@@ -173,6 +178,21 @@ namespace Decatron.Default.Commands
                 _logger.LogError(ex, $"Error verificando si !dtop está habilitado para {channelLogin}");
                 return true;
             }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var lang = await db.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
     }
 }

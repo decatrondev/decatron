@@ -24,6 +24,7 @@ namespace Decatron.Default.Commands
         private readonly IConfiguration _configuration;
         private readonly ILogger<RaffleCommand> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!raffle";
         public string Description => "Sistema de sorteos (uso: !raffle join, !raffle create [nombre], !raffle close, !raffle draw)";
@@ -31,11 +32,13 @@ namespace Decatron.Default.Commands
         public RaffleCommand(
             IConfiguration configuration,
             ILogger<RaffleCommand> logger,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -58,11 +61,13 @@ namespace Decatron.Default.Commands
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var parts = messageWithoutPrefix.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
 
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Si solo escriben "!raffle" sin argumentos, mostrar ayuda
                 if (parts.Length < 2)
                 {
                     await messageSender.SendMessageAsync(channel,
-                        "🎁 Comandos: !raffle join (participar) | !raffle status (ver estado)");
+                        _messagesService.GetMessage("raffle_cmd", "help", lang));
                     return;
                 }
 
@@ -74,47 +79,48 @@ namespace Decatron.Default.Commands
                     case "join":
                     case "participar":
                     case "entrar":
-                        await HandleJoinAsync(username, channel, messageSender);
+                        await HandleJoinAsync(username, channel, lang, messageSender);
                         break;
 
                     case "create":
                     case "crear":
-                        await HandleCreateAsync(username, channel, argument, messageSender);
+                        await HandleCreateAsync(username, channel, argument, lang, messageSender);
                         break;
 
                     case "close":
                     case "cerrar":
-                        await HandleCloseAsync(username, channel, messageSender);
+                        await HandleCloseAsync(username, channel, lang, messageSender);
                         break;
 
                     case "draw":
                     case "sortear":
-                        await HandleDrawAsync(username, channel, messageSender);
+                        await HandleDrawAsync(username, channel, lang, messageSender);
                         break;
 
                     case "status":
                     case "estado":
-                        await HandleStatusAsync(channel, messageSender);
+                        await HandleStatusAsync(channel, lang, messageSender);
                         break;
 
                     case "reroll":
-                        await HandleRerollAsync(username, channel, messageSender);
+                        await HandleRerollAsync(username, channel, lang, messageSender);
                         break;
 
                     default:
                         await messageSender.SendMessageAsync(channel,
-                            $"❌ Subcomando '{subcommand}' no reconocido. Usa: join, create, close, draw, status");
+                            _messagesService.GetMessage("raffle_cmd", "invalid_subcommand", lang, subcommand));
                         break;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !raffle en {context.Channel}");
-                await messageSender.SendMessageAsync(context.Channel, "❌ Error al ejecutar el comando.");
+                var lang = await GetChannelLanguageAsync(context.Channel);
+                await messageSender.SendMessageAsync(context.Channel, _messagesService.GetMessage("raffle_cmd", "error_generic", lang));
             }
         }
 
-        private async Task HandleJoinAsync(string username, string channel, IMessageSender messageSender)
+        private async Task HandleJoinAsync(string username, string channel, string lang, IMessageSender messageSender)
         {
             using var scope = _serviceProvider.CreateScope();
             var raffleService = scope.ServiceProvider.GetRequiredService<IRaffleService>();
@@ -125,7 +131,7 @@ namespace Decatron.Default.Commands
             if (activeRaffle == null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ No hay ningún sorteo activo en este momento.");
+                    _messagesService.GetMessage("raffle_cmd", "no_active", lang, username));
                 return;
             }
 
@@ -134,7 +140,7 @@ namespace Decatron.Default.Commands
             if (existing != null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ✅ Ya estás participando en el sorteo '{activeRaffle.Name}' ({existing.Tickets} tickets)");
+                    _messagesService.GetMessage("raffle_cmd", "already_participating", lang, username, activeRaffle.Name, existing.Tickets.ToString()));
                 return;
             }
 
@@ -151,10 +157,10 @@ namespace Decatron.Default.Commands
             );
 
             await messageSender.SendMessageAsync(channel,
-                $"@{username} 🎫 ¡Te has unido al sorteo '{activeRaffle.Name}'! Total de participantes: {activeRaffle.TotalParticipants + 1}");
+                _messagesService.GetMessage("raffle_cmd", "joined", lang, username, activeRaffle.Name, (activeRaffle.TotalParticipants + 1).ToString()));
         }
 
-        private async Task HandleCreateAsync(string username, string channel, string? raffleName, IMessageSender messageSender)
+        private async Task HandleCreateAsync(string username, string channel, string? raffleName, string lang, IMessageSender messageSender)
         {
             // Verificar permisos (solo broadcaster/mods)
             var hasPermission = await HasPermissionAsync(username, channel);
@@ -162,14 +168,14 @@ namespace Decatron.Default.Commands
             {
                 _logger.LogDebug($"❌ {username} no tiene permisos para crear sorteos en {channel}");
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ Solo moderadores y el broadcaster pueden crear sorteos.");
+                    _messagesService.GetMessage("raffle_cmd", "permission_denied", lang, username));
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(raffleName))
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ Debes especificar un nombre para el sorteo. Ej: !raffle create Teclado RGB");
+                    _messagesService.GetMessage("raffle_cmd", "specify_name", lang, username));
                 return;
             }
 
@@ -182,7 +188,7 @@ namespace Decatron.Default.Commands
             if (activeRaffle != null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ Ya existe un sorteo activo: '{activeRaffle.Name}'. Ciérralo primero con !raffle close");
+                    _messagesService.GetMessage("raffle_cmd", "already_active", lang, username, activeRaffle.Name));
                 return;
             }
 
@@ -208,10 +214,10 @@ namespace Decatron.Default.Commands
             await raffleService.CreateAsync(raffle);
 
             await messageSender.SendMessageAsync(channel,
-                $"🎁 ¡Sorteo '{raffleName}' creado! Escribe !raffle join para participar. Total de participantes: 0");
+                _messagesService.GetMessage("raffle_cmd", "created", lang, raffleName));
         }
 
-        private async Task HandleCloseAsync(string username, string channel, IMessageSender messageSender)
+        private async Task HandleCloseAsync(string username, string channel, string lang, IMessageSender messageSender)
         {
             var hasPermission = await HasPermissionAsync(username, channel);
             if (!hasPermission)
@@ -227,17 +233,17 @@ namespace Decatron.Default.Commands
             if (activeRaffle == null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ No hay ningún sorteo activo para cerrar.");
+                    _messagesService.GetMessage("raffle_cmd", "no_active_to_close", lang, username));
                 return;
             }
 
             await raffleService.CloseRaffleAsync(activeRaffle.Id);
 
             await messageSender.SendMessageAsync(channel,
-                $"🔒 ¡Sorteo '{activeRaffle.Name}' cerrado! Total de participantes: {activeRaffle.TotalParticipants}. Usa !raffle draw para sortear.");
+                _messagesService.GetMessage("raffle_cmd", "closed", lang, activeRaffle.Name, activeRaffle.TotalParticipants.ToString()));
         }
 
-        private async Task HandleDrawAsync(string username, string channel, IMessageSender messageSender)
+        private async Task HandleDrawAsync(string username, string channel, string lang, IMessageSender messageSender)
         {
             var hasPermission = await HasPermissionAsync(username, channel);
             if (!hasPermission)
@@ -257,14 +263,14 @@ namespace Decatron.Default.Commands
             if (closedRaffle == null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ No hay ningún sorteo cerrado para sortear. Cierra uno primero con !raffle close");
+                    _messagesService.GetMessage("raffle_cmd", "no_closed_to_draw", lang, username));
                 return;
             }
 
             if (closedRaffle.TotalParticipants == 0)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ El sorteo '{closedRaffle.Name}' no tiene participantes.");
+                    _messagesService.GetMessage("raffle_cmd", "no_participants", lang, username, closedRaffle.Name));
                 return;
             }
 
@@ -274,24 +280,24 @@ namespace Decatron.Default.Commands
             if (winners.Count == 1)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"🎉 ¡GANADOR del sorteo '{closedRaffle.Name}': @{winners[0].Username}! ¡Felicidades! 🎊");
+                    _messagesService.GetMessage("raffle_cmd", "winner_singular", lang, closedRaffle.Name, winners[0].Username));
             }
             else
             {
                 var winnersText = string.Join(", ", winners.Select(w => $"@{w.Username}"));
                 await messageSender.SendMessageAsync(channel,
-                    $"🎉 ¡GANADORES del sorteo '{closedRaffle.Name}': {winnersText}! ¡Felicidades! 🎊");
+                    _messagesService.GetMessage("raffle_cmd", "winners_plural", lang, closedRaffle.Name, winnersText));
             }
         }
 
-        private async Task HandleStatusAsync(string channel, IMessageSender messageSender)
+        private async Task HandleStatusAsync(string channel, string lang, IMessageSender messageSender)
         {
             var activeRaffle = await GetActiveRaffleAsync(channel);
 
             if (activeRaffle == null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    "📊 No hay ningún sorteo activo en este momento.");
+                    _messagesService.GetMessage("raffle_cmd", "no_active_status", lang));
                 return;
             }
 
@@ -301,10 +307,10 @@ namespace Decatron.Default.Commands
                 : $"{(int)timeElapsed.TotalHours} horas";
 
             await messageSender.SendMessageAsync(channel,
-                $"📊 Sorteo '{activeRaffle.Name}': {activeRaffle.TotalParticipants} participantes | Abierto hace {timeElapsedText} | !raffle join para participar");
+                _messagesService.GetMessage("raffle_cmd", "status", lang, activeRaffle.Name, activeRaffle.TotalParticipants.ToString(), timeElapsedText));
         }
 
-        private async Task HandleRerollAsync(string username, string channel, IMessageSender messageSender)
+        private async Task HandleRerollAsync(string username, string channel, string lang, IMessageSender messageSender)
         {
             var hasPermission = await HasPermissionAsync(username, channel);
             if (!hasPermission)
@@ -325,7 +331,7 @@ namespace Decatron.Default.Commands
             if (completedRaffle == null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ No hay ningún sorteo completado para re-sortear.");
+                    _messagesService.GetMessage("raffle_cmd", "no_completed_reroll", lang, username));
                 return;
             }
 
@@ -337,14 +343,14 @@ namespace Decatron.Default.Commands
             if (lastWinner == null)
             {
                 await messageSender.SendMessageAsync(channel,
-                    $"@{username} ❌ No se encontró ganador para re-sortear.");
+                    _messagesService.GetMessage("raffle_cmd", "no_winner_reroll", lang, username));
                 return;
             }
 
             var newWinner = await raffleService.RerollWinnerAsync(lastWinner.Id, "Reroll requested via command");
 
             await messageSender.SendMessageAsync(channel,
-                $"🔄 Re-roll ejecutado! Nuevo ganador: @{newWinner.Username}! 🎉");
+                _messagesService.GetMessage("raffle_cmd", "reroll", lang, newWinner.Username));
         }
 
         private async Task<Raffle?> GetActiveRaffleAsync(string channel)
@@ -396,6 +402,21 @@ namespace Decatron.Default.Commands
             // TODO: Implementar verificación real de moderadores desde Twitch API
             // Por ahora, solo broadcaster puede usar comandos de admin
             return false;
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var lang = await db.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
     }
 }

@@ -267,7 +267,9 @@ namespace Decatron.Services
                                         else
                                         {
                                             // Aún hay ganadores pendientes, solo anunciar que no hay más participantes
-                                            await messageSender.SendMessageAsync(channelName, "❌ No hay más participantes disponibles para re-sorteo.");
+                                            var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                                            var gLang = await dbContext.Users.Where(u => u.Login == channelName.ToLower()).Select(u => u.PreferredLanguage).FirstOrDefaultAsync() ?? "es";
+                                            await messageSender.SendMessageAsync(channelName, messagesService.GetMessage("giveaway_bg", "no_more_participants", gLang));
                                         }
                                     }
                                 }

@@ -321,6 +321,15 @@ export default function NowPlayingOverlay() {
     const songTitleContainerRef = useRef<HTMLDivElement | null>(null);
     const [needsMarquee, setNeedsMarquee] = useState(false);
 
+    // Refs for stable callbacks (avoid stale closures in SignalR handlers)
+    const isVisibleRef = useRef(false);
+    const configRef = useRef(config);
+    const isExitingRef = useRef(false);
+
+    useEffect(() => { isVisibleRef.current = isVisible; }, [isVisible]);
+    useEffect(() => { configRef.current = config; }, [config]);
+    useEffect(() => { isExitingRef.current = isExiting; }, [isExiting]);
+
     // ============================================================================
     // FETCH CONFIG & CURRENT TRACK
     // ============================================================================
@@ -373,18 +382,18 @@ export default function NowPlayingOverlay() {
         trackRef.current = data;
 
         if (!data.isPlaying) {
-            // Music stopped
             handleStop();
             return;
         }
 
-        if (isNewSong && prevTrack && isVisible) {
+        if (isNewSong && prevTrack && isVisibleRef.current) {
             // Song changed while visible - crossfade
             setIsSongChanging(true);
+            const duration = configRef.current.animations.songChangeDuration;
             setTimeout(() => {
                 setTrack(data);
                 setIsSongChanging(false);
-            }, config.animations.songChangeDuration);
+            }, duration);
         } else {
             setTrack(data);
         }
@@ -393,16 +402,16 @@ export default function NowPlayingOverlay() {
         startProgressTracking(data);
 
         // Show widget if not visible
-        if (!isVisible) {
+        if (!isVisibleRef.current) {
             setIsExiting(false);
             setIsVisible(true);
         }
-    }, [config.animations.songChangeDuration, isVisible]);
+    }, []);
 
     const handleStop = useCallback(() => {
-        if (!isVisible) return;
+        if (!isVisibleRef.current || isExitingRef.current) return;
         setIsExiting(true);
-        const hideDuration = config.animations.hideDuration || 500;
+        const hideDuration = configRef.current.animations.hideDuration || 500;
         setTimeout(() => {
             setIsVisible(false);
             setIsExiting(false);
@@ -410,7 +419,7 @@ export default function NowPlayingOverlay() {
             trackRef.current = null;
             stopProgressTracking();
         }, hideDuration);
-    }, [config.animations.hideDuration, isVisible]);
+    }, []);
 
     // ============================================================================
     // PROGRESS BAR INTERPOLATION
@@ -473,11 +482,11 @@ export default function NowPlayingOverlay() {
 
         const timeoutCheck = setInterval(() => {
             const timeSinceUpdate = Date.now() - lastUpdateTimeRef.current;
-            if (timeSinceUpdate > 15000) {
-                console.log('[NowPlayingOverlay] No update in 15s, auto-hiding');
+            // 30s timeout - generous enough for slow API responses
+            if (timeSinceUpdate > 30000) {
                 handleStop();
             }
-        }, 3000);
+        }, 5000);
 
         return () => clearInterval(timeoutCheck);
     }, [isVisible, track, handleStop]);

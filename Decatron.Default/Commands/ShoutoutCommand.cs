@@ -20,6 +20,7 @@ namespace Decatron.Default.Commands
         private readonly TwitchApiService _twitchApiService;
         private readonly ClipDownloadService _clipDownloadService;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         // Cooldown: Canal -> TargetUser -> Timestamp del último shoutout
         private static readonly Dictionary<string, Dictionary<string, DateTime>> _shoutoutCooldowns = new();
@@ -35,7 +36,8 @@ namespace Decatron.Default.Commands
             IServiceProvider serviceProvider,
             TwitchApiService twitchApiService,
             ClipDownloadService clipDownloadService,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
@@ -44,6 +46,7 @@ namespace Decatron.Default.Commands
             _twitchApiService = twitchApiService;
             _clipDownloadService = clipDownloadService;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -51,6 +54,7 @@ namespace Decatron.Default.Commands
             var username = context.Username;
             var channel = context.Channel;
             var message = context.Message;
+            var lang = "es";
             try
             {
                 _logger.LogInformation($"Ejecutando comando !so por {username} en {channel}");
@@ -73,9 +77,11 @@ namespace Decatron.Default.Commands
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var args = messageWithoutPrefix.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
+                lang = await GetChannelLanguageAsync(channel);
+
                 if (args.Length < 2)
                 {
-                    await messageSender.SendMessageAsync(channel, "Uso: !so @usuario o !so usuario");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("so_cmd", "usage", lang));
                     return;
                 }
 
@@ -91,11 +97,11 @@ namespace Decatron.Default.Commands
                     // Enviar mensaje gracioso cuando intentan hacer shoutout a alguien en blacklist
                     var blacklistMessages = new[]
                     {
-                        $"🚫 Lo siento, @{targetUser} está en la lista negra. ¡No hay shoutouts aquí!",
-                        $"❌ @{targetUser}? Nah, ese nombre no me suena... 🤐",
-                        $"🙅 @{targetUser} está tomando unas vacaciones permanentes de los shoutouts.",
-                        $"🚷 @{targetUser} ha sido vetado del salón de la fama de shoutouts.",
-                        $"⛔ Error 404: Shoutout para @{targetUser} no encontrado (y nunca lo estará)."
+                        _messagesService.GetMessage("so_cmd", "blacklist_1", lang, targetUser),
+                        _messagesService.GetMessage("so_cmd", "blacklist_2", lang, targetUser),
+                        _messagesService.GetMessage("so_cmd", "blacklist_3", lang, targetUser),
+                        _messagesService.GetMessage("so_cmd", "blacklist_4", lang, targetUser),
+                        _messagesService.GetMessage("so_cmd", "blacklist_5", lang, targetUser)
                     };
 
                     var random = new Random();
@@ -113,7 +119,7 @@ namespace Decatron.Default.Commands
                 {
                     var remainingCooldown = GetRemainingCooldown(channel, targetUser, cooldownDuration);
                     await messageSender.SendMessageAsync(channel,
-                        $"⏰ Espera {remainingCooldown.TotalSeconds:F0}s antes de hacer otro shoutout a @{targetUser}");
+                        _messagesService.GetMessage("so_cmd", "cooldown", lang, remainingCooldown.TotalSeconds.ToString("F0"), targetUser));
                     return;
                 }
 
@@ -125,7 +131,7 @@ namespace Decatron.Default.Commands
                 {
                     // El usuario no existe en Twitch
                     _logger.LogWarning($"⚠️ Usuario no encontrado en Twitch: {targetUser}");
-                    await messageSender.SendMessageAsync(channel, $"❌ El usuario @{targetUser} no existe en Twitch.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("so_cmd", "user_not_found", lang, targetUser));
                     return;
                 }
 
@@ -167,7 +173,7 @@ namespace Decatron.Default.Commands
                 );
 
                 // 4. Enviar mensaje al chat
-                var shoutoutMessage = BuildShoutoutMessage(shoutoutData, hasClips);
+                var shoutoutMessage = BuildShoutoutMessage(shoutoutData, hasClips, lang);
                 await messageSender.SendMessageAsync(channel, shoutoutMessage);
 
                 // 5. Emitir evento SignalR para overlay
@@ -181,7 +187,7 @@ namespace Decatron.Default.Commands
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !so en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al ejecutar el shoutout.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("so_cmd", "error_generic", lang));
             }
         }
 
@@ -304,23 +310,14 @@ namespace Decatron.Default.Commands
             }
         }
 
-        private string BuildShoutoutMessage(Services.ShoutoutData shoutoutData, bool hasClips)
+        private string BuildShoutoutMessage(Services.ShoutoutData shoutoutData, bool hasClips, string lang)
         {
-            var message = $"🔥 ¡Denle follow a @{shoutoutData.Username}! 🔥";
-
             if (!string.IsNullOrEmpty(shoutoutData.GameName) && shoutoutData.GameName != "Sin categoría")
             {
-                message += $" Jugando: {shoutoutData.GameName}";
+                return _messagesService.GetMessage("so_cmd", "message_with_game", lang, shoutoutData.Username, shoutoutData.GameName, shoutoutData.Username);
             }
 
-            if (!hasClips)
-            {
-                message += " (No tiene clips, pero denle amor igual!)";
-            }
-
-            message += $" → twitch.tv/{shoutoutData.Username}";
-
-            return message;
+            return _messagesService.GetMessage("so_cmd", "message_no_game", lang, shoutoutData.Username, shoutoutData.Username);
         }
 
         private async Task<bool> IsCommandEnabledForChannel(string channelLogin)
@@ -412,6 +409,21 @@ namespace Decatron.Default.Commands
                 _shoutoutCooldowns[channel][targetUser] = DateTime.UtcNow;
                 _logger.LogDebug($"Cooldown registrado: {channel} -> {targetUser} ({cooldownDuration.TotalSeconds}s)");
             }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var lang = await db.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
     }
 }

@@ -21,6 +21,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dplay";
         public string Description => "Resume/inicia el timer pausado";
@@ -30,13 +31,15 @@ namespace Decatron.Default.Commands
             ILogger<DPlayCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -60,6 +63,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Obtener idioma del canal
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Verificar permisos (solo broadcaster/mods)
                 var hasPermission = await HasPermissionAsync(username, channel);
                 if (!hasPermission)
@@ -76,13 +82,13 @@ namespace Decatron.Default.Commands
 
                 if (state == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "❌ No hay un timer activo. Usa !dtimer <segundos> para iniciarlo.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dplay_cmd", "no_active", lang));
                     return;
                 }
 
                 if (state.Status == "running")
                 {
-                    await messageSender.SendMessageAsync(channel, "⏱️ El timer ya está corriendo.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dplay_cmd", "already_running", lang));
                     return;
                 }
 
@@ -104,7 +110,7 @@ namespace Decatron.Default.Commands
                     // Emitir evento SignalR para reanudar el timer
                     await _overlayNotificationService.SendResumeTimerAsync(channelLower);
 
-                    await messageSender.SendMessageAsync(channel, "▶️ Timer reanudado");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dplay_cmd", "resumed", lang));
                     _logger.LogInformation($"✅ Timer reanudado en {channel}");
                 }
                 else if (state.Status == "stopped")
@@ -123,14 +129,37 @@ namespace Decatron.Default.Commands
                     // Emitir evento SignalR para iniciar el timer
                     await _overlayNotificationService.SendStartTimerAsync(channelLower, state.CurrentTime);
 
-                    await messageSender.SendMessageAsync(channel, "▶️ Timer iniciado");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dplay_cmd", "started", lang));
                     _logger.LogInformation($"✅ Timer iniciado en {channel}");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !dplay en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al ejecutar el comando.");
+                var lang = await GetChannelLanguageAsync(channel);
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dplay_cmd", "error_generic", lang));
+            }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channelLogin)
+        {
+            try
+            {
+                var channelUser = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                if (channelUser == null)
+                {
+                    _logger.LogWarning($"[DPlayCommand] No se pudo obtener info del canal: {channelLogin}");
+                    return "es";
+                }
+
+                var language = channelUser.PreferredLanguage ?? "es";
+                _logger.LogDebug($"[DPlayCommand] Idioma del canal {channelLogin}: '{language}'");
+                return language;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[DPlayCommand] Error obteniendo idioma del canal: {channelLogin}");
+                return "es";
             }
         }
 

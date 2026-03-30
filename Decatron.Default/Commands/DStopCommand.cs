@@ -21,6 +21,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dstop";
         public string Description => "Detiene el timer completamente y lo oculta";
@@ -30,13 +31,15 @@ namespace Decatron.Default.Commands
             ILogger<DStopCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -60,6 +63,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Obtener idioma del canal
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Verificar permisos (solo broadcaster/mods)
                 var hasPermission = await HasPermissionAsync(username, channel);
                 if (!hasPermission)
@@ -76,7 +82,7 @@ namespace Decatron.Default.Commands
 
                 if (state == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "❌ No hay un timer activo.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstop_cmd", "no_active", lang));
                     return;
                 }
 
@@ -137,13 +143,36 @@ namespace Decatron.Default.Commands
                 // Emitir evento SignalR para detener el timer
                 await _overlayNotificationService.SendStopTimerAsync(channelLower);
 
-                await messageSender.SendMessageAsync(channel, "⏹️ Timer detenido y ocultado");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstop_cmd", "stopped", lang));
                 _logger.LogInformation($"✅ Timer detenido en {channel}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !dstop en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al ejecutar el comando.");
+                var lang = await GetChannelLanguageAsync(channel);
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dstop_cmd", "error_generic", lang));
+            }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channelLogin)
+        {
+            try
+            {
+                var channelUser = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                if (channelUser == null)
+                {
+                    _logger.LogWarning($"[DStopCommand] No se pudo obtener info del canal: {channelLogin}");
+                    return "es";
+                }
+
+                var language = channelUser.PreferredLanguage ?? "es";
+                _logger.LogDebug($"[DStopCommand] Idioma del canal {channelLogin}: '{language}'");
+                return language;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[DStopCommand] Error obteniendo idioma del canal: {channelLogin}");
+                return "es";
             }
         }
 

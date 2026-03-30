@@ -1,0 +1,259 @@
+{
+  "game": {
+    "error_channel_info": "Error: Could not get channel information.",
+    "current_category": "Current category: {0}",
+    "error_get_category": "Could not get current stream category.",
+    "permission_denied": "Only moderators or the channel owner can change the stream category.",
+    "error_validation": "Error: {0}",
+    "success": "Category changed to: {0}!",
+    "error_change": "Error changing stream category.",
+    "error_generic": "Error processing category command."
+  },
+  "ia": {
+    "channel_cooldown": "@{0}, you must wait {1} before using !ia again.",
+    "user_cooldown": "@{0}, you must wait {1} before using !ia again.",
+    "usage": "@{0}, usage: !ia <your question>",
+    "prompt_too_long": "@{0}, your question is too long (max {1} characters).",
+    "error_processing": "@{0}, I couldn't process your question. Try again.",
+    "error_generic": "@{0}, an error occurred. Try again later.",
+    "permission_denied_broadcaster": "@{0}, only the streamer can use !ia in this channel.",
+    "permission_denied_level": "@{0}, you don't have the required permission level to use !ia."
+  },
+  "title": {
+    "error_channel_info": "Error: Could not get channel information.",
+    "current_title": "Current title: {0}",
+    "error_get_title": "Could not get current stream title.",
+    "permission_denied": "Only moderators or the channel owner can change the stream title.",
+    "error_validation": "Error: {0}",
+    "success": "Title changed to: {0}!",
+    "error_change": "Error changing stream title.",
+    "error_generic": "Error processing title command."
+  },
+  "dstart": {
+    "usage": "Usage: !dstart <duration> (e.g.: !dstart 5m, !dstart 1h30m, !dstart 300)",
+    "error_parse": "Error: Invalid time format. Use: 5m, 1h30m, or seconds (300)",
+    "success": "Timer started: {0}",
+    "error_generic": "Error starting timer."
+  },
+  "dpause": {
+    "success": "Timer paused",
+    "error_not_running": "No timer is running.",
+    "error_generic": "Error pausing timer."
+  },
+  "dplay": {
+    "success": "Timer resumed",
+    "error_not_paused": "Timer is not paused.",
+    "error_generic": "Error resuming timer."
+  },
+  "dreset": {
+    "success": "Timer reset",
+    "error_generic": "Error resetting timer."
+  },
+  "dstop": {
+    "success": "Timer stopped",
+    "error_generic": "Error stopping timer."
+  },
+  "dtimer": {
+    "usage": "Usage: !dtimer <duration>, !dtimer add <time>, !dtimer remove <time>",
+    "time_added": "Time added: {0}",
+    "time_removed": "Time removed: {0}",
+    "error_generic": "Error managing timer."
+  },
+  "so": {
+    "usage": "Usage: !so @username or !so username",
+    "error_user_not_found": "Could not find user {0}",
+    "error_generic": "Error performing shoutout."
+  },
+  "raffle": {
+    "usage": "Usage: !raffle <create|join|close|draw|status>",
+    "created": "Raffle created! Use !raffle join to participate.",
+    "joined": "@{0}, you joined the raffle.",
+    "already_joined": "@{0}, you're already participating.",
+    "no_active_raffle": "No active raffle.",
+    "winner": "🎉 Raffle winner: @{0}!",
+    "error_generic": "Error processing raffle command."
+  },
+  "join": {
+    "success": "@{0}, you joined the giveaway.",
+    "already_joined": "@{0}, you're already participating.",
+    "no_active_giveaway": "No active giveaway.",
+    "error_generic": "Error joining giveaway."
+  },
+  "hola": {
+    "greeting": "Hello @{0}! 👋 How are you?"
+  },
+  "g": {
+    "error_channel_info": "Error: Could not get channel information.",
+    "current_category": "Current category: {0}",
+    "error_get_category": "Could not get current stream category.",
+    "permission_denied": "Only moderators or the channel owner can change the category.",
+    "permission_denied_micro": "Only moderators or the channel owner can manage micro commands.",
+    "error_validation": "Error: {0}",
+    "success": "Category changed to: {0}!",
+    "error_change": "Error changing category.",
+    "error_generic": "Error processing !g command.",
+    "help": "Usage: !g = current category | !g [category] = change | !g help | !g list | !g set [!cmd] [category] | !g remove [!cmd]",
+    "micro_list": "Available micro commands: {0}",
+    "micro_list_empty": "No micro commands configured. Use !g set [!command] [category] to create one.",
+    "micro_set_usage": "Usage: !g set [!command] [category]. Example: !g set !apex Apex Legends",
+    "micro_reserved": "'{0}' is a reserved word and cannot be used.",
+    "micro_created": "Micro command {0} created for: {1}",
+    "micro_updated": "Micro command {0} updated to: {1}",
+    "micro_error_create": "Error creating micro command.",
+    "micro_remove_usage": "Usage: !g remove [!command]. Example: !g remove !apex",
+    "micro_not_found": "Micro command {0} not found.",
+    "micro_removed": "Micro command {0} deleted.",
+    "micro_error_remove": "Error deleting micro command.",
+    "micro_error_list": "Error listing micro commands."
+  },
+  "micro": {
+    "permission_denied": "Only moderators or the channel owner can use {0}.",
+    "error_validation": "Error: Category '{0}' is not valid.",
+    "success": "Category changed to: {0}! (using {1})",
+    "error_change": "Error changing category using {0}.",
+    "error_generic": "Error processing micro command.",
+    "error_channel_info": "Error: Could not get channel information."
+  },
+  "dtimer_cmd": {
+    "usage": "⏱️ Usage: !dtimer 5m | !dtimer 1h30m | !dtimer add 1h | !dtimer remove 30s",
+    "error_generic": "❌ Error executing command.",
+    "invalid_time": "❌ Invalid time. Use: 5m, 1h30m, 300 (seconds), etc.",
+    "max_duration": "❌ Maximum time is 7 days.",
+    "already_active": "⚠️ Timer is already active ({0} remaining). Use !dstop to stop it, or add time with: !dtimer add {1}",
+    "started": "⏱️ Timer started: {0}",
+    "no_active": "❌ No active timer. Use !dtimer 5m to start one.",
+    "time_added": "⏱️ +{0} added to timer",
+    "time_removed": "⏱️ -{0} removed from timer"
+  },
+  "dstart_cmd": {
+    "usage": "⏱️ Usage: !dstart <time> (e.g.: !dstart 5m, !dstart 1h30m, !dstart 300)",
+    "invalid_time": "❌ Invalid time. Use: 5m, 1h30m, 300 (seconds), etc.",
+    "max_duration": "❌ Maximum time is 7 days.",
+    "started": "⏱️ Timer started: {0}",
+    "error_generic": "❌ Error starting timer."
+  },
+  "dpause_cmd": {
+    "no_active": "❌ No active timer.",
+    "not_running": "⏱️ Timer is not running.",
+    "paused": "⏸️ Timer paused",
+    "error_generic": "❌ Error executing command."
+  },
+  "dplay_cmd": {
+    "no_active": "❌ No active timer. Use !dtimer <seconds> to start one.",
+    "already_running": "⏱️ Timer is already running.",
+    "resumed": "▶️ Timer resumed",
+    "started": "▶️ Timer started",
+    "error_generic": "❌ Error executing command."
+  },
+  "dstop_cmd": {
+    "no_active": "❌ No active timer.",
+    "stopped": "⏹️ Timer stopped and hidden",
+    "error_generic": "❌ Error executing command."
+  },
+  "dreset_cmd": {
+    "no_active": "❌ No active timer.",
+    "reset": "🔄 Timer reset to {0}",
+    "error_generic": "❌ Error executing command."
+  },
+  "dtop": {
+    "no_active_session": "🥇 No active timer session.",
+    "no_contributors": "🥇 No one has contributed time yet.",
+    "top_contributors": "🥇 Top contributors: {0}",
+    "current_session": "current session"
+  },
+  "drecord": {
+    "no_sessions": "🏆 {0} has no recorded sessions yet.",
+    "record": "🏆 {0}'s extension timer record is {1}"
+  },
+  "dstats": {
+    "no_active_session": "📊 No active timer session.",
+    "stats": "📊 This session: Subs {0} · Bits {1} · Raids {2} · Total {3}"
+  },
+  "so_cmd": {
+    "usage": "Usage: !so @username or !so username",
+    "blacklist_1": "🚫 Sorry, @{0} is blacklisted. No shoutouts here!",
+    "blacklist_2": "❌ @{0}? Nah, that name doesn't ring a bell... 🤐",
+    "blacklist_3": "🙅 @{0} is on permanent vacation from shoutouts.",
+    "blacklist_4": "🚷 @{0} has been banned from the shoutout hall of fame.",
+    "blacklist_5": "⛔ Error 404: Shoutout for @{0} not found (and never will be).",
+    "cooldown": "⏰ Wait {0}s before doing another shoutout to @{1}",
+    "user_not_found": "❌ User @{0} doesn't exist on Twitch.",
+    "error_generic": "❌ Error executing shoutout.",
+    "message_with_game": "Show some love to @{0} who was playing {1} at twitch.tv/{2}",
+    "message_no_game": "Show some love to @{0} at twitch.tv/{1}"
+  },
+  "followage": {
+    "error_channel": "@{0}, error: channel not configured.",
+    "following_self": "@{0}, you've been following {1} for {2} (since {3} UTC)",
+    "following_other": "@{0} has been following {1} for {2} (since {3} UTC)",
+    "not_following_self": "@{0}, you're not following {1}. Give them a follow!",
+    "not_following_other": "@{0} is not following {1}",
+    "followage_short": "@{0}, {1}",
+    "error_generic": "@{0}, there was an error getting the followage.",
+    "error_find_user": "Error finding user",
+    "error_user_not_found": "User not found",
+    "error_token_expired": "Token expired, the streamer must reconnect",
+    "error_no_permission": "No permission to view followers",
+    "error_verify": "Error verifying follow status",
+    "not_following": "Not following the channel",
+    "error_get_followage": "Error getting followage",
+    "year": "year",
+    "years": "years",
+    "month": "month",
+    "months": "months",
+    "week": "week",
+    "weeks": "weeks",
+    "day": "day",
+    "days": "days",
+    "hour": "hour",
+    "hours": "hours",
+    "minute": "minute",
+    "minutes": "minutes",
+    "second": "second",
+    "seconds": "seconds"
+  },
+  "raffle_cmd": {
+    "help": "🎁 Commands: !raffle join (participate) | !raffle status (check status)",
+    "no_active": "@{0} ❌ No active raffle right now.",
+    "already_participating": "@{0} ✅ You're already in raffle '{1}' ({2} tickets)",
+    "joined": "@{0} 🎫 You've joined raffle '{1}'! Total participants: {2}",
+    "permission_denied": "@{0} ❌ Only moderators and the broadcaster can create raffles.",
+    "specify_name": "@{0} ❌ You must specify a name. E.g.: !raffle create RGB Keyboard",
+    "already_active": "@{0} ❌ There's already an active raffle: '{1}'. Close it first with !raffle close",
+    "created": "🎁 Raffle '{0}' created! Type !raffle join to participate. Total participants: 0",
+    "no_active_to_close": "@{0} ❌ No active raffle to close.",
+    "closed": "🔒 Raffle '{0}' closed! Total participants: {1}. Use !raffle draw to pick a winner.",
+    "no_closed_to_draw": "@{0} ❌ No closed raffle to draw. Close one first with !raffle close",
+    "no_participants": "@{0} ❌ Raffle '{1}' has no participants.",
+    "winner_singular": "🎉 WINNER of raffle '{0}': @{1}! Congratulations! 🎊",
+    "winners_plural": "🎉 WINNERS of raffle '{0}': {1}! Congratulations! 🎊",
+    "no_active_status": "📊 No active raffle right now.",
+    "status": "📊 Raffle '{0}': {1} participants | Open for {2} | !raffle join to participate",
+    "no_completed_reroll": "@{0} ❌ No completed raffle to re-roll.",
+    "no_winner_reroll": "@{0} ❌ No winner found to re-roll.",
+    "reroll": "🔄 Re-roll done! New winner: @{0}! 🎉",
+    "invalid_subcommand": "❌ Unknown subcommand '{0}'. Use: join, create, close, draw, status",
+    "error_generic": "❌ Error executing command."
+  },
+  "crear": {
+    "usage": "Usage: !crear <command_name> <response/script> [restriction] [active/inactive]\nFor scripting use: set, when, then, else, end, send, roll(), pick(), count()",
+    "no_permission": "You don't have permission to use this command.",
+    "no_broadcaster_id": "Broadcaster ID not found.",
+    "error_generic": "An error occurred creating the command. Please try again later.",
+    "already_exists": "Command {0} already exists. Use !editar to modify it.",
+    "script_created": "Script command {0} created for channel {1} with restriction: {2} and status: {3}.",
+    "script_error": "Script error: {0}",
+    "script_error_generic": "Error creating script command.",
+    "command_created": "Command {0} created for channel {1} with restriction: {2} and status: {3}.",
+    "command_create_failed": "Could not create the command. Please try again.",
+    "command_error_generic": "Error creating command.",
+    "active": "active",
+    "inactive": "inactive"
+  },
+  "giveaway_bg": {
+    "no_more_participants": "❌ No more participants available for re-draw."
+  },
+  "command_service": {
+    "error_generic": "Error executing command."
+  }
+}

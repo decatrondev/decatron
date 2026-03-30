@@ -102,6 +102,7 @@ namespace Decatron.Services
                 var twitchApiService = serviceProvider.GetRequiredService<TwitchApiService>();
                 var clipDownloadService = serviceProvider.GetRequiredService<ClipDownloadService>();
                 var overlayNotificationService = serviceProvider.GetRequiredService<OverlayNotificationService>();
+                var messagesService = serviceProvider.GetRequiredService<ICommandMessagesService>();
 
                 // Pasar IServiceProvider en vez de DbContext para que cree su propio scope
                 var shoutoutCommand = new ShoutoutCommand(
@@ -111,7 +112,8 @@ namespace Decatron.Services
                     _serviceScopeFactory.CreateScope().ServiceProvider,
                     twitchApiService,
                     clipDownloadService,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
 
                 RegisterCommand(shoutoutCommand);
@@ -152,12 +154,15 @@ namespace Decatron.Services
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
+                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
 
                 var followageCommand = new FollowageCommand(
                     _configuration,
                     _loggerFactory.CreateLogger<FollowageCommand>(),
                     _commandStateService,
-                    httpClientFactory
+                    httpClientFactory,
+                    messagesService,
+                    _serviceScopeFactory
                 );
 
                 RegisterCommand(followageCommand);
@@ -176,6 +181,7 @@ namespace Decatron.Services
                 using var scope = _serviceScopeFactory.CreateScope();
                 var serviceProvider = scope.ServiceProvider;
                 var overlayNotificationService = serviceProvider.GetRequiredService<OverlayNotificationService>();
+                var messagesService = serviceProvider.GetRequiredService<ICommandMessagesService>();
 
                 // Registrar DStartCommand
                 var dStartCommand = new DStartCommand(
@@ -183,7 +189,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DStartCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dStartCommand);
 
@@ -193,7 +200,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DPauseCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dPauseCommand);
 
@@ -203,7 +211,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DPlayCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dPlayCommand);
 
@@ -213,7 +222,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DResetCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dResetCommand);
 
@@ -223,7 +233,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DStopCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dStopCommand);
 
@@ -233,7 +244,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DTimerCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dTimerCommand);
 
@@ -263,7 +275,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DstatsCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dStatsCommand);
 
@@ -273,7 +286,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DrecordCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dRecordCommand);
 
@@ -283,7 +297,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<DtopCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    overlayNotificationService
+                    overlayNotificationService,
+                    messagesService
                 );
                 RegisterCommand(dTopCommand);
 
@@ -501,7 +516,10 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando comando normal {command.CommandName}");
-                await _messageSender.SendMessageAsync(channel, "Error ejecutando comando.");
+                using var scope = _serviceScopeFactory.CreateScope();
+                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var lang = await GetChannelLanguageAsync(channel);
+                await _messageSender.SendMessageAsync(channel, messagesService.GetMessage("command_service", "error_generic", lang));
             }
         }
 
@@ -660,14 +678,18 @@ namespace Decatron.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                 var scriptingService = scope.ServiceProvider.GetRequiredService<ScriptingService>();
 
-                var createCommand = new Decatron.Custom.Commands.CreateCommand(dbContext, _configuration, scriptingService);
+                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var createCommand = new Decatron.Custom.Commands.CreateCommand(dbContext, _configuration, scriptingService, messagesService);
                 var ctx = new CommandContext(username, channel, chatMessage, "");
                 await createCommand.ExecuteAsync(ctx, _messageSender);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error procesando comando !crear de {username} en {channel}");
-                await _messageSender.SendMessageAsync(channel, "Error procesando comando de creación.");
+                using var errScope = _serviceScopeFactory.CreateScope();
+                var messagesService = errScope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var lang = await GetChannelLanguageAsync(channel);
+                await _messageSender.SendMessageAsync(channel, messagesService.GetMessage("command_service", "error_generic", lang));
             }
         }
 
@@ -898,6 +920,21 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, $"Error ejecutando acción de moderación {action} para {username} en {channel}");
             }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var lang = await db.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
     }
 }

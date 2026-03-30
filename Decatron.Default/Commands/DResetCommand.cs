@@ -21,6 +21,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!dreset";
         public string Description => "Reinicia el timer al tiempo total";
@@ -30,13 +31,15 @@ namespace Decatron.Default.Commands
             ILogger<DResetCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -60,6 +63,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Obtener idioma del canal
+                var lang = await GetChannelLanguageAsync(channel);
+
                 // Verificar permisos (solo broadcaster/mods)
                 var hasPermission = await HasPermissionAsync(username, channel);
                 if (!hasPermission)
@@ -76,7 +82,7 @@ namespace Decatron.Default.Commands
 
                 if (state == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "❌ No hay un timer activo.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dreset_cmd", "no_active", lang));
                     return;
                 }
 
@@ -100,13 +106,36 @@ namespace Decatron.Default.Commands
                     ? $"{minutes}m {remainingSeconds}s"
                     : $"{state.TotalTime}s";
 
-                await messageSender.SendMessageAsync(channel, $"🔄 Timer reiniciado a {timeString}");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dreset_cmd", "reset", lang, timeString));
                 _logger.LogInformation($"✅ Timer reiniciado en {channel}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !dreset en {channel}");
-                await messageSender.SendMessageAsync(channel, "❌ Error al ejecutar el comando.");
+                var lang = await GetChannelLanguageAsync(channel);
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("dreset_cmd", "error_generic", lang));
+            }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channelLogin)
+        {
+            try
+            {
+                var channelUser = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                if (channelUser == null)
+                {
+                    _logger.LogWarning($"[DResetCommand] No se pudo obtener info del canal: {channelLogin}");
+                    return "es";
+                }
+
+                var language = channelUser.PreferredLanguage ?? "es";
+                _logger.LogDebug($"[DResetCommand] Idioma del canal {channelLogin}: '{language}'");
+                return language;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[DResetCommand] Error obteniendo idioma del canal: {channelLogin}");
+                return "es";
             }
         }
 

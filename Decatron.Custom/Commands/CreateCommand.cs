@@ -25,6 +25,7 @@ namespace Decatron.Custom.Commands
         private readonly GameFunction _gameFunction;
         private readonly UptimeFunction _uptimeFunction;
         private readonly ScriptingService _scriptingService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!crear";
         public string Description => "Crear comandos personalizados con o sin scripting";
@@ -32,13 +33,28 @@ namespace Decatron.Custom.Commands
         public CreateCommand(
             DecatronDbContext context,
             IConfiguration configuration,
-            ScriptingService scriptingService)
+            ScriptingService scriptingService,
+            ICommandMessagesService messagesService)
         {
             _context = context;
             _configuration = configuration;
             _gameFunction = new GameFunction(configuration);
             _uptimeFunction = new UptimeFunction(configuration);
             _scriptingService = scriptingService;
+            _messagesService = messagesService;
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                var lang = await _context.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -49,11 +65,11 @@ namespace Decatron.Custom.Commands
 
             var parts = message.Split(' ');
 
+            var lang = await GetChannelLanguageAsync(channel);
+
             if (parts.Length < 3)
             {
-                await messageSender.SendMessageAsync(channel,
-                    "Uso: !crear <nombre_comando> <respuesta/script> [restricción] [activo/inactivo]\n" +
-                    "Para scripting usa: set, when, then, else, end, send, roll(), pick(), count()");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("crear", "usage", lang));
                 return;
             }
 
@@ -99,14 +115,14 @@ namespace Decatron.Custom.Commands
                 var isOwnerOrModerator = await Utils.IsOwnerOrModerator(_configuration, username, channel);
                 if (!isOwnerOrModerator)
                 {
-                    await messageSender.SendMessageAsync(channel, "No tienes permiso para usar este comando.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("crear", "no_permission", lang));
                     return;
                 }
 
                 var broadcasterId = await Utils.GetBroadcasterIdFromDatabaseAsync(_configuration, channel.ToLower());
                 if (broadcasterId == null)
                 {
-                    await messageSender.SendMessageAsync(channel, "No se encontró el broadcaster ID.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("crear", "no_broadcaster_id", lang));
                     return;
                 }
 
@@ -116,16 +132,16 @@ namespace Decatron.Custom.Commands
 
                 if (isScript)
                 {
-                    await CreateScriptedCommand(commandName, response, channel, Convert.ToInt64(broadcasterId), restriction, isActive, username, messageSender);
+                    await CreateScriptedCommand(commandName, response, channel, Convert.ToInt64(broadcasterId), restriction, isActive, username, messageSender, lang);
                 }
                 else
                 {
-                    await CreateNormalCommand(commandName, response, channel, broadcasterId, restriction, isActive, username, messageSender);
+                    await CreateNormalCommand(commandName, response, channel, broadcasterId, restriction, isActive, username, messageSender, lang);
                 }
             }
             catch (Exception ex)
             {
-                await messageSender.SendMessageAsync(channel, "Ocurrió un error al crear el comando. Por favor, inténtalo de nuevo más tarde.");
+                await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("crear", "error_generic", lang));
             }
         }
 
@@ -178,43 +194,43 @@ namespace Decatron.Custom.Commands
         }
 
         // Crear comando con script - SOLO en scripted_commands
-        private async Task CreateScriptedCommand(string commandName, string response, string channelName, long broadcasterId, string restriction, bool isActive, string createdBy, IMessageSender messageSender)
+        private async Task CreateScriptedCommand(string commandName, string response, string channelName, long broadcasterId, string restriction, bool isActive, string createdBy, IMessageSender messageSender, string lang)
         {
             try
             {
                 if (await CommandExists(commandName, channelName))
                 {
-                    await messageSender.SendMessageAsync(channelName, $"El comando {commandName} ya existe. Usa !editar para modificarlo.");
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "already_exists", lang, commandName));
                     return;
                 }
 
                 var formattedScript = FormatScriptForStorage(response);
 
-                // SOLO guardar en scripted_commands, NO en custom_commands
                 try
                 {
                     await _scriptingService.CreateScriptedCommandAsync(channelName, commandName, formattedScript, broadcasterId);
-                    await messageSender.SendMessageAsync(channelName, $"Comando con script {commandName} creado correctamente para el canal {channelName} con restricción: {restriction} y estado: {(isActive ? "activo" : "inactivo")}.");
+                    var statusText = _messagesService.GetMessage("crear", isActive ? "active" : "inactive", lang);
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "script_created", lang, commandName, channelName, restriction, statusText));
                 }
                 catch (ScriptParseException ex)
                 {
-                    await messageSender.SendMessageAsync(channelName, $"Error en el script: {ex.Message}");
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "script_error", lang, ex.Message));
                 }
             }
             catch (Exception ex)
             {
-                await messageSender.SendMessageAsync(channelName, "Error al crear el comando con script.");
+                await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "script_error_generic", lang));
             }
         }
 
         // Crear comando normal - SOLO en custom_commands
-        private async Task CreateNormalCommand(string commandName, string response, string channelName, string broadcasterId, string restriction, bool isActive, string createdBy, IMessageSender messageSender)
+        private async Task CreateNormalCommand(string commandName, string response, string channelName, string broadcasterId, string restriction, bool isActive, string createdBy, IMessageSender messageSender, string lang)
         {
             try
             {
                 if (await CommandExists(commandName, channelName))
                 {
-                    await messageSender.SendMessageAsync(channelName, $"El comando {commandName} ya existe. Usa !editar para modificarlo.");
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "already_exists", lang, commandName));
                     return;
                 }
 
@@ -236,16 +252,17 @@ namespace Decatron.Custom.Commands
 
                 if (success)
                 {
-                    await messageSender.SendMessageAsync(channelName, $"Comando {commandName} creado correctamente para el canal {channelName} con restricción: {restriction} y estado: {(isActive ? "activo" : "inactivo")}.");
+                    var statusText = _messagesService.GetMessage("crear", isActive ? "active" : "inactive", lang);
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "command_created", lang, commandName, channelName, restriction, statusText));
                 }
                 else
                 {
-                    await messageSender.SendMessageAsync(channelName, "No se pudo crear el comando. Por favor, inténtalo de nuevo.");
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "command_create_failed", lang));
                 }
             }
             catch (Exception ex)
             {
-                await messageSender.SendMessageAsync(channelName, "Error al crear el comando.");
+                await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "command_error_generic", lang));
             }
         }
 

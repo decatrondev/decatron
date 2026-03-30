@@ -24,6 +24,7 @@ namespace Decatron.Default.Commands
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
         private readonly OverlayNotificationService _overlayNotificationService;
+        private readonly ICommandMessagesService _messagesService;
 
         public string Name => "!drecord";
         public string Description => "Muestra el récord histórico del timer";
@@ -33,13 +34,15 @@ namespace Decatron.Default.Commands
             ILogger<DrecordCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            OverlayNotificationService overlayNotificationService)
+            OverlayNotificationService overlayNotificationService,
+            ICommandMessagesService messagesService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
             _overlayNotificationService = overlayNotificationService;
+            _messagesService = messagesService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -99,9 +102,11 @@ namespace Decatron.Default.Commands
                     .OrderByDescending(s => s.InitialDuration + s.TotalAddedTime)
                     .FirstOrDefaultAsync();
 
+                var lang = await GetChannelLanguageAsync(channel);
+
                 if (recordSession == null)
                 {
-                    await messageSender.SendMessageAsync(channel, $"🏆 {channel} aún no tiene sesiones registradas.");
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("drecord", "no_sessions", lang, channel));
                     return;
                 }
 
@@ -112,7 +117,7 @@ namespace Decatron.Default.Commands
                 var (fechaRecord, _) = TimerTimeFormatter.FormatDateTimeParts(recordSession.StartedAt, timezone);
 
                 var msgTemplate = cmdCfg?.Template
-                    ?? "🏆 El récord del extensible de {streamer} es {record}";
+                    ?? _messagesService.GetMessage("drecord", "record", lang, "{streamer}", "{record}");
 
                 var msg = msgTemplate
                     .Replace("{record}", recordFormatted)
@@ -162,6 +167,21 @@ namespace Decatron.Default.Commands
                 _logger.LogError(ex, $"Error verificando si !drecord está habilitado para {channelLogin}");
                 return true;
             }
+        }
+
+        private async Task<string> GetChannelLanguageAsync(string channel)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var lang = await db.Users
+                    .Where(u => u.Login == channel.ToLower())
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync();
+                return lang ?? "es";
+            }
+            catch { return "es"; }
         }
     }
 }
