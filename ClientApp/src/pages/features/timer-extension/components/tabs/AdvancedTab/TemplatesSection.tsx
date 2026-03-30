@@ -4,6 +4,7 @@
  * Preset templates, custom templates list, and create/edit/apply modals.
  */
 
+import { useTranslation } from 'react-i18next';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import type { AdvancedConfig } from '../../../types';
 
@@ -64,10 +65,10 @@ interface TemplatesSectionProps {
     onOpenApplyModal: (template: CustomTemplate) => void;
 }
 
-const presetTemplates = [
-    { key: 'speedrun', name: 'Speedrun', icon: '⚡', desc: 'Optimizado para speedruns competitivos' },
-    { key: 'subathon', name: 'Subathon', icon: '🎯', desc: 'Configuración para maratones de suscripciones' },
-    { key: 'gamingMarathon', name: 'Gaming Marathon', icon: '🎮', desc: 'Para sesiones largas de gaming' }
+const presetTemplateKeys = [
+    { key: 'speedrun', nameKey: 'timerAdvanced.presetSpeedrun', icon: '⚡', descKey: 'timerAdvanced.presetSpeedrunDesc' },
+    { key: 'subathon', nameKey: 'timerAdvanced.presetSubathon', icon: '🎯', descKey: 'timerAdvanced.presetSubathonDesc' },
+    { key: 'gamingMarathon', nameKey: 'timerAdvanced.presetGamingMarathon', icon: '🎮', descKey: 'timerAdvanced.presetGamingMarathonDesc' }
 ];
 
 export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
@@ -94,14 +95,15 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
     onOpenEditModal,
     onOpenApplyModal
 }) => {
+    const { t } = useTranslation('features');
     return (
         <>
             <div className="space-y-6">
                 {/* Plantillas Predefinidas */}
                 <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">📋 Plantillas Predefinidas</h3>
+                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('timerAdvanced.presetTemplates')}</h3>
                     <div className="space-y-3">
-                        {presetTemplates.map((template) => (
+                        {presetTemplateKeys.map((template) => (
                             <button
                                 key={template.key}
                                 onClick={() => onAdvancedConfigChange({ activeTemplate: template.key })}
@@ -114,8 +116,8 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{template.icon}</span>
                                     <div className="flex-1">
-                                        <p className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">{template.name}</p>
-                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{template.desc}</p>
+                                        <p className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">{t(template.nameKey)}</p>
+                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t(template.descKey)}</p>
                                     </div>
                                     {advancedConfig.activeTemplate === template.key && (
                                         <span className="text-blue-500 text-xl">✓</span>
@@ -134,8 +136,8 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                             <div className="flex items-center gap-3">
                                 <span className="text-2xl">🚫</span>
                                 <div className="flex-1">
-                                    <p className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">Sin Plantilla</p>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Usar configuración personalizada actual</p>
+                                    <p className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.noTemplate')}</p>
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('timerAdvanced.noTemplateDesc')}</p>
                                 </div>
                                 {advancedConfig.activeTemplate === null && <span className="text-gray-500 text-xl">✓</span>}
                             </div>
@@ -146,20 +148,20 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                 {/* Plantillas Personalizadas */}
                 <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">✨ Mis Plantillas Personalizadas</h3>
+                        <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.myCustomTemplates')}</h3>
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg transition-colors flex items-center gap-2 font-bold text-sm"
                         >
                             <Plus className="w-4 h-4" />
-                            Crear Plantilla
+                            {t('timerAdvanced.createTemplate')}
                         </button>
                     </div>
                     {loadingTemplates ? (
-                        <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">Cargando plantillas...</div>
+                        <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.loadingTemplates')}</div>
                     ) : customTemplates.length === 0 ? (
                         <div className="text-center py-8">
-                            <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">No tienes plantillas personalizadas todavía</p>
+                            <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">{t('timerAdvanced.noCustomTemplates')}</p>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -172,7 +174,7 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                                             {template.description && <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{template.description}</p>}
                                         </div>
                                         <div className="flex gap-2 flex-shrink-0">
-                                            <button onClick={() => onOpenApplyModal(template)} className="px-3 py-1.5 bg-[#64748b] hover:bg-[#475569] text-white rounded text-xs font-bold transition-colors">Aplicar</button>
+                                            <button onClick={() => onOpenApplyModal(template)} className="px-3 py-1.5 bg-[#64748b] hover:bg-[#475569] text-white rounded text-xs font-bold transition-colors">{t('timerAdvanced.apply')}</button>
                                             <button onClick={() => onOpenEditModal(template)} className="p-1.5 text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] transition-colors"><Edit2 className="w-4 h-4" /></button>
                                             <button onClick={() => onDeleteTemplate(template)} className="p-1.5 text-red-500 hover:text-red-700 transition-colors"><Trash2 className="w-4 h-4" /></button>
                                         </div>
@@ -188,15 +190,15 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-md w-full shadow-2xl">
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">✨ Crear Nueva Plantilla</h3>
+                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('timerAdvanced.createNewTemplate')}</h3>
                         <div className="space-y-4">
-                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Nombre *</label><input type="text" value={templateForm.name} onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
-                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Descripción</label><textarea value={templateForm.description} onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })} rows={3} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
-                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Ícono</label><input type="text" value={templateForm.icon} onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })} maxLength={10} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
+                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.nameRequired_label')}</label><input type="text" value={templateForm.name} onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
+                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.description')}</label><textarea value={templateForm.description} onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })} rows={3} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
+                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.icon')}</label><input type="text" value={templateForm.icon} onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })} maxLength={10} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
                         </div>
                         <div className="flex gap-3 mt-6">
-                            <button onClick={() => { setShowCreateModal(false); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] font-bold transition-colors">Cancelar</button>
-                            <button onClick={onCreateTemplate} className="flex-1 px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg font-bold transition-colors">Crear Plantilla</button>
+                            <button onClick={() => { setShowCreateModal(false); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] font-bold transition-colors">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={onCreateTemplate} className="flex-1 px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg font-bold transition-colors">{t('timerAdvanced.createTemplate')}</button>
                         </div>
                     </div>
                 </div>
@@ -206,15 +208,15 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
             {showEditModal && selectedTemplate && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-md w-full shadow-2xl">
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">✏️ Editar Plantilla</h3>
+                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('timerAdvanced.editTemplate')}</h3>
                         <div className="space-y-4">
-                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Nombre *</label><input type="text" value={templateForm.name} onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
-                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Descripción</label><textarea value={templateForm.description} onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })} rows={3} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
-                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Ícono</label><input type="text" value={templateForm.icon} onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })} maxLength={10} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
+                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.nameRequired_label')}</label><input type="text" value={templateForm.name} onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
+                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.description')}</label><textarea value={templateForm.description} onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })} rows={3} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
+                            <div><label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.icon')}</label><input type="text" value={templateForm.icon} onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })} maxLength={10} className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]" /></div>
                         </div>
                         <div className="flex gap-3 mt-6">
-                            <button onClick={() => { setShowEditModal(false); setSelectedTemplate(null); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] font-bold transition-colors">Cancelar</button>
-                            <button onClick={onEditTemplate} className="flex-1 px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg font-bold transition-colors">Guardar Cambios</button>
+                            <button onClick={() => { setShowEditModal(false); setSelectedTemplate(null); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] font-bold transition-colors">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={onEditTemplate} className="flex-1 px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg font-bold transition-colors">{t('timerAdvanced.saveChanges')}</button>
                         </div>
                     </div>
                 </div>
@@ -224,24 +226,24 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
             {showApplyModal && selectedTemplate && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-lg w-full shadow-2xl">
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">{selectedTemplate.icon} Aplicar: {selectedTemplate.name}</h3>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">Selecciona qué partes de la plantilla quieres aplicar</p>
+                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">{selectedTemplate.icon} {t('timerAdvanced.applyColon')} {selectedTemplate.name}</h3>
+                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">{t('timerAdvanced.selectPartsToApply')}</p>
                         <div className="space-y-3 max-h-[400px] overflow-y-auto">
                             {/* Opciones de aplicar plantilla simplificadas */}
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyBasic} onChange={(e) => setApplyOptions({ ...applyOptions, applyBasic: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Timer Básico</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyBasic} onChange={(e) => setApplyOptions({ ...applyOptions, applyBasic: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyBasicTimer')}</p></div></label>
                             <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyCanvas} onChange={(e) => setApplyOptions({ ...applyOptions, applyCanvas: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Canvas</p></div></label>
                             <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyDisplay} onChange={(e) => setApplyOptions({ ...applyOptions, applyDisplay: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Display</p></div></label>
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyProgressBar} onChange={(e) => setApplyOptions({ ...applyOptions, applyProgressBar: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Barra de Progreso</p></div></label>
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyStyle} onChange={(e) => setApplyOptions({ ...applyOptions, applyStyle: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Estilos de Texto</p></div></label>
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyAnimation} onChange={(e) => setApplyOptions({ ...applyOptions, applyAnimation: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Animaciones</p></div></label>
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyAlerts} onChange={(e) => setApplyOptions({ ...applyOptions, applyAlerts: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Alertas</p></div></label>
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyEvents} onChange={(e) => setApplyOptions({ ...applyOptions, applyEvents: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Eventos</p></div></label>
-                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyGoal} onChange={(e) => setApplyOptions({ ...applyOptions, applyGoal: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Meta/Goal</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyProgressBar} onChange={(e) => setApplyOptions({ ...applyOptions, applyProgressBar: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyProgressBar')}</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyStyle} onChange={(e) => setApplyOptions({ ...applyOptions, applyStyle: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyTextStyles')}</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyAnimation} onChange={(e) => setApplyOptions({ ...applyOptions, applyAnimation: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyAnimations')}</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyAlerts} onChange={(e) => setApplyOptions({ ...applyOptions, applyAlerts: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyAlerts')}</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyEvents} onChange={(e) => setApplyOptions({ ...applyOptions, applyEvents: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyEvents')}</p></div></label>
+                            <label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#262626] cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"><input type="checkbox" checked={applyOptions.applyGoal} onChange={(e) => setApplyOptions({ ...applyOptions, applyGoal: e.target.checked })} className="w-4 h-4" /><div className="flex-1"><p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.applyGoal')}</p></div></label>
                         </div>
-                        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"><p className="text-xs text-yellow-700 dark:text-yellow-300">⚠️ Esto sobrescribirá tu configuración actual.</p></div>
+                        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"><p className="text-xs text-yellow-700 dark:text-yellow-300">{t('timerAdvanced.applyWarning')}</p></div>
                         <div className="flex gap-3 mt-6">
-                            <button onClick={() => { setShowApplyModal(false); setSelectedTemplate(null); }} className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] font-bold transition-colors">Cancelar</button>
-                            <button onClick={onApplyTemplate} className="flex-1 px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg font-bold transition-colors">Aplicar Ahora</button>
+                            <button onClick={() => { setShowApplyModal(false); setSelectedTemplate(null); }} className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:text-[#1e293b] dark:hover:text-[#f8fafc] font-bold transition-colors">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={onApplyTemplate} className="flex-1 px-4 py-2 bg-[#64748b] hover:bg-[#475569] text-white rounded-lg font-bold transition-colors">{t('timerAdvanced.applyNow')}</button>
                         </div>
                     </div>
                 </div>

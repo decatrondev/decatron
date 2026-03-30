@@ -4,6 +4,7 @@
  * Timezone selector and regional configuration, plus danger zone (factory reset).
  */
 
+import { useTranslation } from 'react-i18next';
 import { Globe, RotateCcw } from 'lucide-react';
 
 interface GeneralSectionProps {
@@ -17,16 +18,17 @@ export const GeneralSection: React.FC<GeneralSectionProps> = ({
     onTimeZoneChange,
     onResetConfig
 }) => {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-blue-500" /> Configuración Regional
+                    <Globe className="w-4 h-4 text-blue-500" /> {t('timerAdvanced.regionalConfig')}
                 </h3>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Zona Horaria</label>
+                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.timezone')}</label>
                         <select
                             value={timeZone || 'UTC'}
                             onChange={(e) => onTimeZoneChange(e.target.value)}
@@ -48,27 +50,27 @@ export const GeneralSection: React.FC<GeneralSectionProps> = ({
                             </optgroup>
                         </select>
                         <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
-                            Define la hora base para las funciones de <strong>Auto-Pausa</strong> y <strong>Happy Hour</strong>.
+                            {t('timerAdvanced.timezoneDescription')}
                         </p>
                     </div>
 
                     <div className="pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
                         <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            ⚠️ Zona de Peligro
+                            {t('timerAdvanced.dangerZone')}
                         </h4>
                         <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-4">
                             <p className="text-sm text-red-600 dark:text-red-400 mb-4 font-medium">
-                                ¿Algo salió mal? Puedes restaurar toda la configuración visual y alertas a su estado original.
+                                {t('timerAdvanced.dangerZoneDescription')}
                             </p>
                             <button
                                 onClick={onResetConfig}
                                 className="w-full py-3 bg-white dark:bg-[#1a1a1a] border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                             >
                                 <RotateCcw className="w-4 h-4" />
-                                Restaurar Configuración por Defecto
+                                {t('timerAdvanced.restoreDefaults')}
                             </button>
                             <p className="text-xs text-red-400/80 mt-2 text-center">
-                                Nota: Esto NO borrará tus horarios guardados ni plantillas personalizadas.
+                                {t('timerAdvanced.restoreDefaultsNote')}
                             </p>
                         </div>
                     </div>

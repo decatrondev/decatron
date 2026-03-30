@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { Image as ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { TipsSettings } from '../../types/config';
 
 interface PageTabProps {
@@ -21,31 +22,32 @@ export const PageTab: React.FC<PageTabProps> = ({
     labelClass,
     cardClass,
 }) => {
+    const { t } = useTranslation('features');
     return (
         <div className={cardClass}>
             <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
                 <ImageIcon className="w-5 h-5" />
-                Personalización de página
+                {t('tipsTabs.pageCustomization')}
             </h3>
 
             <div className="space-y-4">
                 <div>
-                    <label className={labelClass}>Título de la página</label>
+                    <label className={labelClass}>{t('tipsTabs.pageTitle')}</label>
                     <input
                         type="text"
                         value={settings.pageTitle}
                         onChange={e => updateSettings({ pageTitle: e.target.value })}
-                        placeholder="Apoya mi stream"
+                        placeholder={t('tipsTabs.pageTitlePlaceholder')}
                         className={inputClass}
                     />
                 </div>
 
                 <div>
-                    <label className={labelClass}>Descripción</label>
+                    <label className={labelClass}>{t('tipsTabs.description')}</label>
                     <textarea
                         value={settings.pageDescription}
                         onChange={e => updateSettings({ pageDescription: e.target.value })}
-                        placeholder="Tu donación me ayuda a seguir creando contenido..."
+                        placeholder={t('tipsTabs.descriptionPlaceholder')}
                         rows={3}
                         className={inputClass}
                     />
@@ -53,7 +55,7 @@ export const PageTab: React.FC<PageTabProps> = ({
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className={labelClass}>Color de acento</label>
+                        <label className={labelClass}>{t('tipsTabs.accentColor')}</label>
                         <div className="flex items-center gap-2">
                             <input
                                 type="color"
@@ -70,7 +72,7 @@ export const PageTab: React.FC<PageTabProps> = ({
                         </div>
                     </div>
                     <div>
-                        <label className={labelClass}>Imagen de fondo (URL)</label>
+                        <label className={labelClass}>{t('tipsTabs.backgroundImage')}</label>
                         <input
                             type="url"
                             value={settings.pageBackgroundImage}

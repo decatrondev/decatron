@@ -1,6 +1,7 @@
 import {
     Upload, Music, Video, Image as ImageIcon
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ChannelPointsReward } from '../../types';
 
 interface FileSelectionModalProps {
@@ -37,6 +38,7 @@ export function FileSelectionModal({
     setSelectedImageFile,
     handleFileUpload,
 }: FileSelectionModalProps) {
+    const { t } = useTranslation('features');
     return (
         <>
             {/* File Selection Dialog */}
@@ -45,7 +47,7 @@ export function FileSelectionModal({
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                Seleccionar Archivo para "{selectedRewardForFile.title}"
+                                {t('soundAlertsTabs.selectFileFor', { title: selectedRewardForFile.title })}
                             </h3>
                             <button
                                 onClick={() => {
@@ -70,10 +72,10 @@ export function FileSelectionModal({
                             >
                                 <Upload className="w-12 h-12 mx-auto mb-3 text-[#2563eb]" />
                                 <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
-                                    Subir Archivo Propio
+                                    {t('soundAlertsTabs.uploadOwnFile')}
                                 </h4>
                                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                    Sube tu propio archivo de sonido, video o imagen
+                                    {t('soundAlertsTabs.uploadOwnFileDesc')}
                                 </p>
                             </div>
 
@@ -81,11 +83,11 @@ export function FileSelectionModal({
                             <div className="p-6 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl">
                                 <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
                                     <Music className="w-5 h-5 text-purple-600" />
-                                    Archivos del Sistema
+                                    {t('soundAlertsTabs.systemFiles')}
                                 </h4>
                                 {systemFiles.length === 0 ? (
                                     <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                        No hay archivos del sistema disponibles
+                                        {t('soundAlertsTabs.noSystemFiles')}
                                     </p>
                                 ) : (
                                     <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -124,28 +126,28 @@ export function FileSelectionModal({
                                 }}
                                 className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
                             >
-                                Cancelar
+                                {t('soundAlertsTabs.cancel')}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Modal: Subir Audio + Imagen Opcional */}
+            {/* Modal: Upload Audio + Optional Image */}
             {showAudioImageModal && pendingAudioUpload && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-200 dark:border-gray-800">
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                                📢 Subir Audio
+                                {t('soundAlertsTabs.uploadAudio')}
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                ¿Quieres agregar una imagen para mostrar durante el audio?
+                                {t('soundAlertsTabs.addImageQuestion')}
                             </p>
                         </div>
 
                         <div className="p-6 space-y-4">
-                            {/* Info del archivo de audio */}
+                            {/* Audio file info */}
                             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                                 <div className="flex items-center gap-3">
                                     <Music className="w-5 h-5 text-blue-600" />
@@ -160,10 +162,10 @@ export function FileSelectionModal({
                                 </div>
                             </div>
 
-                            {/* Selector de imagen opcional */}
+                            {/* Optional image selector */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Imagen (opcional)
+                                    {t('soundAlertsTabs.imageOptional')}
                                 </label>
                                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
                                     <input
@@ -194,17 +196,17 @@ export function FileSelectionModal({
                                             <>
                                                 <Upload className="w-8 h-8 text-gray-400" />
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                    Click para seleccionar imagen
+                                                    {t('soundAlertsTabs.clickToSelectImage')}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    PNG, JPG (máx. 5MB)
+                                                    {t('soundAlertsTabs.maxSize')}
                                                 </p>
                                             </>
                                         )}
                                     </label>
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                    💡 Si no seleccionas una imagen, se mostrará un ícono por defecto
+                                    {t('soundAlertsTabs.defaultImageHint')}
                                 </p>
                             </div>
                         </div>
@@ -218,7 +220,7 @@ export function FileSelectionModal({
                                 }}
                                 className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
                             >
-                                Cancelar
+                                {t('soundAlertsTabs.cancel')}
                             </button>
                             <button
                                 onClick={async () => {
@@ -238,7 +240,7 @@ export function FileSelectionModal({
                                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
                             >
                                 <Upload className="w-4 h-4" />
-                                Subir Audio
+                                {t('soundAlertsTabs.uploadAudio')}
                             </button>
                         </div>
                     </div>

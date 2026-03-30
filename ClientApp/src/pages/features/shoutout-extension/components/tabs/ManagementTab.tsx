@@ -1,4 +1,5 @@
 import { Shield, Plus, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ManagementTabProps {
     blacklist: string[];
@@ -14,23 +15,22 @@ export function ManagementTab({
     addToBlacklist, removeFromBlacklist,
     addToWhitelist, removeFromWhitelist
 }: ManagementTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             {/* Blacklist */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-2 flex items-center gap-2">
                     <Shield className="w-5 h-5 text-red-600" />
-                    Blacklist (Lista Negra)
+                    {t('shoutoutTabs.blacklist')}
                 </h3>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
-                    Usuarios que <strong>NO pueden recibir</strong> shoutouts. Cuando alguien intenta hacer <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">!so usuario</code> de alguien en esta lista, el comando será ignorado.
-                </p>
+                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4" dangerouslySetInnerHTML={{ __html: t('shoutoutTabs.blacklistDesc') }} />
 
                 <div className="space-y-3">
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            placeholder="nombre_de_usuario"
+                            placeholder={t('shoutoutTabs.usernamePlaceholder')}
                             className="flex-1 px-3 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-[#1e293b] dark:text-[#f8fafc]"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -55,13 +55,13 @@ export function ManagementTab({
                             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
-                            Agregar
+                            {t('shoutoutTabs.add')}
                         </button>
                     </div>
 
                     {blacklist.length === 0 ? (
                         <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8] text-sm">
-                            No hay usuarios en la lista negra
+                            {t('shoutoutTabs.noBlacklistUsers')}
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -90,17 +90,15 @@ export function ManagementTab({
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-2 flex items-center gap-2">
                     <Shield className="w-5 h-5 text-green-600" />
-                    Whitelist (Lista Blanca)
+                    {t('shoutoutTabs.whitelist')}
                 </h3>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
-                    Usuarios <strong>ADICIONALES</strong> que pueden ejecutar <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">!so</code> aparte de mods y streamer. Los <strong>moderadores y el streamer SIEMPRE pueden usar</strong> el comando (excepto si están en la blacklist). Esta lista es para agregar viewers extras.
-                </p>
+                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4" dangerouslySetInnerHTML={{ __html: t('shoutoutTabs.whitelistDesc') }} />
 
                 <div className="space-y-3">
                     <div className="flex gap-2">
                         <input
                             type="text"
-                            placeholder="nombre_de_usuario"
+                            placeholder={t('shoutoutTabs.usernamePlaceholder')}
                             className="flex-1 px-3 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-[#1e293b] dark:text-[#f8fafc]"
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -125,13 +123,13 @@ export function ManagementTab({
                             className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-all flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
-                            Agregar
+                            {t('shoutoutTabs.add')}
                         </button>
                     </div>
 
                     {whitelist.length === 0 ? (
                         <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8] text-sm">
-                            Lista vacía - Todos los moderadores pueden usar !so
+                            {t('shoutoutTabs.emptyWhitelist')}
                         </div>
                     ) : (
                         <div className="space-y-2">

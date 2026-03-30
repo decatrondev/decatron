@@ -4,6 +4,7 @@
  * Happy hours grid, manual activation, and scheduled editor.
  */
 
+import { useTranslation } from 'react-i18next';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 export interface HappyHour {
@@ -84,14 +85,15 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = ({
     onToggleHappyHour,
     onResetForm
 }) => {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">🎉 Happy Hour - Multiplicador</h3>
+                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.happyHourMultiplier')}</h3>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                            Multiplica el tiempo agregado automáticamente en horarios específicos (ej: x2 en fin de semana).
+                            {t('timerAdvanced.happyHourDescription')}
                         </p>
                     </div>
                     {!showCreateHappyHourModal && (
@@ -100,7 +102,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = ({
                             className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold transform hover:-translate-y-0.5"
                         >
                             <Plus className="w-5 h-5" />
-                            Nuevo Happy Hour
+                            {t('timerAdvanced.newHappyHour')}
                         </button>
                     )}
                 </div>
@@ -108,7 +110,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = ({
                 {/* Manual Happy Hour Activation */}
                 <div className="mb-6 p-5 rounded-xl border-2 border-dashed border-yellow-400 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/10">
                     <h4 className="text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                        Activar Happy Hour Manual
+                        {t('timerAdvanced.activateManualHH')}
                     </h4>
                     {manualActive ? (
                         <div className="space-y-3">
@@ -121,24 +123,24 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = ({
                                 onClick={onManualDeactivate}
                                 className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm transition-colors"
                             >
-                                Desactivar
+                                {t('timerAdvanced.deactivate')}
                             </button>
                         </div>
                     ) : (
                         <div className="flex flex-wrap items-end gap-4">
                             <div>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">Multiplicador</label>
+                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">{t('timerAdvanced.multiplier')}</label>
                                 <input type="number" min={1} max={10} step={0.5} value={manualMultiplier} onChange={(e) => setManualMultiplier(parseFloat(e.target.value) || 2)} className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm" />
                             </div>
                             <div>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">Minutos</label>
+                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">{t('timerAdvanced.minutes')}</label>
                                 <input type="number" min={1} max={1440} value={manualDuration} onChange={(e) => setManualDuration(parseInt(e.target.value) || 60)} className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm" />
                             </div>
                             <button
                                 onClick={onManualActivate}
                                 className="px-5 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all"
                             >
-                                Activar Happy Hour Manual
+                                {t('timerAdvanced.activateManualHH')}
                             </button>
                         </div>
                     )}

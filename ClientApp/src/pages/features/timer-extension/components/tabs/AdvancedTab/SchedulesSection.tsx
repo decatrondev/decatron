@@ -4,6 +4,7 @@
  * Auto-pause schedules list + inline create/edit form.
  */
 
+import { useTranslation } from 'react-i18next';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 export interface Schedule {
@@ -64,15 +65,16 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
     onToggleSchedule,
     onResetForm
 }) => {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             {/* Gestión de Horarios Auto-Pausa */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">⏸️ Horarios de Auto-Pausa</h3>
+                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.autoPauseSchedules')}</h3>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                            Programa momentos donde el timer se detendrá automáticamente (ej: dormir, comer, trabajo).
+                            {t('timerAdvanced.autoPauseDescription')}
                         </p>
                     </div>
                     {!showCreateScheduleModal && (
@@ -81,7 +83,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                             className="px-6 py-2.5 bg-gradient-to-r from-[#64748b] to-[#475569] hover:from-[#475569] hover:to-[#334155] text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold transform hover:-translate-y-0.5"
                         >
                             <Plus className="w-5 h-5" />
-                            Nuevo Horario
+                            {t('timerAdvanced.newSchedule')}
                         </button>
                     )}
                 </div>
@@ -91,13 +93,13 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                     <div className="mb-8 bg-[#f8fafc] dark:bg-[#262626] rounded-2xl border-2 border-blue-500/30 p-6 animate-fade-in-down">
                         <div className="flex justify-between items-start mb-6">
                             <h4 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                                {isEditingSchedule ? '✏️ Editar Horario' : '✨ Configurar Nuevo Horario'}
+                                {isEditingSchedule ? t('timerAdvanced.editSchedule') : t('timerAdvanced.configureNewSchedule')}
                             </h4>
                             <button
                                 onClick={onResetForm}
                                 className="text-[#64748b] hover:text-red-500 transition-colors text-sm font-bold"
                             >
-                                Cancelar
+                                {t('timerAdvanced.cancel')}
                             </button>
                         </div>
 
@@ -106,7 +108,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                 {/* Inputs Básicos */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block">Nombre</label>
+                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block">{t('timerAdvanced.name')}</label>
                                         <input
                                             type="text"
                                             value={scheduleForm.name}
@@ -116,7 +118,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block">Motivo (Opcional)</label>
+                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block">{t('timerAdvanced.reasonOptional')}</label>
                                         <input
                                             type="text"
                                             value={scheduleForm.reason}
@@ -129,7 +131,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
 
                                 {/* Horas */}
                                 <div className="p-4 bg-white dark:bg-[#1a1a1a] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-4 block text-center">Rango de Horas</label>
+                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-4 block text-center">{t('timerAdvanced.timeRange')}</label>
                                     <div className="flex items-center justify-center gap-4">
                                         <div className="text-center">
                                             <input
@@ -138,7 +140,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                                 onChange={(e) => setScheduleForm({ ...scheduleForm, startTime: e.target.value })}
                                                 className="text-2xl font-mono font-bold bg-transparent border-b-2 border-blue-500 text-[#1e293b] dark:text-[#f8fafc] focus:outline-none text-center w-32"
                                             />
-                                            <p className="text-xs text-[#64748b] mt-1">Inicio</p>
+                                            <p className="text-xs text-[#64748b] mt-1">{t('timerAdvanced.start')}</p>
                                         </div>
                                         <span className="text-[#64748b] font-bold">➜</span>
                                         <div className="text-center">
@@ -148,14 +150,14 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                                 onChange={(e) => setScheduleForm({ ...scheduleForm, endTime: e.target.value })}
                                                 className="text-2xl font-mono font-bold bg-transparent border-b-2 border-pink-500 text-[#1e293b] dark:text-[#f8fafc] focus:outline-none text-center w-32"
                                             />
-                                            <p className="text-xs text-[#64748b] mt-1">Fin</p>
+                                            <p className="text-xs text-[#64748b] mt-1">{t('timerAdvanced.end')}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Días */}
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-3 block">Días Activos</label>
+                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-3 block">{t('timerAdvanced.activeDays')}</label>
                                     <div className="flex justify-between gap-2">
                                         {dayLabels.map((day, index) => (
                                             <button
@@ -182,7 +184,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                             <div className="flex flex-col h-full">
                                 <div className="flex-1 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-xl p-6 border border-blue-100 dark:border-blue-800/30 flex flex-col justify-center items-center text-center">
                                     <span className="text-4xl mb-3">📅</span>
-                                    <h5 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">Resumen de Programación</h5>
+                                    <h5 className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">{t('timerAdvanced.scheduleSummary')}</h5>
 
                                     {(() => {
                                         // LOGICA DE TIEMPO REAL CON TIMEZONE FIX
@@ -267,7 +269,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                     onClick={isEditingSchedule ? onEditSchedule : onCreateSchedule}
                                     className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg hover:shadow-blue-500/25 transition-all transform active:scale-95"
                                 >
-                                    {isEditingSchedule ? 'Guardar Cambios' : 'Confirmar y Guardar'}
+                                    {isEditingSchedule ? t('timerAdvanced.saveChanges') : t('timerAdvanced.confirmAndSave')}
                                 </button>
                             </div>
                         </div>
@@ -277,7 +279,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                 {loadingSchedules ? (
                     <div className="text-center py-12">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">Cargando horarios...</p>
+                        <p className="text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.loadingSchedules')}</p>
                     </div>
                 ) : schedules.length === 0 ? (
                     // Empty State
@@ -285,13 +287,13 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                         <div className="text-center py-12 bg-gray-50 dark:bg-[#262626] rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
                             <span className="text-4xl block mb-3">😴</span>
                             <p className="text-[#64748b] dark:text-[#94a3b8] font-medium mb-4">
-                                No hay horarios de pausa configurados
+                                {t('timerAdvanced.noSchedules')}
                             </p>
                             <button
                                 onClick={onPrepareCreate}
                                 className="text-blue-500 hover:text-blue-600 font-bold text-sm"
                             >
-                                + Crear el primer horario
+                                {t('timerAdvanced.createFirstSchedule')}
                             </button>
                         </div>
                     )
@@ -318,9 +320,9 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                         <div>
                                             <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-lg flex items-center gap-2">
                                                 {schedule.name}
-                                                {!schedule.enabled && <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">Inactivo</span>}
+                                                {!schedule.enabled && <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">{t('timerAdvanced.inactive')}</span>}
                                             </h4>
-                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{schedule.reason || 'Sin descripción'}</p>
+                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{schedule.reason || t('timerAdvanced.noDescription')}</p>
                                         </div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
@@ -355,7 +357,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                                 : 'bg-green-500 text-white hover:bg-green-600 shadow-md'
                                         }`}
                                     >
-                                        {schedule.enabled ? 'Desactivar Horario' : 'Activar Horario'}
+                                        {schedule.enabled ? t('timerAdvanced.disableSchedule') : t('timerAdvanced.enableSchedule')}
                                     </button>
                                 </div>
                             );

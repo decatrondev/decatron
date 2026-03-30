@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LayoutConfig, DragElement } from '../../types';
 
 interface LayoutTabProps {
@@ -18,6 +19,7 @@ export function LayoutTab({
     isDragging, setIsDragging, dragElement, setDragElement,
     dragOffset, setDragOffset
 }: LayoutTabProps) {
+    const { t } = useTranslation('features');
 
     const handleMouseDown = (element: DragElement, e: React.MouseEvent) => {
         setIsDragging(true);
@@ -72,7 +74,7 @@ export function LayoutTab({
             {/* Visual Editor */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    Editor Visual (Arrastra los elementos)
+                    {t('shoutoutTabs.visualEditor')}
                 </h3>
 
                 <div
@@ -139,15 +141,14 @@ export function LayoutTab({
                     >
                         <div className="text-center px-2">
                             <div className="text-xl mb-1">📝</div>
-                            <div className="text-xs">TEXTO</div>
+                            <div className="text-xs">{t('shoutoutTabs.text').toUpperCase()}</div>
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                        💡 <strong>Tip:</strong> Arrastra los elementos para posicionarlos en el overlay.
-                        Las dimensiones son 1000x300 (proporción OBS).
+                        {t('shoutoutTabs.dragTip')}
                     </p>
                 </div>
             </div>
@@ -155,14 +156,14 @@ export function LayoutTab({
             {/* Position Controls */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    Ajustes de Posición
+                    {t('shoutoutTabs.positionSettings')}
                 </h3>
 
                 <div className="space-y-6">
                     {/* Clip Position */}
                     <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg">
                         <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                            🎬 Clip (Video)
+                            🎬 {t('shoutoutTabs.clipVideo')}
                         </p>
                         <div className="grid grid-cols-4 gap-3">
                             <div>
@@ -184,7 +185,7 @@ export function LayoutTab({
                                 />
                             </div>
                             <div>
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">Ancho</label>
+                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">{t('shoutoutTabs.width')}</label>
                                 <input
                                     type="number"
                                     value={layout.clip.width}
@@ -193,7 +194,7 @@ export function LayoutTab({
                                 />
                             </div>
                             <div>
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">Alto</label>
+                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">{t('shoutoutTabs.height')}</label>
                                 <input
                                     type="number"
                                     value={layout.clip.height}
@@ -207,7 +208,7 @@ export function LayoutTab({
                     {/* Profile Position */}
                     <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg">
                         <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                            👤 Perfil (Foto)
+                            👤 {t('shoutoutTabs.profilePhoto')}
                         </p>
                         <div className="grid grid-cols-3 gap-3">
                             <div>
@@ -229,7 +230,7 @@ export function LayoutTab({
                                 />
                             </div>
                             <div>
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">Tamaño</label>
+                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">{t('shoutoutTabs.size')}</label>
                                 <input
                                     type="number"
                                     value={layout.profile.size}
@@ -243,7 +244,7 @@ export function LayoutTab({
                     {/* Text Position */}
                     <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg">
                         <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                            📝 Texto
+                            📝 {t('shoutoutTabs.text')}
                         </p>
                         <div className="grid grid-cols-3 gap-3">
                             <div>
@@ -265,15 +266,15 @@ export function LayoutTab({
                                 />
                             </div>
                             <div>
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">Alineación</label>
+                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">{t('shoutoutTabs.alignment')}</label>
                                 <select
                                     value={layout.text.align}
                                     onChange={(e) => setLayout({ ...layout, text: { ...layout.text, align: e.target.value } })}
                                     className="w-full px-2 py-1 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded text-sm text-[#1e293b] dark:text-[#f8fafc]"
                                 >
-                                    <option value="left">Izquierda</option>
-                                    <option value="center">Centro</option>
-                                    <option value="right">Derecha</option>
+                                    <option value="left">{t('shoutoutTabs.alignLeft')}</option>
+                                    <option value="center">{t('shoutoutTabs.alignCenter')}</option>
+                                    <option value="right">{t('shoutoutTabs.alignRight')}</option>
                                 </select>
                             </div>
                         </div>

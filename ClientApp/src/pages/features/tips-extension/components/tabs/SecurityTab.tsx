@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { TipsSettings } from '../../types/config';
 
 interface SecurityTabProps {
@@ -21,16 +22,17 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
     labelClass,
     cardClass,
 }) => {
+    const { t } = useTranslation('features');
     return (
         <div className={cardClass}>
             <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                Seguridad y anti-spam
+                {t('tipsTabs.securityAntiSpam')}
             </h3>
 
             <div className="space-y-4">
                 <div>
-                    <label className={labelClass}>Longitud máxima de mensaje</label>
+                    <label className={labelClass}>{t('tipsTabs.maxMessageLength')}</label>
                     <input
                         type="number"
                         min="1"
@@ -42,7 +44,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                 </div>
 
                 <div>
-                    <label className={labelClass}>Cooldown entre donaciones (segundos)</label>
+                    <label className={labelClass}>{t('tipsTabs.cooldownBetweenDonations')}</label>
                     <input
                         type="number"
                         min="0"
@@ -51,7 +53,7 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                         className={inputClass}
                     />
                     <p className="text-xs text-[#94a3b8] mt-1">
-                        0 = Sin cooldown
+                        {t('tipsTabs.noCooldown')}
                     </p>
                 </div>
 
@@ -64,10 +66,10 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                     />
                     <div>
                         <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                            Bloquear palabras prohibidas
+                            {t('tipsTabs.blockBadWords')}
                         </span>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Usa la misma lista de palabras prohibidas de la moderación del chat
+                            {t('tipsTabs.blockBadWordsDesc')}
                         </p>
                     </div>
                 </label>
@@ -81,10 +83,10 @@ export const SecurityTab: React.FC<SecurityTabProps> = ({
                     />
                     <div>
                         <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                            Requerir mensaje
+                            {t('tipsTabs.requireMessage')}
                         </span>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            El donante debe escribir un mensaje para completar la donación
+                            {t('tipsTabs.requireMessageDesc')}
                         </p>
                     </div>
                 </label>

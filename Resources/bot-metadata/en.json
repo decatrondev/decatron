@@ -1,0 +1,82 @@
+{
+  "title": {
+    "description": "Change or check the stream title",
+    "aliases": ["t"],
+    "usageExamples": ["!title", "!title New stream title"]
+  },
+  "t": {
+    "description": "Alias for !title - Change or check the stream title",
+    "aliases": [],
+    "usageExamples": ["!t", "!t New title"]
+  },
+  "game": {
+    "description": "Change or check the stream category/game",
+    "aliases": ["g"],
+    "usageExamples": ["!game", "!game Just Chatting"]
+  },
+  "g": {
+    "description": "Category and micro commands management",
+    "aliases": [],
+    "usageExamples": ["!g", "!g Just Chatting"]
+  },
+  "dstart": {
+    "description": "Start the timer with a specific duration",
+    "aliases": [],
+    "usageExamples": ["!dstart 5m", "!dstart 1h30m", "!dstart 300"]
+  },
+  "dpause": {
+    "description": "Pause the current timer",
+    "aliases": [],
+    "usageExamples": ["!dpause"]
+  },
+  "dplay": {
+    "description": "Resume or start the paused timer",
+    "aliases": [],
+    "usageExamples": ["!dplay"]
+  },
+  "dreset": {
+    "description": "Reset the timer to the configured total time",
+    "aliases": [],
+    "usageExamples": ["!dreset"]
+  },
+  "dstop": {
+    "description": "Stop the timer completely and hide it from overlay",
+    "aliases": [],
+    "usageExamples": ["!dstop"]
+  },
+  "dtimer": {
+    "description": "Manage timer: start, add or remove time",
+    "aliases": [],
+    "usageExamples": ["!dtimer 5m", "!dtimer add 1h", "!dtimer remove 30s"]
+  },
+  "so": {
+    "description": "Shoutout a user showing their latest clip and profile",
+    "aliases": [],
+    "usageExamples": ["!so @username", "!so username"]
+  },
+  "raffle": {
+    "description": "Raffle system with chat participation",
+    "aliases": [],
+    "usageExamples": ["!raffle join", "!raffle create Raffle name", "!raffle close", "!raffle draw"]
+  },
+  "ia": {
+    "description": "Ask Decatron AI (developed by AnthonyDeca)",
+    "aliases": [],
+    "usageExamples": ["!ia What is the meaning of life?", "!ia give me a fun fact"]
+  },
+  "join": {
+    "description": "Join the active giveaway in the channel",
+    "aliases": [],
+    "usageExamples": ["!join"]
+  },
+  "hola": {
+    "description": "Greet the user in chat",
+    "aliases": [],
+    "usageExamples": ["hola"]
+  },
+  "followage": {
+    "description": "Shows how long you've been following the channel",
+    "aliases": [],
+    "usageExamples": ["!followage", "!followage @user"]
+  }
+}

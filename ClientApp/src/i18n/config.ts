@@ -1,22 +1,19 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';
+import { SUPPORTED_LANGUAGE_CODES, DEFAULT_LANGUAGE } from './languages';
 
-// Supported languages
-export const SUPPORTED_LANGUAGES = ['es', 'en'] as const;
-export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
-
-// Default language
-export const DEFAULT_LANGUAGE: SupportedLanguage = 'es';
+// Re-export for backward compatibility
+export const SUPPORTED_LANGUAGES = SUPPORTED_LANGUAGE_CODES;
+export type SupportedLanguage = string;
 
 // Initialize i18next
 i18n
-  .use(HttpBackend) // Load translations from /public/locales
-  .use(initReactI18next) // Pass i18n instance to react-i18next
+  .use(HttpBackend)
+  .use(initReactI18next)
   .init({
-    // Language settings
     fallbackLng: DEFAULT_LANGUAGE,
-    supportedLngs: SUPPORTED_LANGUAGES,
+    supportedLngs: SUPPORTED_LANGUAGE_CODES,
 
     // IMPORTANT: Do not initialize with a specific language
     // We will set it programmatically from the backend

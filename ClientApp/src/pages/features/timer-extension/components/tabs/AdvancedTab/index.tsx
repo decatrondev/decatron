@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../../../../../../services/api';
 import type { AdvancedConfig } from '../../../types';
 import { GeneralSection } from './GeneralSection';
@@ -28,6 +29,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     timeZone,
     onTimeZoneChange
 }) => {
+    const { t } = useTranslation('features');
     const [selectedSection, setSelectedSection] = useState<AdvancedSection>('general');
 
     // Templates state
@@ -94,9 +96,9 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const sections: { type: AdvancedSection; label: string; icon: string }[] = [
-        { type: 'general', label: 'General', icon: '🌍' },
-        { type: 'templates', label: 'Plantillas', icon: '📋' },
-        { type: 'autoPause', label: 'Auto-Pausa', icon: '⏸️' },
+        { type: 'general', label: t('timerAdvanced.general'), icon: '🌍' },
+        { type: 'templates', label: t('timerAdvanced.templates'), icon: '📋' },
+        { type: 'autoPause', label: t('timerAdvanced.autoPause'), icon: '⏸️' },
         { type: 'happyHour', label: 'Happy Hour', icon: '🎉' }
     ];
 
@@ -110,7 +112,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             }
         } catch (error) {
             console.error('Error loading templates:', error);
-            showMessage('error', 'Error al cargar plantillas');
+            showMessage('error', t('timerAdvanced.errorLoadingTemplates'));
         } finally {
             setLoadingTemplates(false);
         }
@@ -125,7 +127,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             }
         } catch (error) {
             console.error('Error loading schedules:', error);
-            showMessage('error', 'Error al cargar horarios');
+            showMessage('error', t('timerAdvanced.errorLoadingSchedules'));
         } finally {
             setLoadingSchedules(false);
         }
@@ -140,7 +142,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             }
         } catch (error: any) {
             console.error('Error loading happy hours:', error);
-            showMessage('error', error.response?.data?.message || 'Error al cargar horarios de Happy Hour');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorLoadingHappyHours'));
         } finally {
             setLoadingHappyHours(false);
         }
@@ -170,7 +172,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                 setManualExpiresAt(res.data.expiresAt);
             }
         } catch (error: any) {
-            showMessage('error', error.response?.data?.message || 'Error al activar Happy Hour manual');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorManualActivate'));
         }
     };
 
@@ -184,7 +186,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                 setManualCountdown('');
             }
         } catch (error: any) {
-            showMessage('error', error.response?.data?.message || 'Error al desactivar Happy Hour manual');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorManualDeactivate'));
         }
     };
 
@@ -231,34 +233,34 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
 
     const handleCreateTemplate = async () => {
         if (!templateForm.name.trim()) {
-            showMessage('error', 'El nombre es requerido');
+            showMessage('error', t('timerAdvanced.nameRequired'));
             return;
         }
 
         try {
             const res = await api.post('/timer/templates', templateForm);
             if (res.data.success) {
-                showMessage('success', 'Plantilla creada exitosamente');
+                showMessage('success', t('timerAdvanced.templateCreated'));
                 setShowCreateModal(false);
                 setTemplateForm({ name: '', description: '', icon: '📋' });
                 await loadCustomTemplates();
             }
         } catch (error: any) {
             console.error('Error creating template:', error);
-            showMessage('error', error.response?.data?.message || 'Error al crear plantilla');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorCreatingTemplate'));
         }
     };
 
     const handleEditTemplate = async () => {
         if (!selectedTemplate || !templateForm.name.trim()) {
-            showMessage('error', 'El nombre es requerido');
+            showMessage('error', t('timerAdvanced.nameRequired'));
             return;
         }
 
         try {
             const res = await api.put(`/timer/templates/${selectedTemplate.id}`, templateForm);
             if (res.data.success) {
-                showMessage('success', 'Plantilla actualizada exitosamente');
+                showMessage('success', t('timerAdvanced.templateUpdated'));
                 setShowEditModal(false);
                 setSelectedTemplate(null);
                 setTemplateForm({ name: '', description: '', icon: '📋' });
@@ -266,24 +268,24 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             }
         } catch (error: any) {
             console.error('Error updating template:', error);
-            showMessage('error', error.response?.data?.message || 'Error al actualizar plantilla');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorUpdatingTemplate'));
         }
     };
 
     const handleDeleteTemplate = async (template: CustomTemplate) => {
-        if (!confirm(`¿Seguro que quieres eliminar la plantilla "${template.name}"?`)) {
+        if (!confirm(t('timerAdvanced.confirmDeleteTemplate', { name: template.name }))) {
             return;
         }
 
         try {
             const res = await api.delete(`/timer/templates/${template.id}`);
             if (res.data.success) {
-                showMessage('success', 'Plantilla eliminada exitosamente');
+                showMessage('success', t('timerAdvanced.templateDeleted'));
                 await loadCustomTemplates();
             }
         } catch (error: any) {
             console.error('Error deleting template:', error);
-            showMessage('error', error.response?.data?.message || 'Error al eliminar plantilla');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorDeletingTemplate'));
         }
     };
 
@@ -293,14 +295,14 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         try {
             const res = await api.post(`/timer/templates/${selectedTemplate.id}/apply`, applyOptions);
             if (res.data.success) {
-                showMessage('success', 'Plantilla aplicada exitosamente');
+                showMessage('success', t('timerAdvanced.templateApplied'));
                 setShowApplyModal(false);
                 setSelectedTemplate(null);
                 setTimeout(() => window.location.reload(), 1500);
             }
         } catch (error: any) {
             console.error('Error applying template:', error);
-            showMessage('error', error.response?.data?.message || 'Error al aplicar plantilla');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorApplyingTemplate'));
         }
     };
 
@@ -339,56 +341,56 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
 
     const handleCreateSchedule = async () => {
         if (!scheduleForm.name.trim()) {
-            showMessage('error', 'El nombre es requerido');
+            showMessage('error', t('timerAdvanced.nameRequired'));
             return;
         }
 
         try {
             const res = await api.post('/timer/schedules', scheduleForm);
             if (res.data.success) {
-                showMessage('success', 'Horario creado exitosamente');
+                showMessage('success', t('timerAdvanced.scheduleCreated'));
                 resetScheduleForm();
                 await loadSchedules();
             }
         } catch (error: any) {
             console.error('Error creating schedule:', error);
-            showMessage('error', error.response?.data?.message || 'Error al crear horario');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorCreatingSchedule'));
         }
     };
 
     const handleEditSchedule = async () => {
         if (!selectedSchedule || !scheduleForm.name.trim()) {
-            showMessage('error', 'El nombre es requerido');
+            showMessage('error', t('timerAdvanced.nameRequired'));
             return;
         }
 
         try {
             const res = await api.put(`/timer/schedules/${selectedSchedule.id}`, scheduleForm);
             if (res.data.success) {
-                showMessage('success', 'Horario actualizado exitosamente');
+                showMessage('success', t('timerAdvanced.scheduleUpdated'));
                 resetScheduleForm();
                 await loadSchedules();
             }
         } catch (error: any) {
             console.error('Error updating schedule:', error);
-            showMessage('error', error.response?.data?.message || 'Error al actualizar horario');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorUpdatingSchedule'));
         }
     };
 
     const handleDeleteSchedule = async (schedule: Schedule) => {
-        if (!confirm(`¿Seguro que quieres eliminar el horario "${schedule.name}"?`)) {
+        if (!confirm(t('timerAdvanced.confirmDeleteSchedule', { name: schedule.name }))) {
             return;
         }
 
         try {
             const res = await api.delete(`/timer/schedules/${schedule.id}`);
             if (res.data.success) {
-                showMessage('success', 'Horario eliminado exitosamente');
+                showMessage('success', t('timerAdvanced.scheduleDeleted'));
                 await loadSchedules();
             }
         } catch (error: any) {
             console.error('Error deleting schedule:', error);
-            showMessage('error', error.response?.data?.message || 'Error al eliminar horario');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorDeletingSchedule'));
         }
     };
 
@@ -396,12 +398,12 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         try {
             const res = await api.put(`/timer/schedules/${schedule.id}`, { enabled: !schedule.enabled });
             if (res.data.success) {
-                showMessage('success', `Horario ${!schedule.enabled ? 'activado' : 'desactivado'}`);
+                showMessage('success', !schedule.enabled ? t('timerAdvanced.scheduleEnabled') : t('timerAdvanced.scheduleDisabled'));
                 await loadSchedules();
             }
         } catch (error: any) {
             console.error('Error toggling schedule:', error);
-            showMessage('error', 'Error al cambiar estado del horario');
+            showMessage('error', t('timerAdvanced.errorTogglingSchedule'));
         }
     };
 
@@ -449,52 +451,52 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
 
     const handleCreateHappyHour = async () => {
         if (!happyHourForm.name.trim()) {
-            showMessage('error', 'El nombre es requerido');
+            showMessage('error', t('timerAdvanced.nameRequired'));
             return;
         }
         if (!timeZone) {
-            showMessage('error', 'Configura tu zona horaria en la pestaña General antes de crear un Happy Hour');
+            showMessage('error', t('timerAdvanced.configureTimezoneFirst'));
             return;
         }
         try {
             const res = await api.post('/timer/happyhour', happyHourForm);
             if (res.data.success) {
-                showMessage('success', 'Happy Hour creado exitosamente');
+                showMessage('success', t('timerAdvanced.happyHourCreated'));
                 resetHappyHourForm();
                 await loadHappyHours();
             }
         } catch (error: any) {
-            showMessage('error', error.response?.data?.message || 'Error al crear Happy Hour');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorCreatingHappyHour'));
         }
     };
 
     const handleEditHappyHour = async () => {
         if (!editingHappyHour || !happyHourForm.name.trim()) {
-            showMessage('error', 'El nombre es requerido');
+            showMessage('error', t('timerAdvanced.nameRequired'));
             return;
         }
         try {
             const res = await api.put(`/timer/happyhour/${editingHappyHour.id}`, happyHourForm);
             if (res.data.success) {
-                showMessage('success', 'Happy Hour actualizado exitosamente');
+                showMessage('success', t('timerAdvanced.happyHourUpdated'));
                 resetHappyHourForm();
                 await loadHappyHours();
             }
         } catch (error: any) {
-            showMessage('error', error.response?.data?.message || 'Error al actualizar Happy Hour');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorUpdatingHappyHour'));
         }
     };
 
     const handleDeleteHappyHour = async (id: number) => {
-        if (!confirm('¿Seguro que quieres eliminar este Happy Hour?')) return;
+        if (!confirm(t('timerAdvanced.confirmDeleteHappyHour'))) return;
         try {
             const res = await api.delete(`/timer/happyhour/${id}`);
             if (res.data.success) {
-                showMessage('success', 'Happy Hour eliminado exitosamente');
+                showMessage('success', t('timerAdvanced.happyHourDeleted'));
                 await loadHappyHours();
             }
         } catch (error: any) {
-            showMessage('error', error.response?.data?.message || 'Error al eliminar Happy Hour');
+            showMessage('error', error.response?.data?.message || t('timerAdvanced.errorDeletingHappyHour'));
         }
     };
 
@@ -502,29 +504,29 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         try {
             const res = await api.put(`/timer/happyhour/${id}`, { enabled });
             if (res.data.success) {
-                showMessage('success', `Happy Hour ${enabled ? 'activado' : 'desactivado'}`);
+                showMessage('success', enabled ? t('timerAdvanced.happyHourEnabled') : t('timerAdvanced.happyHourDisabled'));
                 await loadHappyHours();
             }
         } catch (error: any) {
-            showMessage('error', 'Error al cambiar estado del Happy Hour');
+            showMessage('error', t('timerAdvanced.errorTogglingHappyHour'));
         }
     };
 
     const handleResetConfig = async () => {
-        if (!confirm('⚠️ ¡PELIGRO! ¿RESTABLECIMIENTO TOTAL DE FÁBRICA?\n\nEsta acción es IRREVERSIBLE y borrará:\n\n❌ Toda tu configuración visual y alertas.\n❌ Todas tus Plantillas guardadas.\n❌ Todos tus Horarios de Auto-Pausa.\n❌ Todos tus horarios de Happy Hour.\n❌ Todo el historial de sesiones y eventos.\n\nEl timer volverá a estar como si fueras un usuario nuevo.\n¿Estás seguro?')) {
+        if (!confirm(t('timerAdvanced.confirmFactoryReset'))) {
             return;
         }
 
         try {
             const res = await api.post('/timer/config/reset');
             if (res.data.success) {
-                showMessage('success', 'Cuenta de Timer reiniciada a fábrica correctamente');
+                showMessage('success', t('timerAdvanced.factoryResetSuccess'));
                 // Recargar página para obtener defaults
                 setTimeout(() => window.location.reload(), 1500);
             }
         } catch (error: any) {
             console.error('Error resetting config:', error);
-            showMessage('error', 'Error al restaurar configuración');
+            showMessage('error', t('timerAdvanced.errorFactoryReset'));
         }
     };
 
@@ -557,13 +559,13 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             {/* Info General */}
             <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                    ℹ️ Configuración avanzada con plantillas predefinidas, auto-pausa programada y multiplicadores de tiempo.
+                    {t('timerAdvanced.infoDescription')}
                 </p>
             </div>
 
             {/* Selector de Sección */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">🎯 Configurar Sección Avanzada</h3>
+                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('timerAdvanced.configureSection')}</h3>
 
                 <div className="grid grid-cols-3 gap-3">
                     {sections.map((section) => (

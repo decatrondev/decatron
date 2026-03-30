@@ -1,6 +1,7 @@
 import {
     Clock, Plus, Eye, EyeOff, Trash2
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { TextLine } from '../../types';
 
 interface BasicTabProps {
@@ -30,13 +31,14 @@ export function BasicTab({
     removeTextLine,
     toggleTextLine,
 }: BasicTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             {/* Global Volume */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                        Volumen Global
+                        {t('soundAlertsTabs.globalVolume')}
                     </label>
                     <span className="text-2xl font-black text-[#2563eb]">{globalVolume}%</span>
                 </div>
@@ -49,7 +51,7 @@ export function BasicTab({
                     className="w-full h-3 bg-[#e2e8f0] dark:bg-[#374151] rounded-lg appearance-none cursor-pointer accent-[#2563eb]"
                 />
                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-3">
-                    🔊 Volumen predeterminado para todas las alertas
+                    {t('soundAlertsTabs.globalVolumeDesc')}
                 </p>
             </div>
 
@@ -57,7 +59,7 @@ export function BasicTab({
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                        Duración del Alert
+                        {t('soundAlertsTabs.alertDuration')}
                     </label>
                     <span className="text-2xl font-black text-purple-600">{duration}s</span>
                 </div>
@@ -74,7 +76,7 @@ export function BasicTab({
                     <span>30s</span>
                 </div>
                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-3">
-                    ⏱️ Tiempo que durará visible la alerta en pantalla
+                    {t('soundAlertsTabs.alertDurationDesc')}
                 </p>
             </div>
 
@@ -82,14 +84,14 @@ export function BasicTab({
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                     <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                        Líneas de Texto
+                        {t('soundAlertsTabs.textLines')}
                     </label>
                     <button
                         onClick={addTextLine}
                         className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all text-sm"
                     >
                         <Plus className="w-4 h-4" />
-                        Agregar
+                        {t('soundAlertsTabs.add')}
                     </button>
                 </div>
 
@@ -103,7 +105,7 @@ export function BasicTab({
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                    Línea {index + 1}
+                                    {t('soundAlertsTabs.line', { num: index + 1 })}
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -131,14 +133,14 @@ export function BasicTab({
                                 type="text"
                                 value={line.text}
                                 onChange={(e) => updateTextLine(index, 'text', e.target.value)}
-                                placeholder="Texto de la línea"
+                                placeholder={t('soundAlertsTabs.textPlaceholder')}
                                 className="w-full px-3 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#1e293b] dark:text-[#f8fafc] mb-3"
                             />
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">
-                                        Tamaño (px)
+                                        {t('soundAlertsTabs.sizePx')}
                                     </label>
                                     <input
                                         type="number"
@@ -151,7 +153,7 @@ export function BasicTab({
                                 </div>
                                 <div>
                                     <label className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 block">
-                                        Peso
+                                        {t('soundAlertsTabs.weight')}
                                     </label>
                                     <select
                                         value={line.fontWeight}
@@ -166,7 +168,7 @@ export function BasicTab({
                             </div>
 
                             <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
-                                💡 Usa @redeemer y @reward en el texto
+                                {t('soundAlertsTabs.textVarsHint')}
                             </p>
                         </div>
                     ))}
@@ -178,10 +180,10 @@ export function BasicTab({
                 <div className="flex items-center justify-between">
                     <div>
                         <label className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
-                            Sistema Habilitado
+                            {t('soundAlertsTabs.systemEnabled')}
                         </label>
                         <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
-                            Activar/desactivar todas las alertas de sonido
+                            {t('soundAlertsTabs.systemEnabledDesc')}
                         </p>
                     </div>
                     <button

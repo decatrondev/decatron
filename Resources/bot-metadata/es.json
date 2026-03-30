@@ -1,0 +1,82 @@
+{
+  "title": {
+    "description": "Cambia o consulta el título del stream",
+    "aliases": ["t"],
+    "usageExamples": ["!title", "!title Nuevo título del stream"]
+  },
+  "t": {
+    "description": "Alias de !title - Cambia o consulta el título del stream",
+    "aliases": [],
+    "usageExamples": ["!t", "!t Nuevo título"]
+  },
+  "game": {
+    "description": "Cambia o consulta la categoría/juego del stream",
+    "aliases": ["g"],
+    "usageExamples": ["!game", "!game Just Chatting"]
+  },
+  "g": {
+    "description": "Comando de gestión de categorías y micro comandos",
+    "aliases": [],
+    "usageExamples": ["!g", "!g Just Chatting"]
+  },
+  "dstart": {
+    "description": "Inicia el timer con una duración específica",
+    "aliases": [],
+    "usageExamples": ["!dstart 5m", "!dstart 1h30m", "!dstart 300"]
+  },
+  "dpause": {
+    "description": "Pausa el timer actual",
+    "aliases": [],
+    "usageExamples": ["!dpause"]
+  },
+  "dplay": {
+    "description": "Resume o inicia el timer pausado",
+    "aliases": [],
+    "usageExamples": ["!dplay"]
+  },
+  "dreset": {
+    "description": "Reinicia el timer al tiempo total configurado",
+    "aliases": [],
+    "usageExamples": ["!dreset"]
+  },
+  "dstop": {
+    "description": "Detiene el timer completamente y lo oculta del overlay",
+    "aliases": [],
+    "usageExamples": ["!dstop"]
+  },
+  "dtimer": {
+    "description": "Gestiona el timer: iniciar, añadir o remover tiempo",
+    "aliases": [],
+    "usageExamples": ["!dtimer 5m", "!dtimer add 1h", "!dtimer remove 30s"]
+  },
+  "so": {
+    "description": "Hace shoutout a un usuario mostrando su último clip y perfil",
+    "aliases": [],
+    "usageExamples": ["!so @username", "!so username"]
+  },
+  "raffle": {
+    "description": "Sistema de sorteos con participación de chat",
+    "aliases": [],
+    "usageExamples": ["!raffle join", "!raffle create Nombre del sorteo", "!raffle close", "!raffle draw"]
+  },
+  "ia": {
+    "description": "Pregunta a Decatron IA (desarrollado por AnthonyDeca)",
+    "aliases": [],
+    "usageExamples": ["!ia ¿Cuál es el sentido de la vida?", "!ia dame un dato curioso"]
+  },
+  "join": {
+    "description": "Únete al giveaway activo en el canal",
+    "aliases": [],
+    "usageExamples": ["!join"]
+  },
+  "hola": {
+    "description": "Saluda al usuario en el chat",
+    "aliases": [],
+    "usageExamples": ["hola"]
+  },
+  "followage": {
+    "description": "Muestra el tiempo que llevas siguiendo el canal",
+    "aliases": [],
+    "usageExamples": ["!followage", "!followage @usuario"]
+  }
+}

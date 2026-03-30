@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Styles } from '../../types';
 
 interface BackgroundTabProps {
@@ -9,11 +10,12 @@ export function BackgroundTab({
     styles,
     setStyles,
 }: BackgroundTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    Tipo de Fondo
+                    {t('soundAlertsTabs.backgroundType')}
                 </h3>
 
                 <div className="grid grid-cols-3 gap-3 mb-6">
@@ -28,7 +30,7 @@ export function BackgroundTab({
                                     : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
                             }`}
                         >
-                            {type === 'transparent' ? 'Transparente' : type === 'solid' ? 'Sólido' : 'Degradado'}
+                            {type === 'transparent' ? t('soundAlertsTabs.transparent') : type === 'solid' ? t('soundAlertsTabs.solid') : t('soundAlertsTabs.gradient')}
                         </button>
                     ))}
                 </div>
@@ -38,7 +40,7 @@ export function BackgroundTab({
                     <div className="space-y-4">
                         <div>
                             <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                                Color Sólido
+                                {t('soundAlertsTabs.solidColor')}
                             </label>
                             <div className="flex gap-3">
                                 <input
@@ -63,7 +65,7 @@ export function BackgroundTab({
                     <div className="space-y-4">
                         <div>
                             <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                                Color 1
+                                {t('soundAlertsTabs.color1')}
                             </label>
                             <div className="flex gap-3">
                                 <input
@@ -83,7 +85,7 @@ export function BackgroundTab({
 
                         <div>
                             <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                                Color 2
+                                {t('soundAlertsTabs.color2')}
                             </label>
                             <div className="flex gap-3">
                                 <input
@@ -103,7 +105,7 @@ export function BackgroundTab({
 
                         <div>
                             <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block flex items-center justify-between">
-                                <span>Ángulo</span>
+                                <span>{t('soundAlertsTabs.angle')}</span>
                                 <span className="text-[#2563eb]">{styles.gradientAngle}°</span>
                             </label>
                             <input
@@ -122,7 +124,7 @@ export function BackgroundTab({
                 {styles.backgroundType !== 'transparent' && (
                     <div className="mt-6">
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block flex items-center justify-between">
-                            <span>Opacidad del Fondo</span>
+                            <span>{t('soundAlertsTabs.backgroundOpacity')}</span>
                             <span className="text-[#2563eb]">{styles.backgroundOpacity}%</span>
                         </label>
                         <input

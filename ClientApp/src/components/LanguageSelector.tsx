@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
+import { AVAILABLE_LANGUAGES } from '../i18n/languages';
 import type { Language } from '../types/language';
 
 interface LanguageSelectorProps {
@@ -17,10 +18,11 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const [localError, setLocalError] = useState<string | null>(null);
   const [localSuccess, setLocalSuccess] = useState(false);
 
-  const languages: Array<{ code: Language; label: string; flag: string }> = [
-    { code: 'es', label: t('language.spanish'), flag: '🇪🇸' },
-    { code: 'en', label: t('language.english'), flag: '🇬🇧' },
-  ];
+  const languages = AVAILABLE_LANGUAGES.map(lang => ({
+    code: lang.code as Language,
+    label: lang.nativeLabel,
+    flag: lang.flag,
+  }));
 
   const handleLanguageChange = async (newLanguage: Language) => {
     if (newLanguage === currentLanguage) return;

@@ -1,6 +1,7 @@
 import {
     Gift, Eye, EyeOff, Trash2, Music, Video, Image as ImageIcon
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { ChannelPointsReward, SoundFile } from '../../types';
 
 interface RewardsTabProps {
@@ -32,33 +33,33 @@ export function RewardsTab({
     setSelectedImageFile,
     setShowAudioImageModal,
 }: RewardsTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
-            {/* Selector de Recompensas */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
                     <Gift className="w-5 h-5 text-[#2563eb]" />
-                    Administrar Archivos de Alertas
+                    {t('soundAlertsTabs.manageAlertFiles')}
                 </h3>
                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
-                    Selecciona una recompensa de puntos de canal para asignarle un archivo de sonido, video o imagen
+                    {t('soundAlertsTabs.manageAlertFilesDesc')}
                 </p>
 
                 {rewards.length === 0 ? (
                     <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-8 text-center">
                         <Gift className="w-12 h-12 text-[#64748b] dark:text-[#94a3b8] mx-auto mb-3" />
                         <p className="text-[#64748b] dark:text-[#94a3b8] font-semibold">
-                            No hay recompensas de puntos de canal
+                            {t('soundAlertsTabs.noRewards')}
                         </p>
                         <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mt-1">
-                            Crea recompensas en tu panel de Twitch primero
+                            {t('soundAlertsTabs.createRewardsFirst')}
                         </p>
                     </div>
                 ) : (
                     <>
                         {/* Selector */}
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Seleccionar Recompensa
+                            {t('soundAlertsTabs.selectReward')}
                         </label>
                         <select
                             className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#1e293b] dark:text-[#f8fafc] font-semibold mb-6"
@@ -71,7 +72,7 @@ export function RewardsTab({
                                 }
                             }}
                         >
-                            <option value="">-- Selecciona una recompensa --</option>
+                            <option value="">{t('soundAlertsTabs.selectRewardPlaceholder')}</option>
                             {rewards.map((reward) => (
                                 <option key={reward.id} value={reward.id}>
                                     {reward.title} ({reward.cost} puntos) {getRewardFile(reward.id) ? '✓' : ''}
@@ -96,7 +97,6 @@ export function RewardsTab({
                                             if (['mp4', 'webm'].includes(ext || '')) fileType = 'video';
                                             else if (['png', 'jpg', 'jpeg'].includes(ext || '')) fileType = 'image';
 
-                                            // Si es audio, abrir modal para opcionalmente agregar imagen
                                             if (fileType === 'sound') {
                                                 setPendingAudioUpload({
                                                     rewardId: reward.id,
@@ -106,11 +106,9 @@ export function RewardsTab({
                                                 setSelectedImageFile(null);
                                                 setShowAudioImageModal(true);
                                             } else {
-                                                // Para video e imagen, subir directamente
                                                 handleFileUpload(reward.id, reward.title, file, fileType);
                                             }
                                         }
-                                        // Resetear input para permitir seleccionar el mismo archivo de nuevo
                                         e.target.value = '';
                                     }}
                                     className="hidden"
@@ -119,11 +117,11 @@ export function RewardsTab({
                             );
                         })}
 
-                        {/* Archivos Asignados */}
+                        {/* Assigned Files */}
                         {files.length > 0 && (
                             <div className="mt-6">
                                 <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3">
-                                    Archivos Asignados ({files.length})
+                                    {t('soundAlertsTabs.assignedFiles', { count: files.length })}
                                 </h4>
                                 <div className="space-y-3">
                                     {files.map((file) => {
@@ -160,7 +158,7 @@ export function RewardsTab({
                                                                 ? 'bg-green-100 dark:bg-green-900/40 hover:bg-green-200'
                                                                 : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200'
                                                         }`}
-                                                        title={file.enabled ? 'Desactivar' : 'Activar'}
+                                                        title={file.enabled ? t('soundAlertsTabs.deactivate') : t('soundAlertsTabs.activate')}
                                                     >
                                                         {file.enabled ? (
                                                             <Eye className="w-4 h-4 text-green-600" />
@@ -171,7 +169,7 @@ export function RewardsTab({
                                                     <button
                                                         onClick={() => handleDeleteFile(file.rewardId)}
                                                         className="p-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors"
-                                                        title="Eliminar"
+                                                        title={t('soundAlertsTabs.delete')}
                                                     >
                                                         <Trash2 className="w-4 h-4 text-red-600" />
                                                     </button>
@@ -186,7 +184,7 @@ export function RewardsTab({
                         {/* Info */}
                         <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                             <p className="text-sm text-blue-700 dark:text-blue-300">
-                                💡 <strong>Formatos aceptados:</strong> MP3/WAV/OGG (10MB), MP4/WEBM (50MB), PNG/JPG (5MB)
+                                {t('soundAlertsTabs.acceptedFormats')}
                             </p>
                         </div>
                     </>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { StyleConfig } from '../../types';
 
 interface BackgroundTabProps {
@@ -6,18 +7,19 @@ interface BackgroundTabProps {
 }
 
 export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    Configuración de Fondo
+                    {t('shoutoutTabs.backgroundConfig')}
                 </h3>
 
                 <div className="space-y-4">
                     {/* Background Type */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Tipo de Fondo
+                            {t('shoutoutTabs.backgroundType')}
                         </label>
                         <div className="grid grid-cols-3 gap-3">
                             {(['gradient', 'solid', 'transparent'] as const).map((type) => (
@@ -37,9 +39,9 @@ export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
                                         {type === 'transparent' && '⬜'}
                                     </div>
                                     <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                        {type === 'gradient' && 'Degradado'}
-                                        {type === 'solid' && 'Sólido'}
-                                        {type === 'transparent' && 'Transparente'}
+                                        {type === 'gradient' && t('shoutoutTabs.gradient')}
+                                        {type === 'solid' && t('shoutoutTabs.solid')}
+                                        {type === 'transparent' && t('shoutoutTabs.transparent')}
                                     </div>
                                 </button>
                             ))}
@@ -52,7 +54,7 @@ export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                                        Color 1
+                                        {t('shoutoutTabs.color1')}
                                     </label>
                                     <div className="flex gap-2">
                                         <input
@@ -71,7 +73,7 @@ export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
                                 </div>
                                 <div>
                                     <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                                        Color 2
+                                        {t('shoutoutTabs.color2')}
                                     </label>
                                     <div className="flex gap-2">
                                         <input
@@ -93,7 +95,7 @@ export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                        Ángulo del Degradado
+                                        {t('shoutoutTabs.gradientAngle')}
                                     </label>
                                     <span className="text-lg font-black text-[#2563eb]">{styles.gradientAngle}°</span>
                                 </div>
@@ -117,7 +119,7 @@ export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
                     {styles.backgroundType === 'solid' && (
                         <div>
                             <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                                Color de Fondo
+                                {t('shoutoutTabs.backgroundColor')}
                             </label>
                             <div className="flex gap-3">
                                 <input
@@ -141,7 +143,7 @@ export function BackgroundTab({ styles, setStyles }: BackgroundTabProps) {
                         <div>
                             <div className="flex items-center justify-between mb-2">
                                 <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                    Opacidad
+                                    {t('shoutoutTabs.opacity')}
                                 </label>
                                 <span className="text-lg font-black text-[#2563eb]">{styles.backgroundOpacity}%</span>
                             </div>

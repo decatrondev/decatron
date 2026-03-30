@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Styles } from '../../types';
 
 interface TypographyTabProps {
@@ -21,18 +22,19 @@ export function TypographyTab({
     textOutlineWidth,
     setTextOutlineWidth,
 }: TypographyTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    Configuración de Fuente
+                    {t('soundAlertsTabs.fontConfig')}
                 </h3>
 
                 <div className="space-y-4">
                     {/* Font Family */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Familia de Fuente
+                            {t('soundAlertsTabs.fontFamily')}
                         </label>
                         <select
                             value={styles.fontFamily}
@@ -50,7 +52,7 @@ export function TypographyTab({
                     {/* Text Color */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Color de Texto
+                            {t('soundAlertsTabs.textColor')}
                         </label>
                         <div className="flex gap-3">
                             <input
@@ -71,7 +73,7 @@ export function TypographyTab({
                     {/* Text Shadow */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Sombra de Texto
+                            {t('soundAlertsTabs.textShadow')}
                         </label>
                         <div className="grid grid-cols-4 gap-3">
                             {(['none', 'normal', 'strong', 'glow'] as const).map((shadow) => (
@@ -85,7 +87,7 @@ export function TypographyTab({
                                             : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
                                     }`}
                                 >
-                                    {shadow === 'none' ? 'Sin' : shadow === 'normal' ? 'Normal' : shadow === 'strong' ? 'Fuerte' : 'Brillo'}
+                                    {shadow === 'none' ? t('soundAlertsTabs.shadowNone') : shadow === 'normal' ? t('soundAlertsTabs.shadowNormal') : shadow === 'strong' ? t('soundAlertsTabs.shadowStrong') : t('soundAlertsTabs.shadowGlow')}
                                 </button>
                             ))}
                         </div>
@@ -96,10 +98,10 @@ export function TypographyTab({
                         <div className="flex items-center justify-between">
                             <div>
                                 <label className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
-                                    Contorno de Texto
+                                    {t('soundAlertsTabs.textOutline')}
                                 </label>
                                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
-                                    Agrega un borde alrededor del texto para mejorar legibilidad
+                                    {t('soundAlertsTabs.outlineDesc')}
                                 </p>
                             </div>
                             <button
@@ -120,7 +122,7 @@ export function TypographyTab({
                             <>
                                 <div>
                                     <label className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-2 block font-semibold">
-                                        Color del Contorno
+                                        {t('soundAlertsTabs.outlineColor')}
                                     </label>
                                     <div className="flex gap-2 items-center">
                                         <input
@@ -141,7 +143,7 @@ export function TypographyTab({
 
                                 <div>
                                     <label className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-2 block font-semibold flex items-center justify-between">
-                                        <span>Grosor del Contorno</span>
+                                        <span>{t('soundAlertsTabs.outlineWidth')}</span>
                                         <span className="text-[#2563eb] font-bold">{textOutlineWidth}px</span>
                                     </label>
                                     <input

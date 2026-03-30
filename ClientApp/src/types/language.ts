@@ -1,4 +1,4 @@
-export type Language = 'es' | 'en';
+export type Language = string;
 
 export interface LanguageResponse {
   language: string | null;

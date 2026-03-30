@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useTranslation } from 'react-i18next';
 import type { Language, LanguageContextType } from '../types/language';
 import { getUserLanguage, updateUserLanguage } from '../services/languageService';
+import { SUPPORTED_LANGUAGE_CODES, DEFAULT_LANGUAGE } from '../i18n/languages';
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -25,8 +26,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         // User not logged in
         // Use last known language from localStorage, or browser language as fallback
         const lastLanguage = localStorage.getItem('lastLanguage') as Language | null;
-        const browserLang = navigator.language.split('-')[0] as Language;
-        const lang = lastLanguage || (['es', 'en'].includes(browserLang) ? browserLang : 'es');
+        const browserLang = navigator.language.split('-')[0];
+        const lang = lastLanguage || (SUPPORTED_LANGUAGE_CODES.includes(browserLang) ? browserLang : DEFAULT_LANGUAGE);
         setCurrentLanguage(lang);
         await i18n.changeLanguage(lang);
         return;
@@ -37,7 +38,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       localStorage.removeItem('i18nextLng');
 
       const response = await getUserLanguage();
-      const lang = (response.language || 'es') as Language;
+      const lang = (response.language || DEFAULT_LANGUAGE) as Language;
 
       // Store last language for when user logs out
       localStorage.setItem('lastLanguage', lang);
@@ -48,7 +49,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       console.error('Error fetching user language:', err);
       // Fallback to last known or Spanish on error
       const lastLanguage = localStorage.getItem('lastLanguage') as Language | null;
-      const fallbackLang = lastLanguage || 'es';
+      const fallbackLang = lastLanguage || DEFAULT_LANGUAGE;
       setCurrentLanguage(fallbackLang);
       await i18n.changeLanguage(fallbackLang);
     }

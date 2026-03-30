@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { StyleConfig } from '../../types';
 
 interface TypographyTabProps {
@@ -6,18 +7,19 @@ interface TypographyTabProps {
 }
 
 export function TypographyTab({ styles, setStyles }: TypographyTabProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    Configuración de Fuente
+                    {t('shoutoutTabs.fontConfig')}
                 </h3>
 
                 <div className="space-y-4">
                     {/* Font Family */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Familia de Fuente
+                            {t('shoutoutTabs.fontFamily')}
                         </label>
                         <select
                             value={styles.fontFamily}
@@ -35,7 +37,7 @@ export function TypographyTab({ styles, setStyles }: TypographyTabProps) {
                     {/* Text Color */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Color de Texto
+                            {t('shoutoutTabs.textColor')}
                         </label>
                         <div className="flex gap-3">
                             <input
@@ -56,7 +58,7 @@ export function TypographyTab({ styles, setStyles }: TypographyTabProps) {
                     {/* Text Shadow */}
                     <div>
                         <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">
-                            Sombra de Texto
+                            {t('shoutoutTabs.textShadow')}
                         </label>
                         <div className="grid grid-cols-4 gap-3">
                             {(['none', 'normal', 'strong', 'glow'] as const).map((shadow) => (
@@ -70,7 +72,7 @@ export function TypographyTab({ styles, setStyles }: TypographyTabProps) {
                                             : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] text-[#64748b] dark:text-[#94a3b8]'
                                     }`}
                                 >
-                                    {shadow === 'none' ? 'Sin' : shadow.charAt(0).toUpperCase() + shadow.slice(1)}
+                                    {shadow === 'none' ? t('shoutoutTabs.shadowNone') : shadow.charAt(0).toUpperCase() + shadow.slice(1)}
                                 </button>
                             ))}
                         </div>

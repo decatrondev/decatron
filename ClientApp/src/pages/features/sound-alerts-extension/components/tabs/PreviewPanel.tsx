@@ -2,6 +2,7 @@ import React from 'react';
 import {
     Monitor, Copy, ExternalLink
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Styles, Layout, TextLine } from '../../types';
 
 interface PreviewPanelProps {
@@ -33,13 +34,14 @@ export function PreviewPanel({
     handleCopyUrl,
     handleOpenBrowser,
 }: PreviewPanelProps) {
+    const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
             {/* Preview */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg sticky top-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">
-                        Vista Previa
+                        {t('soundAlertsTabs.preview')}
                     </h3>
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -119,7 +121,7 @@ export function PreviewPanel({
 
                 <div className="mt-3 space-y-2">
                     <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] text-center">
-                        ✨ Los cambios se reflejan en tiempo real
+                        {t('soundAlertsTabs.changesRealtime')}
                     </p>
                 </div>
             </div>
@@ -127,7 +129,7 @@ export function PreviewPanel({
             {/* Overlay URL */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-4">
-                    URL del Overlay
+                    {t('soundAlertsTabs.overlayUrl')}
                 </h3>
 
                 <div className="space-y-3">
@@ -143,14 +145,14 @@ export function PreviewPanel({
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all"
                         >
                             <Copy className="w-4 h-4" />
-                            Copiar
+                            {t('soundAlertsTabs.copy')}
                         </button>
                         <button
                             onClick={handleOpenBrowser}
                             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-all"
                         >
                             <ExternalLink className="w-4 h-4" />
-                            Abrir
+                            {t('soundAlertsTabs.open')}
                         </button>
                     </div>
                 </div>
@@ -159,20 +161,20 @@ export function PreviewPanel({
             {/* Tips */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
                 <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-3">
-                    💡 Tips
+                    {t('soundAlertsTabs.tips')}
                 </h3>
                 <ul className="text-[#64748b] dark:text-[#94a3b8] text-xs space-y-2">
                     <li className="flex items-start gap-2">
                         <span className="text-[#2563eb] mt-0.5">•</span>
-                        <span>Agrega esta URL como Browser Source en OBS</span>
+                        <span>{t('soundAlertsTabs.tipObs')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                         <span className="text-[#2563eb] mt-0.5">•</span>
-                        <span>Dimensiones: 400x450</span>
+                        <span>{t('soundAlertsTabs.tipDimensions')}</span>
                     </li>
                     <li className="flex items-start gap-2">
-                        <span className="text-green-600 dark:text-green-400 mt-0.5">⚡</span>
-                        <span className="font-semibold text-green-700 dark:text-green-400">Las alertas se activan automáticamente con canjes de puntos de canal</span>
+                        <span className="text-green-600 dark:text-green-400 mt-0.5">•</span>
+                        <span className="font-semibold text-green-700 dark:text-green-400">{t('soundAlertsTabs.tipAutoActivate')}</span>
                     </li>
                 </ul>
             </div>

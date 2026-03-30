@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { DollarSign, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { TipsSettings } from '../../types/config';
 import { CURRENCIES } from '../../types/config';
 
@@ -22,6 +23,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
     labelClass,
     cardClass,
 }) => {
+    const { t } = useTranslation('features');
+
     const getSuggestedAmountsArray = (): number[] => {
         return settings.suggestedAmounts
             .split(',')
@@ -38,12 +41,12 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
             <div className={cardClass}>
                 <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
                     <DollarSign className="w-5 h-5" />
-                    Configuración de montos
+                    {t('tipsTabs.amountConfig')}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
-                        <label className={labelClass}>Moneda</label>
+                        <label className={labelClass}>{t('tipsTabs.currency')}</label>
                         <select
                             value={settings.currency}
                             onChange={e => updateSettings({ currency: e.target.value })}
@@ -57,7 +60,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                         </select>
                     </div>
                     <div>
-                        <label className={labelClass}>Monto mínimo</label>
+                        <label className={labelClass}>{t('tipsTabs.minAmount')}</label>
                         <input
                             type="number"
                             min="0.5"
@@ -68,7 +71,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                         />
                     </div>
                     <div>
-                        <label className={labelClass}>Monto máximo</label>
+                        <label className={labelClass}>{t('tipsTabs.maxAmount')}</label>
                         <input
                             type="number"
                             min="1"
@@ -80,7 +83,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                 </div>
 
                 <div>
-                    <label className={labelClass}>Montos sugeridos (botones rápidos)</label>
+                    <label className={labelClass}>{t('tipsTabs.suggestedAmounts')}</label>
                     <div className="flex gap-2 flex-wrap">
                         {getSuggestedAmountsArray().map((amount, idx) => (
                             <div key={idx} className="flex items-center gap-1">
@@ -111,7 +114,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                                 onClick={() => setSuggestedAmountsArray([...getSuggestedAmountsArray(), 10])}
                                 className="px-4 py-2 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:border-purple-400 hover:text-purple-500 transition-all"
                             >
-                                + Agregar
+                                {t('tipsTabs.addAmount')}
                             </button>
                         )}
                     </div>
@@ -123,10 +126,10 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                            Activar sistema de Tips
+                            {t('tipsTabs.enableTips')}
                         </h3>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Habilita la página de donaciones y las alertas
+                            {t('tipsTabs.enableTipsDesc')}
                         </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
