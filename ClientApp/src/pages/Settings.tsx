@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 // 1. 'Save' ha sido eliminado de esta línea
-import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages } from 'lucide-react';
+import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages, MessageSquare, ExternalLink, Loader2, Unlink } from 'lucide-react';
 import api from '../services/api'; // Se comenta para evitar error de compilación en el entorno de vista previa
 import { usePermissions } from '../hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
@@ -456,10 +456,11 @@ export default function Settings() {
                         </div>
                     </div>
 
-                    {/* Integraciones (MOVIDA AQUÍ) */}
+                    {/* Integraciones */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
                         <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">{t('settings:integrations.title')}</h2>
                         <div className="space-y-3">
+                            <DiscordIntegration />
                             <IntegrationCard icon={<Music className="w-6 h-6" />} name={t("settings:integrations.spotify")} status={t("settings:integrations.comingSoon")} color="bg-green-600" />
                             <IntegrationCard icon={<Gamepad2 className="w-6 h-6" />} name={t("settings:integrations.steam")} status={t("settings:integrations.comingSoon")} color="bg-blue-600" />
                             <IntegrationCard icon={<Youtube className="w-6 h-6" />} name={t("settings:integrations.youtube")} status={t("settings:integrations.comingSoon")} color="bg-red-600" />
@@ -647,6 +648,190 @@ function IntegrationCard({ icon, name, status, color }: { icon: React.ReactNode;
                 <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{name}</div>
                 <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{status}</div>
             </div>
+        </div>
+    );
+}
+
+interface LinkedGuild {
+    id: number;
+    guildId: string;
+    guildName: string;
+    guildIcon: string | null;
+}
+
+interface DiscordGuild {
+    id: string;
+    name: string;
+    icon: string | null;
+}
+
+function DiscordIntegration() {
+    const [linkedGuilds, setLinkedGuilds] = useState<LinkedGuild[]>([]);
+    const [availableGuilds, setAvailableGuilds] = useState<DiscordGuild[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [linking, setLinking] = useState(false);
+    const [showGuildPicker, setShowGuildPicker] = useState(false);
+
+    useEffect(() => {
+        loadLinkedGuilds();
+        // Check if returning from Discord OAuth
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('discord') === 'select') {
+            loadAvailableGuilds();
+            // Clean URL
+            window.history.replaceState({}, '', '/settings');
+        }
+    }, []);
+
+    const loadLinkedGuilds = async () => {
+        try {
+            const res = await api.get('/discord/linked');
+            if (res.data.success) {
+                setLinkedGuilds(res.data.guilds);
+            }
+        } catch (err) {
+            console.error('Error loading linked guilds:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const startDiscordAuth = async () => {
+        try {
+            const res = await api.get('/discord/auth');
+            if (res.data.success) {
+                window.location.href = res.data.url;
+            }
+        } catch (err) {
+            console.error('Error starting Discord auth:', err);
+        }
+    };
+
+    const loadAvailableGuilds = async () => {
+        try {
+            const res = await api.get('/discord/guilds');
+            if (res.data.success) {
+                setAvailableGuilds(res.data.guilds);
+                setShowGuildPicker(true);
+            }
+        } catch (err) {
+            console.error('Error loading guilds:', err);
+        }
+    };
+
+    const linkGuild = async (guild: DiscordGuild) => {
+        try {
+            setLinking(true);
+            const res = await api.post('/discord/link', {
+                guildId: guild.id,
+                guildName: guild.name,
+                guildIcon: guild.icon
+            });
+            if (res.data.success) {
+                setShowGuildPicker(false);
+                loadLinkedGuilds();
+            }
+        } catch (err) {
+            console.error('Error linking guild:', err);
+        } finally {
+            setLinking(false);
+        }
+    };
+
+    const unlinkGuild = async (guildId: string) => {
+        try {
+            await api.delete(`/discord/unlink/${guildId}`);
+            loadLinkedGuilds();
+        } catch (err) {
+            console.error('Error unlinking guild:', err);
+        }
+    };
+
+    return (
+        <div className="p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex items-center gap-4 mb-3">
+                <div className="p-3 bg-indigo-600 rounded-lg text-white">
+                    <MessageSquare className="w-6 h-6" />
+                </div>
+                <div className="flex-1">
+                    <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Discord</div>
+                    <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        {loading ? 'Cargando...' : linkedGuilds.length > 0 ? `${linkedGuilds.length} servidor${linkedGuilds.length > 1 ? 'es' : ''} vinculado${linkedGuilds.length > 1 ? 's' : ''}` : 'No vinculado'}
+                    </div>
+                </div>
+                <button
+                    onClick={startDiscordAuth}
+                    className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
+                >
+                    <ExternalLink className="w-4 h-4" />
+                    Vincular
+                </button>
+            </div>
+
+            {/* Linked guilds */}
+            {linkedGuilds.length > 0 && (
+                <div className="space-y-2 mt-3 pt-3 border-t border-[#e2e8f0] dark:border-[#374151]">
+                    {linkedGuilds.map(guild => (
+                        <div key={guild.guildId} className="flex items-center gap-3 p-2 bg-white dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                            {guild.guildIcon ? (
+                                <img src={guild.guildIcon} alt="" className="w-8 h-8 rounded-full" />
+                            ) : (
+                                <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs font-bold">
+                                    {guild.guildName.charAt(0)}
+                                </div>
+                            )}
+                            <span className="flex-1 text-sm font-medium text-[#1e293b] dark:text-white">{guild.guildName}</span>
+                            <button
+                                onClick={() => unlinkGuild(guild.guildId)}
+                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 transition-colors"
+                                title="Desvincular"
+                            >
+                                <Unlink className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Guild picker modal */}
+            {showGuildPicker && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 max-w-md w-full border border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Selecciona un servidor</h3>
+                            <button onClick={() => setShowGuildPicker(false)} className="text-[#64748b] hover:text-[#1e293b] dark:hover:text-white">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                            Servidores donde eres administrador:
+                        </p>
+                        <div className="space-y-2 max-h-80 overflow-y-auto">
+                            {availableGuilds.length === 0 ? (
+                                <p className="text-center text-[#64748b] py-4">No se encontraron servidores</p>
+                            ) : (
+                                availableGuilds.map(guild => (
+                                    <button
+                                        key={guild.id}
+                                        onClick={() => linkGuild(guild)}
+                                        disabled={linking}
+                                        className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#222324] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all text-left disabled:opacity-50"
+                                    >
+                                        {guild.icon ? (
+                                            <img src={guild.icon} alt="" className="w-10 h-10 rounded-full" />
+                                        ) : (
+                                            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">
+                                                {guild.name.charAt(0)}
+                                            </div>
+                                        )}
+                                        <span className="font-medium text-[#1e293b] dark:text-white">{guild.name}</span>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

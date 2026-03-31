@@ -1,4 +1,4 @@
-﻿import { Bot, Home, Zap, Target, Settings, LogOut, Menu, ChevronRight, Clock, Book, Shield, Cpu, Users, Gift, DollarSign, BarChart3 } from 'lucide-react';
+﻿import { Bot, Home, Zap, Target, Settings, LogOut, Menu, ChevronRight, Clock, Book, Shield, Cpu, Users, Gift, DollarSign, BarChart3, MessageSquare } from 'lucide-react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -205,6 +205,11 @@ export default function Layout() {
                     {/* Analytics - Visible para nivel 'moderation' o superior */}
                     {hasMinimumLevel('moderation') && (
                         <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
+                    )}
+
+                    {/* Discord - Visible solo para owner */}
+                    {hasMinimumLevel('control_total') && (
+                        <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />
                     )}
 
                     <hr className="my-4 border-[#e2e8f0] dark:border-[#374151]" />

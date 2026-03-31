@@ -107,6 +107,7 @@ try
     builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
     builder.Services.Configure<GachaSettings>(builder.Configuration.GetSection("GachaSettings"));
     builder.Services.Configure<AwsPollySettings>(builder.Configuration.GetSection("AwsPolly"));
+    builder.Services.Configure<Decatron.Discord.Models.DiscordSettings>(builder.Configuration.GetSection("DiscordSettings"));
 
     // PostgreSQL DbContext
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -269,6 +270,11 @@ try
     builder.Services.AddSingleton<CommandService>();
     builder.Services.AddSingleton<Decatron.Scripting.Services.ScriptingService>();
     builder.Services.AddHttpClient<EventSubService>();
+
+    // Discord services
+    builder.Services.AddSingleton<Decatron.Discord.DiscordClientProvider>();
+    builder.Services.AddSingleton<Decatron.Discord.Events.LiveAlertHandler>();
+    builder.Services.AddHostedService<Decatron.Discord.DiscordBotService>();
 
     var app = builder.Build();
 

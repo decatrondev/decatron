@@ -72,12 +72,17 @@ import ModerationDoc from './pages/docs/private/features/ModerationDoc';
 import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
+import NowPlayingDoc from './pages/docs/private/features/NowPlayingDoc';
+import FollowAlertsDoc from './pages/docs/private/features/FollowAlertsDoc';
+import DecatronChatDoc from './pages/docs/private/features/DecatronChatDoc';
+import DeveloperPortalDoc from './pages/docs/private/features/DeveloperPortalDoc';
 import SettingsDoc from './pages/docs/private/settings/SettingsDoc';
 import PermissionsDoc from './pages/docs/private/settings/PermissionsDoc';
 import GachaLogin from './pages/gacha/GachaLogin';
 import GachaTerms from "./pages/gacha/GachaTerms";
 import GachaSuccess from './pages/gacha/GachaSuccess';
 // Developer Portal & OAuth
+import DiscordConfig from './pages/discord/DiscordConfig';
 import DeveloperPortal from './pages/developer/DeveloperPortal';
 import ApplicationCreate from './pages/developer/ApplicationCreate';
 import ApiReference from './pages/developer/ApiReference';
@@ -124,9 +129,6 @@ function App() {
                 {/* OAuth Authorization Page */}
                 <Route path="/oauth/authorize" element={<OAuthAuthorizePage />} />
 
-                {/* Public API Documentation - Standalone */}
-                <Route path="/docs/api" element={<ApiDocs />} />
-
                 {/* Public Documentation Routes */}
                 <Route path="/docs" element={<DocsLayout />}>
                     <Route index element={<DocsHome />} />
@@ -134,6 +136,7 @@ function App() {
                     <Route path="getting-started" element={<GettingStarted />} />
                     <Route path="features" element={<Features />} />
                     <Route path="faq" element={<FAQ />} />
+                    <Route path="api" element={<ApiDocs />} />
                     <Route path="variables" element={<VariablesDoc />} />
                     <Route path="commands/default" element={<DefaultCommandsDoc />} />
                     <Route path="commands/custom" element={<CustomCommandsDoc />} />
@@ -188,6 +191,9 @@ function App() {
                     <Route path="gacha/terms" element={<GachaTerms />} />
                     <Route path="gacha/success" element={<GachaSuccess />} />
 
+                    {/* Discord Configuration */}
+                    <Route path="discord" element={<DiscordConfig />} />
+
                     {/* Developer Portal - OAuth API Management */}
                     <Route path="developer" element={<DeveloperPortal />} />
                     <Route path="developer/apps/new" element={<ApplicationCreate />} />
@@ -223,6 +229,10 @@ function App() {
                     <Route path="dashboard/docs/features/analytics" element={<AnalyticsDoc />} />
                     <Route path="dashboard/docs/features/followers" element={<FollowersDoc />} />
                     <Route path="dashboard/docs/features/ai" element={<AIDoc />} />
+                    <Route path="dashboard/docs/features/now-playing" element={<NowPlayingDoc />} />
+                    <Route path="dashboard/docs/features/follow-alerts" element={<FollowAlertsDoc />} />
+                    <Route path="dashboard/docs/features/decatron-chat" element={<DecatronChatDoc />} />
+                    <Route path="dashboard/docs/features/developer" element={<DeveloperPortalDoc />} />
                     {/* Settings */}
                     <Route path="dashboard/docs/settings" element={<SettingsDoc />} />
                     <Route path="dashboard/docs/permissions" element={<PermissionsDoc />} />

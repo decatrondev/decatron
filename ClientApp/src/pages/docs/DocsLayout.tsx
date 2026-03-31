@@ -17,8 +17,8 @@ export default function DocsLayout() {
         if (location.pathname.includes('/docs/commands')) {
             setCommandsOpen(true);
         }
-        if (location.pathname.includes('/docs/overlays')) {
-            setOverlaysOpen(true);
+        if (location.pathname.includes('/docs/overlays') || location.pathname.includes('/docs/variables')) {
+            setReferenceOpen(true);
         }
     }, [location.pathname]);
 
@@ -146,17 +146,17 @@ export default function DocsLayout() {
                                 <div className="mt-1 space-y-1">
                                     <SubNavLink to="/docs/variables" label="Variables" />
                                     <SubNavLink to="/docs/overlays/shoutout" label="Shoutout Overlay" />
+                                    <SubNavLink to="/docs/overlays/gacha" label="Gacha Overlay" comingSoon />
                                 </div>
                             )}
                         </div>
 
-                        {/* API - Coming Soon */}
+                        {/* API Reference */}
                         <DocNavLink
-                            to="#"
+                            to="/docs/api"
                             icon={<Plug className="w-5 h-5" />}
                             label="API Reference"
-                            active={false}
-                            comingSoon
+                            active={location.pathname === '/docs/api'}
                         />
                     </nav>
                 </aside>

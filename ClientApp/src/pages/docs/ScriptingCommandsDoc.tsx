@@ -39,7 +39,7 @@ export default function ScriptingCommandsDoc() {
                     </li>
                     <li className="flex gap-2">
                         <span className="text-green-600">✓</span>
-                        <span>Implementar lógica condicional (if/else con when/then/end)</span>
+                        <span>Implementar lógica condicional con when/then/end</span>
                     </li>
                     <li className="flex gap-2">
                         <span className="text-green-600">✓</span>
@@ -70,8 +70,9 @@ export default function ScriptingCommandsDoc() {
                             language="javascript"
                             code={`set variable = valor
 send "mensaje"
-when condicion then
-    acciones
+
+when $(variable) > 5 then
+    send "respuesta"
 end`}
                         />
                     </div>
@@ -92,14 +93,18 @@ send "Hola $(nombre), tienes $(edad) años"`}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Condicionales</h3>
                         <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
-                            Usa <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">when/then/end</code> para lógica condicional:
+                            Usa <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">when/then/end</code> para lógica condicional.
+                            Para manejar multiples condiciones, usa bloques <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">when</code> separados:
                         </p>
                         <CodeBlock
                             language="javascript"
                             code={`set numero = roll(1, 10)
-when numero > 5 then
+
+when $(numero) > 5 then
     send "Mayor que 5!"
-else
+end
+
+when $(numero) <= 5 then
     send "Menor o igual a 5"
 end`}
                         />

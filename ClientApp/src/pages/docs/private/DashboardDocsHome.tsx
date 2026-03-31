@@ -1,7 +1,7 @@
 import {
     HelpCircle, Clock, Bell, Gift, Target, Volume2, DollarSign,
     Zap, Shield, Sparkles, Settings, Monitor, ArrowRight, Search,
-    BookOpen, Video, MessageSquare
+    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -26,6 +26,12 @@ export default function DashboardDocsHome() {
         { icon: <MessageSquare />, title: 'Shoutouts', description: 'Promociones de canales', path: '/dashboard/docs/features/shoutout', color: 'purple' },
         { icon: <Shield />, title: 'Moderacion', description: 'Filtros y acciones automaticas', path: '/dashboard/docs/features/moderation', color: 'red' },
         { icon: <Sparkles />, title: 'Decatron AI', description: 'Inteligencia artificial', path: '/dashboard/docs/features/ai', color: 'purple' },
+        { icon: <Music />, title: 'Now Playing', description: 'Musica en el stream', path: '/dashboard/docs/features/now-playing', color: 'green' },
+        { icon: <Heart />, title: 'Alertas de Follow', description: 'Bienvenida a nuevos seguidores', path: '/dashboard/docs/features/follow-alerts', color: 'pink' },
+        { icon: <MessageSquare />, title: 'Decatron Chat', description: 'Chat privado con IA', path: '/dashboard/docs/features/decatron-chat', color: 'blue' },
+        { icon: <BarChart3 />, title: 'Analiticas', description: 'Estadisticas y datos del stream', path: '/dashboard/docs/features/analytics', color: 'blue' },
+        { icon: <Users />, title: 'Seguidores', description: 'Lista y gestion de followers', path: '/dashboard/docs/features/followers', color: 'purple' },
+        { icon: <Code2 />, title: 'Portal de Desarrolladores', description: 'Crea apps con la API', path: '/dashboard/docs/features/developer', color: 'blue' },
     ];
 
     const filteredGuides = featureGuides.filter(guide =>
@@ -141,6 +147,29 @@ export default function DashboardDocsHome() {
                     </div>
                 </Link>
             </div>
+
+            {/* Permisos link */}
+            <Link
+                to="/dashboard/docs/permissions"
+                className="block p-6 bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-colors group"
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400">
+                            <Shield className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-[#2563eb] transition-colors">
+                                Permisos del Dashboard
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                Niveles de acceso, roles y control de funciones
+                            </p>
+                        </div>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-[#64748b] group-hover:text-[#2563eb] transition-colors" />
+                </div>
+            </Link>
 
             {/* Comandos */}
             <div>

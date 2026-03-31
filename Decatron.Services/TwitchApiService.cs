@@ -843,6 +843,7 @@ namespace Decatron.Services
         public string title { get; set; } = "";
         public int viewer_count { get; set; }
         public string started_at { get; set; } = "";
+        public string thumbnail_url { get; set; } = "";
     }
 
     public class ShoutoutData

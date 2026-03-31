@@ -123,6 +123,10 @@ namespace Decatron.Data
         public DbSet<OAuthAccessToken> OAuthAccessTokens { get; set; }
         public DbSet<OAuthRefreshToken> OAuthRefreshTokens { get; set; }
 
+        // Discord Integration
+        public DbSet<Decatron.Discord.Models.DiscordGuildConfig> DiscordGuildConfigs { get; set; }
+        public DbSet<Decatron.Discord.Models.DiscordLiveAlert> DiscordLiveAlerts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

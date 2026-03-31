@@ -42,12 +42,13 @@ namespace Decatron.Controllers
         private readonly TimerEventService _timerEventService;
         private readonly Decatron.Core.Interfaces.IEventAlertsService _eventAlertsService;
         private readonly IStreamStatusService _streamStatusService;
+        private readonly Decatron.Discord.Events.LiveAlertHandler _liveAlertHandler;
 
 
         // ✨ NUEVO: Cache para evitar procesar el mismo mensaje dos veces
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
 
-        public TwitchWebhookController(IConfiguration configuration, ILogger<TwitchWebhookController> logger, TwitchClient twitchClient, TwitchBotService twitchBotService, EventSubService eventSubService, IHubContext<OverlayHub> hubContext, DecatronDbContext dbContext, Decatron.Core.Services.FollowersService followersService, TimerEventService timerEventService, Decatron.Core.Interfaces.IEventAlertsService eventAlertsService, IStreamStatusService streamStatusService)
+        public TwitchWebhookController(IConfiguration configuration, ILogger<TwitchWebhookController> logger, TwitchClient twitchClient, TwitchBotService twitchBotService, EventSubService eventSubService, IHubContext<OverlayHub> hubContext, DecatronDbContext dbContext, Decatron.Core.Services.FollowersService followersService, TimerEventService timerEventService, Decatron.Core.Interfaces.IEventAlertsService eventAlertsService, IStreamStatusService streamStatusService, Decatron.Discord.Events.LiveAlertHandler liveAlertHandler)
         {
             _configuration = configuration;
             _logger = logger;
@@ -60,6 +61,7 @@ namespace Decatron.Controllers
             _timerEventService = timerEventService;
             _eventAlertsService = eventAlertsService;
             _streamStatusService = streamStatusService;
+            _liveAlertHandler = liveAlertHandler;
 
             // Initial cleanup on construction (no infinite loop — cleanup happens per-request via cache expiration)
             CleanupOldMessages();
@@ -215,6 +217,9 @@ namespace Decatron.Controllers
 
                 _logger.LogInformation("🟢 [stream.online] {Login} inició stream", broadcasterUserLogin);
                 await _streamStatusService.SetStreamOnlineAsync(broadcasterUserId, broadcasterUserLogin.ToLower());
+
+                // Discord live alerts (reads from discord_live_alerts table)
+                _ = _liveAlertHandler.SendLiveAlertAsync(broadcasterUserLogin.ToLower(), broadcasterUserId);
             }
             catch (Exception ex)
             {

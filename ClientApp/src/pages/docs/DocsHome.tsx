@@ -1,23 +1,29 @@
-import { Book, ArrowRight, Variable, Zap, Code, Plug } from 'lucide-react';
+import {
+    Book, ArrowRight, Variable, Zap, Code, Plug, HelpCircle,
+    Rocket, Grid, MessageSquare, Monitor, Clock, Gift, Target,
+    Bell, Shield, Sparkles, Volume2, DollarSign
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function DocsHome() {
     return (
         <div className="space-y-8">
-            {/* Header con estilo del sistema */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-10 border border-[#e2e8f0] dark:border-[#374151] shadow-xl">
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="w-20 h-20 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Book className="w-10 h-10 text-[#2563eb]" />
+            {/* Header */}
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
+                        <Book className="w-8 h-8 text-[#2563eb]" />
                     </div>
                     <div>
-                        <h1 className="text-5xl font-black mb-2 text-gray-900 dark:text-white">Documentación de Decatron</h1>
-                        <p className="text-xl text-[#64748b] dark:text-[#94a3b8]">
-                            Tu guía completa para dominar el bot más potente de Twitch
+                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                            Documentacion de Decatron
+                        </h1>
+                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                            Tu guia completa para dominar el bot mas potente de Twitch
                         </p>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                     <QuickStat icon={<Variable />} label="Variables" count="17+" />
                     <QuickStat icon={<Zap />} label="Comandos" count="50+" />
                     <QuickStat icon={<Code />} label="Scripts" count="∞" />
@@ -25,163 +31,113 @@ export default function DocsHome() {
                 </div>
             </div>
 
-            {/* Main Sections */}
+            {/* Para empezar */}
             <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Explora la Documentación</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <DocSection
-                    to="/docs/variables"
-                    icon={<Variable className="w-8 h-8" />}
-                    title="Variables del Sistema"
-                    description="Variables dinámicas para crear comandos interactivos con información en tiempo real"
-                    color="blue"
-                />
-                <DocSection
-                    to="/docs/commands"
-                    icon={<Zap className="w-8 h-8" />}
-                    title="Comandos"
-                    description="Guía completa sobre comandos por defecto, personalizados, y micro comandos"
-                    color="yellow"
-                    comingSoon
-                />
-                <DocSection
-                    to="/docs/scripting"
-                    icon={<Code className="w-8 h-8" />}
-                    title="Scripting"
-                    description="Crea comandos avanzados con lógica condicional usando nuestro lenguaje de scripting"
-                    color="purple"
-                    comingSoon
-                />
-                <DocSection
-                    to="/docs/api"
-                    icon={<Plug className="w-8 h-8" />}
-                    title="API Reference"
-                    description="Documentación completa de la API REST para integrar Decatron con tus aplicaciones"
-                    color="green"
-                    comingSoon
-                />
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Para empezar</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <DocCard to="/docs/about" icon={<HelpCircle />} title="Que es Decatron?" description="Conoce todas las capacidades del bot" color="blue" />
+                    <DocCard to="/docs/getting-started" icon={<Rocket />} title="Como Empezar" description="Guia paso a paso para configurar tu bot" color="green" />
+                    <DocCard to="/docs/faq" icon={<MessageSquare />} title="FAQ" description="Preguntas frecuentes y soluciones" color="purple" />
                 </div>
             </div>
 
-            {/* Getting Started */}
+            {/* Comandos */}
             <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">🚀 Guía de Inicio Rápido</h2>
-                <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Step
-                        number={1}
-                        title="Conecta tu cuenta"
-                        description="Inicia sesión con Twitch"
-                    />
-                    <Step
-                        number={2}
-                        title="Explora las variables"
-                        description="Crea comandos dinámicos"
-                    />
-                    <Step
-                        number={3}
-                        title="Primer comando"
-                        description="Usa !crear para empezar"
-                    />
-                    <Step
-                        number={4}
-                        title="Experimenta"
-                        description="Lleva tus comandos al siguiente nivel"
-                    />
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Comandos</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <DocCard to="/docs/commands/default" icon={<Zap />} title="Comandos por Defecto" description="!game, !title, !so, !followage y mas" color="blue" />
+                    <DocCard to="/docs/commands/custom" icon={<MessageSquare />} title="Comandos Personalizados" description="Crea tus propios comandos con variables" color="green" />
+                    <DocCard to="/docs/commands/microcommands" icon={<Zap />} title="Micro Comandos" description="Contadores y comandos rapidos" color="yellow" />
+                    <DocCard to="/docs/commands/scripting" icon={<Code />} title="Scripts Avanzados" description="Logica condicional y variables" color="purple" />
                 </div>
+            </div>
+
+            {/* Features */}
+            <div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Features</h2>
+                <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
+                    Guias detalladas de cada feature disponibles en el dashboard.
+                </p>
+                <Link
+                    to="/docs/features"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    <Grid className="w-4 h-4" />
+                    Ver todas las features
+                    <ArrowRight className="w-4 h-4" />
+                </Link>
+            </div>
+
+            {/* Referencia */}
+            <div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Referencia</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <DocCard to="/docs/variables" icon={<Variable />} title="Variables" description="17+ variables dinamicas para comandos" color="blue" />
+                    <DocCard to="/docs/overlays/shoutout" icon={<Monitor />} title="Shoutout Overlay" description="Overlay de promocion de canales" color="purple" />
+                    <DocCard to="/docs/api" icon={<Plug />} title="API Reference" description="REST API con OAuth2 para integraciones" color="green" />
+                </div>
+            </div>
+
+            {/* Guia rapida */}
+            <div className="bg-[#f8fafc] dark:bg-[#374151]/30 rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                <h2 className="text-xl font-black text-gray-900 dark:text-white mb-4">Inicio Rapido</h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Step number={1} title="Conecta tu cuenta" description="Inicia sesion con Twitch" />
+                    <Step number={2} title="Configura el bot" description="Prefijo, idioma, permisos" />
+                    <Step number={3} title="Prueba un comando" description="Escribe !hola en el chat" />
+                    <Step number={4} title="Agrega overlays" description="Timer, alertas y mas" />
                 </div>
             </div>
         </div>
     );
 }
 
-interface DocSectionProps {
-    to: string;
-    icon: React.ReactNode;
-    title: string;
-    description: string;
-    color: 'blue' | 'yellow' | 'purple' | 'green';
-    comingSoon?: boolean;
-}
-
-function DocSection({ to, icon, title, description, color, comingSoon }: DocSectionProps) {
-    const colorClasses = {
-        blue: 'bg-blue-50 dark:bg-blue-900/20 text-[#2563eb] group-hover:bg-[#2563eb]',
-        yellow: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 group-hover:bg-yellow-600',
-        purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600',
-        green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:bg-green-600',
+function DocCard({ to, icon, title, description, color }: { to: string; icon: React.ReactNode; title: string; description: string; color: string }) {
+    const colorMap: Record<string, string> = {
+        blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+        green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
+        yellow: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
+        purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
     };
-
-    if (comingSoon) {
-        return (
-            <div className="relative p-8 bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] opacity-60 cursor-not-allowed">
-                <div className={`inline-flex items-center justify-center w-16 h-16 ${colorClasses[color]} rounded-xl mb-4`}>
-                    {icon}
-                </div>
-                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">
-                    {title}
-                </h3>
-                <p className="text-[#64748b] dark:text-[#94a3b8]">{description}</p>
-                <span className="absolute top-4 right-4 px-3 py-1 text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full">
-                    Próximamente
-                </span>
-            </div>
-        );
-    }
 
     return (
         <Link
             to={to}
-            className="group block p-8 bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] dark:hover:border-[#2563eb] transition-all hover:shadow-lg"
+            className="group block p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all"
         >
-            <div className={`inline-flex items-center justify-center w-16 h-16 ${colorClasses[color]} rounded-xl mb-4 transition-colors group-hover:text-white`}>
-                {icon}
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 group-hover:text-[#2563eb] transition-colors">
-                {title}
-            </h3>
-            <p className="text-[#64748b] dark:text-[#94a3b8]">{description}</p>
-            <div className="flex items-center gap-2 mt-4 text-[#2563eb] font-bold group-hover:gap-3 transition-all">
-                Ver documentación
-                <ArrowRight className="w-4 h-4" />
+            <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 ${colorMap[color]} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    {icon}
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-[#2563eb] transition-colors">
+                        {title}
+                    </h3>
+                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                </div>
             </div>
         </Link>
     );
 }
 
-interface StepProps {
-    number: number;
-    title: string;
-    description: string;
-}
-
-function Step({ number, title, description }: StepProps) {
+function Step({ number, title, description }: { number: number; title: string; description: string }) {
     return (
         <div className="flex flex-col items-center text-center p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-lg mb-3">
+            <div className="w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm mb-2">
                 {number}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">{description}</p>
+            <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{title}</h4>
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{description}</p>
         </div>
     );
 }
 
-// Componente para estadísticas rápidas en el header
-interface QuickStatProps {
-    icon: React.ReactNode;
-    label: string;
-    count: string;
-}
-
-function QuickStat({ icon, label, count }: QuickStatProps) {
+function QuickStat({ icon, label, count }: { icon: React.ReactNode; label: string; count: string }) {
     return (
-        <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-xl p-4 text-center border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all">
-            <div className="flex items-center justify-center mb-2 text-[#2563eb]">
-                {icon}
-            </div>
-            <div className="text-3xl font-black text-gray-900 dark:text-white mb-1">{count}</div>
-            <div className="text-sm text-[#64748b] dark:text-[#94a3b8] font-semibold">{label}</div>
+        <div className="bg-[#f8fafc] dark:bg-[#374151]/50 rounded-xl p-4 text-center border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="flex items-center justify-center mb-2 text-[#2563eb]">{icon}</div>
+            <div className="text-2xl font-black text-gray-900 dark:text-white">{count}</div>
+            <div className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">{label}</div>
         </div>
     );
 }

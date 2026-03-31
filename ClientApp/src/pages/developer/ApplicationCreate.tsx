@@ -1,18 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
-    ArrowLeft,
-    Plus,
-    X,
-    Loader2,
-    CheckCircle,
-    XCircle,
-    AlertTriangle,
-    Copy,
-    Eye,
-    EyeOff,
-    ExternalLink,
-    Code2
+    ArrowLeft, Plus, X, Loader2, CheckCircle, XCircle,
+    AlertTriangle, Copy, Eye, EyeOff, ExternalLink, Code2,
+    Key, Shield, Globe
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -87,7 +78,7 @@ export default function ApplicationCreate() {
                 setScopesData(res.data.categories);
             }
         } catch (err) {
-            addToast('Error loading available scopes', 'error');
+            addToast('Error al cargar scopes disponibles', 'error');
         } finally {
             setLoadingScopes(false);
         }
@@ -123,38 +114,38 @@ export default function ApplicationCreate() {
         const newErrors: Record<string, string> = {};
 
         if (!name.trim()) {
-            newErrors.name = 'Application name is required';
+            newErrors.name = 'El nombre es obligatorio';
         } else if (name.length > 100) {
-            newErrors.name = 'Name must be 100 characters or less';
+            newErrors.name = 'Maximo 100 caracteres';
         }
 
         const validUris = redirectUris.filter(uri => uri.trim());
         if (validUris.length === 0) {
-            newErrors.redirectUris = 'At least one redirect URI is required';
+            newErrors.redirectUris = 'Se requiere al menos una redirect URI';
         } else {
             for (const uri of validUris) {
                 try {
                     const parsed = new URL(uri);
                     if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
-                        newErrors.redirectUris = 'Redirect URIs must use HTTPS (except localhost)';
+                        newErrors.redirectUris = 'Las redirect URIs deben usar HTTPS (excepto localhost)';
                         break;
                     }
                 } catch {
-                    newErrors.redirectUris = `Invalid URL: ${uri}`;
+                    newErrors.redirectUris = `URL invalida: ${uri}`;
                     break;
                 }
             }
         }
 
         if (selectedScopes.size === 0) {
-            newErrors.scopes = 'At least one scope is required';
+            newErrors.scopes = 'Se requiere al menos un scope';
         }
 
         if (websiteUrl.trim()) {
             try {
                 new URL(websiteUrl);
             } catch {
-                newErrors.websiteUrl = 'Invalid website URL';
+                newErrors.websiteUrl = 'URL invalida';
             }
         }
 
@@ -162,7 +153,7 @@ export default function ApplicationCreate() {
             try {
                 new URL(iconUrl);
             } catch {
-                newErrors.iconUrl = 'Invalid icon URL';
+                newErrors.iconUrl = 'URL invalida';
             }
         }
 
@@ -174,7 +165,7 @@ export default function ApplicationCreate() {
         e.preventDefault();
 
         if (!validateForm()) {
-            addToast('Please fix the validation errors', 'error');
+            addToast('Corrige los errores de validacion', 'error');
             return;
         }
 
@@ -196,10 +187,10 @@ export default function ApplicationCreate() {
                     client_id: res.data.app.client_id,
                     client_secret: res.data.app.client_secret
                 });
-                addToast('Application created successfully!', 'success');
+                addToast('Aplicacion creada exitosamente', 'success');
             }
         } catch (err: any) {
-            const errorMsg = err.response?.data?.error || 'Error creating application';
+            const errorMsg = err.response?.data?.error || 'Error al crear aplicacion';
             addToast(errorMsg, 'error');
         } finally {
             setLoading(false);
@@ -209,106 +200,91 @@ export default function ApplicationCreate() {
     const copyToClipboard = async (text: string, label: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            addToast(`${label} copied to clipboard`, 'success');
+            addToast(`${label} copiado`, 'success');
         } catch {
-            addToast('Failed to copy', 'error');
+            addToast('Error al copiar', 'error');
         }
     };
 
-    // Show success screen with credentials
+    // Success screen
     if (createdApp) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white p-6">
-                <div className="max-w-2xl mx-auto">
-                    {/* Toast Notifications */}
-                    <div className="fixed top-4 right-4 z-50 space-y-2">
-                        {toasts.map(toast => (
-                            <div
-                                key={toast.id}
-                                className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
-                                    toast.type === 'success' ? 'bg-green-600' :
-                                    toast.type === 'error' ? 'bg-red-600' :
-                                    'bg-blue-600'
-                                }`}
-                            >
-                                {toast.type === 'success' && <CheckCircle className="w-5 h-5" />}
-                                <span>{toast.message}</span>
-                            </div>
-                        ))}
-                    </div>
+            <div className="space-y-6">
+                <ToastContainer toasts={toasts} />
 
-                    <div className="bg-gray-800 rounded-xl p-8 text-center">
-                        <div className="w-20 h-20 mx-auto mb-6 bg-green-600 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-10 h-10" />
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 text-center border border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
+                            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
                         </div>
-                        <h1 className="text-2xl font-bold mb-2">Application Created!</h1>
-                        <p className="text-gray-400 mb-8">
-                            Your OAuth application <strong className="text-white">{createdApp.name}</strong> has been created.
+                        <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Aplicacion creada</h1>
+                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-8">
+                            Tu aplicacion <strong className="text-gray-900 dark:text-white">{createdApp.name}</strong> esta lista.
                         </p>
 
                         {/* Credentials */}
-                        <div className="bg-yellow-600/20 border border-yellow-600/50 rounded-xl p-6 mb-8 text-left">
-                            <div className="flex items-center gap-2 text-yellow-400 mb-4">
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-6 mb-8 text-left">
+                            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-4">
                                 <AlertTriangle className="w-5 h-5" />
-                                <span className="font-semibold">Important: Save your credentials now!</span>
+                                <span className="font-bold text-sm">Guarda tus credenciales ahora</span>
                             </div>
-                            <p className="text-yellow-200/80 text-sm mb-6">
-                                The client secret will not be shown again. Make sure to save it securely.
+                            <p className="text-amber-600 dark:text-amber-300/80 text-sm mb-6">
+                                El client secret no se mostrara de nuevo. Guardalo en un lugar seguro.
                             </p>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-xs text-gray-400 block mb-1">Client ID</label>
-                                    <div className="flex items-center gap-2 bg-gray-900 rounded-lg p-3">
-                                        <code className="flex-1 text-sm font-mono text-green-400 break-all">
+                                    <label className="text-xs font-medium text-[#64748b] dark:text-[#94a3b8] block mb-1">Client ID</label>
+                                    <div className="flex items-center gap-2 bg-white dark:bg-[#1B1C1D] rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
+                                        <code className="flex-1 text-sm font-mono text-[#2563eb] break-all">
                                             {createdApp.client_id}
                                         </code>
                                         <button
                                             onClick={() => copyToClipboard(createdApp.client_id, 'Client ID')}
-                                            className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                                            className="p-1.5 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg transition-colors"
                                         >
-                                            <Copy className="w-4 h-4" />
+                                            <Copy className="w-4 h-4 text-[#64748b]" />
                                         </button>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-xs text-gray-400 block mb-1">Client Secret</label>
-                                    <div className="flex items-center gap-2 bg-gray-900 rounded-lg p-3">
-                                        <code className="flex-1 text-sm font-mono text-yellow-400 break-all">
+                                    <label className="text-xs font-medium text-[#64748b] dark:text-[#94a3b8] block mb-1">Client Secret</label>
+                                    <div className="flex items-center gap-2 bg-white dark:bg-[#1B1C1D] rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
+                                        <code className="flex-1 text-sm font-mono text-amber-700 dark:text-amber-400 break-all">
                                             {showSecret ? createdApp.client_secret : '••••••••••••••••••••••••••••••••'}
                                         </code>
                                         <button
                                             onClick={() => setShowSecret(!showSecret)}
-                                            className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                                            className="p-1.5 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg transition-colors"
                                         >
-                                            {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            {showSecret ? <EyeOff className="w-4 h-4 text-[#64748b]" /> : <Eye className="w-4 h-4 text-[#64748b]" />}
                                         </button>
                                         <button
                                             onClick={() => copyToClipboard(createdApp.client_secret, 'Client Secret')}
-                                            className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                                            className="p-1.5 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg transition-colors"
                                         >
-                                            <Copy className="w-4 h-4" />
+                                            <Copy className="w-4 h-4 text-[#64748b]" />
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex gap-4 justify-center">
+                        <div className="flex gap-3 justify-center">
                             <button
                                 onClick={() => navigate('/developer')}
-                                className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors"
+                                className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
                             >
-                                Go to Developer Portal
+                                Ir al Portal
                             </button>
-                            <a
-                                href="/developer/docs"
-                                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2"
+                            <Link
+                                to="/docs/api"
+                                className="px-6 py-3 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151] transition-colors flex items-center gap-2 hover:text-[#2563eb]"
                             >
                                 <ExternalLink className="w-4 h-4" />
-                                View API Docs
-                            </a>
+                                Ver API Docs
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -317,109 +293,85 @@ export default function ApplicationCreate() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-6">
-            {/* Toast Notifications */}
-            <div className="fixed top-4 right-4 z-50 space-y-2">
-                {toasts.map(toast => (
-                    <div
-                        key={toast.id}
-                        className={`px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
-                            toast.type === 'success' ? 'bg-green-600' :
-                            toast.type === 'error' ? 'bg-red-600' :
-                            'bg-blue-600'
-                        }`}
-                    >
-                        {toast.type === 'success' && <CheckCircle className="w-5 h-5" />}
-                        {toast.type === 'error' && <XCircle className="w-5 h-5" />}
-                        <span>{toast.message}</span>
-                    </div>
-                ))}
-            </div>
+        <div className="space-y-6">
+            <ToastContainer toasts={toasts} />
 
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-8">
+                <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate('/developer')}
-                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                        className="p-2 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-xl transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeft className="w-5 h-5 text-[#64748b]" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold">Create Application</h1>
-                        <p className="text-gray-400">Register a new OAuth application</p>
+                        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Nueva Aplicacion</h1>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Registra una nueva aplicacion OAuth</p>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Basic Info */}
-                    <div className="bg-gray-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                            <Code2 className="w-5 h-5 text-purple-400" />
-                            Application Info
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                            <Code2 className="w-5 h-5 text-[#2563eb]" />
+                            Informacion de la App
                         </h2>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-2">
-                                    Application Name <span className="text-red-400">*</span>
-                                </label>
+                            <FormField label="Nombre de la aplicacion" required error={errors.name}>
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className={`w-full bg-gray-900 border ${errors.name ? 'border-red-500' : 'border-gray-700'} rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500`}
-                                    placeholder="My Awesome Bot"
+                                    className={`w-full bg-[#f8fafc] dark:bg-[#374151]/50 border ${errors.name ? 'border-red-400' : 'border-[#e2e8f0] dark:border-[#374151]'} rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent placeholder-[#94a3b8]`}
+                                    placeholder="Mi Bot"
                                 />
-                                {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
-                            </div>
+                            </FormField>
 
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Description</label>
+                            <FormField label="Descripcion">
                                 <textarea
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={3}
-                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 resize-none"
-                                    placeholder="A brief description of what your application does..."
+                                    className="w-full bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent resize-none placeholder-[#94a3b8]"
+                                    placeholder="Descripcion breve de tu aplicacion..."
                                 />
-                            </div>
+                            </FormField>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">Website URL</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField label="Website URL" error={errors.websiteUrl}>
                                     <input
                                         type="url"
                                         value={websiteUrl}
                                         onChange={(e) => setWebsiteUrl(e.target.value)}
-                                        className={`w-full bg-gray-900 border ${errors.websiteUrl ? 'border-red-500' : 'border-gray-700'} rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500`}
-                                        placeholder="https://myapp.com"
+                                        className={`w-full bg-[#f8fafc] dark:bg-[#374151]/50 border ${errors.websiteUrl ? 'border-red-400' : 'border-[#e2e8f0] dark:border-[#374151]'} rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent placeholder-[#94a3b8]`}
+                                        placeholder="https://miapp.com"
                                     />
-                                    {errors.websiteUrl && <p className="text-red-400 text-sm mt-1">{errors.websiteUrl}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">Icon URL</label>
+                                </FormField>
+                                <FormField label="Icon URL" error={errors.iconUrl}>
                                     <input
                                         type="url"
                                         value={iconUrl}
                                         onChange={(e) => setIconUrl(e.target.value)}
-                                        className={`w-full bg-gray-900 border ${errors.iconUrl ? 'border-red-500' : 'border-gray-700'} rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500`}
-                                        placeholder="https://myapp.com/icon.png"
+                                        className={`w-full bg-[#f8fafc] dark:bg-[#374151]/50 border ${errors.iconUrl ? 'border-red-400' : 'border-[#e2e8f0] dark:border-[#374151]'} rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent placeholder-[#94a3b8]`}
+                                        placeholder="https://miapp.com/icon.png"
                                     />
-                                    {errors.iconUrl && <p className="text-red-400 text-sm mt-1">{errors.iconUrl}</p>}
-                                </div>
+                                </FormField>
                             </div>
                         </div>
                     </div>
 
                     {/* Redirect URIs */}
-                    <div className="bg-gray-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold mb-6">
-                            Redirect URIs <span className="text-red-400">*</span>
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-[#2563eb]" />
+                            Redirect URIs <span className="text-red-400 text-sm">*</span>
                         </h2>
-                        <p className="text-gray-400 text-sm mb-4">
-                            OAuth will redirect users back to these URIs after authorization.
-                            Must use HTTPS (localhost is exempt for development).
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                            OAuth redirigira a los usuarios a estas URIs despues de autorizar.
+                            Deben usar HTTPS (localhost exento para desarrollo).
                         </p>
 
                         <div className="space-y-3">
@@ -429,14 +381,14 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={uri}
                                         onChange={(e) => updateRedirectUri(index, e.target.value)}
-                                        className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 font-mono text-sm"
-                                        placeholder="https://myapp.com/callback"
+                                        className="flex-1 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent font-mono text-sm placeholder-[#94a3b8]"
+                                        placeholder="https://miapp.com/callback"
                                     />
                                     {redirectUris.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeRedirectUri(index)}
-                                            className="p-2 hover:bg-gray-700 rounded-lg transition-colors text-red-400"
+                                            className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors text-red-400"
                                         >
                                             <X className="w-5 h-5" />
                                         </button>
@@ -447,107 +399,141 @@ export default function ApplicationCreate() {
                         <button
                             type="button"
                             onClick={addRedirectUri}
-                            className="mt-3 flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300"
+                            className="mt-3 flex items-center gap-2 text-sm text-[#2563eb] hover:text-blue-700 font-medium"
                         >
                             <Plus className="w-4 h-4" />
-                            Add another URI
+                            Agregar otra URI
                         </button>
-                        {errors.redirectUris && <p className="text-red-400 text-sm mt-2">{errors.redirectUris}</p>}
+                        {errors.redirectUris && <p className="text-red-500 text-sm mt-2">{errors.redirectUris}</p>}
                     </div>
 
                     {/* Scopes */}
-                    <div className="bg-gray-800 rounded-xl p-6">
-                        <h2 className="text-lg font-semibold mb-2">
-                            Scopes <span className="text-red-400">*</span>
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-[#2563eb]" />
+                            Scopes <span className="text-red-400 text-sm">*</span>
                         </h2>
-                        <p className="text-gray-400 text-sm mb-6">
-                            Select the permissions your application needs. Users will be asked to approve these.
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-6">
+                            Selecciona los permisos que necesita tu aplicacion. Los usuarios deberan aprobarlos.
                         </p>
 
                         {loadingScopes ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+                                <Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" />
                             </div>
                         ) : scopesData ? (
                             <div className="space-y-6">
-                                {Object.entries(scopesData).map(([category, data]) => (
-                                    <div key={category}>
-                                        <h3 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
-                                            <span className={`w-2 h-2 rounded-full ${
-                                                category === 'read' ? 'bg-blue-400' :
-                                                category === 'write' ? 'bg-orange-400' :
-                                                'bg-red-400'
-                                            }`}></span>
-                                            {data.name}
-                                            <span className="text-xs text-gray-500 font-normal">
-                                                - {data.description}
-                                            </span>
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            {data.scopes.map((scopeInfo) => (
-                                                <label
-                                                    key={scopeInfo.scope}
-                                                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                                                        selectedScopes.has(scopeInfo.scope)
-                                                            ? 'bg-purple-600/20 border border-purple-500'
-                                                            : 'bg-gray-900 border border-gray-700 hover:border-gray-600'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedScopes.has(scopeInfo.scope)}
-                                                        onChange={() => toggleScope(scopeInfo.scope)}
-                                                        className="mt-0.5"
-                                                    />
-                                                    <div className="flex-1 min-w-0">
-                                                        <code className="text-xs text-purple-400 font-mono">
-                                                            {scopeInfo.scope}
-                                                        </code>
-                                                        <p className="text-xs text-gray-400 mt-0.5">
-                                                            {scopeInfo.description}
-                                                        </p>
-                                                    </div>
-                                                </label>
-                                            ))}
+                                {Object.entries(scopesData).map(([category, data]) => {
+                                    const dotColor = category === 'read' ? 'bg-blue-500' : category === 'write' ? 'bg-orange-500' : 'bg-red-500';
+                                    return (
+                                        <div key={category}>
+                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                                <span className={`w-2 h-2 rounded-full ${dotColor}`}></span>
+                                                {data.name}
+                                                <span className="text-xs text-[#64748b] dark:text-[#94a3b8] font-normal">
+                                                    — {data.description}
+                                                </span>
+                                            </h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                {data.scopes.map((scopeInfo) => (
+                                                    <label
+                                                        key={scopeInfo.scope}
+                                                        className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                                                            selectedScopes.has(scopeInfo.scope)
+                                                                ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-[#2563eb]'
+                                                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 border-2 border-transparent hover:border-[#e2e8f0] dark:hover:border-[#374151]'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedScopes.has(scopeInfo.scope)}
+                                                            onChange={() => toggleScope(scopeInfo.scope)}
+                                                            className="mt-0.5 accent-[#2563eb]"
+                                                        />
+                                                        <div className="flex-1 min-w-0">
+                                                            <code className="text-xs text-[#2563eb] font-mono font-medium">
+                                                                {scopeInfo.scope}
+                                                            </code>
+                                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                                                                {scopeInfo.description}
+                                                            </p>
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
-                            <p className="text-red-400">Failed to load scopes</p>
+                            <p className="text-red-500">Error al cargar scopes</p>
                         )}
-                        {errors.scopes && <p className="text-red-400 text-sm mt-4">{errors.scopes}</p>}
+                        {errors.scopes && <p className="text-red-500 text-sm mt-4">{errors.scopes}</p>}
                     </div>
 
                     {/* Submit */}
-                    <div className="flex justify-end gap-4">
+                    <div className="flex justify-end gap-3">
                         <button
                             type="button"
                             onClick={() => navigate('/developer')}
-                            className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                            className="px-6 py-3 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:text-gray-900 dark:hover:text-white transition-colors"
                         >
-                            Cancel
+                            Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Creating...
+                                    Creando...
                                 </>
                             ) : (
                                 <>
                                     <Plus className="w-5 h-5" />
-                                    Create Application
+                                    Crear Aplicacion
                                 </>
                             )}
                         </button>
                     </div>
                 </form>
             </div>
+        </div>
+    );
+}
+
+function FormField({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                {label} {required && <span className="text-red-400">*</span>}
+            </label>
+            {children}
+            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+        </div>
+    );
+}
+
+function ToastContainer({ toasts }: { toasts: Toast[] }) {
+    return (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+            {toasts.map(toast => (
+                <div
+                    key={toast.id}
+                    className={`px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-white text-sm font-medium ${
+                        toast.type === 'success' ? 'bg-green-600' :
+                        toast.type === 'error' ? 'bg-red-600' :
+                        'bg-[#2563eb]'
+                    }`}
+                >
+                    {toast.type === 'success' && <CheckCircle className="w-4 h-4" />}
+                    {toast.type === 'error' && <XCircle className="w-4 h-4" />}
+                    {toast.type === 'info' && <AlertTriangle className="w-4 h-4" />}
+                    <span>{toast.message}</span>
+                </div>
+            ))}
         </div>
     );
 }
