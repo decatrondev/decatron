@@ -274,7 +274,18 @@ try
     // Discord services
     builder.Services.AddSingleton<Decatron.Discord.DiscordClientProvider>();
     builder.Services.AddSingleton<Decatron.Discord.Events.LiveAlertHandler>();
+    builder.Services.AddSingleton<Decatron.Discord.Events.WelcomeHandler>();
+    builder.Services.AddSingleton<Decatron.Discord.WelcomeImageGenerator>();
+    builder.Services.AddSingleton<Decatron.Discord.Services.XpBoostService>();
+    builder.Services.AddSingleton<Decatron.Discord.Services.AchievementService>();
+    builder.Services.AddSingleton<Decatron.Discord.Services.SeasonalService>();
+    builder.Services.AddSingleton<Decatron.Discord.Services.XpService>();
+    builder.Services.AddSingleton<Decatron.Discord.Services.XpRoleService>();
+    builder.Services.AddSingleton<Decatron.Discord.RankCardGenerator>();
+    builder.Services.AddSingleton<Decatron.Discord.Events.MessageXpHandler>();
     builder.Services.AddHostedService<Decatron.Discord.DiscordBotService>();
+    builder.Services.AddHostedService<Decatron.Discord.DiscordAlertPollingService>();
+    builder.Services.AddHostedService<Decatron.Discord.Services.StoreExpirationService>();
 
     var app = builder.Build();
 

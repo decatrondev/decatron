@@ -8,5 +8,6 @@ namespace Decatron.Core.Interfaces
         Task RefreshExpiringTokensAsync();
         Task RefreshAllTokensOnStartupAsync();
         Task<bool> IsTokenExpiringSoonAsync(BotTokens botToken, TimeSpan threshold);
+        Task RefreshAppAccessTokenAsync(BotTokens botToken);
     }
 }

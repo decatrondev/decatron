@@ -60,7 +60,9 @@ public class DiscordLiveAlertsController : ControllerBase
                 a.ShowButton,
                 a.ShowStartTime,
                 a.SendMode,
-                a.DelayMinutes
+                a.DelayMinutes,
+                a.UpdateIntervalMinutes,
+                a.OnOfflineAction
             })
             .ToListAsync();
 
@@ -107,7 +109,9 @@ public class DiscordLiveAlertsController : ControllerBase
             ShowButton = request.ShowButton,
             ShowStartTime = request.ShowStartTime,
             SendMode = request.SendMode,
-            DelayMinutes = request.DelayMinutes
+            DelayMinutes = request.DelayMinutes,
+            UpdateIntervalMinutes = request.UpdateIntervalMinutes,
+            OnOfflineAction = request.OnOfflineAction
         };
 
         _dbContext.DiscordLiveAlerts.Add(alert);
@@ -116,7 +120,7 @@ public class DiscordLiveAlertsController : ControllerBase
         _logger.LogInformation("Live alert added: {Channel} → #{DiscordChannel} in guild {Guild}",
             alert.ChannelName, alert.DiscordChannelName, guildConfig.GuildName);
 
-        return Ok(new { success = true, alert = new { alert.Id, alert.ChannelName, alert.DiscordChannelId, alert.DiscordChannelName, alert.MentionEveryone, alert.Enabled, alert.IsOwnChannel, alert.ThumbnailMode, alert.StaticThumbnailUrl, alert.EmbedColor, alert.FooterText, alert.ShowButton, alert.ShowStartTime, alert.SendMode, alert.DelayMinutes } });
+        return Ok(new { success = true, alert = new { alert.Id, alert.ChannelName, alert.DiscordChannelId, alert.DiscordChannelName, alert.MentionEveryone, alert.Enabled, alert.IsOwnChannel, alert.ThumbnailMode, alert.StaticThumbnailUrl, alert.EmbedColor, alert.FooterText, alert.ShowButton, alert.ShowStartTime, alert.SendMode, alert.DelayMinutes, alert.UpdateIntervalMinutes, alert.OnOfflineAction } });
     }
 
     /// <summary>
@@ -155,6 +159,10 @@ public class DiscordLiveAlertsController : ControllerBase
             alert.SendMode = request.SendMode;
         if (request.DelayMinutes.HasValue)
             alert.DelayMinutes = request.DelayMinutes.Value;
+        if (request.UpdateIntervalMinutes.HasValue)
+            alert.UpdateIntervalMinutes = Math.Max(request.UpdateIntervalMinutes.Value, 10);
+        if (request.OnOfflineAction != null)
+            alert.OnOfflineAction = request.OnOfflineAction;
 
         alert.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
@@ -315,6 +323,8 @@ public class AddAlertRequest
     public bool ShowStartTime { get; set; } = true;
     public string SendMode { get; set; } = "wait";
     public int DelayMinutes { get; set; } = 2;
+    public int UpdateIntervalMinutes { get; set; } = 10;
+    public string OnOfflineAction { get; set; } = "summary";
 }
 
 public class UpdateAlertRequest
@@ -332,4 +342,6 @@ public class UpdateAlertRequest
     public bool? ShowStartTime { get; set; }
     public string? SendMode { get; set; }
     public int? DelayMinutes { get; set; }
+    public int? UpdateIntervalMinutes { get; set; }
+    public string? OnOfflineAction { get; set; }
 }

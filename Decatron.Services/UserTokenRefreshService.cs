@@ -66,8 +66,8 @@ namespace Decatron.Services
             {
                 _logger.LogInformation("Checking for user tokens expiring soon...");
 
-                // Get users with tokens expiring within 7 days (refresh proactively)
-                var expiringUsers = await _userRepository.GetUsersWithTokensExpiringWithinAsync(TimeSpan.FromDays(7));
+                // Get users with tokens expiring within 1 hour (just before expiry)
+                var expiringUsers = await _userRepository.GetUsersWithTokensExpiringWithinAsync(TimeSpan.FromHours(1));
 
                 if (!expiringUsers.Any())
                 {

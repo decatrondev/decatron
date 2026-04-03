@@ -126,6 +126,21 @@ namespace Decatron.Data
         // Discord Integration
         public DbSet<Decatron.Discord.Models.DiscordGuildConfig> DiscordGuildConfigs { get; set; }
         public DbSet<Decatron.Discord.Models.DiscordLiveAlert> DiscordLiveAlerts { get; set; }
+        public DbSet<Decatron.Discord.Models.DiscordAlertMessage> DiscordAlertMessages { get; set; }
+        public DbSet<Decatron.Discord.Models.DiscordWelcomeConfig> DiscordWelcomeConfigs { get; set; }
+
+        // Gamification (XP/Levels)
+        public DbSet<Decatron.Discord.Models.XpConfig> XpConfigs { get; set; }
+        public DbSet<Decatron.Discord.Models.UserXp> UserXps { get; set; }
+        public DbSet<Decatron.Discord.Models.UserXpGlobal> UserXpGlobals { get; set; }
+        public DbSet<Decatron.Discord.Models.XpTransaction> XpTransactions { get; set; }
+        public DbSet<Decatron.Discord.Models.XpRole> XpRoles { get; set; }
+        public DbSet<Decatron.Discord.Models.XpBoost> XpBoosts { get; set; }
+        public DbSet<Decatron.Discord.Models.XpAchievement> XpAchievements { get; set; }
+        public DbSet<Decatron.Discord.Models.UserAchievement> UserAchievements { get; set; }
+        public DbSet<Decatron.Discord.Models.XpSeasonal> XpSeasonals { get; set; }
+        public DbSet<Decatron.Discord.Models.XpStoreItem> XpStoreItems { get; set; }
+        public DbSet<Decatron.Discord.Models.XpStorePurchase> XpStorePurchases { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

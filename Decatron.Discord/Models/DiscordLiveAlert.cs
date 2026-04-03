@@ -70,6 +70,18 @@ public class DiscordLiveAlert
     [Column("delay_minutes")]
     public int DelayMinutes { get; set; } = 2;
 
+    /// <summary>
+    /// Interval in minutes to update the live alert message (min 10)
+    /// </summary>
+    [Column("update_interval_minutes")]
+    public int UpdateIntervalMinutes { get; set; } = 10;
+
+    /// <summary>
+    /// Action when stream goes offline: "summary" (edit with stats), "delete" (remove message), "none" (leave as is)
+    /// </summary>
+    [Column("on_offline_action")]
+    public string OnOfflineAction { get; set; } = "summary";
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

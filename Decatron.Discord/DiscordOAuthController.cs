@@ -60,7 +60,7 @@ public class DiscordOAuthController : ControllerBase
                   $"&redirect_uri={Uri.EscapeDataString(_settings.RedirectUri)}" +
                   $"&response_type=code" +
                   $"&scope=identify%20guilds%20bot%20applications.commands" +
-                  $"&permissions=2147732544" +
+                  $"&permissions=8" +
                   $"&state={state}";
 
         return Ok(new { success = true, url });

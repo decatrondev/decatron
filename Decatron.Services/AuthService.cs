@@ -386,8 +386,9 @@ namespace Decatron.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError("Failed to refresh token: {StatusCode}", response.StatusCode);
-                    throw new Exception($"Failed to refresh token: {response.StatusCode}");
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Failed to refresh token: {StatusCode} — {Error}", response.StatusCode, errorBody);
+                    throw new Exception($"Failed to refresh token: {response.StatusCode} — {errorBody}");
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();

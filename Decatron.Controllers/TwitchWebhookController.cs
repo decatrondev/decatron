@@ -242,6 +242,9 @@ namespace Decatron.Controllers
 
                 _logger.LogInformation("🔴 [stream.offline] {Login} terminó stream", broadcasterUserLogin);
                 await _streamStatusService.SetStreamOfflineAsync(broadcasterUserId, broadcasterUserLogin.ToLower());
+
+                // Discord offline handler (edit/delete/summary)
+                _ = _liveAlertHandler.HandleStreamOfflineAsync(broadcasterUserLogin.ToLower());
             }
             catch (Exception ex)
             {

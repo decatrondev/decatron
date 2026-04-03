@@ -18,7 +18,7 @@ public class DiscordClientProvider
         {
             Token = settings.Value.BotToken,
             TokenType = TokenType.Bot,
-            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers | DiscordIntents.MessageContents,
+            Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers | DiscordIntents.GuildMessages | DiscordIntents.MessageContents,
             LoggerFactory = loggerFactory,
             AutoReconnect = true
         };

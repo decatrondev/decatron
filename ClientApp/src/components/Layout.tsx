@@ -21,6 +21,7 @@ export default function Layout() {
     const [docsOverlaysOpen, setDocsOverlaysOpen] = useState(false);
     const [docsFeaturesOpen, setDocsFeaturesOpen] = useState(false);
     const [docsSettingsOpen, setDocsSettingsOpen] = useState(false);
+    const [discordOpen, setDiscordOpen] = useState(false);
     const [adminOpen, setAdminOpen] = useState(false);
     const [isSystemOwner, setIsSystemOwner] = useState(false);
     const { hasMinimumLevel, loading } = usePermissions();
@@ -209,7 +210,25 @@ export default function Layout() {
 
                     {/* Discord - Visible solo para owner */}
                     {hasMinimumLevel('control_total') && (
-                        <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />
+                        <div>
+                            <button onClick={() => setDiscordOpen(!discordOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
+                                <div className="flex items-center gap-3">
+                                    <MessageSquare className="w-5 h-5" />
+                                    <span className="font-semibold">Discord</span>
+                                </div>
+                                <ChevronRight className={`w-4 h-4 transition-transform ${discordOpen || location.pathname.startsWith('/discord') ? 'rotate-90' : ''}`} />
+                            </button>
+                            {(discordOpen || location.pathname.startsWith('/discord')) && (
+                                <div className="ml-8 mt-1 space-y-1">
+                                    <SubNavLink to="/discord" label="General" />
+                                    <SubNavLink to="/discord/alerts" label="Live Alerts" />
+                                    <SubNavLink to="/discord/welcome" label="Bienvenida" />
+                                    <SubNavLink to="/discord/notifications" label="Notificaciones" comingSoon />
+                                    <SubNavLink to="/discord/commands" label="Comandos" comingSoon />
+                                    <SubNavLink to="/discord/logs" label="Logs" comingSoon />
+                                </div>
+                            )}
+                        </div>
                     )}
 
                     <hr className="my-4 border-[#e2e8f0] dark:border-[#374151]" />

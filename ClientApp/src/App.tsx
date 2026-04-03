@@ -83,6 +83,9 @@ import GachaTerms from "./pages/gacha/GachaTerms";
 import GachaSuccess from './pages/gacha/GachaSuccess';
 // Developer Portal & OAuth
 import DiscordConfig from './pages/discord/DiscordConfig';
+import DiscordAlerts from './pages/discord/DiscordAlerts';
+import DiscordWelcome from './pages/discord/DiscordWelcome';
+import DiscordLevels from './pages/discord/DiscordLevels';
 import DeveloperPortal from './pages/developer/DeveloperPortal';
 import ApplicationCreate from './pages/developer/ApplicationCreate';
 import ApiReference from './pages/developer/ApiReference';
@@ -193,6 +196,9 @@ function App() {
 
                     {/* Discord Configuration */}
                     <Route path="discord" element={<DiscordConfig />} />
+                    <Route path="discord/alerts" element={<DiscordAlerts />} />
+                    <Route path="discord/welcome" element={<DiscordWelcome />} />
+                    <Route path="discord/levels" element={<DiscordLevels />} />
 
                     {/* Developer Portal - OAuth API Management */}
                     <Route path="developer" element={<DeveloperPortal />} />
