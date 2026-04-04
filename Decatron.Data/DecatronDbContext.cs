@@ -169,7 +169,7 @@ namespace Decatron.Data
                 entity.Property(e => e.Description).HasMaxLength(500).HasColumnName("description");
                 entity.Property(e => e.AccessToken).IsRequired().HasMaxLength(2000).HasColumnName("access_token");
                 entity.Property(e => e.RefreshToken).HasMaxLength(2000).HasColumnName("refresh_token");
-                if (encConverter != null) { entity.Property(e => e.AccessToken).HasConversion(encConverter); entity.Property(e => e.RefreshToken).HasConversion(encConverter); }
+                if (encConverter != null) { entity.Property(e => e.AccessToken).HasConversion(encConverter); entity.Property(e => e.RefreshToken).HasConversion(encConverter); entity.Property(e => e.DiscordAccessToken).HasConversion(encConverter); entity.Property(e => e.DiscordRefreshToken).HasConversion(encConverter); }
                 entity.Property(e => e.TokenExpiration).IsRequired().HasColumnName("token_expiration");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnName("updated_at");

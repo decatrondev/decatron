@@ -121,7 +121,6 @@ public class DiscordAuthController : ControllerBase
                   $"&state={state}" +
                   $"&prompt=consent";
 
-        System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] LINK START: userId={userId}, state={state}\n");
         return Redirect(url);
     }
 
@@ -156,12 +155,10 @@ public class DiscordAuthController : ControllerBase
                 _logger.LogWarning("Invalid or expired Discord OAuth state");
                 return Redirect($"{frontendUrl}/login?error=Invalid+or+expired+login+session");
             }
-            System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] CALLBACK: state={state}, stateValue={stateValue}\n");
             _memoryCache.Remove(stateKey);
 
             var isLinkMode = stateValue.StartsWith("link:");
             long? linkUserId = isLinkMode ? long.Parse(stateValue.Split(':')[1]) : null;
-            System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] isLinkMode={isLinkMode}, linkUserId={linkUserId}\n");
 
             // Exchange code for token
             var client = _httpClientFactory.CreateClient();

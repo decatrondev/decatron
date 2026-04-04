@@ -271,7 +271,6 @@ namespace Decatron.Controllers
                         catch (Exception ex)
                         {
                             var innerMsg = ex.InnerException?.Message ?? ex.Message;
-                            System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] SAVE ERROR 4 (add twitch to discord): {innerMsg}\n");
                             return Redirect($"{_twitchSettings.FrontendUrl}/settings?error={Uri.EscapeDataString(innerMsg)}");
                         }
 
@@ -472,7 +471,6 @@ namespace Decatron.Controllers
             {
                 var fullError = ex.InnerException?.Message ?? ex.Message;
                 _logger.LogError(ex, "Error during authentication callback: {Error}", fullError);
-                System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] CALLBACK ERROR: {fullError}\n");
                 return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString(fullError)}");
             }
         }
@@ -615,14 +613,35 @@ namespace Decatron.Controllers
             }
         }
 
+        private long GetChannelOwnerId()
+        {
+            // PRIORIDAD 1: Obtener canal activo desde la sesion (despues de switch)
+            var sessionChannelId = HttpContext.Session.GetString("ActiveChannelId");
+            if (!string.IsNullOrEmpty(sessionChannelId) && long.TryParse(sessionChannelId, out var sessionId))
+            {
+                return sessionId;
+            }
+
+            // PRIORIDAD 2: Usar el claim del JWT si existe
+            var channelOwnerIdClaim = User.FindFirst("ChannelOwnerId")?.Value;
+            if (long.TryParse(channelOwnerIdClaim, out var channelOwnerId))
+            {
+                return channelOwnerId;
+            }
+
+            // PRIORIDAD 3: Por defecto, usar el propio canal del usuario
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return long.TryParse(userIdClaim, out var userId) ? userId : 0;
+        }
+
         [Authorize]
         [HttpGet("account-tier")]
         public async Task<IActionResult> GetAccountTier()
         {
             try
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (!long.TryParse(userIdClaim, out var userId))
+                var targetUserId = GetChannelOwnerId();
+                if (targetUserId == 0)
                     return Unauthorized();
 
                 // Use EF Core's managed connection instead of a separate NpgsqlConnection
@@ -640,7 +659,7 @@ namespace Decatron.Controllers
 
                 var param = cmd.CreateParameter();
                 param.ParameterName = "@userId";
-                param.Value = userId;
+                param.Value = targetUserId;
                 cmd.Parameters.Add(param);
 
                 using var reader = await cmd.ExecuteReaderAsync();
