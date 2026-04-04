@@ -573,6 +573,173 @@ namespace Decatron.Services
                 codeId, userId, purchaseId, discountApplied);
         }
 
+        // ─── Referrals ──────────────────────────────────────────────────────────
+
+        public async Task<string> GenerateReferralCodeAsync(long userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                throw new InvalidOperationException("Usuario no encontrado");
+
+            if (!string.IsNullOrEmpty(user.ReferralCode))
+                return user.ReferralCode;
+
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            string code;
+            do
+            {
+                var suffix = new string(Enumerable.Range(0, 5).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                code = $"REF-{suffix}";
+            } while (await _db.Users.AnyAsync(u => u.ReferralCode == code));
+
+            user.ReferralCode = code;
+            await _db.SaveChangesAsync();
+            return code;
+        }
+
+        public async Task<object> GetReferralStatsAsync(long userId)
+        {
+            var code = await GenerateReferralCodeAsync(userId);
+
+            var referrals = await _db.CoinReferrals
+                .Where(r => r.ReferrerUserId == userId)
+                .ToListAsync();
+
+            var totalReferred = referrals.Count;
+            var completedReferred = referrals.Count(r => r.Status == "completed");
+            var pendingReferred = referrals.Count(r => r.Status == "pending");
+            var totalBonusEarned = referrals.Where(r => r.Status == "completed").Sum(r => r.BonusGivenToReferrer);
+
+            // Check if user has been referred by someone
+            var hasBeenReferred = await _db.CoinReferrals.AnyAsync(r => r.ReferredUserId == userId);
+
+            return new
+            {
+                referralCode = code,
+                totalReferred,
+                completedReferred,
+                pendingReferred,
+                totalBonusEarned,
+                hasBeenReferred,
+            };
+        }
+
+        public async Task CreateReferralAsync(long referredUserId, string referralCode)
+        {
+            // Find referrer by code
+            var referrer = await _db.Users.FirstOrDefaultAsync(u => u.ReferralCode == referralCode);
+            if (referrer == null)
+                throw new InvalidOperationException("Codigo de referido no encontrado");
+
+            if (referrer.Id == referredUserId)
+                throw new InvalidOperationException("No puedes usar tu propio codigo de referido");
+
+            // Check if referred user already has a referral
+            var existingReferral = await _db.CoinReferrals.AnyAsync(r => r.ReferredUserId == referredUserId);
+            if (existingReferral)
+                throw new InvalidOperationException("Ya tienes un codigo de referido aplicado");
+
+            // Check max referrals per user
+            var settings = await GetSettingsAsync();
+            if (settings.MaxReferralsPerUser.HasValue)
+            {
+                var referrerCount = await _db.CoinReferrals.CountAsync(r => r.ReferrerUserId == referrer.Id);
+                if (referrerCount >= settings.MaxReferralsPerUser.Value)
+                    throw new InvalidOperationException("El usuario que te refirio ya alcanzo el limite de referidos");
+            }
+
+            _db.CoinReferrals.Add(new CoinReferral
+            {
+                ReferrerUserId = referrer.Id,
+                ReferredUserId = referredUserId,
+                ReferralCode = referralCode,
+                Status = "pending",
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _db.SaveChangesAsync();
+            _logger.LogInformation("Referral created: Referrer={Referrer}, Referred={Referred}, Code={Code}",
+                referrer.Id, referredUserId, referralCode);
+        }
+
+        public async Task CompleteReferralIfEligible(long userId)
+        {
+            var referral = await _db.CoinReferrals
+                .FirstOrDefaultAsync(r => r.ReferredUserId == userId && r.Status == "pending");
+
+            if (referral == null) return;
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return;
+
+            var settings = await GetSettingsAsync();
+            var accountAgeDays = (DateTime.UtcNow - user.CreatedAt).TotalDays;
+
+            if (accountAgeDays < settings.ReferralMinActivityDays) return;
+
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                referral.Status = "completed";
+                referral.CompletedAt = DateTime.UtcNow;
+                referral.BonusGivenToReferrer = settings.ReferralBonusReferrer;
+                referral.BonusGivenToReferred = settings.ReferralBonusReferred;
+
+                // Give bonus to referrer
+                if (settings.ReferralBonusReferrer > 0)
+                {
+                    var referrerCoins = await GetOrCreateBalanceAsync(referral.ReferrerUserId);
+                    referrerCoins.Balance += settings.ReferralBonusReferrer;
+                    referrerCoins.TotalEarned += settings.ReferralBonusReferrer;
+                    referrerCoins.UpdatedAt = DateTime.UtcNow;
+
+                    _db.CoinTransactions.Add(new CoinTransaction
+                    {
+                        UserId = referral.ReferrerUserId,
+                        Amount = settings.ReferralBonusReferrer,
+                        BalanceAfter = referrerCoins.Balance,
+                        Type = "referral_bonus",
+                        Description = $"Bonus por referir a un usuario",
+                        RelatedUserId = userId,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+                }
+
+                // Give bonus to referred
+                if (settings.ReferralBonusReferred > 0)
+                {
+                    var referredCoins = await GetOrCreateBalanceAsync(userId);
+                    referredCoins.Balance += settings.ReferralBonusReferred;
+                    referredCoins.TotalEarned += settings.ReferralBonusReferred;
+                    referredCoins.UpdatedAt = DateTime.UtcNow;
+
+                    _db.CoinTransactions.Add(new CoinTransaction
+                    {
+                        UserId = userId,
+                        Amount = settings.ReferralBonusReferred,
+                        BalanceAfter = referredCoins.Balance,
+                        Type = "referral_bonus",
+                        Description = $"Bonus por usar codigo de referido",
+                        RelatedUserId = referral.ReferrerUserId,
+                        CreatedAt = DateTime.UtcNow,
+                    });
+                }
+
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                _logger.LogInformation(
+                    "Referral completed: Referrer={Referrer}, Referred={Referred}, BonusReferrer={BonusR}, BonusReferred={BonusD}",
+                    referral.ReferrerUserId, userId, settings.ReferralBonusReferrer, settings.ReferralBonusReferred);
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
         // ─── Settings ────────────────────────────────────────────────────────────
 
         public async Task<CoinSettings> GetSettingsAsync()

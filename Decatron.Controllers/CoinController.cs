@@ -440,6 +440,53 @@ namespace Decatron.Controllers
             }
         }
 
+        // ─── GET /api/coins/referral ────────────────────────────────────────────
+
+        [HttpGet("referral")]
+        public async Task<IActionResult> GetReferral()
+        {
+            var userId = GetUserId();
+            try
+            {
+                var stats = await _coinService.GetReferralStatsAsync(userId);
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting referral stats for user {UserId}", userId);
+                return StatusCode(500, new { error = "Error al obtener datos de referido" });
+            }
+        }
+
+        // ─── POST /api/coins/referral/apply ─────────────────────────────────────
+
+        [HttpPost("referral/apply")]
+        public async Task<IActionResult> ApplyReferral([FromBody] CoinApplyReferralRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.Code))
+                return BadRequest(new { error = "Codigo es obligatorio" });
+
+            var userId = GetUserId();
+            try
+            {
+                await _coinService.CreateReferralAsync(userId, req.Code.Trim().ToUpper());
+
+                // Check if eligible for immediate completion
+                await _coinService.CompleteReferralIfEligible(userId);
+
+                return Ok(new { success = true, message = "Codigo de referido aplicado correctamente" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error applying referral code for user {UserId}", userId);
+                return StatusCode(500, new { error = "Error al aplicar codigo de referido" });
+            }
+        }
+
         // ─── PayPal Helpers ──────────────────────────────────────────────────────
 
         private (string clientId, string clientSecret, string baseUrl, string returnUrl, string cancelUrl) GetPayPalConfig()
@@ -516,6 +563,11 @@ namespace Decatron.Controllers
         public string Username { get; set; } = string.Empty;
         public int Amount { get; set; }
         public string? Message { get; set; }
+    }
+
+    public class CoinApplyReferralRequest
+    {
+        public string Code { get; set; } = string.Empty;
     }
 
     public class CoinValidateCodeRequest
@@ -722,6 +774,62 @@ namespace Decatron.Controllers
                 return NotFound(new { error = "Codigo no encontrado" });
 
             code.Enabled = false;
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        // ─── Referrals Admin ────────────────────────────────────────────────────
+
+        [HttpGet("referrals")]
+        public async Task<IActionResult> GetReferrals()
+        {
+            var referrals = await _db.CoinReferrals
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            var userIds = referrals
+                .SelectMany(r => new[] { r.ReferrerUserId, r.ReferredUserId })
+                .Distinct()
+                .ToList();
+
+            var users = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.Login, u.DisplayName, u.DiscordUsername })
+                .ToDictionaryAsync(u => u.Id);
+
+            var result = referrals.Select(r => new
+            {
+                r.Id,
+                r.ReferrerUserId,
+                referrerName = users.ContainsKey(r.ReferrerUserId)
+                    ? (users[r.ReferrerUserId].DisplayName ?? users[r.ReferrerUserId].Login ?? users[r.ReferrerUserId].DiscordUsername ?? $"#{r.ReferrerUserId}")
+                    : $"#{r.ReferrerUserId}",
+                r.ReferredUserId,
+                referredName = users.ContainsKey(r.ReferredUserId)
+                    ? (users[r.ReferredUserId].DisplayName ?? users[r.ReferredUserId].Login ?? users[r.ReferredUserId].DiscordUsername ?? $"#{r.ReferredUserId}")
+                    : $"#{r.ReferredUserId}",
+                r.ReferralCode,
+                r.Status,
+                r.BonusGivenToReferrer,
+                r.BonusGivenToReferred,
+                r.CompletedAt,
+                r.CreatedAt,
+            });
+
+            return Ok(result);
+        }
+
+        [HttpPost("referrals/{id}/reject")]
+        public async Task<IActionResult> RejectReferral(long id)
+        {
+            var referral = await _db.CoinReferrals.FindAsync(id);
+            if (referral == null)
+                return NotFound(new { error = "Referido no encontrado" });
+
+            if (referral.Status != "pending")
+                return BadRequest(new { error = $"No se puede rechazar un referido con estado '{referral.Status}'" });
+
+            referral.Status = "rejected";
             await _db.SaveChangesAsync();
             return Ok(new { success = true });
         }

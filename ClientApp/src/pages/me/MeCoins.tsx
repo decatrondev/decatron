@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send, Ticket, Check, X } from 'lucide-react';
+import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send, Ticket, Check, X, Users, Copy, Link } from 'lucide-react';
 import api from '../../services/api';
 
 function formatNumber(n: number): string {
@@ -21,6 +21,7 @@ const TYPE_BADGES: Record<string, { label: string; color: string; icon: React.Re
     transfer_in: { label: 'Recibido', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <ArrowDownLeft className="w-3 h-3" /> },
     transfer_out: { label: 'Enviado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <ArrowUpRight className="w-3 h-3" /> },
     marketplace_buy: { label: 'Marketplace', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <ShoppingBag className="w-3 h-3" /> },
+    referral_bonus: { label: 'Referido', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: <Users className="w-3 h-3" /> },
 };
 
 export default function MeCoins() {
@@ -52,6 +53,12 @@ export default function MeCoins() {
     const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [searchTimeout, setSearchTimeout] = useState<any>(null);
+
+    // Referral state
+    const [referralData, setReferralData] = useState<any>(null);
+    const [referralInput, setReferralInput] = useState('');
+    const [applyingReferral, setApplyingReferral] = useState(false);
+    const [referralMessage, setReferralMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
 
     // Capture PayPal return
     useEffect(() => {
@@ -96,7 +103,12 @@ export default function MeCoins() {
                 const items = historyRes.data.items ?? historyRes.data;
                 setHistory(Array.isArray(items) ? items : []);
                 if (Array.isArray(items) && items.length < 10) setHasMoreHistory(false);
-            } catch (err) { console.error('Error loading history:', err); } finally {
+            } catch (err) { console.error('Error loading history:', err); }
+
+            try {
+                const referralRes = await api.get('/coins/referral');
+                setReferralData(referralRes.data);
+            } catch (err) { console.error('Error loading referral:', err); } finally {
                 setLoading(false);
             }
         }
@@ -278,6 +290,44 @@ export default function MeCoins() {
             setTransferResult({ type: 'error', text: msg });
         } finally {
             setTransferring(false);
+        }
+    };
+
+    const handleApplyReferral = async () => {
+        if (!referralInput.trim()) return;
+        setApplyingReferral(true);
+        setReferralMessage(null);
+        try {
+            const res = await api.post('/coins/referral/apply', { code: referralInput.trim().toUpperCase() });
+            setReferralMessage({ type: 'success', text: res.data.message || 'Codigo aplicado correctamente' });
+            setReferralInput('');
+            // Reload referral data
+            const referralRes = await api.get('/coins/referral');
+            setReferralData(referralRes.data);
+            // Reload balance (might have changed if immediately completed)
+            const balanceRes = await api.get('/coins/balance');
+            setBalance(balanceRes.data);
+        } catch (err: any) {
+            const msg = err?.response?.data?.error || 'Error al aplicar el codigo de referido';
+            setReferralMessage({ type: 'error', text: msg });
+        } finally {
+            setApplyingReferral(false);
+        }
+    };
+
+    const copyReferralCode = () => {
+        if (referralData?.referralCode) {
+            navigator.clipboard.writeText(referralData.referralCode);
+            setReferralMessage({ type: 'success', text: 'Codigo copiado al portapapeles' });
+            setTimeout(() => setReferralMessage(null), 2000);
+        }
+    };
+
+    const copyReferralLink = () => {
+        if (referralData?.referralCode) {
+            navigator.clipboard.writeText(`https://twitch.decatron.net/login?ref=${referralData.referralCode}`);
+            setReferralMessage({ type: 'success', text: 'Link de referido copiado al portapapeles' });
+            setTimeout(() => setReferralMessage(null), 2000);
         }
     };
 
@@ -593,6 +643,104 @@ export default function MeCoins() {
                     </div>
                 </div>
             </div>
+
+            {/* Referidos Section */}
+            {referralData && (
+                <div>
+                    <div className="flex items-center gap-2 mb-4">
+                        <Users className="w-5 h-5 text-[#2563eb]" />
+                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Referidos</h2>
+                    </div>
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Invita amigos y ambos reciben coins cuando se completa el referido.</p>
+
+                        {referralMessage && (
+                            <div className={`rounded-xl p-3 border mb-4 ${referralMessage.type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                                <p className="font-semibold text-sm">{referralMessage.text}</p>
+                            </div>
+                        )}
+
+                        {/* My referral code */}
+                        <div className="mb-5">
+                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Tu codigo de referido</label>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg font-mono text-lg tracking-wider text-[#1e293b] dark:text-white font-bold">
+                                    {referralData.referralCode}
+                                </div>
+                                <button
+                                    onClick={copyReferralCode}
+                                    className="flex items-center gap-2 px-4 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                                >
+                                    <Copy className="w-4 h-4" />
+                                    Copiar
+                                </button>
+                                <button
+                                    onClick={copyReferralLink}
+                                    className="flex items-center gap-2 px-4 py-3 bg-[#374151] hover:bg-[#4b5563] text-white rounded-lg transition-all font-semibold text-sm"
+                                >
+                                    <Link className="w-4 h-4" />
+                                    Link
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-2xl font-black text-[#1e293b] dark:text-white">{referralData.totalReferred}</p>
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Total Referidos</p>
+                            </div>
+                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-2xl font-black text-green-400">{referralData.completedReferred}</p>
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Completados</p>
+                            </div>
+                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-2xl font-black text-[#eab308]">{referralData.pendingReferred}</p>
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Pendientes</p>
+                            </div>
+                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-2xl font-black text-[#2563eb]">{formatNumber(referralData.totalBonusEarned)}</p>
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Bonus Ganado</p>
+                            </div>
+                        </div>
+
+                        {/* Apply referral code (if not yet referred) */}
+                        {!referralData.hasBeenReferred && (
+                            <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Aplicar codigo de referido</label>
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-2">Si alguien te invito, ingresa su codigo aqui.</p>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="text"
+                                        value={referralInput}
+                                        onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleApplyReferral(); }}
+                                        placeholder="REF-XXXXX"
+                                        className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] font-mono tracking-wider"
+                                    />
+                                    <button
+                                        onClick={handleApplyReferral}
+                                        disabled={applyingReferral || !referralInput.trim()}
+                                        className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {applyingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                        Aplicar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {referralData.hasBeenReferred && (
+                            <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="flex items-center gap-2 text-sm text-green-400 font-semibold">
+                                    <Check className="w-4 h-4" />
+                                    Ya tienes un codigo de referido aplicado
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Transaction History */}
             <div>
