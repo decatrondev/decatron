@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Decatron.Core.Models.Economy;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
@@ -268,6 +269,221 @@ namespace Decatron.Services
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+
+        // ─── Transfers ───────────────────────────────────────────────────────────
+
+        public async Task<CoinTransfer> TransferCoinsAsync(long fromUserId, long toUserId, int amount, string? message)
+        {
+            // 1. Cannot transfer to self
+            if (fromUserId == toUserId)
+                throw new InvalidOperationException("No puedes transferirte a ti mismo");
+
+            // 2. Sender economy status
+            var senderCoins = await GetOrCreateBalanceAsync(fromUserId);
+            if (senderCoins.EconomyStatus != "normal")
+                throw new InvalidOperationException("Tu cuenta de economia esta suspendida");
+
+            // 3. Receiver economy status
+            var receiverCoins = await GetOrCreateBalanceAsync(toUserId);
+            if (receiverCoins.EconomyStatus == "banned_economy")
+                throw new InvalidOperationException("El destinatario no puede recibir transferencias");
+
+            // 4. Get settings
+            var settings = await GetSettingsAsync();
+
+            // 5. Minimum transfer amount
+            if (amount < settings.MinTransferAmount)
+                throw new InvalidOperationException($"Minimo {settings.MinTransferAmount} coins por transferencia");
+
+            // 6. Sender account age
+            var senderUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == fromUserId);
+            if (senderUser != null)
+            {
+                var senderAgeDays = (DateTime.UtcNow - senderUser.CreatedAt).TotalDays;
+                if (senderAgeDays < settings.MinAccountAgeToTransferDays)
+                    throw new InvalidOperationException($"Tu cuenta debe tener al menos {settings.MinAccountAgeToTransferDays} dias para transferir");
+            }
+
+            // 7. Receiver account age
+            var receiverUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == toUserId);
+            if (receiverUser != null)
+            {
+                var receiverAgeDays = (DateTime.UtcNow - receiverUser.CreatedAt).TotalDays;
+                if (receiverAgeDays < settings.MinAccountAgeToReceiveDays)
+                    throw new InvalidOperationException("La cuenta del destinatario es muy nueva");
+            }
+
+            // 8. Max transfers per day (count)
+            var todayStart = DateTime.UtcNow.Date;
+            var todayTransferCount = await _db.CoinTransfers
+                .CountAsync(t => t.FromUserId == fromUserId && t.CreatedAt >= todayStart);
+            if (todayTransferCount >= settings.MaxTransfersPerDay)
+                throw new InvalidOperationException($"Maximo {settings.MaxTransfersPerDay} transferencias por dia");
+
+            // 9. Max transfer amount per day
+            var todayTransferSum = await _db.CoinTransfers
+                .Where(t => t.FromUserId == fromUserId && t.CreatedAt >= todayStart)
+                .SumAsync(t => (long?)t.Amount) ?? 0;
+            if (todayTransferSum + amount > settings.MaxTransferPerDay)
+                throw new InvalidOperationException($"Maximo {settings.MaxTransferPerDay} coins por dia en transferencias");
+
+            // 10. Sufficient balance
+            if (senderCoins.Balance < amount)
+                throw new InvalidOperationException("Balance insuficiente");
+
+            // 11. Execute transfer
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                senderCoins.Balance -= amount;
+                senderCoins.TotalTransferredOut += amount;
+                senderCoins.UpdatedAt = DateTime.UtcNow;
+
+                receiverCoins.Balance += amount;
+                receiverCoins.TotalTransferredIn += amount;
+                receiverCoins.UpdatedAt = DateTime.UtcNow;
+
+                var transfer = new CoinTransfer
+                {
+                    FromUserId = fromUserId,
+                    ToUserId   = toUserId,
+                    Amount     = amount,
+                    Message    = message,
+                    CreatedAt  = DateTime.UtcNow,
+                };
+                _db.CoinTransfers.Add(transfer);
+
+                _db.CoinTransactions.Add(new CoinTransaction
+                {
+                    UserId       = fromUserId,
+                    Amount       = -amount,
+                    BalanceAfter = senderCoins.Balance,
+                    Type         = "transfer_out",
+                    Description  = $"Transferencia a {receiverUser?.DisplayName ?? receiverUser?.Login ?? $"#{toUserId}"}" + (string.IsNullOrWhiteSpace(message) ? "" : $": {message}"),
+                    RelatedUserId = toUserId,
+                    CreatedAt    = DateTime.UtcNow,
+                });
+
+                _db.CoinTransactions.Add(new CoinTransaction
+                {
+                    UserId       = toUserId,
+                    Amount       = amount,
+                    BalanceAfter = receiverCoins.Balance,
+                    Type         = "transfer_in",
+                    Description  = $"Transferencia de {senderUser?.DisplayName ?? senderUser?.Login ?? $"#{fromUserId}"}" + (string.IsNullOrWhiteSpace(message) ? "" : $": {message}"),
+                    RelatedUserId = fromUserId,
+                    CreatedAt    = DateTime.UtcNow,
+                });
+
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                _logger.LogInformation(
+                    "Transfer completed: From={From}, To={To}, Amount={Amount}",
+                    fromUserId, toUserId, amount);
+
+                // Anti-abuse check (fire and forget, don't block the transfer)
+                try
+                {
+                    await CheckAndFlagSuspiciousActivity(fromUserId, toUserId, amount, senderCoins);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in anti-abuse check after transfer");
+                }
+
+                return transfer;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        // ─── Anti-abuse ──────────────────────────────────────────────────────────
+
+        private async Task CheckAndFlagSuspiciousActivity(long fromUserId, long toUserId, int amount, UserCoins senderCoins)
+        {
+            // Pattern 1: rapid_transfers — more than 5 transfers in 1 hour to the same user
+            var oneHourAgo = DateTime.UtcNow.AddHours(-1);
+            var recentToSameUser = await _db.CoinTransfers
+                .CountAsync(t => t.FromUserId == fromUserId && t.ToUserId == toUserId && t.CreatedAt >= oneHourAgo);
+
+            if (recentToSameUser > 5)
+            {
+                await CreateFlag(fromUserId, "rapid_transfers",
+                    $"Mas de 5 transferencias en 1 hora al usuario #{toUserId}",
+                    new { fromUserId, toUserId, count = recentToSameUser, window = "1h" });
+                return; // One flag per transfer is enough
+            }
+
+            // Pattern 2: high_balance_transfer_new_account — transferred >80% of balance to account <14 days old
+            var receiverUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == toUserId);
+            if (receiverUser != null)
+            {
+                var receiverAgeDays = (DateTime.UtcNow - receiverUser.CreatedAt).TotalDays;
+                var balanceBeforeTransfer = senderCoins.Balance + amount; // balance was already subtracted
+                if (receiverAgeDays < 14 && balanceBeforeTransfer > 0 && (double)amount / balanceBeforeTransfer > 0.8)
+                {
+                    await CreateFlag(fromUserId, "high_balance_transfer_new_account",
+                        $"Transferio {amount} coins (>{80}% del balance) a cuenta de {receiverAgeDays:F0} dias",
+                        new { fromUserId, toUserId, amount, balanceBeforeTransfer, receiverAgeDays = (int)receiverAgeDays });
+                }
+            }
+        }
+
+        private async Task CreateFlag(long userId, string flagType, string flagReason, object details)
+        {
+            // Set user to flagged
+            var userCoins = await _db.UserCoins.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (userCoins != null)
+            {
+                userCoins.EconomyStatus = "flagged";
+                userCoins.UpdatedAt = DateTime.UtcNow;
+            }
+
+            _db.CoinFlags.Add(new CoinFlag
+            {
+                UserId      = userId,
+                FlagType    = flagType,
+                FlagReason  = flagReason,
+                FlagDetails = JsonSerializer.Serialize(details),
+                Status      = "pending",
+                CreatedAt   = DateTime.UtcNow,
+            });
+
+            await _db.SaveChangesAsync();
+            _logger.LogWarning("Anti-abuse flag created: Type={FlagType}, User={UserId}, Reason={Reason}",
+                flagType, userId, flagReason);
+        }
+
+        // ─── Find User ──────────────────────────────────────────────────────────
+
+        public async Task<long?> FindUserIdByUsernameAsync(string username)
+        {
+            var lower = username.ToLower();
+            var user = await _db.Users.FirstOrDefaultAsync(
+                u => u.Login.ToLower() == lower || (u.DiscordUsername != null && u.DiscordUsername.ToLower() == lower));
+            return user?.Id;
+        }
+
+        // ─── Admin Economy Status ───────────────────────────────────────────────
+
+        public async Task UpdateEconomyStatusAsync(long userId, string status)
+        {
+            var uc = await GetOrCreateBalanceAsync(userId);
+            uc.EconomyStatus = status;
+            uc.UpdatedAt = DateTime.UtcNow;
+
+            if (status == "banned_economy")
+            {
+                uc.Balance = 0;
+            }
+
+            await _db.SaveChangesAsync();
+            _logger.LogInformation("Economy status updated: User={UserId}, Status={Status}", userId, status);
         }
 
         // ─── Settings ────────────────────────────────────────────────────────────

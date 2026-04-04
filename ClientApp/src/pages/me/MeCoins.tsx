@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star } from 'lucide-react';
+import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send } from 'lucide-react';
 import api from '../../services/api';
 
 function formatNumber(n: number): string {
@@ -36,6 +36,16 @@ export default function MeCoins() {
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [customCoins, setCustomCoins] = useState<string>('');
     const [purchasingCustom, setPurchasingCustom] = useState(false);
+
+    // Transfer state
+    const [transferUsername, setTransferUsername] = useState('');
+    const [transferAmount, setTransferAmount] = useState('');
+    const [transferMessage, setTransferMessage] = useState('');
+    const [transferring, setTransferring] = useState(false);
+    const [transferResult, setTransferResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [searchTimeout, setSearchTimeout] = useState<any>(null);
 
     // Capture PayPal return
     useEffect(() => {
@@ -137,6 +147,69 @@ export default function MeCoins() {
             setCaptureMessage({ type: 'error', text: 'Error al iniciar la compra. Intenta de nuevo.' });
         } finally {
             setPurchasing(null);
+        }
+    };
+
+    const handleUsernameChange = (value: string) => {
+        setTransferUsername(value);
+        if (searchTimeout) clearTimeout(searchTimeout);
+        if (value.length < 2) {
+            setUserSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+        const timeout = setTimeout(async () => {
+            try {
+                const res = await api.get(`/coins/search-users?q=${encodeURIComponent(value)}`);
+                setUserSuggestions(Array.isArray(res.data) ? res.data : []);
+                setShowSuggestions(true);
+            } catch { setUserSuggestions([]); }
+        }, 300);
+        setSearchTimeout(timeout);
+    };
+
+    const selectUser = (user: any) => {
+        setTransferUsername(user.login || user.discordUsername || user.displayName);
+        setShowSuggestions(false);
+        setUserSuggestions([]);
+    };
+
+    const handleTransfer = async () => {
+        if (!transferUsername.trim()) {
+            setTransferResult({ type: 'error', text: 'Ingresa un nombre de usuario.' });
+            return;
+        }
+        const amt = parseInt(transferAmount);
+        if (!amt || amt <= 0) {
+            setTransferResult({ type: 'error', text: 'Ingresa una cantidad valida.' });
+            return;
+        }
+        setTransferring(true);
+        setTransferResult(null);
+        try {
+            const res = await api.post('/coins/transfer', {
+                username: transferUsername.trim(),
+                amount: amt,
+                message: transferMessage.trim() || undefined,
+            });
+            setTransferResult({ type: 'success', text: `Transferencia exitosa! Enviaste ${amt} coins a ${transferUsername.trim()}.` });
+            setBalance(prev => prev ? { ...prev, balance: res.data.newBalance } : prev);
+            setTransferUsername('');
+            setTransferAmount('');
+            setTransferMessage('');
+            // Refresh history
+            try {
+                const historyRes = await api.get('/coins/history?page=1');
+                const items = historyRes.data.items ?? historyRes.data;
+                setHistory(Array.isArray(items) ? items : []);
+                setHistoryPage(1);
+                setHasMoreHistory(Array.isArray(items) && items.length >= 10);
+            } catch { /* ignore */ }
+        } catch (err: any) {
+            const msg = err?.response?.data?.error || 'Error al realizar la transferencia.';
+            setTransferResult({ type: 'error', text: msg });
+        } finally {
+            setTransferring(false);
         }
     };
 
@@ -277,6 +350,96 @@ export default function MeCoins() {
                         >
                             {purchasingCustom ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
                             Comprar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Transfer Section */}
+            <div>
+                <div className="flex items-center gap-2 mb-4">
+                    <Send className="w-5 h-5 text-[#2563eb]" />
+                    <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Transferir Coins</h2>
+                </div>
+                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Envia coins a otro usuario de la plataforma.</p>
+
+                    {transferResult && (
+                        <div className={`rounded-xl p-3 border mb-4 ${transferResult.type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                            <p className="font-semibold text-sm">{transferResult.text}</p>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        <div className="relative">
+                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Usuario</label>
+                            <input
+                                type="text"
+                                value={transferUsername}
+                                onChange={(e) => handleUsernameChange(e.target.value)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                onFocus={() => { if (userSuggestions.length > 0) setShowSuggestions(true); }}
+                                placeholder="Buscar usuario..."
+                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                            />
+                            {showSuggestions && userSuggestions.length > 0 && (
+                                <div className="absolute z-50 top-full mt-1 w-full bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                    {userSuggestions.map((u) => (
+                                        <button
+                                            key={u.id}
+                                            onClick={() => selectUser(u)}
+                                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] transition-colors text-left"
+                                        >
+                                            {u.profileImage ? (
+                                                <img src={u.profileImage} alt="" className="w-7 h-7 rounded-full" />
+                                            ) : (
+                                                <div className="w-7 h-7 rounded-full bg-[#374151] flex items-center justify-center text-xs font-bold text-white">
+                                                    {(u.displayName || u.login || '?')[0].toUpperCase()}
+                                                </div>
+                                            )}
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-[#1e293b] dark:text-white truncate">{u.displayName || u.login}</p>
+                                                <p className="text-xs text-[#64748b] truncate">
+                                                    {u.login && `@${u.login}`}
+                                                    {u.discordUsername && u.login && ' · '}
+                                                    {u.discordUsername && `Discord: ${u.discordUsername}`}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Cantidad</label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={transferAmount}
+                                onChange={(e) => setTransferAmount(e.target.value)}
+                                placeholder="Cantidad de coins"
+                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Mensaje (opcional)</label>
+                            <input
+                                type="text"
+                                value={transferMessage}
+                                onChange={(e) => setTransferMessage(e.target.value)}
+                                placeholder="Mensaje opcional"
+                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleTransfer}
+                            disabled={transferring || !transferUsername.trim() || !transferAmount || parseInt(transferAmount) <= 0}
+                            className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            Transferir
                         </button>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using Decatron.Attributes;
 using Decatron.Core.Models.Economy;
 using Decatron.Data;
 using Decatron.Services;
@@ -292,6 +293,63 @@ namespace Decatron.Controllers
             }
         }
 
+        // ─── GET /api/coins/search-users?q=xxx ──────────────────────────────────
+
+        [HttpGet("search-users")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+                return Ok(Array.Empty<object>());
+
+            var query = q.ToLower();
+            var users = await _db.Users
+                .Where(u => u.IsActive && (
+                    (u.Login != null && u.Login.ToLower().Contains(query)) ||
+                    (u.DiscordUsername != null && u.DiscordUsername.ToLower().Contains(query)) ||
+                    (u.DisplayName != null && u.DisplayName.ToLower().Contains(query))
+                ))
+                .Take(10)
+                .Select(u => new {
+                    id = u.Id,
+                    login = u.Login,
+                    displayName = u.DisplayName,
+                    discordUsername = u.DiscordUsername,
+                    profileImage = u.ProfileImageUrl ?? u.DiscordAvatar
+                })
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
+        // ─── POST /api/coins/transfer ───────────────────────────────────────────
+
+        [HttpPost("transfer")]
+        public async Task<IActionResult> Transfer([FromBody] CoinTransferRequest req)
+        {
+            var userId = GetUserId();
+
+            if (string.IsNullOrWhiteSpace(req.Username))
+                return BadRequest(new { error = "Username es obligatorio" });
+            if (req.Amount <= 0)
+                return BadRequest(new { error = "Cantidad debe ser mayor a 0" });
+
+            // Find receiver
+            var receiverId = await _coinService.FindUserIdByUsernameAsync(req.Username);
+            if (receiverId == null)
+                return NotFound(new { error = "Usuario no encontrado" });
+
+            try
+            {
+                var transfer = await _coinService.TransferCoinsAsync(userId, receiverId.Value, req.Amount, req.Message);
+                var newBalance = await _coinService.GetBalanceAsync(userId);
+                return Ok(new { success = true, newBalance, transfer });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         // ─── PayPal Helpers ──────────────────────────────────────────────────────
 
         private (string clientId, string clientSecret, string baseUrl, string returnUrl, string cancelUrl) GetPayPalConfig()
@@ -361,5 +419,100 @@ namespace Decatron.Controllers
     public class CoinCaptureRequest
     {
         public string OrderId { get; set; } = string.Empty;
+    }
+
+    public class CoinTransferRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public int Amount { get; set; }
+        public string? Message { get; set; }
+    }
+
+    // ─── Admin Coins Controller ─────────────────────────────────────────────────
+
+    [ApiController]
+    [Route("api/admin/coins")]
+    [Authorize]
+    [RequireSystemOwner]
+    public class AdminCoinController : ControllerBase
+    {
+        private readonly CoinService _coinService;
+        private readonly DecatronDbContext _db;
+
+        public AdminCoinController(CoinService coinService, DecatronDbContext db)
+        {
+            _coinService = coinService;
+            _db          = db;
+        }
+
+        private long GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (long.TryParse(userIdClaim, out var userId))
+                return userId;
+            throw new UnauthorizedAccessException("User ID not found in token");
+        }
+
+        [HttpPost("give")]
+        public async Task<IActionResult> Give([FromBody] AdminCoinGiveRemoveRequest req)
+        {
+            var adminId = GetUserId();
+            await _coinService.GiveCoinsAsync(req.UserId, req.Amount, req.Description ?? "Admin give", adminId);
+            var balance = await _coinService.GetBalanceAsync(req.UserId);
+            return Ok(new { success = true, newBalance = balance });
+        }
+
+        [HttpPost("remove")]
+        public async Task<IActionResult> Remove([FromBody] AdminCoinGiveRemoveRequest req)
+        {
+            var adminId = GetUserId();
+            await _coinService.RemoveCoinsAsync(req.UserId, req.Amount, req.Description ?? "Admin remove", adminId);
+            var balance = await _coinService.GetBalanceAsync(req.UserId);
+            return Ok(new { success = true, newBalance = balance });
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetUser(long userId)
+        {
+            var uc = await _db.UserCoins.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (uc == null)
+                return NotFound(new { error = "Usuario no tiene cuenta de economia" });
+
+            return Ok(new
+            {
+                userId          = uc.UserId,
+                balance         = uc.Balance,
+                economyStatus   = uc.EconomyStatus,
+                totalEarned     = uc.TotalEarned,
+                totalSpent      = uc.TotalSpent,
+                totalTransferredIn  = uc.TotalTransferredIn,
+                totalTransferredOut = uc.TotalTransferredOut,
+                firstPurchaseAt = uc.FirstPurchaseAt,
+                createdAt       = uc.CreatedAt,
+            });
+        }
+
+        [HttpPost("user/{userId}/status")]
+        public async Task<IActionResult> UpdateStatus(long userId, [FromBody] AdminCoinStatusRequest req)
+        {
+            var validStatuses = new[] { "normal", "flagged", "banned_economy" };
+            if (!validStatuses.Contains(req.Status))
+                return BadRequest(new { error = "Status invalido. Opciones: normal, flagged, banned_economy" });
+
+            await _coinService.UpdateEconomyStatusAsync(userId, req.Status);
+            return Ok(new { success = true, status = req.Status });
+        }
+    }
+
+    public class AdminCoinGiveRemoveRequest
+    {
+        public long UserId { get; set; }
+        public int Amount { get; set; }
+        public string? Description { get; set; }
+    }
+
+    public class AdminCoinStatusRequest
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }
