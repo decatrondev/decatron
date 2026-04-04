@@ -97,6 +97,7 @@ import OAuthAuthorizePage from './pages/oauth/OAuthAuthorizePage';
 import ApiDocs from './pages/docs/public/ApiDocs';
 import MeOverview from './pages/me/MeOverview';
 import MeAccount from './pages/me/MeAccount';
+import MeCoins from './pages/me/MeCoins';
 import { PermissionsProvider } from './contexts/PermissionsContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -209,6 +210,7 @@ function App() {
                     {/* Viewer Profile */}
                     <Route path="me" element={<MeOverview />} />
                     <Route path="me/account" element={<MeAccount />} />
+                    <Route path="me/coins" element={<MeCoins />} />
 
                     {/* Discord Configuration */}
                     <Route path="discord" element={<DiscordConfig />} />

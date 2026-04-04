@@ -220,6 +220,7 @@ try
     builder.Services.AddScoped<Decatron.Services.GeminiService>();
     builder.Services.AddScoped<Decatron.Services.OpenRouterService>();
     builder.Services.AddScoped<Decatron.Services.AIProviderService>();
+    builder.Services.AddScoped<Decatron.Services.CoinService>();
     builder.Services.AddSingleton<ICommandStateService, CommandStateService>();
     builder.Services.AddSingleton<OverlayNotificationService>();
 

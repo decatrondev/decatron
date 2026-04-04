@@ -1,4 +1,5 @@
 ﻿using Decatron.Core.Models;
+using Decatron.Core.Models.Economy;
 using Decatron.Core.Models.OAuth;
 using Decatron.Data.Encryption;
 using Decatron.Scripting.Models;
@@ -116,6 +117,19 @@ namespace Decatron.Data
         public DbSet<UserSubscriptionTier> UserSubscriptionTiers { get; set; }
         public DbSet<TierFeature> TierFeatures { get; set; }
         public DbSet<TierHistory> TierHistories { get; set; }
+
+        // DecaCoins Economy System
+        public DbSet<CoinSettings> CoinSettings { get; set; }
+        public DbSet<UserCoins> UserCoins { get; set; }
+        public DbSet<CoinPackage> CoinPackages { get; set; }
+        public DbSet<CoinPendingOrder> CoinPendingOrders { get; set; }
+        public DbSet<CoinPurchase> CoinPurchases { get; set; }
+        public DbSet<CoinTransaction> CoinTransactions { get; set; }
+        public DbSet<CoinTransfer> CoinTransfers { get; set; }
+        public DbSet<CoinDiscountCode> CoinDiscountCodes { get; set; }
+        public DbSet<CoinDiscountUse> CoinDiscountUses { get; set; }
+        public DbSet<CoinReferral> CoinReferrals { get; set; }
+        public DbSet<CoinFlag> CoinFlags { get; set; }
 
         // OAuth2 System (API Pública)
         public DbSet<OAuthApplication> OAuthApplications { get; set; }

@@ -55,5 +55,9 @@ namespace Decatron.Core.Models
         // Auth provider: 'twitch', 'discord', 'both'
         [Column("auth_provider")]
         public string AuthProvider { get; set; } = "twitch";
+
+        // Economy referral
+        [Column("referral_code")]
+        public string? ReferralCode { get; set; }
     }
 }
