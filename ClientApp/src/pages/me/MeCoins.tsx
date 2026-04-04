@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send } from 'lucide-react';
+import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send, Ticket, Check, X } from 'lucide-react';
 import api from '../../services/api';
 
 function formatNumber(n: number): string {
@@ -36,6 +36,12 @@ export default function MeCoins() {
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [customCoins, setCustomCoins] = useState<string>('');
     const [purchasingCustom, setPurchasingCustom] = useState(false);
+
+    // Coupon state
+    const [couponCode, setCouponCode] = useState('');
+    const [validatedCoupon, setValidatedCoupon] = useState<any>(null);
+    const [validatingCoupon, setValidatingCoupon] = useState(false);
+    const [couponError, setCouponError] = useState<string | null>(null);
 
     // Transfer state
     const [transferUsername, setTransferUsername] = useState('');
@@ -134,17 +140,79 @@ export default function MeCoins() {
         }
     };
 
+    const handleValidateCoupon = async () => {
+        if (!couponCode.trim()) return;
+        setValidatingCoupon(true);
+        setCouponError(null);
+        setValidatedCoupon(null);
+        try {
+            // Validate against packageId 0 for a general check
+            const res = await api.post('/coins/validate-code', { code: couponCode.trim(), packageId: 0 });
+            if (res.data.valid) {
+                setValidatedCoupon({ ...res.data, code: couponCode.trim() });
+                setCouponError(null);
+            } else {
+                setCouponError(res.data.error || 'Codigo invalido');
+                setValidatedCoupon(null);
+            }
+        } catch (err: any) {
+            setCouponError(err?.response?.data?.error || 'Error al validar el codigo');
+            setValidatedCoupon(null);
+        } finally {
+            setValidatingCoupon(false);
+        }
+    };
+
+    const clearCoupon = () => {
+        setCouponCode('');
+        setValidatedCoupon(null);
+        setCouponError(null);
+    };
+
+    const getDiscountedPrice = (pkg: any): { finalPrice: number; bonusCoins: number } | null => {
+        if (!validatedCoupon) return null;
+        // Check if coupon applies to this package (applicablePackageId check is server-side, but we can show for all if no restriction)
+        const dt = validatedCoupon.discountType;
+        const dv = validatedCoupon.discountValue;
+        const price = pkg.priceUsd;
+
+        if (dt === 'percentage') {
+            return { finalPrice: Math.max(0, Math.round(price * (1 - dv / 100) * 100) / 100), bonusCoins: 0 };
+        } else if (dt === 'fixed_amount') {
+            return { finalPrice: Math.max(0, price - dv), bonusCoins: 0 };
+        } else if (dt === 'bonus_coins') {
+            return { finalPrice: price, bonusCoins: dv };
+        }
+        return null;
+    };
+
     const handleBuy = async (packageId: number) => {
         setPurchasing(packageId);
         try {
-            const res = await api.post('/coins/buy', { packageId });
-            if (res.data.approvalUrl) {
+            const res = await api.post('/coins/buy', {
+                packageId,
+                discountCode: validatedCoupon?.code || undefined,
+            });
+            if (res.data.free) {
+                setCaptureMessage({ type: 'success', text: `Compra gratuita exitosa! Recibiste ${res.data.coinsReceived} monedas.` });
+                setBalance((prev: any) => prev ? { ...prev, balance: res.data.newBalance } : prev);
+                clearCoupon();
+                // Refresh history
+                try {
+                    const historyRes = await api.get('/coins/history?page=1');
+                    const items = historyRes.data.items ?? historyRes.data;
+                    setHistory(Array.isArray(items) ? items : []);
+                    setHistoryPage(1);
+                    setHasMoreHistory(Array.isArray(items) && items.length >= 10);
+                } catch { /* ignore */ }
+            } else if (res.data.approvalUrl) {
                 localStorage.setItem('pendingCoinOrderId', res.data.orderId);
                 window.location.href = res.data.approvalUrl;
             }
-        } catch (err) {
+        } catch (err: any) {
+            const msg = err?.response?.data?.error || 'Error al iniciar la compra. Intenta de nuevo.';
             console.error('Error purchasing package:', err);
-            setCaptureMessage({ type: 'error', text: 'Error al iniciar la compra. Intenta de nuevo.' });
+            setCaptureMessage({ type: 'error', text: msg });
         } finally {
             setPurchasing(null);
         }
@@ -252,6 +320,63 @@ export default function MeCoins() {
                 </div>
             </div>
 
+            {/* Coupon Section */}
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex items-center gap-2 mb-3">
+                    <Ticket className="w-5 h-5 text-[#eab308]" />
+                    <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Codigo de descuento</h2>
+                </div>
+                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Si tienes un codigo de descuento, ingresalo aqui para ver los precios rebajados.</p>
+
+                <div className="flex items-center gap-3">
+                    <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleValidateCoupon(); }}
+                        placeholder="Ingresa tu codigo"
+                        disabled={!!validatedCoupon}
+                        className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308] disabled:opacity-50 font-mono tracking-wider"
+                    />
+                    {validatedCoupon ? (
+                        <button
+                            onClick={clearCoupon}
+                            className="flex items-center gap-2 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-all font-semibold text-sm"
+                        >
+                            <X className="w-4 h-4" />
+                            Quitar
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleValidateCoupon}
+                            disabled={validatingCoupon || !couponCode.trim()}
+                            className="flex items-center gap-2 px-6 py-3 bg-[#eab308] hover:bg-yellow-600 text-black rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {validatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                            Validar
+                        </button>
+                    )}
+                </div>
+
+                {couponError && (
+                    <div className="mt-3 rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-semibold">
+                        {couponError}
+                    </div>
+                )}
+
+                {validatedCoupon && (
+                    <div className="mt-3 rounded-lg p-3 bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-semibold flex items-center gap-2">
+                        <Check className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                            Codigo aplicado: {' '}
+                            {validatedCoupon.discountType === 'percentage' && `${validatedCoupon.discountValue}% de descuento`}
+                            {validatedCoupon.discountType === 'fixed_amount' && `$${validatedCoupon.discountValue} USD de descuento`}
+                            {validatedCoupon.discountType === 'bonus_coins' && `+${validatedCoupon.discountValue} coins bonus`}
+                        </span>
+                    </div>
+                )}
+            </div>
+
             {/* Packages Section */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
@@ -295,21 +420,45 @@ export default function MeCoins() {
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-between pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                <p className="text-xl font-black text-[#2563eb]">${pkg.priceUsd} USD</p>
-                                <button
-                                    onClick={() => handleBuy(pkg.id)}
-                                    disabled={purchasing === pkg.id}
-                                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {purchasing === pkg.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <ShoppingBag className="w-4 h-4" />
-                                    )}
-                                    Comprar
-                                </button>
-                            </div>
+                            {(() => {
+                                const discount = getDiscountedPrice(pkg);
+                                return (
+                                    <>
+                                        {discount && discount.bonusCoins > 0 && (
+                                            <div className="mb-2">
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full bg-[#eab308]/20 text-[#eab308] border border-[#eab308]/30">
+                                                    <Ticket className="w-3 h-3" />
+                                                    +{discount.bonusCoins} bonus coins con cupon
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center justify-between pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                            <div>
+                                                {discount && discount.finalPrice < pkg.priceUsd ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm text-[#64748b] line-through">${pkg.priceUsd} USD</p>
+                                                        <p className="text-xl font-black text-green-400">${discount.finalPrice.toFixed(2)} USD</p>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-xl font-black text-[#2563eb]">${pkg.priceUsd} USD</p>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => handleBuy(pkg.id)}
+                                                disabled={purchasing === pkg.id}
+                                                className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {purchasing === pkg.id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <ShoppingBag className="w-4 h-4" />
+                                                )}
+                                                Comprar
+                                            </button>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     ))}
                     {packages.length === 0 && (

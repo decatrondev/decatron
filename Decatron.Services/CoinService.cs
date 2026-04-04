@@ -486,6 +486,93 @@ namespace Decatron.Services
             _logger.LogInformation("Economy status updated: User={UserId}, Status={Status}", userId, status);
         }
 
+        // ─── Discount Codes ──────────────────────────────────────────────────────
+
+        public async Task<DiscountValidation> ValidateDiscountCodeAsync(string code, long userId, long packageId, decimal packagePrice)
+        {
+            var disc = await _db.CoinDiscountCodes
+                .FirstOrDefaultAsync(c => c.Code.ToLower() == code.ToLower());
+
+            if (disc == null)
+                return new DiscountValidation { Valid = false, Error = "Codigo no encontrado" };
+
+            if (!disc.Enabled)
+                return new DiscountValidation { Valid = false, Error = "Codigo deshabilitado" };
+
+            var now = DateTime.UtcNow;
+            if (disc.StartsAt.HasValue && disc.StartsAt.Value > now)
+                return new DiscountValidation { Valid = false, Error = "Codigo expirado" };
+            if (disc.ExpiresAt.HasValue && disc.ExpiresAt.Value < now)
+                return new DiscountValidation { Valid = false, Error = "Codigo expirado" };
+
+            if (disc.MaxUses.HasValue && disc.CurrentUses >= disc.MaxUses.Value)
+                return new DiscountValidation { Valid = false, Error = "Codigo agotado" };
+
+            var userUses = await _db.CoinDiscountUses
+                .CountAsync(u => u.CodeId == disc.Id && u.UserId == userId);
+            if (userUses >= disc.MaxUsesPerUser)
+                return new DiscountValidation { Valid = false, Error = "Ya usaste este codigo" };
+
+            if (disc.AssignedUserId.HasValue && disc.AssignedUserId.Value != userId)
+                return new DiscountValidation { Valid = false, Error = "Este codigo no es para ti" };
+
+            if (disc.ApplicablePackageId.HasValue && disc.ApplicablePackageId.Value != packageId)
+                return new DiscountValidation { Valid = false, Error = "Este codigo no aplica a este paquete" };
+
+            if (packagePrice < disc.MinPurchaseUsd)
+                return new DiscountValidation { Valid = false, Error = $"Compra minima de ${disc.MinPurchaseUsd} USD" };
+
+            decimal finalPrice = packagePrice;
+            int bonusCoins = 0;
+
+            switch (disc.DiscountType)
+            {
+                case "percentage":
+                    finalPrice = Math.Max(0, Math.Round(packagePrice * (1 - disc.DiscountValue / 100m), 2));
+                    break;
+                case "fixed_amount":
+                    finalPrice = Math.Max(0, packagePrice - disc.DiscountValue);
+                    break;
+                case "bonus_coins":
+                    finalPrice = packagePrice;
+                    bonusCoins = (int)disc.DiscountValue;
+                    break;
+            }
+
+            return new DiscountValidation
+            {
+                Valid         = true,
+                CodeId        = disc.Id,
+                DiscountType  = disc.DiscountType,
+                DiscountValue = disc.DiscountValue,
+                FinalPrice    = finalPrice,
+                BonusCoins    = bonusCoins,
+            };
+        }
+
+        public async Task ApplyDiscountCodeAsync(long codeId, long userId, long purchaseId, decimal discountApplied)
+        {
+            var disc = await _db.CoinDiscountCodes.FindAsync(codeId);
+            if (disc != null)
+            {
+                disc.CurrentUses++;
+            }
+
+            _db.CoinDiscountUses.Add(new CoinDiscountUse
+            {
+                CodeId          = codeId,
+                UserId          = userId,
+                PurchaseId      = purchaseId,
+                DiscountApplied = discountApplied,
+                UsedAt          = DateTime.UtcNow,
+            });
+
+            await _db.SaveChangesAsync();
+            _logger.LogInformation(
+                "Discount code {CodeId} applied: User={UserId}, Purchase={PurchaseId}, Discount={Discount}",
+                codeId, userId, purchaseId, discountApplied);
+        }
+
         // ─── Settings ────────────────────────────────────────────────────────────
 
         public async Task<CoinSettings> GetSettingsAsync()
@@ -504,5 +591,16 @@ namespace Decatron.Services
             _cache.Set(SettingsCacheKey, settings, SettingsCacheDuration);
             return settings;
         }
+    }
+
+    public class DiscountValidation
+    {
+        public bool Valid { get; set; }
+        public string? Error { get; set; }
+        public long? CodeId { get; set; }
+        public string? DiscountType { get; set; }
+        public decimal DiscountValue { get; set; }
+        public decimal FinalPrice { get; set; }
+        public int BonusCoins { get; set; }
     }
 }

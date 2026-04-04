@@ -77,6 +77,31 @@ namespace Decatron.Controllers
             return Ok(history);
         }
 
+        // ─── POST /api/coins/validate-code ─────────────────────────────────────
+
+        [HttpPost("validate-code")]
+        public async Task<IActionResult> ValidateCode([FromBody] CoinValidateCodeRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.Code))
+                return BadRequest(new { error = "Codigo es obligatorio" });
+
+            var userId = GetUserId();
+
+            // If packageId is 0 or not provided, validate generically with price 0
+            // The frontend may call this before selecting a package
+            decimal packagePrice = 0;
+            if (req.PackageId > 0)
+            {
+                var pkg = await _db.CoinPackages.FindAsync(req.PackageId);
+                if (pkg == null)
+                    return BadRequest(new { error = "Paquete no encontrado" });
+                packagePrice = pkg.PriceUsd;
+            }
+
+            var result = await _coinService.ValidateDiscountCodeAsync(req.Code, userId, req.PackageId, packagePrice);
+            return Ok(result);
+        }
+
         // ─── POST /api/coins/buy ─────────────────────────────────────────────────
 
         [HttpPost("buy")]
@@ -140,16 +165,46 @@ namespace Decatron.Controllers
                 finalPrice = package.PriceUsd;
             }
 
-            // 3. If price is 0 (free with coupon — future): skip PayPal, credit directly
+            // 3. Validate discount code if provided
+            DiscountValidation? discountValidation = null;
+            long? discountCodeId = null;
+
+            if (!string.IsNullOrWhiteSpace(req.DiscountCode))
+            {
+                discountValidation = await _coinService.ValidateDiscountCodeAsync(
+                    req.DiscountCode, userId, req.PackageId, finalPrice);
+
+                if (!discountValidation.Valid)
+                    return BadRequest(new { error = discountValidation.Error });
+
+                discountCodeId = discountValidation.CodeId;
+                finalPrice = discountValidation.FinalPrice;
+            }
+
+            // 4. If price is 0 (free with coupon): skip PayPal, credit directly
             if (finalPrice <= 0m)
             {
-                var pending = await _coinService.CreatePendingOrderAsync(userId, package.Id == 0 ? null : package.Id, null, 0m, req.CustomCoins);
+                var pending = await _coinService.CreatePendingOrderAsync(userId, package.Id == 0 ? null : package.Id, discountCodeId, 0m, req.CustomCoins);
                 var purchase = await _coinService.CompletePurchaseAsync(userId, pending.Id, "FREE", "COMPLETED");
+
+                // Apply discount code usage
+                if (discountCodeId.HasValue && discountValidation != null)
+                {
+                    await _coinService.ApplyDiscountCodeAsync(discountCodeId.Value, userId, purchase.Id, package.PriceUsd);
+
+                    if (discountValidation.DiscountType == "bonus_coins" && discountValidation.BonusCoins > 0)
+                    {
+                        purchase.BonusCoinsFromCoupon = discountValidation.BonusCoins;
+                        purchase.BonusCouponScheduledAt = DateTime.UtcNow;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
                 var newBalance = await _coinService.GetBalanceAsync(userId);
                 return Ok(new { free = true, coinsReceived = purchase.CoinsReceived, newBalance });
             }
 
-            // 4. Create PayPal order
+            // 5. Create PayPal order
             try
             {
                 var (clientId, clientSecret, baseUrl, returnUrl, cancelUrl) = GetPayPalConfig();
@@ -213,9 +268,16 @@ namespace Decatron.Controllers
                     }
                 }
 
-                // 5. Save pending order
-                var pendingOrder = await _coinService.CreatePendingOrderAsync(userId, isCustom ? null : package.Id, null, finalPrice, req.CustomCoins);
+                // 6. Save pending order with discount code
+                var pendingOrder = await _coinService.CreatePendingOrderAsync(userId, isCustom ? null : package.Id, discountCodeId, finalPrice, req.CustomCoins);
                 pendingOrder.PaypalOrderId = orderId;
+
+                // Store discount info for capture phase
+                if (discountValidation != null)
+                {
+                    pendingOrder.DiscountCodeId = discountCodeId;
+                }
+
                 await _db.SaveChangesAsync();
 
                 return Ok(new { orderId, approvalUrl, finalPrice });
@@ -277,6 +339,34 @@ namespace Decatron.Controllers
 
                 // 3. Complete purchase
                 var purchase   = await _coinService.CompletePurchaseAsync(userId, pending.Id, req.OrderId, status);
+
+                // 4. Apply discount code if used
+                if (pending.DiscountCodeId.HasValue)
+                {
+                    var originalPrice = pending.FinalPriceUsd; // This is already the discounted price
+                    // Get original package price for discount amount calculation
+                    decimal discountApplied = 0;
+                    if (pending.PackageId.HasValue)
+                    {
+                        var pkg = await _db.CoinPackages.FindAsync(pending.PackageId.Value);
+                        if (pkg != null)
+                            discountApplied = pkg.PriceUsd - pending.FinalPriceUsd;
+                    }
+
+                    await _coinService.ApplyDiscountCodeAsync(
+                        pending.DiscountCodeId.Value, userId, purchase.Id, discountApplied);
+
+                    // Check if bonus_coins type — look up the code
+                    var discCode = await _db.CoinDiscountCodes.FindAsync(pending.DiscountCodeId.Value);
+                    if (discCode != null && discCode.DiscountType == "bonus_coins")
+                    {
+                        purchase.BonusCoinsFromCoupon = (int)discCode.DiscountValue;
+                        purchase.BonusCouponScheduledAt = DateTime.UtcNow;
+                        purchase.DiscountCodeId = discCode.Id;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
                 var newBalance = await _coinService.GetBalanceAsync(userId);
 
                 return Ok(new
@@ -428,6 +518,12 @@ namespace Decatron.Controllers
         public string? Message { get; set; }
     }
 
+    public class CoinValidateCodeRequest
+    {
+        public string Code { get; set; } = string.Empty;
+        public long PackageId { get; set; }
+    }
+
     // ─── Admin Coins Controller ─────────────────────────────────────────────────
 
     [ApiController]
@@ -502,6 +598,133 @@ namespace Decatron.Controllers
             await _coinService.UpdateEconomyStatusAsync(userId, req.Status);
             return Ok(new { success = true, status = req.Status });
         }
+
+        // ─── Discount Codes CRUD ────────────────────────────────────────────────
+
+        [HttpGet("discounts")]
+        public async Task<IActionResult> GetDiscounts()
+        {
+            var codes = await _db.CoinDiscountCodes
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            var codeIds = codes.Select(c => c.Id).ToList();
+            var usageCounts = await _db.CoinDiscountUses
+                .Where(u => codeIds.Contains(u.CodeId))
+                .GroupBy(u => u.CodeId)
+                .Select(g => new { CodeId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CodeId, x => x.Count);
+
+            var result = codes.Select(c => new
+            {
+                c.Id,
+                c.Code,
+                c.DiscountType,
+                c.DiscountValue,
+                c.AssignedUserId,
+                c.MaxUses,
+                c.CurrentUses,
+                c.MaxUsesPerUser,
+                c.MinPurchaseUsd,
+                c.ApplicablePackageId,
+                c.CombinableWithFirstPurchase,
+                c.StartsAt,
+                c.ExpiresAt,
+                c.Enabled,
+                c.CreatedBy,
+                c.CreatedAt,
+                TotalUses = usageCounts.GetValueOrDefault(c.Id, 0),
+            });
+
+            return Ok(result);
+        }
+
+        [HttpPost("discounts")]
+        public async Task<IActionResult> CreateDiscount([FromBody] AdminDiscountCodeRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.Code))
+                return BadRequest(new { error = "Codigo es obligatorio" });
+
+            var validTypes = new[] { "percentage", "fixed_amount", "bonus_coins" };
+            if (!validTypes.Contains(req.DiscountType))
+                return BadRequest(new { error = "Tipo de descuento invalido" });
+
+            // Check for duplicate code
+            var existing = await _db.CoinDiscountCodes
+                .AnyAsync(c => c.Code.ToLower() == req.Code.ToLower());
+            if (existing)
+                return BadRequest(new { error = "Ya existe un codigo con ese nombre" });
+
+            var adminId = GetUserId();
+            var code = new CoinDiscountCode
+            {
+                Code                      = req.Code.Trim(),
+                DiscountType              = req.DiscountType,
+                DiscountValue             = req.DiscountValue,
+                AssignedUserId            = req.AssignedUserId,
+                MaxUses                   = req.MaxUses,
+                CurrentUses               = 0,
+                MaxUsesPerUser            = req.MaxUsesPerUser,
+                MinPurchaseUsd            = req.MinPurchaseUsd,
+                ApplicablePackageId       = req.ApplicablePackageId,
+                CombinableWithFirstPurchase = req.CombinableWithFirstPurchase,
+                StartsAt                  = req.StartsAt,
+                ExpiresAt                 = req.ExpiresAt,
+                Enabled                   = true,
+                CreatedBy                 = adminId,
+                CreatedAt                 = DateTime.UtcNow,
+            };
+
+            _db.CoinDiscountCodes.Add(code);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { success = true, id = code.Id });
+        }
+
+        [HttpPut("discounts/{id}")]
+        public async Task<IActionResult> UpdateDiscount(long id, [FromBody] AdminDiscountCodeRequest req)
+        {
+            var code = await _db.CoinDiscountCodes.FindAsync(id);
+            if (code == null)
+                return NotFound(new { error = "Codigo no encontrado" });
+
+            var validTypes = new[] { "percentage", "fixed_amount", "bonus_coins" };
+            if (!validTypes.Contains(req.DiscountType))
+                return BadRequest(new { error = "Tipo de descuento invalido" });
+
+            // Check duplicate (exclude self)
+            var duplicate = await _db.CoinDiscountCodes
+                .AnyAsync(c => c.Code.ToLower() == req.Code.ToLower() && c.Id != id);
+            if (duplicate)
+                return BadRequest(new { error = "Ya existe otro codigo con ese nombre" });
+
+            code.Code                      = req.Code.Trim();
+            code.DiscountType              = req.DiscountType;
+            code.DiscountValue             = req.DiscountValue;
+            code.AssignedUserId            = req.AssignedUserId;
+            code.MaxUses                   = req.MaxUses;
+            code.MaxUsesPerUser            = req.MaxUsesPerUser;
+            code.MinPurchaseUsd            = req.MinPurchaseUsd;
+            code.ApplicablePackageId       = req.ApplicablePackageId;
+            code.CombinableWithFirstPurchase = req.CombinableWithFirstPurchase;
+            code.StartsAt                  = req.StartsAt;
+            code.ExpiresAt                 = req.ExpiresAt;
+
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        [HttpDelete("discounts/{id}")]
+        public async Task<IActionResult> DeleteDiscount(long id)
+        {
+            var code = await _db.CoinDiscountCodes.FindAsync(id);
+            if (code == null)
+                return NotFound(new { error = "Codigo no encontrado" });
+
+            code.Enabled = false;
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
     }
 
     public class AdminCoinGiveRemoveRequest
@@ -514,5 +737,20 @@ namespace Decatron.Controllers
     public class AdminCoinStatusRequest
     {
         public string Status { get; set; } = string.Empty;
+    }
+
+    public class AdminDiscountCodeRequest
+    {
+        public string Code { get; set; } = string.Empty;
+        public string DiscountType { get; set; } = string.Empty;
+        public decimal DiscountValue { get; set; }
+        public long? AssignedUserId { get; set; }
+        public int? MaxUses { get; set; }
+        public int MaxUsesPerUser { get; set; } = 1;
+        public decimal MinPurchaseUsd { get; set; }
+        public long? ApplicablePackageId { get; set; }
+        public bool CombinableWithFirstPurchase { get; set; } = true;
+        public DateTime? StartsAt { get; set; }
+        public DateTime? ExpiresAt { get; set; }
     }
 }
