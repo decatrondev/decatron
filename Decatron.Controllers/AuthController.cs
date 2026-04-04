@@ -70,6 +70,57 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>
+        /// POST /api/auth/link-twitch-start — Start Twitch link flow (returns URL)
+        /// </summary>
+        [Authorize]
+        [HttpPost("link-twitch-start")]
+        public IActionResult LinkTwitchStart()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var loginUrl = _authService.GetLoginUrl($"link-twitch:{userId}");
+            return Ok(new { url = loginUrl });
+        }
+
+        /// <summary>
+        /// GET /api/auth/link-twitch — Legacy redirect (kept for compatibility)
+        /// </summary>
+        [HttpGet("link-twitch")]
+        public IActionResult LinkTwitch([FromQuery] string? access_token = null)
+        {
+            var userId = ValidateTokenAndGetUserId(access_token);
+            if (userId == null)
+                return Redirect($"{_twitchSettings.FrontendUrl}/login?error=Session+expired");
+
+            var loginUrl = _authService.GetLoginUrl($"link-twitch:{userId}");
+            return Redirect(loginUrl);
+        }
+
+        private string? ValidateTokenAndGetUserId(string? token)
+        {
+            if (string.IsNullOrEmpty(token)) return null;
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
+                var validationParams = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(5)
+                };
+                var principal = handler.ValidateToken(token, validationParams, out _);
+                return principal.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            }
+            catch { return null; }
+        }
+
         [HttpGet("callback")]
         public async Task<IActionResult> Callback(
             [FromQuery] string? code = null,
@@ -100,10 +151,147 @@ namespace Decatron.Controllers
                 _logger.LogInformation("Fetching user information...");
                 var twitchUser = await _authService.GetUserInfoAsync(tokenResponse.AccessToken);
 
-                // Get Accept-Language header for language detection (new users only)
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                // Check if this is a link-twitch operation BEFORE creating/updating user
+                string? linkUserIdEarly = null;
+                if (!string.IsNullOrEmpty(state))
+                {
+                    var (isValidEarly, redirectEarly) = AuthService.ValidateOAuthState(state, _jwtSettings.SecretKey);
+                    if (isValidEarly && !string.IsNullOrEmpty(redirectEarly) && redirectEarly.StartsWith("link-twitch:"))
+                    {
+                        linkUserIdEarly = redirectEarly.Split(':')[1];
+                    }
+                }
 
-                // Authenticate user (save to DB)
+                // If linking Twitch to Discord user
+                if (linkUserIdEarly != null && long.TryParse(linkUserIdEarly, out var discordUserId))
+                {
+                    var discordUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == discordUserId);
+                    if (discordUser == null)
+                        return Redirect($"{_twitchSettings.FrontendUrl}/settings?error=User+not+found");
+
+                    // Check if a Twitch user already exists with this TwitchId
+                    var existingTwitch = await _dbContext.Users.FirstOrDefaultAsync(u => u.TwitchId == twitchUser.Id && u.Id != discordUserId);
+
+                    User finalUser;
+
+                    if (existingTwitch != null)
+                    {
+                        // MERGE via raw SQL: order matters for unique constraints
+                        // 1. Clear discord_id from temp user
+                        // 2. Copy Discord data to Twitch user
+                        // 3. Delete temp user
+                        _logger.LogInformation("Merging Discord user (ID: {DiscordId}) into Twitch user (ID: {TwitchUserId})", discordUserId, existingTwitch.Id);
+
+                        var discordId = discordUser.DiscordId;
+                        var discordUname = discordUser.DiscordUsername;
+                        var discordAvt = discordUser.DiscordAvatar;
+                        var discordEml = discordUser.DiscordEmail;
+                        var discordAT = discordUser.DiscordAccessToken;
+                        var discordRT = discordUser.DiscordRefreshToken;
+                        var discordTE = discordUser.DiscordTokenExpiration;
+
+                        // Detach both entities so EF doesn't interfere
+                        _dbContext.Entry(discordUser).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+                        _dbContext.Entry(existingTwitch).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+
+                        var conn = _dbContext.Database.GetDbConnection();
+                        if (conn.State != System.Data.ConnectionState.Open)
+                            await conn.OpenAsync();
+
+                        void AddP(System.Data.Common.DbCommand c, string n, object? v) {
+                            var p = c.CreateParameter(); p.ParameterName = n; p.Value = v ?? DBNull.Value; c.Parameters.Add(p);
+                        }
+
+                        // Step 1: Clear unique constraints on temp Discord user
+                        using (var cmd = conn.CreateCommand()) {
+                            cmd.CommandText = "UPDATE users SET discord_id = NULL, login = CONCAT('merged_', id) WHERE id = @id";
+                            AddP(cmd, "@id", discordUserId);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Step 2: Delete temp user's tier + delete temp user
+                        using (var cmd = conn.CreateCommand()) {
+                            cmd.CommandText = "DELETE FROM user_subscription_tiers WHERE user_id = @id";
+                            AddP(cmd, "@id", discordUserId);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                        using (var cmd = conn.CreateCommand()) {
+                            cmd.CommandText = "DELETE FROM users WHERE id = @id";
+                            AddP(cmd, "@id", discordUserId);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Step 3: Add Discord data to existing Twitch user
+                        using (var cmd = conn.CreateCommand()) {
+                            cmd.CommandText = @"UPDATE users SET
+                                discord_id = @discordId, discord_username = @discordUsername,
+                                discord_avatar = @discordAvatar, discord_email = @discordEmail,
+                                discord_access_token = @discordAT, discord_refresh_token = @discordRT,
+                                discord_token_expiration = @discordTE,
+                                access_token = @accessToken, refresh_token = @refreshToken,
+                                token_expiration = @tokenExp,
+                                auth_provider = 'both', updated_at = NOW()
+                                WHERE id = @userId";
+                            AddP(cmd, "@discordId", discordId);
+                            AddP(cmd, "@discordUsername", discordUname);
+                            AddP(cmd, "@discordAvatar", discordAvt);
+                            AddP(cmd, "@discordEmail", discordEml);
+                            AddP(cmd, "@discordAT", discordAT);
+                            AddP(cmd, "@discordRT", discordRT);
+                            AddP(cmd, "@discordTE", discordTE);
+                            AddP(cmd, "@accessToken", tokenResponse.AccessToken);
+                            AddP(cmd, "@refreshToken", tokenResponse.RefreshToken);
+                            AddP(cmd, "@tokenExp", DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn));
+                            AddP(cmd, "@userId", existingTwitch.Id);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Reload from DB
+                        finalUser = await _dbContext.Users.FirstAsync(u => u.Id == existingTwitch.Id);
+                    }
+                    else
+                    {
+                        // NO existing Twitch user — just add Twitch data to Discord user
+                        discordUser.TwitchId = twitchUser.Id;
+                        discordUser.Login = twitchUser.Login;
+                        discordUser.DisplayName = twitchUser.DisplayName ?? discordUser.DisplayName;
+                        discordUser.Email = twitchUser.Email ?? discordUser.Email;
+                        discordUser.ProfileImageUrl = twitchUser.ProfileImageUrl ?? discordUser.ProfileImageUrl;
+                        discordUser.OfflineImageUrl = twitchUser.OfflineImageUrl ?? "";
+                        discordUser.BroadcasterType = twitchUser.BroadcasterType ?? "";
+                        discordUser.AccessToken = tokenResponse.AccessToken;
+                        discordUser.RefreshToken = tokenResponse.RefreshToken;
+                        discordUser.TokenExpiration = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+                        discordUser.AuthProvider = "both";
+                        discordUser.UpdatedAt = DateTime.UtcNow;
+                        try
+                        {
+                            await _dbContext.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            var innerMsg = ex.InnerException?.Message ?? ex.Message;
+                            System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] SAVE ERROR 4 (add twitch to discord): {innerMsg}\n");
+                            return Redirect($"{_twitchSettings.FrontendUrl}/settings?error={Uri.EscapeDataString(innerMsg)}");
+                        }
+
+                        finalUser = discordUser;
+                    }
+
+                    _logger.LogInformation("Twitch linked successfully. Final user: {Login} (ID: {Id})", finalUser.Login, finalUser.Id);
+
+                    if (_botService.IsConnected)
+                        _botService.JoinChannel(finalUser.Login);
+
+                    var linkJwt = GenerateJwtToken(finalUser);
+                    var linkCode = Guid.NewGuid().ToString("N");
+                    _memoryCache.Set($"auth_exchange:{linkCode}", linkJwt, TimeSpan.FromSeconds(60));
+
+                    return Redirect($"{_twitchSettings.FrontendUrl}/settings?linked=twitch&code={linkCode}");
+                }
+
+                // Normal login flow
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 _logger.LogInformation("Authenticating user: {Login}", twitchUser.Login);
                 var user = await _authService.AuthenticateUserAsync(twitchUser, tokenResponse, acceptLanguage);
 
@@ -264,7 +452,7 @@ namespace Decatron.Controllers
                         _logger.LogWarning("Invalid or expired OAuth state parameter");
                         return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString("Invalid or expired login session. Please try again.")}");
                     }
-                    if (!string.IsNullOrEmpty(redirect))
+                    if (!string.IsNullOrEmpty(redirect) && !redirect.StartsWith("link-twitch:"))
                     {
                         redirectPath = $"/{redirect}";
                         _logger.LogInformation("Custom redirect detected: {RedirectPath}", redirectPath);
@@ -282,8 +470,10 @@ namespace Decatron.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during authentication callback");
-                return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString(ex.Message)}");
+                var fullError = ex.InnerException?.Message ?? ex.Message;
+                _logger.LogError(ex, "Error during authentication callback: {Error}", fullError);
+                System.IO.File.AppendAllText("/tmp/discord_debug.log", $"[{DateTime.UtcNow}] CALLBACK ERROR: {fullError}\n");
+                return Redirect($"{_twitchSettings.FrontendUrl}/login?error={Uri.EscapeDataString(fullError)}");
             }
         }
 
@@ -328,7 +518,9 @@ namespace Decatron.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Login),
                 new Claim(ClaimTypes.GivenName, user.DisplayName ?? user.Login),
-                new Claim("TwitchId", user.TwitchId),
+                new Claim("AuthProvider", user.AuthProvider ?? "twitch"),
+                new Claim("TwitchId", user.TwitchId ?? ""),
+                new Claim("DiscordId", user.DiscordId ?? ""),
                 new Claim("ProfileImage", user.ProfileImageUrl ?? ""),
                 new Claim("Email", user.Email ?? "")
             };
@@ -344,6 +536,42 @@ namespace Decatron.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        /// <summary>
+        /// POST /api/auth/unlink-twitch — Remove Twitch from linked account
+        /// </summary>
+        [Authorize]
+        [HttpPost("unlink-twitch")]
+        public async Task<IActionResult> UnlinkTwitch()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var authProviderClaim = User.FindFirst("AuthProvider")?.Value ?? "twitch";
+            if (authProviderClaim == "twitch")
+                return BadRequest(new { error = "No puedes desvincular la cuenta con la que iniciaste sesion" });
+
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return NotFound();
+            if (string.IsNullOrEmpty(user.TwitchId))
+                return BadRequest(new { error = "Twitch no esta vinculado" });
+
+            user.TwitchId = null;
+            user.Login = $"discord_{user.DiscordId}";
+            user.AccessToken = "";
+            user.RefreshToken = "";
+            user.TokenExpiration = DateTime.UtcNow;
+            user.BroadcasterType = "";
+            user.AuthProvider = "discord";
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Twitch unlinked from user {UserId}", userId);
+
+            var jwt = GenerateJwtToken(user);
+            return Ok(new { success = true, token = jwt });
         }
 
         [Authorize]

@@ -7,11 +7,14 @@ import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
+import CommandsHub from './pages/commands/CommandsHub';
 import DefaultCommands from './pages/commands/DefaultCommands';
 import MicroCommands from './pages/commands/MicroCommands';
 import CustomCommands from './pages/commands/CustomCommands';
 import ScriptingList from './pages/commands/ScriptingList';
 import ScriptingEditor from './pages/commands/ScriptingEditor';
+import FeaturesHub from './pages/features/FeaturesHub';
+import ModerationHub from './pages/features/ModerationHub';
 import Timers from './pages/features/Timers';
 import Overlays from './pages/features/Overlays';
 import ShoutoutConfig from './pages/features/ShoutoutConfig';
@@ -25,6 +28,7 @@ import FollowAlertConfig from './pages/features/FollowAlertConfig';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import DecatronChat from './pages/features/DecatronChat';
 import TipsConfig from './pages/features/TipsConfig';
+import AdminHub from './pages/admin/AdminHub';
 import DecatronAIAdmin from './pages/admin/DecatronAIAdmin';
 import DecatronChatAdmin from './pages/admin/DecatronChatAdmin';
 import AdminDonations from './pages/admin/Donations/index';
@@ -91,6 +95,8 @@ import ApplicationCreate from './pages/developer/ApplicationCreate';
 import ApiReference from './pages/developer/ApiReference';
 import OAuthAuthorizePage from './pages/oauth/OAuthAuthorizePage';
 import ApiDocs from './pages/docs/public/ApiDocs';
+import MeOverview from './pages/me/MeOverview';
+import MeAccount from './pages/me/MeAccount';
 import { PermissionsProvider } from './contexts/PermissionsContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -153,6 +159,12 @@ function App() {
                 <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route path="dashboard" element={<Dashboard />} />
 
+                    {/* Hub Pages */}
+                    <Route path="commands" element={<CommandsHub />} />
+                    <Route path="features" element={<FeaturesHub />} />
+                    <Route path="admin" element={<AdminHub />} />
+                    <Route path="moderation" element={<ModerationHub />} />
+
                     {/* Rutas de Comandos - Requieren nivel 'commands' */}
                     <Route path="commands/default" element={<DefaultCommands />} />
                     <Route path="commands/microcommands" element={<MicroCommands />} />
@@ -193,6 +205,10 @@ function App() {
                     {/* Rutas de Gacha - Requieren autenticación Twitch */}
                     <Route path="gacha/terms" element={<GachaTerms />} />
                     <Route path="gacha/success" element={<GachaSuccess />} />
+
+                    {/* Viewer Profile */}
+                    <Route path="me" element={<MeOverview />} />
+                    <Route path="me/account" element={<MeAccount />} />
 
                     {/* Discord Configuration */}
                     <Route path="discord" element={<DiscordConfig />} />

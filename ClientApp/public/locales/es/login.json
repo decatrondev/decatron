@@ -1,11 +1,15 @@
 {
   "welcome": "Bienvenido",
-  "subtitle": "Inicia sesión para gestionar tu bot de Twitch",
-  "authFailed": "Authentication failed. Please try again.",
+  "subtitle": "Inicia sesión para acceder a tu perfil y gestionar tu experiencia",
+  "authFailed": "Error de autenticación. Por favor intenta de nuevo.",
   "connectWithTwitch": "Conecta con Twitch",
   "continueWithTwitch": "Continuar con Twitch",
-  "whyTwitchOAuth": "¿Por qué Twitch OAuth?",
-  "whyTwitchOAuthDescription": "Autenticación segura mediante Twitch. Nunca almacenamos tu contraseña.",
+  "twitchAccessDescription": "Acceso completo: bot, overlays, comandos + perfil",
+  "continueWithDiscord": "Continuar con Discord",
+  "discordAccessDescription": "Perfil, rank cards, marketplace, coins",
+  "linkAccountsHint": "¿Tienes ambas cuentas? Vincúlalas desde Ajustes después de iniciar sesión.",
+  "whyOAuth": "¿Por qué OAuth?",
+  "whyOAuthDescription": "Autenticación segura mediante Twitch o Discord. Nunca almacenamos tu contraseña.",
   "termsNotice": "Al continuar, aceptas los",
   "termsOfService": "Términos de Servicio",
   "powerYourChannel": "Potencia tu Canal",
@@ -14,5 +18,9 @@
   "featureModerationTitle": "Moderación Automática",
   "featureModerationDescription": "Protección 24/7 para tu chat",
   "featureRealtimeTitle": "Gestión en Tiempo Real",
-  "featureRealtimeDescription": "Control total desde tu dashboard"
+  "featureRealtimeDescription": "Control total desde tu dashboard",
+  "featureRankCardsTitle": "Rank Cards",
+  "featureRankCardsDescription": "Personaliza tu card y sube de nivel en tu comunidad",
+  "featureMarketplaceTitle": "Marketplace",
+  "featureMarketplaceDescription": "Fondos, marcos y más para personalizar tu perfil"
 }

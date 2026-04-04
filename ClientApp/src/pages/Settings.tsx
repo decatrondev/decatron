@@ -1,11 +1,19 @@
-﻿import { useState, useEffect } from 'react';
-// 1. 'Save' ha sido eliminado de esta línea
-import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages, MessageSquare, ExternalLink, Loader2, Unlink } from 'lucide-react';
-import api from '../services/api'; // Se comenta para evitar error de compilación en el entorno de vista previa
+﻿import { useState, useEffect, useMemo } from 'react';
+import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages, MessageSquare, ExternalLink, Loader2, Unlink, Link2 } from 'lucide-react';
+import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../components/LanguageSelector';
+
+function parseJwt(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}
 
 interface BotStatus {
     botConnected: boolean;
@@ -75,16 +83,70 @@ export default function Settings() {
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const navigate = useNavigate();
 
+    // Auth provider from JWT
+    const jwtClaims = useMemo(() => parseJwt(localStorage.getItem('token')), []);
+    const authProvider = jwtClaims.AuthProvider || 'twitch';
+    const isDiscordOnly = authProvider === 'discord';
+    const discordUsername = jwtClaims.DiscordId ? (jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '') : '';
+    const discordAvatar = jwtClaims.ProfileImage || '';
+
+    // Handle link callback (Twitch or Discord linked)
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const linked = params.get('linked');
+        const code = params.get('code');
+        if (linked && code) {
+            api.post(linked === 'discord' ? '/auth/discord/exchange' : '/auth/exchange', { code })
+                .then((res) => {
+                    localStorage.setItem('token', res.data.token);
+                    addToast(`${linked === 'discord' ? 'Discord' : 'Twitch'} vinculado exitosamente`, 'success');
+                    window.history.replaceState({}, '', '/settings');
+                    window.location.reload();
+                })
+                .catch(() => {
+                    addToast('Cuenta vinculada. Cierra sesion y vuelve a entrar.', 'success');
+                    window.history.replaceState({}, '', '/settings');
+                });
+        }
+    }, []);
+
     // Efecto para cargar todos los datos iniciales
     useEffect(() => {
         const loadAllData = async () => {
             setPageLoading(true);
-            await Promise.all([
-                loadBotStatus(),
-                loadChannelUsers(),
-                loadUserInfo(),
-                loadAccountTier()
-            ]);
+            if (isDiscordOnly) {
+                // Discord-only: solo cargar tier e info básica
+                await loadAccountTier();
+                // Set minimal user info from JWT
+                setUserInfo({
+                    uniqueId: 'Cargando...',
+                    login: discordUsername || 'Discord User',
+                    displayName: jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || discordUsername || 'Discord User',
+                    createdAt: 'N/A',
+                    updatedAt: new Date().toLocaleString('es-ES')
+                });
+                setBotStatus({ botConnected: false, botEnabledForUser: false, canModifySettings: false, userAccessLevel: 'none' });
+                // Load Discord user info from DB
+                try {
+                    const res = await api.get('/auth/discord/me');
+                    if (res.data) {
+                        setUserInfo({
+                            uniqueId: res.data.uniqueId || 'N/A',
+                            login: res.data.discordUsername || discordUsername,
+                            displayName: res.data.displayName || discordUsername,
+                            createdAt: res.data.createdAt ? new Date(res.data.createdAt).toLocaleDateString('es-ES') : 'N/A',
+                            updatedAt: res.data.updatedAt ? new Date(res.data.updatedAt).toLocaleString('es-ES') : 'N/A'
+                        });
+                    }
+                } catch { /* fallback to JWT data */ }
+            } else {
+                await Promise.all([
+                    loadBotStatus(),
+                    loadChannelUsers(),
+                    loadUserInfo(),
+                    loadAccountTier()
+                ]);
+            }
             setPageLoading(false);
         };
         loadAllData();
@@ -270,7 +332,8 @@ export default function Settings() {
         return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('settings:loading.verifyingPermissions')}</div>;
     }
 
-    if (!hasMinimumLevel('control_total')) {
+    // Discord-only users can always see settings (their version)
+    if (!isDiscordOnly && !hasMinimumLevel('control_total')) {
         return (
             <div className="flex flex-col items-center justify-center py-16">
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
@@ -299,25 +362,149 @@ export default function Settings() {
             {/* --- LAYOUT MODIFICADO (REQUEST 1) --- */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* Columna Izquierda (2 tarjetas) */}
+                {/* Columna Izquierda */}
                 <div className="space-y-6">
-                    {/* Configuración General */}
+                    {/* Vincular Cuentas — Always visible */}
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Link2 className="w-6 h-6 text-[#2563eb]" />
+                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Vincular Cuentas</h2>
+                        </div>
+                        <div className="space-y-3">
+                            {/* Twitch */}
+                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#9146ff] to-[#772ce8] flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Twitch</div>
+                                        {(authProvider === 'twitch' || authProvider === 'both') ? (
+                                            <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                                                <CheckCircle className="w-3.5 h-3.5" /> Vinculado
+                                            </div>
+                                        ) : (
+                                            <div className="text-sm text-[#94a3b8]">No vinculado</div>
+                                        )}
+                                    </div>
+                                </div>
+                                {authProvider === 'discord' && (
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                const res = await api.post('/auth/link-twitch-start');
+                                                if (res.data.url) window.location.href = res.data.url;
+                                            } catch { addToast('Error al iniciar vinculacion', 'error'); }
+                                        }}
+                                        className="px-4 py-2 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
+                                    >
+                                        Vincular
+                                    </button>
+                                )}
+                                {authProvider === 'both' && jwtClaims.AuthProvider === 'discord' && (
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('¿Desvincular Twitch? Perderas acceso al bot y dashboard del streamer.')) return;
+                                            try {
+                                                const res = await api.post('/auth/unlink-twitch');
+                                                if (res.data.token) {
+                                                    localStorage.setItem('token', res.data.token);
+                                                    window.location.reload();
+                                                }
+                                            } catch { addToast('Error al desvincular', 'error'); }
+                                        }}
+                                        className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
+                                    >
+                                        Desvincular
+                                    </button>
+                                )}
+                            </div>
+                            {/* Discord */}
+                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#5865F2] to-[#4752C4] flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Discord</div>
+                                        {(authProvider === 'discord' || authProvider === 'both') ? (
+                                            <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                                                <CheckCircle className="w-3.5 h-3.5" /> Vinculado
+                                            </div>
+                                        ) : (
+                                            <div className="text-sm text-[#94a3b8]">No vinculado</div>
+                                        )}
+                                    </div>
+                                </div>
+                                {authProvider === 'twitch' && (
+                                    <button
+                                        onClick={async () => {
+                                            console.log('=== LINK DISCORD CLICKED ===');
+                                            try {
+                                                const res = await api.post('/auth/discord/link-start');
+                                                console.log('link-start response:', res.data);
+                                                if (res.data.url) window.location.href = res.data.url;
+                                            } catch (err) {
+                                                console.error('link-start error:', err);
+                                                addToast('Error al iniciar vinculacion', 'error');
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-gradient-to-r from-[#5865F2] to-[#4752C4] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
+                                    >
+                                        Vincular Discord
+                                    </button>
+                                )}
+                                {authProvider === 'both' && jwtClaims.AuthProvider !== 'discord' && (
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('¿Desvincular Discord?')) return;
+                                            try {
+                                                const res = await api.post('/auth/discord/unlink');
+                                                if (res.data.token) {
+                                                    localStorage.setItem('token', res.data.token);
+                                                    window.location.reload();
+                                                }
+                                            } catch { addToast('Error al desvincular', 'error'); }
+                                        }}
+                                        className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
+                                    >
+                                        Desvincular
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        {authProvider === 'both' && (
+                            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                <p className="text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" /> Cuentas vinculadas — acceso completo
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Configuración General — Estado del Bot */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
                         <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">{t('settings:general.title')}</h2>
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                            <div className={`flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151] ${isDiscordOnly ? 'opacity-50' : ''}`}>
                                 <div>
                                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1">{t('settings:general.botStatus.title')}</div>
-                                    <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('settings:general.botStatus.description')}</div>
+                                    <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                        {isDiscordOnly ? 'Vincula tu cuenta de Twitch para activar el bot' : t('settings:general.botStatus.description')}
+                                    </div>
                                 </div>
                                 <button
-                                    onClick={handleBotToggle} // --- CAMBIO (REQUEST 2) ---
-                                    className={`relative w-14 h-8 rounded-full transition-colors ${botEnabled ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                    onClick={isDiscordOnly ? undefined : handleBotToggle}
+                                    disabled={isDiscordOnly}
+                                    className={`relative w-14 h-8 rounded-full transition-colors ${isDiscordOnly ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed' : botEnabled ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
                                 >
-                                    <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${botEnabled ? 'translate-x-6' : ''}`} />
+                                    <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${!isDiscordOnly && botEnabled ? 'translate-x-6' : ''}`} />
                                 </button>
                             </div>
-                            {/* --- BOTÓN ELIMINADO (REQUEST 2) --- */}
                         </div>
                     </div>
 
@@ -371,9 +558,10 @@ export default function Settings() {
                     </div>
                 </div>
 
-                {/* Columna Derecha (2 tarjetas) */}
+                {/* Columna Derecha */}
                 <div className="space-y-6">
-                    {/* Gestión de Accesos */}
+                    {/* Gestión de Accesos — Solo Twitch/Both */}
+                    {!isDiscordOnly && (
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] h-fit">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('settings:accessManagement.title')}</h2>
@@ -455,6 +643,7 @@ export default function Settings() {
                             )}
                         </div>
                     </div>
+                    )}
 
                     {/* Integraciones */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
@@ -764,7 +953,7 @@ function DiscordIntegration() {
                     className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
                 >
                     <ExternalLink className="w-4 h-4" />
-                    Vincular
+                    Conectar servidor
                 </button>
             </div>
 

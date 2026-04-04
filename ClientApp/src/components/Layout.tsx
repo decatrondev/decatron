@@ -1,6 +1,6 @@
-﻿import { Bot, Home, Zap, Target, Settings, LogOut, Menu, ChevronRight, Clock, Book, Shield, Cpu, Users, Gift, DollarSign, BarChart3, MessageSquare } from 'lucide-react';
+﻿import { Bot, Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User } from 'lucide-react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from './ThemeToggle';
 import ChannelSwitcher from './ChannelSwitcher';
@@ -8,23 +8,30 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTokenMonitor } from '../hooks/useTokenMonitor';
 import { notifyTokenRemoved } from '../utils/tokenEvents';
 
+function parseJwtClaims(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}
+
 export default function Layout() {
     const { t, ready } = useTranslation(['layout', 'common']);
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [commandsOpen, setCommandsOpen] = useState(false);
-    const [overlaysOpen, setOverlaysOpen] = useState(false);
-    const [featuresOpen, setFeaturesOpen] = useState(false);
-    const [moderationOpen, setModerationOpen] = useState(false);
-    const [docsOpen, setDocsOpen] = useState(false);
-    const [docsCommandsOpen, setDocsCommandsOpen] = useState(false);
-    const [docsOverlaysOpen, setDocsOverlaysOpen] = useState(false);
-    const [docsFeaturesOpen, setDocsFeaturesOpen] = useState(false);
-    const [docsSettingsOpen, setDocsSettingsOpen] = useState(false);
-    const [discordOpen, setDiscordOpen] = useState(false);
-    const [adminOpen, setAdminOpen] = useState(false);
     const [isSystemOwner, setIsSystemOwner] = useState(false);
     const { hasMinimumLevel, loading } = usePermissions();
+
+    // Parse JWT to get auth provider info — re-parse on route changes (token may have changed)
+    const jwtClaims = useMemo(() => parseJwtClaims(localStorage.getItem('token')), [location.pathname]);
+    const authProvider = jwtClaims.AuthProvider || 'twitch';
+    const isDiscordOnly = authProvider === 'discord';
+    const hasTwitchAccess = authProvider === 'twitch' || authProvider === 'both';
+    const profileImage = jwtClaims.ProfileImage || '';
+    const displayName = jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || 'User';
+
 
     // Verificar si el usuario es owner del sistema (para Admin de Decatron IA)
     useEffect(() => {
@@ -81,235 +88,54 @@ export default function Layout() {
                 </div>
 
                 <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+                    {/* User Card */}
+                    <Link to="/me" className="flex items-center gap-3 p-3 mb-2 rounded-xl bg-white dark:bg-[#374151]/30 border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] dark:hover:border-[#2563eb] transition-colors">
+                        <div className="w-10 h-10 rounded-full bg-[#374151] flex items-center justify-center text-sm font-bold text-white overflow-hidden flex-shrink-0">
+                            {profileImage ? (
+                                <img src={profileImage} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                displayName[0]?.toUpperCase() || '?'
+                            )}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{displayName}</p>
+                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                {isDiscordOnly ? 'Discord' : hasTwitchAccess && authProvider === 'both' ? 'Twitch + Discord' : 'Twitch'}
+                            </p>
+                        </div>
+                    </Link>
+
+                    {/* Mi Perfil — Single button, hub page */}
+                    <NavLink to="/me" icon={<User />} label="Mi Perfil" active={location.pathname.startsWith('/me')} />
+
+                    {/* Dashboard & Settings */}
+                    <hr className="my-2 border-[#e2e8f0] dark:border-[#374151]" />
                     <NavLink to="/dashboard" icon={<Home />} label={t('layout:navigation.dashboard')} active={location.pathname === '/dashboard'} />
+                    <NavLink to="/settings" icon={<Settings />} label={t('layout:navigation.settings')} active={location.pathname === '/settings'} />
 
-                    {/* Gestión de Seguidores - Visible solo con nivel 'commands' o superior */}
-                    {hasMinimumLevel('commands') && (
-                        <NavLink to="/followers" icon={<Users />} label={t('layout:navigation.followers')} active={location.pathname === '/followers'} />
-                    )}
+                    {/* ========== PANEL STREAMER — Solo Twitch/Both ========== */}
+                    {hasTwitchAccess && (
+                        <>
+                            <hr className="my-2 border-[#e2e8f0] dark:border-[#374151]" />
+                            <p className="px-4 text-xs font-bold text-[#94a3b8] dark:text-[#64748b] uppercase tracking-wider">Panel Streamer</p>
 
-                    {/* Comandos Group - Visible solo con nivel 'commands' o superior */}
-                    {hasMinimumLevel('commands') && (
-                        <div>
-                            <button onClick={() => setCommandsOpen(!commandsOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                                <div className="flex items-center gap-3">
-                                    <Zap className="w-5 h-5" />
-                                    <span className="font-semibold">{t('layout:navigation.commands.title')}</span>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${commandsOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {commandsOpen && (
-                                <div className="ml-8 mt-1 space-y-1">
-                                    <SubNavLink to="/commands/default" label={t('layout:navigation.commands.default')} />
-                                    <SubNavLink to="/commands/microcommands" label={t('layout:navigation.commands.microcommands')} />
-                                    <SubNavLink to="/commands/custom" label={t('layout:navigation.commands.custom')} />
-                                    <SubNavLink to="/commands/scripting" label={t('layout:navigation.commands.scripting')} />
-                                </div>
+                            <NavLink to="/commands" icon={<Zap />} label={t('layout:navigation.commands.title')} active={location.pathname.startsWith('/commands')} />
+                            <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />
+                            <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
+                            <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />
+                            <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />
+                            <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
+
+                            {isSystemOwner && (
+                                <NavLink to="/admin" icon={<Cpu />} label={t('layout:navigation.admin.title')} active={location.pathname.startsWith('/admin')} />
                             )}
-                        </div>
-                    )}
-
-                    {/* Overlays Group - Visible solo con nivel 'moderation' o superior */}
-                    {hasMinimumLevel('moderation') && (
-                        <div>
-                            <button onClick={() => setOverlaysOpen(!overlaysOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                                <div className="flex items-center gap-3">
-                                    <Target className="w-5 h-5" />
-                                    <span className="font-semibold">{t('layout:navigation.overlays.title')}</span>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${overlaysOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {overlaysOpen && (
-                                <div className="ml-8 mt-1 space-y-1">
-                                    <SubNavLink to="/overlays" label={t('layout:navigation.overlays.viewAll')} />
-                                    <SubNavLink to="/overlays/shoutout" label={t('layout:navigation.overlays.shoutout')} />
-                                    <SubNavLink to="/overlays/timer" label={t('layout:navigation.overlays.timer')} />
-                                    <SubNavLink to="/overlays/goals" label="Metas" />
-                                    <SubNavLink to="/overlays/event-alerts" label="Event Alerts" />
-                                    <SubNavLink to="/features/giveaways" label={t('layout:navigation.overlays.giveaway')} />
-                                    <SubNavLink to="/overlays/gacha" label={t('layout:navigation.overlays.gacha')} comingSoon />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Funciones Group - Visible solo con nivel 'moderation' o superior */}
-                    {hasMinimumLevel('moderation') && (
-                        <div id="features-menu-group">
-                            <button onClick={() => setFeaturesOpen(!featuresOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                                <div className="flex items-center gap-3">
-                                    <Target className="w-5 h-5" />
-                                    <span className="font-semibold">{t('layout:navigation.features.title')}</span>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${featuresOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {featuresOpen && (
-                                <div className="ml-8 mt-1 space-y-1">
-                                    <SubNavLink to="/features/timers" label={t('layout:navigation.features.timers')} />
-                                    <SubNavLink to="/features/giveaways" label={t('layout:navigation.features.giveaways')} />
-                                    <SubNavLink to="/features/sound-alerts" label={t('layout:navigation.features.soundAlerts')} />
-                                    <SubNavLink to="/features/follow-alerts" label={t('layout:navigation.features.followAlerts')} />
-                                    <SubNavLink to="/features/decatron-chat" label={t('layout:navigation.features.decatronChat')} />
-                                    <SubNavLink to="/features/tips" label="💰 Tips (PayPal)" />
-                                    {hasMinimumLevel('control_total') && (
-                                        <SubNavLink to="/features/decatron-ai" label={t('layout:navigation.features.decatronAI')} />
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Chat Moderation - Visible solo con nivel 'moderation' o superior */}
-                    {hasMinimumLevel('moderation') && (
-                        <div>
-                            <button onClick={() => setModerationOpen(!moderationOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                                <div className="flex items-center gap-3">
-                                    <Shield className="w-5 h-5" />
-                                    <span className="font-semibold">{t('layout:navigation.moderation.title')}</span>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${moderationOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {moderationOpen && (
-                                <div className="ml-8 mt-1 space-y-1">
-                                    <SubNavLink to="/features/moderation/banned-words" label={t('layout:navigation.moderation.bannedWords')} />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Admin - Solo visible para owner del sistema (tabla system_admins) */}
-                    {isSystemOwner && (
-                        <div>
-                            <button onClick={() => setAdminOpen(!adminOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                                <div className="flex items-center gap-3">
-                                    <Cpu className="w-5 h-5" />
-                                    <span className="font-semibold">{t('layout:navigation.admin.title')}</span>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${adminOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {adminOpen && (
-                                <div className="ml-8 mt-1 space-y-1">
-                                    <SubNavLink to="/admin/decatron-ai" label={t('layout:navigation.admin.decatronAI')} />
-                                    <SubNavLink to="/admin/decatron-chat" label={t('layout:navigation.admin.decatronChat')} />
-                                    <SubNavLink to="/admin/donations" label="❤️ Mis Donaciones" />
-                                    <SubNavLink to="/admin/supporters" label="🌟 Supporters" />
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Configuración - Visible solo con nivel 'control_total' (owner o permisos totales) */}
-                    {hasMinimumLevel('control_total') && (
-                        <NavLink to="/settings" icon={<Settings />} label={t('layout:navigation.settings')} active={location.pathname === '/settings'} id="settings-link" />
-                    )}
-
-                    {/* Analytics - Visible para nivel 'moderation' o superior */}
-                    {hasMinimumLevel('moderation') && (
-                        <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
-                    )}
-
-                    {/* Discord - Visible solo para owner */}
-                    {hasMinimumLevel('control_total') && (
-                        <div>
-                            <button onClick={() => setDiscordOpen(!discordOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                                <div className="flex items-center gap-3">
-                                    <MessageSquare className="w-5 h-5" />
-                                    <span className="font-semibold">Discord</span>
-                                </div>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${discordOpen || location.pathname.startsWith('/discord') ? 'rotate-90' : ''}`} />
-                            </button>
-                            {(discordOpen || location.pathname.startsWith('/discord')) && (
-                                <div className="ml-8 mt-1 space-y-1">
-                                    <SubNavLink to="/discord" label="General" />
-                                    <SubNavLink to="/discord/alerts" label="Live Alerts" />
-                                    <SubNavLink to="/discord/welcome" label="Bienvenida" />
-                                    <SubNavLink to="/discord/notifications" label="Notificaciones" comingSoon />
-                                    <SubNavLink to="/discord/commands" label="Comandos" comingSoon />
-                                    <SubNavLink to="/discord/logs" label="Logs" comingSoon />
-                                </div>
-                            )}
-                        </div>
+                        </>
                     )}
 
                     <hr className="my-4 border-[#e2e8f0] dark:border-[#374151]" />
 
-                    {/* Documentacion - Visible para todos */}
-                    <div>
-                        <button onClick={() => setDocsOpen(!docsOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors text-gray-700 dark:text-[#f8fafc]">
-                            <div className="flex items-center gap-3">
-                                <Book className="w-5 h-5" />
-                                <span className="font-semibold">{t('layout:navigation.documentation.title')}</span>
-                            </div>
-                            <ChevronRight className={`w-4 h-4 transition-transform ${docsOpen ? 'rotate-90' : ''}`} />
-                        </button>
-                        {docsOpen && (
-                            <div className="ml-8 mt-1 space-y-1">
-                                <SubNavLink to="/dashboard/docs" label="Centro de Ayuda" />
-                                <SubNavLink to="/dashboard/docs/overlays" label="Configurar Overlays (OBS)" />
-
-                                {/* Comandos Dropdown */}
-                                <div>
-                                    <button
-                                        onClick={() => setDocsCommandsOpen(!docsCommandsOpen)}
-                                        className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#1B1C1D] hover:text-[#2563eb] transition-colors"
-                                    >
-                                        <span>Comandos</span>
-                                        <ChevronRight className={`w-3 h-3 transition-transform ${docsCommandsOpen ? 'rotate-90' : ''}`} />
-                                    </button>
-                                    {docsCommandsOpen && (
-                                        <div className="ml-4 mt-1 space-y-1">
-                                            <SubNavLink to="/dashboard/docs/commands/default" label="Por Defecto" />
-                                            <SubNavLink to="/dashboard/docs/commands/custom" label="Personalizados" />
-                                            <SubNavLink to="/dashboard/docs/commands/microcommands" label="Micro Comandos" />
-                                            <SubNavLink to="/dashboard/docs/commands/scripting" label="Scripts" />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Features Dropdown */}
-                                <div>
-                                    <button
-                                        onClick={() => setDocsFeaturesOpen(!docsFeaturesOpen)}
-                                        className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#1B1C1D] hover:text-[#2563eb] transition-colors"
-                                    >
-                                        <span>Features</span>
-                                        <ChevronRight className={`w-3 h-3 transition-transform ${docsFeaturesOpen ? 'rotate-90' : ''}`} />
-                                    </button>
-                                    {docsFeaturesOpen && (
-                                        <div className="ml-4 mt-1 space-y-1">
-                                            <SubNavLink to="/dashboard/docs/features/timer" label="Timer" />
-                                            <SubNavLink to="/dashboard/docs/features/event-alerts" label="Alertas de Eventos" />
-                                            <SubNavLink to="/dashboard/docs/features/giveaway" label="Sorteos" />
-                                            <SubNavLink to="/dashboard/docs/features/goals" label="Metas" />
-                                            <SubNavLink to="/dashboard/docs/features/sound-alerts" label="Sound Alerts" />
-                                            <SubNavLink to="/dashboard/docs/features/tips" label="Donaciones" />
-                                            <SubNavLink to="/dashboard/docs/features/shoutout" label="Shoutouts" />
-                                            <SubNavLink to="/dashboard/docs/features/moderation" label="Moderacion" />
-                                            <SubNavLink to="/dashboard/docs/features/ai" label="Decatron AI" />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Configuracion Dropdown */}
-                                <div>
-                                    <button
-                                        onClick={() => setDocsSettingsOpen(!docsSettingsOpen)}
-                                        className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#1B1C1D] hover:text-[#2563eb] transition-colors"
-                                    >
-                                        <span>Configuracion</span>
-                                        <ChevronRight className={`w-3 h-3 transition-transform ${docsSettingsOpen ? 'rotate-90' : ''}`} />
-                                    </button>
-                                    {docsSettingsOpen && (
-                                        <div className="ml-4 mt-1 space-y-1">
-                                            <SubNavLink to="/dashboard/docs/settings" label="Ajustes del Bot" />
-                                            <SubNavLink to="/dashboard/docs/permissions" label="Permisos" />
-                                            <SubNavLink to="/dashboard/docs/variables" label="Variables" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    {/* Docs */}
+                    <NavLink to="/dashboard/docs" icon={<Book />} label={t('layout:navigation.documentation.title')} active={location.pathname.startsWith('/dashboard/docs')} />
 
                     <button
                         onClick={() => {
@@ -335,7 +161,7 @@ export default function Layout() {
                         </button>
                         <ThemeToggle />
                     </div>
-                    <ChannelSwitcher />
+                    {hasTwitchAccess && <ChannelSwitcher />}
                 </nav>
 
                 {/* Token Expiration Warning Banner */}

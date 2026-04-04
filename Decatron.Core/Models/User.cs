@@ -28,5 +28,32 @@ namespace Decatron.Core.Models
 
         [Column("language_preference_updated_at")]
         public DateTime? LanguagePreferenceUpdatedAt { get; set; }
+
+        // Discord identity
+        [Column("discord_id")]
+        public string? DiscordId { get; set; }
+
+        [Column("discord_username")]
+        public string? DiscordUsername { get; set; }
+
+        [Column("discord_avatar")]
+        public string? DiscordAvatar { get; set; }
+
+        [Column("discord_email")]
+        public string? DiscordEmail { get; set; }
+
+        // Discord OAuth tokens
+        [Column("discord_access_token")]
+        public string? DiscordAccessToken { get; set; }
+
+        [Column("discord_refresh_token")]
+        public string? DiscordRefreshToken { get; set; }
+
+        [Column("discord_token_expiration")]
+        public DateTime? DiscordTokenExpiration { get; set; }
+
+        // Auth provider: 'twitch', 'discord', 'both'
+        [Column("auth_provider")]
+        public string AuthProvider { get; set; } = "twitch";
     }
 }

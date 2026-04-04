@@ -6,4 +6,6 @@ public class DiscordSettings
     public string AppId { get; set; } = string.Empty;
     public string ClientSecret { get; set; } = string.Empty;
     public string RedirectUri { get; set; } = string.Empty;
+    public string LoginRedirectUri { get; set; } = string.Empty;
+    public string FrontendUrl { get; set; } = "https://twitch.decatron.net";
 }

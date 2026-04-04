@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { notifyTokenChanged } from '../utils/tokenEvents';
@@ -10,15 +10,35 @@ import {
     TrendingUp,
     ExternalLink,
     Bot,
-    Activity
+    Activity,
+    Server,
+    Trophy,
+    Coins,
+    ShoppingBag,
+    Palette,
+    Link2
 } from 'lucide-react';
 import api from '../services/api';
+
+function parseJwt(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}
 
 export default function Dashboard() {
     const { t } = useTranslation(['dashboard', 'common']);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [botStatus, setBotStatus] = useState<any>(null);
+
+    const jwtClaims = useMemo(() => parseJwt(localStorage.getItem('token')), []);
+    const authProvider = jwtClaims.AuthProvider || 'twitch';
+    const isDiscordOnly = authProvider === 'discord';
+    const displayName = jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || 'User';
 
     useEffect(() => {
         // Token exchange is handled in main.tsx before React mounts
@@ -55,6 +75,95 @@ export default function Dashboard() {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb] mx-auto mb-4"></div>
                     <p className="text-[#64748b] dark:text-[#94a3b8]">{t('dashboard:loading')}</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Discord-only dashboard
+    if (isDiscordOnly) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-[#1B1C1D] p-8">
+                <div className="max-w-7xl mx-auto">
+                    <div className="mb-8">
+                        <h1 className="text-4xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                            Bienvenido, {displayName}
+                        </h1>
+                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                            Tu panel de Decatron
+                        </p>
+                    </div>
+
+                    {/* CTA Vincular Twitch */}
+                    <div className="mb-6 bg-gradient-to-r from-[#9146ff]/10 to-[#772ce8]/10 dark:from-[#9146ff]/20 dark:to-[#772ce8]/20 border-2 border-[#9146ff]/30 rounded-2xl p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-gradient-to-br from-[#9146ff] to-[#772ce8] rounded-xl flex-shrink-0">
+                                <Link2 className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">Vincula tu cuenta de Twitch</h3>
+                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Desbloquea el bot, comandos, overlays y todas las funciones de streamer</p>
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await api.post('/auth/link-twitch-start');
+                                        if (res.data.url) window.location.href = res.data.url;
+                                    } catch { /* error */ }
+                                }}
+                                className="px-6 py-3 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white font-bold rounded-lg hover:-translate-y-0.5 transition-all flex-shrink-0"
+                            >
+                                Vincular Twitch
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Mi Perfil */}
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                <Trophy className="w-6 h-6 text-[#f59e0b]" />
+                                Mi Perfil
+                            </h3>
+                            <div className="space-y-3">
+                                <button onClick={() => navigate('/me')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
+                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Overview</p>
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Tu nivel, stats y rank card</p>
+                                </button>
+                                <button onClick={() => navigate('/me/account')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
+                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Mi Cuenta</p>
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Vincular cuentas y preferencias</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Servidores */}
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                <Server className="w-6 h-6 text-[#2563eb]" />
+                                Mis Servidores
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                        </div>
+
+                        {/* DecaCoins */}
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                <Coins className="w-6 h-6 text-[#eab308]" />
+                                DecaCoins
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                        </div>
+
+                        {/* Marketplace */}
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                <Palette className="w-6 h-6 text-[#a855f7]" />
+                                Marketplace
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

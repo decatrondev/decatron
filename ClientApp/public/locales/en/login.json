@@ -1,11 +1,15 @@
 {
   "welcome": "Welcome",
-  "subtitle": "Sign in to manage your Twitch bot",
+  "subtitle": "Sign in to access your profile and manage your experience",
   "authFailed": "Authentication failed. Please try again.",
   "connectWithTwitch": "Connect with Twitch",
   "continueWithTwitch": "Continue with Twitch",
-  "whyTwitchOAuth": "Why Twitch OAuth?",
-  "whyTwitchOAuthDescription": "Secure authentication via Twitch. We never store your password.",
+  "twitchAccessDescription": "Full access: bot, overlays, commands + profile",
+  "continueWithDiscord": "Continue with Discord",
+  "discordAccessDescription": "Profile, rank cards, marketplace, coins",
+  "linkAccountsHint": "Have both accounts? Link them in Settings after signing in.",
+  "whyOAuth": "Why OAuth?",
+  "whyOAuthDescription": "Secure authentication via Twitch or Discord. We never store your password.",
   "termsNotice": "By continuing, you agree to the",
   "termsOfService": "Terms of Service",
   "powerYourChannel": "Power Up Your Channel",
@@ -14,5 +18,9 @@
   "featureModerationTitle": "Automatic Moderation",
   "featureModerationDescription": "24/7 protection for your chat",
   "featureRealtimeTitle": "Real-Time Management",
-  "featureRealtimeDescription": "Full control from your dashboard"
+  "featureRealtimeDescription": "Full control from your dashboard",
+  "featureRankCardsTitle": "Rank Cards",
+  "featureRankCardsDescription": "Customize your card and level up in your community",
+  "featureMarketplaceTitle": "Marketplace",
+  "featureMarketplaceDescription": "Backgrounds, frames and more to customize your profile"
 }
