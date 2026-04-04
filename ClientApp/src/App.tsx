@@ -29,6 +29,7 @@ import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import DecatronChat from './pages/features/DecatronChat';
 import TipsConfig from './pages/features/TipsConfig';
 import AdminHub from './pages/admin/AdminHub';
+import AdminEconomy from './pages/admin/AdminEconomy';
 import DecatronAIAdmin from './pages/admin/DecatronAIAdmin';
 import DecatronChatAdmin from './pages/admin/DecatronChatAdmin';
 import AdminDonations from './pages/admin/Donations/index';
@@ -191,6 +192,7 @@ function App() {
                     <Route path="admin/decatron-chat" element={<DecatronChatAdmin />} />
                     <Route path="admin/donations" element={<AdminDonations />} />
                     <Route path="admin/supporters" element={<SupportersConfig />} />
+                    <Route path="admin/economy" element={<AdminEconomy />} />
 
                     {/* Rutas de Chat Moderation - Requieren nivel 'moderation' */}
                     <Route path="features/moderation/banned-words" element={<BannedWords />} />

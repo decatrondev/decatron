@@ -758,6 +758,11 @@ namespace Decatron.Services
             _cache.Set(SettingsCacheKey, settings, SettingsCacheDuration);
             return settings;
         }
+
+        public void ClearSettingsCache()
+        {
+            _cache.Remove(SettingsCacheKey);
+        }
     }
 
     public class DiscountValidation

@@ -651,6 +651,200 @@ namespace Decatron.Controllers
             return Ok(new { success = true, status = req.Status });
         }
 
+        // ─── Stats ──────────────────────────────────────────────────────────────
+
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var totalCoinsInCirculation = await _db.UserCoins.SumAsync(x => x.Balance);
+            var totalCoinsSold = await _db.CoinPurchases.SumAsync(x => (long)x.CoinsReceived);
+            var totalRevenue = await _db.CoinPurchases.SumAsync(x => x.AmountPaidUsd);
+
+            var firstOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var revenueThisMonth = await _db.CoinPurchases
+                .Where(p => p.CreatedAt >= firstOfMonth)
+                .SumAsync(x => x.AmountPaidUsd);
+
+            var today = DateTime.UtcNow.Date;
+            var transactionsToday = await _db.CoinTransactions.CountAsync(t => t.CreatedAt >= today);
+            var totalUsers = await _db.UserCoins.CountAsync();
+            var flaggedUsers = await _db.UserCoins.CountAsync(x => x.EconomyStatus == "flagged");
+            var pendingReferrals = await _db.CoinReferrals.CountAsync(x => x.Status == "pending");
+
+            return Ok(new
+            {
+                totalCoinsInCirculation,
+                totalCoinsSold,
+                totalRevenue,
+                revenueThisMonth,
+                transactionsToday,
+                totalUsers,
+                flaggedUsers,
+                pendingReferrals,
+            });
+        }
+
+        // ─── Transactions Audit Log ─────────────────────────────────────────────
+
+        [HttpGet("transactions")]
+        public async Task<IActionResult> GetTransactions([FromQuery] int page = 1, [FromQuery] string? type = null, [FromQuery] long? userId = null)
+        {
+            if (page < 1) page = 1;
+            const int pageSize = 20;
+
+            var query = _db.CoinTransactions.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(type))
+                query = query.Where(t => t.Type == type);
+            if (userId.HasValue)
+                query = query.Where(t => t.UserId == userId.Value);
+
+            var total = await query.CountAsync();
+
+            var transactions = await query
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var userIds = transactions.Select(t => t.UserId).Distinct().ToList();
+            var users = await _db.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.DisplayName, u.Login, u.DiscordUsername })
+                .ToDictionaryAsync(u => u.Id);
+
+            var result = transactions.Select(t => new
+            {
+                t.Id,
+                t.UserId,
+                userName = users.ContainsKey(t.UserId)
+                    ? (users[t.UserId].DisplayName ?? users[t.UserId].Login ?? users[t.UserId].DiscordUsername ?? $"#{t.UserId}")
+                    : $"#{t.UserId}",
+                t.Amount,
+                t.BalanceAfter,
+                t.Type,
+                t.Description,
+                t.RelatedUserId,
+                t.CreatedAt,
+            });
+
+            return Ok(new { items = result, total, page, pageSize, totalPages = (int)Math.Ceiling((double)total / pageSize) });
+        }
+
+        // ─── Settings ───────────────────────────────────────────────────────────
+
+        [HttpGet("settings")]
+        public async Task<IActionResult> GetSettings()
+        {
+            var settings = await _coinService.GetSettingsAsync();
+            return Ok(settings);
+        }
+
+        [HttpPut("settings")]
+        public async Task<IActionResult> UpdateSettings([FromBody] AdminCoinSettingsRequest req)
+        {
+            var settings = await _db.CoinSettings.FirstOrDefaultAsync();
+            if (settings == null)
+                return NotFound(new { error = "Settings not found" });
+
+            settings.CurrencyName                = req.CurrencyName ?? settings.CurrencyName;
+            settings.CurrencyIcon                = req.CurrencyIcon ?? settings.CurrencyIcon;
+            settings.MaxTransferPerDay            = req.MaxTransferPerDay ?? settings.MaxTransferPerDay;
+            settings.MaxTransfersPerDay           = req.MaxTransfersPerDay ?? settings.MaxTransfersPerDay;
+            settings.MinTransferAmount            = req.MinTransferAmount ?? settings.MinTransferAmount;
+            settings.MinAccountAgeToTransferDays  = req.MinAccountAgeToTransferDays ?? settings.MinAccountAgeToTransferDays;
+            settings.MinAccountAgeToReceiveDays   = req.MinAccountAgeToReceiveDays ?? settings.MinAccountAgeToReceiveDays;
+            settings.MaxReferralsPerUser          = req.MaxReferralsPerUser;
+            settings.ReferralBonusReferrer        = req.ReferralBonusReferrer ?? settings.ReferralBonusReferrer;
+            settings.ReferralBonusReferred        = req.ReferralBonusReferred ?? settings.ReferralBonusReferred;
+            settings.ReferralMinActivityDays      = req.ReferralMinActivityDays ?? settings.ReferralMinActivityDays;
+            settings.FirstPurchaseBonusPercent    = req.FirstPurchaseBonusPercent ?? settings.FirstPurchaseBonusPercent;
+            settings.Enabled                      = req.Enabled ?? settings.Enabled;
+            settings.UpdatedAt                    = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            _coinService.ClearSettingsCache();
+
+            return Ok(new { success = true });
+        }
+
+        // ─── Packages Admin ─────────────────────────────────────────────────────
+
+        [HttpGet("packages")]
+        public async Task<IActionResult> GetAllPackages()
+        {
+            var packages = await _db.CoinPackages
+                .OrderBy(p => p.SortOrder)
+                .ToListAsync();
+            return Ok(packages);
+        }
+
+        [HttpPost("packages")]
+        public async Task<IActionResult> CreatePackage([FromBody] AdminCoinPackageRequest req)
+        {
+            var package_ = new CoinPackage
+            {
+                Name              = req.Name ?? "New Package",
+                Description       = req.Description,
+                Coins             = req.Coins,
+                BonusCoins        = req.BonusCoins,
+                PriceUsd          = req.PriceUsd,
+                Icon              = req.Icon,
+                IsOffer           = req.IsOffer,
+                OfferStartsAt     = req.OfferStartsAt,
+                OfferExpiresAt    = req.OfferExpiresAt,
+                FirstPurchaseOnly = req.FirstPurchaseOnly,
+                MaxPerTransaction = req.MaxPerTransaction,
+                SortOrder         = req.SortOrder,
+                Enabled           = req.Enabled,
+                CreatedAt         = DateTime.UtcNow,
+                UpdatedAt         = DateTime.UtcNow,
+            };
+
+            _db.CoinPackages.Add(package_);
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true, id = package_.Id });
+        }
+
+        [HttpPut("packages/{id}")]
+        public async Task<IActionResult> UpdatePackage(long id, [FromBody] AdminCoinPackageRequest req)
+        {
+            var package_ = await _db.CoinPackages.FindAsync(id);
+            if (package_ == null)
+                return NotFound(new { error = "Paquete no encontrado" });
+
+            package_.Name              = req.Name ?? package_.Name;
+            package_.Description       = req.Description;
+            package_.Coins             = req.Coins;
+            package_.BonusCoins        = req.BonusCoins;
+            package_.PriceUsd          = req.PriceUsd;
+            package_.Icon              = req.Icon;
+            package_.IsOffer           = req.IsOffer;
+            package_.OfferStartsAt     = req.OfferStartsAt;
+            package_.OfferExpiresAt    = req.OfferExpiresAt;
+            package_.FirstPurchaseOnly = req.FirstPurchaseOnly;
+            package_.MaxPerTransaction = req.MaxPerTransaction;
+            package_.SortOrder         = req.SortOrder;
+            package_.Enabled           = req.Enabled;
+            package_.UpdatedAt         = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        [HttpDelete("packages/{id}")]
+        public async Task<IActionResult> DeletePackage(long id)
+        {
+            var package_ = await _db.CoinPackages.FindAsync(id);
+            if (package_ == null)
+                return NotFound(new { error = "Paquete no encontrado" });
+
+            package_.Enabled = false;
+            package_.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
         // ─── Discount Codes CRUD ────────────────────────────────────────────────
 
         [HttpGet("discounts")]
@@ -845,6 +1039,40 @@ namespace Decatron.Controllers
     public class AdminCoinStatusRequest
     {
         public string Status { get; set; } = string.Empty;
+    }
+
+    public class AdminCoinSettingsRequest
+    {
+        public string? CurrencyName { get; set; }
+        public string? CurrencyIcon { get; set; }
+        public long? MaxTransferPerDay { get; set; }
+        public int? MaxTransfersPerDay { get; set; }
+        public int? MinTransferAmount { get; set; }
+        public int? MinAccountAgeToTransferDays { get; set; }
+        public int? MinAccountAgeToReceiveDays { get; set; }
+        public int? MaxReferralsPerUser { get; set; }
+        public int? ReferralBonusReferrer { get; set; }
+        public int? ReferralBonusReferred { get; set; }
+        public int? ReferralMinActivityDays { get; set; }
+        public int? FirstPurchaseBonusPercent { get; set; }
+        public bool? Enabled { get; set; }
+    }
+
+    public class AdminCoinPackageRequest
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public int Coins { get; set; }
+        public int BonusCoins { get; set; }
+        public decimal PriceUsd { get; set; }
+        public string? Icon { get; set; }
+        public bool IsOffer { get; set; }
+        public DateTime? OfferStartsAt { get; set; }
+        public DateTime? OfferExpiresAt { get; set; }
+        public bool FirstPurchaseOnly { get; set; }
+        public int MaxPerTransaction { get; set; } = 1;
+        public int SortOrder { get; set; }
+        public bool Enabled { get; set; } = true;
     }
 
     public class AdminDiscountCodeRequest

@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -44,6 +44,14 @@ export default function AdminHub() {
             description: 'Gestiona los supporters y benefactores de la plataforma',
             icon: <Star className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/supporters',
+            ready: true
+        },
+        {
+            id: 'economy',
+            name: 'Economia',
+            description: 'Gestiona DecaCoins, paquetes, cupones, referidos y usuarios',
+            icon: <Coins className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/economy',
             ready: true
         },
         {
