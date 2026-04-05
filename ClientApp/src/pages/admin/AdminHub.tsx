@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -61,6 +61,14 @@ export default function AdminHub() {
             icon: <TrendingUp className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/ranking',
             ready: false
+        },
+        {
+            id: 'dev-docs',
+            name: 'Dev Docs',
+            description: 'Documentacion interna del proyecto, auditorias y planes',
+            icon: <FileText className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/dev-docs',
+            ready: true
         }
     ];
 
