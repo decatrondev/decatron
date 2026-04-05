@@ -154,6 +154,54 @@ namespace Decatron.Controllers
                 percentage = r.total > 0 ? Math.Round((double)ownedByRarity.GetValueOrDefault(r.rarity, 0) / r.total * 100, 1) : 0
             }).ToList();
 
+            // Showcase (top 5 featured cards)
+            var showcase = await _context.GachaShowcases
+                .Include(s => s.Item)
+                .Where(s => s.ParticipantId == participant.Id)
+                .OrderBy(s => s.Position)
+                .Take(5)
+                .Select(s => new
+                {
+                    itemId = s.ItemId,
+                    name = s.Item != null ? s.Item.Name : $"Item #{s.ItemId}",
+                    rarity = s.Item != null ? s.Item.Rarity : "common",
+                    image = s.Item != null ? s.Item.Image : null,
+                    position = s.Position
+                })
+                .ToListAsync();
+
+            // Unlocked achievements
+            var achievements = await _context.GachaUserAchievements
+                .Include(ua => ua.Achievement)
+                .Where(ua => ua.ParticipantId == participant.Id)
+                .OrderByDescending(ua => ua.UnlockedAt)
+                .Select(ua => new
+                {
+                    id = ua.Achievement != null ? ua.Achievement.Id : 0,
+                    code = ua.Achievement != null ? ua.Achievement.Code : "",
+                    name = ua.Achievement != null ? ua.Achievement.Name : "",
+                    description = ua.Achievement != null ? ua.Achievement.Description : "",
+                    icon = ua.Achievement != null ? ua.Achievement.Icon : "",
+                    badgeRarity = ua.Achievement != null ? ua.Achievement.BadgeRarity : "common",
+                    unlockedAt = ua.UnlockedAt
+                })
+                .ToListAsync();
+
+            // Wishlist
+            var wishlist = await _context.GachaWishlists
+                .Include(w => w.Item)
+                .Where(w => w.ParticipantId == participant.Id)
+                .OrderByDescending(w => w.AddedAt)
+                .Select(w => new
+                {
+                    itemId = w.ItemId,
+                    name = w.Item != null ? w.Item.Name : $"Item #{w.ItemId}",
+                    rarity = w.Item != null ? w.Item.Rarity : "common",
+                    image = w.Item != null ? w.Item.Image : null,
+                    addedAt = w.AddedAt
+                })
+                .ToListAsync();
+
             return Ok(new
             {
                 success = true,
@@ -164,7 +212,10 @@ namespace Decatron.Controllers
                 stats,
                 inventory = cards,
                 history,
-                progress
+                progress,
+                showcase,
+                achievements,
+                wishlist
             });
         }
     }

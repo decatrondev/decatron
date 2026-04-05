@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Globe, Lock, Eye, EyeOff, Dices, ChevronRight, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Shield, Globe, Lock, Eye, EyeOff, Dices, ChevronRight, Check, ExternalLink, Loader2, Star, Heart, X, Plus, Package } from 'lucide-react';
 import api from '../../services/api';
 
 interface JwtInfo {
@@ -34,7 +34,47 @@ interface ChannelCollection {
     pullsAvailable: number;
     totalDonated: number;
     isPrivate: boolean;
+    participantId?: number;
 }
+
+interface ShowcaseItem {
+    itemId: number;
+    name: string;
+    rarity: string;
+    image?: string;
+    position: number;
+}
+
+interface WishlistItem {
+    itemId: number;
+    name: string;
+    rarity: string;
+    image?: string;
+}
+
+interface InventoryItem {
+    id: number;
+    itemId: number;
+    name: string;
+    rarity: string;
+    image?: string;
+    quantity: number;
+}
+
+interface AvailableItem {
+    id: number;
+    name: string;
+    rarity: string;
+    image?: string;
+}
+
+const RARITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; stars: string }> = {
+    legendary: { label: 'Legendario', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: '#f59e0b', stars: '★★★★★' },
+    epic:      { label: 'Epico',      color: '#a855f7', bg: 'rgba(168,85,247,0.1)', border: '#a855f7', stars: '★★★★' },
+    rare:      { label: 'Raro',       color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', border: '#3b82f6', stars: '★★★' },
+    uncommon:  { label: 'Poco Comun', color: '#22c55e', bg: 'rgba(34,197,94,0.1)',  border: '#22c55e', stars: '★★' },
+    common:    { label: 'Comun',      color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', border: '#94a3b8', stars: '★' },
+};
 
 export default function MeGacha() {
     const jwtInfo = useMemo(() => getJwtInfo(), []);
@@ -46,6 +86,20 @@ export default function MeGacha() {
     const [togglingChannel, setTogglingChannel] = useState<string | null>(null);
     const [togglingAll, setTogglingAll] = useState(false);
     const [globalPublic, setGlobalPublic] = useState(true);
+
+    // Showcase state
+    const [showcase, setShowcase] = useState<ShowcaseItem[]>([]);
+    const [showcaseEditing, setShowcaseEditing] = useState(false);
+    const [showcaseInventory, setShowcaseInventory] = useState<InventoryItem[]>([]);
+    const [showcaseSelected, setShowcaseSelected] = useState<number[]>([]);
+    const [showcaseLoading, setShowcaseLoading] = useState(false);
+    const [showcaseSaving, setShowcaseSaving] = useState(false);
+
+    // Wishlist state
+    const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+    const [wishlistAdding, setWishlistAdding] = useState(false);
+    const [wishlistAvailable, setWishlistAvailable] = useState<AvailableItem[]>([]);
+    const [wishlistLoading, setWishlistLoading] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -113,6 +167,111 @@ export default function MeGacha() {
             setTogglingAll(false);
         }
     };
+
+    const getParticipantId = (): number | null => {
+        if (collections.length === 0) return null;
+        return collections[0].participantId || null;
+    };
+
+    const loadShowcase = async () => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        setShowcaseLoading(true);
+        try {
+            const res = await api.get(`/gacha/viewer/showcase/${pid}`);
+            setShowcase(res.data.showcase || []);
+        } catch { /* empty */ }
+        finally { setShowcaseLoading(false); }
+    };
+
+    const loadShowcaseInventory = async () => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        try {
+            const res = await api.get(`/gacha/viewer/inventory/${pid}`);
+            setShowcaseInventory(res.data.inventory || []);
+        } catch { /* empty */ }
+    };
+
+    const openShowcaseEditor = async () => {
+        await loadShowcaseInventory();
+        setShowcaseSelected(showcase.map(s => s.itemId));
+        setShowcaseEditing(true);
+    };
+
+    const toggleShowcaseItem = (itemId: number) => {
+        setShowcaseSelected(prev => {
+            if (prev.includes(itemId)) return prev.filter(id => id !== itemId);
+            if (prev.length >= 5) return prev;
+            return [...prev, itemId];
+        });
+    };
+
+    const saveShowcase = async () => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        setShowcaseSaving(true);
+        try {
+            await api.post('/gacha/viewer/showcase', { participantId: pid, itemIds: showcaseSelected });
+            await loadShowcase();
+            setShowcaseEditing(false);
+        } catch {
+            alert('Error al guardar vitrina');
+        } finally {
+            setShowcaseSaving(false);
+        }
+    };
+
+    const loadWishlist = async () => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        setWishlistLoading(true);
+        try {
+            const res = await api.get(`/gacha/viewer/wishlist/${pid}`);
+            setWishlist(res.data.wishlist || []);
+        } catch { /* empty */ }
+        finally { setWishlistLoading(false); }
+    };
+
+    const loadWishlistAvailable = async () => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        try {
+            const res = await api.get(`/gacha/viewer/wishlist/${pid}/available`);
+            setWishlistAvailable(res.data.items || []);
+        } catch { /* empty */ }
+    };
+
+    const addToWishlist = async (itemId: number) => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        try {
+            await api.post('/gacha/viewer/wishlist', { participantId: pid, itemId });
+            await loadWishlist();
+            setWishlistAvailable(prev => prev.filter(i => i.id !== itemId));
+        } catch {
+            alert('Error al agregar a lista de deseos');
+        }
+    };
+
+    const removeFromWishlist = async (itemId: number) => {
+        const pid = getParticipantId();
+        if (!pid) return;
+        try {
+            await api.delete(`/gacha/viewer/wishlist/${pid}/${itemId}`);
+            setWishlist(prev => prev.filter(w => w.itemId !== itemId));
+        } catch {
+            alert('Error al eliminar de lista de deseos');
+        }
+    };
+
+    // Load showcase and wishlist when collections are available
+    useEffect(() => {
+        if (collections.length > 0 && termsAccepted) {
+            loadShowcase();
+            loadWishlist();
+        }
+    }, [collections.length, termsAccepted]);
 
     if (loading) return (
         <div className="min-h-screen bg-white dark:bg-[#1B1C1D] flex items-center justify-center">
@@ -340,6 +499,210 @@ export default function MeGacha() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Showcase Management */}
+                        {collections.length > 0 && (
+                            <div className="bg-white dark:bg-[#262626] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-bold flex items-center gap-2"><Star className="w-5 h-5 text-yellow-400" /> Mi Vitrina</h2>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Selecciona hasta 5 cartas para mostrar en tu perfil publico</p>
+                                    </div>
+                                    <button
+                                        onClick={openShowcaseEditor}
+                                        className="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition"
+                                    >
+                                        Editar Vitrina
+                                    </button>
+                                </div>
+
+                                {showcaseLoading ? (
+                                    <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+                                ) : showcase.length === 0 ? (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No has seleccionado cartas para tu vitrina</p>
+                                ) : (
+                                    <div className="flex gap-3 overflow-x-auto pb-2">
+                                        {showcase.sort((a, b) => a.position - b.position).map(card => {
+                                            const rc = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
+                                            return (
+                                                <div key={card.itemId} className="flex-shrink-0 w-28 rounded-xl overflow-hidden border-2" style={{ borderColor: rc.border, boxShadow: `0 0 10px ${rc.color}30` }}>
+                                                    <div className="aspect-[3/4] relative" style={{ backgroundColor: rc.bg }}>
+                                                        {card.image ? (
+                                                            <img src={card.image} alt={card.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <Package className="w-8 h-8" style={{ color: rc.color, opacity: 0.2 }} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-1.5 bg-[#f8fafc] dark:bg-[#1B1C1D] text-center">
+                                                        <p className="text-[10px] font-bold truncate">{card.name}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Showcase Editor */}
+                                {showcaseEditing && (
+                                    <div className="border-t border-[#e2e8f0] dark:border-[#374151] pt-4 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-sm font-bold">Seleccionar cartas ({showcaseSelected.length}/5)</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setShowcaseEditing(false)}
+                                                    className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-300 bg-transparent border border-[#374151] rounded-lg transition"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button
+                                                    onClick={saveShowcase}
+                                                    disabled={showcaseSaving}
+                                                    className="px-4 py-1.5 text-xs font-bold bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition flex items-center gap-1.5"
+                                                >
+                                                    {showcaseSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                                    Guardar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-64 overflow-y-auto">
+                                            {showcaseInventory.map(item => {
+                                                const rc = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+                                                const isSelected = showcaseSelected.includes(item.itemId);
+                                                return (
+                                                    <button
+                                                        key={item.itemId}
+                                                        onClick={() => toggleShowcaseItem(item.itemId)}
+                                                        className="rounded-lg overflow-hidden border-2 transition-all"
+                                                        style={{
+                                                            borderColor: isSelected ? rc.color : '#374151',
+                                                            opacity: isSelected ? 1 : 0.6,
+                                                            boxShadow: isSelected ? `0 0 8px ${rc.color}40` : 'none',
+                                                        }}
+                                                    >
+                                                        <div className="aspect-square relative" style={{ backgroundColor: rc.bg }}>
+                                                            {item.image ? (
+                                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center">
+                                                                    <Package className="w-5 h-5" style={{ color: rc.color, opacity: 0.2 }} />
+                                                                </div>
+                                                            )}
+                                                            {isSelected && (
+                                                                <div className="absolute inset-0 bg-blue-600/30 flex items-center justify-center">
+                                                                    <Check className="w-5 h-5 text-white" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="p-1 bg-[#f8fafc] dark:bg-[#1B1C1D] text-center">
+                                                            <p className="text-[8px] font-bold truncate">{item.name}</p>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Wishlist Management */}
+                        {collections.length > 0 && (
+                            <div className="bg-white dark:bg-[#262626] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5 text-pink-400" /> Lista de Deseos</h2>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cartas que quieres pero aun no tienes</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => { await loadWishlistAvailable(); setWishlistAdding(true); }}
+                                        className="px-4 py-2 text-xs font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl transition flex items-center gap-1.5"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Agregar
+                                    </button>
+                                </div>
+
+                                {wishlistLoading ? (
+                                    <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-pink-500" /></div>
+                                ) : wishlist.length === 0 ? (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">Tu lista de deseos esta vacia</p>
+                                ) : (
+                                    <div className="flex gap-3 overflow-x-auto pb-2">
+                                        {wishlist.map(card => {
+                                            const rc = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
+                                            return (
+                                                <div key={card.itemId} className="flex-shrink-0 w-24 rounded-lg overflow-hidden border-2 relative group" style={{ borderColor: rc.border }}>
+                                                    <div className="aspect-square relative" style={{ backgroundColor: rc.bg }}>
+                                                        {card.image ? (
+                                                            <img src={card.image} alt={card.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <Package className="w-6 h-6" style={{ color: rc.color, opacity: 0.2 }} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-1.5 bg-[#f8fafc] dark:bg-[#1B1C1D] text-center">
+                                                        <p className="text-[9px] font-bold truncate">{card.name}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removeFromWishlist(card.itemId)}
+                                                        className="absolute top-1 right-1 w-5 h-5 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                                                    >
+                                                        <X className="w-3 h-3 text-white" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Wishlist Add Panel */}
+                                {wishlistAdding && (
+                                    <div className="border-t border-[#e2e8f0] dark:border-[#374151] pt-4 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-sm font-bold">Cartas disponibles</p>
+                                            <button
+                                                onClick={() => setWishlistAdding(false)}
+                                                className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-300 bg-transparent border border-[#374151] rounded-lg transition"
+                                            >
+                                                Cerrar
+                                            </button>
+                                        </div>
+                                        {wishlistAvailable.length === 0 ? (
+                                            <p className="text-xs text-gray-500 text-center py-4">No hay cartas disponibles para agregar</p>
+                                        ) : (
+                                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-64 overflow-y-auto">
+                                                {wishlistAvailable.map(item => {
+                                                    const rc = RARITY_CONFIG[item.rarity] || RARITY_CONFIG.common;
+                                                    return (
+                                                        <button
+                                                            key={item.id}
+                                                            onClick={() => addToWishlist(item.id)}
+                                                            className="rounded-lg overflow-hidden border-2 transition-all hover:scale-105"
+                                                            style={{ borderColor: rc.border }}
+                                                        >
+                                                            <div className="aspect-square relative" style={{ backgroundColor: rc.bg }}>
+                                                                {item.image ? (
+                                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center">
+                                                                        <Package className="w-5 h-5" style={{ color: rc.color, opacity: 0.2 }} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="p-1 bg-[#f8fafc] dark:bg-[#1B1C1D] text-center">
+                                                                <p className="text-[8px] font-bold truncate">{item.name}</p>
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </>

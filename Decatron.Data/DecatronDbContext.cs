@@ -172,6 +172,10 @@ namespace Decatron.Data
         public DbSet<GachaPullLog> GachaPullLogs { get; set; }
         public DbSet<GachaIntegrationConfig> GachaIntegrationConfigs { get; set; }
         public DbSet<GachaViewerSettings> GachaViewerSettings { get; set; }
+        public DbSet<GachaAchievement> GachaAchievements { get; set; }
+        public DbSet<GachaUserAchievement> GachaUserAchievements { get; set; }
+        public DbSet<GachaShowcase> GachaShowcases { get; set; }
+        public DbSet<GachaWishlist> GachaWishlists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -1581,6 +1585,32 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.UserId).IsUnique().HasDatabaseName("uq_gacha_viewer_user");
                 entity.HasIndex(e => e.TwitchUsername).HasDatabaseName("idx_gacha_viewer_twitch");
                 entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaAchievement>(entity =>
+            {
+                entity.HasIndex(e => new { e.ChannelName, e.Code }).IsUnique().HasDatabaseName("uq_gacha_achievement_channel_code");
+            });
+
+            modelBuilder.Entity<GachaUserAchievement>(entity =>
+            {
+                entity.HasIndex(e => new { e.ParticipantId, e.AchievementId }).IsUnique().HasDatabaseName("uq_gacha_user_achievement");
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Achievement).WithMany().HasForeignKey(e => e.AchievementId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaShowcase>(entity =>
+            {
+                entity.HasIndex(e => e.ParticipantId).HasDatabaseName("idx_gacha_showcase_participant");
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaWishlist>(entity =>
+            {
+                entity.HasIndex(e => new { e.ParticipantId, e.ItemId }).IsUnique().HasDatabaseName("uq_gacha_wishlist");
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

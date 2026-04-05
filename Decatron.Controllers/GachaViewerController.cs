@@ -252,6 +252,173 @@ namespace Decatron.Controllers
         }
 
         // ========================================================================
+        // ACHIEVEMENTS
+        // ========================================================================
+
+        /// <summary>Logros del participante (desbloqueados y pendientes)</summary>
+        [HttpGet("achievements/{participantId:int}")]
+        public async Task<IActionResult> GetAchievements(int participantId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            var achievements = await _gachaService.GetAchievementsForParticipantAsync(participantId);
+            return Ok(new { success = true, achievements });
+        }
+
+        // ========================================================================
+        // SHOWCASE
+        // ========================================================================
+
+        /// <summary>Obtener showcase del participante</summary>
+        [HttpGet("showcase/{participantId:int}")]
+        public async Task<IActionResult> GetShowcase(int participantId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            var showcase = await _gachaService.GetShowcaseAsync(participantId);
+            return Ok(new
+            {
+                success = true,
+                showcase = showcase.Select(s => new
+                {
+                    s.Id, s.ItemId, s.Position,
+                    name = s.Item?.Name, rarity = s.Item?.Rarity, image = s.Item?.Image,
+                    s.AddedAt
+                })
+            });
+        }
+
+        /// <summary>Establecer showcase (max 5 items)</summary>
+        [HttpPost("showcase")]
+        public async Task<IActionResult> SetShowcase([FromBody] SetShowcaseDto dto)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(dto.ParticipantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            try
+            {
+                await _gachaService.SetShowcaseAsync(dto.ParticipantId, dto.ItemIds);
+                return Ok(new { success = true, message = "Showcase actualizado" });
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ========================================================================
+        // WISHLIST
+        // ========================================================================
+
+        /// <summary>Obtener wishlist del participante</summary>
+        [HttpGet("wishlist/{participantId:int}")]
+        public async Task<IActionResult> GetWishlist(int participantId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            var wishlist = await _gachaService.GetWishlistAsync(participantId);
+            return Ok(new
+            {
+                success = true,
+                wishlist = wishlist.Select(w => new
+                {
+                    w.Id, w.ItemId,
+                    name = w.Item?.Name, rarity = w.Item?.Rarity, image = w.Item?.Image,
+                    w.AddedAt
+                })
+            });
+        }
+
+        /// <summary>Agregar item a wishlist</summary>
+        [HttpPost("wishlist")]
+        public async Task<IActionResult> AddToWishlist([FromBody] WishlistDto dto)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(dto.ParticipantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            try
+            {
+                await _gachaService.AddToWishlistAsync(dto.ParticipantId, dto.ItemId);
+                return Ok(new { success = true, message = "Item agregado a wishlist" });
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>Remover item de wishlist</summary>
+        [HttpDelete("wishlist/{participantId:int}/{itemId:int}")]
+        public async Task<IActionResult> RemoveFromWishlist(int participantId, int itemId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            try
+            {
+                await _gachaService.RemoveFromWishlistAsync(participantId, itemId);
+                return Ok(new { success = true, message = "Item removido de wishlist" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ========================================================================
+        // ADVANCED STATS
+        // ========================================================================
+
+        /// <summary>Estadisticas avanzadas del participante</summary>
+        [HttpGet("advanced-stats/{participantId:int}")]
+        public async Task<IActionResult> GetAdvancedStats(int participantId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false, message = "Participante no encontrado" });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            try
+            {
+                var stats = await _gachaService.GetAdvancedStatsAsync(participant.ChannelName, participantId);
+                return Ok(new { success = true, stats });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+        }
+
+        // ========================================================================
         // HELPERS
         // ========================================================================
 
@@ -277,5 +444,17 @@ namespace Decatron.Controllers
     {
         public string? Channel { get; set; }
         public bool IsPublic { get; set; } = true;
+    }
+
+    public class SetShowcaseDto
+    {
+        public int ParticipantId { get; set; }
+        public List<int> ItemIds { get; set; } = new();
+    }
+
+    public class WishlistDto
+    {
+        public int ParticipantId { get; set; }
+        public int ItemId { get; set; }
     }
 }

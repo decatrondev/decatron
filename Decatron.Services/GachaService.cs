@@ -66,6 +66,22 @@ namespace Decatron.Services
 
         // Pull Logs
         Task<List<GachaPullLog>> GetPullLogsAsync(string channelName, int participantId, int limit = 50);
+
+        // Achievements
+        Task<List<object>> GetAchievementsForParticipantAsync(int participantId);
+        Task CheckAndUnlockAchievementsAsync(string channelName, int participantId);
+
+        // Showcase
+        Task<List<GachaShowcase>> GetShowcaseAsync(int participantId);
+        Task SetShowcaseAsync(int participantId, List<int> itemIds);
+
+        // Wishlist
+        Task<List<GachaWishlist>> GetWishlistAsync(int participantId);
+        Task AddToWishlistAsync(int participantId, int itemId);
+        Task RemoveFromWishlistAsync(int participantId, int itemId);
+
+        // Advanced Stats
+        Task<object> GetAdvancedStatsAsync(string channelName, int participantId);
     }
 
     public class GachaService : IGachaService
@@ -618,6 +634,9 @@ namespace Decatron.Services
                 });
             }
 
+            // Check and unlock achievements after pull
+            await CheckAndUnlockAchievementsAsync(channelName, participantId);
+
             return new GachaPullResult
             {
                 Item = selectedItem,
@@ -760,6 +779,306 @@ namespace Decatron.Services
 
             _logger.LogInformation("[GACHA] Auto-donation from tip: {Donor} +${Amount} {Currency} = {Pulls} pulls in {Channel}",
                 donorName, amount, currency, totalPulls, channelName);
+        }
+
+        // ========================================================================
+        // ACHIEVEMENTS
+        // ========================================================================
+
+        public async Task<List<object>> GetAchievementsForParticipantAsync(int participantId)
+        {
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return new List<object>();
+
+            var achievements = await _context.GachaAchievements
+                .Where(a => a.IsActive && (a.ChannelName == null || a.ChannelName == participant.ChannelName))
+                .ToListAsync();
+
+            var unlocked = await _context.GachaUserAchievements
+                .Where(ua => ua.ParticipantId == participantId)
+                .ToListAsync();
+
+            var unlockedDict = unlocked.ToDictionary(u => u.AchievementId, u => u.UnlockedAt);
+
+            return achievements.Select(a => (object)new
+            {
+                achievement = new
+                {
+                    a.Id, a.Code, a.Name, a.Description, a.Icon,
+                    a.BadgeRarity, a.ConditionType, a.ConditionValue, a.ConditionParam
+                },
+                isUnlocked = unlockedDict.ContainsKey(a.Id),
+                unlockedAt = unlockedDict.ContainsKey(a.Id) ? (DateTime?)unlockedDict[a.Id] : null
+            }).ToList();
+        }
+
+        public async Task CheckAndUnlockAchievementsAsync(string channelName, int participantId)
+        {
+            try
+            {
+                var participant = await _context.GachaParticipants.FindAsync(participantId);
+                if (participant == null) return;
+
+                var achievements = await _context.GachaAchievements
+                    .Where(a => a.IsActive && (a.ChannelName == null || a.ChannelName == channelName))
+                    .ToListAsync();
+
+                var alreadyUnlocked = await _context.GachaUserAchievements
+                    .Where(ua => ua.ParticipantId == participantId)
+                    .Select(ua => ua.AchievementId)
+                    .ToListAsync();
+
+                var inventory = await _context.GachaInventories
+                    .Include(i => i.Item)
+                    .Where(i => i.ParticipantId == participantId)
+                    .ToListAsync();
+
+                var totalAvailable = await _context.GachaItems
+                    .CountAsync(i => i.ChannelName == channelName && i.Available);
+
+                foreach (var achievement in achievements.Where(a => !alreadyUnlocked.Contains(a.Id)))
+                {
+                    bool conditionMet = false;
+
+                    switch (achievement.ConditionType)
+                    {
+                        case "pulls_count":
+                            conditionMet = participant.Pulls >= achievement.ConditionValue;
+                            break;
+
+                        case "rarity_count":
+                            if (!string.IsNullOrEmpty(achievement.ConditionParam))
+                            {
+                                var rarityCount = inventory
+                                    .Where(i => i.Item != null && i.Item.Rarity == achievement.ConditionParam)
+                                    .Sum(i => i.Quantity);
+                                conditionMet = rarityCount >= achievement.ConditionValue;
+                            }
+                            break;
+
+                        case "unique_cards":
+                            var uniqueCount = inventory.Select(i => i.ItemId).Distinct().Count();
+                            conditionMet = uniqueCount >= achievement.ConditionValue;
+                            break;
+
+                        case "donation_total":
+                            conditionMet = participant.DonationAmount >= achievement.ConditionValue;
+                            break;
+
+                        case "collection_complete":
+                            var ownedUnique = inventory.Select(i => i.ItemId).Distinct().Count();
+                            conditionMet = totalAvailable > 0 && ownedUnique >= totalAvailable;
+                            break;
+                    }
+
+                    if (conditionMet)
+                    {
+                        _context.GachaUserAchievements.Add(new GachaUserAchievement
+                        {
+                            ParticipantId = participantId,
+                            AchievementId = achievement.Id,
+                            UnlockedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[GACHA] Error checking achievements for participant {Id}", participantId);
+            }
+        }
+
+        // ========================================================================
+        // SHOWCASE
+        // ========================================================================
+
+        public async Task<List<GachaShowcase>> GetShowcaseAsync(int participantId)
+        {
+            return await _context.GachaShowcases
+                .Include(s => s.Item)
+                .Where(s => s.ParticipantId == participantId)
+                .OrderBy(s => s.Position)
+                .ToListAsync();
+        }
+
+        public async Task SetShowcaseAsync(int participantId, List<int> itemIds)
+        {
+            if (itemIds == null || itemIds.Count == 0)
+                throw new ArgumentException("Debes seleccionar al menos un item");
+            if (itemIds.Count > 5)
+                throw new ArgumentException("Maximo 5 items en el showcase");
+
+            // Validate all items exist in participant's inventory
+            var ownedItemIds = await _context.GachaInventories
+                .Where(i => i.ParticipantId == participantId)
+                .Select(i => i.ItemId)
+                .Distinct()
+                .ToListAsync();
+
+            var invalidItems = itemIds.Where(id => !ownedItemIds.Contains(id)).ToList();
+            if (invalidItems.Count > 0)
+                throw new InvalidOperationException($"No posees los items: {string.Join(", ", invalidItems)}");
+
+            // Remove existing showcase
+            var existing = await _context.GachaShowcases
+                .Where(s => s.ParticipantId == participantId)
+                .ToListAsync();
+            _context.GachaShowcases.RemoveRange(existing);
+
+            // Insert new showcase items
+            for (int i = 0; i < itemIds.Count; i++)
+            {
+                _context.GachaShowcases.Add(new GachaShowcase
+                {
+                    ParticipantId = participantId,
+                    ItemId = itemIds[i],
+                    Position = i,
+                    AddedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        // ========================================================================
+        // WISHLIST
+        // ========================================================================
+
+        public async Task<List<GachaWishlist>> GetWishlistAsync(int participantId)
+        {
+            return await _context.GachaWishlists
+                .Include(w => w.Item)
+                .Where(w => w.ParticipantId == participantId)
+                .OrderByDescending(w => w.AddedAt)
+                .ToListAsync();
+        }
+
+        public async Task AddToWishlistAsync(int participantId, int itemId)
+        {
+            var exists = await _context.GachaWishlists
+                .AnyAsync(w => w.ParticipantId == participantId && w.ItemId == itemId);
+            if (exists) throw new InvalidOperationException("Este item ya esta en tu wishlist");
+
+            var item = await _context.GachaItems.FindAsync(itemId);
+            if (item == null) throw new KeyNotFoundException("Item no encontrado");
+
+            _context.GachaWishlists.Add(new GachaWishlist
+            {
+                ParticipantId = participantId,
+                ItemId = itemId,
+                AddedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveFromWishlistAsync(int participantId, int itemId)
+        {
+            var entry = await _context.GachaWishlists
+                .FirstOrDefaultAsync(w => w.ParticipantId == participantId && w.ItemId == itemId);
+            if (entry == null) throw new KeyNotFoundException("Item no encontrado en wishlist");
+
+            _context.GachaWishlists.Remove(entry);
+            await _context.SaveChangesAsync();
+        }
+
+        // ========================================================================
+        // ADVANCED STATS
+        // ========================================================================
+
+        public async Task<object> GetAdvancedStatsAsync(string channelName, int participantId)
+        {
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null || participant.ChannelName != channelName)
+                throw new KeyNotFoundException("Participante no encontrado");
+
+            var pullLogs = await _context.GachaPullLogs
+                .Include(l => l.Item)
+                .Where(l => l.ChannelName == channelName && l.ParticipantId == participantId)
+                .OrderByDescending(l => l.OccurredAt)
+                .ToListAsync();
+
+            var inventory = await _context.GachaInventories
+                .Include(i => i.Item)
+                .Where(i => i.ParticipantId == participantId && i.ChannelName == channelName)
+                .ToListAsync();
+
+            var totalAvailable = await _context.GachaItems
+                .CountAsync(i => i.ChannelName == channelName && i.Available);
+
+            // Luck score: actual legendary % vs expected %
+            var rarityConfigs = await GetRarityConfigsAsync(channelName);
+            var expectedLegendaryPct = rarityConfigs
+                .Where(c => c.Rarity == "legendary")
+                .Select(c => (double)c.Probability)
+                .FirstOrDefault();
+
+            var totalPulls = pullLogs.Count;
+            var legendaryPulls = pullLogs.Count(l => l.Item != null && l.Item.Rarity == "legendary");
+            var actualLegendaryPct = totalPulls > 0 ? (double)legendaryPulls / totalPulls * 100.0 : 0;
+            var luckScore = totalPulls > 0 ? Math.Round(actualLegendaryPct - expectedLegendaryPct, 2) : 0;
+
+            // Current streak: pulls since last legendary
+            var currentStreak = 0;
+            foreach (var log in pullLogs)
+            {
+                if (log.Item != null && log.Item.Rarity == "legendary") break;
+                currentStreak++;
+            }
+
+            // Rarest card in inventory
+            var rarityTiers = new Dictionary<string, int>
+            {
+                { "common", 0 }, { "uncommon", 1 }, { "rare", 2 }, { "epic", 3 }, { "legendary", 4 }
+            };
+
+            object? rarestCard = null;
+            var rarestTier = -1;
+            foreach (var inv in inventory)
+            {
+                if (inv.Item == null) continue;
+                var tier = rarityTiers.GetValueOrDefault(inv.Item.Rarity.ToLower(), 0);
+                if (tier > rarestTier)
+                {
+                    rarestTier = tier;
+                    rarestCard = new { inv.Item.Id, inv.Item.Name, inv.Item.Rarity, inv.Item.Image };
+                }
+            }
+
+            // Total pulls by rarity
+            var totalPullsByRarity = pullLogs
+                .Where(l => l.Item != null)
+                .GroupBy(l => l.Item!.Rarity)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Average pulls per day
+            var firstPull = pullLogs.LastOrDefault()?.OccurredAt;
+            double averagePullsPerDay = 0;
+            if (firstPull.HasValue && totalPulls > 0)
+            {
+                var days = (DateTime.UtcNow - firstPull.Value).TotalDays;
+                averagePullsPerDay = days > 0 ? Math.Round(totalPulls / days, 2) : totalPulls;
+            }
+
+            // Completion percentage
+            var uniqueOwned = inventory.Select(i => i.ItemId).Distinct().Count();
+            var completionPercentage = totalAvailable > 0
+                ? Math.Round((double)uniqueOwned / totalAvailable * 100, 1) : 0;
+
+            return new
+            {
+                luckScore,
+                currentStreak,
+                rarestCard,
+                totalPullsByRarity,
+                averagePullsPerDay,
+                completionPercentage,
+                totalPulls,
+                legendaryPulls,
+                actualLegendaryPct = Math.Round(actualLegendaryPct, 2),
+                expectedLegendaryPct
+            };
         }
 
         // ========================================================================

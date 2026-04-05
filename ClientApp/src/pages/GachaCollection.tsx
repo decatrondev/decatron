@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Package, Star, History, TrendingUp, Loader2, Search, Filter, Lock, LogIn, Globe, Eye, Gift } from 'lucide-react';
+import { Package, Star, History, TrendingUp, Loader2, Search, Filter, Lock, LogIn, Globe, Eye, Gift, Trophy, Heart } from 'lucide-react';
 import api from '../services/api';
 
 const RARITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; stars: string }> = {
@@ -23,6 +23,10 @@ interface CollectionData {
     inventory: { id: number; itemId: number; name: string; rarity: string; image?: string; quantity: number; isRedeemed: boolean; lastWonAt: string }[];
     history: { id: number; itemName: string; rarity: string; image?: string; occurredAt: string }[];
     progress: { rarity: string; owned: number; total: number; percentage: number }[];
+    showcase?: { itemId: number; name: string; rarity: string; image?: string; position: number }[];
+    achievements?: { code: string; name: string; description: string; icon: string; badgeRarity: string; isUnlocked: boolean; unlockedAt?: string }[];
+    wishlist?: { itemId: number; name: string; rarity: string; image?: string }[];
+    advancedStats?: { luckScore: number; currentStreak: number; rarestCard: { name: string; rarity: string; image?: string } | null; averagePullsPerDay: number };
 }
 
 function getLoggedInUsername(): string | null {
@@ -160,6 +164,72 @@ export default function GachaCollection() {
                     <StatCard icon={<span className="text-lg">$</span>} label="Total Donado" value={`$${data.stats.totalDonated.toFixed(2)}`} color="#f59e0b" />
                 </div>
 
+                {/* Advanced Stats */}
+                {data.advancedStats && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <StatCard
+                            icon={<span className="text-lg">🍀</span>}
+                            label="Suerte"
+                            value={`${data.advancedStats.luckScore.toFixed(1)}%`}
+                            color={data.advancedStats.luckScore >= 50 ? '#22c55e' : '#ef4444'}
+                        />
+                        <StatCard
+                            icon={<span className="text-lg">🔥</span>}
+                            label="Racha"
+                            value={`${data.advancedStats.currentStreak} tiros`}
+                            color="#f59e0b"
+                        />
+                        <StatCard
+                            icon={<Star className="w-5 h-5" />}
+                            label="Carta Mas Rara"
+                            value={data.advancedStats.rarestCard ? data.advancedStats.rarestCard.name : 'N/A'}
+                            color={data.advancedStats.rarestCard ? (RARITY_CONFIG[data.advancedStats.rarestCard.rarity]?.color || '#94a3b8') : '#94a3b8'}
+                        />
+                        <StatCard
+                            icon={<TrendingUp className="w-5 h-5" />}
+                            label="Promedio"
+                            value={`${data.advancedStats.averagePullsPerDay.toFixed(1)}/dia`}
+                            color="#3b82f6"
+                        />
+                    </div>
+                )}
+
+                {/* Showcase / Vitrina */}
+                {data.showcase && data.showcase.length > 0 && (
+                    <div className="bg-[#262626] rounded-2xl p-5 space-y-4">
+                        <h2 className="text-lg font-bold flex items-center gap-2"><Star className="w-5 h-5 text-yellow-400" /> Vitrina</h2>
+                        <div className="flex gap-4 overflow-x-auto pb-2">
+                            {data.showcase.sort((a, b) => a.position - b.position).map(card => {
+                                const rc = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
+                                return (
+                                    <div
+                                        key={card.itemId}
+                                        className="flex-shrink-0 w-40 rounded-xl overflow-hidden border-2 transition-all hover:scale-[1.03]"
+                                        style={{ borderColor: rc.border, boxShadow: `0 0 15px ${rc.color}40` }}
+                                    >
+                                        <div className="aspect-[3/4] relative" style={{ backgroundColor: rc.bg }}>
+                                            {card.image ? (
+                                                <img src={card.image} alt={card.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <Package className="w-12 h-12" style={{ color: rc.color, opacity: 0.2 }} />
+                                                </div>
+                                            )}
+                                            <div className="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold" style={{ backgroundColor: rc.color, color: '#fff' }}>
+                                                {rc.stars}
+                                            </div>
+                                        </div>
+                                        <div className="p-3 bg-[#1B1C1D] text-center">
+                                            <p className="text-sm font-bold text-white truncate">{card.name}</p>
+                                            <p className="text-[11px]" style={{ color: rc.color }}>{rc.label}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Progress bars */}
                 {data.progress.length > 0 && (
                     <div className="bg-[#262626] rounded-2xl p-5 space-y-3">
@@ -178,6 +248,43 @@ export default function GachaCollection() {
                                 </div>
                             );
                         })}
+                    </div>
+                )}
+
+                {/* Achievements / Logros */}
+                {data.achievements && data.achievements.length > 0 && (
+                    <div className="bg-[#262626] rounded-2xl p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-bold flex items-center gap-2"><Trophy className="w-5 h-5 text-yellow-400" /> Logros</h2>
+                            <span className="text-xs text-gray-400 font-bold">
+                                {data.achievements.filter(a => a.isUnlocked).length}/{data.achievements.length} desbloqueados
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                            {data.achievements.map(ach => {
+                                const badgeColor = RARITY_CONFIG[ach.badgeRarity]?.color || '#94a3b8';
+                                return (
+                                    <div
+                                        key={ach.code}
+                                        className="group relative flex flex-col items-center text-center p-3 rounded-xl border-2 transition-all"
+                                        style={{
+                                            borderColor: ach.isUnlocked ? badgeColor : '#374151',
+                                            backgroundColor: ach.isUnlocked ? `${badgeColor}10` : '#1B1C1D',
+                                            boxShadow: ach.isUnlocked ? `0 0 12px ${badgeColor}30` : 'none',
+                                            opacity: ach.isUnlocked ? 1 : 0.4,
+                                            filter: ach.isUnlocked ? 'none' : 'grayscale(1)',
+                                        }}
+                                    >
+                                        <span className="text-2xl mb-1">{ach.icon}</span>
+                                        <p className="text-[10px] font-bold text-white leading-tight">{ach.name}</p>
+                                        {/* Tooltip on hover */}
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-40 p-2 bg-black/90 rounded-lg text-[10px] text-gray-300 shadow-lg">
+                                            {ach.description}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
 
@@ -244,6 +351,39 @@ export default function GachaCollection() {
                         </div>
                     )}
                 </div>
+
+                {/* Wishlist / Lista de Deseos */}
+                {data.wishlist && data.wishlist.length > 0 && (
+                    <div className="bg-[#262626] rounded-2xl p-5 space-y-3">
+                        <h2 className="text-lg font-bold flex items-center gap-2"><Heart className="w-5 h-5 text-pink-400" /> Lista de Deseos</h2>
+                        <div className="flex gap-3 overflow-x-auto pb-2">
+                            {data.wishlist.map(card => {
+                                const rc = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
+                                return (
+                                    <div
+                                        key={card.itemId}
+                                        className="flex-shrink-0 w-24 rounded-lg overflow-hidden border-2"
+                                        style={{ borderColor: rc.border }}
+                                    >
+                                        <div className="aspect-square relative" style={{ backgroundColor: rc.bg }}>
+                                            {card.image ? (
+                                                <img src={card.image} alt={card.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <Package className="w-6 h-6" style={{ color: rc.color, opacity: 0.2 }} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="p-1.5 bg-[#1B1C1D] text-center">
+                                            <p className="text-[9px] font-bold text-white truncate">{card.name}</p>
+                                            <p className="text-[8px]" style={{ color: rc.color }}>{rc.label}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* History */}
                 {data.history.length > 0 && (
