@@ -1184,23 +1184,36 @@ Cuando alguien va a `/u/{username}`:
 - [ ] `/me/progression` — Proximamente
 - [x] `/me/account` — Redirige a /settings (vincular cuentas está en Settings)
 
-### Fase 5I: Rank Card Editor (Streamer)
-> Editor visual 100% libre drag & drop en el dashboard
+### Fase 5I: Rank Card Editor — Card Base del Servidor (Streamer)
+> Editor visual drag & drop para la rank card base del servidor
 
-- [ ] Tab Rank Card en `/discord/levels` — reemplazar PlaceholderTab
-- [ ] Canvas HTML con elementos draggables (avatar, nombre, nivel, barra, stats, badges)
-- [ ] Cada elemento: posición X/Y, tamaño, color, fuente, visibilidad, z-index
-- [ ] Fondo: color sólido, gradiente, imagen (upload + templates base)
-- [ ] Marco: selección de templates
-- [ ] Preview en tiempo real (Canvas HTML, se actualiza al mover elementos)
-- [ ] Botón "Preview real" → POST al backend → genera imagen con ImageSharp → muestra
-- [ ] Guardar config como JSON en tabla rank_card_configs
+- [x] Tabla BD: rank_card_configs (guild_id, config_json, background_url, template_id)
+- [x] Tab Rank Card en `/discord/levels` — reemplazar PlaceholderTab
+- [x] Canvas HTML 1400x400 con elementos draggables (avatar, nombre, nivel, barra, stats)
+- [x] Cada elemento: posición X/Y, tamaño, color, fuente, visibilidad, z-index
+- [x] Panel de propiedades por elemento seleccionado
+- [x] 4 templates base (Clasico, Neon, Minimal, Gaming)
+- [x] Preview en tiempo real con datos de ejemplo
+- [x] Guardar config como JSON
+- [x] API: GET/PUT rankcard config, GET templates
+- [ ] Fondo: imagen upload (como /discord/welcome)
+- [ ] Quitar scroll feo del editor — layout sin overflow
+- [ ] Botón "Preview real" → POST al backend → genera imagen con ImageSharp
 - [ ] RankCardGenerator v2: leer config JSON → renderizar con ImageSharp dinámicamente
-- [ ] Templates base (3-4 prediseñados) como punto de partida
-- [ ] Tabla BD: rank_card_configs (guild_id, config_json, background_url)
 
-### Fase 5J: Rank Card Marketplace
-> Items cosméticos comprables con DecaCoins
+### Fase 5I-B: Cards por Rango/Nivel (Streamer)
+> El streamer puede crear cards diferentes por rango de nivel
+
+- [ ] Tabla BD: rank_card_level_configs (guild_id, level_min, level_max, config_json, etc.)
+- [ ] El streamer elige: card base para todos O cards específicas por rango
+- [ ] Opción A: crear una card por cada rol de XP (12 roles = 12 cards posibles)
+- [ ] Opción B: crear cards solo para los rangos que quiera (los demás usan la base)
+- [ ] UI: selector de rango en el editor → "Diseñar card para Newcomer (1-4)" etc.
+- [ ] La card por rango puede sobreescribir todo el diseño o solo partes (colores, fondo)
+- [ ] Al generar la card de un usuario, buscar: card del rango > card base > default
+
+### Fase 5J: Rank Card Marketplace (Items Cosméticos)
+> Items que TÚ creas como admin y se venden con DecaCoins
 
 - [ ] Tablas BD: marketplace_items, user_marketplace_items
 - [ ] MarketplaceService: catálogo, comprar, equipar, inventario

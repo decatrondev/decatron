@@ -2,6 +2,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Decatron.Discord.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Decatron.Discord.Events;
@@ -11,20 +12,20 @@ public class MessageXpHandler
     private readonly DiscordClientProvider _clientProvider;
     private readonly XpService _xpService;
     private readonly XpRoleService _xpRoleService;
-    private readonly RankCardGenerator _rankCardGenerator;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MessageXpHandler> _logger;
 
     public MessageXpHandler(
         DiscordClientProvider clientProvider,
         XpService xpService,
         XpRoleService xpRoleService,
-        RankCardGenerator rankCardGenerator,
+        IServiceProvider serviceProvider,
         ILogger<MessageXpHandler> logger)
     {
         _clientProvider = clientProvider;
         _xpService = xpService;
         _xpRoleService = xpRoleService;
-        _rankCardGenerator = rankCardGenerator;
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
@@ -112,8 +113,10 @@ public class MessageXpHandler
             var difficulty = 1.0; // TODO: pull from config
             var requiredXp = XpService.CalculateRequiredXp(userXp.Level + 1, difficulty);
 
-            // Generate rank card
-            var cardStream = await _rankCardGenerator.GenerateAsync(
+            // Generate rank card (resolve from scope since it needs DbContext)
+            using var scope = _serviceProvider.CreateScope();
+            var rankCardGen = scope.ServiceProvider.GetRequiredService<RankCardGenerator>();
+            var cardStream = await rankCardGen.GenerateAsync(
                 username: userXp.Username,
                 avatarUrl: userXp.AvatarUrl,
                 level: userXp.Level,
@@ -121,7 +124,10 @@ public class MessageXpHandler
                 requiredXp: requiredXp,
                 rank: rank,
                 totalUsers: totalUsers,
-                tier: null);
+                tier: null,
+                guildId: guildId);
+
+            _logger.LogInformation("Level-up card generated for {User}: {HasStream}", userXp.Username, cardStream != null);
 
             if (cardStream != null)
             {
@@ -134,6 +140,7 @@ public class MessageXpHandler
             }
             else
             {
+                _logger.LogWarning("Card stream was null for {User}, using fallback embed", userXp.Username);
                 // Fallback: simple embed
                 var embed = new DiscordEmbedBuilder()
                     .WithTitle($"⬆️ Level Up!")

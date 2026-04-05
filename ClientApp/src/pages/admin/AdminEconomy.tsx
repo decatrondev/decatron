@@ -225,19 +225,60 @@ function PackagesTab() {
 
 function DiscountsTab() {
     const [codes, setCodes] = useState<any[]>([]);
+    const [packages, setPackages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [modal, setModal] = useState<{ mode: 'create' | 'edit'; data: any } | null>(null);
     const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [userSearch, setUserSearch] = useState('');
+    const [userSuggestions, setUserSuggestions] = useState<any[]>([]);
+    const [showUserSuggestions, setShowUserSuggestions] = useState(false);
+    const [searchTimeout, setSearchTimeout] = useState<any>(null);
 
     const load = useCallback(() => {
         setLoading(true);
-        api.get('/admin/coins/discounts').then(r => { setCodes(r.data); setLoading(false); }).catch(() => setLoading(false));
+        Promise.all([
+            api.get('/admin/coins/discounts'),
+            api.get('/admin/coins/packages'),
+        ]).then(([discRes, pkgRes]) => {
+            setCodes(discRes.data);
+            setPackages(Array.isArray(pkgRes.data) ? pkgRes.data : []);
+            setLoading(false);
+        }).catch(() => setLoading(false));
     }, []);
 
     useEffect(() => { load(); }, [load]);
 
+    const generateCode = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+        return code;
+    };
+
     const handleSave = async () => {
         if (!modal) return;
+        setSaveError(null);
+
+        // Validations
+        if (!modal.data.code || modal.data.code.trim().length < 3) {
+            setSaveError('El codigo debe tener al menos 3 caracteres');
+            return;
+        }
+        if (modal.data.discountValue <= 0) {
+            setSaveError('El valor debe ser mayor a 0');
+            return;
+        }
+        if (modal.data.discountType === 'percentage' && modal.data.discountValue > 100) {
+            setSaveError('El porcentaje no puede ser mayor a 100%');
+            return;
+        }
+        // Check duplicate code on create
+        if (modal.mode === 'create' && codes.some(c => c.code === modal.data.code)) {
+            setSaveError('Este codigo ya existe');
+            return;
+        }
+
         setSaving(true);
         try {
             if (modal.mode === 'create') {
@@ -248,7 +289,7 @@ function DiscountsTab() {
             setModal(null);
             load();
         } catch (e: any) {
-            alert(e.response?.data?.error || 'Error al guardar');
+            setSaveError(e.response?.data?.error || 'Error al guardar');
         }
         setSaving(false);
     };
@@ -261,11 +302,39 @@ function DiscountsTab() {
         } catch { /* ignore */ }
     };
 
+    const handleUserSearch = (value: string) => {
+        setUserSearch(value);
+        if (searchTimeout) clearTimeout(searchTimeout);
+        if (value.length < 2) { setUserSuggestions([]); setShowUserSuggestions(false); return; }
+        const timeout = setTimeout(async () => {
+            try {
+                const res = await api.get(`/coins/search-users?q=${encodeURIComponent(value)}`);
+                setUserSuggestions(Array.isArray(res.data) ? res.data : []);
+                setShowUserSuggestions(true);
+            } catch { setUserSuggestions([]); }
+        }, 300);
+        setSearchTimeout(timeout);
+    };
+
     if (loading) return <LoadingSpinner />;
 
     const emptyCode = { code: '', discountType: 'percentage', discountValue: 0, assignedUserId: null, maxUses: null, maxUsesPerUser: 1, minPurchaseUsd: 0, applicablePackageId: null, combinableWithFirstPurchase: true, startsAt: null, expiresAt: null };
 
     const discountTypeLabel: Record<string, string> = { percentage: 'Porcentaje', fixed_amount: 'Monto fijo', bonus_coins: 'Bonus coins' };
+    const discountTypeBadge: Record<string, string> = {
+        percentage: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+        fixed_amount: 'bg-green-500/20 text-green-400 border-green-500/30',
+        bonus_coins: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    };
+
+    const getStatus = (c: any): { label: string; color: string } => {
+        if (!c.enabled) return { label: 'Deshabilitado', color: 'bg-gray-500/10 text-gray-400 border-gray-500/30' };
+        const now = new Date();
+        if (c.startsAt && new Date(c.startsAt) > now) return { label: 'Programado', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' };
+        if (c.expiresAt && new Date(c.expiresAt) < now) return { label: 'Expirado', color: 'bg-red-500/10 text-red-400 border-red-500/30' };
+        if (c.maxUses && c.totalUses >= c.maxUses) return { label: 'Agotado', color: 'bg-orange-500/10 text-orange-400 border-orange-500/30' };
+        return { label: 'Activo', color: 'bg-green-500/10 text-green-400 border-green-500/30' };
+    };
 
     return (
         <div className="space-y-4">
@@ -284,51 +353,98 @@ function DiscountsTab() {
                                 <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Tipo</th>
                                 <th className="text-right px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Valor</th>
                                 <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Usos</th>
-                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Expira</th>
+                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Vigencia</th>
+                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Asignado</th>
+                                <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Paquete</th>
                                 <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
                                 <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {codes.map(c => (
+                            {codes.map(c => {
+                                const status = getStatus(c);
+                                const pkg = c.applicablePackageId ? packages.find((p: any) => p.id === c.applicablePackageId) : null;
+                                return (
                                 <tr key={c.id} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-0 hover:bg-[#f8fafc] dark:hover:bg-[#374151]/30">
                                     <td className="px-4 py-3 font-mono font-bold text-[#1e293b] dark:text-[#f8fafc]">{c.code}</td>
-                                    <td className="px-4 py-3 text-[#64748b]">{discountTypeLabel[c.discountType] || c.discountType}</td>
+                                    <td className="px-4 py-3">
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-full border ${discountTypeBadge[c.discountType] || ''}`}>
+                                            {discountTypeLabel[c.discountType] || c.discountType}
+                                        </span>
+                                    </td>
                                     <td className="px-4 py-3 text-right text-amber-500 font-bold">
-                                        {c.discountType === 'percentage' ? `${c.discountValue}%` : c.discountType === 'bonus_coins' ? `+${c.discountValue}` : `$${c.discountValue}`}
+                                        {c.discountType === 'percentage' ? `${c.discountValue}%` : c.discountType === 'bonus_coins' ? `+${c.discountValue} coins` : `$${c.discountValue}`}
                                     </td>
-                                    <td className="px-4 py-3 text-center text-[#64748b]">{c.totalUses}/{c.maxUses ?? '∞'}</td>
-                                    <td className="px-4 py-3 text-[#64748b] text-xs">{c.expiresAt ? formatDate(c.expiresAt) : 'Sin limite'}</td>
                                     <td className="px-4 py-3 text-center">
-                                        {c.enabled
-                                            ? <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-full">Activo</span>
-                                            : <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-1 rounded-full">Inactivo</span>}
+                                        <span className="text-[#64748b]">{c.totalUses ?? c.currentUses ?? 0}</span>
+                                        <span className="text-[#94a3b8]">/{c.maxUses ?? '∞'}</span>
                                     </td>
-                                    <td className="px-4 py-3 text-center flex items-center justify-center gap-1">
-                                        <button onClick={() => setModal({ mode: 'edit', data: { ...c } })} className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
-                                            <Pencil className="w-4 h-4 text-[#64748b]" />
-                                        </button>
-                                        {c.enabled && (
-                                            <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg transition-colors">
-                                                <Trash2 className="w-4 h-4 text-red-400" />
+                                    <td className="px-4 py-3 text-xs text-[#64748b]">
+                                        {c.startsAt && <div>Desde: {formatDate(c.startsAt)}</div>}
+                                        {c.expiresAt ? <div>Hasta: {formatDate(c.expiresAt)}</div> : <span>Sin limite</span>}
+                                    </td>
+                                    <td className="px-4 py-3 text-xs text-[#64748b]">
+                                        {c.assignedUserId ? `Usuario #${c.assignedUserId}` : 'Publico'}
+                                    </td>
+                                    <td className="px-4 py-3 text-xs text-[#64748b]">
+                                        {pkg ? pkg.name : c.applicablePackageId ? `#${c.applicablePackageId}` : 'Todos'}
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-full border ${status.color}`}>{status.label}</span>
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <div className="flex items-center justify-center gap-1">
+                                            <button onClick={() => { setModal({ mode: 'edit', data: { ...c } }); setSaveError(null); setUserSearch(''); }} className="p-1.5 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] rounded-lg transition-colors">
+                                                <Pencil className="w-4 h-4 text-[#64748b]" />
                                             </button>
-                                        )}
+                                            {c.enabled && (
+                                                <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-500/10 rounded-lg transition-colors">
+                                                    <Trash2 className="w-4 h-4 text-red-400" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                             {codes.length === 0 && (
-                                <tr><td colSpan={7} className="px-4 py-8 text-center text-[#64748b]">No hay cupones</td></tr>
+                                <tr><td colSpan={9} className="px-4 py-8 text-center text-[#64748b]">No hay cupones</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {/* Discount Modal */}
+            {/* Discount Modal — Full version */}
             {modal && (
-                <Modal title={modal.mode === 'create' ? 'Nuevo cupon' : 'Editar cupon'} onClose={() => setModal(null)}>
+                <Modal title={modal.mode === 'create' ? 'Nuevo cupon' : 'Editar cupon'} onClose={() => { setModal(null); setSaveError(null); }}>
                     <div className="space-y-4">
-                        <FormField label="Codigo" value={modal.data.code} onChange={v => setModal({ ...modal, data: { ...modal.data, code: v.toUpperCase() } })} />
+                        {saveError && (
+                            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 flex-shrink-0" /> {saveError}
+                            </div>
+                        )}
+
+                        {/* Code + Generate */}
+                        <div>
+                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Codigo</label>
+                            <div className="flex gap-2">
+                                <input
+                                    value={modal.data.code}
+                                    onChange={e => setModal({ ...modal, data: { ...modal.data, code: e.target.value.toUpperCase() } })}
+                                    placeholder="CODIGO"
+                                    className="flex-1 px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] font-mono"
+                                />
+                                <button
+                                    onClick={() => setModal({ ...modal, data: { ...modal.data, code: generateCode() } })}
+                                    className="px-3 py-2 bg-[#374151] hover:bg-[#475569] text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap"
+                                >
+                                    Generar
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Type + Value */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Tipo</label>
@@ -337,21 +453,125 @@ function DiscountsTab() {
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, discountType: e.target.value } })}
                                     className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
                                 >
-                                    <option value="percentage">Porcentaje</option>
-                                    <option value="fixed_amount">Monto fijo</option>
-                                    <option value="bonus_coins">Bonus coins</option>
+                                    <option value="percentage">Porcentaje (%)</option>
+                                    <option value="fixed_amount">Monto fijo ($)</option>
+                                    <option value="bonus_coins">Bonus coins (+coins)</option>
                                 </select>
                             </div>
-                            <FormField label="Valor" type="number" value={modal.data.discountValue} onChange={v => setModal({ ...modal, data: { ...modal.data, discountValue: parseFloat(v) || 0 } })} />
+                            <FormField
+                                label={modal.data.discountType === 'percentage' ? 'Porcentaje (%)' : modal.data.discountType === 'bonus_coins' ? 'Coins extra' : 'Monto USD ($)'}
+                                type="number"
+                                value={modal.data.discountValue}
+                                onChange={v => setModal({ ...modal, data: { ...modal.data, discountValue: parseFloat(v) || 0 } })}
+                            />
                         </div>
+
+                        {/* Max uses */}
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField label="Max usos (vacio = ilimitado)" type="number" value={modal.data.maxUses ?? ''} onChange={v => setModal({ ...modal, data: { ...modal.data, maxUses: v ? parseInt(v) : null } })} />
+                            <FormField label="Max usos total (vacio = ilimitado)" type="number" value={modal.data.maxUses ?? ''} onChange={v => setModal({ ...modal, data: { ...modal.data, maxUses: v ? parseInt(v) : null } })} />
                             <FormField label="Max usos por usuario" type="number" value={modal.data.maxUsesPerUser} onChange={v => setModal({ ...modal, data: { ...modal.data, maxUsesPerUser: parseInt(v) || 1 } })} />
                         </div>
-                        <FormField label="Compra minima USD" type="number" value={modal.data.minPurchaseUsd} onChange={v => setModal({ ...modal, data: { ...modal.data, minPurchaseUsd: parseFloat(v) || 0 } })} />
-                        <FormCheckbox label="Combinable con primera compra" checked={modal.data.combinableWithFirstPurchase} onChange={v => setModal({ ...modal, data: { ...modal.data, combinableWithFirstPurchase: v } })} />
-                        <div className="flex justify-end gap-3 pt-4">
-                            <button onClick={() => setModal(null)} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] rounded-lg text-sm font-bold">Cancelar</button>
+
+                        {/* Dates */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Fecha inicio (opcional)</label>
+                                <input
+                                    type="datetime-local"
+                                    value={modal.data.startsAt ? new Date(modal.data.startsAt).toISOString().slice(0, 16) : ''}
+                                    onChange={e => setModal({ ...modal, data: { ...modal.data, startsAt: e.target.value || null } })}
+                                    className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Fecha expiracion (opcional)</label>
+                                <input
+                                    type="datetime-local"
+                                    value={modal.data.expiresAt ? new Date(modal.data.expiresAt).toISOString().slice(0, 16) : ''}
+                                    onChange={e => setModal({ ...modal, data: { ...modal.data, expiresAt: e.target.value || null } })}
+                                    className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Assigned user */}
+                        <div className="relative">
+                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Asignar a usuario (vacio = publico)</label>
+                            <div className="flex gap-2">
+                                <div className="flex-1 relative">
+                                    <input
+                                        value={userSearch || (modal.data.assignedUserId ? `Usuario #${modal.data.assignedUserId}` : '')}
+                                        onChange={e => { handleUserSearch(e.target.value); if (!e.target.value) setModal({ ...modal, data: { ...modal.data, assignedUserId: null } }); }}
+                                        onBlur={() => setTimeout(() => setShowUserSuggestions(false), 200)}
+                                        placeholder="Buscar usuario..."
+                                        className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                    />
+                                    {showUserSuggestions && userSuggestions.length > 0 && (
+                                        <div className="absolute z-50 top-full mt-1 w-full bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                                            {userSuggestions.map((u: any) => (
+                                                <button
+                                                    key={u.id}
+                                                    onClick={() => {
+                                                        setModal({ ...modal, data: { ...modal.data, assignedUserId: u.id } });
+                                                        setUserSearch(u.displayName || u.login);
+                                                        setShowUserSuggestions(false);
+                                                    }}
+                                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] text-left text-sm"
+                                                >
+                                                    <span className="font-medium text-[#1e293b] dark:text-white">{u.displayName || u.login}</span>
+                                                    <span className="text-xs text-[#64748b]">#{u.id}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                {modal.data.assignedUserId && (
+                                    <button onClick={() => { setModal({ ...modal, data: { ...modal.data, assignedUserId: null } }); setUserSearch(''); }} className="px-3 py-2 bg-red-500/10 text-red-400 rounded-xl text-xs font-bold">
+                                        Quitar
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Applicable package */}
+                        <div>
+                            <label className="block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase">Paquete aplicable</label>
+                            <select
+                                value={modal.data.applicablePackageId ?? ''}
+                                onChange={e => setModal({ ...modal, data: { ...modal.data, applicablePackageId: e.target.value ? parseInt(e.target.value) : null } })}
+                                className="w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                            >
+                                <option value="">Todos los paquetes</option>
+                                {packages.map((p: any) => (
+                                    <option key={p.id} value={p.id}>{p.name} — {p.coins} coins (${p.priceUsd})</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Min purchase */}
+                        <FormField label="Compra minima USD (0 = sin minimo)" type="number" value={modal.data.minPurchaseUsd} onChange={v => setModal({ ...modal, data: { ...modal.data, minPurchaseUsd: parseFloat(v) || 0 } })} />
+
+                        {/* Combinable */}
+                        <FormCheckbox label="Combinable con bonus de primera compra" checked={modal.data.combinableWithFirstPurchase} onChange={v => setModal({ ...modal, data: { ...modal.data, combinableWithFirstPurchase: v } })} />
+
+                        {/* Preview */}
+                        <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-xs text-[#64748b]">
+                            <p className="font-bold mb-1">Vista previa:</p>
+                            <p>
+                                Codigo: <span className="font-mono text-[#1e293b] dark:text-white">{modal.data.code || '---'}</span>
+                                {' · '}
+                                {modal.data.discountType === 'percentage' && `${modal.data.discountValue}% de descuento`}
+                                {modal.data.discountType === 'fixed_amount' && `$${modal.data.discountValue} de descuento`}
+                                {modal.data.discountType === 'bonus_coins' && `+${modal.data.discountValue} coins extra`}
+                                {' · '}
+                                {modal.data.assignedUserId ? 'Privado' : 'Publico'}
+                                {' · '}
+                                {modal.data.applicablePackageId ? `Solo paquete #${modal.data.applicablePackageId}` : 'Todos los paquetes'}
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-2">
+                            <button onClick={() => { setModal(null); setSaveError(null); }} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] rounded-lg text-sm font-bold">Cancelar</button>
                             <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>

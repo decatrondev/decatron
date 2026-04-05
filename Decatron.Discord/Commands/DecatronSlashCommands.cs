@@ -381,7 +381,8 @@ public class DecatronSlashCommands
         var userId = user.Id.ToString();
 
         var xpService = _serviceProvider.GetRequiredService<Services.XpService>();
-        var rankCardGen = _serviceProvider.GetRequiredService<RankCardGenerator>();
+        using var scope = _serviceProvider.CreateScope();
+        var rankCardGen = scope.ServiceProvider.GetRequiredService<RankCardGenerator>();
 
         var userXp = await xpService.GetUserXpAsync(guildId, userId);
 
@@ -410,7 +411,8 @@ public class DecatronSlashCommands
             requiredXp: requiredXp,
             rank: rank,
             totalUsers: totalUsers,
-            tier: null);
+            tier: null,
+            guildId: guildId);
 
         if (cardStream != null)
         {
@@ -566,13 +568,51 @@ public class DecatronSlashCommands
 
         var (userXp, newAchievements) = await xpService.GiveXpAsync(guildId, target.Id.ToString(), target.Username, amount);
 
-        // Assign roles if leveled up
+        // Assign roles + send level-up notification if leveled up
         if (userXp.Level > oldLevel)
         {
             try
             {
                 var member = await interaction.Guild.GetMemberAsync(target.Id);
                 await roleService.AssignRolesForLevelAsync(interaction.Guild, member, userXp.Level);
+            }
+            catch { }
+
+            // Send level-up card notification
+            try
+            {
+                var config = await xpService.GetOrCreateConfigAsync(guildId);
+                DiscordChannel? targetChannel = null;
+                if (!string.IsNullOrEmpty(config.LevelupChannelId) && ulong.TryParse(config.LevelupChannelId, out var chId))
+                {
+                    try { targetChannel = interaction.Guild.GetChannel(chId); } catch { }
+                }
+                targetChannel ??= interaction.Channel;
+
+                var rank = await xpService.GetUserRankAsync(guildId, target.Id.ToString());
+                var totalUsers = await xpService.GetTotalUsersAsync(guildId);
+                var requiredXp = XpService.CalculateRequiredXp(userXp.Level + 1);
+
+                using var scope = _serviceProvider.CreateScope();
+                var rankCardGen = scope.ServiceProvider.GetRequiredService<RankCardGenerator>();
+                var cardStream = await rankCardGen.GenerateAsync(
+                    username: userXp.Username,
+                    avatarUrl: target.GetAvatarUrl(DSharpPlus.ImageFormat.Png, 256),
+                    level: userXp.Level,
+                    currentXp: userXp.Xp,
+                    requiredXp: requiredXp,
+                    rank: rank,
+                    totalUsers: totalUsers,
+                    tier: null,
+                    guildId: guildId);
+
+                if (cardStream != null)
+                {
+                    await targetChannel.SendMessageAsync(new DiscordMessageBuilder()
+                        .WithContent($"🎉 **{target.Mention} subio a nivel {userXp.Level}!**")
+                        .AddFile("rank-card.png", cardStream));
+                    cardStream.Dispose();
+                }
             }
             catch { }
         }

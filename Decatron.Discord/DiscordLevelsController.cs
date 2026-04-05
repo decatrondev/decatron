@@ -598,7 +598,8 @@ public class DiscordLevelsController : ControllerBase
                             requiredXp: requiredXp,
                             rank: rank,
                             totalUsers: totalUsers,
-                            tier: null);
+                            tier: null,
+                            guildId: guildId);
 
                         if (cardStream != null)
                         {
@@ -657,7 +658,8 @@ public class DiscordLevelsController : ControllerBase
                 requiredXp: 12100,
                 rank: 1,
                 totalUsers: 42,
-                tier: null);
+                tier: null,
+                guildId: guildId);
 
             if (cardStream != null)
             {
@@ -1177,5 +1179,230 @@ public class DiscordLevelsController : ControllerBase
             .Where(p => p.GuildId == guildId && p.UserId == userId)
             .ExecuteDeleteAsync();
         return Ok(new { success = true, deleted = count });
+    }
+
+    // ============================================
+    // RANK CARD CONFIG
+    // ============================================
+
+    /// <summary>Get rank card config for a guild</summary>
+    [HttpGet("{guildId}/rankcard")]
+    public async Task<IActionResult> GetRankCardConfig(string guildId)
+    {
+        var config = await _db.RankCardConfigs.FirstOrDefaultAsync(c => c.GuildId == guildId);
+        if (config == null)
+        {
+            return Ok(new { exists = false, config = GetDefaultCardConfig() });
+        }
+        return Ok(new { exists = true, config = new {
+            id = config.Id,
+            guildId = config.GuildId,
+            configJson = config.ConfigJson,
+            backgroundUrl = config.BackgroundUrl,
+            templateId = config.TemplateId,
+            width = config.Width,
+            height = config.Height,
+        }});
+    }
+
+    /// <summary>Save rank card config for a guild</summary>
+    [HttpPut("{guildId}/rankcard")]
+    public async Task<IActionResult> SaveRankCardConfig(string guildId, [FromBody] RankCardConfigRequest req)
+    {
+        var config = await _db.RankCardConfigs.FirstOrDefaultAsync(c => c.GuildId == guildId);
+        if (config == null)
+        {
+            config = new RankCardConfig
+            {
+                GuildId = guildId,
+                ConfigJson = req.ConfigJson,
+                BackgroundUrl = req.BackgroundUrl,
+                TemplateId = req.TemplateId ?? "default",
+                Width = req.Width > 0 ? req.Width : 1400,
+                Height = req.Height > 0 ? req.Height : 400,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            _db.RankCardConfigs.Add(config);
+        }
+        else
+        {
+            config.ConfigJson = req.ConfigJson;
+            config.BackgroundUrl = req.BackgroundUrl;
+            config.TemplateId = req.TemplateId ?? config.TemplateId;
+            if (req.Width > 0) config.Width = req.Width;
+            if (req.Height > 0) config.Height = req.Height;
+            config.UpdatedAt = DateTime.UtcNow;
+        }
+        await _db.SaveChangesAsync();
+        return Ok(new { success = true });
+    }
+
+    /// <summary>Get rank card config for a specific level range</summary>
+    [HttpGet("{guildId}/rankcard/level/{levelMin}")]
+    public async Task<IActionResult> GetRankCardLevelConfig(string guildId, int levelMin)
+    {
+        var config = await _db.RankCardLevelConfigs.FirstOrDefaultAsync(c => c.GuildId == guildId && c.LevelMin == levelMin);
+        if (config == null)
+            return Ok(new { exists = false, config = GetDefaultCardConfig() });
+
+        return Ok(new { exists = true, config = new {
+            id = config.Id,
+            guildId = config.GuildId,
+            levelMin = config.LevelMin,
+            levelMax = config.LevelMax,
+            configJson = config.ConfigJson,
+            backgroundUrl = config.BackgroundUrl,
+            templateId = config.TemplateId,
+        }});
+    }
+
+    /// <summary>Save rank card config for a specific level range</summary>
+    [HttpPut("{guildId}/rankcard/level/{levelMin}")]
+    public async Task<IActionResult> SaveRankCardLevelConfig(string guildId, int levelMin, [FromBody] RankCardLevelConfigRequest req)
+    {
+        var config = await _db.RankCardLevelConfigs.FirstOrDefaultAsync(c => c.GuildId == guildId && c.LevelMin == levelMin);
+        if (config == null)
+        {
+            config = new RankCardLevelConfig
+            {
+                GuildId = guildId,
+                LevelMin = levelMin,
+                LevelMax = req.LevelMax,
+                ConfigJson = req.ConfigJson,
+                BackgroundUrl = req.BackgroundUrl,
+                TemplateId = req.TemplateId ?? "default",
+                Enabled = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+            _db.RankCardLevelConfigs.Add(config);
+        }
+        else
+        {
+            config.LevelMax = req.LevelMax;
+            config.ConfigJson = req.ConfigJson;
+            config.BackgroundUrl = req.BackgroundUrl;
+            config.TemplateId = req.TemplateId ?? config.TemplateId;
+            config.UpdatedAt = DateTime.UtcNow;
+        }
+        await _db.SaveChangesAsync();
+        return Ok(new { success = true });
+    }
+
+    /// <summary>Delete rank card config for a specific level range</summary>
+    [HttpDelete("{guildId}/rankcard/level/{levelMin}")]
+    public async Task<IActionResult> DeleteRankCardLevelConfig(string guildId, int levelMin)
+    {
+        var count = await _db.RankCardLevelConfigs
+            .Where(c => c.GuildId == guildId && c.LevelMin == levelMin)
+            .ExecuteDeleteAsync();
+        return Ok(new { success = true, deleted = count });
+    }
+
+    /// <summary>List all level-specific rank card configs for a guild</summary>
+    [HttpGet("{guildId}/rankcard/levels")]
+    public async Task<IActionResult> GetRankCardLevelConfigs(string guildId)
+    {
+        var configs = await _db.RankCardLevelConfigs
+            .Where(c => c.GuildId == guildId)
+            .OrderBy(c => c.LevelMin)
+            .Select(c => new { c.Id, c.LevelMin, c.LevelMax, c.TemplateId, c.Enabled })
+            .ToListAsync();
+        return Ok(configs);
+    }
+
+    /// <summary>Get available rank card templates</summary>
+    [HttpGet("rankcard/templates")]
+    public IActionResult GetRankCardTemplates()
+    {
+        return Ok(RankCardTemplates.GetAll());
+    }
+
+    private static object GetDefaultCardConfig()
+    {
+        return new
+        {
+            configJson = JsonSerializer.Serialize(RankCardTemplates.GetDefaultElements()),
+            backgroundUrl = (string?)null,
+            templateId = "default",
+            width = 1400,
+            height = 400,
+        };
+    }
+}
+
+public class RankCardConfigRequest
+{
+    public string ConfigJson { get; set; } = "{}";
+    public string? BackgroundUrl { get; set; }
+    public string? TemplateId { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+}
+
+public class RankCardLevelConfigRequest
+{
+    public string ConfigJson { get; set; } = "{}";
+    public string? BackgroundUrl { get; set; }
+    public string? TemplateId { get; set; }
+    public int? LevelMax { get; set; }
+}
+
+/// <summary>
+/// Predefined rank card templates with element positions
+/// </summary>
+public static class RankCardTemplates
+{
+    public static List<object> GetAll()
+    {
+        return new List<object>
+        {
+            new { id = "default", name = "Clasico", description = "Diseño limpio con fondo oscuro", preview = "/images/templates/default.png",
+                  bgColor = "#1a1b1e", bgGradient = "linear-gradient(135deg, #1a1b1e, #2d2f36)" },
+            new { id = "neon", name = "Neon", description = "Colores vibrantes con efecto neon", preview = "/images/templates/neon.png",
+                  bgColor = "#0a0a1a", bgGradient = "linear-gradient(135deg, #0a0a1a, #1a0a2e)" },
+            new { id = "minimal", name = "Minimal", description = "Diseño minimalista y elegante", preview = "/images/templates/minimal.png",
+                  bgColor = "#ffffff", bgGradient = "linear-gradient(135deg, #f8fafc, #e2e8f0)" },
+            new { id = "gaming", name = "Gaming", description = "Estilo gamer con colores fuertes", preview = "/images/templates/gaming.png",
+                  bgColor = "#0f0f1a", bgGradient = "linear-gradient(135deg, #0f0f1a, #1a0520)" },
+        };
+    }
+
+    public static object GetDefaultElements()
+    {
+        return new
+        {
+            elements = new object[]
+            {
+                new { id = "avatar", type = "avatar", x = 60, y = 60, width = 280, height = 280, visible = true, zIndex = 10,
+                      shape = "circle", borderColor = "#2563eb", borderWidth = 4 },
+                new { id = "username", type = "text", x = 400, y = 80, width = 600, height = 50, visible = true, zIndex = 10,
+                      text = "{username}", fontSize = 36, fontWeight = "bold", color = "#ffffff", textAlign = "left" },
+                new { id = "level", type = "text", x = 1100, y = 80, width = 250, height = 50, visible = true, zIndex = 10,
+                      text = "LVL {level}", fontSize = 40, fontWeight = "bold", color = "#2563eb", textAlign = "right" },
+                new { id = "rank", type = "text", x = 400, y = 140, width = 300, height = 30, visible = true, zIndex = 10,
+                      text = "#{rank} / {total_users}", fontSize = 18, fontWeight = "normal", color = "#94a3b8", textAlign = "left" },
+                new { id = "xp_bar", type = "progress_bar", x = 400, y = 200, width = 950, height = 30, visible = true, zIndex = 10,
+                      barBgColor = "#374151", barFillColor = "#2563eb", barBorderRadius = 15 },
+                new { id = "xp_text", type = "text", x = 400, y = 210, width = 950, height = 20, visible = true, zIndex = 11,
+                      text = "{current_xp} / {required_xp} XP", fontSize = 14, fontWeight = "bold", color = "#ffffff", textAlign = "center" },
+                new { id = "total_xp", type = "text", x = 400, y = 270, width = 300, height = 40, visible = true, zIndex = 10,
+                      text = "TOTAL XP", fontSize = 12, fontWeight = "normal", color = "#94a3b8", textAlign = "left" },
+                new { id = "total_xp_value", type = "text", x = 400, y = 290, width = 300, height = 40, visible = true, zIndex = 10,
+                      text = "{total_xp}", fontSize = 20, fontWeight = "bold", color = "#ffffff", textAlign = "left" },
+                new { id = "progress_pct", type = "text", x = 700, y = 270, width = 300, height = 40, visible = true, zIndex = 10,
+                      text = "PROGRESO", fontSize = 12, fontWeight = "normal", color = "#94a3b8", textAlign = "left" },
+                new { id = "progress_pct_value", type = "text", x = 700, y = 290, width = 300, height = 40, visible = true, zIndex = 10,
+                      text = "{progress}%", fontSize = 20, fontWeight = "bold", color = "#22c55e", textAlign = "left" },
+                new { id = "next_level", type = "text", x = 1000, y = 270, width = 350, height = 40, visible = true, zIndex = 10,
+                      text = "SIGUIENTE", fontSize = 12, fontWeight = "normal", color = "#94a3b8", textAlign = "left" },
+                new { id = "next_level_value", type = "text", x = 1000, y = 290, width = 350, height = 40, visible = true, zIndex = 10,
+                      text = "{remaining_xp} XP", fontSize = 20, fontWeight = "bold", color = "#ffffff", textAlign = "left" },
+                new { id = "footer", type = "text", x = 0, y = 375, width = 1400, height = 25, visible = true, zIndex = 10,
+                      text = "Decatron Bot • twitch.decatron.net", fontSize = 12, fontWeight = "normal", color = "#64748b", textAlign = "center" },
+            },
+            background = new { type = "gradient", color = "#1a1b1e", gradient = "linear-gradient(135deg, #1a1b1e, #2d2f36)" },
+        };
     }
 }

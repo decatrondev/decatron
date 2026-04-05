@@ -15,6 +15,7 @@ import SeasonalTab from './levels-extension/components/tabs/SeasonalTab';
 import LevelsTab from './levels-extension/components/tabs/LevelsTab';
 import StoreTab from './levels-extension/components/tabs/StoreTab';
 import PlaceholderTab from './levels-extension/components/tabs/PlaceholderTab';
+import RankCardTab from './levels-extension/components/tabs/RankCardTab';
 
 export default function DiscordLevels() {
   const navigate = useNavigate();
@@ -367,7 +368,7 @@ export default function DiscordLevels() {
                     <SeasonalTab guildId={selectedGuild.guildId} />
                   )}
                   {activeTab === 'rankcard' && (
-                    <PlaceholderTab icon="🎨" title="Rank Card" description="Personaliza la tarjeta de nivel con fondo custom, colores y elementos visuales" />
+                    <RankCardTab guildId={selectedGuild.guildId} />
                   )}
                 </div>
               </div>
