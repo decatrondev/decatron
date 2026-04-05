@@ -53,19 +53,22 @@ namespace Decatron.Services
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly TimerEventService _timerEventService;
         private readonly ITtsService _ttsService;
+        private readonly IGachaService _gachaService;
 
         public TipsService(
             DecatronDbContext context,
             ILogger<TipsService> logger,
             OverlayNotificationService overlayNotificationService,
             TimerEventService timerEventService,
-            ITtsService ttsService)
+            ITtsService ttsService,
+            IGachaService gachaService)
         {
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
             _timerEventService = timerEventService;
             _ttsService = ttsService;
+            _gachaService = gachaService;
         }
 
         public async Task<TipsConfig?> GetConfig(long userId)
@@ -256,6 +259,16 @@ namespace Decatron.Services
                         _logger.LogError(ex, "[Tips] Error adding time to timer in Independent Mode");
                     }
                 }
+            }
+
+            // Gacha integration: auto-convert tip to pulls
+            try
+            {
+                await _gachaService.ProcessTipDonationAsync(channelName, donorName, amount, currency);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[Tips] Error processing gacha integration for tip");
             }
 
             return tip;

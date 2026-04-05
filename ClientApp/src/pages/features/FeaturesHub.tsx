@@ -1,4 +1,4 @@
-import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings } from 'lucide-react';
+import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 
@@ -57,6 +57,13 @@ export default function FeaturesHub() {
             description: 'Recibe donaciones de tu comunidad via PayPal',
             icon: <DollarSign className="w-6 h-6 text-[#2563eb]" />,
             route: '/features/tips'
+        },
+        {
+            id: 'gacha',
+            name: 'Gacha System',
+            description: 'Sistema de cartas coleccionables con donaciones y probabilidades',
+            icon: <Dices className="w-6 h-6 text-[#2563eb]" />,
+            route: '/features/gacha'
         },
         {
             id: 'decatron-ai',

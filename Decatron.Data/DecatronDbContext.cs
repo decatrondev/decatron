@@ -1,5 +1,6 @@
 ﻿using Decatron.Core.Models;
 using Decatron.Core.Models.Economy;
+using Decatron.Core.Models.Gacha;
 using Decatron.Core.Models.OAuth;
 using Decatron.Data.Encryption;
 using Decatron.Scripting.Models;
@@ -155,6 +156,21 @@ namespace Decatron.Data
         public DbSet<Decatron.Discord.Models.XpSeasonal> XpSeasonals { get; set; }
         public DbSet<Decatron.Discord.Models.XpStoreItem> XpStoreItems { get; set; }
         public DbSet<Decatron.Discord.Models.XpStorePurchase> XpStorePurchases { get; set; }
+        public DbSet<Decatron.Discord.Models.RankCardConfig> RankCardConfigs { get; set; }
+        public DbSet<Decatron.Discord.Models.RankCardLevelConfig> RankCardLevelConfigs { get; set; }
+
+        // Gacha System
+        public DbSet<GachaItem> GachaItems { get; set; }
+        public DbSet<GachaParticipant> GachaParticipants { get; set; }
+        public DbSet<GachaInventory> GachaInventories { get; set; }
+        public DbSet<GachaRarityConfig> GachaRarityConfigs { get; set; }
+        public DbSet<GachaItemRestriction> GachaItemRestrictions { get; set; }
+        public DbSet<GachaPreference> GachaPreferences { get; set; }
+        public DbSet<GachaRarityRestriction> GachaRarityRestrictions { get; set; }
+        public DbSet<GachaBanner> GachaBanners { get; set; }
+        public DbSet<GachaOverlayConfig> GachaOverlayConfigs { get; set; }
+        public DbSet<GachaPullLog> GachaPullLogs { get; set; }
+        public DbSet<GachaIntegrationConfig> GachaIntegrationConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -1482,6 +1498,81 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.ChangedAt).HasDatabaseName("idx_tier_history_date");
                 entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.ChangedByUser).WithMany().HasForeignKey(e => e.ChangedBy).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ========================================================================
+            // GACHA SYSTEM
+            // ========================================================================
+
+            modelBuilder.Entity<GachaItem>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_items_channel");
+                entity.HasIndex(e => new { e.ChannelName, e.Rarity }).HasDatabaseName("idx_gacha_items_channel_rarity");
+            });
+
+            modelBuilder.Entity<GachaParticipant>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_participants_channel");
+                entity.HasIndex(e => new { e.ChannelName, e.Name }).IsUnique().HasDatabaseName("uq_gacha_participant_channel_name");
+            });
+
+            modelBuilder.Entity<GachaInventory>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_inventory_channel");
+                entity.HasIndex(e => e.ParticipantId).HasDatabaseName("idx_gacha_inventory_participant");
+                entity.HasIndex(e => e.ItemId).HasDatabaseName("idx_gacha_inventory_item");
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaRarityConfig>(entity =>
+            {
+                entity.HasIndex(e => new { e.ChannelName, e.Rarity }).IsUnique().HasDatabaseName("uq_gacha_rarity_channel");
+            });
+
+            modelBuilder.Entity<GachaItemRestriction>(entity =>
+            {
+                entity.HasIndex(e => new { e.ChannelName, e.ItemId }).IsUnique().HasDatabaseName("uq_gacha_restriction_channel_item");
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaPreference>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_preferences_channel");
+                entity.HasIndex(e => new { e.ChannelName, e.ItemId, e.ParticipantId }).IsUnique().HasDatabaseName("uq_gacha_preference_channel_item_participant");
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaRarityRestriction>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_rarity_restrictions_channel");
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaBanner>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_banners_channel");
+            });
+
+            modelBuilder.Entity<GachaOverlayConfig>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).IsUnique().HasDatabaseName("uq_gacha_overlay_channel");
+            });
+
+            modelBuilder.Entity<GachaPullLog>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_pull_logs_channel");
+                entity.HasIndex(e => e.ParticipantId).HasDatabaseName("idx_gacha_pull_logs_participant");
+                entity.HasIndex(e => e.OccurredAt).HasDatabaseName("idx_gacha_pull_logs_date");
+                entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<GachaIntegrationConfig>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).IsUnique().HasDatabaseName("uq_gacha_integration_channel");
             });
         }
     }

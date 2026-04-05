@@ -359,6 +359,23 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Notifica al overlay de gacha que hubo un pull
+        /// </summary>
+        public async Task SendGachaPullAsync(string channel, object pullResult)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"overlay_{channel}")
+                    .SendAsync("GachaPull", pullResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error enviando GachaPull a overlay_{channel}");
+            }
+        }
+
+        /// <summary>
         /// Envía un evento genérico al overlay del canal
         /// </summary>
         public async Task SendToChannel(string channel, string eventName, object data)

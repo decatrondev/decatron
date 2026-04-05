@@ -203,6 +203,7 @@ try
     builder.Services.AddScoped<ITimerService, TimerService>();
     builder.Services.AddScoped<TimerEventService>();
     builder.Services.AddScoped<IRaffleService, RaffleService>();
+    builder.Services.AddScoped<IGachaService, GachaService>();
     builder.Services.AddScoped<GiveawayService>();
     builder.Services.AddScoped<GoalsService>();
     builder.Services.AddScoped<NowPlayingService>();
@@ -282,7 +283,7 @@ try
     builder.Services.AddSingleton<Decatron.Discord.Services.SeasonalService>();
     builder.Services.AddSingleton<Decatron.Discord.Services.XpService>();
     builder.Services.AddSingleton<Decatron.Discord.Services.XpRoleService>();
-    builder.Services.AddSingleton<Decatron.Discord.RankCardGenerator>();
+    builder.Services.AddScoped<Decatron.Discord.RankCardGenerator>();
     builder.Services.AddSingleton<Decatron.Discord.Events.MessageXpHandler>();
     builder.Services.AddHostedService<Decatron.Discord.DiscordBotService>();
     builder.Services.AddHostedService<Decatron.Discord.DiscordAlertPollingService>();

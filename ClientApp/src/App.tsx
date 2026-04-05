@@ -3,6 +3,7 @@ import { Bot } from 'lucide-react';
 import ThemeToggle from './components/ThemeToggle';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import SafeRoute from './components/SafeRoute';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -33,8 +34,12 @@ import AdminEconomy from './pages/admin/AdminEconomy';
 import DecatronAIAdmin from './pages/admin/DecatronAIAdmin';
 import DecatronChatAdmin from './pages/admin/DecatronChatAdmin';
 import AdminDonations from './pages/admin/Donations/index';
+import DevDocs from './pages/admin/DevDocs';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import SupportersPublic from './pages/SupportersPublic';
+import GachaConfig from './pages/features/gacha-extension/GachaConfig';
+import GachaOverlay from './pages/GachaOverlay';
+import GachaCollection from './pages/GachaCollection';
 import Analytics from './pages/analytics/Analytics';
 import Followers from './pages/Followers';
 import ShoutoutOverlay from './pages/ShoutoutOverlay';
@@ -116,14 +121,18 @@ function App() {
                 <Route path="/login" element={<><PublicNav /><Login /></>} />
 
                 {/* Overlay Routes - No layout for OBS */}
-                <Route path="/overlay/shoutout" element={<ShoutoutOverlay />} />
-                <Route path="/overlay/soundalerts" element={<SoundAlertsOverlay />} />
-                <Route path="/overlay/timer" element={<TimerOverlay />} />
-                <Route path="/overlay/giveaway" element={<GiveawayOverlay />} />
-                <Route path="/overlay/goals" element={<GoalsOverlay />} />
-                <Route path="/overlay/event-alerts" element={<EventAlertsOverlay />} />
-                <Route path="/overlay/tips" element={<TipsOverlay />} />
-                <Route path="/overlay/now-playing" element={<NowPlayingOverlay />} />
+                <Route path="/overlay/shoutout" element={<SafeRoute name="Shoutout Overlay"><ShoutoutOverlay /></SafeRoute>} />
+                <Route path="/overlay/soundalerts" element={<SafeRoute name="Sound Alerts Overlay"><SoundAlertsOverlay /></SafeRoute>} />
+                <Route path="/overlay/timer" element={<SafeRoute name="Timer Overlay"><TimerOverlay /></SafeRoute>} />
+                <Route path="/overlay/giveaway" element={<SafeRoute name="Giveaway Overlay"><GiveawayOverlay /></SafeRoute>} />
+                <Route path="/overlay/goals" element={<SafeRoute name="Goals Overlay"><GoalsOverlay /></SafeRoute>} />
+                <Route path="/overlay/event-alerts" element={<SafeRoute name="Event Alerts Overlay"><EventAlertsOverlay /></SafeRoute>} />
+                <Route path="/overlay/tips" element={<SafeRoute name="Tips Overlay"><TipsOverlay /></SafeRoute>} />
+                <Route path="/overlay/now-playing" element={<SafeRoute name="Now Playing Overlay"><NowPlayingOverlay /></SafeRoute>} />
+                <Route path="/overlay/gacha" element={<SafeRoute name="Gacha Overlay"><GachaOverlay /></SafeRoute>} />
+
+                {/* Public Gacha Collection - No authentication required */}
+                <Route path="/gacha/collection" element={<SafeRoute name="Gacha Collection"><GachaCollection /></SafeRoute>} />
 
                 {/* Public Supporters Page - No authentication required */}
                 <Route path="/supporters" element={<SupportersPublic />} />
@@ -159,77 +168,81 @@ function App() {
 
                 {/* Protected Routes */}
                 <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="dashboard" element={<SafeRoute name="Dashboard"><Dashboard /></SafeRoute>} />
 
                     {/* Hub Pages */}
-                    <Route path="commands" element={<CommandsHub />} />
-                    <Route path="features" element={<FeaturesHub />} />
-                    <Route path="admin" element={<AdminHub />} />
-                    <Route path="moderation" element={<ModerationHub />} />
+                    <Route path="commands" element={<SafeRoute name="Commands"><CommandsHub /></SafeRoute>} />
+                    <Route path="features" element={<SafeRoute name="Features"><FeaturesHub /></SafeRoute>} />
+                    <Route path="admin" element={<SafeRoute name="Admin"><AdminHub /></SafeRoute>} />
+                    <Route path="moderation" element={<SafeRoute name="Moderation"><ModerationHub /></SafeRoute>} />
 
-                    {/* Rutas de Comandos - Requieren nivel 'commands' */}
-                    <Route path="commands/default" element={<DefaultCommands />} />
-                    <Route path="commands/microcommands" element={<MicroCommands />} />
-                    <Route path="commands/custom" element={<CustomCommands />} />
-                    <Route path="commands/scripting" element={<ScriptingList />} />
-                    <Route path="commands/scripting/new" element={<ScriptingEditor />} />
-                    <Route path="commands/scripting/edit/:id" element={<ScriptingEditor />} />
+                    {/* Rutas de Comandos */}
+                    <Route path="commands/default" element={<SafeRoute name="Default Commands"><DefaultCommands /></SafeRoute>} />
+                    <Route path="commands/microcommands" element={<SafeRoute name="Micro Commands"><MicroCommands /></SafeRoute>} />
+                    <Route path="commands/custom" element={<SafeRoute name="Custom Commands"><CustomCommands /></SafeRoute>} />
+                    <Route path="commands/scripting" element={<SafeRoute name="Scripting"><ScriptingList /></SafeRoute>} />
+                    <Route path="commands/scripting/new" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
+                    <Route path="commands/scripting/edit/:id" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
 
-                    {/* Rutas de Gestión - Requieren nivel 'commands' */}
-                    <Route path="followers" element={<Followers />} />
+                    {/* Rutas de Gestión */}
+                    <Route path="followers" element={<SafeRoute name="Followers"><Followers /></SafeRoute>} />
 
-                    {/* Rutas de Funciones - Requieren nivel 'moderation' */}
-                    <Route path="features/timers" element={<Timers />} />
-                    <Route path="features/giveaways" element={<GiveawayConfig />} />
-                    <Route path="features/sound-alerts" element={<SoundAlerts />} />
-                    <Route path="features/follow-alerts" element={<FollowAlertConfig />} />
-                    <Route path="features/decatron-ai" element={<DecatronAIConfig />} />
-                    <Route path="features/decatron-chat" element={<DecatronChat />} />
-                    <Route path="features/tips" element={<TipsConfig />} />
+                    {/* Rutas de Funciones */}
+                    <Route path="features/timers" element={<SafeRoute name="Timers"><Timers /></SafeRoute>} />
+                    <Route path="features/giveaways" element={<SafeRoute name="Giveaways"><GiveawayConfig /></SafeRoute>} />
+                    <Route path="features/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
+                    <Route path="features/follow-alerts" element={<SafeRoute name="Follow Alerts"><FollowAlertConfig /></SafeRoute>} />
+                    <Route path="features/decatron-ai" element={<SafeRoute name="Decatron AI"><DecatronAIConfig /></SafeRoute>} />
+                    <Route path="features/decatron-chat" element={<SafeRoute name="Decatron Chat"><DecatronChat /></SafeRoute>} />
+                    <Route path="features/tips" element={<SafeRoute name="Tips"><TipsConfig /></SafeRoute>} />
 
-                    {/* Rutas de Admin - Solo owner del sistema */}
-                    <Route path="admin/decatron-ai" element={<DecatronAIAdmin />} />
-                    <Route path="admin/decatron-chat" element={<DecatronChatAdmin />} />
-                    <Route path="admin/donations" element={<AdminDonations />} />
-                    <Route path="admin/supporters" element={<SupportersConfig />} />
-                    <Route path="admin/economy" element={<AdminEconomy />} />
+                    {/* Rutas de Admin */}
+                    <Route path="admin/decatron-ai" element={<SafeRoute name="AI Admin"><DecatronAIAdmin /></SafeRoute>} />
+                    <Route path="admin/decatron-chat" element={<SafeRoute name="Chat Admin"><DecatronChatAdmin /></SafeRoute>} />
+                    <Route path="admin/donations" element={<SafeRoute name="Donations"><AdminDonations /></SafeRoute>} />
+                    <Route path="admin/supporters" element={<SafeRoute name="Supporters"><SupportersConfig /></SafeRoute>} />
+                    <Route path="admin/economy" element={<SafeRoute name="Economy"><AdminEconomy /></SafeRoute>} />
+                    <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
 
-                    {/* Rutas de Chat Moderation - Requieren nivel 'moderation' */}
-                    <Route path="features/moderation/banned-words" element={<BannedWords />} />
+                    {/* Chat Moderation */}
+                    <Route path="features/moderation/banned-words" element={<SafeRoute name="Banned Words"><BannedWords /></SafeRoute>} />
 
-                    {/* Rutas de Overlays - Requieren nivel 'moderation' */}
-                    <Route path="overlays" element={<Overlays />} />
-                    <Route path="overlays/shoutout" element={<ShoutoutConfig />} />
-                    <Route path="overlays/timer" element={<TimerConfig />} />
-                    <Route path="overlays/goals" element={<GoalsConfig />} />
-                    <Route path="overlays/event-alerts" element={<EventAlertsConfig />} />
-                    <Route path="overlays/now-playing" element={<NowPlayingConfig />} />
+                    {/* Overlays */}
+                    <Route path="overlays" element={<SafeRoute name="Overlays"><Overlays /></SafeRoute>} />
+                    <Route path="overlays/shoutout" element={<SafeRoute name="Shoutout"><ShoutoutConfig /></SafeRoute>} />
+                    <Route path="overlays/timer" element={<SafeRoute name="Timer"><TimerConfig /></SafeRoute>} />
+                    <Route path="overlays/goals" element={<SafeRoute name="Goals"><GoalsConfig /></SafeRoute>} />
+                    <Route path="overlays/event-alerts" element={<SafeRoute name="Event Alerts"><EventAlertsConfig /></SafeRoute>} />
+                    <Route path="overlays/now-playing" element={<SafeRoute name="Now Playing"><NowPlayingConfig /></SafeRoute>} />
 
-                    {/* Rutas de Gacha - Requieren autenticación Twitch */}
-                    <Route path="gacha/terms" element={<GachaTerms />} />
-                    <Route path="gacha/success" element={<GachaSuccess />} />
+                    {/* Gacha System */}
+                    <Route path="features/gacha" element={<SafeRoute name="Gacha"><GachaConfig /></SafeRoute>} />
+
+                    {/* Gacha Legacy */}
+                    <Route path="gacha/terms" element={<SafeRoute name="Gacha Terms"><GachaTerms /></SafeRoute>} />
+                    <Route path="gacha/success" element={<SafeRoute name="Gacha Success"><GachaSuccess /></SafeRoute>} />
 
                     {/* Viewer Profile */}
-                    <Route path="me" element={<MeOverview />} />
-                    <Route path="me/account" element={<MeAccount />} />
-                    <Route path="me/coins" element={<MeCoins />} />
+                    <Route path="me" element={<SafeRoute name="Profile"><MeOverview /></SafeRoute>} />
+                    <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
+                    <Route path="me/coins" element={<SafeRoute name="Coins"><MeCoins /></SafeRoute>} />
 
                     {/* Discord Configuration */}
-                    <Route path="discord" element={<DiscordConfig />} />
-                    <Route path="discord/alerts" element={<DiscordAlerts />} />
-                    <Route path="discord/welcome" element={<DiscordWelcome />} />
-                    <Route path="discord/levels" element={<DiscordLevels />} />
+                    <Route path="discord" element={<SafeRoute name="Discord"><DiscordConfig /></SafeRoute>} />
+                    <Route path="discord/alerts" element={<SafeRoute name="Discord Alerts"><DiscordAlerts /></SafeRoute>} />
+                    <Route path="discord/welcome" element={<SafeRoute name="Discord Welcome"><DiscordWelcome /></SafeRoute>} />
+                    <Route path="discord/levels" element={<SafeRoute name="Discord Levels"><DiscordLevels /></SafeRoute>} />
 
-                    {/* Developer Portal - OAuth API Management */}
-                    <Route path="developer" element={<DeveloperPortal />} />
-                    <Route path="developer/apps/new" element={<ApplicationCreate />} />
-                    <Route path="developer/docs" element={<ApiReference />} />
+                    {/* Developer Portal */}
+                    <Route path="developer" element={<SafeRoute name="Developer"><DeveloperPortal /></SafeRoute>} />
+                    <Route path="developer/apps/new" element={<SafeRoute name="New App"><ApplicationCreate /></SafeRoute>} />
+                    <Route path="developer/docs" element={<SafeRoute name="API Docs"><ApiReference /></SafeRoute>} />
 
-                    {/* Configuración - Requiere nivel 'control_total' */}
-                    <Route path="settings" element={<Settings />} />
+                    {/* Configuración */}
+                    <Route path="settings" element={<SafeRoute name="Settings"><Settings /></SafeRoute>} />
 
-                    {/* Analytics - Requiere nivel 'moderation' o superior */}
-                    <Route path="analytics" element={<Analytics />} />
+                    {/* Analytics */}
+                    <Route path="analytics" element={<SafeRoute name="Analytics"><Analytics /></SafeRoute>} />
 
                     {/* Documentacion dentro del dashboard - Accesible para todos los usuarios autenticados */}
                     <Route path="dashboard/docs" element={<DashboardDocsHome />} />

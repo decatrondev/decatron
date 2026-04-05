@@ -308,6 +308,25 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "❌ Error registrando comandos del Timer");
             }
+
+            // Gacha commands
+            try
+            {
+                using var gachaScope = _serviceScopeFactory.CreateScope();
+                var gachaMessagesService = gachaScope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var gachaCommand = new GachaCommand(
+                    _loggerFactory.CreateLogger<GachaCommand>(),
+                    _serviceScopeFactory,
+                    gachaMessagesService
+                );
+                RegisterCommand(gachaCommand);
+                RegisterCommand(new GcCommand(gachaCommand));
+                _logger.LogInformation("✅ Comandos Gacha registrados: !gacha, !gc");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error registrando comandos Gacha");
+            }
         }
 
         private async Task LoadMicroCommandsAsync()
@@ -395,7 +414,17 @@ namespace Decatron.Services
                     await command.ExecuteAsync(ctx, _messageSender);
                     return;
                 }
-                else if (commandName.StartsWith("!"))
+
+                // 1b. GACHA SHORTHAND — !gcpull, !gcpulls, !gccol, etc. → rutear a !gc
+                if (commandName.StartsWith("!gc") && commandName != "!gc" && _commands.TryGetValue("!gc", out var gcCommand))
+                {
+                    _logger.LogInformation($"✅ Ruteando {commandName} a !gc por {username} en {channel}");
+                    var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata };
+                    await gcCommand.ExecuteAsync(ctx, _messageSender);
+                    return;
+                }
+
+                if (commandName.StartsWith("!") && !commandName.StartsWith("!gc"))
                 {
                     _logger.LogDebug($"❌ Comando '{commandName}' no encontrado en _commands");
                 }
