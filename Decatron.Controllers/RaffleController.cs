@@ -13,7 +13,7 @@ namespace Decatron.Controllers
 {
     [ApiController]
     [Route("api/raffles")]
-[Authorize]
+    [Authorize]
     public class RaffleController : ControllerBase
     {
         private readonly IRaffleService _raffleService;
@@ -108,7 +108,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Obtiene un sorteo por ID
         /// </summary>
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -160,7 +160,7 @@ namespace Decatron.Controllers
                 var (channelOwnerId, channelName) = channelContext.Value;
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (string.IsNullOrEmpty(userId))
+                if (string.IsNullOrEmpty(userId) || !long.TryParse(userId, out var userIdLong))
                 {
                     return Unauthorized(new { success = false, message = "Usuario no autenticado" });
                 }
@@ -172,7 +172,7 @@ namespace Decatron.Controllers
                     Description = dto.Description,
                     WinnersCount = dto.WinnersCount,
                     ConfigJson = JsonSerializer.Serialize(dto.Config ?? new {}),
-                    CreatedBy = long.Parse(userId)
+                    CreatedBy = userIdLong
                 };
 
                 var created = await _raffleService.CreateAsync(raffle);
@@ -188,11 +188,11 @@ namespace Decatron.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -204,7 +204,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Actualiza un sorteo existente
         /// </summary>
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> Update(int id, [FromBody] RaffleUpdateDto dto)
         {
@@ -245,11 +245,11 @@ namespace Decatron.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = "An internal error occurred. Please try again later." });
+                return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -261,7 +261,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Elimina un sorteo
         /// </summary>
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -292,11 +292,11 @@ namespace Decatron.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = "An internal error occurred. Please try again later." });
+                return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -308,7 +308,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Abre un sorteo para participación
         /// </summary>
-        [HttpPost("{id}/open")]
+        [HttpPost("{id:int}/open")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> Open(int id)
         {
@@ -339,7 +339,7 @@ namespace Decatron.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -351,7 +351,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Cierra un sorteo (ya no acepta participantes)
         /// </summary>
-        [HttpPost("{id}/close")]
+        [HttpPost("{id:int}/close")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> Close(int id)
         {
@@ -382,7 +382,7 @@ namespace Decatron.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -394,7 +394,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Ejecuta el sorteo y selecciona ganadores
         /// </summary>
-        [HttpPost("{id}/draw")]
+        [HttpPost("{id:int}/draw")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> Draw(int id, [FromBody] DrawWinnersDto dto)
         {
@@ -420,13 +420,13 @@ namespace Decatron.Controllers
                 {
                     success = true,
                     message = "Ganadores seleccionados exitosamente",
-                    winners = winners,
+                    winners = winners.Select(w => new { w.Id, w.RaffleId, w.ParticipantId, w.Username, w.Position, w.WonAt }),
                     count = winners.Count
                 });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -438,7 +438,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Obtiene los participantes de un sorteo
         /// </summary>
-        [HttpGet("{id}/participants")]
+        [HttpGet("{id:int}/participants")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> GetParticipants(int id)
         {
@@ -477,7 +477,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Obtiene los ganadores de un sorteo
         /// </summary>
-        [HttpGet("{id}/winners")]
+        [HttpGet("{id:int}/winners")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> GetWinners(int id)
         {
@@ -514,9 +514,9 @@ namespace Decatron.Controllers
         }
 
         /// <summary>
-        /// Re-sortea un ganador específico
+        /// Re-sortea un ganador específico (con validación de ownership)
         /// </summary>
-        [HttpPost("winners/{winnerId}/reroll")]
+        [HttpPost("winners/{winnerId:int}/reroll")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> RerollWinner(int winnerId, [FromBody] RerollWinnerDto dto)
         {
@@ -530,53 +530,47 @@ namespace Decatron.Controllers
 
                 var (channelOwnerId, channelName) = channelContext.Value;
 
-                // Verify the winner belongs to a raffle owned by this channel
-                var winner = await _context.RaffleWinners
-                    .Include(w => w.Raffle)
-                    .FirstOrDefaultAsync(w => w.Id == winnerId);
-
-                if (winner == null)
-                {
-                    return NotFound(new { success = false, message = "Ganador no encontrado" });
-                }
-
-                if (winner.Raffle == null || !winner.Raffle.ChannelName.Equals(channelName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return Forbid();
-                }
-
-                var newWinner = await _raffleService.RerollWinnerAsync(winnerId, dto.Reason);
+                var newWinner = await _raffleService.RerollWinnerAsync(winnerId, dto.Reason, channelName);
 
                 return Ok(new
                 {
                     success = true,
                     message = "Re-roll ejecutado exitosamente",
-                    winner = newWinner
+                    winner = new
+                    {
+                        newWinner.Id,
+                        newWinner.RaffleId,
+                        newWinner.ParticipantId,
+                        newWinner.Username,
+                        newWinner.Position,
+                        newWinner.WonAt
+                    }
                 });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid();
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = "An internal error occurred. Please try again later." });
+                return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error re-sorteando ganador {winnerId}");
-                return StatusCode(500, new { success = false, message = "Error re-sorteando ganador" });
+                var fullError = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                return StatusCode(500, new { success = false, message = $"Error re-sorteando: {fullError}" });
             }
         }
 
         /// <summary>
-        /// Obtiene estadísticas de sorteos del canal
-        /// </summary>
-
-        /// <summary>
         /// Agrega manualmente un participante al sorteo
         /// </summary>
-        [HttpPost("{id}/participants")]
+        [HttpPost("{id:int}/participants")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> AddParticipant(int id, [FromBody] AddParticipantDto dto)
         {
@@ -602,10 +596,10 @@ namespace Decatron.Controllers
                 }
 
                 var participant = await _raffleService.AddParticipantAsync(
-                    id, 
-                    dto.Username, 
-                    null, // TwitchUserId no disponible manual
-                    "manual", 
+                    id,
+                    dto.Username,
+                    null,
+                    "manual",
                     dto.Tickets
                 );
 
@@ -613,7 +607,7 @@ namespace Decatron.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -625,7 +619,7 @@ namespace Decatron.Controllers
         /// <summary>
         /// Elimina un participante del sorteo
         /// </summary>
-        [HttpDelete("{id}/participants/{participantId}")]
+        [HttpDelete("{id:int}/participants/{participantId:int}")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> RemoveParticipant(int id, int participantId)
         {
@@ -656,7 +650,7 @@ namespace Decatron.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = "An internal error occurred. Please try again later." });
+                return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -666,11 +660,11 @@ namespace Decatron.Controllers
         }
 
         /// <summary>
-        /// Importa participantes automáticamente desde la última sesión activa del timer
+        /// Importa participantes desde sesiones del timer (mejorado)
         /// </summary>
-        [HttpPost("{id}/import-session")]
+        [HttpPost("{id:int}/import-session")]
         [RequirePermission("raffles")]
-        public async Task<IActionResult> ImportFromSession(int id)
+        public async Task<IActionResult> ImportFromSession(int id, [FromBody] ImportSessionRequestDto? dto)
         {
             try
             {
@@ -693,29 +687,58 @@ namespace Decatron.Controllers
                     return Forbid();
                 }
 
-                var count = await _raffleService.ImportParticipantsFromSessionAsync(id);
+                var request = new ImportSessionRequest
+                {
+                    SessionId = dto?.SessionId,
+                    SessionIds = dto?.SessionIds,
+                    ForceReimport = dto?.ForceReimport ?? false,
+                    MergeTickets = dto?.MergeTickets ?? false,
+                    WinnerCooldownDays = dto?.WinnerCooldownDays,
+                    Methods = dto?.Methods != null ? new ImportMethodsOverride
+                    {
+                        BitsEnabled = dto.Methods.BitsEnabled,
+                        SubsEnabled = dto.Methods.SubsEnabled,
+                        GiftSubsEnabled = dto.Methods.GiftSubsEnabled,
+                        FollowsEnabled = dto.Methods.FollowsEnabled,
+                        MinBits = dto.Methods.MinBits,
+                        MinGifts = dto.Methods.MinGifts,
+                        WeightByContribution = dto.Methods.WeightByContribution,
+                        AllowedSubTiers = dto.Methods.AllowedSubTiers
+                    } : null
+                };
+
+                var result = await _raffleService.ImportParticipantsFromSessionAsync(id, request);
 
                 return Ok(new
                 {
                     success = true,
-                    message = $"Se importaron {count} participantes de la sesión activa.",
-                    count = count
+                    message = result.Message,
+                    imported = result.ImportedCount,
+                    skippedDuplicates = result.SkippedDuplicates,
+                    updatedTickets = result.UpdatedTickets,
+                    importedSessionIds = result.ImportedSessionIds,
+                    alreadyImportedSessionIds = result.AlreadyImportedSessionIds
                 });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { success = false, message = "An internal error occurred. Please try again later." });
+                return NotFound(new { success = false, message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+                return BadRequest(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error importando sesión para sorteo {id}");
-                return StatusCode(500, new { success = false, message = "Error importando sesión" });
+                var fullError = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                return StatusCode(500, new { success = false, message = $"Error: {fullError}" });
             }
         }
+
+        /// <summary>
+        /// Obtiene estadísticas de sorteos del canal
+        /// </summary>
         [HttpGet("statistics")]
         [RequirePermission("raffles")]
         public async Task<IActionResult> GetStatistics()
@@ -751,7 +774,7 @@ namespace Decatron.Controllers
 
     public class RaffleCreateDto
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
         public string? Description { get; set; }
         public int WinnersCount { get; set; } = 1;
         public object? Config { get; set; }
@@ -759,7 +782,7 @@ namespace Decatron.Controllers
 
     public class RaffleUpdateDto
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
         public string? Description { get; set; }
         public int WinnersCount { get; set; }
         public object? Config { get; set; }
@@ -777,7 +800,29 @@ namespace Decatron.Controllers
 
     public class AddParticipantDto
     {
-        public string Username { get; set; }
+        public string Username { get; set; } = "";
         public int Tickets { get; set; } = 1;
+    }
+
+    public class ImportSessionRequestDto
+    {
+        public int? SessionId { get; set; }
+        public List<int>? SessionIds { get; set; }
+        public bool ForceReimport { get; set; } = false;
+        public bool MergeTickets { get; set; } = false;
+        public int? WinnerCooldownDays { get; set; }
+        public ImportMethodsDto? Methods { get; set; }
+    }
+
+    public class ImportMethodsDto
+    {
+        public bool? BitsEnabled { get; set; }
+        public bool? SubsEnabled { get; set; }
+        public bool? GiftSubsEnabled { get; set; }
+        public bool? FollowsEnabled { get; set; }
+        public int? MinBits { get; set; }
+        public int? MinGifts { get; set; }
+        public bool? WeightByContribution { get; set; }
+        public List<string>? AllowedSubTiers { get; set; }
     }
 }

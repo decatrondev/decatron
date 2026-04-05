@@ -6,9 +6,20 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Gift, Users, Award, Plus, X, RotateCcw, AlertCircle, Loader2, UserPlus, Search, Trash2, Ban, DownloadCloud, Settings2, Trophy, Filter } from 'lucide-react';
+import { Gift, Users, Award, Plus, X, RotateCcw, AlertCircle, Loader2, UserPlus, Search, Trash2, Ban, DownloadCloud, Settings2, Trophy, Filter, Clock, Zap, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { RafflesConfig } from '../../types';
+
+interface TimerSessionInfo {
+    id: number;
+    startedAt: string;
+    endedAt?: string;
+    initialDuration: number;
+    totalAddedTime: number;
+    isActive: boolean;
+    totalEvents: number;
+    uniqueParticipants: number;
+}
 
 interface RafflesTabProps {
     rafflesConfig: RafflesConfig;
@@ -89,19 +100,57 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
     const [showAddParticipantForm, setShowAddParticipantForm] = useState(false);
 
     const [tempRaffleName, setTempRaffleName] = useState('');
+    const [tempDescription, setTempDescription] = useState('');
     const [tempWinnersCount, setTempWinnersCount] = useState(1);
     const [autoImportOnCreate, setAutoImportOnCreate] = useState(true);
     const [tempConfig, setTempConfig] = useState<RafflesConfig | null>(null);
+    const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
 
-    // ... (Resto de useEffects igual)
+    // Nuevos estados para selector de sesión e import avanzado
+    const [availableSessions, setAvailableSessions] = useState<TimerSessionInfo[]>([]);
+    const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+    const [selectedSessionIds, setSelectedSessionIds] = useState<number[]>([]);
+    const [multiSessionMode, setMultiSessionMode] = useState(false);
+    const [loadingSessions, setLoadingSessions] = useState(false);
+    const [weightByContribution, setWeightByContribution] = useState(false);
+    const [winnerCooldownDays, setWinnerCooldownDays] = useState(0);
+    const [allowedSubTiers, setAllowedSubTiers] = useState<string[]>(['tier1', 'tier2', 'tier3', 'prime']);
+    const [minGifts, setMinGifts] = useState(0);
+
+    // Import modal state
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importForceReimport, setImportForceReimport] = useState(false);
+    const [importMergeTickets, setImportMergeTickets] = useState(false);
+
     useEffect(() => {
         if (showCreateForm) {
-            setTempConfig(JSON.parse(JSON.stringify(rafflesConfig))); 
+            setTempConfig(JSON.parse(JSON.stringify(rafflesConfig)));
             setTempRaffleName('');
+            setTempDescription('');
             setTempWinnersCount(1);
             setAutoImportOnCreate(true);
+            setShowAdvancedConfig(false);
+            setSelectedSessionId(null);
+            setSelectedSessionIds([]);
+            setMultiSessionMode(false);
+            setWeightByContribution(false);
+            setWinnerCooldownDays(rafflesConfig.requirements?.winnerCooldownDays ?? 0);
+            setAllowedSubTiers(['tier1', 'tier2', 'tier3', 'prime']);
+            setMinGifts(0);
+            loadAvailableSessions();
         }
     }, [showCreateForm, rafflesConfig]);
+
+    useEffect(() => {
+        if (showImportModal) {
+            setImportForceReimport(false);
+            setImportMergeTickets(false);
+            setSelectedSessionId(null);
+            setSelectedSessionIds([]);
+            setMultiSessionMode(false);
+            loadAvailableSessions();
+        }
+    }, [showImportModal]);
 
     useEffect(() => {
         if (rafflesConfig.enabled) {
@@ -117,6 +166,35 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
             setWinners([]);
         }
     }, [selectedRaffleId]);
+
+    const loadAvailableSessions = async () => {
+        try {
+            setLoadingSessions(true);
+            // Usa el endpoint del timer que ya existe y funciona
+            const res = await api.get('/timer/sessions');
+            setAvailableSessions(res.data.sessions || []);
+        } catch (err) {
+            console.warn('Error loading sessions:', err);
+            setAvailableSessions([]);
+        } finally {
+            setLoadingSessions(false);
+        }
+    };
+
+    const toggleSessionInMulti = (sessionId: number) => {
+        setSelectedSessionIds(prev =>
+            prev.includes(sessionId)
+                ? prev.filter(id => id !== sessionId)
+                : [...prev, sessionId]
+        );
+    };
+
+    const formatDuration = (seconds: number) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        if (h > 0) return `${h}h ${m}m`;
+        return `${m}m`;
+    };
 
     const loadRaffles = async () => {
         try {
@@ -160,24 +238,67 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
             setLoading(true);
             setError(null);
 
+            // Construir config completa con los nuevos campos
+            const config = {
+                ...tempConfig,
+                winnerCooldownDays: winnerCooldownDays,
+                methods: {
+                    ...tempConfig.methods,
+                    bits: { ...tempConfig.methods.bits },
+                    subscription: { ...tempConfig.methods.subscription, allowedTiers: allowedSubTiers },
+                    giftSubscription: { ...tempConfig.methods.giftSubscription, minAmount: minGifts },
+                    follow: { ...tempConfig.methods.follow },
+                    weightByContribution: weightByContribution,
+                },
+                requirements: {
+                    ...tempConfig.requirements,
+                    winnerCooldownDays: winnerCooldownDays,
+                }
+            };
+
             const payload = {
                 name: tempRaffleName,
-                description: autoImportOnCreate ? "Sorteo vinculado a sesión activa" : undefined,
+                description: tempDescription || (autoImportOnCreate ? "Sorteo vinculado a sesión del timer" : undefined),
                 winnersCount: tempWinnersCount,
-                configJson: JSON.stringify(tempConfig) 
+                config: config
             };
 
             const res = await api.post('/raffles', payload);
             const newRaffleId = res.data?.raffle?.id;
-            
-            if (newRaffleId) {
-                if (autoImportOnCreate) {
-                    try {
-                        await api.post(`/raffles/${newRaffleId}/import-session`);
-                    } catch (importErr) {
-                        console.warn("Auto-import failed/skipped", importErr);
+
+            if (newRaffleId && autoImportOnCreate) {
+                try {
+                    const importPayload: any = {
+                        weightByContribution: weightByContribution,
+                        winnerCooldownDays: winnerCooldownDays > 0 ? winnerCooldownDays : undefined,
+                        methods: {
+                            bitsEnabled: tempConfig.methods.bits.enabled,
+                            subsEnabled: tempConfig.methods.subscription.enabled,
+                            giftSubsEnabled: tempConfig.methods.giftSubscription.enabled,
+                            followsEnabled: tempConfig.methods.follow?.enabled ?? false,
+                            minBits: tempConfig.methods.bits.minAmount || 0,
+                            minGifts: minGifts,
+                            weightByContribution: weightByContribution,
+                            allowedSubTiers: allowedSubTiers,
+                        }
+                    };
+
+                    if (multiSessionMode && selectedSessionIds.length > 0) {
+                        importPayload.sessionIds = selectedSessionIds;
+                    } else if (selectedSessionId) {
+                        importPayload.sessionId = selectedSessionId;
                     }
+
+                    const importRes = await api.post(`/raffles/${newRaffleId}/import-session`, importPayload);
+                    if (importRes.data?.imported > 0) {
+                        setError(null);
+                    }
+                } catch (importErr: any) {
+                    console.warn("Auto-import:", importErr?.response?.data?.message || importErr);
                 }
+            }
+
+            if (newRaffleId) {
                 setSelectedRaffleId(newRaffleId);
             }
 
@@ -321,16 +442,33 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
         }
     };
 
-    const handleImportSession = async () => {
+    const handleImportSession = async (options?: {
+        sessionId?: number;
+        sessionIds?: number[];
+        forceReimport?: boolean;
+        mergeTickets?: boolean;
+    }) => {
         if (!selectedRaffleId) return;
         try {
             setLoadingDetails(true);
-            const res = await api.post(`/raffles/${selectedRaffleId}/import-session`);
+            const payload: any = {};
+            if (options?.sessionId) payload.sessionId = options.sessionId;
+            if (options?.sessionIds && options.sessionIds.length > 0) payload.sessionIds = options.sessionIds;
+            if (options?.forceReimport) payload.forceReimport = true;
+            if (options?.mergeTickets) payload.mergeTickets = true;
+
+            const res = await api.post(`/raffles/${selectedRaffleId}/import-session`, payload);
             if (res.data.success) {
-                alert(`✅ ${res.data.message}`);
+                const parts = [];
+                if (res.data.imported > 0) parts.push(`${res.data.imported} importados`);
+                if (res.data.skippedDuplicates > 0) parts.push(`${res.data.skippedDuplicates} duplicados omitidos`);
+                if (res.data.updatedTickets > 0) parts.push(`${res.data.updatedTickets} tickets actualizados`);
+                if (res.data.alreadyImportedSessionIds?.length > 0) parts.push(`Sesiones ya importadas: ${res.data.alreadyImportedSessionIds.join(', ')}`);
+                alert(`${res.data.message}${parts.length > 0 ? '\n\n' + parts.join('\n') : ''}`);
                 await loadRaffleDetails(selectedRaffleId);
                 await loadRaffles();
             }
+            setShowImportModal(false);
         } catch (err: any) {
             console.error('Error importing session:', err);
             setError(err.response?.data?.message || 'Error importando participantes.');
@@ -559,10 +697,10 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                             </div>
                                                             {raffle.status === 'open' && (
                                                                 <>
-                                                                    <button 
-                                                                        onClick={handleImportSession}
+                                                                    <button
+                                                                        onClick={() => setShowImportModal(true)}
                                                                         className="p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg text-blue-600 dark:text-blue-300 transition-colors"
-                                                                        title="Importar de Sesión Activa"
+                                                                        title="Importar de Sesión del Timer"
                                                                     >
                                                                         <DownloadCloud className="w-4 h-4" />
                                                                     </button>
@@ -691,18 +829,19 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                             </div>
                         )}
                         
-                        {/* MODAL CREACIÓN (Content scrollable fixed) */}
+                        {/* MODAL CREACIÓN */}
                         {showCreateForm && tempConfig && (
                             <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700 flex flex-col">
-                                    <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center sticky top-0 bg-white dark:bg-[#1B1C1D] z-10">
+                                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] border border-gray-200 dark:border-gray-700 flex flex-col">
+                                    <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center sticky top-0 bg-white dark:bg-[#1B1C1D] z-10 rounded-t-2xl">
                                         <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Nuevo Sorteo</h2>
                                         <button onClick={() => setShowCreateForm(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg">
                                             <X className="w-5 h-5 text-gray-500" />
                                         </button>
                                     </div>
-                                    
+
                                     <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+                                        {/* Datos básicos */}
                                         <div className="space-y-4">
                                             <div>
                                                 <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Nombre del Sorteo</label>
@@ -715,20 +854,31 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     autoFocus
                                                 />
                                             </div>
-                                            <div className="flex gap-4">
-                                                <div className="flex-1">
+                                            <div>
+                                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Descripción (opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={tempDescription}
+                                                    onChange={(e) => setTempDescription(e.target.value)}
+                                                    className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                    placeholder="Ej: Key de Steam para los viewers"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
                                                     <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Ganadores</label>
                                                     <input
                                                         type="number"
                                                         min="1"
+                                                        max="100"
                                                         value={tempWinnersCount}
-                                                        onChange={(e) => setTempWinnersCount(Number(e.target.value))}
+                                                        onChange={(e) => setTempWinnersCount(Math.max(1, Math.min(100, Number(e.target.value))))}
                                                         className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
                                                     />
                                                 </div>
-                                                <div className="flex-1 pt-6">
-                                                    <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-                                                        <ToggleSwitch 
+                                                <div className="flex items-end">
+                                                    <div className="w-full flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                                                        <ToggleSwitch
                                                             checked={autoImportOnCreate}
                                                             onChange={setAutoImportOnCreate}
                                                         />
@@ -738,91 +888,278 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                             </div>
                                         </div>
 
+                                        {/* Selector de Sesión */}
+                                        {autoImportOnCreate && (
+                                            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                                                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
+                                                    <Clock className="w-4 h-4" /> Sesión a Importar
+                                                </h3>
+
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <button
+                                                        onClick={() => { setMultiSessionMode(false); setSelectedSessionId(null); setSelectedSessionIds([]); }}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                                    >
+                                                        Última / Una
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setMultiSessionMode(true); setSelectedSessionId(null); }}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                                    >
+                                                        Múltiples Sesiones
+                                                    </button>
+                                                </div>
+
+                                                {loadingSessions ? (
+                                                    <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+                                                ) : availableSessions.length === 0 ? (
+                                                    <p className="text-xs text-gray-500 text-center py-3">No hay sesiones disponibles</p>
+                                                ) : (
+                                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                                                        {!multiSessionMode && (
+                                                            <div
+                                                                onClick={() => setSelectedSessionId(null)}
+                                                                className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
+                                                                    selectedSessionId === null
+                                                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
+                                                                    : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                                }`}
+                                                            >
+                                                                <span className="font-bold dark:text-white">Auto-detectar</span>
+                                                                <span className="text-gray-500 ml-2">(última sesión activa o cerrada)</span>
+                                                            </div>
+                                                        )}
+                                                        {availableSessions.map(session => {
+                                                            const isSelected = multiSessionMode
+                                                                ? selectedSessionIds.includes(session.id)
+                                                                : selectedSessionId === session.id;
+
+                                                            return (
+                                                                <div
+                                                                    key={session.id}
+                                                                    onClick={() => multiSessionMode ? toggleSessionInMulti(session.id) : setSelectedSessionId(session.id)}
+                                                                    className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
+                                                                        isSelected
+                                                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
+                                                                        : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex justify-between items-center">
+                                                                        <div className="flex items-center gap-2">
+                                                                            {multiSessionMode && (
+                                                                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-400'}`}>
+                                                                                    {isSelected && <span className="text-white text-[10px]">✓</span>}
+                                                                                </div>
+                                                                            )}
+                                                                            <span className="font-bold dark:text-white">
+                                                                                #{session.id}
+                                                                                {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold">ACTIVA</span>}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span className="text-gray-500">
+                                                                            {new Date(session.startedAt).toLocaleDateString()} {new Date(session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex gap-4 mt-1 text-gray-400">
+                                                                        <span>Duración: {formatDuration(session.initialDuration + session.totalAddedTime)}</span>
+                                                                        <span>Eventos: {session.totalEvents}</span>
+                                                                        <span>Usuarios: {session.uniqueParticipants}</span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                {multiSessionMode && selectedSessionIds.length > 0 && (
+                                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-bold">{selectedSessionIds.length} sesión(es) seleccionada(s)</p>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Reglas de Participación */}
                                         <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
                                             <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                                                <Settings2 className="w-4 h-4" /> Reglas de Participación (Específicas)
+                                                <Settings2 className="w-4 h-4" /> Reglas de Participación
                                             </h3>
-                                            
+
                                             <div className="space-y-4">
+                                                {/* Bits */}
                                                 <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                    <div className="flex justify-between items-center mb-2">
+                                                    <div className="flex justify-between items-center">
                                                         <label className="text-sm font-bold dark:text-white">Entrada por Bits</label>
-                                                        <ToggleSwitch 
-                                                            checked={tempConfig.methods.bits.enabled} 
-                                                            onChange={c => updateTempMethod('bits', { enabled: c })} 
+                                                        <ToggleSwitch
+                                                            checked={tempConfig.methods.bits.enabled}
+                                                            onChange={c => updateTempMethod('bits', { enabled: c })}
                                                         />
                                                     </div>
                                                     {tempConfig.methods.bits.enabled && (
                                                         <div className="flex items-center gap-3 mt-2">
                                                             <span className="text-xs text-gray-500">Mínimo:</span>
-                                                            <input 
-                                                                type="number" 
-                                                                value={tempConfig.methods.bits.minAmount}
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={tempConfig.methods.bits.minAmount || 0}
                                                                 onChange={e => updateTempMethod('bits', { minAmount: Number(e.target.value) })}
                                                                 className="w-24 px-2 py-1 rounded border text-sm bg-white dark:bg-[#1B1C1D] dark:border-gray-600 dark:text-white"
+                                                            />
+                                                            <span className="text-xs text-gray-400">bits</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Suscripción */}
+                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                    <div className="flex justify-between items-center">
+                                                        <label className="text-sm font-bold dark:text-white">Entrada por Suscripción</label>
+                                                        <ToggleSwitch
+                                                            checked={tempConfig.methods.subscription.enabled}
+                                                            onChange={c => updateTempMethod('subscription', { enabled: c })}
+                                                        />
+                                                    </div>
+                                                    {tempConfig.methods.subscription.enabled && (
+                                                        <div className="mt-3">
+                                                            <span className="text-xs text-gray-500 block mb-2">Tiers permitidos:</span>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {['tier1', 'tier2', 'tier3', 'prime'].map(tier => (
+                                                                    <button
+                                                                        key={tier}
+                                                                        onClick={() => {
+                                                                            setAllowedSubTiers(prev =>
+                                                                                prev.includes(tier)
+                                                                                    ? prev.filter(t => t !== tier)
+                                                                                    : [...prev, tier]
+                                                                            );
+                                                                        }}
+                                                                        className={`px-3 py-1 rounded-full text-xs font-bold transition ${
+                                                                            allowedSubTiers.includes(tier)
+                                                                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700'
+                                                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700'
+                                                                        }`}
+                                                                    >
+                                                                        {tier === 'prime' ? 'Prime' : tier.replace('tier', 'Tier ')}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Gift Subs */}
+                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                    <div className="flex justify-between items-center">
+                                                        <label className="text-sm font-bold dark:text-white">Entrada por Regalar Subs</label>
+                                                        <ToggleSwitch
+                                                            checked={tempConfig.methods.giftSubscription.enabled}
+                                                            onChange={c => updateTempMethod('giftSubscription', { enabled: c })}
+                                                        />
+                                                    </div>
+                                                    {tempConfig.methods.giftSubscription.enabled && (
+                                                        <div className="flex items-center gap-3 mt-2">
+                                                            <span className="text-xs text-gray-500">Mínimo de gifts:</span>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={minGifts}
+                                                                onChange={e => setMinGifts(Number(e.target.value))}
+                                                                className="w-20 px-2 py-1 rounded border text-sm bg-white dark:bg-[#1B1C1D] dark:border-gray-600 dark:text-white"
                                                             />
                                                         </div>
                                                     )}
                                                 </div>
 
-                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <label className="text-sm font-bold dark:text-white">Entrada por Suscripción</label>
-                                                        <ToggleSwitch 
-                                                            checked={tempConfig.methods.subscription.enabled} 
-                                                            onChange={c => updateTempMethod('subscription', { enabled: c })} 
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <label className="text-sm font-bold dark:text-white">Entrada por Regalar Subs</label>
-                                                        <ToggleSwitch 
-                                                            checked={tempConfig.methods.giftSubscription.enabled} 
-                                                            onChange={c => updateTempMethod('giftSubscription', { enabled: c })} 
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                
                                                 {/* Follows */}
                                                 <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                    <div className="flex justify-between items-center mb-2">
+                                                    <div className="flex justify-between items-center">
                                                         <label className="text-sm font-bold dark:text-white">Entrada por Nuevo Follow</label>
-                                                        <ToggleSwitch 
-                                                            checked={tempConfig.methods.follow?.enabled ?? false} 
-                                                            onChange={c => updateTempMethod('follow', { enabled: c })} 
+                                                        <ToggleSwitch
+                                                            checked={tempConfig.methods.follow?.enabled ?? false}
+                                                            onChange={c => updateTempMethod('follow', { enabled: c })}
                                                         />
                                                     </div>
                                                 </div>
 
-                                                {/* Exclusiones */}
-<div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                    <h4 className="text-xs font-bold text-gray-500 mb-2 uppercase">Restricciones</h4>
-                                                    <div className="space-y-2">
-                                                        <div className="flex justify-between items-center">
-                                                            <span className="text-sm dark:text-gray-300">Excluir Moderadores</span>
-                                                            <ToggleSwitch 
-                                                                checked={tempConfig.requirements.excludeMods} 
-                                                                onChange={c => updateTempRequirements({ excludeMods: c })} 
-                                                            />
+                                                {/* Ponderación */}
+                                                <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/30">
+                                                    <div className="flex justify-between items-center">
+                                                        <div>
+                                                            <label className="text-sm font-bold dark:text-white flex items-center gap-2">
+                                                                <Zap className="w-4 h-4 text-amber-500" /> Ponderar por Contribución
+                                                            </label>
+                                                            <p className="text-[11px] text-gray-500 mt-1">Más bits/gifts/tier = más tickets. Tier3 = 4x, Tier2 = 2x, cada 100 bits = +1 ticket</p>
                                                         </div>
-                                                        <div className="flex justify-between items-center">
-                                                            <span className="text-sm dark:text-gray-300">Excluir VIPs</span>
-                                                            <ToggleSwitch 
-                                                                checked={tempConfig.requirements.excludeVips} 
-                                                                onChange={c => updateTempRequirements({ excludeVips: c })} 
-                                                            />
-                                                        </div>
+                                                        <ToggleSwitch
+                                                            checked={weightByContribution}
+                                                            onChange={setWeightByContribution}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Configuración Avanzada (colapsable) */}
+                                        <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                                            <button
+                                                onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
+                                                className="flex items-center gap-2 text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white transition w-full"
+                                            >
+                                                <Shield className="w-4 h-4" />
+                                                Configuración Avanzada
+                                                {showAdvancedConfig ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
+                                            </button>
+
+                                            {showAdvancedConfig && (
+                                                <div className="space-y-4 mt-4">
+                                                    {/* Restricciones */}
+                                                    <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                        <h4 className="text-xs font-bold text-gray-500 mb-3 uppercase">Restricciones</h4>
+                                                        <div className="space-y-2">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-sm dark:text-gray-300">Excluir Moderadores</span>
+                                                                <ToggleSwitch
+                                                                    checked={tempConfig.requirements.excludeMods}
+                                                                    onChange={c => updateTempRequirements({ excludeMods: c })}
+                                                                />
+                                                            </div>
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-sm dark:text-gray-300">Excluir VIPs</span>
+                                                                <ToggleSwitch
+                                                                    checked={tempConfig.requirements.excludeVips}
+                                                                    onChange={c => updateTempRequirements({ excludeVips: c })}
+                                                                />
+                                                            </div>
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-sm dark:text-gray-300">Excluir Broadcaster</span>
+                                                                <ToggleSwitch
+                                                                    checked={tempConfig.requirements.excludeBroadcaster}
+                                                                    onChange={c => updateTempRequirements({ excludeBroadcaster: c })}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Cooldown de ganadores */}
+                                                    <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                        <h4 className="text-xs font-bold text-gray-500 mb-3 uppercase">Cooldown de Ganadores Recientes</h4>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-sm dark:text-gray-300">Excluir si ganaron en los últimos</span>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={winnerCooldownDays}
+                                                                onChange={e => setWinnerCooldownDays(Number(e.target.value))}
+                                                                className="w-20 px-2 py-1 rounded border text-sm bg-white dark:bg-[#1B1C1D] dark:border-gray-600 dark:text-white text-center"
+                                                            />
+                                                            <span className="text-sm text-gray-500">días</span>
+                                                        </div>
+                                                        <p className="text-[11px] text-gray-400 mt-2">0 = sin cooldown. Los ganadores recientes del canal no podrán participar.</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 bg-white dark:bg-[#1B1C1D]">
-                                        <button 
+                                    <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 bg-white dark:bg-[#1B1C1D] rounded-b-2xl">
+                                        <button
                                             onClick={() => setShowCreateForm(false)}
                                             className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg transition"
                                         >
@@ -831,10 +1168,123 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         <button
                                             onClick={handleCreateRaffle}
                                             disabled={loading || !tempRaffleName.trim()}
-                                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2"
+                                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 disabled:opacity-50"
                                         >
                                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                                             Crear Sorteo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* MODAL IMPORTAR SESIÓN */}
+                        {showImportModal && (
+                            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] border border-gray-200 dark:border-gray-700 flex flex-col">
+                                    <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                                        <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                            <DownloadCloud className="w-5 h-5" /> Importar de Sesión
+                                        </h2>
+                                        <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg">
+                                            <X className="w-5 h-5 text-gray-500" />
+                                        </button>
+                                    </div>
+
+                                    <div className="p-5 space-y-4 flex-1 overflow-y-auto">
+                                        {/* Modo de selección */}
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => { setMultiSessionMode(false); setSelectedSessionIds([]); }}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                            >
+                                                Una Sesión
+                                            </button>
+                                            <button
+                                                onClick={() => { setMultiSessionMode(true); setSelectedSessionId(null); }}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                            >
+                                                Múltiples
+                                            </button>
+                                        </div>
+
+                                        {/* Lista de sesiones */}
+                                        {loadingSessions ? (
+                                            <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+                                        ) : (
+                                            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                                                {!multiSessionMode && (
+                                                    <div
+                                                        onClick={() => setSelectedSessionId(null)}
+                                                        className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
+                                                            selectedSessionId === null ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                        }`}
+                                                    >
+                                                        <span className="font-bold dark:text-white">Auto (última sesión)</span>
+                                                    </div>
+                                                )}
+                                                {availableSessions.map(session => {
+                                                    const isSelected = multiSessionMode ? selectedSessionIds.includes(session.id) : selectedSessionId === session.id;
+                                                    return (
+                                                        <div
+                                                            key={session.id}
+                                                            onClick={() => multiSessionMode ? toggleSessionInMulti(session.id) : setSelectedSessionId(session.id)}
+                                                            className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
+                                                                isSelected ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                            }`}
+                                                        >
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="font-bold dark:text-white">
+                                                                    #{session.id}
+                                                                    {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold">ACTIVA</span>}
+                                                                </span>
+                                                                <span className="text-gray-500">{new Date(session.startedAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                            <div className="flex gap-3 mt-1 text-gray-400">
+                                                                <span>Eventos: {session.totalEvents}</span>
+                                                                <span>Usuarios: {session.uniqueParticipants}</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* Opciones de import */}
+                                        <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <span className="text-sm font-bold dark:text-white">Forzar reimportar</span>
+                                                    <p className="text-[11px] text-gray-500">Importar aunque la sesión ya haya sido importada</p>
+                                                </div>
+                                                <ToggleSwitch checked={importForceReimport} onChange={setImportForceReimport} />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <span className="text-sm font-bold dark:text-white">Sumar tickets</span>
+                                                    <p className="text-[11px] text-gray-500">Si el usuario ya existe, sumar tickets en vez de omitir</p>
+                                                </div>
+                                                <ToggleSwitch checked={importMergeTickets} onChange={setImportMergeTickets} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
+                                        <button onClick={() => setShowImportModal(false)} className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg transition">
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={() => handleImportSession({
+                                                sessionId: !multiSessionMode ? (selectedSessionId ?? undefined) : undefined,
+                                                sessionIds: multiSessionMode ? selectedSessionIds : undefined,
+                                                forceReimport: importForceReimport,
+                                                mergeTickets: importMergeTickets,
+                                            })}
+                                            disabled={loadingDetails}
+                                            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 disabled:opacity-50"
+                                        >
+                                            {loadingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadCloud className="w-4 h-4" />}
+                                            Importar
                                         </button>
                                     </div>
                                 </div>

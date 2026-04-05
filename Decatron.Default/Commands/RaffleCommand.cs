@@ -347,7 +347,7 @@ namespace Decatron.Default.Commands
                 return;
             }
 
-            var newWinner = await raffleService.RerollWinnerAsync(lastWinner.Id, "Reroll requested via command");
+            var newWinner = await raffleService.RerollWinnerAsync(lastWinner.Id, "Reroll requested via command", channelLower);
 
             await messageSender.SendMessageAsync(channel,
                 _messagesService.GetMessage("raffle_cmd", "reroll", lang, newWinner.Username));

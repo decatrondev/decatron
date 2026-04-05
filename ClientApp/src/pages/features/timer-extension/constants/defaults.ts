@@ -281,7 +281,8 @@ export const DEFAULT_RAFFLES_CONFIG: import('../types').RafflesConfig = {
         excludeMods: true,
         excludeVips: true,
         excludeBroadcaster: true,
-        excludePreviousWinners: false
+        excludePreviousWinners: false,
+        winnerCooldownDays: 0
     },
 
     animations: {

@@ -260,23 +260,27 @@ export interface RaffleMethodConfig {
     tier1Tickets?: number;
     tier2Tickets?: number;
     tier3Tickets?: number;
+    allowedTiers?: string[]; // ['tier1','tier2','tier3','prime']
+    // Para gift subs
+    minGifts?: number;
     // General
     ticketLimit?: number; // 0 = ilimitado
+    weightByContribution?: boolean; // Ponderar tickets por cantidad
 }
 
 export interface RafflesConfig {
     enabled: boolean;
     autoStartWithTimer: boolean;
     autoCloseWithTimer: boolean;
-    
+
     // Métodos de entrada (Globales para todos los sorteos por defecto)
     methods: {
         chatCommand: RaffleMethodConfig & { command: string };
         automatic: RaffleMethodConfig; // Entran todos los elegibles
         bits: RaffleMethodConfig;
         subscription: RaffleMethodConfig;
-        giftSubscription: RaffleMethodConfig; // Nueva opción
-        follow: RaffleMethodConfig; // Nueva opción
+        giftSubscription: RaffleMethodConfig;
+        follow: RaffleMethodConfig;
     };
 
     // Requisitos / Validaciones (Constraints)
@@ -289,6 +293,7 @@ export interface RafflesConfig {
         excludeVips: boolean;
         excludeBroadcaster: boolean;
         excludePreviousWinners: boolean;
+        winnerCooldownDays: number; // Días de cooldown para ganadores recientes
     };
 
     // Animaciones
