@@ -40,6 +40,7 @@ import SupportersPublic from './pages/SupportersPublic';
 import GachaConfig from './pages/features/gacha-extension/GachaConfig';
 import GachaOverlay from './pages/GachaOverlay';
 import GachaCollection from './pages/GachaCollection';
+import MeGacha from './pages/me/MeGacha';
 import Analytics from './pages/analytics/Analytics';
 import Followers from './pages/Followers';
 import ShoutoutOverlay from './pages/ShoutoutOverlay';
@@ -226,6 +227,7 @@ function App() {
                     <Route path="me" element={<SafeRoute name="Profile"><MeOverview /></SafeRoute>} />
                     <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
                     <Route path="me/coins" element={<SafeRoute name="Coins"><MeCoins /></SafeRoute>} />
+                    <Route path="me/gacha" element={<SafeRoute name="My Gacha"><MeGacha /></SafeRoute>} />
 
                     {/* Discord Configuration */}
                     <Route path="discord" element={<SafeRoute name="Discord"><DiscordConfig /></SafeRoute>} />

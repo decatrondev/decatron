@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Package, Star, History, TrendingUp, Loader2, Search, Filter } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Package, Star, History, TrendingUp, Loader2, Search, Filter, Lock, LogIn, Globe, Eye, Gift } from 'lucide-react';
+import api from '../services/api';
 
 const RARITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; stars: string }> = {
     legendary: { label: 'Legendario', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: '#f59e0b', stars: '★★★★★' },
@@ -16,11 +17,25 @@ interface CollectionData {
     channelName: string;
     userName: string;
     banner?: string;
+    isPrivate?: boolean;
     participant: { name: string; donationAmount: number; pulls: number; effectiveDonation: number } | null;
     stats: { uniqueCards: number; totalCards: number; totalAvailable: number; pullsUsed: number; totalDonated: number; byRarity: Record<string, number> };
     inventory: { id: number; itemId: number; name: string; rarity: string; image?: string; quantity: number; isRedeemed: boolean; lastWonAt: string }[];
     history: { id: number; itemName: string; rarity: string; image?: string; occurredAt: string }[];
     progress: { rarity: string; owned: number; total: number; percentage: number }[];
+}
+
+function getLoggedInUsername(): string | null {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || payload['Name'] || payload['name'] || payload['unique_name'] || null;
+    } catch {
+        return null;
+    }
 }
 
 export default function GachaCollection() {
@@ -34,18 +49,29 @@ export default function GachaCollection() {
     const [search, setSearch] = useState('');
     const [historyLimit, setHistoryLimit] = useState(5);
 
+    const loggedInUser = useMemo(() => getLoggedInUsername(), []);
+    const isLoggedIn = !!loggedInUser;
+    const isOwner = isLoggedIn && loggedInUser?.toLowerCase() === user?.toLowerCase();
+
     useEffect(() => {
         if (!channel || !user) { setError('Parametros channel y user requeridos en la URL'); setLoading(false); return; }
         (async () => {
             try {
                 const res = await fetch(`/api/gacha/public/collection?channel=${encodeURIComponent(channel)}&user=${encodeURIComponent(user)}`);
                 const json = await res.json();
-                if (json.success) setData(json);
+                if (json.success) setData({
+                    ...json,
+                    stats: json.stats || { uniqueCards: 0, totalCards: 0, totalAvailable: 0, pullsUsed: 0, totalDonated: 0, byRarity: {} },
+                    inventory: json.inventory || [],
+                    history: json.history || [],
+                    progress: json.progress || [],
+                });
                 else setError(json.message || 'Error cargando coleccion');
             } catch { setError('Error de conexion'); }
             finally { setLoading(false); }
         })();
     }, [channel, user]);
+
 
     if (loading) return (
         <div className="min-h-screen bg-[#1B1C1D] flex items-center justify-center">
@@ -63,6 +89,25 @@ export default function GachaCollection() {
         </div>
     );
 
+    // Private collection - only show if NOT the owner
+    if (data.isPrivate && !isOwner) return (
+        <div className="min-h-screen bg-[#1B1C1D] flex items-center justify-center text-white font-sans">
+            <div className="text-center">
+                <Lock className="w-16 h-16 mx-auto mb-4 text-gray-500" />
+                <p className="text-2xl font-bold mb-2">Esta coleccion es privada</p>
+                <p className="text-sm text-gray-400">El usuario ha configurado su coleccion como privada.</p>
+                {!isLoggedIn && (
+                    <a
+                        href={`/login?redirect=gacha/collection?channel=${encodeURIComponent(channel)}&user=${encodeURIComponent(user)}`}
+                        className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition"
+                    >
+                        <LogIn className="w-4 h-4" /> Iniciar Sesion
+                    </a>
+                )}
+            </div>
+        </div>
+    );
+
     const filteredCards = data.inventory.filter(c => {
         if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
         if (filter === 'all') return true;
@@ -72,6 +117,26 @@ export default function GachaCollection() {
 
     return (
         <div className="min-h-screen bg-[#1B1C1D] text-white font-sans">
+            {/* Top bar with login / profile link */}
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+                {isLoggedIn && (
+                    <Link
+                        to="/me/gacha"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#262626] border border-[#374151] text-gray-300 hover:text-white text-xs font-bold rounded-lg transition"
+                    >
+                        <Eye className="w-3.5 h-3.5" /> Ver mi perfil
+                    </Link>
+                )}
+                {!isLoggedIn && (
+                    <a
+                        href={`/login?redirect=gacha/collection?channel=${encodeURIComponent(channel)}&user=${encodeURIComponent(user)}`}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition"
+                    >
+                        <LogIn className="w-3.5 h-3.5" /> Iniciar Sesion
+                    </a>
+                )}
+            </div>
+
             {/* Banner */}
             <div className="relative h-48 sm:h-64 overflow-hidden">
                 {data.banner ? (

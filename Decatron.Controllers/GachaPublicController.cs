@@ -28,6 +28,29 @@ namespace Decatron.Controllers
             var channelName = channel.ToLower().Trim();
             var userName = user.ToLower().Trim();
 
+            // Check privacy settings
+            var viewerSettings = await _context.GachaViewerSettings
+                .FirstOrDefaultAsync(s => s.TwitchUsername == userName);
+
+            if (viewerSettings != null)
+            {
+                var isPrivateGlobal = !viewerSettings.CollectionsPublic;
+                var privateChannels = System.Text.Json.JsonSerializer.Deserialize<List<string>>(viewerSettings.PrivateChannelsJson ?? "[]") ?? new();
+                var isPrivateChannel = privateChannels.Contains(channelName);
+
+                if (isPrivateGlobal || isPrivateChannel)
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        isPrivate = true,
+                        channelName,
+                        userName,
+                        message = "Esta coleccion es privada"
+                    });
+                }
+            }
+
             // Get active banner
             var banner = await _context.GachaBanners
                 .Where(b => b.ChannelName == channelName && b.IsActive)

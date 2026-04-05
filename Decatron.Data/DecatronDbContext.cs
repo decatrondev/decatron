@@ -171,6 +171,7 @@ namespace Decatron.Data
         public DbSet<GachaOverlayConfig> GachaOverlayConfigs { get; set; }
         public DbSet<GachaPullLog> GachaPullLogs { get; set; }
         public DbSet<GachaIntegrationConfig> GachaIntegrationConfigs { get; set; }
+        public DbSet<GachaViewerSettings> GachaViewerSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -1573,6 +1574,13 @@ namespace Decatron.Data
             modelBuilder.Entity<GachaIntegrationConfig>(entity =>
             {
                 entity.HasIndex(e => e.ChannelName).IsUnique().HasDatabaseName("uq_gacha_integration_channel");
+            });
+
+            modelBuilder.Entity<GachaViewerSettings>(entity =>
+            {
+                entity.HasIndex(e => e.UserId).IsUnique().HasDatabaseName("uq_gacha_viewer_user");
+                entity.HasIndex(e => e.TwitchUsername).HasDatabaseName("idx_gacha_viewer_twitch");
+                entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
