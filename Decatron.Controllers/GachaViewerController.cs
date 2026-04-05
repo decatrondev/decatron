@@ -252,6 +252,74 @@ namespace Decatron.Controllers
         }
 
         // ========================================================================
+        // INVENTORY (for showcase editor)
+        // ========================================================================
+
+        /// <summary>Inventario del viewer por participantId (para editor de vitrina)</summary>
+        [HttpGet("inventory/{participantId:int}")]
+        public async Task<IActionResult> GetViewerInventory(int participantId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            var inventory = await _context.GachaInventories
+                .Include(i => i.Item)
+                .Where(i => i.ParticipantId == participantId)
+                .Select(i => new
+                {
+                    i.Id, i.ItemId,
+                    name = i.Item != null ? i.Item.Name : "",
+                    rarity = i.Item != null ? i.Item.Rarity : "common",
+                    image = i.Item != null ? i.Item.Image : null,
+                    i.Quantity, i.IsRedeemed
+                })
+                .ToListAsync();
+
+            return Ok(new { success = true, inventory });
+        }
+
+        // ========================================================================
+        // WISHLIST AVAILABLE (items not owned)
+        // ========================================================================
+
+        /// <summary>Items disponibles para wishlist (items del canal que el viewer NO tiene)</summary>
+        [HttpGet("wishlist/{participantId:int}/available")]
+        public async Task<IActionResult> GetWishlistAvailable(int participantId)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null) return NotFound(new { success = false });
+            if (participant.Name != viewer.Value.username) return Forbid();
+
+            var ownedItemIds = await _context.GachaInventories
+                .Where(i => i.ParticipantId == participantId)
+                .Select(i => i.ItemId)
+                .Distinct()
+                .ToListAsync();
+
+            var wishlistItemIds = await _context.GachaWishlists
+                .Where(w => w.ParticipantId == participantId)
+                .Select(w => w.ItemId)
+                .ToListAsync();
+
+            var available = await _context.GachaItems
+                .Where(i => i.ChannelName == participant.ChannelName
+                          && i.Available
+                          && !ownedItemIds.Contains(i.Id)
+                          && !wishlistItemIds.Contains(i.Id))
+                .Select(i => new { i.Id, i.Name, i.Rarity, i.Image })
+                .ToListAsync();
+
+            return Ok(new { success = true, items = available });
+        }
+
+        // ========================================================================
         // ACHIEVEMENTS
         // ========================================================================
 

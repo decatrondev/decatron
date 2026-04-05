@@ -623,6 +623,38 @@ namespace Decatron.Controllers
             var saved = await _gachaService.SaveIntegrationConfigAsync(config);
             return Ok(new { success = true, config = saved });
         }
+
+        // ========================================================================
+        // MOST WISHED (for streamer dashboard)
+        // ========================================================================
+
+        [HttpGet("most-wished")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> GetMostWished()
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            var wished = await _context.GachaWishlists
+                .Include(w => w.Item)
+                .Include(w => w.Participant)
+                .Where(w => w.Participant != null && w.Participant.ChannelName == ctx.Value.channelName)
+                .GroupBy(w => new { w.ItemId, Name = w.Item != null ? w.Item.Name : "", Rarity = w.Item != null ? w.Item.Rarity : "common", Image = w.Item != null ? w.Item.Image : "" })
+                .Select(g => new
+                {
+                    itemId = g.Key.ItemId,
+                    name = g.Key.Name,
+                    rarity = g.Key.Rarity,
+                    image = g.Key.Image,
+                    wishCount = g.Count(),
+                    wishedBy = g.Select(w => w.Participant != null ? w.Participant.Name : "").ToList()
+                })
+                .OrderByDescending(x => x.wishCount)
+                .Take(20)
+                .ToListAsync();
+
+            return Ok(new { success = true, items = wished });
+        }
     }
 
     // ========================================================================
