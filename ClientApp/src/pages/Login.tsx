@@ -21,8 +21,8 @@ export default function Login() {
                 .then((response) => {
                     localStorage.setItem('token', response.data.token);
 
-                    if (redirect === 'gacha/terms') {
-                        navigate('/gacha/terms');
+                    if (redirect) {
+                        navigate('/' + redirect);
                     } else {
                         navigate('/dashboard');
                     }

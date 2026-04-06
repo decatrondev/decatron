@@ -102,7 +102,7 @@ export default function GachaCollection() {
                 <p className="text-sm text-gray-400">El usuario ha configurado su coleccion como privada.</p>
                 {!isLoggedIn && (
                     <a
-                        href={`/login?redirect=gacha/collection?channel=${encodeURIComponent(channel)}&user=${encodeURIComponent(user)}`}
+                        href={`/login?redirect=${encodeURIComponent(`gacha/collection?channel=${channel}&user=${user}`)}`}
                         className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition"
                     >
                         <LogIn className="w-4 h-4" /> Iniciar Sesion
@@ -133,7 +133,7 @@ export default function GachaCollection() {
                 )}
                 {!isLoggedIn && (
                     <a
-                        href={`/login?redirect=gacha/collection?channel=${encodeURIComponent(channel)}&user=${encodeURIComponent(user)}`}
+                        href={`/login?redirect=${encodeURIComponent(`gacha/collection?channel=${channel}&user=${user}`)}`}
                         className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition"
                     >
                         <LogIn className="w-3.5 h-3.5" /> Iniciar Sesion

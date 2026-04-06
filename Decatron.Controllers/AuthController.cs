@@ -464,8 +464,10 @@ namespace Decatron.Controllers
                 var exchangeCode = Guid.NewGuid().ToString("N");
                 _memoryCache.Set($"auth_exchange:{exchangeCode}", jwt, TimeSpan.FromSeconds(60));
 
-                _logger.LogInformation("Redirecting to {RedirectPath} with exchange code", redirectPath);
-                return Redirect($"{_twitchSettings.FrontendUrl}{redirectPath}?code={exchangeCode}");
+                // Always redirect to /login for code exchange, with redirect param to navigate after
+                var redirectParam = redirectPath != "/dashboard" ? $"&redirect={Uri.EscapeDataString(redirectPath.TrimStart('/'))}" : "";
+                _logger.LogInformation("Redirecting to login with exchange code, then to {RedirectPath}", redirectPath);
+                return Redirect($"{_twitchSettings.FrontendUrl}/login?code={exchangeCode}{redirectParam}");
             }
             catch (Exception ex)
             {
