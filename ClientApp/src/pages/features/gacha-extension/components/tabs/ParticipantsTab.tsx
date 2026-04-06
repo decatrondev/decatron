@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, ChevronDown, ChevronUp, Package, History, DollarSign, Gift, Filter, X } from 'lucide-react';
+import { Users, Search, ChevronDown, ChevronUp, Package, History, DollarSign, Gift, Filter, X, Heart } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaParticipant, GachaInventory, GachaPullLog, GachaCollectionStats, RarityType } from '../../types';
 import { RARITY_CONFIG, RARITY_ORDER, getRarityStars } from '../../types';
+
+interface WishedItem {
+    itemId: number;
+    name: string;
+    rarity: string;
+    image?: string;
+    wishCount: number;
+    wishedBy: string[];
+}
 
 export const ParticipantsTab: React.FC = () => {
     const [participants, setParticipants] = useState<GachaParticipant[]>([]);
@@ -18,6 +27,7 @@ export const ParticipantsTab: React.FC = () => {
     const [donationMsg, setDonationMsg] = useState('');
     const [invFilter, setInvFilter] = useState<RarityType | 'all' | 'redeemed'>('all');
     const [invSearch, setInvSearch] = useState('');
+    const [mostWished, setMostWished] = useState<WishedItem[]>([]);
 
     const loadParticipants = async () => {
         setLoading(true);
@@ -31,7 +41,14 @@ export const ParticipantsTab: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadParticipants(); }, []);
+    useEffect(() => { loadParticipants(); loadMostWished(); }, []);
+
+    const loadMostWished = async () => {
+        try {
+            const res = await api.get('/gacha/most-wished');
+            setMostWished(res.data.items || []);
+        } catch { /* empty */ }
+    };
 
     const toggleExpand = async (id: number) => {
         if (expandedId === id) { setExpandedId(null); return; }
@@ -132,6 +149,51 @@ export const ParticipantsTab: React.FC = () => {
                 </div>
                 {donationMsg && <p className={`text-sm font-bold ${donationMsg.includes('Error') ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>{donationMsg}</p>}
             </div>
+
+            {/* Most Wished Cards */}
+            {mostWished.length > 0 && (
+                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-4">
+                    <div className="flex items-center gap-3 pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="p-3 bg-gradient-to-r from-red-400 to-pink-500 rounded-xl">
+                            <Heart className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Cartas Mas Deseadas</h2>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Lo que tus viewers quieren</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        {mostWished.map(item => {
+                            const rc = RARITY_CONFIG[item.rarity as RarityType] || RARITY_CONFIG.common;
+                            return (
+                                <div key={item.itemId} className="rounded-xl overflow-hidden border-2" style={{ borderColor: rc.border }}>
+                                    <div className="aspect-[3/4] relative" style={{ backgroundColor: rc.bg }}>
+                                        {item.image ? (
+                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Package className="w-8 h-8" style={{ color: rc.color, opacity: 0.2 }} />
+                                            </div>
+                                        )}
+                                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ backgroundColor: rc.color, color: '#fff' }}>
+                                            {getRarityStars(item.rarity as RarityType)}
+                                        </div>
+                                        <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-red-500 text-white rounded text-[10px] font-bold flex items-center gap-0.5">
+                                            <Heart className="w-2.5 h-2.5" /> {item.wishCount}
+                                        </div>
+                                    </div>
+                                    <div className="p-2 bg-white dark:bg-[#1B1C1D]">
+                                        <p className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{item.name}</p>
+                                        <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] truncate" title={item.wishedBy.join(', ')}>
+                                            {item.wishedBy.slice(0, 3).join(', ')}{item.wishedBy.length > 3 ? ` +${item.wishedBy.length - 3}` : ''}
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Participants List */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-4">
