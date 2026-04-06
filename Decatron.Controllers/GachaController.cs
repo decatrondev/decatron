@@ -617,6 +617,15 @@ namespace Decatron.Controllers
                 ChannelName = ctx.Value.channelName,
                 TipsEnabled = dto.TipsEnabled,
                 PullsPerDollar = dto.PullsPerDollar,
+                BitsEnabled = dto.BitsEnabled,
+                BitsPerPull = dto.BitsPerPull,
+                SubsEnabled = dto.SubsEnabled,
+                PullsSubPrime = dto.PullsSubPrime,
+                PullsSubTier1 = dto.PullsSubTier1,
+                PullsSubTier2 = dto.PullsSubTier2,
+                PullsSubTier3 = dto.PullsSubTier3,
+                GiftSubsEnabled = dto.GiftSubsEnabled,
+                PullsPerGift = dto.PullsPerGift,
                 CoinsEnabled = dto.CoinsEnabled,
                 CoinsPerPull = dto.CoinsPerPull
             };
@@ -723,6 +732,15 @@ namespace Decatron.Controllers
     {
         public bool TipsEnabled { get; set; } = false;
         public int PullsPerDollar { get; set; } = 1;
+        public bool BitsEnabled { get; set; } = false;
+        public int BitsPerPull { get; set; } = 100;
+        public bool SubsEnabled { get; set; } = false;
+        public int PullsSubPrime { get; set; } = 1;
+        public int PullsSubTier1 { get; set; } = 2;
+        public int PullsSubTier2 { get; set; } = 3;
+        public int PullsSubTier3 { get; set; } = 5;
+        public bool GiftSubsEnabled { get; set; } = false;
+        public int PullsPerGift { get; set; } = 1;
         public bool CoinsEnabled { get; set; } = false;
         public int CoinsPerPull { get; set; } = 100;
     }

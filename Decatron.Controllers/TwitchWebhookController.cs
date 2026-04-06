@@ -853,6 +853,17 @@ namespace Decatron.Controllers
                         _logger.LogError(giveawayEx, $"Error actualizando bits de giveaway para {userName}");
                     }
                 }
+
+                // 🎴 Gacha: convertir bits en tiros
+                try
+                {
+                    var gachaService = HttpContext.RequestServices.GetRequiredService<IGachaService>();
+                    await gachaService.ProcessBitsEventAsync(broadcasterUserName.ToLower(), userName, bits);
+                }
+                catch (Exception gachaEx)
+                {
+                    _logger.LogError(gachaEx, "[GACHA] Error procesando bits para gacha");
+                }
             }
             catch (Exception ex)
             {
@@ -895,6 +906,17 @@ namespace Decatron.Controllers
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering sub alert for {User}", userName);
                 }
+
+                // 🎴 Gacha: convertir sub en tiros
+                try
+                {
+                    var gachaService = HttpContext.RequestServices.GetRequiredService<IGachaService>();
+                    await gachaService.ProcessSubEventAsync(broadcasterUserName.ToLower(), userName, tier);
+                }
+                catch (Exception gachaEx)
+                {
+                    _logger.LogError(gachaEx, "[GACHA] Error procesando sub para gacha");
+                }
             }
             catch (Exception ex)
             {
@@ -928,6 +950,17 @@ namespace Decatron.Controllers
                 catch (Exception alertEx)
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering giftSub alert for {User}", userName);
+                }
+
+                // 🎴 Gacha: convertir gift subs en tiros (al que regala)
+                try
+                {
+                    var gachaService = HttpContext.RequestServices.GetRequiredService<IGachaService>();
+                    await gachaService.ProcessGiftSubEventAsync(broadcasterUserName.ToLower(), userName, total);
+                }
+                catch (Exception gachaEx)
+                {
+                    _logger.LogError(gachaEx, "[GACHA] Error procesando gift sub para gacha");
                 }
             }
             catch (Exception ex)

@@ -1,18 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Link2, DollarSign, Coins, Save, Info, Zap } from 'lucide-react';
+import { Link2, DollarSign, Coins, Save, Zap, Star, Gift, Diamond } from 'lucide-react';
 import api from '../../../../../services/api';
 
 interface IntegrationConfig {
     tipsEnabled: boolean;
     pullsPerDollar: number;
+    bitsEnabled: boolean;
+    bitsPerPull: number;
+    subsEnabled: boolean;
+    pullsSubPrime: number;
+    pullsSubTier1: number;
+    pullsSubTier2: number;
+    pullsSubTier3: number;
+    giftSubsEnabled: boolean;
+    pullsPerGift: number;
     coinsEnabled: boolean;
     coinsPerPull: number;
 }
 
 const defaultConfig: IntegrationConfig = {
     tipsEnabled: false, pullsPerDollar: 1,
+    bitsEnabled: false, bitsPerPull: 100,
+    subsEnabled: false, pullsSubPrime: 1, pullsSubTier1: 2, pullsSubTier2: 3, pullsSubTier3: 5,
+    giftSubsEnabled: false, pullsPerGift: 1,
     coinsEnabled: false, coinsPerPull: 100,
 };
+
+const inputClass = 'w-20 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-center text-[#1e293b] dark:text-[#f8fafc]';
 
 export const IntegrationsTab: React.FC = () => {
     const [config, setConfig] = useState<IntegrationConfig>(defaultConfig);
@@ -25,11 +39,8 @@ export const IntegrationsTab: React.FC = () => {
             try {
                 const res = await api.get('/gacha/integration-config');
                 setConfig(res.data.config || defaultConfig);
-            } catch (err) {
-                console.error('Error loading integration config', err);
-            } finally {
-                setLoading(false);
-            }
+            } catch { /* use defaults */ }
+            finally { setLoading(false); }
         })();
     }, []);
 
@@ -40,115 +51,81 @@ export const IntegrationsTab: React.FC = () => {
             setConfig(res.data.config || config);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
-        } catch (err) {
-            console.error('Error saving integration config', err);
-        } finally {
-            setSaving(false);
-        }
+        } catch { /* error */ }
+        finally { setSaving(false); }
     };
 
-    if (loading) return <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando...</p>;
+    const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
+        <button onClick={() => onChange(!checked)} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${checked ? 'bg-green-600 text-white shadow-lg shadow-green-600/25' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+            {checked ? 'Activado' : 'Desactivado'}
+        </button>
+    );
+
+    if (loading) return <p className="text-center text-[#64748b] py-8">Cargando...</p>;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
             {/* Header */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <div className="flex items-center gap-3 pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 rounded-xl">
                         <Link2 className="w-6 h-6 text-white" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Integraciones</h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Conecta el gacha con otros sistemas de Decatron</p>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Conecta eventos de Twitch con el gacha para dar tiros automaticamente</p>
                     </div>
                 </div>
             </div>
 
-            {/* Tips Integration */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-5">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                            <DollarSign className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Tips / Donaciones</h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Convierte donaciones de PayPal en tiros automaticamente</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setConfig({ ...config, tipsEnabled: !config.tipsEnabled })}
-                        className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                            config.tipsEnabled
-                                ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                        }`}
-                    >
-                        {config.tipsEnabled ? 'Activado' : 'Desactivado'}
-                    </button>
+            {/* Bits */}
+            <Section icon={<Diamond className="w-5 h-5 text-purple-500" />} title="Bits" desc="Viewers donan bits y reciben tiros automaticamente" enabled={config.bitsEnabled} onToggle={v => setConfig({ ...config, bitsEnabled: v })}>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm text-[#64748b]">Cada</span>
+                    <input type="number" min={1} value={config.bitsPerPull} onChange={e => setConfig({ ...config, bitsPerPull: Math.max(1, parseInt(e.target.value) || 100) })} className={inputClass} />
+                    <span className="text-sm text-[#64748b]">bits = 1 tiro</span>
                 </div>
+                <Example text={`500 bits con ${config.bitsPerPull} bits/tiro = ${Math.floor(500 / config.bitsPerPull)} tiros`} />
+            </Section>
 
-                {config.tipsEnabled && (
-                    <div className="space-y-4 pt-2">
-                        <div className="flex items-center gap-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1">Tiros por dolar</label>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-2">Cuantos tiros recibe el viewer por cada $1 donado</p>
-                                <div className="flex items-center gap-3">
-                                    {[1, 2, 3, 5, 10].map(n => (
-                                        <button
-                                            key={n}
-                                            onClick={() => setConfig({ ...config, pullsPerDollar: n })}
-                                            className={`w-12 h-12 rounded-xl font-bold text-sm transition-all ${
-                                                config.pullsPerDollar === n
-                                                    ? 'bg-green-600 text-white shadow-lg'
-                                                    : 'bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] hover:border-green-400'
-                                            }`}
-                                        >
-                                            {n}
-                                        </button>
-                                    ))}
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        max={100}
-                                        value={config.pullsPerDollar}
-                                        onChange={e => setConfig({ ...config, pullsPerDollar: Math.max(1, parseInt(e.target.value) || 1) })}
-                                        className="w-20 px-3 py-2.5 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-center text-[#1e293b] dark:text-[#f8fafc]"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+            {/* Subscriptions */}
+            <Section icon={<Star className="w-5 h-5 text-yellow-500" />} title="Suscripciones" desc="Viewers que se suscriben reciben tiros segun su tier" enabled={config.subsEnabled} onToggle={v => setConfig({ ...config, subsEnabled: v })}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <TierInput label="Prime" value={config.pullsSubPrime} onChange={v => setConfig({ ...config, pullsSubPrime: v })} color="#6366f1" />
+                    <TierInput label="Tier 1" value={config.pullsSubTier1} onChange={v => setConfig({ ...config, pullsSubTier1: v })} color="#3b82f6" />
+                    <TierInput label="Tier 2" value={config.pullsSubTier2} onChange={v => setConfig({ ...config, pullsSubTier2: v })} color="#a855f7" />
+                    <TierInput label="Tier 3" value={config.pullsSubTier3} onChange={v => setConfig({ ...config, pullsSubTier3: v })} color="#f59e0b" />
+                </div>
+            </Section>
 
-                        {/* Example */}
-                        <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 rounded-xl">
-                            <Zap className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm text-green-700 dark:text-green-300">
-                                <p className="font-bold mb-1">Ejemplo:</p>
-                                <p>Si alguien dona <strong>$5</strong> con <strong>{config.pullsPerDollar} tiro(s) por dolar</strong> → recibe <strong>{5 * config.pullsPerDollar} tiros</strong> automaticamente</p>
-                            </div>
-                        </div>
+            {/* Gift Subs */}
+            <Section icon={<Gift className="w-5 h-5 text-pink-500" />} title="Gift Subs" desc="El que regala suscripciones recibe tiros" enabled={config.giftSubsEnabled} onToggle={v => setConfig({ ...config, giftSubsEnabled: v })}>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm text-[#64748b]">Cada gift sub =</span>
+                    <input type="number" min={1} value={config.pullsPerGift} onChange={e => setConfig({ ...config, pullsPerGift: Math.max(1, parseInt(e.target.value) || 1) })} className={inputClass} />
+                    <span className="text-sm text-[#64748b]">tiro(s)</span>
+                </div>
+                <Example text={`Regalar 5 subs con ${config.pullsPerGift} tiro/gift = ${5 * config.pullsPerGift} tiros para el que regala`} />
+            </Section>
 
-                        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 rounded-xl">
-                            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                            <div className="text-sm text-blue-700 dark:text-blue-300">
-                                <p>Requiere que tengas <strong>Tips configurados</strong> en <a href="/features/tips" className="underline font-bold">Funciones → Tips</a>. Las donaciones via PayPal se convertiran automaticamente en tiros de gacha.</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+            {/* Tips */}
+            <Section icon={<DollarSign className="w-5 h-5 text-green-500" />} title="Tips / PayPal" desc="Donaciones via PayPal se convierten en tiros" enabled={config.tipsEnabled} onToggle={v => setConfig({ ...config, tipsEnabled: v })}>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm text-[#64748b]">Cada $1 =</span>
+                    <input type="number" min={1} value={config.pullsPerDollar} onChange={e => setConfig({ ...config, pullsPerDollar: Math.max(1, parseInt(e.target.value) || 1) })} className={inputClass} />
+                    <span className="text-sm text-[#64748b]">tiro(s)</span>
+                </div>
+                <Example text={`Donacion de $5 con ${config.pullsPerDollar} tiro/dolar = ${5 * config.pullsPerDollar} tiros`} />
+            </Section>
 
-            {/* DecaCoins Integration (future) */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-5 opacity-60">
+            {/* DecaCoins */}
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 shadow-lg opacity-60">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                            <Coins className="w-5 h-5 text-amber-600" />
-                        </div>
+                        <Coins className="w-5 h-5 text-amber-500" />
                         <div>
-                            <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">DecaCoins</h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Permite comprar tiros con DecaCoins (proximamente)</p>
+                            <h3 className="text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">DecaCoins</h3>
+                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Comprar tiros con DecaCoins (proximamente)</p>
                         </div>
                     </div>
                     <span className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg text-xs font-bold">Proximamente</span>
@@ -156,14 +133,48 @@ export const IntegrationsTab: React.FC = () => {
             </div>
 
             {/* Save */}
-            <button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-            >
-                <Save className="w-4 h-4" />
-                {saving ? 'Guardando...' : saved ? 'Guardado!' : 'Guardar Configuracion'}
+            <button onClick={handleSave} disabled={saving} className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl font-bold transition flex items-center justify-center gap-2">
+                <Save className="w-4 h-4" /> {saving ? 'Guardando...' : saved ? 'Guardado!' : 'Guardar Configuracion'}
             </button>
         </div>
     );
 };
+
+function Section({ icon, title, desc, enabled, onToggle, children }: { icon: React.ReactNode; title: string; desc: string; enabled: boolean; onToggle: (v: boolean) => void; children: React.ReactNode }) {
+    return (
+        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 shadow-lg space-y-4">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    {icon}
+                    <div>
+                        <h3 className="text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{title}</h3>
+                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{desc}</p>
+                    </div>
+                </div>
+                <button onClick={() => onToggle(!enabled)} className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${enabled ? 'bg-green-600 text-white shadow-lg shadow-green-600/25' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                    {enabled ? 'Activado' : 'Desactivado'}
+                </button>
+            </div>
+            {enabled && <div className="pt-2 space-y-3">{children}</div>}
+        </div>
+    );
+}
+
+function TierInput({ label, value, onChange, color }: { label: string; value: number; onChange: (v: number) => void; color: string }) {
+    return (
+        <div className="p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-center">
+            <p className="text-xs font-bold mb-2" style={{ color }}>{label}</p>
+            <input type="number" min={0} value={value} onChange={e => onChange(Math.max(0, parseInt(e.target.value) || 0))} className="w-full px-2 py-1.5 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-center text-[#1e293b] dark:text-[#f8fafc]" />
+            <p className="text-[10px] text-[#64748b] mt-1">tiros</p>
+        </div>
+    );
+}
+
+function Example({ text }: { text: string }) {
+    return (
+        <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800/30 rounded-xl">
+            <Zap className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700 dark:text-blue-300"><strong>Ejemplo:</strong> {text}</p>
+        </div>
+    );
+}

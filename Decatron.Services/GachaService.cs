@@ -50,6 +50,9 @@ namespace Decatron.Services
         Task<GachaIntegrationConfig?> GetIntegrationConfigAsync(string channelName);
         Task<GachaIntegrationConfig> SaveIntegrationConfigAsync(GachaIntegrationConfig config);
         Task ProcessTipDonationAsync(string channelName, string donorName, decimal amount, string currency);
+        Task ProcessBitsEventAsync(string channelName, string username, int bitsAmount);
+        Task ProcessSubEventAsync(string channelName, string username, string tier);
+        Task ProcessGiftSubEventAsync(string channelName, string gifterUsername, int giftCount);
 
         // Participants
         Task<List<GachaParticipant>> GetParticipantsAsync(string channelName);
@@ -745,6 +748,15 @@ namespace Decatron.Services
             {
                 existing.TipsEnabled = config.TipsEnabled;
                 existing.PullsPerDollar = Math.Max(1, config.PullsPerDollar);
+                existing.BitsEnabled = config.BitsEnabled;
+                existing.BitsPerPull = Math.Max(1, config.BitsPerPull);
+                existing.SubsEnabled = config.SubsEnabled;
+                existing.PullsSubPrime = Math.Max(0, config.PullsSubPrime);
+                existing.PullsSubTier1 = Math.Max(0, config.PullsSubTier1);
+                existing.PullsSubTier2 = Math.Max(0, config.PullsSubTier2);
+                existing.PullsSubTier3 = Math.Max(0, config.PullsSubTier3);
+                existing.GiftSubsEnabled = config.GiftSubsEnabled;
+                existing.PullsPerGift = Math.Max(1, config.PullsPerGift);
                 existing.CoinsEnabled = config.CoinsEnabled;
                 existing.CoinsPerPull = Math.Max(1, config.CoinsPerPull);
                 existing.UpdatedAt = DateTime.UtcNow;
@@ -752,6 +764,8 @@ namespace Decatron.Services
             else
             {
                 config.PullsPerDollar = Math.Max(1, config.PullsPerDollar);
+                config.BitsPerPull = Math.Max(1, config.BitsPerPull);
+                config.PullsPerGift = Math.Max(1, config.PullsPerGift);
                 config.CoinsPerPull = Math.Max(1, config.CoinsPerPull);
                 config.CreatedAt = DateTime.UtcNow;
                 config.UpdatedAt = DateTime.UtcNow;
@@ -779,6 +793,57 @@ namespace Decatron.Services
 
             _logger.LogInformation("[GACHA] Auto-donation from tip: {Donor} +${Amount} {Currency} = {Pulls} pulls in {Channel}",
                 donorName, amount, currency, totalPulls, channelName);
+        }
+
+        public async Task ProcessBitsEventAsync(string channelName, string username, int bitsAmount)
+        {
+            var config = await _context.GachaIntegrationConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName && c.BitsEnabled);
+            if (config == null || bitsAmount <= 0) return;
+
+            var bitsPerPull = Math.Max(1, config.BitsPerPull);
+            var totalPulls = bitsAmount / bitsPerPull;
+            if (totalPulls <= 0) return;
+
+            await AddDonationAsync(channelName, username.ToLower(), totalPulls);
+            _logger.LogInformation("[GACHA] Bits → pulls: {User} {Bits} bits = {Pulls} pulls in {Channel}",
+                username, bitsAmount, totalPulls, channelName);
+        }
+
+        public async Task ProcessSubEventAsync(string channelName, string username, string tier)
+        {
+            var config = await _context.GachaIntegrationConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName && c.SubsEnabled);
+            if (config == null) return;
+
+            var pulls = tier switch
+            {
+                "Prime" or "prime" => config.PullsSubPrime,
+                "1000" or "Tier 1" or "tier1" => config.PullsSubTier1,
+                "2000" or "Tier 2" or "tier2" => config.PullsSubTier2,
+                "3000" or "Tier 3" or "tier3" => config.PullsSubTier3,
+                _ => config.PullsSubTier1
+            };
+
+            if (pulls <= 0) return;
+
+            await AddDonationAsync(channelName, username.ToLower(), pulls);
+            _logger.LogInformation("[GACHA] Sub → pulls: {User} ({Tier}) = {Pulls} pulls in {Channel}",
+                username, tier, pulls, channelName);
+        }
+
+        public async Task ProcessGiftSubEventAsync(string channelName, string gifterUsername, int giftCount)
+        {
+            var config = await _context.GachaIntegrationConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName && c.GiftSubsEnabled);
+            if (config == null || giftCount <= 0) return;
+
+            var pullsPerGift = Math.Max(1, config.PullsPerGift);
+            var totalPulls = giftCount * pullsPerGift;
+
+            await AddDonationAsync(channelName, gifterUsername.ToLower(), totalPulls);
+            _logger.LogInformation("[GACHA] GiftSub → pulls: {User} x{Gifts} = {Pulls} pulls in {Channel}",
+                gifterUsername, giftCount, totalPulls, channelName);
         }
 
         // ========================================================================
