@@ -543,7 +543,8 @@ namespace Decatron.Default.Commands
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[GACHA] Error in coin purchase for {User}", username);
-                await messageSender.SendMessageAsync(channel, $"@{username}, error processing coin purchase.");
+                var innerMsg = ex.InnerException?.Message ?? ex.Message;
+                await messageSender.SendMessageAsync(channel, $"@{username}, error: {innerMsg}");
             }
         }
 
