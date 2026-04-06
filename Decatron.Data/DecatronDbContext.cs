@@ -1572,7 +1572,7 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.ParticipantId).HasDatabaseName("idx_gacha_pull_logs_participant");
                 entity.HasIndex(e => e.OccurredAt).HasDatabaseName("idx_gacha_pull_logs_date");
                 entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).IsRequired(false).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<GachaIntegrationConfig>(entity =>

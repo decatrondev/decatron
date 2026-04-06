@@ -914,12 +914,12 @@ namespace Decatron.Services
             // 6. Add pulls
             var participant = await AddDonationAsync(channelName, username.ToLower(), pullCount);
 
-            // 7. Log pull_log entry
+            // 7. Log for daily limit tracking
             _context.GachaPullLogs.Add(new GachaPullLog
             {
                 ChannelName = channelName,
                 ParticipantId = participant.Id,
-                ItemId = 0,
+                ItemId = null,
                 Action = "coin_purchase",
                 Amount = totalCost,
                 OccurredAt = DateTime.UtcNow

@@ -19,9 +19,8 @@ namespace Decatron.Core.Models.Gacha
         [Column("participant_id")]
         public int ParticipantId { get; set; }
 
-        [Required]
         [Column("item_id")]
-        public int ItemId { get; set; }
+        public int? ItemId { get; set; }
 
         [Required]
         [Column("action")]
