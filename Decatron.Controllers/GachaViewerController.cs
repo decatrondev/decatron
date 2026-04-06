@@ -487,6 +487,84 @@ namespace Decatron.Controllers
         }
 
         // ========================================================================
+        // COIN PURCHASE
+        // ========================================================================
+
+        /// <summary>Comprar pulls con DecaCoins</summary>
+        [HttpPost("buy-pulls")]
+        public async Task<IActionResult> BuyPulls([FromBody] BuyPullsDto dto)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            try
+            {
+                var result = await _gachaService.PurchaseWithCoinsAsync(
+                    dto.ChannelName.ToLower(),
+                    viewer.Value.username,
+                    viewer.Value.userId,
+                    dto.PullCount);
+
+                return Ok(new
+                {
+                    success = true,
+                    pullsGranted = result.PullsGranted,
+                    coinsSpent = result.CoinsSpent,
+                    remainingBalance = result.RemainingBalance,
+                    dailyPurchasesLeft = result.DailyPurchasesLeft
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>Obtener precio de pulls con coins y balance del usuario</summary>
+        [HttpGet("coin-price/{channelName}")]
+        public async Task<IActionResult> GetCoinPrice(string channelName)
+        {
+            var viewer = GetViewer();
+            if (viewer == null) return Unauthorized();
+
+            var config = await _context.GachaIntegrationConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName.ToLower());
+
+            var userCoins = await _context.UserCoins
+                .FirstOrDefaultAsync(c => c.UserId == viewer.Value.userId);
+
+            var todayUtc = DateTime.UtcNow.Date;
+            var dailyPurchasesToday = 0;
+            if (config != null && config.CoinsEnabled)
+            {
+                dailyPurchasesToday = await _context.GachaPullLogs
+                    .Where(l => l.ChannelName == channelName.ToLower()
+                        && l.Action == "coin_purchase"
+                        && l.OccurredAt >= todayUtc)
+                    .Join(_context.GachaParticipants,
+                        l => l.ParticipantId,
+                        p => p.Id,
+                        (l, p) => new { Log = l, Participant = p })
+                    .Where(x => x.Participant.Name == viewer.Value.username)
+                    .CountAsync();
+            }
+
+            return Ok(new
+            {
+                success = true,
+                coinsPerPull = config?.CoinsPerPull ?? 0,
+                dailyLimit = config?.CoinsDailyLimit ?? 0,
+                coinsEnabled = config?.CoinsEnabled ?? false,
+                userBalance = (int)(userCoins?.Balance ?? 0),
+                dailyPurchasesToday
+            });
+        }
+
+        // ========================================================================
         // HELPERS
         // ========================================================================
 
@@ -524,5 +602,11 @@ namespace Decatron.Controllers
     {
         public int ParticipantId { get; set; }
         public int ItemId { get; set; }
+    }
+
+    public class BuyPullsDto
+    {
+        public string ChannelName { get; set; } = "";
+        public int PullCount { get; set; } = 1;
     }
 }

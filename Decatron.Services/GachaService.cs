@@ -1,4 +1,5 @@
 using Decatron.Core.Models.Gacha;
+using Decatron.Core.Models.Economy;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -85,6 +86,9 @@ namespace Decatron.Services
 
         // Advanced Stats
         Task<object> GetAdvancedStatsAsync(string channelName, int participantId);
+
+        // Coin Purchase
+        Task<GachaCoinPurchaseResult> PurchaseWithCoinsAsync(string channelName, string username, long userId, int pullCount);
     }
 
     public class GachaService : IGachaService
@@ -847,6 +851,100 @@ namespace Decatron.Services
         }
 
         // ========================================================================
+        // COIN PURCHASE
+        // ========================================================================
+
+        public async Task<GachaCoinPurchaseResult> PurchaseWithCoinsAsync(string channelName, string username, long userId, int pullCount)
+        {
+            if (pullCount <= 0 || pullCount > 100)
+                throw new ArgumentException("Pull count must be between 1 and 100");
+
+            // 1. Check integration config
+            var config = await _context.GachaIntegrationConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName);
+            if (config == null || !config.CoinsEnabled)
+                throw new InvalidOperationException("Coin purchases are not enabled for this channel");
+
+            // 2. Calculate cost
+            var totalCost = pullCount * config.CoinsPerPull;
+
+            // 3. Check daily limit
+            var todayUtc = DateTime.UtcNow.Date;
+            var dailyPurchasesToday = await _context.GachaPullLogs
+                .Where(l => l.ChannelName == channelName
+                    && l.Action == "coin_purchase"
+                    && l.OccurredAt >= todayUtc)
+                .Join(_context.GachaParticipants,
+                    l => l.ParticipantId,
+                    p => p.Id,
+                    (l, p) => new { Log = l, Participant = p })
+                .Where(x => x.Participant.Name == username.ToLower())
+                .CountAsync();
+
+            int dailyPurchasesLeft = -1; // unlimited
+            if (config.CoinsDailyLimit > 0)
+            {
+                dailyPurchasesLeft = config.CoinsDailyLimit - dailyPurchasesToday;
+                if (dailyPurchasesLeft <= 0)
+                    throw new InvalidOperationException("Daily coin purchase limit reached");
+                if (pullCount > dailyPurchasesLeft)
+                    throw new InvalidOperationException($"Daily limit exceeded. You can buy {dailyPurchasesLeft} more pull(s) today");
+            }
+
+            // 4. Check coin balance
+            var userCoins = await _context.UserCoins.FirstOrDefaultAsync(c => c.UserId == userId);
+            if (userCoins == null || userCoins.Balance < totalCost)
+                throw new InvalidOperationException($"Insufficient coins. Need {totalCost}, have {userCoins?.Balance ?? 0}");
+
+            // 5. Deduct coins
+            userCoins.Balance -= totalCost;
+            userCoins.TotalSpent += totalCost;
+            userCoins.UpdatedAt = DateTime.UtcNow;
+
+            _context.CoinTransactions.Add(new CoinTransaction
+            {
+                UserId = userId,
+                Amount = -totalCost,
+                BalanceAfter = userCoins.Balance,
+                Type = "gacha_purchase",
+                Description = $"Gacha: {pullCount} pulls in {channelName}",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            // 6. Add pulls
+            var participant = await AddDonationAsync(channelName, username.ToLower(), pullCount);
+
+            // 7. Log pull_log entry
+            _context.GachaPullLogs.Add(new GachaPullLog
+            {
+                ChannelName = channelName,
+                ParticipantId = participant.Id,
+                ItemId = 0,
+                Action = "coin_purchase",
+                Amount = totalCost,
+                OccurredAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            // 8. Calculate remaining daily purchases
+            var newDailyLeft = config.CoinsDailyLimit > 0
+                ? config.CoinsDailyLimit - (dailyPurchasesToday + 1)
+                : -1;
+
+            _logger.LogInformation("[GACHA] CoinPurchase: {User} bought {Pulls} pulls for {Cost} coins in {Channel}",
+                username, pullCount, totalCost, channelName);
+
+            return new GachaCoinPurchaseResult
+            {
+                PullsGranted = pullCount,
+                CoinsSpent = totalCost,
+                RemainingBalance = (int)userCoins.Balance,
+                DailyPurchasesLeft = newDailyLeft
+            };
+        }
+
+        // ========================================================================
         // ACHIEVEMENTS
         // ========================================================================
 
@@ -1326,5 +1424,13 @@ namespace Decatron.Services
         public int TotalCards { get; set; }
         public int TotalAvailable { get; set; }
         public Dictionary<string, int> ByRarity { get; set; } = new();
+    }
+
+    public class GachaCoinPurchaseResult
+    {
+        public int PullsGranted { get; set; }
+        public int CoinsSpent { get; set; }
+        public int RemainingBalance { get; set; }
+        public int DailyPurchasesLeft { get; set; }
     }
 }

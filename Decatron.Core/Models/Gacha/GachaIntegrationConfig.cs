@@ -57,7 +57,11 @@ namespace Decatron.Core.Models.Gacha
         public bool CoinsEnabled { get; set; } = false;
 
         [Column("coins_per_pull")]
-        public int CoinsPerPull { get; set; } = 100;
+        public int CoinsPerPull { get; set; } = 500;
+
+        /// <summary>0 = sin limite, X = maximo tiros por dia por viewer</summary>
+        [Column("coins_daily_limit")]
+        public int CoinsDailyLimit { get; set; } = 0;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

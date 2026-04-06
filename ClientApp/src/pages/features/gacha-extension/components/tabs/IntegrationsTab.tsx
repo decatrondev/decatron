@@ -16,6 +16,7 @@ interface IntegrationConfig {
     pullsPerGift: number;
     coinsEnabled: boolean;
     coinsPerPull: number;
+    coinsDailyLimit: number;
 }
 
 const defaultConfig: IntegrationConfig = {
@@ -23,7 +24,7 @@ const defaultConfig: IntegrationConfig = {
     bitsEnabled: false, bitsPerPull: 100,
     subsEnabled: false, pullsSubPrime: 1, pullsSubTier1: 2, pullsSubTier2: 3, pullsSubTier3: 5,
     giftSubsEnabled: false, pullsPerGift: 1,
-    coinsEnabled: false, coinsPerPull: 100,
+    coinsEnabled: false, coinsPerPull: 500, coinsDailyLimit: 0,
 };
 
 const inputClass = 'w-20 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-center text-[#1e293b] dark:text-[#f8fafc]';
@@ -119,18 +120,23 @@ export const IntegrationsTab: React.FC = () => {
             </Section>
 
             {/* DecaCoins */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 shadow-lg opacity-60">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Coins className="w-5 h-5 text-amber-500" />
-                        <div>
-                            <h3 className="text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">DecaCoins</h3>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Comprar tiros con DecaCoins (proximamente)</p>
-                        </div>
-                    </div>
-                    <span className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg text-xs font-bold">Proximamente</span>
+            <Section icon={<Coins className="w-5 h-5 text-amber-500" />} title="DecaCoins" desc="Viewers compran tiros con DecaCoins del canal" enabled={config.coinsEnabled} onToggle={v => setConfig({ ...config, coinsEnabled: v })}>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm text-[#64748b]">Cada tiro cuesta</span>
+                    <input type="number" min={1} value={config.coinsPerPull} onChange={e => setConfig({ ...config, coinsPerPull: Math.max(1, parseInt(e.target.value) || 500) })} className={inputClass} />
+                    <span className="text-sm text-[#64748b]">coins</span>
                 </div>
-            </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-sm text-[#64748b]">Limite diario por viewer</span>
+                    <input type="number" min={0} value={config.coinsDailyLimit} onChange={e => setConfig({ ...config, coinsDailyLimit: Math.max(0, parseInt(e.target.value) || 0) })} className={inputClass} />
+                    <span className="text-sm text-[#64748b]">tiros (0 = sin limite)</span>
+                </div>
+                <Example text={`Si un viewer compra 5 tiros a ${config.coinsPerPull} coins/tiro = ${5 * config.coinsPerPull} coins`} />
+                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl">
+                    <Coins className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-300">Los viewers pueden comprar tiros con <strong>!gcbuy</strong> o desde su perfil</p>
+                </div>
+            </Section>
 
             {/* Save */}
             <button onClick={handleSave} disabled={saving} className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl font-bold transition flex items-center justify-center gap-2">

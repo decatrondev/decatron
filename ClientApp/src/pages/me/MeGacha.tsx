@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Globe, Lock, Eye, EyeOff, Dices, ChevronRight, ChevronDown, Check, Loader2, Star, Heart, X, Package } from 'lucide-react';
+import { Shield, Globe, Lock, Eye, EyeOff, Dices, ChevronRight, ChevronDown, Check, Loader2, Star, Heart, X, Package, Coins } from 'lucide-react';
 import api from '../../services/api';
 
 const RARITY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; stars: string }> = {
@@ -59,6 +59,12 @@ export default function MeGacha() {
     const [selectedShowcase, setSelectedShowcase] = useState<number[]>([]);
     const [addingWishlist, setAddingWishlist] = useState(false);
 
+    // Coin purchase state
+    const [coinPrice, setCoinPrice] = useState<{ enabled: boolean; price: number; dailyLimit: number; balance: number; usedToday: number } | null>(null);
+    const [coinQty, setCoinQty] = useState(1);
+    const [coinBuying, setCoinBuying] = useState(false);
+    const [coinMsg, setCoinMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
     useEffect(() => { loadCollections(); }, []);
 
     const loadCollections = async () => {
@@ -86,6 +92,9 @@ export default function MeGacha() {
         setExpanded(channelName);
         setEditingShowcase(false);
         setAddingWishlist(false);
+        setCoinPrice(null);
+        setCoinQty(1);
+        setCoinMsg(null);
         setDetailLoading(true);
         try {
             const [sRes, wRes] = await Promise.all([
@@ -94,8 +103,28 @@ export default function MeGacha() {
             ]);
             setShowcase(sRes.data.showcase || []);
             setWishlist(wRes.data.wishlist || []);
+            // Load coin price info
+            try {
+                const cpRes = await api.get(`/gacha/viewer/coin-price/${channelName}`);
+                setCoinPrice(cpRes.data);
+            } catch { setCoinPrice(null); }
         } catch { /* silently fail */ }
         finally { setDetailLoading(false); }
+    };
+
+    const buyPulls = async (channelName: string) => {
+        setCoinBuying(true);
+        setCoinMsg(null);
+        try {
+            const res = await api.post('/gacha/viewer/buy-pulls', { channelName, pullCount: coinQty });
+            setCoinMsg({ ok: true, text: `Compraste ${coinQty} tiro(s). Nuevo balance: ${res.data.newBalance} coins` });
+            setCoinPrice(prev => prev ? { ...prev, balance: res.data.newBalance, usedToday: res.data.usedToday ?? (prev.usedToday + coinQty) } : prev);
+            setCoinQty(1);
+            loadCollections();
+        } catch (err: any) {
+            const msg = err?.response?.data?.error || err?.response?.data?.message || 'Error al comprar tiros';
+            setCoinMsg({ ok: false, text: msg });
+        } finally { setCoinBuying(false); }
     };
 
     const openShowcaseEditor = async (participantId: number) => {
@@ -270,6 +299,35 @@ export default function MeGacha() {
                                                                 Ver coleccion <ChevronRight className="w-3.5 h-3.5" />
                                                             </Link>
                                                         </div>
+
+                                                        {/* Comprar Tiros con DecaCoins */}
+                                                        {coinPrice?.enabled && (
+                                                            <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                                                                <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Coins className="w-4 h-4 text-amber-500" /> Comprar Tiros con DecaCoins</h4>
+                                                                <div className="flex flex-wrap gap-4 text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                                    <span>Tu balance: <strong className="text-amber-500">{coinPrice.balance.toLocaleString()}</strong> coins</span>
+                                                                    <span>Precio: <strong className="text-blue-500">{coinPrice.price.toLocaleString()}</strong> coins/tiro</span>
+                                                                    {coinPrice.dailyLimit > 0 && <span>Limite diario: <strong className="text-purple-500">{coinPrice.usedToday}/{coinPrice.dailyLimit}</strong> tiros</span>}
+                                                                </div>
+                                                                <div className="flex items-center gap-3 flex-wrap">
+                                                                    <span className="text-xs text-[#64748b]">Cantidad:</span>
+                                                                    <input type="number" min={1} max={100} value={coinQty} onChange={e => setCoinQty(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))} className="w-20 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-center text-[#1e293b] dark:text-[#f8fafc]" />
+                                                                    <span className="text-xs text-[#64748b]">{coinQty} x {coinPrice.price.toLocaleString()} = <strong className="text-amber-500">{(coinQty * coinPrice.price).toLocaleString()}</strong> coins</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <button onClick={() => buyPulls(col.channelName)} disabled={coinBuying || coinQty * coinPrice.price > coinPrice.balance} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition flex items-center gap-2">
+                                                                        {coinBuying ? <Loader2 className="w-3 h-3 animate-spin" /> : <Coins className="w-3 h-3" />}
+                                                                        {coinBuying ? 'Comprando...' : 'Comprar'}
+                                                                    </button>
+                                                                    {coinQty * coinPrice.price > coinPrice.balance && <span className="text-xs text-red-400 font-bold">Balance insuficiente</span>}
+                                                                </div>
+                                                                {coinMsg && (
+                                                                    <div className={`text-xs font-bold px-3 py-2 rounded-lg ${coinMsg.ok ? 'bg-green-50 dark:bg-green-900/10 text-green-600 border border-green-200 dark:border-green-800/30' : 'bg-red-50 dark:bg-red-900/10 text-red-500 border border-red-200 dark:border-red-800/30'}`}>
+                                                                        {coinMsg.text}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
 
                                                         {/* Vitrina */}
                                                         <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">

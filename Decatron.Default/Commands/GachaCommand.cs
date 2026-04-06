@@ -101,6 +101,16 @@ namespace Decatron.Default.Commands
                         await HandleResume(username, channel, lang, messageSender);
                         break;
 
+                    case "buy":
+                    case "comprar":
+                        await HandleBuyWithCoins(username, channel, args, context, lang, messageSender);
+                        break;
+
+                    case "price":
+                    case "precio":
+                        await HandlePrice(username, channel, lang, messageSender);
+                        break;
+
                     case "donate":
                     case "donar":
                     case "add":
@@ -126,9 +136,9 @@ namespace Decatron.Default.Commands
         {
             var msg = lang switch
             {
-                "en" => "Gacha: !gacha pull [n] — Pull | pulls — Available | col — Collection | donate <user> <$> — Add donation (mod) | Shortcuts: !gc...",
-                "pt" => "Gacha: !gacha pull [n] — Puxar | pulls — Disponiveis | col — Colecao | donate <user> <$> — Doacao (mod) | Atalhos: !gc...",
-                _ => "Gacha: !gacha pull [n] — Tirar | pulls — Disponibles | col — Coleccion | donar <user> <$> — Donacion (mod) | Atajos: !gc..."
+                "en" => "Gacha: !gacha pull [n] — Pull | pulls — Available | col — Collection | buy [n] — Buy pulls with coins | price — Coin price | donate <user> <$> — Add donation (mod) | Shortcuts: !gc...",
+                "pt" => "Gacha: !gacha pull [n] — Puxar | pulls — Disponiveis | col — Colecao | buy [n] — Comprar com coins | price — Preco | donate <user> <$> — Doacao (mod) | Atalhos: !gc...",
+                _ => "Gacha: !gacha pull [n] — Tirar | pulls — Disponibles | col — Coleccion | buy [n] — Comprar con coins | price — Precio | donar <user> <$> — Donacion (mod) | Atajos: !gc..."
             };
             await messageSender.SendMessageAsync(channel, msg);
         }
@@ -477,6 +487,112 @@ namespace Decatron.Default.Commands
             {
                 _logger.LogError(ex, "[GACHA] Error registering donation");
                 await messageSender.SendMessageAsync(channel, $"@{username}, error registering donation.");
+            }
+        }
+
+        // ========================================================================
+        // BUY WITH COINS
+        // ========================================================================
+
+        private async Task HandleBuyWithCoins(string username, string channel, string[] args, CommandContext context, string lang, IMessageSender messageSender)
+        {
+            int quantity = 1;
+            if (args.Length > 0 && int.TryParse(args[0], out var q))
+                quantity = Math.Clamp(q, 1, 100);
+
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var gachaService = scope.ServiceProvider.GetRequiredService<IGachaService>();
+
+                // Look up Decatron user ID from username
+                var user = await db.Users.FirstOrDefaultAsync(u => u.Login == username.ToLower());
+                if (user == null)
+                {
+                    var msg = lang switch
+                    {
+                        "en" => $"@{username}, you don't have a DecaCoins account yet.",
+                        "pt" => $"@{username}, voce ainda nao tem uma conta de DecaCoins.",
+                        _ => $"@{username}, aun no tienes cuenta de DecaCoins."
+                    };
+                    await messageSender.SendMessageAsync(channel, msg);
+                    return;
+                }
+
+                var result = await gachaService.PurchaseWithCoinsAsync(channel.ToLower(), username, user.Id, quantity);
+
+                var msg2 = lang switch
+                {
+                    "en" => $"@{username} Bought {result.PullsGranted} pull(s) for {result.CoinsSpent} coins! Balance: {result.RemainingBalance} coins",
+                    "pt" => $"@{username} Comprou {result.PullsGranted} puxada(s) por {result.CoinsSpent} coins! Saldo: {result.RemainingBalance} coins",
+                    _ => $"@{username} Compraste {result.PullsGranted} tiro(s) por {result.CoinsSpent} coins! Balance: {result.RemainingBalance} coins"
+                };
+                await messageSender.SendMessageAsync(channel, msg2);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var msg = lang switch
+                {
+                    "en" => $"@{username}, {ex.Message}",
+                    "pt" => $"@{username}, {ex.Message}",
+                    _ => $"@{username}, {ex.Message}"
+                };
+                await messageSender.SendMessageAsync(channel, msg);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[GACHA] Error in coin purchase for {User}", username);
+                await messageSender.SendMessageAsync(channel, $"@{username}, error processing coin purchase.");
+            }
+        }
+
+        // ========================================================================
+        // PRICE
+        // ========================================================================
+
+        private async Task HandlePrice(string username, string channel, string lang, IMessageSender messageSender)
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+
+                var config = await db.GachaIntegrationConfigs
+                    .FirstOrDefaultAsync(c => c.ChannelName == channel.ToLower());
+
+                if (config == null || !config.CoinsEnabled)
+                {
+                    var msg = lang switch
+                    {
+                        "en" => $"@{username}, coin purchases are not enabled in this channel.",
+                        "pt" => $"@{username}, compras com coins nao estao habilitadas neste canal.",
+                        _ => $"@{username}, las compras con coins no estan habilitadas en este canal."
+                    };
+                    await messageSender.SendMessageAsync(channel, msg);
+                    return;
+                }
+
+                var limitText = config.CoinsDailyLimit > 0
+                    ? config.CoinsDailyLimit.ToString()
+                    : lang switch
+                    {
+                        "en" => "unlimited",
+                        "pt" => "ilimitado",
+                        _ => "sin limite"
+                    };
+
+                var msg2 = lang switch
+                {
+                    "en" => $"@{username} In this channel: {config.CoinsPerPull} coins per pull | Daily limit: {limitText}",
+                    "pt" => $"@{username} Neste canal: {config.CoinsPerPull} coins por puxada | Limite diario: {limitText}",
+                    _ => $"@{username} En este canal: {config.CoinsPerPull} coins por tiro | Limite diario: {limitText}"
+                };
+                await messageSender.SendMessageAsync(channel, msg2);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[GACHA] Error getting price for {Channel}", channel);
             }
         }
 
