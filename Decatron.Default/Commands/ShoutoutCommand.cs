@@ -59,7 +59,7 @@ namespace Decatron.Default.Commands
             {
                 _logger.LogInformation($"Ejecutando comando !so por {username} en {channel}");
 
-                var isCommandEnabled = await IsCommandEnabledForChannel(channel);
+                var isCommandEnabled = await IsCommandEnabledForChannel(channel, context);
                 if (!isCommandEnabled)
                 {
                     _logger.LogDebug($"Comando !so deshabilitado para el canal {channel}");
@@ -77,7 +77,7 @@ namespace Decatron.Default.Commands
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var args = messageWithoutPrefix.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                lang = await GetChannelLanguageAsync(channel);
+                lang = await GetChannelLanguageAsync(channel, context);
 
                 if (args.Length < 2)
                 {
@@ -169,7 +169,8 @@ namespace Decatron.Default.Commands
                     targetUser,
                     username,
                     shoutoutData,
-                    clipLocalPath
+                    clipLocalPath,
+                    context.ChannelUserId
                 );
 
                 // 4. Enviar mensaje al chat
@@ -278,10 +279,17 @@ namespace Decatron.Default.Commands
             string targetUser,
             string executedBy,
             Services.ShoutoutData shoutoutData,
-            string? clipLocalPath)
+            string? clipLocalPath,
+            long? channelUserId)
         {
             try
             {
+                if (channelUserId == null || channelUserId == 0)
+                {
+                    _logger.LogWarning("⚠️ No se pudo guardar historial de shoutout: ChannelUserId no disponible para {Channel}", channel);
+                    return;
+                }
+
                 // Crear un scope nuevo para el DbContext
                 using var scope = _serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
@@ -296,7 +304,8 @@ namespace Decatron.Default.Commands
                     ClipLocalPath = clipLocalPath,
                     ProfileImageUrl = shoutoutData.ProfileImageUrl,
                     GameName = shoutoutData.GameName,
-                    ExecutedAt = DateTime.UtcNow
+                    ExecutedAt = DateTime.UtcNow,
+                    UserId = channelUserId.Value
                 };
 
                 dbContext.Set<Core.Models.ShoutoutHistory>().Add(history);
@@ -320,11 +329,13 @@ namespace Decatron.Default.Commands
             return _messagesService.GetMessage("so_cmd", "message_no_game", lang, shoutoutData.Username, shoutoutData.Username);
         }
 
-        private async Task<bool> IsCommandEnabledForChannel(string channelLogin)
+        private async Task<bool> IsCommandEnabledForChannel(string channelLogin, CommandContext context)
         {
             try
             {
-                var userInfo = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                var userInfo = context.ChannelUserId.HasValue
+                    ? await Utils.GetUserInfoByUserIdAsync(_configuration, context.ChannelUserId.Value)
+                    : await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
                 if (userInfo == null)
                 {
                     return true;
@@ -411,14 +422,14 @@ namespace Decatron.Default.Commands
             }
         }
 
-        private async Task<string> GetChannelLanguageAsync(string channel)
+        private async Task<string> GetChannelLanguageAsync(string channel, CommandContext context)
         {
             try
             {
                 using var scope = _serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                 var lang = await db.Users
-                    .Where(u => u.Login == channel.ToLower())
+                    .Where(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channel.ToLower())
                     .Select(u => u.PreferredLanguage)
                     .FirstOrDefaultAsync();
                 return lang ?? "es";
