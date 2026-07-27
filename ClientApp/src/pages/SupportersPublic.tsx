@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, Heart, Star, Check, ChevronDown, ChevronUp, ExternalLink, Zap, Loader2 } from 'lucide-react';
+import { Bot, Heart, Star, Check, ChevronDown, ChevronUp, ExternalLink, Zap, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import api from '../services/api';
 
@@ -355,7 +355,6 @@ interface DiscountValidation {
 function TierCards() {
     const { t } = useTranslation('supporters');
     const [billingType, setBillingType] = useState<'monthly' | 'permanent'>('monthly');
-    const [loadingTier, setLoadingTier] = useState<string | null>(null);
     const [successTier, setSuccessTier] = useState<string | null>(null);
 
     // Discount code
@@ -393,21 +392,110 @@ function TierCards() {
         setCodeError(null);
     };
 
-    const handleSupport = async (tierId: string, basePrice: number) => {
-        setLoadingTier(tierId);
+    const [culqiLoading, setCulqiLoading] = useState<string | null>(null);
+    const [paymentError, setPaymentError] = useState<{ tier: string; msg: string } | null>(null);
+
+    const isIntlCardError = (msg: string) =>
+        /CVV|cvv|incorrecto|denegad|bloqueada|rechazada|no soportada|internacional/i.test(msg);
+
+    const handleCulqiSupport = async (tierId: string) => {
+        setCulqiLoading(tierId);
+        setPaymentError(null);
         try {
-            const res = await api.post<{ orderId: string; approvalUrl: string }>(
-                '/supporters/create-paypal-order',
-                {
-                    tier: tierId,
-                    billingType,
-                    discountCode: codeValidation ? codeInput.trim() : undefined,
+            // Load Culqi SDK
+            await new Promise<void>((resolve, reject) => {
+                if ((window as any).CulqiCheckout) { resolve(); return; }
+                const existing = document.getElementById('culqi-checkout-js');
+                if (existing) {
+                    const check = setInterval(() => { if ((window as any).CulqiCheckout) { clearInterval(check); resolve(); } }, 50);
+                    setTimeout(() => { clearInterval(check); reject(new Error('Culqi timeout')); }, 10000);
+                    return;
+                }
+                const script = document.createElement('script');
+                script.id = 'culqi-checkout-js';
+                script.src = 'https://js.culqi.com/checkout-js';
+                script.onload = () => {
+                    const check = setInterval(() => { if ((window as any).CulqiCheckout) { clearInterval(check); resolve(); } }, 50);
+                    setTimeout(() => { clearInterval(check); reject(new Error('Culqi timeout')); }, 10000);
+                };
+                script.onerror = () => reject(new Error('No se pudo cargar Culqi'));
+                document.head.appendChild(script);
+            });
+
+            // Get public key
+            const { data: keyData } = await api.get('/supporters/culqi-public-key');
+            if (!keyData.publicKey) throw new Error('Culqi no configurado');
+
+            // Get tier price
+            const tierConfig = TIERS.find(t2 => t2.id === tierId);
+            const priceUsd = billingType === 'permanent' ? tierConfig?.permanentPrice : tierConfig?.monthlyPrice;
+            if (!priceUsd) { setCulqiLoading(null); return; }
+
+            // Apply discount
+            let finalUsd = priceUsd;
+            if (codeValidation) {
+                finalUsd = codeValidation.discountedAmount;
+            }
+            const amountPen = Math.round(finalUsd * 3.80 * 100); // centavos PEN
+
+            const config = {
+                settings: { title: 'Decatron', currency: 'PEN', amount: amountPen },
+                client: { email: '' },
+                options: {
+                    lang: 'es',
+                    modal: true,
+                    installments: false,
+                    paymentMethods: { tarjeta: true, yape: true, billetera: false, bancaMovil: false, agente: false, cuotealo: false },
                 },
-            );
-            window.location.href = res.data.approvalUrl;
-        } catch {
-            alert(t('paypalConnectError'));
-            setLoadingTier(null);
+            };
+
+            const culqi = new (window as any).CulqiCheckout(keyData.publicKey, config);
+
+            culqi.culqi = async () => {
+                if (culqi.token) {
+                    const tokenId   = culqi.token.id;
+                    const email     = culqi.token.email      || '';
+                    const firstName = culqi.token.first_name || '';
+                    const lastName  = culqi.token.last_name  || '';
+                    culqi.close();
+                    setCulqiLoading(tierId);
+
+                    try {
+                        const res = await api.post('/supporters/create-culqi-charge', {
+                            culqiToken:   tokenId,
+                            culqiEmail:   email,
+                            tier:         tierId,
+                            billingType,
+                            discountCode: codeValidation ? codeInput.trim() : undefined,
+                            firstName,
+                            lastName,
+                        });
+                        if (res.data.success) {
+                            setSuccessTier(tierId);
+                            setPaymentError(null);
+                        }
+                    } catch (err: any) {
+                        const msg = err.response?.data?.error || 'Error al procesar el pago con tarjeta';
+                        setPaymentError({ tier: tierId, msg });
+                    } finally {
+                        setCulqiLoading(null);
+                    }
+                } else if (culqi.error) {
+                    const msg = culqi.error.user_message
+                        || culqi.error.merchant_message
+                        || 'Error al procesar la tarjeta';
+                    culqi.close();
+                    setCulqiLoading(null);
+                    setPaymentError({ tier: tierId, msg });
+                }
+            };
+
+            culqi.open();
+            setCulqiLoading(null);
+        } catch (err: any) {
+            const msg = err?.message || 'Error al abrir el formulario de pago';
+            setPaymentError({ tier: tierId, msg });
+            setCulqiLoading(null);
         }
     };
 
@@ -576,30 +664,20 @@ function TierCards() {
 
                                 {/* CTA Button */}
                                 {successTier === tier.id ? (
-                                    <div className="w-full py-3 rounded-xl font-black text-sm text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                                        &#9989; {t('tierActivated')}
+                                    <div className="w-full py-3 rounded-xl font-black text-sm text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex items-center justify-center gap-2">
+                                        <CheckCircle className="w-4 h-4" /> {t('tierActivated')}
                                     </div>
                                 ) : !unavailable ? (
                                     <button
-                                        onClick={() => handleSupport(tier.id, price ?? 0)}
-                                        disabled={loadingTier !== null}
-                                        className={`w-full py-3 rounded-xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
-                                            tier.highlighted
-                                                ? 'text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5'
-                                                : 'text-white hover:opacity-90'
-                                        } disabled:opacity-70`}
-                                        style={{ backgroundColor: tier.color }}
+                                        onClick={() => handleCulqiSupport(tier.id)}
+                                        disabled={culqiLoading !== null}
+                                        className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border-2 hover:opacity-90 disabled:opacity-70"
+                                        style={{ borderColor: tier.color, color: tier.color }}
                                     >
-                                        {loadingTier === tier.id ? (
-                                            <><Loader2 className="w-4 h-4 animate-spin" /> {t('redirectingPaypal')}</>
-                                        ) : discountedPrice !== null && discountedPrice !== price ? (
-                                            billingType === 'monthly'
-                                                ? t('supportWithMonthly', { price: discountedPrice.toFixed(2) })
-                                                : t('supportWithOneTime', { price: discountedPrice.toFixed(2) })
+                                        {culqiLoading === tier.id ? (
+                                            <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
                                         ) : (
-                                            billingType === 'monthly'
-                                                ? t('supportWithMonthly', { price: String(price) })
-                                                : t('supportWithOneTime', { price: String(price) })
+                                            <>💳 {t('culqiButton', { defaultValue: 'Tarjeta / Yape' })}</>
                                         )}
                                     </button>
                                 ) : (
@@ -609,6 +687,25 @@ function TierCards() {
                                     >
                                         {t('noPermanentOption')}
                                     </button>
+                                )}
+
+                                {/* Error inline del pago */}
+                                {paymentError?.tier === tier.id && (
+                                    <div className="mt-3 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3 text-left">
+                                        <div className="flex items-start gap-2">
+                                            <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                                                    {paymentError.msg}
+                                                </p>
+                                                {isIntlCardError(paymentError.msg) && (
+                                                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 leading-relaxed">
+                                                        💡 Si tu tarjeta es internacional (USA, Europa), tu banco puede bloquearla al detectar un procesador peruano. Intenta con <strong>Yape</strong> o una tarjeta latinoamericana.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         );
@@ -632,24 +729,100 @@ function TierCards() {
 function FreeDonation() {
     const { t } = useTranslation('supporters');
     const PRESETS = [1, 3, 5, 10, 20, 50];
-    const [amount, setAmount]     = useState<string>('5');
-    const [loading, setLoading]   = useState(false);
+    const [amount, setAmount]       = useState<string>('5');
+    const [loading, setLoading]     = useState(false);
     const [inputFocused, setFocused] = useState(false);
+    const [donateError, setDonateError]     = useState<string | null>(null);
+    const [donateSuccess, setDonateSuccess] = useState<string | null>(null);
 
     const numAmount = parseFloat(amount) || 0;
     const isValid   = numAmount >= 1 && numAmount <= 10000;
 
+    const isIntlCardError = (msg: string) =>
+        /CVV|cvv|incorrecto|denegad|bloqueada|rechazada|no soportada|internacional/i.test(msg);
+
     const handleDonate = async () => {
         if (!isValid) return;
         setLoading(true);
+        setDonateError(null);
+        setDonateSuccess(null);
         try {
-            const res = await api.post<{ approvalUrl: string }>(
-                '/supporters/create-donation-order',
-                { amount: numAmount },
-            );
-            window.location.href = res.data.approvalUrl;
-        } catch {
-            alert(t('paypalConnectError'));
+            // Load Culqi SDK
+            await new Promise<void>((resolve, reject) => {
+                if ((window as any).CulqiCheckout) { resolve(); return; }
+                const existing = document.getElementById('culqi-checkout-js');
+                if (existing) {
+                    const check = setInterval(() => { if ((window as any).CulqiCheckout) { clearInterval(check); resolve(); } }, 50);
+                    setTimeout(() => { clearInterval(check); reject(new Error('Culqi timeout')); }, 10000);
+                    return;
+                }
+                const script = document.createElement('script');
+                script.id = 'culqi-checkout-js';
+                script.src = 'https://js.culqi.com/checkout-js';
+                script.onload = () => {
+                    const check = setInterval(() => { if ((window as any).CulqiCheckout) { clearInterval(check); resolve(); } }, 50);
+                    setTimeout(() => { clearInterval(check); reject(new Error('Culqi timeout')); }, 10000);
+                };
+                script.onerror = () => reject(new Error('No se pudo cargar Culqi'));
+                document.head.appendChild(script);
+            });
+
+            const { data: keyData } = await api.get('/supporters/culqi-public-key');
+            if (!keyData.publicKey) throw new Error('Culqi no configurado');
+
+            const amountPen = Math.round(numAmount * 3.80 * 100); // centavos PEN
+
+            const config = {
+                settings: { title: 'Decatron', currency: 'PEN', amount: amountPen },
+                client: { email: '' },
+                options: {
+                    lang: 'es',
+                    modal: true,
+                    installments: false,
+                    paymentMethods: { tarjeta: true, yape: true, billetera: false, bancaMovil: false, agente: false, cuotealo: false },
+                },
+            };
+
+            const culqi = new (window as any).CulqiCheckout(keyData.publicKey, config);
+
+            culqi.culqi = async () => {
+                if (culqi.token) {
+                    const tokenId   = culqi.token.id;
+                    const email     = culqi.token.email      || '';
+                    const firstName = culqi.token.first_name || '';
+                    const lastName  = culqi.token.last_name  || '';
+                    culqi.close();
+                    setLoading(true);
+                    try {
+                        const res = await api.post('/supporters/create-culqi-donation', {
+                            culqiToken: tokenId,
+                            culqiEmail: email,
+                            amountUsd:  numAmount,
+                            firstName,
+                            lastName,
+                        });
+                        if (res.data.success) {
+                            setDonateSuccess(res.data.message || `¡Gracias por tu donación de $${numAmount.toFixed(2)}! ❤️`);
+                        }
+                    } catch (err: any) {
+                        setDonateError(err.response?.data?.error || 'Error al procesar la donación');
+                    } finally {
+                        setLoading(false);
+                    }
+                } else if (culqi.error) {
+                    const msg = culqi.error.user_message
+                        || culqi.error.merchant_message
+                        || 'Error al procesar la tarjeta';
+                    culqi.close();
+                    setLoading(false);
+                    setDonateError(msg);
+                }
+            };
+
+            culqi.open();
+            setLoading(false);
+        } catch (err: any) {
+            setDonateError(err?.message || 'Error al abrir el formulario de pago');
             setLoading(false);
         }
     };
@@ -713,6 +886,33 @@ function FreeDonation() {
                         <>{numAmount >= 1 ? t('donateAmount', { amount: numAmount.toFixed(2) }) : t('enterAmount')} &#10084;&#65039;</>
                     )}
                 </button>
+
+                {/* Error de pago inline */}
+                {donateError && (
+                    <div className="max-w-xs mx-auto mt-4 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3 text-left">
+                        <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                                    {donateError}
+                                </p>
+                                {isIntlCardError(donateError) && (
+                                    <p className="text-xs text-red-600 dark:text-red-400 mt-1 leading-relaxed">
+                                        💡 Si tu tarjeta es internacional (USA, Europa), tu banco puede bloquearla al detectar un procesador peruano. Intenta con <strong>Yape</strong> u otra tarjeta latinoamericana.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Éxito de donación */}
+                {donateSuccess && (
+                    <div className="max-w-xs mx-auto mt-4 rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-3 flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-400">{donateSuccess}</p>
+                    </div>
+                )}
 
                 <p className="text-xs text-[#94a3b8] mt-4">
                     {t('securePaypalMin')}
@@ -943,7 +1143,6 @@ function PageFooter() {
                 <span>Decatron</span>
             </div>
             <p className="text-xs text-[#94a3b8]">
-                {t('footerPaypal')} &middot;{' '}
                 <a href="/tip/privacy" className="hover:text-[#64748b] underline">{t('footerPrivacy')}</a>
                 {' '}&middot;{' '}
                 <a href="/tip/terms" className="hover:text-[#64748b] underline">{t('footerTerms')}</a>
@@ -960,7 +1159,6 @@ export default function SupportersPublic() {
     const [supporters, setSupporters] = useState<PublicSupporter[]>([]);
     const [loading, setLoading]       = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [paypalResult, setPaypalResult] = useState<PayPalResult | null>(null);
 
     useEffect(() => {
         setIsLoggedIn(!!localStorage.getItem('token'));
@@ -982,12 +1180,6 @@ export default function SupportersPublic() {
         load();
     }, []);
 
-    const handlePayPalSuccess = useCallback((result: PayPalResult) => {
-        setPaypalResult(result);
-    }, []);
-
-    usePayPalReturn(handlePayPalSuccess, t);
-
     // If not enabled, show a simple "coming soon" message
     if (!loading && !config.enabled) {
         return (
@@ -1007,44 +1199,6 @@ export default function SupportersPublic() {
     return (
         <div className="min-h-screen bg-white dark:bg-[#1B1C1D]">
             <SupportersNav />
-
-            {/* PayPal result banner */}
-            {paypalResult?.type === 'donation' && (
-                <div className="bg-pink-600 text-white px-4 py-4 text-center">
-                    <p className="font-black text-lg">&#10084;&#65039; {paypalResult.data.message}</p>
-                    <p className="text-sm text-pink-100 mt-1">{t('donationBanner')}</p>
-                </div>
-            )}
-            {paypalResult?.type === 'tier' && (
-                paypalResult.data.tierAssigned ? (
-                    <div className="bg-green-600 text-white px-4 py-4 text-center">
-                        <p className="font-black text-lg">
-                            &#127881; {t('tierBannerThanks', {
-                                tier: paypalResult.data.tier,
-                                status: paypalResult.data.isPermanent
-                                    ? t('tierActivatedPermanently')
-                                    : t('tierActivatedFor', { duration: paypalResult.data.duration ?? 30, unit: paypalResult.data.unit ?? 'days' })
-                            })}
-                        </p>
-                        <p className="text-sm text-green-100 mt-1">{t('tierBenefitsActive')}</p>
-                    </div>
-                ) : (
-                    <div className="bg-blue-600 text-white px-4 py-5 text-center">
-                        <p className="font-black text-lg">&#128591; {t('tierBannerThanksGeneric')}</p>
-                        <p className="text-sm text-blue-100 mt-1 mb-3">
-                            {t('tierPaymentReceived', { tier: paypalResult.data.tier })}
-                        </p>
-                        {!isLoggedIn && (
-                            <a
-                                href="/api/auth/login"
-                                className="inline-flex items-center gap-2 bg-white text-blue-600 font-black px-5 py-2 rounded-xl text-sm hover:bg-blue-50 transition-colors shadow"
-                            >
-                                {t('connectTwitch')}
-                            </a>
-                        )}
-                    </div>
-                )
-            )}
 
             <Hero config={config} />
             <WhySupport />

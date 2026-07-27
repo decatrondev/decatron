@@ -16,6 +16,7 @@ interface DonationPageConfig {
     requireMessage: boolean;
     maxMessageLength: number;
     paypalClientId: string;
+    paypalMerchantId?: string;
 }
 
 interface PayPalButtonsInstance {
@@ -96,15 +97,22 @@ export default function TipsDonate() {
         loadConfig();
     }, [channelName]);
 
+    const [paypalReady, setPaypalReady] = useState(false);
+    const [paypalBlocked, setPaypalBlocked] = useState(false);
+
     // Load PayPal SDK
     useEffect(() => {
         if (!config || !config.paypalClientId) return;
 
         const script = document.createElement('script');
-        script.src = `https://www.paypal.com/sdk/js?client-id=${config.paypalClientId}&currency=${config.currency}`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${config.paypalClientId}&currency=${config.currency}&merchant-id=${config.paypalMerchantId}`;
         script.async = true;
         script.onload = () => {
-            renderPayPalButtons();
+            setPaypalReady(true);
+        };
+        script.onerror = () => {
+            console.warn('PayPal SDK blocked or failed to load');
+            setPaypalBlocked(true);
         };
         document.body.appendChild(script);
 
@@ -115,12 +123,13 @@ export default function TipsDonate() {
         };
     }, [config]);
 
-    // Re-render PayPal buttons when amount changes
+    // Render PayPal buttons when SDK is ready or inputs change
     useEffect(() => {
-        if (window.paypal && config) {
-            renderPayPalButtons();
+        if (paypalReady && window.paypal && config) {
+            const timer = setTimeout(() => renderPayPalButtons(), 300);
+            return () => clearTimeout(timer);
         }
-    }, [amount, customAmount, useCustomAmount, donorName, message]);
+    }, [paypalReady, amount, customAmount, useCustomAmount, donorName]);
 
     const getEffectiveAmount = useCallback(() => {
         if (useCustomAmount && customAmount) {
@@ -130,10 +139,11 @@ export default function TipsDonate() {
     }, [useCustomAmount, customAmount, amount]);
 
     const renderPayPalButtons = () => {
-        if (!window.paypal || !config) return;
+        try {
+        if (!window.paypal || !config || paypalBlocked) return;
 
         const container = document.getElementById('paypal-button-container');
-        if (!container) return;
+        if (!container || !document.body.contains(container)) return;
 
         // Clear existing buttons
         container.innerHTML = '';
@@ -218,6 +228,9 @@ export default function TipsDonate() {
                 setStatusMessage('');
             }
         }).render(container);
+        } catch (err) {
+            console.warn('PayPal render error:', err);
+        }
     };
 
     const formatCurrency = (value: number) => {
@@ -431,6 +444,12 @@ export default function TipsDonate() {
 
                     {/* PayPal Buttons */}
                     <div className="pt-4">
+                        {paypalBlocked && (
+                            <div className="flex items-center gap-2 py-4 px-4 bg-yellow-900/30 border border-yellow-700 rounded-lg text-yellow-400 text-sm mb-4">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <span>{t('adBlockerDetected', 'Your ad blocker is preventing PayPal from loading. Please disable it for this page to make a donation.')}</span>
+                            </div>
+                        )}
                         {status === 'processing' && (
                             <div className="flex items-center justify-center gap-2 py-4">
                                 <Loader2 className="w-5 h-5 animate-spin text-purple-500" />

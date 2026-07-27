@@ -272,7 +272,8 @@ namespace Decatron.Controllers
                 suggestedAmounts = config.SuggestedAmounts,
                 requireMessage = config.RequireMessage,
                 maxMessageLength = config.MaxMessageLength,
-                paypalClientId = clientId
+                paypalClientId = clientId,
+                paypalMerchantId = config.PayPalEmail
             });
         }
 

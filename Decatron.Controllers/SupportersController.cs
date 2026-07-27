@@ -822,6 +822,268 @@ namespace Decatron.Controllers
 
         // ── Helpers ───────────────────────────────────────────────────────────────
 
+        // ── Culqi endpoints ─────────────────────────────────────────────────────
+
+        private const decimal PEN_PER_USD = 3.80m; // Fixed conversion rate for Culqi (PEN)
+
+        [HttpGet("culqi-public-key")]
+        public IActionResult GetCulqiPublicKey()
+        {
+            var pk = _configuration["CulqiSettings:PublicKey"] ?? "";
+            return Ok(new { publicKey = pk });
+        }
+
+        [Authorize]
+        [HttpPost("create-culqi-charge")]
+        public async Task<IActionResult> CreateCulqiCharge([FromBody] CulqiChargeRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.CulqiToken) || string.IsNullOrWhiteSpace(req.CulqiEmail))
+                return BadRequest(new { error = "Token y email de Culqi son requeridos" });
+
+            if (string.IsNullOrWhiteSpace(req.Tier) || string.IsNullOrWhiteSpace(req.BillingType))
+                return BadRequest(new { error = "Tier y billingType son obligatorios" });
+
+            if (!TierPrices.TryGetValue(req.Tier, out var prices))
+                return BadRequest(new { error = $"Tier inválido: {req.Tier}" });
+
+            if (!prices.TryGetValue(req.BillingType, out var baseAmountUsd))
+                return BadRequest(new { error = $"El tier '{req.Tier}' no tiene opción '{req.BillingType}'" });
+
+            // Apply discount code if provided
+            var finalAmountUsd = baseAmountUsd;
+            int? appliedCodeId = null;
+
+            if (!string.IsNullOrWhiteSpace(req.DiscountCode))
+            {
+                var validation = await _service.ValidateDiscountCodeAsync(req.DiscountCode, req.Tier, req.BillingType, baseAmountUsd);
+                if (!validation.Valid)
+                    return BadRequest(new { error = validation.Error ?? "Código de descuento inválido" });
+
+                finalAmountUsd = validation.DiscountedAmount;
+                appliedCodeId  = validation.CodeId;
+            }
+
+            // Convert USD to PEN for Culqi (amount in centavos)
+            var amountPen = finalAmountUsd * PEN_PER_USD;
+            var amountCentavos = (int)Math.Round(amountPen * 100);
+
+            try
+            {
+                var secretKey = _configuration["CulqiSettings:SecretKey"] ?? "";
+                var description = $"Decatron {req.Tier} — {(req.BillingType == "permanent" ? "Permanente" : "1 mes")}";
+
+                using var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
+
+                var orderNumber = $"DEC-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+                var chargePayload = new
+                {
+                    amount        = amountCentavos,
+                    currency_code = "PEN",
+                    email         = req.CulqiEmail,
+                    source_id     = req.CulqiToken,
+                    description,
+                    order_number  = orderNumber,
+                    antifraud_details = new
+                    {
+                        first_name = string.IsNullOrWhiteSpace(req.FirstName) ? "Cliente" : req.FirstName,
+                        last_name  = string.IsNullOrWhiteSpace(req.LastName)  ? "Decatron" : req.LastName,
+                    },
+                    metadata = new Dictionary<string, string>
+                    {
+                        ["tier"]         = req.Tier,
+                        ["billing_type"] = req.BillingType,
+                        ["platform"]     = "decatron",
+                    },
+                };
+
+                var json = JsonSerializer.Serialize(chargePayload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://api.culqi.com/v2/charges", content);
+                var body = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Culqi charge failed: {Body}", body);
+                    // Try to extract user-friendly message
+                    try
+                    {
+                        using var errDoc = JsonDocument.Parse(body);
+                        var userMsg = errDoc.RootElement.TryGetProperty("user_message", out var um) ? um.GetString()
+                            : errDoc.RootElement.TryGetProperty("merchant_message", out var mm) ? mm.GetString()
+                            : "Error al procesar el pago con tarjeta";
+                        return StatusCode(502, new { error = userMsg });
+                    }
+                    catch
+                    {
+                        return StatusCode(502, new { error = "Error al procesar el pago con tarjeta" });
+                    }
+                }
+
+                using var chargeDoc = JsonDocument.Parse(body);
+                var chargeId = chargeDoc.RootElement.GetProperty("id").GetString() ?? "";
+
+                // Increment discount code usage
+                if (appliedCodeId.HasValue && appliedCodeId > 0)
+                {
+                    try { await _service.IncrementCodeUsageAsync(appliedCodeId.Value); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "Failed to increment usage for code {Id}", appliedCodeId); }
+                }
+
+                // Identify user from JWT
+                var userLogin = User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
+                long? resolvedUserId = await _service.ResolveUserIdAsync(userLogin);
+
+                var isPermanent = req.BillingType == "permanent";
+
+                if (!string.IsNullOrEmpty(userLogin))
+                {
+                    var pageConfig = await _service.GetConfigAsync();
+                    int? duration; string? unit;
+                    if (isPermanent)
+                    {
+                        duration = null; unit = null;
+                    }
+                    else if (pageConfig.Config.TierDurations.TryGetValue(req.Tier, out var tierDur))
+                    {
+                        duration = tierDur.Duration; unit = tierDur.Unit;
+                    }
+                    else
+                    {
+                        duration = 30; unit = "days";
+                    }
+
+                    await _service.AssignTierAsync(userLogin, req.Tier, isPermanent, duration, unit, source: "culqi");
+
+                    _logger.LogInformation(
+                        "Tier '{Tier}' assigned to @{Login} via Culqi charge {ChargeId} ({Billing})",
+                        req.Tier, userLogin, chargeId, req.BillingType);
+
+                    await _service.RecordPaymentAsync(resolvedUserId, userLogin, finalAmountUsd,
+                        req.Tier, req.BillingType, chargeId, appliedCodeId, "tier");
+
+                    return Ok(new
+                    {
+                        success = true,
+                        tierAssigned = true,
+                        tier = req.Tier,
+                        billingType = req.BillingType,
+                        isPermanent,
+                        message = $"¡Gracias! Tier '{req.Tier}' activado{(isPermanent ? " permanentemente" : $" por {duration} {TranslateUnit(unit, duration)}")}.",
+                        duration,
+                        unit,
+                    });
+                }
+                else
+                {
+                    await _service.RecordPaymentAsync(null, null, finalAmountUsd,
+                        req.Tier, req.BillingType, chargeId, appliedCodeId, "tier");
+
+                    return Ok(new
+                    {
+                        success = true,
+                        tierAssigned = false,
+                        message = "Pago recibido. Iniciá sesión para activar tu tier.",
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing Culqi charge for tier {Tier}", req.Tier);
+                return StatusCode(500, new { error = "Error interno al procesar el pago" });
+            }
+        }
+
+        /// <summary>Creates a Culqi charge for a free-amount donation (no tier).</summary>
+        [AllowAnonymous]
+        [HttpPost("create-culqi-donation")]
+        public async Task<IActionResult> CreateCulqiDonation([FromBody] CulqiDonationRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.CulqiToken) || string.IsNullOrWhiteSpace(req.CulqiEmail))
+                return BadRequest(new { error = "Token y email de Culqi son requeridos" });
+
+            if (req.AmountUsd < 1m)
+                return BadRequest(new { error = "El monto mínimo es $1" });
+
+            var amountCentavos = (int)Math.Round(req.AmountUsd * PEN_PER_USD * 100);
+
+            try
+            {
+                var secretKey = _configuration["CulqiSettings:SecretKey"] ?? "";
+
+                using var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
+
+                var donationOrderNumber = $"DON-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+                var chargePayload = new
+                {
+                    amount        = amountCentavos,
+                    currency_code = "PEN",
+                    email         = req.CulqiEmail,
+                    source_id     = req.CulqiToken,
+                    description   = $"Donación Decatron ${req.AmountUsd:F2} USD",
+                    order_number  = donationOrderNumber,
+                    antifraud_details = new
+                    {
+                        first_name = string.IsNullOrWhiteSpace(req.FirstName) ? "Donante" : req.FirstName,
+                        last_name  = string.IsNullOrWhiteSpace(req.LastName)  ? "Decatron" : req.LastName,
+                    },
+                    metadata = new Dictionary<string, string>
+                    {
+                        ["type"]       = "donation",
+                        ["amount_usd"] = req.AmountUsd.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                        ["platform"]   = "decatron",
+                    },
+                };
+
+                var json    = JsonSerializer.Serialize(chargePayload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://api.culqi.com/v2/charges", content);
+                var body     = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Culqi donation charge failed: {Body}", body);
+                    try
+                    {
+                        using var errDoc = JsonDocument.Parse(body);
+                        var userMsg = errDoc.RootElement.TryGetProperty("user_message", out var um) ? um.GetString()
+                            : errDoc.RootElement.TryGetProperty("merchant_message", out var mm) ? mm.GetString()
+                            : "Error al procesar el pago con tarjeta";
+                        return StatusCode(502, new { error = userMsg });
+                    }
+                    catch { return StatusCode(502, new { error = "Error al procesar el pago con tarjeta" }); }
+                }
+
+                using var chargeDoc = JsonDocument.Parse(body);
+                var chargeId = chargeDoc.RootElement.GetProperty("id").GetString() ?? "";
+
+                var userLogin = User.Identity?.IsAuthenticated == true
+                    ? (User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value)
+                    : null;
+                long? resolvedUserId = userLogin != null ? await _service.ResolveUserIdAsync(userLogin) : null;
+
+                await _service.RecordPaymentAsync(resolvedUserId, userLogin, req.AmountUsd,
+                    null, "donation", chargeId, null, "donation");
+
+                _logger.LogInformation(
+                    "Free Culqi donation ${Amount} charged {ChargeId}. User: {Login}",
+                    req.AmountUsd, chargeId, userLogin ?? "anonymous");
+
+                return Ok(new
+                {
+                    success = true,
+                    amount  = req.AmountUsd,
+                    message = $"¡Muchas gracias por tu donación de ${req.AmountUsd:F2}! ❤️",
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing Culqi donation");
+                return StatusCode(500, new { error = "Error interno al procesar el pago" });
+            }
+        }
+
         private static string TranslateUnit(string? unit, int? duration)
         {
             var n = duration ?? 1;
@@ -894,6 +1156,26 @@ namespace Decatron.Controllers
         public bool   IsPermanent { get; set; } = false;
         public int?   Duration    { get; set; }
         public string? Unit       { get; set; }
+    }
+
+    public class CulqiChargeRequest
+    {
+        public string  CulqiToken   { get; set; } = string.Empty;
+        public string  CulqiEmail   { get; set; } = string.Empty;
+        public string  Tier         { get; set; } = string.Empty;
+        public string  BillingType  { get; set; } = "monthly";
+        public string? DiscountCode { get; set; }
+        public string? FirstName    { get; set; }
+        public string? LastName     { get; set; }
+    }
+
+    public class CulqiDonationRequest
+    {
+        public string  CulqiToken { get; set; } = string.Empty;
+        public string  CulqiEmail { get; set; } = string.Empty;
+        public decimal AmountUsd  { get; set; }
+        public string? FirstName  { get; set; }
+        public string? LastName   { get; set; }
     }
 
     public class CreateSupporterOrderRequest
