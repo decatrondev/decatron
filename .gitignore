@@ -237,3 +237,6 @@ Decatron.http
 
 # appsettings example (ya está el .example)
 appsettings.Secrets.json.example
+
+# Logs de screen: aparecen al arrancar servicios en el servidor
+screenlog.*
