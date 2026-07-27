@@ -1,5 +1,7 @@
 ﻿using Decatron.Core.Models;
 using Decatron.Core.Models.Economy;
+using Decatron.Core.Models.Email;
+using Decatron.Core.Models.Fortnite;
 using Decatron.Core.Models.Gacha;
 using Decatron.Core.Models.OAuth;
 using Decatron.Data.Encryption;
@@ -25,6 +27,8 @@ namespace Decatron.Data
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<BotTokens> BotTokens { get; set; }
         public DbSet<CommandSettings> CommandSettings { get; set; }
+        public DbSet<WatchtimeCommandConfig> WatchtimeCommandConfigs { get; set; }
+        public DbSet<PublicCommandOverride> PublicCommandOverrides { get; set; }
         public DbSet<TitleHistory> TitleHistory { get; set; }
         public DbSet<GameHistory> GameHistory { get; set; }
         public DbSet<MicroGameCommands> MicroGameCommands { get; set; }
@@ -102,6 +106,12 @@ namespace Decatron.Data
         public DbSet<EventAlertsConfig> EventAlertsConfigs { get; set; }
         public DbSet<TtsCacheEntry> TtsCacheEntries { get; set; }
 
+        // Speak Chat System
+        public DbSet<SpeakChatConfig> SpeakChatConfigs { get; set; }
+        public DbSet<SpeakChatUsage> SpeakChatUsages { get; set; }
+        public DbSet<TtsCreditBalance> TtsCreditBalances { get; set; }
+        public DbSet<TtsCreditLedgerEntry> TtsCreditLedger { get; set; }
+
         // Tips/Donations System
         public DbSet<TipsConfig> TipsConfigs { get; set; }
         public DbSet<TipHistory> TipsHistory { get; set; }
@@ -159,6 +169,11 @@ namespace Decatron.Data
         public DbSet<Decatron.Discord.Models.RankCardConfig> RankCardConfigs { get; set; }
         public DbSet<Decatron.Discord.Models.RankCardLevelConfig> RankCardLevelConfigs { get; set; }
 
+        // Email Campaign System
+        public DbSet<EmailTemplate> EmailTemplates { get; set; }
+        public DbSet<EmailCampaign> EmailCampaigns { get; set; }
+        public DbSet<EmailLog> EmailLogs { get; set; }
+
         // Gacha System
         public DbSet<GachaItem> GachaItems { get; set; }
         public DbSet<GachaParticipant> GachaParticipants { get; set; }
@@ -176,6 +191,16 @@ namespace Decatron.Data
         public DbSet<GachaUserAchievement> GachaUserAchievements { get; set; }
         public DbSet<GachaShowcase> GachaShowcases { get; set; }
         public DbSet<GachaWishlist> GachaWishlists { get; set; }
+        public DbSet<GachaCommandConfig> GachaCommandConfigs { get; set; }
+        public DbSet<GachaSoundConfig> GachaSoundConfigs { get; set; }
+        public DbSet<GachaCommandAlias> GachaCommandAliases { get; set; }
+
+        // Username History (track Twitch name changes)
+        public DbSet<UsernameHistory> UsernameHistory { get; set; }
+
+        // Fortnite Spirit Tracker
+        public DbSet<FortniteSprite> FortniteSprites { get; set; }
+        public DbSet<UserFortniteSprite> UserFortniteSprites { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -217,6 +242,29 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.UniqueId).IsUnique();
 
                 entity.ToTable("users");
+            });
+
+            // UsernameHistory Configuration
+            modelBuilder.Entity<UsernameHistory>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.UserId).IsRequired().HasColumnName("user_id");
+                entity.Property(e => e.OldLogin).IsRequired().HasMaxLength(100).HasColumnName("old_login");
+                entity.Property(e => e.NewLogin).IsRequired().HasMaxLength(100).HasColumnName("new_login");
+                entity.Property(e => e.ChangedAt).IsRequired().HasColumnName("changed_at");
+                entity.Property(e => e.DetectedBy).IsRequired().HasMaxLength(50).HasColumnName("detected_by");
+
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.OldLogin);
+                entity.HasIndex(e => e.ChangedAt).IsDescending();
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.ToTable("username_history");
             });
 
             // SystemSettings Configuration
@@ -1566,6 +1614,11 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.ChannelName).IsUnique().HasDatabaseName("uq_gacha_overlay_channel");
             });
 
+            modelBuilder.Entity<GachaSoundConfig>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelName).IsUnique().HasDatabaseName("uq_gacha_sound_config_channel");
+            });
+
             modelBuilder.Entity<GachaPullLog>(entity =>
             {
                 entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_gacha_pull_logs_channel");
@@ -1611,6 +1664,54 @@ namespace Decatron.Data
                 entity.HasIndex(e => new { e.ParticipantId, e.ItemId }).IsUnique().HasDatabaseName("uq_gacha_wishlist");
                 entity.HasOne(e => e.Participant).WithMany().HasForeignKey(e => e.ParticipantId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.Item).WithMany().HasForeignKey(e => e.ItemId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ─── Email Campaign System ───────────────────────────────────────────────
+            modelBuilder.Entity<EmailTemplate>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200).HasColumnName("name");
+                entity.Property(e => e.Subject).IsRequired().HasMaxLength(500).HasColumnName("subject");
+                entity.Property(e => e.HtmlContent).HasColumnName("html_content");
+                entity.Property(e => e.DesignJson).HasColumnName("design_json");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+                entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+                entity.ToTable("email_templates");
+            });
+
+            modelBuilder.Entity<EmailCampaign>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.TemplateId).HasColumnName("template_id");
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200).HasColumnName("name");
+                entity.Property(e => e.RecipientsFilter).HasColumnName("recipients_filter");
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasColumnName("status");
+                entity.Property(e => e.TotalSent).HasColumnName("total_sent");
+                entity.Property(e => e.TotalFailed).HasColumnName("total_failed");
+                entity.Property(e => e.SentAt).HasColumnName("sent_at");
+                entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+                entity.HasOne(e => e.Template).WithMany().HasForeignKey(e => e.TemplateId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(e => e.TemplateId).HasDatabaseName("idx_email_campaigns_template");
+                entity.ToTable("email_campaigns");
+            });
+
+            modelBuilder.Entity<EmailLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.CampaignId).HasColumnName("campaign_id");
+                entity.Property(e => e.RecipientEmail).IsRequired().HasMaxLength(255).HasColumnName("recipient_email");
+                entity.Property(e => e.RecipientUserId).HasColumnName("recipient_user_id");
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50).HasColumnName("status");
+                entity.Property(e => e.SentAt).HasColumnName("sent_at");
+                entity.Property(e => e.ResendId).HasMaxLength(100).HasColumnName("resend_id");
+                entity.Property(e => e.ErrorMessage).HasMaxLength(1000).HasColumnName("error_message");
+                entity.HasOne(e => e.Campaign).WithMany().HasForeignKey(e => e.CampaignId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(e => e.CampaignId).HasDatabaseName("idx_email_logs_campaign");
+                entity.HasIndex(e => e.RecipientUserId).HasDatabaseName("idx_email_logs_recipient");
+                entity.ToTable("email_logs");
             });
         }
     }

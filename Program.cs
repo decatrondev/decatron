@@ -107,6 +107,7 @@ try
     builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
     builder.Services.Configure<GachaSettings>(builder.Configuration.GetSection("GachaSettings"));
     builder.Services.Configure<AwsPollySettings>(builder.Configuration.GetSection("AwsPolly"));
+    builder.Services.Configure<Decatron.Core.Settings.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
     builder.Services.Configure<Decatron.Discord.Models.DiscordSettings>(builder.Configuration.GetSection("DiscordSettings"));
 
     // PostgreSQL DbContext
@@ -204,11 +205,27 @@ try
     builder.Services.AddScoped<TimerEventService>();
     builder.Services.AddScoped<IRaffleService, RaffleService>();
     builder.Services.AddScoped<IGachaService, GachaService>();
+    builder.Services.AddScoped<IFortniteService, FortniteService>();
     builder.Services.AddScoped<GiveawayService>();
     builder.Services.AddScoped<GoalsService>();
     builder.Services.AddScoped<NowPlayingService>();
     builder.Services.AddScoped<IEventAlertsService, EventAlertsService>();
     builder.Services.AddScoped<ITtsService, TtsService>();
+
+    // Piper: síntesis auto-alojada, el motor del nivel gratuito.
+    // Comparte el mismo directorio de caché que el TTS de pago, así se sirve igual.
+    builder.Services.AddScoped(sp => new PiperTtsService(
+        sp.GetRequiredService<ILogger<PiperTtsService>>(),
+        builder.Configuration["TtsSettings:CachePath"] ?? "/var/www/html/decatron/tts-cache"));
+    // Radiografía del propio repositorio para /admin. Singleton porque cachea el
+    // resultado y la raíz no cambia mientras el proceso viva.
+    builder.Services.AddSingleton(sp => new ProjectAnalysisService(
+        sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>(),
+        sp.GetRequiredService<ILogger<ProjectAnalysisService>>(),
+        builder.Environment.ContentRootPath));
+
+    builder.Services.AddScoped<ISpeakChatService, SpeakChatService>();
+    builder.Services.AddScoped<ITtsCreditService, TtsCreditService>();
     builder.Services.AddScoped<ITipsService, TipsService>();
     builder.Services.AddScoped<ISupportersService, SupportersService>();
     builder.Services.AddSingleton<IStreamStatusService, StreamStatusService>();
@@ -222,6 +239,8 @@ try
     builder.Services.AddScoped<Decatron.Services.OpenRouterService>();
     builder.Services.AddScoped<Decatron.Services.AIProviderService>();
     builder.Services.AddScoped<Decatron.Services.CoinService>();
+    builder.Services.AddScoped<Decatron.Services.EmailService>();
+    builder.Services.AddScoped<Decatron.Services.UsernameUpdateService>();
     builder.Services.AddSingleton<ICommandStateService, CommandStateService>();
     builder.Services.AddSingleton<OverlayNotificationService>();
 
@@ -259,7 +278,10 @@ try
     builder.Services.AddHostedService<TimerStateRestorationService>(); // Restaura timers al iniciar
     builder.Services.AddHostedService<GiveawayBackgroundService>(); // Monitorea timeouts de giveaways
     builder.Services.AddHostedService<WatchTimeBackgroundService>(); // Actualiza watch times cada minuto
+    builder.Services.AddHostedService<WatchtimeLurkerTrackingService>(); // Trackea lurkers vía polling de chatters
+    builder.Services.AddHostedService<StreamStatusHydrationService>(); // Hidrata estado en vivo al arrancar (IStreamStatusService es solo en memoria)
     builder.Services.AddHostedService<NowPlayingBackgroundService>(); // Polling Last.fm/Spotify now playing
+    builder.Services.AddHostedService<UsernameCheckBackgroundService>(); // Check Twitch username changes every 24h
 
     // Twitch services
     builder.Services.AddSingleton<TwitchClient>(provider => new TwitchClient());

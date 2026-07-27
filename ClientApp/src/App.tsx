@@ -14,6 +14,8 @@ import MicroCommands from './pages/commands/MicroCommands';
 import CustomCommands from './pages/commands/CustomCommands';
 import ScriptingList from './pages/commands/ScriptingList';
 import ScriptingEditor from './pages/commands/ScriptingEditor';
+import WatchtimeConfig from './pages/commands/WatchtimeConfig';
+import PublicCommandsConfig from './pages/commands/PublicCommandsConfig';
 import FeaturesHub from './pages/features/FeaturesHub';
 import ModerationHub from './pages/features/ModerationHub';
 import Timers from './pages/features/Timers';
@@ -25,7 +27,6 @@ import GoalsConfig from './pages/features/GoalsConfig';
 import EventAlertsConfig from './pages/features/EventAlertsConfig';
 import BannedWords from './pages/features/moderation/BannedWords';
 import SoundAlerts from './pages/features/SoundAlerts';
-import FollowAlertConfig from './pages/features/FollowAlertConfig';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import DecatronChat from './pages/features/DecatronChat';
 import TipsConfig from './pages/features/TipsConfig';
@@ -34,9 +35,15 @@ import AdminEconomy from './pages/admin/AdminEconomy';
 import DecatronAIAdmin from './pages/admin/DecatronAIAdmin';
 import DecatronChatAdmin from './pages/admin/DecatronChatAdmin';
 import AdminDonations from './pages/admin/Donations/index';
+import EmailManagement from './pages/admin/EmailManagement/index';
 import DevDocs from './pages/admin/DevDocs';
+import TtsLab from './pages/admin/TtsLab';
+import TtsCreditsAdmin from './pages/admin/TtsCreditsAdmin';
+import ProjectAnalysis from './pages/admin/ProjectAnalysis';
+import AdminFortnite from './pages/admin/AdminFortnite';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import SupportersPublic from './pages/SupportersPublic';
+import PublicCommandsPage from './pages/PublicCommandsPage';
 import GachaConfig from './pages/features/gacha-extension/GachaConfig';
 import GachaOverlay from './pages/GachaOverlay';
 import GachaCollection from './pages/GachaCollection';
@@ -51,6 +58,8 @@ import GoalsOverlay from './pages/GoalsOverlay';
 import EventAlertsOverlay from './pages/EventAlertsOverlay';
 import TipsOverlay from './pages/TipsOverlay';
 import NowPlayingOverlay from './pages/NowPlayingOverlay';
+import SpeakChatOverlay from './pages/SpeakChatOverlay';
+import SpeakChat from './pages/features/SpeakChat';
 import NowPlayingConfig from './pages/features/NowPlayingConfig';
 import TipsDonate from './pages/TipsDonate';
 import TipsPrivacy from './pages/TipsPrivacy';
@@ -84,9 +93,9 @@ import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
 import NowPlayingDoc from './pages/docs/private/features/NowPlayingDoc';
-import FollowAlertsDoc from './pages/docs/private/features/FollowAlertsDoc';
 import DecatronChatDoc from './pages/docs/private/features/DecatronChatDoc';
 import DeveloperPortalDoc from './pages/docs/private/features/DeveloperPortalDoc';
+import GachaDoc from './pages/docs/private/features/GachaDoc';
 import SettingsDoc from './pages/docs/private/settings/SettingsDoc';
 import PermissionsDoc from './pages/docs/private/settings/PermissionsDoc';
 import GachaLogin from './pages/gacha/GachaLogin';
@@ -102,9 +111,17 @@ import ApplicationCreate from './pages/developer/ApplicationCreate';
 import ApiReference from './pages/developer/ApiReference';
 import OAuthAuthorizePage from './pages/oauth/OAuthAuthorizePage';
 import ApiDocs from './pages/docs/public/ApiDocs';
+import LegalLayout from './pages/legal/LegalLayout';
+import TerminosPage from './pages/legal/TerminosPage';
+import PrivacidadPage from './pages/legal/PrivacidadPage';
+import DevolucionesPage from './pages/legal/DevolucionesPage';
+import LibroReclamacionesPage from './pages/legal/LibroReclamacionesPage';
 import MeOverview from './pages/me/MeOverview';
 import MeAccount from './pages/me/MeAccount';
 import MeCoins from './pages/me/MeCoins';
+import SpritesGallery from './pages/SpritesGallery';
+import SpiritCollection from './pages/SpiritCollection';
+import MySpiritCollection from './pages/me/MySpiritCollection';
 import { PermissionsProvider } from './contexts/PermissionsContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './components/ui/Toast';
@@ -130,13 +147,21 @@ function App() {
                 <Route path="/overlay/event-alerts" element={<SafeRoute name="Event Alerts Overlay"><EventAlertsOverlay /></SafeRoute>} />
                 <Route path="/overlay/tips" element={<SafeRoute name="Tips Overlay"><TipsOverlay /></SafeRoute>} />
                 <Route path="/overlay/now-playing" element={<SafeRoute name="Now Playing Overlay"><NowPlayingOverlay /></SafeRoute>} />
+                <Route path="/overlay/speak-chat" element={<SafeRoute name="Speak Chat Overlay"><SpeakChatOverlay /></SafeRoute>} />
                 <Route path="/overlay/gacha" element={<SafeRoute name="Gacha Overlay"><GachaOverlay /></SafeRoute>} />
 
                 {/* Public Gacha Collection - No authentication required */}
                 <Route path="/gacha/collection" element={<SafeRoute name="Gacha Collection"><GachaCollection /></SafeRoute>} />
 
+                {/* Public Spirit Tracker - No authentication required */}
+                <Route path="/sprites" element={<SafeRoute name="Sprites Gallery"><SpritesGallery /></SafeRoute>} />
+                <Route path="/sprites/:username" element={<SafeRoute name="Spirit Collection"><SpiritCollection /></SafeRoute>} />
+
                 {/* Public Supporters Page - No authentication required */}
                 <Route path="/supporters" element={<SupportersPublic />} />
+
+                {/* Public Commands Page - No authentication required */}
+                <Route path="/commands/:channelName" element={<PublicCommandsPage />} />
 
                 {/* Public Tips/Donation Pages - No authentication required */}
                 <Route path="/tip/privacy" element={<TipsPrivacy />} />
@@ -149,6 +174,14 @@ function App() {
 
                 {/* OAuth Authorization Page */}
                 <Route path="/oauth/authorize" element={<OAuthAuthorizePage />} />
+
+                {/* Legal Pages */}
+                <Route element={<LegalLayout />}>
+                    <Route path="/terminos" element={<TerminosPage />} />
+                    <Route path="/privacidad" element={<PrivacidadPage />} />
+                    <Route path="/devoluciones" element={<DevolucionesPage />} />
+                    <Route path="/libro-reclamaciones" element={<LibroReclamacionesPage />} />
+                </Route>
 
                 {/* Public Documentation Routes */}
                 <Route path="/docs" element={<DocsLayout />}>
@@ -184,6 +217,8 @@ function App() {
                     <Route path="commands/scripting" element={<SafeRoute name="Scripting"><ScriptingList /></SafeRoute>} />
                     <Route path="commands/scripting/new" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
                     <Route path="commands/scripting/edit/:id" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
+                    <Route path="commands/watchtime" element={<SafeRoute name="Watchtime"><WatchtimeConfig /></SafeRoute>} />
+                    <Route path="commands/public" element={<SafeRoute name="Public Commands"><PublicCommandsConfig /></SafeRoute>} />
 
                     {/* Rutas de Gestión */}
                     <Route path="followers" element={<SafeRoute name="Followers"><Followers /></SafeRoute>} />
@@ -192,10 +227,10 @@ function App() {
                     <Route path="features/timers" element={<SafeRoute name="Timers"><Timers /></SafeRoute>} />
                     <Route path="features/giveaways" element={<SafeRoute name="Giveaways"><GiveawayConfig /></SafeRoute>} />
                     <Route path="features/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
-                    <Route path="features/follow-alerts" element={<SafeRoute name="Follow Alerts"><FollowAlertConfig /></SafeRoute>} />
                     <Route path="features/decatron-ai" element={<SafeRoute name="Decatron AI"><DecatronAIConfig /></SafeRoute>} />
                     <Route path="features/decatron-chat" element={<SafeRoute name="Decatron Chat"><DecatronChat /></SafeRoute>} />
                     <Route path="features/tips" element={<SafeRoute name="Tips"><TipsConfig /></SafeRoute>} />
+                    <Route path="features/speak-chat" element={<SafeRoute name="Speak Chat"><SpeakChat /></SafeRoute>} />
 
                     {/* Rutas de Admin */}
                     <Route path="admin/decatron-ai" element={<SafeRoute name="AI Admin"><DecatronAIAdmin /></SafeRoute>} />
@@ -203,7 +238,12 @@ function App() {
                     <Route path="admin/donations" element={<SafeRoute name="Donations"><AdminDonations /></SafeRoute>} />
                     <Route path="admin/supporters" element={<SafeRoute name="Supporters"><SupportersConfig /></SafeRoute>} />
                     <Route path="admin/economy" element={<SafeRoute name="Economy"><AdminEconomy /></SafeRoute>} />
+                    <Route path="admin/email" element={<SafeRoute name="Email"><EmailManagement /></SafeRoute>} />
                     <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
+                    <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
+                    <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
+                    <Route path="admin/project-analysis" element={<SafeRoute name="Project Analysis"><ProjectAnalysis /></SafeRoute>} />
+                    <Route path="admin/fortnite" element={<SafeRoute name="Fortnite Sprites"><AdminFortnite /></SafeRoute>} />
 
                     {/* Chat Moderation */}
                     <Route path="features/moderation/banned-words" element={<SafeRoute name="Banned Words"><BannedWords /></SafeRoute>} />
@@ -228,6 +268,7 @@ function App() {
                     <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
                     <Route path="me/coins" element={<SafeRoute name="Coins"><MeCoins /></SafeRoute>} />
                     <Route path="me/gacha" element={<SafeRoute name="My Gacha"><MeGacha /></SafeRoute>} />
+                    <Route path="me/spirits" element={<SafeRoute name="My Spirits"><MySpiritCollection /></SafeRoute>} />
 
                     {/* Discord Configuration */}
                     <Route path="discord" element={<SafeRoute name="Discord"><DiscordConfig /></SafeRoute>} />
@@ -271,9 +312,9 @@ function App() {
                     <Route path="dashboard/docs/features/followers" element={<FollowersDoc />} />
                     <Route path="dashboard/docs/features/ai" element={<AIDoc />} />
                     <Route path="dashboard/docs/features/now-playing" element={<NowPlayingDoc />} />
-                    <Route path="dashboard/docs/features/follow-alerts" element={<FollowAlertsDoc />} />
                     <Route path="dashboard/docs/features/decatron-chat" element={<DecatronChatDoc />} />
                     <Route path="dashboard/docs/features/developer" element={<DeveloperPortalDoc />} />
+                    <Route path="dashboard/docs/features/gacha" element={<GachaDoc />} />
                     {/* Settings */}
                     <Route path="dashboard/docs/settings" element={<SettingsDoc />} />
                     <Route path="dashboard/docs/permissions" element={<PermissionsDoc />} />
