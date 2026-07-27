@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -157,6 +161,96 @@ namespace Decatron.Services
                     Provider = "openrouter"
                 };
             }
+        }
+        /// <summary>
+        /// Genera una respuesta en streaming usando la API de OpenRouter (SSE)
+        /// </summary>
+        public async IAsyncEnumerable<string> GenerateStreamingResponseAsync(
+            string prompt,
+            string systemPrompt,
+            string model = "x-ai/grok-4.1-fast:free",
+            int maxTokens = 2000,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrEmpty(_apiKey))
+            {
+                _logger.LogError("❌ [OPENROUTER-STREAM] API Key no configurada");
+                throw new InvalidOperationException("API Key de OpenRouter no configurada");
+            }
+
+            var url = "https://openrouter.ai/api/v1/chat/completions";
+
+            var requestBody = new
+            {
+                model = model,
+                max_tokens = maxTokens,
+                stream = true,
+                messages = new object[]
+                {
+                    new { role = "system", content = systemPrompt },
+                    new { role = "user", content = prompt }
+                }
+            };
+
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Content = content;
+            request.Headers.Add("Authorization", $"Bearer {_apiKey}");
+            request.Headers.Add("HTTP-Referer", "https://decatron.stream");
+            request.Headers.Add("X-Title", "Decatron IA");
+
+            _logger.LogInformation($"🤖 [OPENROUTER-STREAM] Iniciando stream: '{prompt.Substring(0, Math.Min(50, prompt.Length))}...'");
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError($"❌ [OPENROUTER-STREAM] Error API: {response.StatusCode} - {errorBody}");
+                throw new HttpRequestException($"OpenRouter API error: {response.StatusCode}");
+            }
+
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var reader = new StreamReader(stream);
+
+            while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(cancellationToken);
+
+                if (string.IsNullOrEmpty(line)) continue;
+                if (!line.StartsWith("data: ")) continue;
+
+                var data = line.Substring(6);
+                if (data == "[DONE]") break;
+
+                string? parsedToken = null;
+                try
+                {
+                    var json = JsonSerializer.Deserialize<JsonElement>(data);
+                    if (json.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+                    {
+                        var choice = choices[0];
+                        if (choice.TryGetProperty("delta", out var delta) &&
+                            delta.TryGetProperty("content", out var contentToken))
+                        {
+                            parsedToken = contentToken.GetString();
+                        }
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Skip malformed chunks
+                }
+
+                if (!string.IsNullOrEmpty(parsedToken))
+                {
+                    yield return parsedToken;
+                }
+            }
+
+            _logger.LogInformation("✅ [OPENROUTER-STREAM] Stream completado");
         }
     }
 

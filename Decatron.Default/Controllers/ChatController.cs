@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Decatron.Core.Models;
 using Decatron.Data;
@@ -486,6 +488,211 @@ namespace Decatron.Default.Controllers
             {
                 _logger.LogError(ex, $"[Chat] Error sending message to conversation {id}");
                 return StatusCode(500, new { success = false, message = "Error procesando mensaje" });
+            }
+        }
+
+        [HttpPost("conversations/{id}/messages/stream")]
+        public async Task StreamMessage(Guid id, [FromBody] SendMessageRequest request)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var channelOwnerId = GetChannelOwnerId();
+                var startTime = DateTime.UtcNow;
+
+                // --- Validación (antes de iniciar SSE) ---
+                var conversation = await _dbContext.DecatronChatConversations
+                    .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId && c.ChannelOwnerId == channelOwnerId);
+
+                if (conversation == null)
+                {
+                    Response.StatusCode = 404;
+                    await Response.WriteAsJsonAsync(new { success = false, message = "Conversación no encontrada" });
+                    return;
+                }
+
+                if (userId != channelOwnerId)
+                {
+                    var permission = await _dbContext.DecatronChatPermissions
+                        .FirstOrDefaultAsync(p => p.UserId == userId && p.ChannelOwnerId == channelOwnerId);
+                    if (permission == null || !permission.CanChat)
+                    {
+                        Response.StatusCode = 403;
+                        await Response.WriteAsJsonAsync(new { success = false, message = "Sin permiso" });
+                        return;
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Content))
+                {
+                    Response.StatusCode = 400;
+                    await Response.WriteAsJsonAsync(new { success = false, message = "El mensaje no puede estar vacío" });
+                    return;
+                }
+
+                var config = await _dbContext.DecatronChatConfigs.FirstOrDefaultAsync();
+                if (config == null || !config.Enabled)
+                {
+                    Response.StatusCode = 400;
+                    await Response.WriteAsJsonAsync(new { success = false, message = "El sistema de chat está deshabilitado" });
+                    return;
+                }
+
+                var messageCount = await _dbContext.DecatronChatMessages.CountAsync(m => m.ConversationId == id);
+                if (messageCount >= config.MaxMessagesPerConversation)
+                {
+                    Response.StatusCode = 400;
+                    await Response.WriteAsJsonAsync(new { success = false, message = $"Límite de mensajes alcanzado ({config.MaxMessagesPerConversation})" });
+                    return;
+                }
+
+                // --- Guardar mensaje del usuario ---
+                var userMessage = new DecatronChatMessage
+                {
+                    ConversationId = id,
+                    UserId = userId,
+                    Role = "user",
+                    Content = request.Content,
+                    TokensUsed = 0,
+                    ResponseTimeMs = 0,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _dbContext.DecatronChatMessages.Add(userMessage);
+                await _dbContext.SaveChangesAsync();
+
+                // --- Construir contexto ---
+                var contextMessages = await _dbContext.DecatronChatMessages
+                    .Where(m => m.ConversationId == id)
+                    .OrderByDescending(m => m.CreatedAt)
+                    .Take(config.ContextMessages)
+                    .OrderBy(m => m.CreatedAt)
+                    .Select(m => new { m.Role, m.Content })
+                    .ToListAsync();
+
+                var promptWithContext = request.Content;
+                if (contextMessages.Any())
+                {
+                    var contextText = string.Join("\n", contextMessages.Select(m => $"{m.Role}: {m.Content}"));
+                    promptWithContext = $"Contexto de conversación previa:\n{contextText}\n\nNuevo mensaje del usuario:\n{request.Content}";
+                }
+
+                var aiConfig = new DecatronAIGlobalConfig
+                {
+                    AIProvider = config.AIProvider,
+                    FallbackEnabled = config.FallbackEnabled,
+                    Model = config.Model,
+                    OpenRouterModel = config.OpenRouterModel,
+                    MaxTokens = config.MaxTokens
+                };
+
+                // --- Iniciar SSE ---
+                Response.ContentType = "text/event-stream";
+                Response.Headers["Cache-Control"] = "no-cache";
+                Response.Headers["Connection"] = "keep-alive";
+                Response.Headers["X-Accel-Buffering"] = "no";
+                await Response.StartAsync(HttpContext.RequestAborted);
+
+                var jsonOpts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+                // Enviar userMessage ID al frontend
+                var userMsgData = JsonSerializer.Serialize(new { userMessage = new { userMessage.Id, userMessage.Role, userMessage.Content, userMessage.CreatedAt } }, jsonOpts);
+                await Response.WriteAsync($"event: userMessage\ndata: {userMsgData}\n\n", HttpContext.RequestAborted);
+                await Response.Body.FlushAsync(HttpContext.RequestAborted);
+
+                // --- Stream de la IA ---
+                var fullResponse = new StringBuilder();
+                try
+                {
+                    await foreach (var token in _aiProviderService.GenerateStreamingResponseAsync(
+                        promptWithContext, config.SystemPrompt, aiConfig, HttpContext.RequestAborted))
+                    {
+                        fullResponse.Append(token);
+                        var tokenData = JsonSerializer.Serialize(new { content = token }, jsonOpts);
+                        await Response.WriteAsync($"data: {tokenData}\n\n", HttpContext.RequestAborted);
+                        await Response.Body.FlushAsync(HttpContext.RequestAborted);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogInformation($"[Chat-Stream] Cliente desconectado, conversación {id}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"[Chat-Stream] Error durante streaming, conversación {id}");
+                    var errorData = JsonSerializer.Serialize(new { error = true, message = "Error generando respuesta" }, jsonOpts);
+                    try
+                    {
+                        await Response.WriteAsync($"event: error\ndata: {errorData}\n\n", HttpContext.RequestAborted);
+                        await Response.Body.FlushAsync(HttpContext.RequestAborted);
+                    }
+                    catch { }
+                }
+
+                // --- Guardar mensaje completo del asistente ---
+                var responseTime = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
+                var assistantMessage = new DecatronChatMessage
+                {
+                    ConversationId = id,
+                    UserId = userId,
+                    Role = "assistant",
+                    Content = fullResponse.Length > 0 ? fullResponse.ToString() : "Lo siento, no pude generar una respuesta.",
+                    TokensUsed = 0,
+                    ResponseTimeMs = responseTime,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _dbContext.DecatronChatMessages.Add(assistantMessage);
+                conversation.MessageCount += 2;
+                conversation.UpdatedAt = DateTime.UtcNow;
+
+                if (conversation.MessageCount == 2 && conversation.Title == "Nueva conversación")
+                {
+                    conversation.Title = request.Content.Length > 50
+                        ? request.Content.Substring(0, 50) + "..."
+                        : request.Content;
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                // --- Enviar evento done ---
+                try
+                {
+                    var doneData = JsonSerializer.Serialize(new
+                    {
+                        done = true,
+                        assistantMessage = new
+                        {
+                            assistantMessage.Id,
+                            assistantMessage.Role,
+                            assistantMessage.Content,
+                            assistantMessage.TokensUsed,
+                            assistantMessage.ResponseTimeMs,
+                            assistantMessage.CreatedAt
+                        },
+                        conversation = new
+                        {
+
+                            conversation.Id,
+                            conversation.Title,
+                            conversation.MessageCount,
+                            conversation.UpdatedAt
+                        }
+                    }, jsonOpts);
+                    await Response.WriteAsync($"event: done\ndata: {doneData}\n\n", HttpContext.RequestAborted);
+                    await Response.Body.FlushAsync(HttpContext.RequestAborted);
+                }
+                catch { }
+
+                _logger.LogInformation($"[Chat-Stream] Completado en {responseTime}ms, conversación {id}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"[Chat-Stream] Error en conversación {id}");
+                if (!Response.HasStarted)
+                {
+                    Response.StatusCode = 500;
+                    await Response.WriteAsJsonAsync(new { success = false, message = "Error procesando mensaje" });
+                }
             }
         }
 

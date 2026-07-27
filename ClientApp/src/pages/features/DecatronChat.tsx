@@ -168,8 +168,9 @@ export default function DecatronChat() {
         setIsThinking(true);
 
         // Agregar mensaje del usuario inmediatamente
+        const tempUserMsgId = Date.now();
         const tempUserMessage: Message = {
-            id: Date.now(),
+            id: tempUserMsgId,
             role: 'user',
             content: content,
             createdAt: new Date().toISOString()
@@ -177,39 +178,146 @@ export default function DecatronChat() {
         setMessages(prev => [...prev, tempUserMessage]);
 
         try {
-            const res = await api.post(`/chat/conversations/${activeConversation}/messages`, {
-                content
-            });
-
-            if (res.data.success) {
-                // Quitar indicador de pensando
-                setIsThinking(false);
-
-                // Reemplazar mensaje temporal del usuario con el real
-                setMessages(prev => {
-                    const filtered = prev.filter(m => m.id !== tempUserMessage.id);
-                    return [...filtered, res.data.userMessage];
-                });
-
-                // Iniciar efecto typewriter con el mensaje del asistente
-                startTypewriterEffect(res.data.assistantMessage);
-
-                // Actualizar el título de la conversación si cambió
-                if (res.data.conversation.title) {
-                    setConversations(prev => prev.map(c =>
-                        c.id === activeConversation
-                            ? { ...c, title: res.data.conversation.title, messageCount: res.data.conversation.messageCount }
-                            : c
-                    ));
+            const token = localStorage.getItem('token');
+            const baseUrl = import.meta.env.VITE_API_URL || '/api';
+            const response = await fetch(
+                `${baseUrl}/chat/conversations/${activeConversation}/messages/stream`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ content }),
+                    credentials: 'include'
                 }
+            );
+
+            if (!response.ok) {
+                let errorMsg = t('decatronChat.errorSending');
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch {}
+                throw new Error(errorMsg);
+            }
+
+            // Crear placeholder del mensaje del asistente
+            const assistantMsgId = Date.now() + 1;
+            const assistantMsg: Message = {
+                id: assistantMsgId,
+                role: 'assistant',
+                content: '',
+                createdAt: new Date().toISOString()
+            };
+
+            // Leer el stream SSE
+            const reader = response.body!.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let fullContent = '';
+            let assistantStarted = false;
+            let currentEvent = '';
+            let rafId: number | null = null;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    // Capturar tipo de evento
+                    if (line.startsWith('event: ')) {
+                        currentEvent = line.slice(7).trim();
+                        continue;
+                    }
+
+                    if (!line.startsWith('data: ')) continue;
+
+                    const jsonStr = line.slice(6);
+                    try {
+                        const parsed = JSON.parse(jsonStr);
+
+                        if (currentEvent === 'userMessage' || parsed.userMessage) {
+                            // Reemplazar mensaje temporal del usuario con el real de la DB
+                            const realUser = parsed.userMessage || parsed;
+                            setMessages(prev => prev.map(m =>
+                                m.id === tempUserMsgId ? { ...realUser } : m
+                            ));
+                            currentEvent = '';
+                            continue;
+                        }
+
+                        if (currentEvent === 'done' || parsed.done) {
+                            // Actualizar con datos finales de DB
+                            setMessages(prev => prev.map(m =>
+                                m.id === assistantMsgId ? { ...parsed.assistantMessage } : m
+                            ));
+                            if (parsed.conversation) {
+                                setConversations(prev => prev.map(c =>
+                                    c.id === activeConversation
+                                        ? { ...c, title: parsed.conversation.title, messageCount: parsed.conversation.messageCount }
+                                        : c
+                                ));
+                            }
+                            setStreamingMessage(null);
+                            currentEvent = '';
+                            continue;
+                        }
+
+                        if (currentEvent === 'error' || parsed.error) {
+                            currentEvent = '';
+                            throw new Error(parsed.message || 'Stream error');
+                        }
+
+                        // Token de contenido (evento sin nombre)
+                        if (parsed.content !== undefined) {
+                            if (!assistantStarted) {
+                                assistantStarted = true;
+                                setIsThinking(false);
+                                setMessages(prev => [...prev, assistantMsg]);
+                                setStreamingMessage(assistantMsg);
+                            }
+                            fullContent += parsed.content;
+                            // Batch renders: acumular y renderizar en el siguiente frame
+                            const snapshot = fullContent;
+                            if (rafId) cancelAnimationFrame(rafId);
+                            rafId = requestAnimationFrame(() => {
+                                setMessages(prev => prev.map(m =>
+                                    m.id === assistantMsgId ? { ...m, content: snapshot } : m
+                                ));
+                                rafId = null;
+                            });
+                        }
+
+                        currentEvent = '';
+                    } catch (e) {
+                        currentEvent = '';
+                        if (e instanceof Error && e.message !== 'Stream error') continue;
+                        throw e;
+                    }
+                }
+            }
+
+            // Flush final: asegurar que el último contenido se renderice
+            if (rafId) cancelAnimationFrame(rafId);
+            if (assistantStarted) {
+                setMessages(prev => prev.map(m =>
+                    m.id === assistantMsgId ? { ...m, content: fullContent } : m
+                ));
+            } else {
+                setIsThinking(false);
             }
         } catch (err: any) {
             console.error('Error sending message:', err);
-            alert(err.response?.data?.message || t('decatronChat.errorSending'));
-            setMessageInput(content); // Restaurar el mensaje
+            alert(err.message || t('decatronChat.errorSending'));
+            setMessageInput(content);
             setIsThinking(false);
-            // Quitar mensaje temporal del usuario
-            setMessages(prev => prev.filter(m => m.id !== tempUserMessage.id));
+            setStreamingMessage(null);
+            setMessages(prev => prev.filter(m => m.id !== tempUserMsgId));
         } finally {
             setSending(false);
         }
@@ -287,15 +395,18 @@ export default function DecatronChat() {
             setCurrentInterval(null);
         }
         if (streamingMessage) {
-            // Mostrar mensaje completo inmediatamente
-            setMessages(prev => {
-                const updated = [...prev];
-                const msgIndex = updated.findIndex(m => m.id === streamingMessage.id);
-                if (msgIndex >= 0) {
-                    updated[msgIndex] = streamingMessage;
-                }
-                return updated;
-            });
+            // Para typewriter: mostrar mensaje completo inmediatamente
+            // Para streaming real: el contenido ya está en pantalla, solo limpiar estado
+            if (currentInterval) {
+                setMessages(prev => {
+                    const updated = [...prev];
+                    const msgIndex = updated.findIndex(m => m.id === streamingMessage.id);
+                    if (msgIndex >= 0) {
+                        updated[msgIndex] = streamingMessage;
+                    }
+                    return updated;
+                });
+            }
             setStreamingMessage(null);
         }
     };
@@ -482,9 +593,9 @@ export default function DecatronChat() {
                                 </div>
                             ) : (
                                 <>
-                                    {messages.map(msg => (
+                                    {messages.map((msg, idx) => (
                                         <MessageBubble
-                                            key={msg.id}
+                                            key={`${msg.id}-${idx}`}
                                             message={msg}
                                             onEditCode={(code) => setMessageInput(`Modifica este código:\n\n${code}\n\nCambios: `)}
                                             isStreaming={streamingMessage?.id === msg.id}
@@ -791,11 +902,15 @@ ${code}
                     </div>
                     {isAssistant ? (
                         <div className="prose dark:prose-invert prose-sm max-w-none text-[#1e293b] dark:text-[#e2e8f0]">
-                            <ReactMarkdown components={components}>
-                                {message.content}
-                            </ReactMarkdown>
-                            {isStreaming && (
-                                <span className="inline-block w-2 h-4 ml-1 bg-[#2563eb] animate-pulse"></span>
+                            {isStreaming ? (
+                                <>
+                                    <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                                    <span className="inline-block w-2 h-4 ml-1 bg-[#2563eb] animate-pulse"></span>
+                                </>
+                            ) : (
+                                <ReactMarkdown components={components}>
+                                    {message.content}
+                                </ReactMarkdown>
                             )}
                         </div>
                     ) : (
