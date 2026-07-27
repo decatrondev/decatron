@@ -37,6 +37,15 @@ public class DiscordBotService : BackgroundService
         new { name = "shop", description = "Tienda de XP — compra rewards", type = 1, options = new object[] {
             new { name = "buy", description = "Nombre del item a comprar", type = 3, required = false }
         }},
+        new { name = "spirits", description = "Fortnite Spirit Tracker — ve tu coleccion o el ranking", type = 1, options = new object[] {
+            new { name = "usuario", description = "Usuario de Decatron (opcional, por defecto: tu)", type = 3, required = false },
+            new { name = "top", description = "Muestra el leaderboard global", type = 5, required = false },
+            new { name = "missing", description = "Muestra tus spirits faltantes", type = 5, required = false }
+        }},
+        new { name = "spirit", description = "Marca o desmarca un Fortnite Spirit en tu coleccion", type = 1, options = new object[] {
+            new { name = "nombre", description = "Nombre del spirit", type = 3, required = true, autocomplete = true },
+            new { name = "remove", description = "Desmarcar en lugar de marcar", type = 5, required = false }
+        }},
         new { name = "xp", description = "Gestiona el sistema de XP (admin)", type = 1, options = new object[] {
             new { name = "give", description = "Dar XP a un usuario", type = 1, options = new object[] {
                 new { name = "user", description = "Usuario", type = 6, required = true },
@@ -279,6 +288,36 @@ public class DiscordBotService : BackgroundService
                                 embed = await _commandHandler!.HandleShop(e.Interaction, buyItem);
                                 break;
                             }
+                        case "spirits":
+                            {
+                                string? targetUser = null;
+                                bool showTop = false, showMissing = false;
+                                if (options != null)
+                                {
+                                    var u = options.FirstOrDefault(o => o.Name == "usuario");
+                                    if (u?.Value != null) targetUser = u.Value.ToString();
+                                    var t = options.FirstOrDefault(o => o.Name == "top");
+                                    if (t?.Value != null && bool.TryParse(t.Value.ToString(), out var tv)) showTop = tv;
+                                    var m = options.FirstOrDefault(o => o.Name == "missing");
+                                    if (m?.Value != null && bool.TryParse(m.Value.ToString(), out var mv)) showMissing = mv;
+                                }
+                                embed = await _commandHandler!.HandleSpirits(e.Interaction, targetUser, showTop, showMissing);
+                                break;
+                            }
+                        case "spirit":
+                            {
+                                string nombre = "";
+                                bool removeMode = false;
+                                if (options != null)
+                                {
+                                    var n = options.FirstOrDefault(o => o.Name == "nombre");
+                                    if (n?.Value != null) nombre = n.Value.ToString()!;
+                                    var r = options.FirstOrDefault(o => o.Name == "remove");
+                                    if (r?.Value != null && bool.TryParse(r.Value.ToString(), out var rv)) removeMode = rv;
+                                }
+                                embed = await _commandHandler!.HandleSpiritMark(e.Interaction, nombre, removeMode);
+                                break;
+                            }
                         default:
                             webhook.WithContent($"Comando desconocido: {name}");
                             break;
@@ -286,10 +325,11 @@ public class DiscordBotService : BackgroundService
 
                     if (embed != null)
                         webhook.AddEmbed(embed);
-                    else if (string.IsNullOrEmpty(webhook.Content))
-                        webhook.WithContent("Error procesando el comando.");
 
-                    await e.Interaction.EditOriginalResponseAsync(webhook);
+                    // Only edit if there's content to send; null embed + empty content means
+                    // the handler already called EditOriginalResponseAsync internally (e.g. with buttons)
+                    if (embed != null || !string.IsNullOrEmpty(webhook.Content))
+                        await e.Interaction.EditOriginalResponseAsync(webhook);
                 }
                 catch (Exception ex)
                 {
@@ -314,6 +354,28 @@ public class DiscordBotService : BackgroundService
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Error in autocomplete");
+                }
+            });
+        }
+        else if (e.Interaction.Type == InteractionType.Component)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var customId = e.Interaction.Data.CustomId ?? "";
+                    await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+                    var embed = await _commandHandler!.HandleSpiritComponent(e.Interaction, customId);
+                    if (embed != null)
+                    {
+                        var webhook = new DiscordWebhookBuilder().AddEmbed(embed);
+                        // Preserve original buttons if the handler returns them
+                        await e.Interaction.EditOriginalResponseAsync(webhook);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error handling component interaction: {CustomId}", e.Interaction.Data.CustomId);
                 }
             });
         }

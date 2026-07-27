@@ -2,6 +2,7 @@ using System.Text.Json;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using Decatron.Core.Models;
+using Decatron.Core.Models.Fortnite;
 using Decatron.Data;
 using Decatron.Discord.Models;
 using Decatron.Discord.Services;
@@ -275,28 +276,49 @@ public class DecatronSlashCommands
     public async Task HandleAutocomplete(DiscordInteraction interaction)
     {
         var focusedOption = interaction.Data.Options?.FirstOrDefault(o => o.Focused);
-        if (focusedOption == null || focusedOption.Name != "canal") return;
+        if (focusedOption == null) return;
 
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-
-        var guildId = interaction.Guild.Id.ToString();
         var input = focusedOption.Value?.ToString()?.ToLower() ?? "";
 
-        var configs = await db.DiscordGuildConfigs
-            .Where(g => g.GuildId == guildId && g.IsActive)
-            .OrderByDescending(g => g.IsDefault)
-            .Select(g => g.ChannelName)
-            .ToListAsync();
+        // Spirit name autocomplete (for /spirit command)
+        if (focusedOption.Name == "nombre")
+        {
+            var sprites = await db.FortniteSprites
+                .Where(s => string.IsNullOrEmpty(input) ||
+                            s.Name.ToLower().Contains(input) ||
+                            s.Character.ToLower().Contains(input))
+                .OrderBy(s => s.Character).ThenBy(s => s.Name)
+                .Take(25)
+                .Select(s => new { s.Name, s.SpriteKey })
+                .ToListAsync();
 
-        var choices = configs
-            .Where(c => string.IsNullOrEmpty(input) || c.Contains(input))
-            .Take(25)
-            .Select(c => new DiscordAutoCompleteChoice(c, c))
-            .ToList();
+            var choices = sprites.Select(s => new DiscordAutoCompleteChoice(s.Name, s.SpriteKey)).ToList();
+            await interaction.CreateResponseAsync(InteractionResponseType.AutoCompleteResult,
+                new DiscordInteractionResponseBuilder().AddAutoCompleteChoices(choices));
+            return;
+        }
 
-        await interaction.CreateResponseAsync(InteractionResponseType.AutoCompleteResult,
-            new DiscordInteractionResponseBuilder().AddAutoCompleteChoices(choices));
+        // Canal autocomplete (existing)
+        if (focusedOption.Name == "canal")
+        {
+            var guildId = interaction.Guild.Id.ToString();
+            var configs = await db.DiscordGuildConfigs
+                .Where(g => g.GuildId == guildId && g.IsActive)
+                .OrderByDescending(g => g.IsDefault)
+                .Select(g => g.ChannelName)
+                .ToListAsync();
+
+            var choices = configs
+                .Where(c => string.IsNullOrEmpty(input) || c.Contains(input))
+                .Take(25)
+                .Select(c => new DiscordAutoCompleteChoice(c, c))
+                .ToList();
+
+            await interaction.CreateResponseAsync(InteractionResponseType.AutoCompleteResult,
+                new DiscordInteractionResponseBuilder().AddAutoCompleteChoices(choices));
+        }
     }
 
     // --- Helpers ---
@@ -1037,4 +1059,404 @@ public class DecatronSlashCommands
             return $"Error al ejecutar la recompensa: {ex.Message}";
         }
     }
+
+    // ─── Fortnite Spirit Tracker ──────────────────────────────────────────────
+
+    private const string BaseUrl = "https://twitch.decatron.net";
+
+    /// <summary>
+    /// /spirits [usuario] [top] [missing]
+    /// </summary>
+    public async Task<DiscordEmbedBuilder?> HandleSpirits(
+        DiscordInteraction interaction,
+        string? targetUsername,
+        bool showTop,
+        bool showMissing)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+        var fortnite = scope.ServiceProvider.GetRequiredService<IFortniteService>();
+
+        // ── Leaderboard ────────────────────────────────────────────────────────
+        if (showTop)
+        {
+            var leaders = await fortnite.GetGlobalLeaderboardAsync(top: 10);
+            if (leaders == null || leaders.Count == 0)
+                return new DiscordEmbedBuilder()
+                    .WithTitle("🏆 Fortnite Spirit Tracker — Top")
+                    .WithDescription("Aún no hay datos en el leaderboard.")
+                    .WithColor(PurpleColor);
+
+            var medals = new[] { "🥇", "🥈", "🥉", "4.", "5.", "6.", "7.", "8.", "9.", "10." };
+            var desc = string.Join("\n", leaders.Select((e, i) =>
+            {
+                var pct = e.Total > 0 ? (int)Math.Round(e.Count * 100.0 / e.Total) : 0;
+                return $"{medals[i]} **{e.Username}** — {e.Count}/{e.Total} ({pct}%)";
+            }));
+
+            return new DiscordEmbedBuilder()
+                .WithTitle("🏆 Fortnite Spirit Tracker — Top 10")
+                .WithDescription(desc)
+                .WithColor(PurpleColor)
+                .WithFooter("Decatron Bot • twitch.decatron.net/sprites")
+                .WithTimestamp(DateTimeOffset.UtcNow);
+        }
+
+        // ── Resolve target user ────────────────────────────────────────────────
+        string lookupName;
+        bool isSelf = false;
+
+        if (!string.IsNullOrWhiteSpace(targetUsername))
+        {
+            lookupName = targetUsername.TrimStart('@').ToLower();
+        }
+        else
+        {
+            // Look up the invoker's Decatron account via Discord ID
+            var invokerDiscordId = interaction.User.Id.ToString();
+            var linkedUser = await db.Users.FirstOrDefaultAsync(u => u.DiscordId == invokerDiscordId);
+            if (linkedUser == null)
+                return new DiscordEmbedBuilder()
+                    .WithTitle("🎮 Fortnite Spirit Tracker")
+                    .WithDescription("No tienes una cuenta de Decatron vinculada.\nInicia sesión con Discord en **twitch.decatron.net** para trackear tu colección.")
+                    .WithColor(new DiscordColor("#EF4444"))
+                    .WithFooter("Decatron Bot • twitch.decatron.net");
+
+            lookupName = linkedUser.Login;
+            isSelf = true;
+        }
+
+        var collection = await fortnite.GetPublicCollectionAsync(lookupName);
+        if (collection == null || collection.Count == 0)
+            return new DiscordEmbedBuilder()
+                .WithTitle("🎮 Fortnite Spirit Tracker")
+                .WithDescription($"**{lookupName}** no tiene cuenta en Decatron o aún no tiene spirits.")
+                .WithColor(new DiscordColor("#EF4444"))
+                .WithFooter("Decatron Bot • twitch.decatron.net/sprites");
+
+        var total = collection.Count(c => !c.Sprite.IsUnreleased);
+        var obtained = collection.Count(c => c.IsObtained && !c.Sprite.IsUnreleased);
+        var missing = total - obtained;
+        var pct = total > 0 ? (int)Math.Round(obtained * 100.0 / total) : 0;
+
+        // ── Missing mode ───────────────────────────────────────────────────────
+        if (showMissing)
+        {
+            if (missing == 0)
+                return new DiscordEmbedBuilder()
+                    .WithTitle($"🎮 Spirits de {lookupName} — Faltantes")
+                    .WithDescription("🎉 **¡Colección completa!** Tienes todos los spirits.")
+                    .WithColor(new DiscordColor("#34D399"))
+                    .WithFooter("Decatron Bot • twitch.decatron.net/sprites/" + lookupName);
+
+            var missingList = collection
+                .Where(c => !c.IsObtained && !c.Sprite.IsUnreleased)
+                .OrderBy(c => c.Sprite.Rarity).ThenBy(c => c.Sprite.Name)
+                .Take(20)
+                .Select(c => $"`{c.Sprite.Name}` ({c.Sprite.Rarity})")
+                .ToList();
+
+            var extraNote = missing > 20 ? $"\n*...y {missing - 20} más*" : "";
+
+            return new DiscordEmbedBuilder()
+                .WithTitle($"🎮 Spirits de {lookupName} — Faltantes ({missing})")
+                .WithDescription(string.Join("\n", missingList) + extraNote)
+                .WithColor(new DiscordColor("#7B61FF"))
+                .WithFooter("Decatron Bot • twitch.decatron.net/sprites/" + lookupName)
+                .WithTimestamp(DateTimeOffset.UtcNow);
+        }
+
+        // ── Progress view ──────────────────────────────────────────────────────
+        var bar = BuildProgressBar(obtained, total);
+        var rarityBreakdown = BuildRarityBreakdown(collection);
+        var discordId = interaction.User.Id.ToString();
+
+        var embed = new DiscordEmbedBuilder()
+            .WithTitle($"🎮 Fortnite Spirits — {lookupName}")
+            .WithDescription($"**{obtained} / {total}** spirits obtenidos ({pct}%)\n{bar}")
+            .AddField("Por rareza", rarityBreakdown, false)
+            .WithColor(new DiscordColor("#7B61FF"))
+            .WithUrl($"{BaseUrl}/sprites/{lookupName}")
+            .WithFooter("Decatron Bot • twitch.decatron.net/sprites/" + lookupName)
+            .WithTimestamp(DateTimeOffset.UtcNow);
+
+        // Add interactive buttons
+        var buttons = new DiscordComponent[]
+        {
+            new DiscordButtonComponent(ButtonStyle.Secondary, $"spirits_missing:{lookupName}:{discordId}", "🔍 Mis faltantes"),
+            new DiscordButtonComponent(ButtonStyle.Secondary, $"spirits_top:{discordId}", "🏆 Top 10"),
+            new DiscordLinkButtonComponent($"{BaseUrl}/sprites/{lookupName}", "🌐 Ver en web"),
+        };
+
+        var webhook = new DiscordWebhookBuilder()
+            .AddEmbed(embed)
+            .AddComponents(buttons);
+        await interaction.EditOriginalResponseAsync(webhook);
+        return null; // already responded
+    }
+
+    /// <summary>
+    /// /spirit nombre:<nombre> [remove:true]
+    /// </summary>
+    public async Task<DiscordEmbedBuilder?> HandleSpiritMark(
+        DiscordInteraction interaction,
+        string nombre,
+        bool remove)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+        var fortnite = scope.ServiceProvider.GetRequiredService<IFortniteService>();
+
+        // Resolve Decatron user via Discord ID
+        var discordId = interaction.User.Id.ToString();
+        var user = await db.Users.FirstOrDefaultAsync(u => u.DiscordId == discordId);
+        if (user == null)
+            return new DiscordEmbedBuilder()
+                .WithTitle("❌ Cuenta no vinculada")
+                .WithDescription("Necesitas iniciar sesión con Discord en **twitch.decatron.net** para marcar spirits.")
+                .WithColor(new DiscordColor("#EF4444"))
+                .WithFooter("Decatron Bot • twitch.decatron.net");
+
+        // Search by SpriteKey first (autocomplete sends key as value), then by name
+        var queryLower = nombre.ToLower();
+        var sprite = await db.FortniteSprites
+            .Where(s => s.SpriteKey == queryLower || s.Name.ToLower() == queryLower)
+            .FirstOrDefaultAsync()
+            ?? await db.FortniteSprites
+                .Where(s => s.Name.ToLower().Contains(queryLower) || s.Character.ToLower().Contains(queryLower))
+                .FirstOrDefaultAsync();
+
+        if (sprite == null)
+            return new DiscordEmbedBuilder()
+                .WithTitle("❌ Spirit no encontrado")
+                .WithDescription($"No encontré ningún spirit con el nombre **\"{nombre}\"**.\nRevisa tu colección en [twitch.decatron.net/me/spirits](https://twitch.decatron.net/me/spirits)")
+                .WithColor(new DiscordColor("#EF4444"));
+
+        var rarityColors = new Dictionary<string, string>
+        {
+            ["Rare"] = "#60A5FA", ["Special"] = "#34D399", ["Epic"] = "#C084FC",
+            ["Legendary"] = "#F59E0B", ["Mythic"] = "#F43F5E"
+        };
+        var color = rarityColors.TryGetValue(sprite.Rarity, out var rc) ? rc : "#7B61FF";
+        var imageUrl = $"{BaseUrl}/sprites/{sprite.SpriteKey}.png";
+
+        if (remove)
+        {
+            await fortnite.UnmarkSpriteAsync(user.Id, sprite.SpriteKey);
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle($"❌ {sprite.Name} desmarcado")
+                .WithDescription($"**{sprite.Name}** ({sprite.Rarity}) eliminado de tu colección.")
+                .WithColor(new DiscordColor("#6B7280"))
+                .WithThumbnail(imageUrl)
+                .WithFooter("Decatron Bot • twitch.decatron.net/me/spirits")
+                .WithTimestamp(DateTimeOffset.UtcNow);
+
+            var btn = new DiscordButtonComponent(ButtonStyle.Success, $"spirit_mark:{sprite.SpriteKey}:{discordId}", "✅ Volver a marcar");
+            await interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed).AddComponents(btn));
+            return null;
+        }
+
+        // Check if already has it
+        var alreadyHas = await db.UserFortniteSprites
+            .AnyAsync(u => u.UserId == user.Id && u.SpriteId == sprite.Id);
+
+        if (alreadyHas)
+        {
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle($"Ya tienes {sprite.Name}")
+                .WithDescription($"Ya tienes **{sprite.Name}** marcado en tu colección.")
+                .WithColor(new DiscordColor("#F59E0B"))
+                .WithThumbnail(imageUrl);
+            var btn = new DiscordButtonComponent(ButtonStyle.Danger, $"spirit_unmark:{sprite.SpriteKey}:{discordId}", "❌ Desmarcar");
+            await interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed).AddComponents(btn));
+            return null;
+        }
+
+        await fortnite.MarkSpriteAsync(user.Id, sprite.SpriteKey, platform: "discord");
+
+        {
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle($"✅ {sprite.Name} obtenido!")
+                .WithDescription($"**{sprite.Name}** ({sprite.Rarity}) añadido a tu colección.")
+                .WithColor(new DiscordColor(color))
+                .WithThumbnail(imageUrl)
+                .WithFooter("Decatron Bot • twitch.decatron.net/me/spirits")
+                .WithTimestamp(DateTimeOffset.UtcNow);
+            var btn = new DiscordButtonComponent(ButtonStyle.Danger, $"spirit_unmark:{sprite.SpriteKey}:{discordId}", "❌ Desmarcar");
+            await interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed).AddComponents(btn));
+            return null;
+        }
+    }
+
+    // ── Spirit component handler (buttons) ────────────────────────────────────
+
+    public async Task<DiscordEmbedBuilder?> HandleSpiritComponent(DiscordInteraction interaction, string customId)
+    {
+        var parts = customId.Split(':');
+        if (parts.Length < 2) return null;
+
+        var action = parts[0];
+        var discordId = interaction.User.Id.ToString();
+
+        // Security: only the original user can click their own buttons
+        var ownerId = parts.Length >= 3 ? parts[^1] : parts.Length >= 2 ? parts[1] : "";
+        if (ownerId != discordId)
+        {
+            return new DiscordEmbedBuilder()
+                .WithTitle("❌ Sin permiso")
+                .WithDescription("Solo el usuario que ejecutó el comando puede usar estos botones.")
+                .WithColor(new DiscordColor("#EF4444"));
+        }
+
+        using var scope = _serviceProvider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+        var fortnite = scope.ServiceProvider.GetRequiredService<IFortniteService>();
+
+        // spirits_missing:{lookupName}:{discordId}
+        if (action == "spirits_missing")
+        {
+            var lookupName = parts.Length >= 3 ? parts[1] : "";
+            if (string.IsNullOrEmpty(lookupName)) return null;
+
+            var collection = await fortnite.GetPublicCollectionAsync(lookupName);
+            var missing = collection?
+                .Where(c => !c.IsObtained && !c.Sprite.IsUnreleased)
+                .OrderBy(c => c.Sprite.Rarity).ThenBy(c => c.Sprite.Name)
+                .Take(20)
+                .Select(c => $"`{c.Sprite.Name}` ({c.Sprite.Rarity})")
+                .ToList() ?? new List<string>();
+
+            var total = collection?.Count(c => !c.IsObtained && !c.Sprite.IsUnreleased) ?? 0;
+            if (total == 0)
+                return new DiscordEmbedBuilder()
+                    .WithTitle($"🎮 Spirits de {lookupName} — Faltantes")
+                    .WithDescription("🎉 **¡Colección completa!**")
+                    .WithColor(new DiscordColor("#34D399"));
+
+            var extra = total > 20 ? $"\n*...y {total - 20} más*" : "";
+            return new DiscordEmbedBuilder()
+                .WithTitle($"🎮 Spirits de {lookupName} — Faltantes ({total})")
+                .WithDescription(string.Join("\n", missing) + extra)
+                .WithColor(PurpleColor)
+                .WithUrl($"{BaseUrl}/sprites/{lookupName}")
+                .WithTimestamp(DateTimeOffset.UtcNow);
+        }
+
+        // spirits_top:{discordId}
+        if (action == "spirits_top")
+        {
+            var leaders = await fortnite.GetGlobalLeaderboardAsync(top: 10);
+            if (leaders == null || leaders.Count == 0)
+                return new DiscordEmbedBuilder()
+                    .WithTitle("🏆 Top 10 Spirits").WithDescription("Sin datos aún.")
+                    .WithColor(PurpleColor);
+
+            var medals = new[] { "🥇", "🥈", "🥉", "4.", "5.", "6.", "7.", "8.", "9.", "10." };
+            var desc = string.Join("\n", leaders.Select((e, i) =>
+            {
+                var pct = e.Total > 0 ? (int)Math.Round(e.Count * 100.0 / e.Total) : 0;
+                return $"{medals[i]} **{e.Username}** — {e.Count}/{e.Total} ({pct}%)";
+            }));
+
+            return new DiscordEmbedBuilder()
+                .WithTitle("🏆 Fortnite Spirit Tracker — Top 10")
+                .WithDescription(desc)
+                .WithColor(PurpleColor)
+                .WithTimestamp(DateTimeOffset.UtcNow);
+        }
+
+        // spirit_mark:{spriteKey}:{discordId}
+        if (action == "spirit_mark")
+        {
+            var spriteKey = parts[1];
+            var markUser = await db.Users.FirstOrDefaultAsync(u => u.DiscordId == discordId);
+            if (markUser == null)
+                return new DiscordEmbedBuilder().WithTitle("❌ Cuenta no vinculada")
+                    .WithDescription("Inicia sesión en **twitch.decatron.net** con Discord.").WithColor(new DiscordColor("#EF4444"));
+
+            var markSprite = await db.FortniteSprites.FirstOrDefaultAsync(s => s.SpriteKey == spriteKey);
+            if (markSprite == null) return null;
+
+            await fortnite.MarkSpriteAsync(markUser.Id, spriteKey, platform: "discord");
+
+            var rarityColors = new Dictionary<string, string>
+            {
+                ["Rare"] = "#60A5FA", ["Special"] = "#34D399", ["Epic"] = "#C084FC",
+                ["Legendary"] = "#F59E0B", ["Mythic"] = "#F43F5E"
+            };
+            var markColor = rarityColors.TryGetValue(markSprite.Rarity, out var mrc) ? mrc : "#7B61FF";
+
+            var markEmbed = new DiscordEmbedBuilder()
+                .WithTitle($"✅ {markSprite.Name} obtenido!")
+                .WithDescription($"**{markSprite.Name}** ({markSprite.Rarity}) añadido a tu colección.")
+                .WithColor(new DiscordColor(markColor))
+                .WithThumbnail($"{BaseUrl}/sprites/{markSprite.SpriteKey}.png")
+                .WithTimestamp(DateTimeOffset.UtcNow);
+
+            var markBtn = new DiscordButtonComponent(ButtonStyle.Danger, $"spirit_unmark:{spriteKey}:{discordId}", "❌ Desmarcar");
+            await interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(markEmbed).AddComponents(markBtn));
+            return null;
+        }
+
+        // spirit_unmark:{spriteKey}:{discordId}
+        if (action == "spirit_unmark")
+        {
+            var spriteKey = parts[1];
+            var unmarkUser = await db.Users.FirstOrDefaultAsync(u => u.DiscordId == discordId);
+            if (unmarkUser == null)
+                return new DiscordEmbedBuilder().WithTitle("❌ Cuenta no vinculada")
+                    .WithDescription("Inicia sesión en **twitch.decatron.net** con Discord.").WithColor(new DiscordColor("#EF4444"));
+
+            var unmarkSprite = await db.FortniteSprites.FirstOrDefaultAsync(s => s.SpriteKey == spriteKey);
+            if (unmarkSprite == null) return null;
+
+            await fortnite.UnmarkSpriteAsync(unmarkUser.Id, spriteKey);
+
+            var unmarkEmbed = new DiscordEmbedBuilder()
+                .WithTitle($"❌ {unmarkSprite.Name} desmarcado")
+                .WithDescription($"**{unmarkSprite.Name}** ({unmarkSprite.Rarity}) eliminado de tu colección.")
+                .WithColor(new DiscordColor("#6B7280"))
+                .WithThumbnail($"{BaseUrl}/sprites/{unmarkSprite.SpriteKey}.png")
+                .WithTimestamp(DateTimeOffset.UtcNow);
+
+            var unmarkBtn = new DiscordButtonComponent(ButtonStyle.Success, $"spirit_mark:{spriteKey}:{discordId}", "✅ Volver a marcar");
+            await interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().AddEmbed(unmarkEmbed).AddComponents(unmarkBtn));
+            return null;
+        }
+
+        return null;
+    }
+
+    // ── Spirit helpers ─────────────────────────────────────────────────────────
+
+    private static string BuildProgressBar(int obtained, int total)
+    {
+        if (total == 0) return "";
+        var filled = (int)Math.Round(obtained * 10.0 / total);
+        return string.Concat(Enumerable.Repeat("█", filled)) +
+               string.Concat(Enumerable.Repeat("░", 10 - filled)) +
+               $" {(int)Math.Round(obtained * 100.0 / total)}%";
+    }
+
+    private static string BuildRarityBreakdown(List<SpriteCollectionItem> collection)
+    {
+        var order = new[] { "Rare", "Special", "Epic", "Legendary", "Mythic" };
+        var icons = new Dictionary<string, string>
+        {
+            ["Rare"] = "🔵", ["Special"] = "🟢", ["Epic"] = "🟣",
+            ["Legendary"] = "🟡", ["Mythic"] = "🔴"
+        };
+        var parts = order
+            .Where(r => collection.Any(c => c.Sprite.Rarity == r && !c.Sprite.IsUnreleased))
+            .Select(r =>
+            {
+                var got = collection.Count(c => c.Sprite.Rarity == r && c.IsObtained && !c.Sprite.IsUnreleased);
+                var tot = collection.Count(c => c.Sprite.Rarity == r && !c.Sprite.IsUnreleased);
+                return $"{icons.GetValueOrDefault(r, "⚪")} {r}: **{got}/{tot}**";
+            });
+        return string.Join("  ·  ", parts);
+    }
+
+    private static readonly DiscordColor PurpleColor = new("#7B61FF");
 }
+
