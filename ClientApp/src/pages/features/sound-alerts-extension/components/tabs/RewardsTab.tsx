@@ -1,5 +1,5 @@
 import {
-    Gift, Eye, EyeOff, Trash2, Music, Video, Image as ImageIcon
+    Gift, Eye, EyeOff, Trash2, Music, Video, Image as ImageIcon, Pencil
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ChannelPointsReward, SoundFile } from '../../types';
@@ -9,14 +9,16 @@ interface RewardsTabProps {
     files: SoundFile[];
     uploading: { [key: string]: boolean };
     getRewardFile: (rewardId: string) => SoundFile | undefined;
+    selectedRewardForFile: ChannelPointsReward | null;
     setSelectedRewardForFile: (reward: ChannelPointsReward | null) => void;
     setShowFileDialog: (show: boolean) => void;
-    handleFileUpload: (rewardId: string, rewardTitle: string, file: File, fileType: string, imageFile?: File) => Promise<void>;
+    handleFileUpload: (rewardId: string, rewardTitle: string, file: File, fileType: string, imageFile?: File, showImage?: boolean, imageSource?: 'upload' | 'url', imageUrl?: string) => Promise<void>;
     handleDeleteFile: (rewardId: string) => Promise<void>;
     handleToggleFile: (rewardId: string) => Promise<void>;
     setPendingAudioUpload: (upload: { rewardId: string; rewardTitle: string; audioFile: File } | null) => void;
     setSelectedImageFile: (file: File | null) => void;
     setShowAudioImageModal: (show: boolean) => void;
+    onEditFile: (rewardId: string) => void;
 }
 
 export function RewardsTab({
@@ -24,6 +26,7 @@ export function RewardsTab({
     files,
     uploading,
     getRewardFile,
+    selectedRewardForFile,
     setSelectedRewardForFile,
     setShowFileDialog,
     handleFileUpload,
@@ -32,6 +35,7 @@ export function RewardsTab({
     setPendingAudioUpload,
     setSelectedImageFile,
     setShowAudioImageModal,
+    onEditFile,
 }: RewardsTabProps) {
     const { t } = useTranslation('features');
     return (
@@ -63,13 +67,11 @@ export function RewardsTab({
                         </label>
                         <select
                             className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563eb] text-[#1e293b] dark:text-[#f8fafc] font-semibold mb-6"
-                            value={rewards.find(r => getRewardFile(r.id))?.id || ''}
+                            value={selectedRewardForFile?.id || ''}
                             onChange={(e) => {
-                                const selectedReward = rewards.find(r => r.id === e.target.value);
-                                if (selectedReward) {
-                                    setSelectedRewardForFile(selectedReward);
-                                    setShowFileDialog(true);
-                                }
+                                const selectedReward = rewards.find(r => r.id === e.target.value) || null;
+                                setSelectedRewardForFile(selectedReward);
+                                if (selectedReward) setShowFileDialog(true);
                             }}
                         >
                             <option value="">{t('soundAlertsTabs.selectRewardPlaceholder')}</option>
@@ -151,6 +153,13 @@ export function RewardsTab({
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => onEditFile(file.rewardId)}
+                                                        className="p-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors"
+                                                        title="Editar imagen y opciones"
+                                                    >
+                                                        <Pencil className="w-4 h-4 text-purple-600" />
+                                                    </button>
                                                     <button
                                                         onClick={() => handleToggleFile(file.rewardId)}
                                                         className={`p-2 rounded-lg transition-colors ${

@@ -11,7 +11,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
 import type {
     ChannelPointsReward, SoundFile, TextLine, Styles,
-    Layout as LayoutType, TabType, DragElement
+    Layout as LayoutType, TabType
 } from './sound-alerts-extension/types';
 import {
     BasicTab,
@@ -23,13 +23,13 @@ import {
     PreviewPanel,
     FileSelectionModal,
 } from './sound-alerts-extension/components/tabs';
+import EditSoundModal from './sound-alerts-extension/components/tabs/EditSoundModal';
 
 export default function SoundAlerts() {
     const navigate = useNavigate();
     const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const previewRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLDivElement>(null);
     const [activeTab, setActiveTab] = useState<TabType>('basic');
 
     // Estados
@@ -55,6 +55,10 @@ export default function SoundAlerts() {
     } | null>(null);
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
+    // Modal de edición de archivo
+    const [editingFile, setEditingFile] = useState<SoundFile | null>(null);
+    const [savingEdit, setSavingEdit] = useState(false);
+
     // Configuración
     const [globalVolume, setGlobalVolume] = useState(70);
     const [globalEnabled, setGlobalEnabled] = useState(true);
@@ -76,8 +80,8 @@ export default function SoundAlerts() {
         backgroundOpacity: 100
     });
     const [layout, setLayout] = useState<LayoutType>({
-        media: { x: 0, y: 0, width: 400, height: 400 },
-        text: { x: 200, y: 420, align: 'center' }
+        media: { x: 260, y: 40, width: 1400, height: 700 },
+        text: { x: 460, y: 780, width: 1000, height: 240, align: 'center' }
     });
     const [animationType, setAnimationType] = useState('fade');
     const [animationSpeed, setAnimationSpeed] = useState('normal');
@@ -85,11 +89,6 @@ export default function SoundAlerts() {
     const [textOutlineColor, setTextOutlineColor] = useState('#000000');
     const [textOutlineWidth, setTextOutlineWidth] = useState(2);
     const [cooldownMs, setCooldownMs] = useState(500);
-
-    // Drag & Drop state
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragElement, setDragElement] = useState<DragElement>(null);
-    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
     // URL del overlay
     const [channelName, setChannelName] = useState('tu_canal');
@@ -174,20 +173,62 @@ export default function SoundAlerts() {
                     typeof parsedLayout.text.x === 'number' &&
                     typeof parsedLayout.text.y === 'number') {
 
-                    // Asegurar que width y height existen, sino usar defaults
-                    const completeLayout = {
-                        media: {
-                            x: parsedLayout.media.x,
-                            y: parsedLayout.media.y,
-                            width: parsedLayout.media.width ?? 200,
-                            height: parsedLayout.media.height ?? 200
-                        },
-                        text: {
-                            x: parsedLayout.text.x,
-                            y: parsedLayout.text.y,
-                            align: parsedLayout.text.align ?? 'center'
-                        }
-                    };
+                    // Detectar si es layout viejo (400x450) — si text no tiene width, es viejo
+                    const isLegacy = parsedLayout.text.width === undefined || parsedLayout.text.width === null;
+
+                    let completeLayout: LayoutType;
+                    if (isLegacy) {
+                        // Migrar coordenadas de 400x450 a 1920x1080
+                        const scaleX = 1920 / 400;
+                        const scaleY = 1080 / 450;
+                        completeLayout = {
+                            media: {
+                                x: Math.round(parsedLayout.media.x * scaleX),
+                                y: Math.round(parsedLayout.media.y * scaleY),
+                                width: Math.round((parsedLayout.media.width ?? 200) * scaleX),
+                                height: Math.round((parsedLayout.media.height ?? 200) * scaleY),
+                            },
+                            text: {
+                                x: Math.round(parsedLayout.text.x * scaleX),
+                                y: Math.round(parsedLayout.text.y * scaleY),
+                                width: 600,
+                                height: 200,
+                                align: parsedLayout.text.align ?? 'center',
+                            }
+                        };
+
+                        // Auto-save: guardar layout migrado en BD para que no se repita
+                        api.post('/soundalerts/config', {
+                            globalVolume: cfg.globalVolume,
+                            globalEnabled: cfg.globalEnabled,
+                            duration: cfg.duration,
+                            textLines: cfg.textLines,
+                            styles: cfg.styles,
+                            layout: completeLayout,
+                            animationType: cfg.animationType,
+                            animationSpeed: cfg.animationSpeed,
+                            textOutlineEnabled: cfg.textOutlineEnabled,
+                            textOutlineColor: cfg.textOutlineColor,
+                            textOutlineWidth: cfg.textOutlineWidth,
+                            cooldownMs: cfg.cooldownMs,
+                        }).catch(err => console.error('Error auto-saving migrated layout:', err));
+                    } else {
+                        completeLayout = {
+                            media: {
+                                x: parsedLayout.media.x,
+                                y: parsedLayout.media.y,
+                                width: parsedLayout.media.width,
+                                height: parsedLayout.media.height,
+                            },
+                            text: {
+                                x: parsedLayout.text.x,
+                                y: parsedLayout.text.y,
+                                width: parsedLayout.text.width,
+                                height: parsedLayout.text.height,
+                                align: parsedLayout.text.align ?? 'center',
+                            }
+                        };
+                    }
                     setLayout(completeLayout);
                 } else {
                     console.warn('❌ Invalid layout structure, using defaults. Received:', parsedLayout);
@@ -415,62 +456,7 @@ export default function SoundAlerts() {
         }
     };
 
-    // Drag & Drop Functions
-    const handleMouseDown = (element: DragElement, e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsDragging(true);
-        setDragElement(element);
-
-        const rect = (e.target as HTMLElement).getBoundingClientRect();
-        const canvas = canvasRef.current?.getBoundingClientRect();
-
-        if (canvas) {
-            const scale = canvas.width / 400;
-
-            // Para ambos elementos, calcular el offset desde la esquina superior izquierda
-            setDragOffset({
-                x: (e.clientX - rect.left) / scale,
-                y: (e.clientY - rect.top) / scale
-            });
-        }
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging || !dragElement || !canvasRef.current) return;
-
-        const canvas = canvasRef.current.getBoundingClientRect();
-        const scale = canvas.width / 400;
-
-        // Calcular posición relativa al canvas
-        const canvasX = (e.clientX - canvas.left) / scale;
-        const canvasY = (e.clientY - canvas.top) / scale;
-
-        if (dragElement === 'media') {
-            const x = Math.max(0, Math.min(400 - layout.media.width, canvasX - dragOffset.x));
-            const y = Math.max(0, Math.min(450 - layout.media.height, canvasY - dragOffset.y));
-
-            setLayout(prev => ({
-                ...prev,
-                media: { ...prev.media, x: Math.round(x), y: Math.round(y) }
-            }));
-        } else if (dragElement === 'text') {
-            // Para texto, simplemente usar la posición directa (sin límites de ancho/alto)
-            const x = Math.max(0, Math.min(400, canvasX - dragOffset.x));
-            const y = Math.max(0, Math.min(450, canvasY - dragOffset.y));
-
-            setLayout(prev => ({
-                ...prev,
-                text: { ...prev.text, x: Math.round(x), y: Math.round(y) }
-            }));
-        }
-    };
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
-        setDragElement(null);
-    };
-
-    const handleFileUpload = async (rewardId: string, rewardTitle: string, file: File, fileType: string, imageFile?: File) => {
+    const handleFileUpload = async (rewardId: string, rewardTitle: string, file: File, fileType: string, imageFile?: File, showImage: boolean = true, imageSource: 'upload' | 'url' = 'upload', imageUrl?: string) => {
         try {
             setUploading({ ...uploading, [rewardId]: true });
 
@@ -482,7 +468,12 @@ export default function SoundAlerts() {
 
                 await new Promise<void>((resolve) => {
                     mediaElement.onloadedmetadata = () => {
-                        duration = mediaElement.duration;
+                        const raw = mediaElement.duration;
+                        duration = isFinite(raw) ? Math.floor(raw) : 0;
+                        URL.revokeObjectURL(fileUrl);
+                        resolve();
+                    };
+                    mediaElement.onerror = () => {
                         URL.revokeObjectURL(fileUrl);
                         resolve();
                     };
@@ -496,6 +487,9 @@ export default function SoundAlerts() {
             formData.append('RewardTitle', rewardTitle);
             formData.append('FileType', fileType);
             formData.append('DurationSeconds', duration.toString());
+            formData.append('ShowImage', String(showImage));
+            formData.append('ImageSource', imageSource);
+            if (imageUrl) formData.append('ImageUrl', imageUrl);
 
             // Agregar imagen si se proporcionó (para archivos de audio)
             if (imageFile) {
@@ -537,6 +531,25 @@ export default function SoundAlerts() {
             await loadFiles();
         } catch (error) {
             console.error('Error toggling file:', error);
+        }
+    };
+
+    const handleEditFile = async (rewardId: string, data: FormData) => {
+        try {
+            setSavingEdit(true);
+            await api.patch(`/soundalerts/file/${rewardId}/edit`, data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setSaveMessage({ type: 'success', text: 'Cambios guardados correctamente' });
+            setTimeout(() => setSaveMessage(null), 3000);
+            await loadFiles();
+            setEditingFile(null);
+        } catch (error: any) {
+            const message = error.response?.data?.error || error.response?.data?.message || 'Error al guardar cambios';
+            setSaveMessage({ type: 'error', text: message });
+            setTimeout(() => setSaveMessage(null), 3000);
+        } finally {
+            setSavingEdit(false);
         }
     };
 
@@ -745,11 +758,13 @@ export default function SoundAlerts() {
                         <LayoutTab
                             layout={layout}
                             setLayout={setLayout}
-                            canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
-                            dragElement={dragElement}
-                            handleMouseDown={handleMouseDown}
-                            handleMouseMove={handleMouseMove}
-                            handleMouseUp={handleMouseUp}
+                            files={files}
+                            channelName={channelName}
+                            textLines={textLines}
+                            styles={styles}
+                            textOutlineEnabled={textOutlineEnabled}
+                            textOutlineColor={textOutlineColor}
+                            textOutlineWidth={textOutlineWidth}
                         />
                     )}
 
@@ -774,6 +789,7 @@ export default function SoundAlerts() {
                             files={files}
                             uploading={uploading}
                             getRewardFile={getRewardFile}
+                            selectedRewardForFile={selectedRewardForFile}
                             setSelectedRewardForFile={setSelectedRewardForFile}
                             setShowFileDialog={setShowFileDialog}
                             handleFileUpload={handleFileUpload}
@@ -782,6 +798,10 @@ export default function SoundAlerts() {
                             setPendingAudioUpload={setPendingAudioUpload}
                             setSelectedImageFile={setSelectedImageFile}
                             setShowAudioImageModal={setShowAudioImageModal}
+                            onEditFile={(rewardId) => {
+                                const f = files.find(x => x.rewardId === rewardId);
+                                if (f) setEditingFile(f);
+                            }}
                         />
                     )}
                 </div>
@@ -820,6 +840,15 @@ export default function SoundAlerts() {
                 setSelectedImageFile={setSelectedImageFile}
                 handleFileUpload={handleFileUpload}
             />
+
+            {editingFile && (
+                <EditSoundModal
+                    file={editingFile}
+                    onClose={() => setEditingFile(null)}
+                    onSave={handleEditFile}
+                    saving={savingEdit}
+                />
+            )}
         </div>
     );
 }

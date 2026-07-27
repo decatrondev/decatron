@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
+using Decatron.Core.Helpers;
 using Decatron.Core.Settings;
 using Decatron.Data;
 using Decatron.Hubs;
@@ -185,8 +187,9 @@ namespace Decatron.Default.Controllers
                 }
 
                 var username = channel.ToLower();
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channel);
                 var config = await _dbContext.SoundAlertConfigs
-                    .FirstOrDefaultAsync(c => c.Username == username);
+                    .FirstOrDefaultAsync(c => channelUserId != null ? c.UserId == channelUserId : c.Username == username);
 
                 if (config == null)
                 {
@@ -232,7 +235,7 @@ namespace Decatron.Default.Controllers
                 var stylesJson = JsonSerializer.Deserialize<JsonElement>(config.Styles);
 
                 // Deserializar layout como DTO para forzar camelCase en la respuesta
-                var layoutDto = JsonSerializer.Deserialize<LayoutDto>(config.Layout);
+                var layoutDto = JsonSerializer.Deserialize<LayoutDto>(config.Layout, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 return Ok(new
                 {
@@ -325,7 +328,7 @@ namespace Decatron.Default.Controllers
                 var stylesJson = JsonSerializer.Deserialize<JsonElement>(config.Styles);
 
                 // Deserializar layout como DTO para forzar camelCase en la respuesta
-                var layoutDto = JsonSerializer.Deserialize<LayoutDto>(config.Layout);
+                var layoutDto = JsonSerializer.Deserialize<LayoutDto>(config.Layout, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 return Ok(new
                 {
@@ -389,9 +392,10 @@ namespace Decatron.Default.Controllers
                 var config = await _dbContext.SoundAlertConfigs
                     .FirstOrDefaultAsync(c => c.Username == username);
 
-                var textLinesJson = JsonSerializer.Serialize(request.TextLines);
-                var stylesJson = JsonSerializer.Serialize(request.Styles);
-                var layoutJson = JsonSerializer.Serialize(request.Layout);
+                var camelCaseOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                var textLinesJson = JsonSerializer.Serialize(request.TextLines, camelCaseOptions);
+                var stylesJson = JsonSerializer.Serialize(request.Styles, camelCaseOptions);
+                var layoutJson = JsonSerializer.Serialize(request.Layout, camelCaseOptions);
 
                 _logger.LogInformation($"🎵 [DEBUG] Layout recibido del frontend: {layoutJson}");
 
@@ -496,7 +500,11 @@ namespace Decatron.Default.Controllers
                         volume = f.Volume,
                         enabled = f.Enabled,
                         playCount = f.PlayCount,
-                        createdAt = f.CreatedAt
+                        createdAt = f.CreatedAt,
+                        showImage = f.ShowImage,
+                        imageUrl = f.ImageUrl,
+                        imageSource = f.ImageSource,
+                        imagePath = f.ImagePath
                     })
                 });
             }
@@ -607,15 +615,15 @@ namespace Decatron.Default.Controllers
                     var imageExtension = Path.GetExtension(request.ImageFile.FileName).ToLowerInvariant();
 
                     // Validar formato de imagen
-                    if (imageExtension != ".png" && imageExtension != ".jpg" && imageExtension != ".jpeg")
+                    if (imageExtension != ".png" && imageExtension != ".jpg" && imageExtension != ".jpeg" && imageExtension != ".gif")
                     {
-                        return BadRequest(new { success = false, message = "Formato de imagen no válido. Use PNG o JPG" });
+                        return BadRequest(new { success = false, message = "Formato de imagen no válido. Use PNG, JPG, JPEG o GIF" });
                     }
 
-                    // Validar tamaño (5MB máximo)
-                    if (request.ImageFile.Length > 5 * 1024 * 1024)
+                    // Validar tamaño (10MB máximo)
+                    if (request.ImageFile.Length > 10 * 1024 * 1024)
                     {
-                        return BadRequest(new { success = false, message = "La imagen excede el tamaño máximo de 5MB" });
+                        return BadRequest(new { success = false, message = "La imagen excede el tamaño máximo de 10MB" });
                     }
 
                     // Generar nombre único para la imagen
@@ -659,6 +667,9 @@ namespace Decatron.Default.Controllers
                     existingFile.RewardTitle = request.RewardTitle;
                     existingFile.ImagePath = imagePath;
                     existingFile.ImageName = imageName;
+                    existingFile.ShowImage = request.ShowImage;
+                    existingFile.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
+                    existingFile.ImageSource = request.ImageSource ?? "upload";
                     existingFile.UpdatedAt = DateTime.UtcNow;
                 }
                 else
@@ -666,6 +677,7 @@ namespace Decatron.Default.Controllers
                     // Crear nuevo registro
                     var soundAlertFile = new Core.Models.SoundAlertFile
                     {
+                        UserId = channelOwnerId,
                         Username = username,
                         RewardId = request.RewardId,
                         RewardTitle = request.RewardTitle,
@@ -676,6 +688,9 @@ namespace Decatron.Default.Controllers
                         DurationSeconds = request.DurationSeconds,
                         ImagePath = imagePath,
                         ImageName = imageName,
+                        ShowImage = request.ShowImage,
+                        ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim(),
+                        ImageSource = request.ImageSource ?? "upload",
                         Enabled = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
@@ -982,6 +997,7 @@ namespace Decatron.Default.Controllers
                     // Crear nuevo registro con archivo del sistema
                     var soundAlertFile = new Core.Models.SoundAlertFile
                     {
+                        UserId = channelOwnerId,
                         Username = username,
                         RewardId = request.RewardId,
                         RewardTitle = request.RewardTitle,
@@ -1041,7 +1057,7 @@ namespace Decatron.Default.Controllers
                 int duration = config?.Duration ?? 10;
                 string textLines = config?.TextLines ?? "[{\"text\":\"@redeemer canjeó @reward\",\"fontSize\":24,\"fontWeight\":\"bold\",\"enabled\":true},{\"text\":\"¡Gracias por el apoyo!\",\"fontSize\":18,\"fontWeight\":\"600\",\"enabled\":true}]";
                 string styles = config?.Styles ?? "{\"fontFamily\":\"Inter\",\"textColor\":\"#ffffff\",\"textShadow\":\"normal\",\"backgroundType\":\"transparent\",\"gradientColor1\":\"#667eea\",\"gradientColor2\":\"#764ba2\",\"gradientAngle\":135,\"solidColor\":\"#8b5cf6\",\"backgroundOpacity\":100}";
-                string layout = config?.Layout ?? "{\"media\":{\"x\":100,\"y\":20,\"width\":200,\"height\":200},\"text\":{\"x\":200,\"y\":300,\"align\":\"center\"}}";
+                string layout = config?.Layout ?? "{\"media\":{\"x\":260,\"y\":40,\"width\":1400,\"height\":700},\"text\":{\"x\":460,\"y\":780,\"width\":1000,\"height\":240,\"align\":\"center\"}}";
                 string animationType = config?.AnimationType ?? "fade";
                 string animationSpeed = config?.AnimationSpeed ?? "normal";
                 bool textOutlineEnabled = config?.TextOutlineEnabled ?? false;
@@ -1071,13 +1087,20 @@ namespace Decatron.Default.Controllers
                             relativePath = "/" + relativePath;
                         fileUrl = relativePath;
 
-                        // Para archivos del sistema, ImagePath también sería un path del sistema si existe
-                        if (!string.IsNullOrEmpty(file.ImagePath))
+                        // Para archivos del sistema, respetar ShowImage / ImageSource
+                        if (file.ShowImage)
                         {
-                            var relativeImagePath = file.ImagePath.Replace("ClientApp/public", "").Replace("\\", "/");
-                            if (!relativeImagePath.StartsWith("/"))
-                                relativeImagePath = "/" + relativeImagePath;
-                            imageUrl = relativeImagePath;
+                            if (file.ImageSource == "url" && !string.IsNullOrEmpty(file.ImageUrl))
+                            {
+                                imageUrl = file.ImageUrl;
+                            }
+                            else if (!string.IsNullOrEmpty(file.ImagePath))
+                            {
+                                var relativeImagePath = file.ImagePath.Replace("ClientApp/public", "").Replace("\\", "/");
+                                if (!relativeImagePath.StartsWith("/"))
+                                    relativeImagePath = "/" + relativeImagePath;
+                                imageUrl = relativeImagePath;
+                            }
                         }
                     }
                     else
@@ -1086,16 +1109,19 @@ namespace Decatron.Default.Controllers
                         var fileName = Path.GetFileName(file.FilePath);
                         fileUrl = $"/uploads/soundalerts/{username}/{fileName}";
 
-                        // Agregar imagen si está disponible (usar nombre físico del archivo)
-                        if (!string.IsNullOrEmpty(file.ImagePath))
-                        {
-                            var physicalImageName = Path.GetFileName(file.ImagePath);
-                            imageUrl = $"/uploads/soundalerts/{username}/{physicalImageName}";
-                        }
+                        // Respetar ShowImage / ImageSource / ImageUrl
+                        imageUrl = !file.ShowImage ? null :
+                                   file.ImageSource == "url" && !string.IsNullOrEmpty(file.ImageUrl)
+                                       ? file.ImageUrl
+                                       : (!string.IsNullOrEmpty(file.ImagePath)
+                                           ? $"/uploads/soundalerts/{username}/{Path.GetFileName(file.ImagePath)}"
+                                           : null);
                     }
 
                     fileType = file.FileType;
                 }
+
+                bool showImageFlag = file?.ShowImage ?? true;
 
                 // Crear datos de la alerta de prueba
                 var alertData = new
@@ -1105,6 +1131,7 @@ namespace Decatron.Default.Controllers
                     reward = "Alerta de Prueba",
                     fileUrl = fileUrl,
                     imageUrl = imageUrl,
+                    showImage = showImageFlag,
                     fileType = fileType,
                     volume = globalVolume,
                     duration = duration,
@@ -1142,6 +1169,65 @@ namespace Decatron.Default.Controllers
                 _logger.LogError(ex, "🎵 [SoundAlerts] ❌ Error enviando alerta de prueba");
                 return StatusCode(500, new { success = false, message = "Error interno del servidor" });
             }
+        }
+
+        /// <summary>
+        /// Edita imagen, volumen y opciones de visualización de un archivo existente
+        /// </summary>
+        [Authorize]
+        [HttpPatch("file/{rewardId}/edit")]
+        public async Task<IActionResult> EditFile(string rewardId, [FromForm] EditFileRequest request)
+        {
+            var channelOwnerId = GetChannelOwnerId();
+            var username = await GetChannelUsernameAsync(channelOwnerId);
+            if (string.IsNullOrEmpty(username))
+                return Unauthorized();
+
+            var file = await _dbContext.SoundAlertFiles
+                .FirstOrDefaultAsync(f => f.RewardId == rewardId && f.UserId == channelOwnerId);
+
+            if (file == null)
+                return NotFound(new { error = "Archivo no encontrado" });
+
+            if (request.ImageFile != null && request.ImageFile.Length > 0)
+            {
+                var imageExt = Path.GetExtension(request.ImageFile.FileName).ToLower();
+                var allowedImageExts = new[] { ".png", ".jpg", ".jpeg", ".gif" };
+                if (!allowedImageExts.Contains(imageExt))
+                    return BadRequest(new { error = "Formato de imagen no soportado. Usa PNG, JPG, JPEG o GIF." });
+
+                if (request.ImageFile.Length > 10 * 1024 * 1024)
+                    return BadRequest(new { error = "La imagen no puede superar los 10MB." });
+
+                if (!string.IsNullOrEmpty(file.ImagePath) && !file.IsSystemFile)
+                {
+                    var oldImageFullPath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "public", file.ImagePath.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImageFullPath))
+                        System.IO.File.Delete(oldImageFullPath);
+                }
+
+                var sanitizedUsername = string.Concat(username.Where(c => char.IsLetterOrDigit(c) || c == '_'));
+                var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "public", "uploads", "soundalerts", sanitizedUsername);
+                Directory.CreateDirectory(uploadDir);
+
+                var imageFileName = $"{Guid.NewGuid()}{imageExt}";
+                var imageFilePath = Path.Combine(uploadDir, imageFileName);
+                using (var stream = new FileStream(imageFilePath, FileMode.Create))
+                    await request.ImageFile.CopyToAsync(stream);
+
+                file.ImagePath = $"/uploads/soundalerts/{sanitizedUsername}/{imageFileName}";
+                file.ImageName = request.ImageFile.FileName;
+            }
+
+            file.ShowImage = request.ShowImage;
+            file.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
+            file.ImageSource = request.ImageSource ?? "upload";
+            if (request.Volume.HasValue)
+                file.Volume = Math.Clamp(request.Volume.Value, 0, 100);
+            file.UpdatedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+            return Ok(new { success = true });
         }
 
         /// <summary>
@@ -1200,16 +1286,18 @@ namespace Decatron.Default.Controllers
 
         public class MediaPositionDto
         {
-            public int X { get; set; } = 0;
-            public int Y { get; set; } = 0;
-            public int Width { get; set; } = 400;
-            public int Height { get; set; } = 400;
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Width { get; set; }
+            public int Height { get; set; }
         }
 
         public class TextPositionDto
         {
-            public int X { get; set; } = 200;
-            public int Y { get; set; } = 420;
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int? Width { get; set; }
+            public int? Height { get; set; }
             public string Align { get; set; } = "center";
         }
 
@@ -1221,6 +1309,9 @@ namespace Decatron.Default.Controllers
             public string RewardTitle { get; set; } = "";
             public string FileType { get; set; } = ""; // sound, video, image
             public decimal DurationSeconds { get; set; } = 0;
+            public bool ShowImage { get; set; } = true;
+            public string? ImageUrl { get; set; }
+            public string ImageSource { get; set; } = "upload";
         }
 
         public class UpdateVolumeRequest
@@ -1235,6 +1326,15 @@ namespace Decatron.Default.Controllers
             public string SystemFilePath { get; set; } = ""; // e.g. "/system-files/sounds/fbi.mp3"
             public string SystemFileName { get; set; } = ""; // e.g. "fbi.mp3"
             public string FileType { get; set; } = ""; // sound, video, image
+        }
+
+        public class EditFileRequest
+        {
+            public IFormFile? ImageFile { get; set; }
+            public bool ShowImage { get; set; } = true;
+            public string? ImageUrl { get; set; }
+            public string ImageSource { get; set; } = "upload";
+            public int? Volume { get; set; }
         }
 
         public class SystemFileInfo

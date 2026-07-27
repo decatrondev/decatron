@@ -53,7 +53,7 @@ export function PreviewPanel({
                     ref={previewRef}
                     className="relative w-full rounded-lg overflow-hidden border-2 border-[#e2e8f0] dark:border-[#374151]"
                     style={{
-                        aspectRatio: '400 / 450',
+                        aspectRatio: '1920 / 1080',
                         background: getPreviewBackground(),
                         opacity: styles.backgroundType !== 'transparent' ? (styles.backgroundOpacity || 100) / 100 : 1,
                         backgroundImage: styles.backgroundType === 'transparent'
@@ -68,10 +68,10 @@ export function PreviewPanel({
                         <div
                             className="absolute bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white rounded-lg"
                             style={{
-                                left: `${(layout.media.x / 400) * 100}%`,
-                                top: `${(layout.media.y / 450) * 100}%`,
-                                width: `${(layout.media.width / 400) * 100}%`,
-                                height: `${(layout.media.height / 450) * 100}%`,
+                                left: `${(layout.media.x / 1920) * 100}%`,
+                                top: `${(layout.media.y / 1080) * 100}%`,
+                                width: `${(layout.media.width / 1920) * 100}%`,
+                                height: `${(layout.media.height / 1080) * 100}%`,
                                 border: '2px solid rgba(255,255,255,0.2)'
                             }}
                         >
@@ -85,13 +85,13 @@ export function PreviewPanel({
                     {/* Text Preview */}
                     {layout?.text && (
                         <div
-                            className="absolute"
+                            className="absolute flex flex-col justify-center overflow-hidden"
                             style={{
-                                left: `${(layout.text.x / 400) * 100}%`,
-                                top: `${(layout.text.y / 450) * 100}%`,
+                                left: `${(layout.text.x / 1920) * 100}%`,
+                                top: `${(layout.text.y / 1080) * 100}%`,
+                                width: `${((layout.text.width || 600) / 1920) * 100}%`,
+                                height: `${((layout.text.height || 200) / 1080) * 100}%`,
                                 textAlign: (layout.text.align as 'left' | 'center' | 'right'),
-                                transform: layout.text.align === 'center' ? 'translate(-50%, -50%)' : layout.text.align === 'right' ? 'translate(-100%, -50%)' : 'translate(0, -50%)',
-                                maxWidth: '80%'
                             }}
                         >
                         <div className="space-y-1">
@@ -106,7 +106,6 @@ export function PreviewPanel({
                                         fontFamily: styles.fontFamily,
                                         margin: 0,
                                         lineHeight: 1.2,
-                                        whiteSpace: 'nowrap',
                                         WebkitTextStroke: textOutlineEnabled ? `${textOutlineWidth * 0.25}px ${textOutlineColor}` : undefined,
                                         paintOrder: textOutlineEnabled ? 'stroke fill' : undefined
                                     }}
@@ -155,6 +154,24 @@ export function PreviewPanel({
                             {t('soundAlertsTabs.open')}
                         </button>
                     </div>
+                </div>
+            </div>
+
+            {/* OBS Setup */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl border border-amber-200 dark:border-amber-700/50 p-6 shadow-lg">
+                <h3 className="text-lg font-black text-amber-800 dark:text-amber-300 mb-3 flex items-center gap-2">
+                    Configurar en OBS
+                </h3>
+                <ol className="text-amber-900 dark:text-amber-200 text-xs space-y-2 list-decimal list-inside">
+                    <li>Agregar fuente <span className="font-bold">Navegador (Browser Source)</span></li>
+                    <li>Pegar la URL del overlay</li>
+                    <li>Configurar <span className="font-bold">Ancho: 1920</span> y <span className="font-bold">Alto: 1080</span></li>
+                    <li>Hacer clic en el overlay una vez para desbloquear el audio</li>
+                </ol>
+                <div className="mt-3 p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300 font-semibold">
+                        El Browser Source DEBE ser 1920x1080 para que las alertas se vean correctamente.
+                    </p>
                 </div>
             </div>
 

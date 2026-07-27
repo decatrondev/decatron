@@ -21,6 +21,10 @@ export interface SoundFile {
     volume: number | null;
     enabled: boolean;
     playCount: number;
+    showImage: boolean;
+    imageUrl?: string;
+    imageSource: 'upload' | 'url';
+    imagePath?: string;
 }
 
 export interface TextLine {
@@ -45,8 +49,9 @@ export interface Styles {
 
 export interface Layout {
     media: { x: number; y: number; width: number; height: number };
-    text: { x: number; y: number; align: string };
+    text: { x: number; y: number; width: number; height: number; align: string };
 }
 
 export type TabType = 'basic' | 'typography' | 'background' | 'layout' | 'animations' | 'rewards';
 export type DragElement = 'media' | 'text' | null;
+export type SelectedElement = { type: 'media' | 'text'; } | null;

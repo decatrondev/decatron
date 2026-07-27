@@ -23,7 +23,7 @@ interface StyleConfig {
 
 interface LayoutConfig {
     media: { x: number; y: number; width: number; height: number };
-    text: { x: number; y: number; align: string };
+    text: { x: number; y: number; width: number; height: number; align: string };
 }
 
 interface SoundAlertData {
@@ -33,6 +33,7 @@ interface SoundAlertData {
     fileUrl?: string;
     fileType: 'sound' | 'video' | 'image';
     imageUrl?: string; // Imagen opcional para archivos de audio
+    showImage?: boolean; // Si false, no mostrar imagen ni emoji
     volume: number;
     duration: number;
     textLines: string;
@@ -46,6 +47,52 @@ interface SoundAlertData {
         enabled: boolean;
         color: string;
         width: number;
+    };
+}
+
+// Migra layouts viejos (400x450) a 1920x1080
+function migrateLayout(raw: any): LayoutConfig {
+    if (!raw || !raw.media || !raw.text) {
+        return {
+            media: { x: 660, y: 190, width: 600, height: 400 },
+            text: { x: 660, y: 640, width: 600, height: 200, align: 'center' }
+        };
+    }
+    // Si text no tiene width, es layout viejo → escalar
+    if (raw.text.width === undefined || raw.text.width === null) {
+        const scaleX = 1920 / 400;
+        const scaleY = 1080 / 450;
+        return {
+            media: {
+                x: Math.round((raw.media.x || 0) * scaleX),
+                y: Math.round((raw.media.y || 0) * scaleY),
+                width: Math.round((raw.media.width || 200) * scaleX),
+                height: Math.round((raw.media.height || 200) * scaleY),
+            },
+            text: {
+                x: Math.round((raw.text.x || 0) * scaleX),
+                y: Math.round((raw.text.y || 0) * scaleY),
+                width: 600,
+                height: 200,
+                align: raw.text.align || 'center',
+            }
+        };
+    }
+    // Layout nuevo, usar directo
+    return {
+        media: {
+            x: raw.media.x,
+            y: raw.media.y,
+            width: raw.media.width,
+            height: raw.media.height,
+        },
+        text: {
+            x: raw.text.x,
+            y: raw.text.y,
+            width: raw.text.width,
+            height: raw.text.height,
+            align: raw.text.align || 'center',
+        }
     };
 }
 
@@ -81,8 +128,8 @@ export default function SoundAlertsOverlay() {
         backgroundOpacity: 100
     });
     const [layout, setLayout] = useState<LayoutConfig>({
-        media: { x: 100, y: 20, width: 200, height: 200 },
-        text: { x: 200, y: 300, align: 'center' }
+        media: { x: 260, y: 40, width: 1400, height: 700 },
+        text: { x: 460, y: 780, width: 1000, height: 240, align: 'center' }
     });
 
     const connectionRef = useRef<signalR.HubConnection | null>(null);
@@ -175,7 +222,7 @@ export default function SoundAlertsOverlay() {
 
                     if (config.textLines) setTextLines(config.textLines);
                     if (config.styles) setStyles(prev => ({ ...prev, ...config.styles }));
-                    if (config.layout) setLayout(prev => ({ ...prev, ...config.layout }));
+                    if (config.layout) setLayout(migrateLayout(config.layout));
                 }
             } else {
                 console.error('Error en respuesta del servidor:', res.status);
@@ -232,7 +279,7 @@ export default function SoundAlertsOverlay() {
                         const parsedLayout = typeof data.layout === 'string'
                             ? JSON.parse(data.layout)
                             : data.layout;
-                        setLayout(prev => ({ ...prev, ...parsedLayout }));
+                        setLayout(migrateLayout(parsedLayout));
                     } catch (e) {
                         console.error('Error parsing layout:', e);
                     }
@@ -540,8 +587,8 @@ export default function SoundAlertsOverlay() {
     return (
         <div
             style={{
-                width: '400px',
-                height: '450px',
+                width: '100vw',
+                height: '100vh',
                 overflow: 'hidden',
                 position: 'relative',
                 fontFamily: styles.fontFamily
@@ -592,8 +639,7 @@ export default function SoundAlertsOverlay() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    display: alertData ? 'block' : 'none', // Solo mostrar si hay datos de alerta
-                    borderRadius: '20px',
+                    display: alertData ? 'block' : 'none',
                     ...getBackgroundStyle(),
                     animation: !isExiting
                         ? `${getAnimationName(true)} ${getAnimationDuration()} ease-in-out`
@@ -646,41 +692,43 @@ export default function SoundAlertsOverlay() {
                                 </audio>
 
                                 {/* Visualización para audio */}
-                                {alertData.imageUrl ? (
-                                    /* Imagen asociada al audio */
-                                    <img
-                                        src={alertData.imageUrl}
-                                        alt="Audio visualization"
-                                        style={{
-                                            position: 'absolute',
-                                            left: `${layout.media.x}px`,
-                                            top: `${layout.media.y}px`,
-                                            width: `${layout.media.width}px`,
-                                            height: `${layout.media.height}px`,
-                                            borderRadius: '12px',
-                                            objectFit: 'cover'
-                                        }}
-                                        onError={(e) => console.error('Error cargando imagen:', e)}
-                                    />
-                                ) : (
-                                    /* Icono por defecto si no hay imagen */
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            left: `${layout.media.x}px`,
-                                            top: `${layout.media.y}px`,
-                                            width: `${layout.media.width}px`,
-                                            height: `${layout.media.height}px`,
-                                            borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '120px'
-                                        }}
-                                    >
-                                        🎵
-                                    </div>
+                                {alertData.showImage !== false && (
+                                    alertData.imageUrl ? (
+                                        /* Imagen asociada al audio */
+                                        <img
+                                            src={alertData.imageUrl}
+                                            alt="Audio visualization"
+                                            style={{
+                                                position: 'absolute',
+                                                left: `${(layout.media.x / 1920) * 100}%`,
+                                                top: `${(layout.media.y / 1080) * 100}%`,
+                                                width: `${(layout.media.width / 1920) * 100}%`,
+                                                height: `${(layout.media.height / 1080) * 100}%`,
+                                                borderRadius: 0,
+                                                objectFit: 'scale-down',
+                                            }}
+                                            onError={(e) => console.error('Error cargando imagen:', e)}
+                                        />
+                                    ) : (
+                                        /* Icono por defecto si no hay imagen */
+                                        <div
+                                            style={{
+                                                position: 'absolute',
+                                                left: `${(layout.media.x / 1920) * 100}%`,
+                                                top: `${(layout.media.y / 1080) * 100}%`,
+                                                width: `${(layout.media.width / 1920) * 100}%`,
+                                                height: `${(layout.media.height / 1080) * 100}%`,
+                                                borderRadius: 0,
+                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '120px'
+                                            }}
+                                        >
+                                            🎵
+                                        </div>
+                                    )
                                 )}
                             </>
                         )}
@@ -695,13 +743,12 @@ export default function SoundAlertsOverlay() {
                                 muted={false}
                                 style={{
                                     position: 'absolute',
-                                    left: `${layout.media.x}px`,
-                                    top: `${layout.media.y}px`,
-                                    width: `${layout.media.width}px`,
-                                    height: `${layout.media.height}px`,
-                                    borderRadius: '12px',
-                                    objectFit: 'cover',
-                                    backgroundColor: '#000'
+                                    left: `${(layout.media.x / 1920) * 100}%`,
+                                    top: `${(layout.media.y / 1080) * 100}%`,
+                                    width: `${(layout.media.width / 1920) * 100}%`,
+                                    height: `${(layout.media.height / 1080) * 100}%`,
+                                    borderRadius: 0,
+                                    objectFit: 'scale-down',
                                 }}
                                 onError={(e) => console.error('Error cargando video:', e)}
                                 onLoadedData={() => {}}
@@ -739,29 +786,21 @@ export default function SoundAlertsOverlay() {
 
                         {/* Image */}
                         {alertData.fileType === 'image' && (
-                            <div
+                            <img
+                                src={alertData.fileUrl}
+                                alt="Sound Alert"
                                 style={{
                                     position: 'absolute',
-                                    left: `${layout.media.x}px`,
-                                    top: `${layout.media.y}px`,
-                                    width: `${layout.media.width}px`,
-                                    height: `${layout.media.height}px`,
-                                    borderRadius: '12px',
-                                    overflow: 'hidden'
+                                    left: `${(layout.media.x / 1920) * 100}%`,
+                                    top: `${(layout.media.y / 1080) * 100}%`,
+                                    width: `${(layout.media.width / 1920) * 100}%`,
+                                    height: `${(layout.media.height / 1080) * 100}%`,
+                                    borderRadius: 0,
+                                    objectFit: 'scale-down',
                                 }}
-                            >
-                                <img
-                                    src={alertData.fileUrl}
-                                    alt="Sound Alert"
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover'
-                                    }}
-                                    onError={(e) => console.error('Error cargando imagen:', e)}
-                                    onLoad={() => {}}
-                                />
-                            </div>
+                                onError={(e) => console.error('Error cargando imagen:', e)}
+                                onLoad={() => {}}
+                            />
                         )}
                     </>
                 )}
@@ -770,29 +809,28 @@ export default function SoundAlertsOverlay() {
                 <div
                     style={{
                         position: 'absolute',
-                        left: `${layout.text.x}px`,
-                        top: `${layout.text.y}px`,
+                        left: `${(layout.text.x / 1920) * 100}%`,
+                        top: `${(layout.text.y / 1080) * 100}%`,
+                        width: `${((layout.text.width || 600) / 1920) * 100}%`,
+                        height: `${((layout.text.height || 200) / 1080) * 100}%`,
                         textAlign: layout.text.align as 'left' | 'center' | 'right',
-                        transform: layout.text.align === 'center'
-                            ? 'translate(-50%, -50%)'
-                            : layout.text.align === 'right'
-                                ? 'translate(-100%, -50%)'
-                                : 'translate(0, -50%)',
-                        maxWidth: '80%'
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
                     }}
                 >
                     {textLines.filter(l => l.enabled).map((line, idx) => (
                         <div
                             key={idx}
                             style={{
-                                fontSize: `${line.fontSize}px`,
+                                fontSize: `${(line.fontSize / 1920) * 100}vw`,
                                 fontWeight: line.fontWeight,
                                 color: styles.textColor,
                                 textShadow: getTextShadowStyle(styles.textShadow),
                                 fontFamily: styles.fontFamily,
-                                margin: '8px 0',
+                                margin: '0.4vw 0',
                                 lineHeight: 1.2,
-                                whiteSpace: 'nowrap',
                                 ...getTextOutlineStyle()
                             }}
                         >

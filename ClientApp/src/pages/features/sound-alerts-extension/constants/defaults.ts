@@ -27,9 +27,12 @@ export const DEFAULT_STYLES: Styles = {
     backgroundOpacity: 100
 };
 
+export const CANVAS_WIDTH = 1920;
+export const CANVAS_HEIGHT = 1080;
+
 export const DEFAULT_LAYOUT: Layout = {
-    media: { x: 100, y: 20, width: 200, height: 200 },
-    text: { x: 200, y: 300, align: 'center' }
+    media: { x: 260, y: 40, width: 1400, height: 700 },
+    text: { x: 460, y: 780, width: 1000, height: 240, align: 'center' }
 };
 
 export const FONT_OPTIONS = [
