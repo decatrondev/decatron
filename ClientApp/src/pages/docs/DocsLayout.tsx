@@ -146,7 +146,7 @@ export default function DocsLayout() {
                                 <div className="mt-1 space-y-1">
                                     <SubNavLink to="/docs/variables" label="Variables" />
                                     <SubNavLink to="/docs/overlays/shoutout" label="Shoutout Overlay" />
-                                    <SubNavLink to="/docs/overlays/gacha" label="Gacha Overlay" comingSoon />
+                                    <SubNavLink to="/docs/overlays/gacha" label="Sistema Gacha" />
                                 </div>
                             )}
                         </div>

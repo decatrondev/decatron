@@ -1,7 +1,7 @@
 import {
     HelpCircle, Clock, Bell, Gift, Target, Volume2, DollarSign,
     Zap, Shield, Sparkles, Settings, Monitor, ArrowRight, Search,
-    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users
+    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users, Dice6
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -27,11 +27,11 @@ export default function DashboardDocsHome() {
         { icon: <Shield />, title: 'Moderacion', description: 'Filtros y acciones automaticas', path: '/dashboard/docs/features/moderation', color: 'red' },
         { icon: <Sparkles />, title: 'Decatron AI', description: 'Inteligencia artificial', path: '/dashboard/docs/features/ai', color: 'purple' },
         { icon: <Music />, title: 'Now Playing', description: 'Musica en el stream', path: '/dashboard/docs/features/now-playing', color: 'green' },
-        { icon: <Heart />, title: 'Alertas de Follow', description: 'Bienvenida a nuevos seguidores', path: '/dashboard/docs/features/follow-alerts', color: 'pink' },
         { icon: <MessageSquare />, title: 'Decatron Chat', description: 'Chat privado con IA', path: '/dashboard/docs/features/decatron-chat', color: 'blue' },
         { icon: <BarChart3 />, title: 'Analiticas', description: 'Estadisticas y datos del stream', path: '/dashboard/docs/features/analytics', color: 'blue' },
         { icon: <Users />, title: 'Seguidores', description: 'Lista y gestion de followers', path: '/dashboard/docs/features/followers', color: 'purple' },
         { icon: <Code2 />, title: 'Portal de Desarrolladores', description: 'Crea apps con la API', path: '/dashboard/docs/features/developer', color: 'blue' },
+        { icon: <Dice6 />, title: 'Sistema Gacha', description: 'Cartas coleccionables con overlay', path: '/dashboard/docs/features/gacha', color: 'orange' },
     ];
 
     const filteredGuides = featureGuides.filter(guide =>
