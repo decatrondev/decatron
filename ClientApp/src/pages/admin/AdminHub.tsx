@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -63,11 +63,51 @@ export default function AdminHub() {
             ready: false
         },
         {
+            id: 'email',
+            name: 'Email Campaigns',
+            description: 'Crea templates visuales y envia emails a streamers via Resend',
+            icon: <Mail className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/email',
+            ready: true
+        },
+        {
+            id: 'fortnite',
+            name: 'Fortnite Spirit Tracker',
+            description: 'Gestiona el catalogo de sprites de Fortnite y visualiza estadisticas de coleccion',
+            icon: <Gamepad2 className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/fortnite',
+            ready: true
+        },
+        {
             id: 'dev-docs',
             name: 'Dev Docs',
             description: 'Documentacion interna del proyecto, auditorias y planes',
             icon: <FileText className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/dev-docs',
+            ready: true
+        },
+        {
+            id: 'tts-lab',
+            name: 'Laboratorio de voces',
+            description: 'Compara las voces de Piper (gratis, en el servidor) con Polly: calidad, tiempo y coste',
+            icon: <Mic className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/tts-lab',
+            ready: true
+        },
+        {
+            id: 'tts-credits',
+            name: 'Créditos TTS',
+            description: 'Saldo, historial y ajustes manuales de créditos por canal',
+            icon: <Coins className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/tts-credits',
+            ready: true
+        },
+        {
+            id: 'project-analysis',
+            name: 'Radiografía del proyecto',
+            description: 'Tamaño, composición, crecimiento y en qué archivos se concentra el riesgo',
+            icon: <Activity className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/project-analysis',
             ready: true
         }
     ];
