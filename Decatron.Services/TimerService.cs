@@ -1,3 +1,4 @@
+using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
@@ -35,10 +36,12 @@ namespace Decatron.Services
         /// </summary>
         public async Task<List<TimerModel>> GetAllByChannelAsync(string channelName)
         {
-            return await _context.Timers
-                .Where(t => t.ChannelName == channelName.ToLower())
-                .OrderBy(t => t.Priority)
-                .ToListAsync();
+            var normalizedChannel = channelName.ToLower();
+            var userId = await ChannelResolver.ResolveUserIdAsync(_context, normalizedChannel);
+
+            return userId != null
+                ? await _context.Timers.Where(t => t.UserId == userId).OrderBy(t => t.Priority).ToListAsync()
+                : await _context.Timers.Where(t => t.ChannelName == normalizedChannel).OrderBy(t => t.Priority).ToListAsync();
         }
 
         /// <summary>
@@ -139,9 +142,12 @@ namespace Decatron.Services
         /// </summary>
         public async Task<int> GetTimerCountByChannelAsync(string channelName)
         {
-            return await _context.Timers
-                .Where(t => t.ChannelName == channelName.ToLower())
-                .CountAsync();
+            var normalizedChannel = channelName.ToLower();
+            var userId = await ChannelResolver.ResolveUserIdAsync(_context, normalizedChannel);
+
+            return userId != null
+                ? await _context.Timers.Where(t => t.UserId == userId).CountAsync()
+                : await _context.Timers.Where(t => t.ChannelName == normalizedChannel).CountAsync();
         }
 
         /// <summary>
@@ -152,11 +158,14 @@ namespace Decatron.Services
         public async Task<List<TimerModel>> GetTimersReadyToExecuteAsync(string channelName, bool isOnline, string? currentCategory = null)
         {
             var normalizedChannel = channelName.ToLower();
+            var userId = await ChannelResolver.ResolveUserIdAsync(_context, normalizedChannel);
 
             // Obtener configuración global del canal
-            var settings = await _context.SystemSettings
-                .Where(s => _context.Users.Any(u => u.Id == s.UserId && u.Login == normalizedChannel))
-                .FirstOrDefaultAsync();
+            var settings = userId != null
+                ? await _context.SystemSettings.FirstOrDefaultAsync(s => s.UserId == userId)
+                : await _context.SystemSettings
+                    .Where(s => _context.Users.Any(u => u.Id == s.UserId && u.Login == normalizedChannel))
+                    .FirstOrDefaultAsync();
 
             if (settings == null || !settings.TimersEnabled)
             {
@@ -166,9 +175,11 @@ namespace Decatron.Services
             var now = DateTime.UtcNow;
 
             // Obtener todos los timers activos del canal que coincidan con el estado del stream
-            var timers = await _context.Timers
-                .FromSqlRaw("SELECT * FROM timers WHERE channel_name = {0} AND is_active = TRUE", normalizedChannel)
-                .ToListAsync();
+            var timers = userId != null
+                ? await _context.Timers.Where(t => t.UserId == userId && t.IsActive).ToListAsync()
+                : await _context.Timers
+                    .FromSqlRaw("SELECT * FROM timers WHERE channel_name = {0} AND is_active = TRUE", normalizedChannel)
+                    .ToListAsync();
 
             var readyTimers = new List<TimerModel>();
 
@@ -231,9 +242,12 @@ namespace Decatron.Services
             await _context.SaveChangesAsync();
 
             // Resetear contador global de mensajes para el canal
-            var settings = await _context.SystemSettings
-                .Where(s => _context.Users.Any(u => u.Id == s.UserId && u.Login == timer.ChannelName))
-                .FirstOrDefaultAsync();
+            var timerUserId = timer.UserId;
+            var settings = timerUserId != null
+                ? await _context.SystemSettings.FirstOrDefaultAsync(s => s.UserId == timerUserId)
+                : await _context.SystemSettings
+                    .Where(s => _context.Users.Any(u => u.Id == s.UserId && u.Login == timer.ChannelName))
+                    .FirstOrDefaultAsync();
 
             if (settings != null)
             {
@@ -250,11 +264,12 @@ namespace Decatron.Services
         public async Task IncrementMessageCountersAsync(string channelName)
         {
             var normalizedChannel = channelName.ToLower();
+            var userId = await ChannelResolver.ResolveUserIdAsync(_context, normalizedChannel);
 
             // Incrementar contador de mensajes de todos los timers del canal
-            var timers = await _context.Timers
-                .Where(t => t.ChannelName == normalizedChannel)
-                .ToListAsync();
+            var timers = userId != null
+                ? await _context.Timers.Where(t => t.UserId == userId).ToListAsync()
+                : await _context.Timers.Where(t => t.ChannelName == normalizedChannel).ToListAsync();
 
             foreach (var timer in timers)
             {
@@ -262,9 +277,11 @@ namespace Decatron.Services
             }
 
             // Incrementar contador global
-            var settings = await _context.SystemSettings
-                .Where(s => _context.Users.Any(u => u.Id == s.UserId && u.Login == normalizedChannel))
-                .FirstOrDefaultAsync();
+            var settings = userId != null
+                ? await _context.SystemSettings.FirstOrDefaultAsync(s => s.UserId == userId)
+                : await _context.SystemSettings
+                    .Where(s => _context.Users.Any(u => u.Id == s.UserId && u.Login == normalizedChannel))
+                    .FirstOrDefaultAsync();
 
             if (settings != null)
             {

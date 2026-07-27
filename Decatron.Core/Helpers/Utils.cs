@@ -520,6 +520,141 @@ namespace Decatron.Core.Helpers
 
 
 
+        // ============================================================
+        // UserId-based overloads (Phase 2 migration)
+        // ============================================================
+
+        /// <summary>
+        /// Gets user access token by internal user ID (no login lookup needed).
+        /// </summary>
+        public static async Task<string?> GetAccessTokenByUserIdAsync(IConfiguration configuration, long userId)
+        {
+            try
+            {
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                const string query = @"
+                    SELECT ""access_token""
+                    FROM users
+                    WHERE ""id"" = @userId AND ""is_active"" = true
+                    LIMIT 1";
+
+                using var command = new NpgsqlCommand(query, connection);
+                command.Parameters.AddWithValue("@userId", userId);
+
+                var result = await command.ExecuteScalarAsync();
+                var raw = result?.ToString();
+                return raw != null ? Decatron.Data.Encryption.TokenEncryption.Decrypt(raw, configuration["JwtSettings:SecretKey"] ?? "") : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets broadcaster TwitchId by internal user ID.
+        /// </summary>
+        public static async Task<string?> GetBroadcasterIdByUserIdAsync(IConfiguration configuration, long userId)
+        {
+            try
+            {
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                const string query = @"
+                    SELECT ""twitch_id""
+                    FROM users
+                    WHERE ""id"" = @userId AND ""is_active"" = true
+                    LIMIT 1";
+
+                using var command = new NpgsqlCommand(query, connection);
+                command.Parameters.AddWithValue("@userId", userId);
+
+                var result = await command.ExecuteScalarAsync();
+                return result?.ToString();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets full user info by internal user ID.
+        /// </summary>
+        public static async Task<UserInfo?> GetUserInfoByUserIdAsync(IConfiguration configuration, long userId)
+        {
+            try
+            {
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                const string query = @"
+                    SELECT ""id"", ""twitch_id"", ""login"", ""display_name"", ""access_token"", ""refresh_token"", ""preferred_language""
+                    FROM users
+                    WHERE ""id"" = @userId AND ""is_active"" = true
+                    LIMIT 1";
+
+                using var command = new NpgsqlCommand(query, connection);
+                command.Parameters.AddWithValue("@userId", userId);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new UserInfo
+                    {
+                        Id = reader.GetInt64("id"),
+                        TwitchId = reader.GetString("twitch_id"),
+                        Login = reader.GetString("login"),
+                        DisplayName = reader.IsDBNull(reader.GetOrdinal("display_name")) ? null : reader.GetString("display_name"),
+                        AccessToken = Decatron.Data.Encryption.TokenEncryption.Decrypt(reader.GetString("access_token"), configuration["JwtSettings:SecretKey"] ?? ""),
+                        RefreshToken = reader.IsDBNull(reader.GetOrdinal("refresh_token")) ? null : Decatron.Data.Encryption.TokenEncryption.Decrypt(reader.GetString("refresh_token"), configuration["JwtSettings:SecretKey"] ?? ""),
+                        PreferredLanguage = reader.IsDBNull(reader.GetOrdinal("preferred_language")) ? null : reader.GetString("preferred_language")
+                    };
+                }
+
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Checks if bot is enabled for a channel by user ID.
+        /// </summary>
+        public static async Task<bool> IsBotEnabledForUserAsync(IConfiguration configuration, long userId)
+        {
+            try
+            {
+                var connectionString = configuration.GetConnectionString("DefaultConnection");
+                using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                const string query = @"
+                    SELECT COALESCE(s.""bot_enabled"", true) as bot_enabled
+                    FROM users u
+                    LEFT JOIN system_settings s ON u.""id"" = s.""user_id""
+                    WHERE u.""id"" = @userId AND u.""is_active"" = true
+                    LIMIT 1";
+
+                using var command = new NpgsqlCommand(query, connection);
+                command.Parameters.AddWithValue("@userId", userId);
+
+                var result = await command.ExecuteScalarAsync();
+                return result != null && Convert.ToBoolean(result);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
     /// <summary>
     /// Clase auxiliar para información de usuario

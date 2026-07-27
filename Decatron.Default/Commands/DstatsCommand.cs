@@ -49,18 +49,18 @@ namespace Decatron.Default.Commands
         {
             await ExecuteInternalAsync(context.Username, context.Channel,
                 context.IsBroadcaster, context.IsModerator, context.IsVip, context.IsSubscriber,
-                messageSender);
+                messageSender, context);
         }
 
         private async Task ExecuteInternalAsync(string username, string channel,
             bool isBroadcaster, bool isModerator, bool isVip, bool isSubscriber,
-            IMessageSender messageSender)
+            IMessageSender messageSender, CommandContext context)
         {
             try
             {
                 _logger.LogInformation($"Ejecutando comando !dstats por {username} en {channel}");
 
-                var isEnabled = await IsCommandEnabledForChannel(channel);
+                var isEnabled = await IsCommandEnabledForChannel(channel, context);
                 if (!isEnabled)
                 {
                     _logger.LogDebug($"Comando !dstats deshabilitado para {channel}");
@@ -97,7 +97,7 @@ namespace Decatron.Default.Commands
                 }
                 _cooldowns[cooldownKey] = TimerDateTimeHelper.NowForDb();
 
-                var lang = await GetChannelLanguageAsync(channel);
+                var lang = await GetChannelLanguageAsync(channel, context);
 
                 var state = await dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
@@ -174,11 +174,13 @@ namespace Decatron.Default.Commands
             }
         }
 
-        private async Task<bool> IsCommandEnabledForChannel(string channelLogin)
+        private async Task<bool> IsCommandEnabledForChannel(string channelLogin, CommandContext context)
         {
             try
             {
-                var userInfo = await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
+                var userInfo = context.ChannelUserId.HasValue
+                    ? await Utils.GetUserInfoByUserIdAsync(_configuration, context.ChannelUserId.Value)
+                    : await Utils.GetUserInfoFromDatabaseAsync(_configuration, channelLogin);
                 if (userInfo == null) return true;
                 return await _commandStateService.IsCommandEnabledAsync(userInfo.Id, "dstats");
             }
@@ -189,14 +191,14 @@ namespace Decatron.Default.Commands
             }
         }
 
-        private async Task<string> GetChannelLanguageAsync(string channel)
+        private async Task<string> GetChannelLanguageAsync(string channel, CommandContext context)
         {
             try
             {
                 using var scope = _serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                 var lang = await db.Users
-                    .Where(u => u.Login == channel.ToLower())
+                    .Where(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channel.ToLower())
                     .Select(u => u.PreferredLanguage)
                     .FirstOrDefaultAsync();
                 return lang ?? "es";

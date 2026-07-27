@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Decatron.Core.Models;
+using Decatron.Core.Helpers;
 using Decatron.Data;
 using Decatron.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -148,10 +149,11 @@ namespace Decatron.Default.Controllers
             try
             {
                 channel = channel.ToLower();
-                _logger.LogInformation($"Obteniendo configuración de overlay para: {channel}");
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channel);
+                _logger.LogInformation($"Obteniendo configuración de overlay para: {channel} (UserId: {channelUserId})");
 
                 var config = await _dbContext.ShoutoutConfigs
-                    .FirstOrDefaultAsync(c => c.Username == channel);
+                    .FirstOrDefaultAsync(c => channelUserId != null ? c.UserId == channelUserId : c.Username == channel);
 
                 if (config == null)
                 {
@@ -231,6 +233,7 @@ namespace Decatron.Default.Controllers
                     config = new ShoutoutConfig
                     {
                         Username = username,
+                        UserId = channelOwnerId,
                         CreatedAt = DateTime.UtcNow
                     };
                     _dbContext.ShoutoutConfigs.Add(config);

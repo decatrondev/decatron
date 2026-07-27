@@ -1,3 +1,4 @@
+using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
@@ -123,6 +124,12 @@ namespace Decatron.Services
 
         public async Task<NowPlayingConfig?> GetConfigByChannel(string channelName)
         {
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+            if (channelUserId != null)
+            {
+                var config = await _context.NowPlayingConfigs.FirstOrDefaultAsync(c => c.UserId == channelUserId);
+                if (config != null) return config;
+            }
             return await _context.NowPlayingConfigs
                 .FirstOrDefaultAsync(c => c.ChannelName.ToLower() == channelName.ToLower());
         }

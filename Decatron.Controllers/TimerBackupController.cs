@@ -87,6 +87,7 @@ namespace Decatron.Controllers
                 var backup = new TimerSessionBackup
                 {
                     ChannelName = channelName,
+                    UserId = GetChannelOwnerId(),
                     RemainingSeconds = remaining,
                     TotalElapsedSeconds = elapsed,
                     TotalDurationAtSnapshot = totalDuration,
@@ -230,6 +231,7 @@ namespace Decatron.Controllers
                 var backup = new TimerSessionBackup
                 {
                     ChannelName = channelName,
+                    UserId = channelOwnerId,
                     RemainingSeconds = request.RemainingSeconds,
                     TotalElapsedSeconds = 0,
                     TotalDurationAtSnapshot = request.RemainingSeconds,
@@ -244,7 +246,7 @@ namespace Decatron.Controllers
                 var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelName);
                 if (state == null)
                 {
-                    state = new TimerState { ChannelName = channelName };
+                    state = new TimerState { ChannelName = channelName, UserId = channelOwnerId };
                     _dbContext.TimerStates.Add(state);
                 }
 
@@ -294,6 +296,7 @@ namespace Decatron.Controllers
         {
             try
             {
+                var channelOwnerId = GetChannelOwnerId();
                 var channelName = await GetChannelNameAsync();
                 var backup = await _dbContext.TimerSessionBackups.FindAsync(id);
 
@@ -306,7 +309,7 @@ namespace Decatron.Controllers
                 var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelName);
                 if (state == null)
                 {
-                    state = new TimerState { ChannelName = channelName };
+                    state = new TimerState { ChannelName = channelName, UserId = channelOwnerId };
                     _dbContext.TimerStates.Add(state);
                 }
 

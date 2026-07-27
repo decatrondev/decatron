@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
@@ -34,9 +35,16 @@ namespace Decatron.Core.Functions
 
                 if (uses == null)
                 {
+                    var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+                    if (channelUserId == null)
+                    {
+                        _logger.LogWarning("⚠️ [UsesFunction] Canal {Channel} no encontrado en users, no se puede crear CommandUses", channelName);
+                        return "0";
+                    }
                     uses = new CommandUses
                     {
                         ChannelName = channelName,
+                        UserId = channelUserId.Value,
                         CommandName = commandName,
                         UseCount = 1,
                         LastUsedAt = DateTime.UtcNow,

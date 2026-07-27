@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Decatron.Core.Helpers;
 using Decatron.Core.Models.Gacha;
 using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,42 @@ namespace Decatron.Controllers
     public class GachaPublicController : ControllerBase
     {
         private readonly DecatronDbContext _context;
+        private readonly ILogger<GachaPublicController> _logger;
 
-        public GachaPublicController(DecatronDbContext context)
+        public GachaPublicController(DecatronDbContext context, ILogger<GachaPublicController> logger)
         {
             _context = context;
+            _logger = logger;
+        }
+
+        [HttpGet("sound-config/{channel}")]
+        public async Task<IActionResult> GetPublicSoundConfig(string channel)
+        {
+            try
+            {
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channel);
+                var config = await _context.GachaSoundConfigs
+                    .FirstOrDefaultAsync(c => channelUserId != null ? c.UserId == channelUserId : c.ChannelName == channel);
+
+                if (config == null)
+                    return Ok(new { success = true, config = (object?)null });
+
+                return Ok(new
+                {
+                    success = true,
+                    config = new
+                    {
+                        masterVolume = config.MasterVolume,
+                        enableSounds = config.EnableSounds,
+                        soundsJson = config.SoundsJson
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting public sound config for {Channel}", channel);
+                return Ok(new { success = true, config = (object?)null });
+            }
         }
 
         /// <summary>
@@ -27,6 +60,7 @@ namespace Decatron.Controllers
 
             var channelName = channel.ToLower().Trim();
             var userName = user.ToLower().Trim();
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channel);
 
             // Check privacy settings
             var viewerSettings = await _context.GachaViewerSettings
@@ -53,18 +87,18 @@ namespace Decatron.Controllers
 
             // Get active banner
             var banner = await _context.GachaBanners
-                .Where(b => b.ChannelName == channelName && b.IsActive)
+                .Where(b => (channelUserId != null ? b.UserId == channelUserId : b.ChannelName == channelName) && b.IsActive)
                 .Select(b => b.BannerUrl)
                 .FirstOrDefaultAsync();
 
             // Get participant
             var participant = await _context.GachaParticipants
-                .FirstOrDefaultAsync(p => p.ChannelName == channelName && p.Name == userName);
+                .FirstOrDefaultAsync(p => (channelUserId != null ? p.UserId == channelUserId : p.ChannelName == channelName) && p.Name == userName);
 
             if (participant == null)
             {
                 // Return empty collection
-                var totalItems = await _context.GachaItems.CountAsync(i => i.ChannelName == channelName && i.Available);
+                var totalItems = await _context.GachaItems.CountAsync(i => (channelUserId != null ? i.UserId == channelUserId : i.ChannelName == channelName) && i.Available);
                 return Ok(new
                 {
                     success = true,
@@ -82,11 +116,11 @@ namespace Decatron.Controllers
             // Stats
             var inventory = await _context.GachaInventories
                 .Include(i => i.Item)
-                .Where(i => i.ChannelName == channelName && i.ParticipantId == participant.Id)
+                .Where(i => (channelUserId != null ? i.UserId == channelUserId : i.ChannelName == channelName) && i.ParticipantId == participant.Id)
                 .OrderByDescending(i => i.LastWonAt)
                 .ToListAsync();
 
-            var totalAvailable = await _context.GachaItems.CountAsync(i => i.ChannelName == channelName && i.Available);
+            var totalAvailable = await _context.GachaItems.CountAsync(i => (channelUserId != null ? i.UserId == channelUserId : i.ChannelName == channelName) && i.Available);
 
             var byRarity = inventory
                 .Where(i => i.Item != null)
@@ -119,7 +153,7 @@ namespace Decatron.Controllers
             // Recent history
             var history = await _context.GachaPullLogs
                 .Include(l => l.Item)
-                .Where(l => l.ChannelName == channelName && l.ParticipantId == participant.Id)
+                .Where(l => (channelUserId != null ? l.UserId == channelUserId : l.ChannelName == channelName) && l.ParticipantId == participant.Id)
                 .OrderByDescending(l => l.OccurredAt)
                 .Take(30)
                 .Select(l => new
@@ -128,13 +162,14 @@ namespace Decatron.Controllers
                     itemName = l.Item != null ? l.Item.Name : $"Item #{l.ItemId}",
                     rarity = l.Item != null ? l.Item.Rarity : "common",
                     image = l.Item != null ? l.Item.Image : null,
+                    pullType = l.PullType,
                     occurredAt = l.OccurredAt
                 })
                 .ToListAsync();
 
             // Progress by rarity
             var allItemsByRarity = await _context.GachaItems
-                .Where(i => i.ChannelName == channelName && i.Available)
+                .Where(i => (channelUserId != null ? i.UserId == channelUserId : i.ChannelName == channelName) && i.Available)
                 .GroupBy(i => i.Rarity)
                 .Select(g => new { rarity = g.Key, total = g.Count() })
                 .ToListAsync();
@@ -206,9 +241,9 @@ namespace Decatron.Controllers
             {
                 success = true,
                 channelName,
-                userName,
+                userName = participant.DisplayName ?? userName,
                 banner,
-                participant = new { participant.Name, participant.DonationAmount, participant.Pulls, participant.EffectiveDonation },
+                participant = new { participant.Name, participant.DisplayName, participant.DonationAmount, participant.Pulls, participant.EffectiveDonation, participant.CoinPullsAvailable, participant.CoinsSpentTotal },
                 stats,
                 inventory = cards,
                 history,

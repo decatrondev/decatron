@@ -388,14 +388,6 @@ export default function Dashboard() {
                             </button>
 
                             <button
-                                onClick={() => navigate('/features/follow-alerts')}
-                                className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
-                            >
-                                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:features.followAlerts.title')}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('dashboard:features.followAlerts.description')}</p>
-                            </button>
-
-                            <button
                                 onClick={() => navigate('/features/moderation/banned-words')}
                                 className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
                             >

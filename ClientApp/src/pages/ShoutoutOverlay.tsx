@@ -79,7 +79,10 @@ export default function ShoutoutOverlay() {
     const durationRef = useRef(10); // Ref para capturar el valor actual de duration en callbacks
     const intervalRef = useRef<NodeJS.Timeout | null>(null); // Ref para limpiar interval anterior
     const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref para limpiar timeout anterior
+    const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Timeout absoluto de seguridad
     const videoRef = useRef<HTMLVideoElement | null>(null); // Ref para controlar el video
+    const isExitingRef = useRef(false); // Ref para guard de closeShoutout (evita stale closure)
+    const isVisibleRef = useRef(false);
 
     useEffect(() => {
         loadConfiguration();
@@ -197,58 +200,52 @@ export default function ShoutoutOverlay() {
     };
 
     const showShoutout = (data: ShoutoutData) => {
-        const currentDuration = durationRef.current; // Usar el valor actual del ref
+        const hasClip = !!data.clipUrl;
+        // Si no hay clip, usar 5 segundos; si hay clip, usar la duración configurada
+        const effectiveDuration = hasClip ? durationRef.current : Math.min(durationRef.current, 5);
 
         // Limpiar timers anteriores si existen
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-        }
+        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+        if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+        if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
 
         setShoutoutData(data);
         setIsVisible(true);
-        setIsExiting(false); // Reset exiting state
-        setRemainingTime(currentDuration);
+        isVisibleRef.current = true;
+        setIsExiting(false);
+        isExitingRef.current = false;
+        setRemainingTime(effectiveDuration);
 
         // Countdown timer
         intervalRef.current = setInterval(() => {
             setRemainingTime((prev) => {
                 if (prev <= 1) {
-                    if (intervalRef.current) {
-                        clearInterval(intervalRef.current);
-                        intervalRef.current = null;
-                    }
+                    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
                     return 0;
                 }
                 return prev - 1;
             });
         }, 1000);
 
-        // Timeout máximo - cierra el shoutout si el tiempo configurado se cumple
+        // Timeout normal — cierra al cumplir la duración
         timeoutRef.current = setTimeout(() => {
-            console.log('⏰ Tiempo máximo alcanzado, cerrando shoutout');
             closeShoutout();
-        }, currentDuration * 1000);
+        }, effectiveDuration * 1000);
+
+        // Timeout de seguridad absoluto — 30s máximo, SIEMPRE cierra
+        safetyTimeoutRef.current = setTimeout(() => {
+            forceClose();
+        }, 30000);
     };
 
     // Función centralizada para cerrar el shoutout
     const closeShoutout = () => {
-        // Evitar cerrar múltiples veces
-        if (isExiting || !isVisible) return;
+        // Usar refs para el guard (evita stale closure con state)
+        if (isExitingRef.current || !isVisibleRef.current) return;
 
         // Limpiar timers
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-        }
+        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+        if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
 
         // Pausar video inmediatamente para que no siga sonando
         if (videoRef.current) {
@@ -258,15 +255,33 @@ export default function ShoutoutOverlay() {
 
         // Activar animación de salida
         setIsExiting(true);
+        isExitingRef.current = true;
 
         // Esperar a que la animación de salida termine antes de ocultar
         const exitAnimationDuration = getAnimationDurationMs();
         setTimeout(() => {
             setIsVisible(false);
+            isVisibleRef.current = false;
             setIsExiting(false);
+            isExitingRef.current = false;
             setShoutoutData(null);
             setRemainingTime(0);
+            if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
         }, exitAnimationDuration);
+    };
+
+    // Cierre forzado — se ejecuta si todo lo demás falla (timeout de seguridad 30s)
+    const forceClose = () => {
+        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+        if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+        if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
+        if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0; }
+        setIsVisible(false);
+        isVisibleRef.current = false;
+        setIsExiting(false);
+        isExitingRef.current = false;
+        setShoutoutData(null);
+        setRemainingTime(0);
     };
 
     // Cuando el clip termina (si dura menos que el tiempo configurado)

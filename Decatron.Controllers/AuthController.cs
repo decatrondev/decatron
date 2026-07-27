@@ -304,139 +304,54 @@ namespace Decatron.Controllers
                     _botService.JoinChannel(user.Login);
                 }
 
-                // Registrar suscripciones EventSub (no bloqueante)
+                // Registrar suscripciones EventSub en background (paralelo)
                 if (!string.IsNullOrEmpty(user.TwitchId))
                 {
+                    var twitchId = user.TwitchId;
+                    var userLogin = user.Login;
+                    var eventSubService = _eventSubService;
+                    var logger = _logger;
+
                     _ = Task.Run(async () =>
                     {
                         try
                         {
-                            _logger.LogInformation($"🔔 Verificando suscripciones EventSub para {user.Login}");
+                            logger.LogInformation($"🔔 Verificando suscripciones EventSub para {userLogin} (paralelo)");
 
-                            // 1. Suscripción a channel.chat.message
-                            var chatResult = await _eventSubService.EnsureSubscriptionAsync(user.TwitchId);
-                            if (chatResult.Success)
+                            var tasks = new Dictionary<string, Task<EventSubSubscriptionResult>>
                             {
-                                if (chatResult.Message.Contains("ya existe"))
+                                ["Chat"] = eventSubService.EnsureSubscriptionAsync(twitchId),
+                                ["Channel Points"] = eventSubService.EnsureChannelPointsSubscriptionAsync(twitchId),
+                                ["Follows"] = eventSubService.EnsureFollowsSubscriptionAsync(twitchId),
+                                ["Bits"] = eventSubService.EnsureCheerSubscriptionAsync(twitchId),
+                                ["Subs"] = eventSubService.EnsureSubscriptionsSubscriptionAsync(twitchId),
+                                ["Gift Subs"] = eventSubService.EnsureGiftSubsSubscriptionAsync(twitchId),
+                                ["Raids"] = eventSubService.EnsureRaidSubscriptionAsync(twitchId),
+                                ["Hype Train"] = eventSubService.EnsureHypeTrainSubscriptionAsync(twitchId)
+                            };
+
+                            await Task.WhenAll(tasks.Values);
+
+                            foreach (var (name, task) in tasks)
+                            {
+                                var result = await task;
+                                if (result.Success)
                                 {
-                                    _logger.LogInformation($"✅ {user.Login}: Suscripción Chat ya existía");
+                                    logger.LogInformation(result.Message.Contains("ya existe")
+                                        ? $"✅ {userLogin}: {name} ya existía"
+                                        : $"🆕 {userLogin}: {name} creada");
                                 }
                                 else
                                 {
-                                    _logger.LogInformation($"🆕 {user.Login}: Nueva suscripción Chat creada");
+                                    logger.LogWarning($"⚠️ {userLogin}: {name} falló - {result.Message}");
                                 }
                             }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Chat - {chatResult.Message}");
-                            }
 
-                            // 2. Suscripción a channel_points_custom_reward_redemption.add
-                            var channelPointsResult = await _eventSubService.EnsureChannelPointsSubscriptionAsync(user.TwitchId);
-                            if (channelPointsResult.Success)
-                            {
-                                if (channelPointsResult.Message.Contains("ya existe"))
-                                {
-                                    _logger.LogInformation($"✅ {user.Login}: Suscripción Channel Points ya existía");
-                                }
-                                else
-                                {
-                                    _logger.LogInformation($"🆕 {user.Login}: Nueva suscripción Channel Points creada");
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Channel Points - {channelPointsResult.Message}");
-                            }
-
-                            // 3. Suscripción a channel.follow
-                            var followsResult = await _eventSubService.EnsureFollowsSubscriptionAsync(user.TwitchId);
-                            if (followsResult.Success)
-                            {
-                                if (followsResult.Message.Contains("ya existe"))
-                                {
-                                    _logger.LogInformation($"✅ {user.Login}: Suscripción Follows ya existía");
-                                }
-                                else
-                                {
-                                    _logger.LogInformation($"🆕 {user.Login}: Nueva suscripción Follows creada");
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Follows - {followsResult.Message}");
-                            }
-
-                            // 4. Suscripción a channel.cheer (Bits) - TIMER EVENT
-                            var cheerResult = await _eventSubService.EnsureCheerSubscriptionAsync(user.TwitchId);
-                            if (cheerResult.Success)
-                            {
-                                _logger.LogInformation(cheerResult.Message.Contains("ya existe")
-                                    ? $"✅ {user.Login}: Suscripción Bits ya existía"
-                                    : $"🆕 {user.Login}: Nueva suscripción Bits creada");
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Bits - {cheerResult.Message}");
-                            }
-
-                            // 5. Suscripción a channel.subscribe (Subs) - TIMER EVENT
-                            var subscribeResult = await _eventSubService.EnsureSubscriptionsSubscriptionAsync(user.TwitchId);
-                            if (subscribeResult.Success)
-                            {
-                                _logger.LogInformation(subscribeResult.Message.Contains("ya existe")
-                                    ? $"✅ {user.Login}: Suscripción Subs ya existía"
-                                    : $"🆕 {user.Login}: Nueva suscripción Subs creada");
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Subs - {subscribeResult.Message}");
-                            }
-
-                            // 6. Suscripción a channel.subscription.gift (Gift Subs) - TIMER EVENT
-                            var giftSubResult = await _eventSubService.EnsureGiftSubsSubscriptionAsync(user.TwitchId);
-                            if (giftSubResult.Success)
-                            {
-                                _logger.LogInformation(giftSubResult.Message.Contains("ya existe")
-                                    ? $"✅ {user.Login}: Suscripción Gift Subs ya existía"
-                                    : $"🆕 {user.Login}: Nueva suscripción Gift Subs creada");
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Gift Subs - {giftSubResult.Message}");
-                            }
-
-                            // 7. Suscripción a channel.raid (Raids) - TIMER EVENT
-                            var raidResult = await _eventSubService.EnsureRaidSubscriptionAsync(user.TwitchId);
-                            if (raidResult.Success)
-                            {
-                                _logger.LogInformation(raidResult.Message.Contains("ya existe")
-                                    ? $"✅ {user.Login}: Suscripción Raids ya existía"
-                                    : $"🆕 {user.Login}: Nueva suscripción Raids creada");
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Raids - {raidResult.Message}");
-                            }
-
-                            // 8. Suscripción a channel.hype_train.begin (Hype Train) - TIMER EVENT
-                            var hypeTrainResult = await _eventSubService.EnsureHypeTrainSubscriptionAsync(user.TwitchId);
-                            if (hypeTrainResult.Success)
-                            {
-                                _logger.LogInformation(hypeTrainResult.Message.Contains("ya existe")
-                                    ? $"✅ {user.Login}: Suscripción Hype Train ya existía"
-                                    : $"🆕 {user.Login}: Nueva suscripción Hype Train creada");
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"⚠️ {user.Login}: No se pudo crear suscripción Hype Train - {hypeTrainResult.Message}");
-                            }
-
-                            _logger.LogInformation($"✅ {user.Login}: Verificación de suscripciones EventSub completada (8 eventos)");
+                            logger.LogInformation($"✅ {userLogin}: EventSub completado (8 eventos en paralelo)");
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"❌ Error registrando suscripciones EventSub para {user.Login}");
+                            logger.LogError(ex, $"❌ Error registrando suscripciones EventSub para {userLogin}");
                         }
                     });
                 }
@@ -594,7 +509,7 @@ namespace Decatron.Controllers
                 var httpClient = _httpClientFactory.CreateClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"OAuth {user.AccessToken}");
 
-                var response = await httpClient.GetAsync("https://id.twitch.tv/oauth2/validate");
+                var response = await Core.Helpers.TwitchAuthHelper.GetWithFallbackAsync(httpClient, "/oauth2/validate", _logger);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)

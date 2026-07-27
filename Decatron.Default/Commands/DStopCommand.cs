@@ -114,9 +114,11 @@ namespace Decatron.Default.Commands
 
                 if (remainingSeconds > 0 || totalElapsedSeconds > 0)
                 {
+                    var channelUserId = await ChannelResolver.ResolveUserIdAsync(dbContext, channelLower) ?? 0;
                     var stopBackup = new TimerSessionBackup
                     {
                         ChannelName = channelLower,
+                        UserId = channelUserId,
                         RemainingSeconds = remainingSeconds,
                         TotalElapsedSeconds = totalElapsedSeconds,
                         TotalDurationAtSnapshot = state.TotalTime,

@@ -76,7 +76,7 @@ namespace Decatron.Default.Commands
                 // Obtener idioma del DUEÑO DEL CANAL (no del usuario que ejecuta el comando)
                 string? userLanguage = null;
                 var channelUserInfo = await dbContext.Users
-                    .Where(u => u.Login == channelLower)
+                    .Where(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channelLower)
                     .Select(u => new { u.Id, u.PreferredLanguage })
                     .FirstOrDefaultAsync();
 
@@ -182,10 +182,11 @@ namespace Decatron.Default.Commands
                     globalConfig
                 );
 
-                // 12. Guardar en historial (PostgreSQL timestamptz requiere UTC)
+                // 12. Guardar en historial
                 var usage = new DecatronAIUsage
                 {
                     ChannelName = channelLower,
+                    UserId = channelUserInfo?.Id ?? 0,
                     Username = usernameLower,
                     Prompt = prompt,
                     Response = aiResponse.Text,
@@ -229,7 +230,7 @@ namespace Decatron.Default.Commands
                     using var errorScope = _scopeFactory.CreateScope();
                     var errorDbContext = errorScope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                     var channelLang = await errorDbContext.Users
-                        .Where(u => u.Login == channelLower)
+                        .Where(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channelLower)
                         .Select(u => u.PreferredLanguage)
                         .FirstOrDefaultAsync();
                     errorLang = channelLang ?? "es";
@@ -319,7 +320,6 @@ namespace Decatron.Default.Commands
 
         private async Task<(bool allowed, int remainingSeconds)> CheckChannelCooldownAsync(DecatronDbContext dbContext, string channel, int cooldownSeconds)
         {
-            // Si cooldown es 0 o menor, siempre permitir
             if (cooldownSeconds <= 0)
             {
                 _logger.LogDebug($"[DECATRON-IA] Channel cooldown deshabilitado (cooldown={cooldownSeconds})");
@@ -337,34 +337,25 @@ namespace Decatron.Default.Commands
                 return (true, 0);
             }
 
-            // PostgreSQL timestamptz guarda en UTC, comparar con UTC
-            var now = TimerDateTimeHelper.NowForDb();
+            // Comparar directamente — ambos son el mismo timezone (lo que sea que PostgreSQL devuelva)
+            var now = DateTime.UtcNow;
             var elapsed = (now - lastUse.UsedAt).TotalSeconds;
 
-            // Protección contra valores negativos (por problemas de reloj/datos corruptos)
-            if (elapsed < 0)
-            {
-                _logger.LogWarning($"[DECATRON-IA] Tiempo transcurrido negativo detectado ({elapsed:F1}s). LastUse={lastUse.UsedAt}, Now={now}");
-                elapsed = 0;
-            }
+            // Si elapsed es negativo o absurdamente grande (>24h), asumir que el cooldown ya pasó
+            if (elapsed < 0 || elapsed > 86400) elapsed = cooldownSeconds + 1;
 
             var remaining = cooldownSeconds - (int)elapsed;
 
             _logger.LogDebug($"[DECATRON-IA] Channel cooldown: elapsed={elapsed:F1}s, cooldown={cooldownSeconds}s, remaining={remaining}s");
 
-            // Si ya pasó el cooldown, permitir
             if (remaining <= 0)
-            {
                 return (true, 0);
-            }
 
-            // Asegurar que nunca devolvemos valores negativos
             return (false, Math.Max(0, remaining));
         }
 
         private async Task<(bool allowed, int remainingSeconds)> CheckUserCooldownAsync(DecatronDbContext dbContext, string channel, string username, int cooldownSeconds)
         {
-            // Si cooldown es 0 o menor, siempre permitir
             if (cooldownSeconds <= 0)
                 return (true, 0);
 
@@ -376,17 +367,15 @@ namespace Decatron.Default.Commands
             if (lastUse == null)
                 return (true, 0);
 
-            // PostgreSQL timestamptz guarda en UTC, comparar con UTC
-            var now = TimerDateTimeHelper.NowForDb();
+            var now = DateTime.UtcNow;
             var elapsed = (now - lastUse.UsedAt).TotalSeconds;
 
-            // Protección contra valores negativos
-            if (elapsed < 0)
-                elapsed = 0;
+            if (elapsed < 0 || elapsed > 86400) elapsed = cooldownSeconds + 1;
+
+            if (elapsed < 0) elapsed = 0;
 
             var remaining = cooldownSeconds - (int)elapsed;
 
-            // Si ya pasó el cooldown, permitir
             if (remaining <= 0)
                 return (true, 0);
 

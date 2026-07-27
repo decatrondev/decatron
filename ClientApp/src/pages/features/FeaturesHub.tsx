@@ -1,4 +1,4 @@
-import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices } from 'lucide-react';
+import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 
@@ -9,6 +9,7 @@ interface FeatureCard {
     icon: React.ReactNode;
     route: string;
     requiresControlTotal?: boolean;
+    buttonLabel?: string;
 }
 
 export default function FeaturesHub() {
@@ -38,13 +39,6 @@ export default function FeaturesHub() {
             route: '/features/sound-alerts'
         },
         {
-            id: 'follow-alerts',
-            name: 'Follow Alerts',
-            description: 'Notificaciones personalizadas cuando alguien te sigue',
-            icon: <Bell className="w-6 h-6 text-[#2563eb]" />,
-            route: '/features/follow-alerts'
-        },
-        {
             id: 'decatron-chat',
             name: 'Decatron Chat',
             description: 'Chat integrado con funciones avanzadas de moderacion',
@@ -59,11 +53,26 @@ export default function FeaturesHub() {
             route: '/features/tips'
         },
         {
+            id: 'speak-chat',
+            name: 'Speak Chat',
+            description: 'Lee los mensajes del chat en voz alta con TTS (Polly o navegador)',
+            icon: <Mic className="w-6 h-6 text-[#2563eb]" />,
+            route: '/features/speak-chat'
+        },
+        {
             id: 'gacha',
             name: 'Gacha System',
             description: 'Sistema de cartas coleccionables con donaciones y probabilidades',
             icon: <Dices className="w-6 h-6 text-[#2563eb]" />,
             route: '/features/gacha'
+        },
+        {
+            id: 'spirits',
+            name: 'Fortnite Spirit Tracker',
+            description: 'Colección visual de Fortnite Spirits. Tus viewers trackean cuáles tienen con comandos de Twitch y Discord',
+            icon: <Zap className="w-6 h-6 text-[#7B61FF]" />,
+            route: '/me/spirits',
+            buttonLabel: 'Ver colección'
         },
         {
             id: 'decatron-ai',
@@ -116,7 +125,7 @@ export default function FeaturesHub() {
                                 className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
                             >
                                 <Settings className="w-4 h-4" />
-                                Configurar
+                                {card.buttonLabel ?? 'Configurar'}
                             </button>
                         </div>
                     </div>

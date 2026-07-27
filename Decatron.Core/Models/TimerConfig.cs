@@ -107,6 +107,10 @@ namespace Decatron.Core.Models
         [Column("history_config", TypeName = "jsonb")]
         public string HistoryConfig { get; set; } = "{}";
 
+        // Widgets Configuration (JSON) - Stats, Uptime, Happy Hour Indicator
+        [Column("widgets_config", TypeName = "jsonb")]
+        public string WidgetsConfig { get; set; } = "{}";
+
         [Required]
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

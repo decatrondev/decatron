@@ -172,7 +172,7 @@ namespace Decatron.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
                 var twitchId = await dbContext.Users
-                    .Where(u => u.Login == channelName)
+                    .Where(u => u.Login == channelName.ToLower())
                     .Select(u => u.TwitchId)
                     .FirstOrDefaultAsync();
 

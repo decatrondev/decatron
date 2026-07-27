@@ -5,7 +5,9 @@ import { ChevronDown, ChevronUp, Grid3x3, RotateCcw } from 'lucide-react';
 // TYPES
 // ============================================================================
 
-type DragElement = 'title' | 'counter' | 'percentage' | 'progressbar' | 'alerts' | 'elapsed' | null;
+type DragElement = 'title' | 'counter' | 'percentage' | 'progressbar' | 'alerts' | 'elapsed'
+    | 'w_subsToday' | 'w_totalSubs' | 'w_bitsToday' | 'w_tipsToday' | 'w_totalRevenue' | 'w_eventCount'
+    | 'w_uptime' | 'w_happyHour' | null;
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | null;
 
 interface OverlayEditorProps {
@@ -28,6 +30,10 @@ interface OverlayEditorProps {
     // Goal config
     goalConfig: any;
     setGoalConfig: (config: any) => void;
+
+    // Widgets config
+    widgetsConfig?: any;
+    setWidgetsConfig?: (config: any) => void;
 
     // Canvas dimensions
     canvasWidth?: number;
@@ -54,6 +60,8 @@ export default function OverlayEditor({
     setAlertsConfig,
     goalConfig,
     setGoalConfig,
+    widgetsConfig,
+    setWidgetsConfig,
     canvasWidth: propCanvasWidth,
     canvasHeight: propCanvasHeight,
     setCanvasWidth: propSetCanvasWidth,
@@ -120,8 +128,24 @@ export default function OverlayEditor({
                     size: { width: 250, height: 35 },
                     enabled: displayConfig?.showElapsedTime || false
                 };
-            default:
+            default: {
+                // Widget elements (w_subsToday, w_totalSubs, etc.)
+                if (element?.startsWith('w_')) {
+                    const widgetKey = element.slice(2);
+                    if (widgetKey === 'uptime') {
+                        const w = widgetsConfig?.uptime;
+                        return { position: w?.position || { x: 50, y: 40 }, size: { width: 220, height: 30 }, enabled: w?.enabled || false };
+                    }
+                    if (widgetKey === 'happyHour') {
+                        const w = widgetsConfig?.happyHour;
+                        return { position: w?.position || { x: 350, y: 270 }, size: { width: 320, height: 30 }, enabled: w?.enabled || false };
+                    }
+                    // Stats widgets
+                    const w = widgetsConfig?.stats?.widgets?.[widgetKey];
+                    return { position: w?.position || { x: 50, y: 10 }, size: { width: 150, height: 30 }, enabled: (widgetsConfig?.stats?.enabled && w?.enabled) || false };
+                }
                 return { position: { x: 0, y: 0 }, size: { width: 0, height: 0 }, enabled: false };
+            }
         }
     };
 
@@ -160,6 +184,22 @@ export default function OverlayEditor({
                     global: { ...alertsConfig.global, position: { x, y } }
                 });
                 break;
+            default: {
+                if (element?.startsWith('w_') && setWidgetsConfig && widgetsConfig) {
+                    const widgetKey = element.slice(2);
+                    if (widgetKey === 'uptime') {
+                        setWidgetsConfig({ ...widgetsConfig, uptime: { ...widgetsConfig.uptime, position: { x, y } } });
+                    } else if (widgetKey === 'happyHour') {
+                        setWidgetsConfig({ ...widgetsConfig, happyHour: { ...widgetsConfig.happyHour, position: { x, y } } });
+                    } else {
+                        setWidgetsConfig({
+                            ...widgetsConfig,
+                            stats: { ...widgetsConfig.stats, widgets: { ...widgetsConfig.stats.widgets, [widgetKey]: { ...widgetsConfig.stats.widgets[widgetKey], position: { x, y } } } }
+                        });
+                    }
+                }
+                break;
+            }
         }
     };
 
@@ -384,6 +424,11 @@ export default function OverlayEditor({
                             Alertas
                         </div>
                     )}
+                    {element?.startsWith('w_') && (
+                        <div className="text-xs font-bold text-white truncate px-1">
+                            {label}
+                        </div>
+                    )}
                 </div>
 
                 {/* Resize handles (only for progressbar and alerts) */}
@@ -503,6 +548,15 @@ export default function OverlayEditor({
                         {renderElement('progressbar', 'Barra', 'bg-[#64748b]')}
                         {renderElement('alerts', 'Alertas', 'bg-[#64748b]')}
                         {renderElement('elapsed', 'Transcurrido', 'bg-[#64748b]')}
+                        {/* Widget elements */}
+                        {renderElement('w_subsToday', 'Subs Hoy', 'bg-[#2563eb]')}
+                        {renderElement('w_totalSubs', 'Total Subs', 'bg-[#2563eb]')}
+                        {renderElement('w_bitsToday', 'Bits Hoy', 'bg-[#7c3aed]')}
+                        {renderElement('w_tipsToday', 'Tips Hoy', 'bg-[#059669]')}
+                        {renderElement('w_totalRevenue', 'Recaudado', 'bg-[#d97706]')}
+                        {renderElement('w_eventCount', 'Eventos', 'bg-[#64748b]')}
+                        {renderElement('w_uptime', 'Uptime', 'bg-[#059669]')}
+                        {renderElement('w_happyHour', 'Happy Hour', 'bg-[#ea580c]')}
                     </div>
                 </div>
             </div>

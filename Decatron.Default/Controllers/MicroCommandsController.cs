@@ -207,6 +207,7 @@ namespace Decatron.Default.Controllers
                     var newCommand = new MicroGameCommands
                     {
                         ChannelName = channelOwner.Login,
+                        UserId = channelOwnerId,
                         ShortCommand = command,
                         CategoryName = category,
                         CreatedBy = executingUser.Login, // CORREGIDO: Usar el usuario real

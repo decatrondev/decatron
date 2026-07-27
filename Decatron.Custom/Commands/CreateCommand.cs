@@ -112,7 +112,13 @@ namespace Decatron.Custom.Commands
 
             try
             {
-                var isOwnerOrModerator = await Utils.IsOwnerOrModerator(_configuration, username, channel);
+                // 1. Broadcaster del canal
+                // 2. Mod o Lead Mod de Twitch (viene del IRC/EventSub)
+                // 3. System admin del bot (puede operar en cualquier canal)
+                var isSystemAdmin = await _context.SystemAdmins
+                    .AnyAsync(a => a.Username.ToLower() == username.ToLower());
+
+                var isOwnerOrModerator = context.IsBroadcaster || context.IsModerator || isSystemAdmin;
                 if (!isOwnerOrModerator)
                 {
                     await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("crear", "no_permission", lang));
@@ -234,9 +240,16 @@ namespace Decatron.Custom.Commands
                     return;
                 }
 
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+                if (channelUserId == null)
+                {
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "error", lang, commandName));
+                    return;
+                }
                 var customCommand = new CustomCommand
                 {
                     ChannelName = channelName,
+                    UserId = channelUserId.Value,
                     CommandName = commandName,
                     Response = response,
                     Restriction = restriction,

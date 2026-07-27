@@ -231,6 +231,7 @@ namespace Decatron.Custom.Controllers
                     Restriction = restriction,
                     IsActive = dto.IsActive,
                     ChannelName = channelName,
+                    UserId = channelOwnerId,
                     CreatedBy = username,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,

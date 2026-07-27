@@ -17,5 +17,6 @@ namespace Decatron.Core.Interfaces
         Task<bool> SetBotEnabledAsync(long userId, bool enabled);
         Task<List<string>> GetEnabledBotChannelsAsync();
         Task<bool> IsBotEnabledForChannelAsync(string channelLogin);
+        Task<bool> IsBotEnabledForUserAsync(long userId);
     }
 }

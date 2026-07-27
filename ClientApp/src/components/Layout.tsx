@@ -1,5 +1,5 @@
 ﻿import { Bot, Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User } from 'lucide-react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import ThemeToggle from './ThemeToggle';
@@ -18,11 +18,12 @@ function parseJwtClaims(token: string | null): Record<string, string> {
 }
 
 export default function Layout() {
-    const { t, ready } = useTranslation(['layout', 'common']);
+    const { t } = useTranslation(['layout', 'common']);
     const location = useLocation();
+    const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isSystemOwner, setIsSystemOwner] = useState(false);
-    const { hasMinimumLevel, loading } = usePermissions();
+    const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
 
     // Parse JWT to get auth provider info — re-parse on route changes (token may have changed)
     const jwtClaims = useMemo(() => parseJwtClaims(localStorage.getItem('token')), [location.pathname]);
@@ -64,18 +65,6 @@ export default function Layout() {
 
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-    // Si está cargando permisos o i18n no está listo, mostrar un placeholder
-    if (loading || !ready) {
-        return (
-            <div className="flex h-screen bg-white dark:bg-[#1B1C1D] items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb] mx-auto"></div>
-                    <p className="mt-4 text-[#64748b] dark:text-[#94a3b8]">{ready ? t('layout:loadingPermissions') : 'Cargando...'}</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="flex h-screen bg-white dark:bg-[#1B1C1D] overflow-hidden">
             {/* Sidebar */}
@@ -106,7 +95,8 @@ export default function Layout() {
                     </Link>
 
                     {/* Mi Perfil — Single button, hub page */}
-                    <NavLink to="/me" icon={<User />} label="Mi Perfil" active={location.pathname.startsWith('/me')} />
+                    <NavLink to="/me" icon={<User />} label="Mi Perfil" active={location.pathname === '/me' || location.pathname.startsWith('/me/') && !location.pathname.startsWith('/me/spirits')} />
+                    <NavLink to="/me/spirits" icon={<Zap className="text-[#7B61FF]" />} label="Fortnite Spirits" active={location.pathname === '/me/spirits'} />
 
                     {/* Dashboard & Settings */}
                     <hr className="my-2 border-[#e2e8f0] dark:border-[#374151]" />
@@ -141,7 +131,7 @@ export default function Layout() {
                         onClick={() => {
                             localStorage.removeItem('token');
                             notifyTokenRemoved();
-                            window.location.href = '/';
+                            navigate('/login');
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400"
                     >
@@ -187,7 +177,13 @@ export default function Layout() {
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto p-8">
-                    <Outlet />
+                    {permissionsLoading ? (
+                        <div className="flex items-center justify-center h-32">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2563eb]"></div>
+                        </div>
+                    ) : (
+                        <Outlet />
+                    )}
                 </main>
             </div>
         </div>

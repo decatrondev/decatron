@@ -385,6 +385,7 @@ namespace Decatron.Default.Controllers
                 var mediaFile = new TimerMediaFile
                 {
                     ChannelName = username,
+                    UserId = channelOwnerId,
                     FileType = fileType,
                     FilePath = fullFilePath,
                     OriginalFileName = originalFileName,

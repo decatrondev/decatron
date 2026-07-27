@@ -115,9 +115,16 @@ namespace Decatron.Default.Controllers
             if (existing != null)
                 return BadRequest(new { success = false, message = "Canal ya existe" });
 
+            var resolvedUser = await _dbContext.Users
+                .Where(u => u.Login == channelName && u.IsActive)
+                .Select(u => (long?)u.Id)
+                .FirstOrDefaultAsync();
+            if (resolvedUser == null)
+                return BadRequest(new { success = false, message = $"Canal '{channelName}' no está registrado en el sistema" });
             var channel = new DecatronAIChannelPermission
             {
                 ChannelName = channelName,
+                UserId = resolvedUser.Value,
                 Enabled = request.Enabled ?? true,
                 CanConfigure = request.CanConfigure ?? false,
                 Notes = request.Notes,
@@ -230,9 +237,16 @@ namespace Decatron.Default.Controllers
 
             if (config == null)
             {
+                var configUserId = await _dbContext.Users
+                    .Where(u => u.Login == channelLower && u.IsActive)
+                    .Select(u => (long?)u.Id)
+                    .FirstOrDefaultAsync();
+                if (configUserId == null)
+                    return BadRequest(new { success = false, message = $"Canal '{channelLower}' no está registrado en el sistema" });
                 config = new DecatronAIChannelConfig
                 {
                     ChannelName = channelLower,
+                    UserId = configUserId.Value,
                     CreatedAt = DateTime.UtcNow
                 };
                 _dbContext.DecatronAIChannelConfigs.Add(config);
@@ -241,7 +255,7 @@ namespace Decatron.Default.Controllers
             // Actualizar campos
             if (!string.IsNullOrEmpty(request.PermissionLevel))
             {
-                var validLevels = new[] { "everyone", "subscriber", "vip", "moderator", "broadcaster" };
+                var validLevels = new[] { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
                 if (validLevels.Contains(request.PermissionLevel.ToLower()))
                     config.PermissionLevel = request.PermissionLevel.ToLower();
             }

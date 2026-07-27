@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Server, TrendingUp, Coins, Palette, ShoppingBag, BarChart3, Settings, Dices } from 'lucide-react';
+import { Trophy, Server, TrendingUp, Coins, Palette, ShoppingBag, BarChart3, Settings, Dices, Zap } from 'lucide-react';
 
 // Mock data — will be replaced with real API calls
 const MOCK_USER = {
@@ -27,6 +27,7 @@ const SECTIONS = [
     { id: 'card', name: 'Mi Rank Card', description: 'Personaliza tu card con fondos, marcos y mas', icon: <Palette className="w-6 h-6 text-[#a855f7]" />, route: '/me/card', ready: false },
     { id: 'marketplace', name: 'Marketplace', description: 'Compra fondos, marcos y items cosmeticos con DecaCoins', icon: <ShoppingBag className="w-6 h-6 text-[#ec4899]" />, route: '/me/marketplace', ready: false },
     { id: 'gacha', name: 'Mi Gacha', description: 'Tus colecciones de cartas, vitrina, wishlist y logros', icon: <Dices className="w-6 h-6 text-[#3b82f6]" />, route: '/me/gacha', ready: true },
+    { id: 'spirits', name: 'Mis Spirits', description: 'Trackea tu colección de Fortnite Spirits, marca los que tienes y comparte tu progreso', icon: <Zap className="w-6 h-6 text-[#7B61FF]" />, route: '/me/spirits', ready: true },
     { id: 'coins', name: 'DecaCoins', description: 'Tu balance, compra paquetes y historial de transacciones', icon: <Coins className="w-6 h-6 text-[#eab308]" />, route: '/me/coins', ready: true },
     { id: 'progression', name: 'Progresion', description: 'Graficos de XP, actividad y estadisticas detalladas', icon: <BarChart3 className="w-6 h-6 text-[#22c55e]" />, route: '/me/progression', ready: false },
 ];

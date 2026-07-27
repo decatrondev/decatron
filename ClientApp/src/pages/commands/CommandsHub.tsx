@@ -1,4 +1,4 @@
-import { Zap, MessageSquare, Code, Terminal, Settings } from 'lucide-react';
+import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CommandCard {
@@ -40,6 +40,20 @@ export default function CommandsHub() {
             description: 'Scripts avanzados con JavaScript para automatizaciones complejas',
             icon: <Terminal className="w-6 h-6 text-[#2563eb]" />,
             route: '/commands/scripting'
+        },
+        {
+            id: 'watchtime',
+            name: 'Watchtime',
+            description: 'Muestra cuánto tiempo lleva un viewer viendo el stream actual',
+            icon: <Clock className="w-6 h-6 text-[#2563eb]" />,
+            route: '/commands/watchtime'
+        },
+        {
+            id: 'public',
+            name: 'Vista Pública',
+            description: 'Elige qué comandos ve la gente en tu página pública de comandos',
+            icon: <Globe className="w-6 h-6 text-[#2563eb]" />,
+            route: '/commands/public'
         }
     ];
 
@@ -54,7 +68,7 @@ export default function CommandsHub() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
                 {cards.map((card) => (
                     <div
                         key={card.id}

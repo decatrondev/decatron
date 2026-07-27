@@ -119,6 +119,7 @@ namespace Decatron.Controllers
                 state = new TimerState
                 {
                     ChannelName = username,
+                    UserId = GetUserId(),
                     Status = "running",
                     CurrentTime = duration,
                     TotalTime = duration,

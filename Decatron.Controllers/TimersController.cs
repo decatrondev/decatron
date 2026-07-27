@@ -193,6 +193,7 @@ namespace Decatron.Controllers
                 var timer = new TimerModel
                 {
                     ChannelName = channelName,
+                    UserId = channelOwnerId,
                     Name = dto.Name,
                     Message = dto.Message,
                     IntervalMinutes = dto.IntervalMinutes,

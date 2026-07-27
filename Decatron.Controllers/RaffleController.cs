@@ -168,6 +168,7 @@ namespace Decatron.Controllers
                 var raffle = new Raffle
                 {
                     ChannelName = channelName,
+                    UserId = channelOwnerId,
                     Name = dto.Name,
                     Description = dto.Description,
                     WinnersCount = dto.WinnersCount,

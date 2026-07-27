@@ -162,6 +162,28 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Verifica si el bot está habilitado para un canal por userId
+        /// </summary>
+        public async Task<bool> IsBotEnabledForUserAsync(long userId)
+        {
+            try
+            {
+                var isEnabled = await (from u in _context.Users
+                                       join s in _context.SystemSettings on u.Id equals s.UserId into settings
+                                       from s in settings.DefaultIfEmpty()
+                                       where u.Id == userId && u.IsActive
+                                       select s == null || s.BotEnabled).FirstOrDefaultAsync();
+
+                return isEnabled;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if bot is enabled for userId {UserId}", userId);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Obtiene información completa de usuarios con configuración del bot
         /// </summary>
         public async Task<List<UserBotInfo>> GetUsersBotInfoAsync()

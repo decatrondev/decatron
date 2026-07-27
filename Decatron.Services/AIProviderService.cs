@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Decatron.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -41,8 +44,8 @@ namespace Decatron.Services
             // Intentar con el provider principal
             var response = await CallProviderAsync(primaryProvider, prompt, systemPrompt, config, truncateForTwitch);
 
-            // Si falló y fallback está habilitado, intentar con el otro provider
-            if (!response.Success && fallbackEnabled)
+            // Si falló o respuesta vacía y fallback está habilitado, intentar con el otro provider
+            if ((!response.Success || string.IsNullOrWhiteSpace(response.Text)) && fallbackEnabled)
             {
                 var fallbackProvider = primaryProvider == "gemini" ? "openrouter" : "gemini";
                 _logger.LogWarning($"⚠️ [AI-PROVIDER] Provider {primaryProvider} falló, intentando fallback a {fallbackProvider}");
@@ -56,6 +59,41 @@ namespace Decatron.Services
             }
 
             return response;
+        }
+
+        /// <summary>
+        /// Genera una respuesta en streaming. OpenRouter usa streaming real, Gemini fallback sin streaming.
+        /// </summary>
+        public async IAsyncEnumerable<string> GenerateStreamingResponseAsync(
+            string prompt,
+            string systemPrompt,
+            DecatronAIGlobalConfig config,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var provider = config.AIProvider?.ToLower() ?? "gemini";
+            _logger.LogInformation($"🤖 [AI-PROVIDER-STREAM] Usando provider: {provider}");
+
+            if (provider == "openrouter")
+            {
+                await foreach (var token in _openRouterService.GenerateStreamingResponseAsync(
+                    prompt, systemPrompt, config.OpenRouterModel, config.MaxTokens, cancellationToken))
+                {
+                    yield return token;
+                }
+            }
+            else
+            {
+                // Fallback: llamar no-streaming y devolver todo de una vez
+                var response = await CallProviderAsync(provider, prompt, systemPrompt, config, false);
+                if (response.Success && !string.IsNullOrEmpty(response.Text))
+                {
+                    yield return response.Text;
+                }
+                else
+                {
+                    throw new InvalidOperationException(response.ErrorMessage ?? "Error generando respuesta");
+                }
+            }
         }
 
         private async Task<AIResponse> CallProviderAsync(

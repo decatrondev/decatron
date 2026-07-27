@@ -105,6 +105,12 @@ namespace Decatron.Default.Commands
                 var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
                 var channelLower = channel.ToLower();
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(dbContext, channelLower);
+                if (channelUserId == null)
+                {
+                    _logger.LogWarning("⚠️ [DStart] Canal {Channel} no encontrado en users, no se puede crear TimerState", channelLower);
+                    return;
+                }
                 var state = await dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
                 if (state == null)
@@ -112,6 +118,7 @@ namespace Decatron.Default.Commands
                     state = new TimerState
                     {
                         ChannelName = channelLower,
+                        UserId = channelUserId.Value,
                         Status = "running",
                         CurrentTime = seconds,
                         TotalTime = seconds,

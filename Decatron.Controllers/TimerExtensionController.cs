@@ -24,17 +24,23 @@ namespace Decatron.Controllers
         private readonly ILogger<TimerExtensionController> _logger;
         private readonly Decatron.Services.OverlayNotificationService _overlayNotificationService;
         private readonly Decatron.Services.TimerEventService _timerEventService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
         public TimerExtensionController(
             DecatronDbContext dbContext,
             ILogger<TimerExtensionController> logger,
             Decatron.Services.OverlayNotificationService overlayNotificationService,
-            Decatron.Services.TimerEventService timerEventService)
+            Decatron.Services.TimerEventService timerEventService,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _dbContext = dbContext;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
             _timerEventService = timerEventService;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -101,7 +107,7 @@ namespace Decatron.Controllers
                 _logger.LogInformation($"Obteniendo configuración de timer para canal: {username} (ID: {channelOwnerId})");
 
                 var config = await _dbContext.TimerConfigs
-                    .FirstOrDefaultAsync(c => c.ChannelName == username);
+                    .FirstOrDefaultAsync(c => c.UserId == channelOwnerId);
 
                 if (config == null)
                 {
@@ -133,10 +139,11 @@ namespace Decatron.Controllers
 
                 // Preparar HistoryConfig inyectando los logs reales de la BD
                 var historyConfigDict = JsonSerializer.Deserialize<Dictionary<string, object>>(config.HistoryConfig) ?? new Dictionary<string, object>();
-                
-                // Obtener logs reales
+
+                // Obtener logs reales (query by UserId with ChannelName fallback)
+                var channelOwnerIdStr = channelOwnerId.ToString();
                 var logs = await _dbContext.TimerEventLogs
-                    .Where(l => l.ChannelName == username)
+                    .Where(l => l.UserId == channelOwnerIdStr || l.ChannelName == username)
                     .OrderByDescending(l => l.OccurredAt)
                     .Take(100)
                     .Select(l => new
@@ -175,7 +182,8 @@ namespace Decatron.Controllers
                         alertsConfig = JsonSerializer.Deserialize<object>(config.AlertsConfig),
                         goalConfig = JsonSerializer.Deserialize<object>(config.GoalConfig),
                         advancedConfig = JsonSerializer.Deserialize<object>(config.AdvancedConfig),
-                        historyConfig = historyConfigDict
+                        historyConfig = historyConfigDict,
+                        widgetsConfig = JsonSerializer.Deserialize<object>(config.WidgetsConfig)
                     }
                 });
             }
@@ -202,7 +210,7 @@ namespace Decatron.Controllers
                 _logger.LogInformation($"Guardando configuración de timer para canal: {username} (ID: {channelOwnerId})");
 
                 var config = await _dbContext.TimerConfigs
-                    .FirstOrDefaultAsync(c => c.ChannelName == username);
+                    .FirstOrDefaultAsync(c => c.UserId == channelOwnerId);
 
                 if (config == null)
                 {
@@ -229,6 +237,7 @@ namespace Decatron.Controllers
                         GoalConfig = JsonSerializer.Serialize(request.GoalConfig ?? new { }),
                         AdvancedConfig = JsonSerializer.Serialize(request.AdvancedConfig ?? new { }),
                         HistoryConfig = JsonSerializer.Serialize(request.HistoryConfig ?? new { }),
+                        WidgetsConfig = JsonSerializer.Serialize(request.WidgetsConfig ?? new { }),
                         CreatedAt = TimerDateTimeHelper.NowForDb(),
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -256,6 +265,7 @@ namespace Decatron.Controllers
                     config.GoalConfig = JsonSerializer.Serialize(request.GoalConfig ?? new { });
                     config.AdvancedConfig = JsonSerializer.Serialize(request.AdvancedConfig ?? new { });
                     config.HistoryConfig = JsonSerializer.Serialize(request.HistoryConfig ?? new { });
+                    config.WidgetsConfig = JsonSerializer.Serialize(request.WidgetsConfig ?? new { });
                     config.UpdatedAt = TimerDateTimeHelper.NowForDb();
                 }
 
@@ -273,8 +283,9 @@ namespace Decatron.Controllers
                         var offsetSeconds = offsetEl.GetInt32();
                         if (offsetSeconds > 0)
                         {
+                            var ownerIdStr = channelOwnerId.ToString();
                             var alreadyLogged = await _dbContext.TimerEventLogs
-                                .AnyAsync(l => l.ChannelName == username && l.EventType == "migration_offset"
+                                .AnyAsync(l => (l.UserId == ownerIdStr || l.ChannelName == username) && l.EventType == "migration_offset"
                                             && l.TimeAdded == offsetSeconds);
                             if (!alreadyLogged)
                             {
@@ -328,7 +339,7 @@ namespace Decatron.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == username);
+                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == channelOwnerId);
                 if (config != null) _dbContext.TimerConfigs.Remove(config);
 
                 var templates = await _dbContext.TimerTemplates.Where(t => t.UserId == userId).ToListAsync();
@@ -340,16 +351,17 @@ namespace Decatron.Controllers
                 var happyHours = await _dbContext.TimerHappyHours.Where(h => h.UserId == userId).ToListAsync();
                 _dbContext.TimerHappyHours.RemoveRange(happyHours);
 
-                var logs = await _dbContext.TimerEventLogs.Where(l => l.ChannelName == username).ToListAsync();
+                var channelOwnerIdStr = channelOwnerId.ToString();
+                var logs = await _dbContext.TimerEventLogs.Where(l => l.UserId == channelOwnerIdStr || l.ChannelName == username).ToListAsync();
                 _dbContext.TimerEventLogs.RemoveRange(logs);
-                
-                var sessions = await _dbContext.TimerSessions.Where(s => s.ChannelName == username).ToListAsync();
+
+                var sessions = await _dbContext.TimerSessions.Where(s => s.UserId == channelOwnerId || s.ChannelName == username).ToListAsync();
                 _dbContext.TimerSessions.RemoveRange(sessions);
 
                 var cooldowns = await _dbContext.TimerEventCooldowns.Where(c => c.ChannelName == username).ToListAsync();
                 _dbContext.TimerEventCooldowns.RemoveRange(cooldowns);
 
-                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == username);
+                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.UserId == channelOwnerId || s.ChannelName == username);
 
                 if (state != null)
                 {
@@ -420,7 +432,7 @@ namespace Decatron.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == username);
+                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.UserId == channelOwnerId || s.ChannelName == username);
 
                 if (state == null)
                 {
@@ -486,7 +498,10 @@ namespace Decatron.Controllers
             try
             {
                 var channelLower = channel.ToLower();
-                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channelLower);
+                var state = channelUserId != null
+                    ? await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.UserId == channelUserId)
+                    : await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
                 if (state == null)
                 {
@@ -557,7 +572,7 @@ namespace Decatron.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == username);
+                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.UserId == channelOwnerId || s.ChannelName == username);
 
                 switch (request.Action.ToLower())
                 {
@@ -567,6 +582,7 @@ namespace Decatron.Controllers
                             state = new TimerState
                             {
                                 ChannelName = username,
+                                UserId = channelOwnerId,
                                 Status = "running",
                                 CurrentTime = request.Duration ?? 300,
                                 TotalTime = request.Duration ?? 300,
@@ -600,6 +616,7 @@ namespace Decatron.Controllers
                         var newSession = new TimerSession
                         {
                             ChannelName = username,
+                            UserId = channelOwnerId,
                             StartedAt = TimerDateTimeHelper.NowForDb(),
                             InitialDuration = state.CurrentTime,
                             TotalAddedTime = 0
@@ -669,6 +686,7 @@ namespace Decatron.Controllers
                                     var resetBackup = new TimerSessionBackup
                                     {
                                         ChannelName = username,
+                                        UserId = channelOwnerId,
                                         RemainingSeconds = remainingSeconds,
                                         TotalElapsedSeconds = totalElapsedSeconds,
                                         TotalDurationAtSnapshot = state.TotalTime,
@@ -722,6 +740,7 @@ namespace Decatron.Controllers
                                     var stopBackup = new TimerSessionBackup
                                     {
                                         ChannelName = username,
+                                        UserId = channelOwnerId,
                                         RemainingSeconds = remainingSeconds,
                                         TotalElapsedSeconds = totalElapsedSeconds,
                                         TotalDurationAtSnapshot = state.TotalTime,
@@ -851,14 +870,20 @@ namespace Decatron.Controllers
             try
             {
                 var channelLower = channel.ToLower();
-                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == channelLower);
-                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channelLower);
+                var config = channelUserId != null
+                    ? await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == channelUserId)
+                    : await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == channelLower);
+                var state = channelUserId != null
+                    ? await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.UserId == channelUserId)
+                    : await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
-                if (config != null && config.AutoStart && state == null)
+                if (config != null && config.AutoStart && state == null && channelUserId != null)
                 {
                     state = new TimerState
                     {
                         ChannelName = channelLower,
+                        UserId = channelUserId.Value,
                         Status = "running",
                         CurrentTime = config.DefaultDuration,
                         TotalTime = config.DefaultDuration,
@@ -873,6 +898,7 @@ namespace Decatron.Controllers
                     var newSession = new TimerSession
                     {
                         ChannelName = channelLower,
+                        UserId = channelUserId.Value,
                         StartedAt = TimerDateTimeHelper.NowForDb(),
                         InitialDuration = config.DefaultDuration,
                         TotalAddedTime = 0
@@ -902,8 +928,18 @@ namespace Decatron.Controllers
                     alertsConfig = JsonSerializer.Deserialize<object>(config.AlertsConfig),
                     goalConfig = JsonSerializer.Deserialize<object>(config.GoalConfig),
                     advancedConfig = JsonSerializer.Deserialize<object>(config.AdvancedConfig),
-                    historyConfig = JsonSerializer.Deserialize<object>(config.HistoryConfig)
+                    historyConfig = JsonSerializer.Deserialize<object>(config.HistoryConfig),
+                    widgetsConfig = JsonSerializer.Deserialize<object>(config.WidgetsConfig)
                 };
+
+                // Happy Hour live state
+                object? happyHourLive = null;
+                try
+                {
+                    var hhInfo = await _timerEventService.GetActiveHappyHourInfoAsync(channelLower);
+                    happyHourLive = new { active = hhInfo.Active, multiplier = hhInfo.Multiplier, endsAt = hhInfo.EndsAt?.ToString("o") };
+                }
+                catch { happyHourLive = new { active = false, multiplier = 1.0, endsAt = (string?)null }; }
 
                 object stateData;
                 if (state == null)
@@ -944,12 +980,127 @@ namespace Decatron.Controllers
                     };
                 }
 
-                return Ok(new { success = true, config = configData, state = stateData });
+                return Ok(new { success = true, config = configData, state = stateData, happyHourLive });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error al obtener configuración de overlay para canal: {channel}");
                 return StatusCode(500, new { success = false, message = "Error al obtener configuración del overlay" });
+            }
+        }
+
+        [HttpGet("overlay/{channel}/stats")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetOverlayStats(string channel)
+        {
+            try
+            {
+                var channelLower = channel.ToLower();
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channelLower);
+
+                // Get streamer's timezone from config
+                var timerCfg = channelUserId != null
+                    ? await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == channelUserId)
+                    : null;
+
+                var todayStart = DateTime.UtcNow.Date; // fallback UTC
+                if (timerCfg != null && !string.IsNullOrEmpty(timerCfg.TimeZone))
+                {
+                    try
+                    {
+                        var tz = TimeZoneInfo.FindSystemTimeZoneById(timerCfg.TimeZone);
+                        var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+                        todayStart = TimeZoneInfo.ConvertTimeToUtc(nowLocal.Date, tz);
+                    }
+                    catch { /* fallback to UTC */ }
+                }
+
+                // Filter by TODAY in streamer's timezone
+                var channelUserIdStr = channelUserId?.ToString();
+                var todayLogs = await _dbContext.TimerEventLogs
+                    .Where(l => (channelUserIdStr != null ? l.UserId == channelUserIdStr : l.ChannelName == channelLower) && l.OccurredAt >= todayStart)
+                    .ToListAsync();
+
+                var subTypes = new[] { "subscribe", "subscribe_prime", "gift_sub", "sub", "gift", "prime", "subPrime", "subTier1", "subTier2", "subTier3" };
+
+                int subsToday = todayLogs.Count(l => subTypes.Contains(l.EventType));
+                int eventCount = todayLogs.Count;
+
+                double bitsToday = 0;
+                double tipsToday = 0;
+
+                foreach (var log in todayLogs)
+                {
+                    if (string.IsNullOrEmpty(log.EventData)) continue;
+                    try
+                    {
+                        var data = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(log.EventData);
+                        if (log.EventType == "bits" || log.EventType == "cheer")
+                        {
+                            if (data.TryGetProperty("amount", out var amt)) bitsToday += amt.GetDouble();
+                        }
+                        if (log.EventType == "tips" || log.EventType == "tip")
+                        {
+                            if (data.TryGetProperty("amount", out var amt)) tipsToday += amt.GetDouble();
+                        }
+                    }
+                    catch { }
+                }
+
+                // Total subs all time
+                var totalSubs = await _dbContext.TimerEventLogs
+                    .Where(l => (channelUserIdStr != null ? l.UserId == channelUserIdStr : l.ChannelName == channelLower) && subTypes.Contains(l.EventType))
+                    .CountAsync();
+
+                var totalRevenue = tipsToday + (bitsToday * 0.01);
+
+                // Stream uptime from Twitch API
+                string? streamStartedAt = null;
+                try
+                {
+                    var botToken = await _dbContext.BotTokens
+                        .Where(b => b.IsActive)
+                        .OrderByDescending(b => b.UpdatedAt)
+                        .FirstOrDefaultAsync();
+
+                    if (botToken != null)
+                    {
+                        var accessToken = Decatron.Data.Encryption.TokenEncryption.Decrypt(
+                            botToken.AccessToken, _configuration["JwtSettings:SecretKey"] ?? "");
+                        var clientId = _configuration["TwitchSettings:ClientId"] ?? "";
+
+                        var client = _httpClientFactory.CreateClient();
+                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                        client.DefaultRequestHeaders.Add("Client-Id", clientId);
+
+                        var res = await client.GetAsync($"https://api.twitch.tv/helix/streams?user_login={channelLower}");
+                        if (res.IsSuccessStatusCode)
+                        {
+                            var body = await res.Content.ReadAsStringAsync();
+                            var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(body);
+                            if (json.TryGetProperty("data", out var arr) && arr.GetArrayLength() > 0)
+                            {
+                                streamStartedAt = arr[0].GetProperty("started_at").GetString();
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not fetch stream info for {Channel}", channelLower);
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    stats = new { subsToday, totalSubs, bitsToday, tipsToday, totalRevenue, eventCount },
+                    streamStartedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting overlay stats for {Channel}", channel);
+                return Ok(new { success = true, stats = new { subsToday = 0, totalSubs = 0, bitsToday = 0, tipsToday = 0.0, totalRevenue = 0.0, eventCount = 0 }, streamStartedAt = (string?)null });
             }
         }
 
@@ -960,7 +1111,10 @@ namespace Decatron.Controllers
             try
             {
                 var channelLower = channel.ToLower();
-                var state = await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
+                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channelLower);
+                var state = channelUserId != null
+                    ? await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.UserId == channelUserId)
+                    : await _dbContext.TimerStates.FirstOrDefaultAsync(s => s.ChannelName == channelLower);
 
                 if (state == null) return Ok(new { success = false, message = "No timer state found" });
                 if (state.Status != "running" && state.Status != "auto_paused" && state.Status != "stream_paused") return Ok(new { success = true, message = "Timer was not running" });
@@ -1011,7 +1165,7 @@ namespace Decatron.Controllers
                 }
 
                 var sessionsList = await _dbContext.TimerSessions
-                    .Where(s => s.ChannelName == username)
+                    .Where(s => s.UserId == channelOwnerId || s.ChannelName == username)
                     .OrderByDescending(s => s.StartedAt)
                     .Take(20)
                     .Select(s => new
@@ -1064,7 +1218,7 @@ namespace Decatron.Controllers
 
                 if (string.IsNullOrEmpty(username)) return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                var session = await _dbContext.TimerSessions.FirstOrDefaultAsync(s => s.Id == id && s.ChannelName == username);
+                var session = await _dbContext.TimerSessions.FirstOrDefaultAsync(s => s.Id == id && (s.UserId == channelOwnerId || s.ChannelName == username));
                 if (session == null) 
                 {
                     _logger.LogWarning($"[HISTORY DEBUG] Sesión {id} no encontrada o no pertenece a {username}");
@@ -1220,7 +1374,7 @@ namespace Decatron.Controllers
                 if (await _dbContext.TimerTemplates.AnyAsync(t => t.UserId == userId && t.Name == request.Name))
                     return BadRequest(new { success = false, message = "Ya existe una plantilla con ese nombre" });
 
-                var currentConfig = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == username);
+                var currentConfig = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == channelOwnerId);
                 if (currentConfig == null) return NotFound(new { success = false, message = "No hay configuración para guardar" });
 
                 var template = new TimerTemplate
@@ -1307,7 +1461,7 @@ namespace Decatron.Controllers
                 var template = await _dbContext.TimerTemplates.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
                 if (template == null) return NotFound(new { success = false, message = "Plantilla no encontrada" });
 
-                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == username);
+                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == channelOwnerId);
                 if (config == null) return NotFound(new { success = false, message = "Configuración no encontrada" });
 
                 if (request.ApplyBasic) { config.DefaultDuration = template.DefaultDuration; config.AutoStart = template.AutoStart; }
@@ -1626,6 +1780,7 @@ namespace Decatron.Controllers
         public object? GoalConfig { get; set; }
         public object? AdvancedConfig { get; set; }
         public object? HistoryConfig { get; set; }
+        public object? WidgetsConfig { get; set; }
     }
 
     public class TimerControlRequest

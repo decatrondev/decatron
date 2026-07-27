@@ -459,13 +459,26 @@ namespace Decatron.Core.Services
             // Crear nuevo registro
             await reader.CloseAsync();
 
+            // Resolve user_id for the channel owner
+            var resolveUserSql = "SELECT id FROM users WHERE login = @loginName AND is_active = true LIMIT 1";
+            await using var resolveCmd = new NpgsqlCommand(resolveUserSql, conn);
+            resolveCmd.Parameters.AddWithValue("loginName", channelName.ToLower());
+            var resolvedUserId = await resolveCmd.ExecuteScalarAsync();
+            if (resolvedUserId == null)
+            {
+                _logger.LogWarning("⚠️ [ModerationService] Canal {Channel} no encontrado en users, no se puede crear UserStrike", channelName);
+                return null;
+            }
+            long channelUserId = Convert.ToInt64(resolvedUserId);
+
             var insertSql = @"
-                INSERT INTO user_strikes (channel_name, username, strike_level, last_infraction_at, expires_at, created_at, updated_at)
-                VALUES (@channelName, @username, 0, @now, NULL, @now, @now)
+                INSERT INTO user_strikes (channel_name, user_id, username, strike_level, last_infraction_at, expires_at, created_at, updated_at)
+                VALUES (@channelName, @userId, @username, 0, @now, NULL, @now, @now)
                 RETURNING id, channel_name, username, strike_level, last_infraction_at, expires_at, created_at, updated_at";
 
             await using var insertCmd = new NpgsqlCommand(insertSql, conn);
             insertCmd.Parameters.AddWithValue("channelName", channelName.ToLower());
+            insertCmd.Parameters.AddWithValue("userId", channelUserId);
             insertCmd.Parameters.AddWithValue("username", username.ToLower());
             insertCmd.Parameters.AddWithValue("now", DateTime.Now);
 

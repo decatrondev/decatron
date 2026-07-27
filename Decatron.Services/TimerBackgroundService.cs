@@ -227,7 +227,7 @@ namespace Decatron.Services
                                     _lastAutoSave[channelName] = TimerDateTimeHelper.NowForDb(); // Primera vez, marcamos inicio
                                 }
 
-                                var timeSinceLastSave = DateTime.UtcNow - _lastAutoSave[channelName];
+                                var timeSinceLastSave = TimerDateTimeHelper.NowForDb() - _lastAutoSave[channelName];
                                 if (timeSinceLastSave.TotalMinutes >= 5)
                                 {
                                     try 
@@ -267,9 +267,11 @@ namespace Decatron.Services
                                         else
                                         {
                                             // Crear nuevo si no hay o es de otra sesión
+                                            var bgChannelUserId = await ChannelResolver.ResolveUserIdAsync(dbContext, channelName) ?? 0;
                                             var autoBackup = new TimerSessionBackup
                                             {
                                                 ChannelName = channelName,
+                                                UserId = bgChannelUserId,
                                                 RemainingSeconds = remainingSeconds,
                                                 TotalElapsedSeconds = elapsedSeconds,
                                                 TotalDurationAtSnapshot = timerState.TotalTime,

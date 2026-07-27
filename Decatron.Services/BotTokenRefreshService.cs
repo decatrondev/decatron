@@ -60,7 +60,7 @@ namespace Decatron.Services
                 };
 
                 var content = new FormUrlEncodedContent(requestBody);
-                var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
+                var response = await Core.Helpers.TwitchAuthHelper.PostWithFallbackAsync(client, "/oauth2/token", content, _logger);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -160,10 +160,8 @@ namespace Decatron.Services
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                var request = new HttpRequestMessage(HttpMethod.Get, "https://id.twitch.tv/oauth2/validate");
-                request.Headers.Add("Authorization", $"OAuth {token}");
-
-                var response = await client.SendAsync(request);
+                client.DefaultRequestHeaders.Add("Authorization", $"OAuth {token}");
+                var response = await Core.Helpers.TwitchAuthHelper.GetWithFallbackAsync(client, "/oauth2/validate", _logger);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -188,7 +186,7 @@ namespace Decatron.Services
                 };
 
                 var content = new FormUrlEncodedContent(requestBody);
-                var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
+                var response = await Core.Helpers.TwitchAuthHelper.PostWithFallbackAsync(client, "/oauth2/token", content, _logger);
 
                 if (!response.IsSuccessStatusCode)
                 {

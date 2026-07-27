@@ -7,9 +7,12 @@ namespace Decatron.Core.Models
         public string Username { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
         public string Channel { get; set; } = string.Empty;
+        public long? ChannelUserId { get; set; }
+        public string? ChannelTwitchId { get; set; }
         public string Message { get; set; } = string.Empty;
         public string? MessageId { get; set; }
         public bool IsModerator { get; set; }
+        public bool IsLeadModerator { get; set; }
         public bool IsVip { get; set; }
         public bool IsSubscriber { get; set; }
         public bool IsBroadcaster { get; set; }

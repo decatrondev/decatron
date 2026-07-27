@@ -62,6 +62,7 @@ namespace Decatron.Default.Commands
                 {
                     MessageId = context.MessageId,
                     IsModerator = context.IsModerator,
+                    IsLeadModerator = context.IsLeadModerator,
                     IsVip = context.IsVip,
                     IsSubscriber = context.IsSubscriber,
                     IsBroadcaster = context.IsBroadcaster,

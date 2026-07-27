@@ -51,7 +51,7 @@ namespace Decatron.Default.Commands
 
                 _logger.LogInformation($"Ejecutando comando !raffle por {username} en {channel}");
 
-                var isCommandEnabled = await IsCommandEnabledForChannel(channel);
+                var isCommandEnabled = await IsCommandEnabledForChannel(channel, context);
                 if (!isCommandEnabled)
                 {
                     _logger.LogDebug($"Comando !raffle deshabilitado para el canal {channel}");
@@ -61,7 +61,7 @@ namespace Decatron.Default.Commands
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var parts = messageWithoutPrefix.Split(' ', 3, StringSplitOptions.RemoveEmptyEntries);
 
-                var lang = await GetChannelLanguageAsync(channel);
+                var lang = await GetChannelLanguageAsync(channel, context);
 
                 // Si solo escriben "!raffle" sin argumentos, mostrar ayuda
                 if (parts.Length < 2)
@@ -84,7 +84,7 @@ namespace Decatron.Default.Commands
 
                     case "create":
                     case "crear":
-                        await HandleCreateAsync(username, channel, argument, lang, messageSender);
+                        await HandleCreateAsync(username, channel, argument, lang, messageSender, context);
                         break;
 
                     case "close":
@@ -115,7 +115,7 @@ namespace Decatron.Default.Commands
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error ejecutando !raffle en {context.Channel}");
-                var lang = await GetChannelLanguageAsync(context.Channel);
+                var lang = await GetChannelLanguageAsync(context.Channel, context);
                 await messageSender.SendMessageAsync(context.Channel, _messagesService.GetMessage("raffle_cmd", "error_generic", lang));
             }
         }
@@ -160,7 +160,7 @@ namespace Decatron.Default.Commands
                 _messagesService.GetMessage("raffle_cmd", "joined", lang, username, activeRaffle.Name, (activeRaffle.TotalParticipants + 1).ToString()));
         }
 
-        private async Task HandleCreateAsync(string username, string channel, string? raffleName, string lang, IMessageSender messageSender)
+        private async Task HandleCreateAsync(string username, string channel, string? raffleName, string lang, IMessageSender messageSender, CommandContext context)
         {
             // Verificar permisos (solo broadcaster/mods)
             var hasPermission = await HasPermissionAsync(username, channel);
@@ -194,7 +194,7 @@ namespace Decatron.Default.Commands
 
             // Obtener userId del broadcaster
             var channelLower = channel.ToLower();
-            var channelUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Login == channelLower);
+            var channelUser = await dbContext.Users.FirstOrDefaultAsync(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channelLower);
             if (channelUser == null)
             {
                 _logger.LogError($"No se encontró usuario para el canal {channel}");
@@ -205,6 +205,7 @@ namespace Decatron.Default.Commands
             var raffle = new Raffle
             {
                 ChannelName = channelLower,
+                UserId = channelUser.Id,
                 Name = raffleName,
                 WinnersCount = 1,
                 ConfigJson = JsonSerializer.Serialize(new { createdViaCommand = true }),
@@ -363,7 +364,7 @@ namespace Decatron.Default.Commands
                 .FirstOrDefaultAsync(r => r.ChannelName == channelLower && r.Status == "open");
         }
 
-        private async Task<bool> IsCommandEnabledForChannel(string channel)
+        private async Task<bool> IsCommandEnabledForChannel(string channel, CommandContext context)
         {
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
@@ -371,7 +372,7 @@ namespace Decatron.Default.Commands
             var channelLower = channel.ToLower();
 
             // Obtener usuario primero
-            var channelUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Login == channelLower);
+            var channelUser = await dbContext.Users.FirstOrDefaultAsync(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channelLower);
             if (channelUser == null) return true;
 
             // Obtener settings por UserId
@@ -404,14 +405,14 @@ namespace Decatron.Default.Commands
             return false;
         }
 
-        private async Task<string> GetChannelLanguageAsync(string channel)
+        private async Task<string> GetChannelLanguageAsync(string channel, CommandContext context)
         {
             try
             {
                 using var scope = _serviceProvider.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                 var lang = await db.Users
-                    .Where(u => u.Login == channel.ToLower())
+                    .Where(u => context.ChannelUserId != null ? u.Id == context.ChannelUserId : u.Login == channel.ToLower())
                     .Select(u => u.PreferredLanguage)
                     .FirstOrDefaultAsync();
                 return lang ?? "es";

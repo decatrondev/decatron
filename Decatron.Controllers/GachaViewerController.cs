@@ -160,7 +160,9 @@ namespace Decatron.Controllers
                     totalAvailable = totalItems,
                     pullsUsed = p.Pulls,
                     pullsAvailable = (int)p.EffectiveDonation,
+                    coinPullsAvailable = p.CoinPullsAvailable,
                     totalDonated = p.DonationAmount,
+                    coinsSpentTotal = p.CoinsSpentTotal,
                     isPrivate
                 });
             }

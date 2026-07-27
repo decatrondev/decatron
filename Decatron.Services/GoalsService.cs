@@ -1,3 +1,4 @@
+using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Decatron.Core.Interfaces;
 using Decatron.Data;
@@ -45,6 +46,12 @@ namespace Decatron.Services
 
         public async Task<GoalsConfig?> GetConfigByChannel(string channelName)
         {
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+            if (channelUserId != null)
+            {
+                var config = await _context.GoalsConfigs.FirstOrDefaultAsync(c => c.UserId == channelUserId);
+                if (config != null) return config;
+            }
             return await _context.GoalsConfigs
                 .FirstOrDefaultAsync(c => c.ChannelName.ToLower() == channelName.ToLower());
         }

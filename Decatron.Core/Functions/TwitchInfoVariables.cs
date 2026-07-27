@@ -275,10 +275,11 @@ namespace Decatron.Core.Functions
                 var clientSecret = _configuration["Twitch:ClientSecret"];
 
                 var client = _httpClientFactory.CreateClient();
-                var request = new HttpRequestMessage(HttpMethod.Post,
-                    $"https://id.twitch.tv/oauth2/token?client_id={clientId}&client_secret={clientSecret}&grant_type=client_credentials");
-
-                var response = await client.SendAsync(request);
+                var response = await Helpers.TwitchAuthHelper.PostWithFallbackAsync(
+                    client,
+                    $"/oauth2/token?client_id={clientId}&client_secret={clientSecret}&grant_type=client_credentials",
+                    new StringContent(""),
+                    _logger);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError($"[AppToken] Error obteniendo App Access Token: {response.StatusCode}");

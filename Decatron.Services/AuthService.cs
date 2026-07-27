@@ -25,6 +25,7 @@ namespace Decatron.Services
         private readonly JwtSettings _jwtSettings;
         private readonly ILogger<AuthService> _logger;
         private readonly DecatronDbContext _dbContext;
+        private readonly UsernameUpdateService _usernameUpdateService;
 
         public AuthService(
             IHttpClientFactory httpClientFactory,
@@ -34,7 +35,8 @@ namespace Decatron.Services
             IOptions<TwitchSettings> twitchSettings,
             IOptions<JwtSettings> jwtSettings,
             ILogger<AuthService> logger,
-            DecatronDbContext dbContext)
+            DecatronDbContext dbContext,
+            UsernameUpdateService usernameUpdateService)
         {
             _httpClientFactory = httpClientFactory;
             _userRepository = userRepository;
@@ -44,6 +46,7 @@ namespace Decatron.Services
             _jwtSettings = jwtSettings.Value;
             _logger = logger;
             _dbContext = dbContext;
+            _usernameUpdateService = usernameUpdateService;
         }
 
         public string GetLoginUrl(string? redirect = null)
@@ -155,7 +158,7 @@ namespace Decatron.Services
                 };
 
                 var content = new FormUrlEncodedContent(requestBody);
-                var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
+                var response = await Core.Helpers.TwitchAuthHelper.PostWithFallbackAsync(client, "/oauth2/token", content, _logger);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -239,6 +242,23 @@ namespace Decatron.Services
 
                     // Note: We do NOT update language preference for existing users
                     // Their preference should remain as-is
+
+                    // Detect username change and propagate across all tables
+                    var newLoginLower = twitchUser.Login.ToLower();
+                    if (!user.Login.Equals(newLoginLower, StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            await _usernameUpdateService.DetectAndPropagateAsync(
+                                user.Id, user.Login, newLoginLower, "auth");
+                            user.Login = newLoginLower;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to propagate username change for user {UserId}, continuing login", user.Id);
+                            // Don't block login if propagation fails
+                        }
+                    }
 
                     user = await _userRepository.UpdateAsync(user);
                     _logger.LogInformation("Updated existing user: {Login}", user.Login);
@@ -353,7 +373,7 @@ namespace Decatron.Services
                 var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Add("Authorization", $"OAuth {accessToken}");
 
-                var response = await client.GetAsync("https://id.twitch.tv/oauth2/validate");
+                var response = await Core.Helpers.TwitchAuthHelper.GetWithFallbackAsync(client, "/oauth2/validate", _logger);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -382,7 +402,7 @@ namespace Decatron.Services
                 };
 
                 var content = new FormUrlEncodedContent(requestBody);
-                var response = await client.PostAsync("https://id.twitch.tv/oauth2/token", content);
+                var response = await Core.Helpers.TwitchAuthHelper.PostWithFallbackAsync(client, "/oauth2/token", content, _logger);
 
                 if (!response.IsSuccessStatusCode)
                 {

@@ -53,10 +53,11 @@ namespace Decatron.Services
 
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post,
-                    $"https://id.twitch.tv/oauth2/token?client_id={_twitchSettings.ClientId}&client_secret={_twitchSettings.ClientSecret}&grant_type=client_credentials");
-
-                var response = await _httpClient.SendAsync(request);
+                var response = await Core.Helpers.TwitchAuthHelper.PostWithFallbackAsync(
+                    _httpClient,
+                    $"/oauth2/token?client_id={_twitchSettings.ClientId}&client_secret={_twitchSettings.ClientSecret}&grant_type=client_credentials",
+                    new StringContent(""),
+                    _logger);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError("Error obtaining App Access Token: {StatusCode}", response.StatusCode);
@@ -712,6 +713,60 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "Error in GetChattersAsync: {ChannelName}", channelName);
                 return new List<string>();
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la lista de usuarios conectados en el chat con su user_id (para tracking de lurkers)
+        /// </summary>
+        public async Task<List<TwitchChatterData>> GetChattersWithIdsAsync(string channelName)
+        {
+            try
+            {
+                var broadcasterUser = await GetUserByLoginAsync(channelName);
+                if (broadcasterUser == null)
+                {
+                    _logger.LogWarning("Could not get broadcaster for channel: {ChannelName}", channelName);
+                    return new List<TwitchChatterData>();
+                }
+
+                var botTwitchId = await GetBotTwitchIdAsync();
+                if (string.IsNullOrEmpty(botTwitchId))
+                {
+                    _logger.LogWarning("No se pudo obtener bot_twitch_id para chatters");
+                    return new List<TwitchChatterData>();
+                }
+
+                var accessToken = await GetBotUserAccessTokenAsync();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    _logger.LogWarning("No se pudo obtener access token del bot para chatters");
+                    return new List<TwitchChatterData>();
+                }
+
+                var request = new HttpRequestMessage(HttpMethod.Get,
+                    $"{TwitchApiBaseUrl}/chat/chatters?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}&first=1000");
+
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<TwitchChattersResponse>(json);
+                    return result?.data ?? new List<TwitchChatterData>();
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error obtaining chatters in [{ChannelName}]: {StatusCode} - {ErrorContent}", channelName, response.StatusCode, errorContent);
+                return new List<TwitchChatterData>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetChattersWithIdsAsync: {ChannelName}", channelName);
+                return new List<TwitchChatterData>();
             }
         }
 

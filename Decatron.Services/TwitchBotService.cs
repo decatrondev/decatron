@@ -378,6 +378,9 @@ namespace Decatron.Services
                 var timestamp = DateTime.UtcNow;
 
                 // Obtener badges del usuario desde TwitchLib
+                // lead_moderator es el nuevo rango de Twitch (dic 2025) — TwitchLib 3.5.3 no lo detecta automáticamente,
+                // se lee directo del tag de badges y se trata como nivel propio (entre moderator y broadcaster)
+                var isLeadModerator = e.ChatMessage.Badges.Any(b => b.Key == "lead_moderator");
                 var isModerator = e.ChatMessage.IsModerator;
                 var isVip = e.ChatMessage.IsVip;
                 var isSubscriber = e.ChatMessage.IsSubscriber;
@@ -408,22 +411,19 @@ namespace Decatron.Services
                         var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
                         // VALIDACIÓN DE SHARED CHAT: Verificar que el mensaje sea del chat real de este canal
-                        var channelUser = await dbContext.Users
-                            .Where(u => u.Login == channel.ToLower())
-                            .Select(u => u.TwitchId)
-                            .FirstOrDefaultAsync();
+                        var channelInfo = await Decatron.Core.Helpers.ChannelResolver.ResolveChannelInfoAsync(dbContext, channel);
 
-                        if (channelUser == null)
+                        if (channelInfo == null)
                         {
                             _logger.LogWarning($"⚠️ Canal [{channel}] no encontrado en BD, ignorando mensaje");
                             return;
                         }
 
                         // Comparar RoomId con el TwitchId del canal
-                        if (roomId != channelUser)
+                        if (roomId != channelInfo.TwitchId)
                         {
                             _logger.LogDebug($"⏭️ [SHARED CHAT] Mensaje de canal compartido ignorado. " +
-                                            $"Canal=[{channel}] RoomId={roomId} ChannelId={channelUser}");
+                                            $"Canal=[{channel}] RoomId={roomId} ChannelId={channelInfo.TwitchId}");
                             return;
                         }
 
@@ -451,17 +451,19 @@ namespace Decatron.Services
                         }
 
                         // Track user presence for watchtime (marca al usuario como activo)
+                        // Solo acumula tiempo si el canal está realmente en vivo — chatear con el stream offline no debe sumar watchtime
                         var watchTimeService = scope.ServiceProvider.GetService<IWatchTimeTrackingService>();
-                        if (watchTimeService != null)
+                        var streamStatusService = scope.ServiceProvider.GetService<IStreamStatusService>();
+                        if (watchTimeService != null && streamStatusService != null && streamStatusService.IsLive(channelInfo.TwitchId))
                         {
-                            await watchTimeService.TrackUserPresence(channelUser, userId, username);
+                            await watchTimeService.TrackUserPresence(channelInfo.TwitchId, userId, username);
                         }
 
                         // Track chat activity (incrementa contador de mensajes)
                         var chatActivityService = scope.ServiceProvider.GetService<IChatActivityService>();
                         if (chatActivityService != null)
                         {
-                            await chatActivityService.TrackMessage(channelUser, userId, username);
+                            await chatActivityService.TrackMessage(channelInfo.TwitchId, userId, username);
                         }
 
                         // NOTA: IRC solo registra logs. EventSub procesa comandos.
@@ -534,6 +536,7 @@ namespace Decatron.Services
             string roomId,
             string message,
             bool isModerator = false,
+            bool isLeadModerator = false,
             bool isVip = false,
             bool isSubscriber = false,
             bool isBroadcaster = false,
@@ -563,22 +566,42 @@ namespace Decatron.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
                 // VALIDACIÓN DE SHARED CHAT: Verificar que el mensaje sea del chat real de este canal
-                var channelUser = await dbContext.Users
-                    .Where(u => u.Login == channel.ToLower())
-                    .Select(u => u.TwitchId)
-                    .FirstOrDefaultAsync();
+                var channelInfo = await Decatron.Core.Helpers.ChannelResolver.ResolveChannelInfoAsync(dbContext, channel);
 
-                if (channelUser == null)
+                // Fallback: if login not found, try by TwitchId (roomId = broadcasterUserId)
+                if (channelInfo == null && !string.IsNullOrEmpty(roomId))
+                {
+                    channelInfo = await dbContext.Users
+                        .Where(u => u.TwitchId == roomId && u.IsActive)
+                        .Select(u => new Decatron.Core.Helpers.ChannelInfo
+                        {
+                            UserId = u.Id,
+                            TwitchId = u.TwitchId,
+                            Login = u.Login,
+                            DisplayName = u.DisplayName,
+                            PreferredLanguage = u.PreferredLanguage
+                        })
+                        .FirstOrDefaultAsync();
+
+                    if (channelInfo != null)
+                    {
+                        // Update channel variable to current login for downstream processing
+                        channel = channelInfo.Login;
+                        _logger.LogWarning($"⚠️ [EventSub] Canal [{channel}] resuelto por TwitchId fallback (roomId={roomId})");
+                    }
+                }
+
+                if (channelInfo == null)
                 {
                     _logger.LogWarning($"⚠️ [EventSub] Canal [{channel}] no encontrado en BD, ignorando mensaje");
                     return;
                 }
 
                 // Comparar RoomId con el TwitchId del canal
-                if (roomId != channelUser)
+                if (roomId != channelInfo.TwitchId)
                 {
                     _logger.LogDebug($"⏭️ [EventSub][SHARED CHAT] Mensaje de canal compartido ignorado. " +
-                                    $"Canal=[{channel}] RoomId={roomId} ChannelId={channelUser}");
+                                    $"Canal=[{channel}] RoomId={roomId} ChannelId={channelInfo.TwitchId}");
                     return;
                 }
 
@@ -589,7 +612,42 @@ namespace Decatron.Services
 
                 // Procesar comandos usando CommandService
                 await _commandService.ProcessMessageAsync(username, channel, message, userId, messageId,
-                    isModerator, isVip, isSubscriber, isBroadcaster, metadata);
+                    isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster, metadata);
+
+                // Speak Chat TTS
+                try
+                {
+                    var speakChatService = scope.ServiceProvider.GetService<Decatron.Core.Interfaces.ISpeakChatService>();
+                    if (speakChatService != null)
+                    {
+                        int bitsAmount = 0;
+                        string? channelPointsRewardId = null;
+                        if (metadata != null)
+                        {
+                            if (metadata.TryGetValue("bits", out var bitsVal) && int.TryParse(bitsVal?.ToString(), out var bits))
+                                bitsAmount = bits;
+                            if (metadata.TryGetValue("channel_points_reward_id", out var cpVal))
+                                channelPointsRewardId = cpVal?.ToString();
+                        }
+
+                        await speakChatService.ProcessChatMessageAsync(
+                            channelName: channel,
+                            username: username,
+                            userId: userId,
+                            message: message,
+                            isBroadcaster: isBroadcaster,
+                            isModerator: isModerator,
+                            isVip: isVip,
+                            isSubscriber: isSubscriber,
+                            bitsAmount: bitsAmount,
+                            channelPointsRewardId: channelPointsRewardId,
+                            metadata: metadata);
+                    }
+                }
+                catch (Exception speakEx)
+                {
+                    _logger.LogError(speakEx, "❌ [SpeakChat] Error en ProcessChatMessageAsync para [{Channel}]", channel);
+                }
             }
             catch (Exception ex)
             {

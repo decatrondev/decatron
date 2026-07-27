@@ -194,6 +194,7 @@ namespace Decatron.Default.Controllers
                     config = new DecatronAIChannelConfig
                     {
                         ChannelName = channelName,
+                        UserId = channelOwnerId,
                         CreatedAt = DateTime.UtcNow
                     };
                     _dbContext.DecatronAIChannelConfigs.Add(config);
@@ -202,7 +203,7 @@ namespace Decatron.Default.Controllers
                 // Actualizar campos
                 if (!string.IsNullOrEmpty(request.PermissionLevel))
                 {
-                    var validLevels = new[] { "everyone", "subscriber", "vip", "moderator", "broadcaster" };
+                    var validLevels = new[] { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
                     if (validLevels.Contains(request.PermissionLevel.ToLower()))
                         config.PermissionLevel = request.PermissionLevel.ToLower();
                 }

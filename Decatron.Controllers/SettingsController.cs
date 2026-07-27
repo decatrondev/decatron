@@ -395,7 +395,9 @@ namespace Decatron.Controllers
                     channel = new
                     {
                         login = channelUser.Login,
-                        displayName = channelUser.DisplayName
+                        displayName = channelUser.DisplayName,
+                        userId = channelUser.Id,
+                        twitchId = channelUser.TwitchId
                     }
                 });
             }

@@ -83,6 +83,12 @@ namespace Decatron.Services
             // Registrar comando Followage
             RegisterFollowageCommand();
 
+            // Registrar comando Watchtime
+            RegisterWatchtimeCommand();
+
+            // Registrar comando de link a vista pública de comandos
+            RegisterCommandsLinkCommand();
+
             // Cargar micro comandos asíncronamente
             _ = Task.Run(LoadMicroCommandsAsync);
 
@@ -171,6 +177,42 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error registrando FollowageCommand");
+            }
+        }
+
+        private void RegisterWatchtimeCommand()
+        {
+            try
+            {
+                var watchtimeCommand = new Commands.WatchtimeCommand(
+                    _loggerFactory.CreateLogger<Commands.WatchtimeCommand>(),
+                    _serviceScopeFactory
+                );
+
+                RegisterCommand(watchtimeCommand);
+                _logger.LogInformation("✅ WatchtimeCommand (!watchtime) registrado correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error registrando WatchtimeCommand");
+            }
+        }
+
+        private void RegisterCommandsLinkCommand()
+        {
+            try
+            {
+                var commandsLinkCommand = new Commands.CommandsLinkCommand(
+                    _loggerFactory.CreateLogger<Commands.CommandsLinkCommand>(),
+                    _serviceScopeFactory
+                );
+
+                RegisterCommand(commandsLinkCommand);
+                _logger.LogInformation("✅ CommandsLinkCommand (!commands) registrado correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error registrando CommandsLinkCommand");
             }
         }
 
@@ -327,6 +369,24 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "❌ Error registrando comandos Gacha");
             }
+
+            // Fortnite Spirits commands
+            try
+            {
+                RegisterCommand(new SpiritsCommand(
+                    _loggerFactory.CreateLogger<SpiritsCommand>(),
+                    _serviceScopeFactory
+                ));
+                RegisterCommand(new SpiritCommand(
+                    _loggerFactory.CreateLogger<SpiritCommand>(),
+                    _serviceScopeFactory
+                ));
+                _logger.LogInformation("✅ Comandos Spirits registrados: !spirits, !spirit");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error registrando comandos Spirits");
+            }
         }
 
         private async Task LoadMicroCommandsAsync()
@@ -379,7 +439,7 @@ namespace Decatron.Services
         }
 
         public async Task ProcessMessageAsync(string username, string channel, string chatMessage, string userId = "", string? messageId = null,
-            bool isModerator = false, bool isVip = false, bool isSubscriber = false, bool isBroadcaster = false, Dictionary<string, object>? metadata = null)
+            bool isModerator = false, bool isLeadModerator = false, bool isVip = false, bool isSubscriber = false, bool isBroadcaster = false, Dictionary<string, object>? metadata = null)
         {
             try
             {
@@ -400,6 +460,22 @@ namespace Decatron.Services
 
                 var commandName = parts[0].ToLower();
 
+                // Resolve channel userId once for all commands
+                long? channelUserId = null;
+                string? channelTwitchId = null;
+                try
+                {
+                    using var resolveScope = _serviceScopeFactory.CreateScope();
+                    var resolveDb = resolveScope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                    var chInfo = await Decatron.Core.Helpers.ChannelResolver.ResolveChannelInfoAsync(resolveDb, channel);
+                    if (chInfo != null)
+                    {
+                        channelUserId = chInfo.UserId;
+                        channelTwitchId = chInfo.TwitchId;
+                    }
+                }
+                catch { /* non-blocking */ }
+
                 // Log para debug: ver qué comandos están registrados
                 if (commandName.StartsWith("!"))
                 {
@@ -410,7 +486,7 @@ namespace Decatron.Services
                 if (_commands.TryGetValue(commandName, out var command))
                 {
                     _logger.LogInformation($"✅ Ejecutando comando del servidor {commandName} por {username} en {channel}");
-                    var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata };
+                    var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
                     await command.ExecuteAsync(ctx, _messageSender);
                     return;
                 }
@@ -419,9 +495,62 @@ namespace Decatron.Services
                 if (commandName.StartsWith("!gc") && commandName != "!gc" && _commands.TryGetValue("!gc", out var gcCommand))
                 {
                     _logger.LogInformation($"✅ Ruteando {commandName} a !gc por {username} en {channel}");
-                    var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata };
+                    var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
                     await gcCommand.ExecuteAsync(ctx, _messageSender);
                     return;
+                }
+
+                // 1c. GACHA CUSTOM ALIASES — !go, !tirar, etc. → rutear a !gacha
+                if (commandName.StartsWith("!") && _commands.TryGetValue("!gacha", out var gachaCmd))
+                {
+                    try
+                    {
+                        using var aliasScope = _serviceScopeFactory.CreateScope();
+                        var aliasDb = aliasScope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                        var aliasName = commandName.Substring(1).ToLower();
+                        var gachaAlias = await aliasDb.GachaCommandAliases
+                            .FirstOrDefaultAsync(a => (channelUserId != null ? a.UserId == channelUserId : a.ChannelName == channel.ToLower()) && a.Alias == aliasName);
+
+                        if (gachaAlias != null)
+                        {
+                            // Rewrite message to !gacha <targetCommand> <rest of args>
+                            var restOfMessage = chatMessage.Contains(' ') ? chatMessage.Substring(chatMessage.IndexOf(' ')) : "";
+                            var rewrittenMessage = $"!gacha {gachaAlias.TargetCommand}{restOfMessage}";
+                            _logger.LogInformation($"✅ Alias gacha: !{aliasName} → {rewrittenMessage} por {username} en {channel}");
+                            var ctx = new CommandContext(username, channel, rewrittenMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                            await gachaCmd.ExecuteAsync(ctx, _messageSender);
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking gacha alias for {Cmd}", commandName);
+                    }
+                }
+
+                // 1d. WATCHTIME CUSTOM ALIAS — permite renombrar !watchtime (ej. !tiempo) por streamer
+                if (commandName.StartsWith("!") && commandName != "!watchtime" && channelUserId != null
+                    && _commands.TryGetValue("!watchtime", out var watchtimeCmd))
+                {
+                    try
+                    {
+                        using var wtAliasScope = _serviceScopeFactory.CreateScope();
+                        var wtAliasDb = wtAliasScope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                        var wtConfig = await wtAliasDb.WatchtimeCommandConfigs
+                            .FirstOrDefaultAsync(c => c.UserId == channelUserId && c.CommandName.ToLower() == commandName);
+
+                        if (wtConfig != null)
+                        {
+                            _logger.LogInformation($"✅ Alias watchtime: {commandName} → !watchtime por {username} en {channel}");
+                            var ctx = new CommandContext(username, channel, "!watchtime", userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                            await watchtimeCmd.ExecuteAsync(ctx, _messageSender);
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Error checking watchtime alias for {Cmd}", commandName);
+                    }
                 }
 
                 if (commandName.StartsWith("!") && !commandName.StartsWith("!gc"))

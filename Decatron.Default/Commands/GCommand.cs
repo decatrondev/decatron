@@ -208,9 +208,16 @@ namespace Decatron.Default.Commands
                 }
                 else
                 {
+                    var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channel);
+                    if (channelUserId == null)
+                    {
+                        _logger.LogWarning("⚠️ [GCommand] Canal {Channel} no encontrado en users, no se puede crear MicroGameCommand", channel);
+                        return;
+                    }
                     var newCommand = new MicroGameCommands
                     {
                         ChannelName = channel,
+                        UserId = channelUserId.Value,
                         ShortCommand = command,
                         CategoryName = category,
                         CreatedBy = username,

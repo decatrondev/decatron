@@ -132,9 +132,16 @@ namespace Decatron.Core.Functions
 
                 if (counter == null)
                 {
+                    var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+                    if (channelUserId == null)
+                    {
+                        _logger.LogWarning("⚠️ [CounterFunction] Canal {Channel} no encontrado en users, no se puede crear CommandCounter", channelName);
+                        return;
+                    }
                     counter = new CommandCounter
                     {
                         ChannelName = channelName,
+                        UserId = channelUserId.Value,
                         CommandName = commandName,
                         CounterValue = counterValue,
                         LastModifiedBy = modifiedBy,
