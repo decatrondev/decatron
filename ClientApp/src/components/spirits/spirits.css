@@ -1,0 +1,29 @@
+/* Shimmer animation for uncollected spirits */
+@keyframes spirit-shimmer {
+    0%   { opacity: 0; }
+    50%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.spirit-shimmer {
+    background: linear-gradient(
+        135deg,
+        transparent 0%,
+        rgba(123, 97, 255, 0.06) 30%,
+        rgba(167, 139, 250, 0.12) 50%,
+        rgba(123, 97, 255, 0.06) 70%,
+        transparent 100%
+    );
+    animation: spirit-shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.font-spirit {
+    font-family: 'Chakra Petch', sans-serif;
+}
+
+/* Progress bar glow */
+.spirit-progress-bar {
+    background: linear-gradient(90deg, #7B61FF, #A78BFA);
+    box-shadow: 0 0 12px rgba(123, 97, 255, 0.5);
+}

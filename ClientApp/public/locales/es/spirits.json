@@ -1,0 +1,46 @@
+{
+  "gallery": {
+    "title": "Fortnite Spirit Tracker",
+    "subtitle_available": "{{count}} spirits disponibles",
+    "login_cta": "Inicia sesión",
+    "login_suffix": "para trackear tu colección",
+    "my_collection": "Ver mi colección",
+    "no_results": "No se encontraron spirits",
+    "no_results_hint": "Intenta cambiar los filtros"
+  },
+  "collection": {
+    "collected_by": "Colección de",
+    "not_found_title": "Usuario no encontrado",
+    "not_found_desc": "@{{username}} no existe o no tiene una cuenta",
+    "see_catalog": "Ver catálogo",
+    "see_all": "Ver todos los spirits"
+  },
+  "my": {
+    "title": "Mi Colección",
+    "subtitle": "Haz clic en un spirit para marcarlo como obtenido",
+    "share": "Compartir",
+    "copied": "¡Copiado!",
+    "see_gallery": "Ver galería",
+    "no_account": "No tienes cuenta en Decatron. Regístrate en twitch.decatron.net",
+    "marked": "{{name}} ¡obtenido!",
+    "unmarked": "{{name}} desmarcado",
+    "error": "Error al actualizar"
+  },
+  "progress": {
+    "obtained": "obtenidos",
+    "missing": "faltantes"
+  },
+  "filters": {
+    "search_placeholder": "Buscar spirit...",
+    "all": "Todos",
+    "obtained": "Obtenidos",
+    "missing": "Faltantes",
+    "all_characters": "Todos los personajes",
+    "all_rarities": "Todas las rarezas",
+    "all_themes": "Todos los temas",
+    "unreleased": "Unreleased",
+    "clear": "Limpiar filtros",
+    "count": "{{count}} spirits"
+  },
+  "no_spirits": "No se encontraron spirits"
+}
