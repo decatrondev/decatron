@@ -7,6 +7,14 @@ import { SUPPORTED_LANGUAGE_CODES, DEFAULT_LANGUAGE } from './languages';
 export const SUPPORTED_LANGUAGES = SUPPORTED_LANGUAGE_CODES;
 export type SupportedLanguage = string;
 
+// Detectar idioma inicial de localStorage o navegador
+const getInitialLng = (): string => {
+  const last = localStorage.getItem('lastLanguage');
+  if (last && SUPPORTED_LANGUAGE_CODES.includes(last)) return last;
+  const browser = navigator.language.split('-')[0];
+  return SUPPORTED_LANGUAGE_CODES.includes(browser) ? browser : DEFAULT_LANGUAGE;
+};
+
 // Initialize i18next
 i18n
   .use(HttpBackend)
@@ -15,12 +23,11 @@ i18n
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_LANGUAGE_CODES,
 
-    // IMPORTANT: Do not initialize with a specific language
-    // We will set it programmatically from the backend
-    lng: undefined,
+    // Usar idioma guardado en localStorage para arrancar inmediato
+    lng: getInitialLng(),
 
     // Namespaces (translation files)
-    ns: ['common', 'settings', 'layout', 'dashboard', 'overlays', 'commands', 'analytics', 'login', 'landing', 'supporters', 'tips', 'features'],
+    ns: ['common', 'settings', 'layout', 'dashboard', 'overlays', 'commands', 'analytics', 'login', 'landing', 'supporters', 'tips', 'features', 'spirits'],
     defaultNS: 'common',
 
     // Backend options for loading translations

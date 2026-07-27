@@ -36,6 +36,7 @@
   "supportWithMonthly": "Support with ${{price}}/mo",
   "supportWithOneTime": "Support with ${{price}} (one-time)",
   "paypalConnectError": "Error connecting to PayPal. Try again.",
+  "culqiButton": "Card / Yape",
   "freePlanNotice": "The free plan includes: 25 commands, 5 variants, 1 overlay per type, advanced scripting and more.",
   "freeDonateTitle": "Donate freely",
   "freeDonateSubtitle": "No tiers or benefits. Just support the project with whatever you want.",

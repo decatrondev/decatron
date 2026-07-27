@@ -5,17 +5,52 @@
   "loginButton": "Iniciar Sesión",
   "viewFeatures": "Ver Características",
   "featuresHeading": "Características",
+
   "featureCommandsTitle": "Comandos",
-  "featureCommandsDescription": "Crea comandos únicos",
+  "featureCommandsDescription": "Crea comandos personalizados con variables dinámicas, cooldowns y permisos por rol. Incluye contadores, alias y respuestas condicionales.",
+
   "featureModerationTitle": "Moderación",
-  "featureModerationDescription": "Protege tu chat",
+  "featureModerationDescription": "Protege tu chat con filtros de spam, links y palabras prohibidas. Configura advertencias automáticas, timeouts y bans con reglas totalmente personalizables.",
+
   "featureSettingsTitle": "Configuración",
-  "featureSettingsDescription": "Ajusta todo",
+  "featureSettingsDescription": "Ajusta cada detalle del bot desde un panel web intuitivo. Controla prefijos, idioma, módulos activos y comportamiento por canal sin tocar código.",
+
   "featureMultiChannelTitle": "Multi-Canal",
-  "featureMultiChannelDescription": "Gestiona varios canales",
+  "featureMultiChannelDescription": "Gestiona múltiples canales de Twitch desde una sola cuenta. Cada canal tiene su propia configuración independiente.",
+
   "featureStatsTitle": "Estadísticas",
-  "featureStatsDescription": "Métricas en tiempo real",
+  "featureStatsDescription": "Métricas en tiempo real: comandos más usados, usuarios activos, historial de chat y tendencias de actividad en gráficos claros.",
+
   "featurePerformanceTitle": "Rendimiento",
-  "featurePerformanceDescription": "Respuestas instantáneas",
-  "copyright": "\u00a9 2025 Decatron"
+  "featurePerformanceDescription": "Respuestas en milisegundos con arquitectura optimizada. El bot se mantiene estable 24/7 sin interrupciones ni lag en tu chat.",
+
+  "featureAITitle": "Inteligencia Artificial",
+  "featureAIDescription": "Respuestas inteligentes con Gemini y OpenRouter. El bot puede chatear, responder preguntas y generar contenido directamente en tu stream.",
+
+  "featureOverlaysTitle": "Overlays",
+  "featureOverlaysDescription": "Overlays para OBS con alertas, metas y chat en pantalla. Personaliza colores, animaciones y posición para integrarlos a tu stream.",
+
+  "statOnline": "24/7 Online",
+  "statMultiChannel": "Multi-Canal",
+  "statFree": "100% Gratis",
+  "statLanguages": "Español e Inglés",
+
+  "whyHeading": "¿Por qué Decatron?",
+
+  "whyFreeTitle": "Gratis para siempre",
+  "whyFreeDescription": "Sin planes de pago, sin funciones bloqueadas. Todas las características disponibles para todos los usuarios desde el día uno.",
+
+  "whyCustomTitle": "Altamente personalizable",
+  "whyCustomDescription": "Cada módulo se adapta a tu estilo. Desde comandos hasta moderación, todo es configurable desde el panel web sin complicaciones.",
+
+  "whyLangTitle": "Multi-idioma",
+  "whyLangDescription": "Soporte para Español e Inglés con más idiomas en camino. Implementándose poco a poco para cubrir más comunidades.",
+
+  "ctaHeading": "Apoya el proyecto",
+  "ctaDescription": "Decatron es un proyecto independiente y gratuito. Tu apoyo ayuda a mantener los servidores funcionando y financiar el desarrollo de nuevas funciones.",
+  "ctaButton": "Ver Supporters",
+
+  "footerSupporters": "Supporters",
+  "footerLogin": "Iniciar Sesión",
+  "copyright": "© 2026 Decatron.net"
 }

@@ -12,7 +12,16 @@ interface LanguageProviderProps {
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const { i18n } = useTranslation();
-  const [currentLanguage, setCurrentLanguage] = useState<Language | null>(null);
+
+  // Inicializar con idioma de localStorage inmediatamente (sin esperar API)
+  const getInitialLanguage = (): Language => {
+    const lastLanguage = localStorage.getItem('lastLanguage') as Language | null;
+    if (lastLanguage && SUPPORTED_LANGUAGE_CODES.includes(lastLanguage)) return lastLanguage;
+    const browserLang = navigator.language.split('-')[0];
+    return (SUPPORTED_LANGUAGE_CODES.includes(browserLang) ? browserLang : DEFAULT_LANGUAGE) as Language;
+  };
+
+  const [currentLanguage, setCurrentLanguage] = useState<Language | null>(getInitialLanguage());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -5,17 +5,52 @@
   "loginButton": "Sign In",
   "viewFeatures": "View Features",
   "featuresHeading": "Features",
+
   "featureCommandsTitle": "Commands",
-  "featureCommandsDescription": "Create unique commands",
+  "featureCommandsDescription": "Create custom commands with dynamic variables, cooldowns, and role-based permissions. Supports counters, aliases, and conditional responses.",
+
   "featureModerationTitle": "Moderation",
-  "featureModerationDescription": "Protect your chat",
+  "featureModerationDescription": "Protect your chat with spam, link, and banned word filters. Set up automatic warnings, timeouts, and bans with fully customizable rules.",
+
   "featureSettingsTitle": "Settings",
-  "featureSettingsDescription": "Adjust everything",
+  "featureSettingsDescription": "Adjust every detail of the bot from an intuitive web panel. Control prefixes, language, active modules, and per-channel behavior without touching code.",
+
   "featureMultiChannelTitle": "Multi-Channel",
-  "featureMultiChannelDescription": "Manage multiple channels",
+  "featureMultiChannelDescription": "Manage multiple Twitch channels from a single account. Each channel has its own independent configuration for commands, moderation, and responses.",
+
   "featureStatsTitle": "Statistics",
-  "featureStatsDescription": "Real-time metrics",
+  "featureStatsDescription": "View real-time channel metrics: most used commands, active users, chat history, and activity trends displayed in clear charts.",
+
   "featurePerformanceTitle": "Performance",
-  "featurePerformanceDescription": "Instant responses",
-  "copyright": "\u00a9 2025 Decatron"
+  "featurePerformanceDescription": "Millisecond responses powered by an optimized architecture. The bot stays stable 24/7 with no interruptions or lag in your chat.",
+
+  "featureAITitle": "AI Integration",
+  "featureAIDescription": "Smart responses powered by Gemini and OpenRouter. The bot can chat, answer questions, and generate content directly in your stream chat.",
+
+  "featureOverlaysTitle": "Overlays",
+  "featureOverlaysDescription": "OBS overlays with alerts, goals, and on-screen chat. Customize colors, animations, and position to integrate them seamlessly into your stream.",
+
+  "statOnline": "24/7 Online",
+  "statMultiChannel": "Multi-Channel",
+  "statFree": "100% Free",
+  "statLanguages": "English & Spanish",
+
+  "whyHeading": "Why Decatron?",
+
+  "whyFreeTitle": "Free forever",
+  "whyFreeDescription": "No paid plans, no locked features. Every feature is available to all users from day one.",
+
+  "whyCustomTitle": "Highly customizable",
+  "whyCustomDescription": "Every module can be tailored to your style. From commands to moderation, everything is configurable from the web panel with no hassle.",
+
+  "whyLangTitle": "Multi-language",
+  "whyLangDescription": "Support for English and Spanish with more languages on the way. Being implemented gradually to cover more communities.",
+
+  "ctaHeading": "Support the project",
+  "ctaDescription": "Decatron is an independent, free project. Your support helps keep the servers running and fund the development of new features.",
+  "ctaButton": "View Supporters",
+
+  "footerSupporters": "Supporters",
+  "footerLogin": "Sign In",
+  "copyright": "© 2026 Decatron.net"
 }
