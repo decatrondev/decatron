@@ -150,6 +150,12 @@ namespace Decatron.Core.Models
         [Column("channel_name")]
         public string ChannelName { get; set; } = string.Empty;
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User? ChannelUser { get; set; }
+
         [Required]
         [MaxLength(100)]
         [Column("donor_name")]

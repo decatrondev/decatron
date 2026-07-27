@@ -18,6 +18,12 @@ namespace Decatron.Core.Models
         [MaxLength(100)]
         public string Username { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
+
         /// <summary>
         /// Duración del overlay en segundos (5-30)
         /// </summary>
@@ -147,6 +153,12 @@ namespace Decatron.Core.Models
         [Column("channel_name")]
         [MaxLength(100)]
         public string ChannelName { get; set; } = "";
+
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User? ChannelUser { get; set; }
 
         [Required]
         [Column("target_user")]

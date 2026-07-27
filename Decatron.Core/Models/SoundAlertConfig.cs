@@ -18,6 +18,12 @@ namespace Decatron.Core.Models
         [MaxLength(100)]
         public string Username { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
+
         /// <summary>
         /// Volumen global para todas las alertas (0-100)
         /// </summary>
@@ -118,6 +124,12 @@ namespace Decatron.Core.Models
         [MaxLength(100)]
         public string Username { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
+
         /// <summary>
         /// ID de la recompensa de Twitch
         /// </summary>
@@ -170,6 +182,17 @@ namespace Decatron.Core.Models
         [Column("image_name")]
         [MaxLength(255)]
         public string? ImageName { get; set; }
+
+        [Column("show_image")]
+        public bool ShowImage { get; set; } = true;
+
+        [Column("image_url")]
+        [MaxLength(1000)]
+        public string? ImageUrl { get; set; }
+
+        [Column("image_source")]
+        [MaxLength(20)]
+        public string ImageSource { get; set; } = "upload"; // "upload" | "url"
 
         /// <summary>
         /// Tamaño del archivo en bytes
@@ -229,6 +252,12 @@ namespace Decatron.Core.Models
         [Column("channel_name")]
         [MaxLength(100)]
         public string ChannelName { get; set; } = "";
+
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User? ChannelUser { get; set; }
 
         [Required]
         [Column("reward_id")]
