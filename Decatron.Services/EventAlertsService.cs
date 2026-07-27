@@ -1,3 +1,4 @@
+using Decatron.Core.Helpers;
 using Decatron.Core.Interfaces;
 using Decatron.Core.Models;
 using Decatron.Data;
@@ -17,6 +18,7 @@ namespace Decatron.Services
         private readonly ILogger<EventAlertsService> _logger;
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly ITtsService _ttsService;
+        private readonly ITtsCreditService _creditService;
         private readonly IMessageSender _messageSender;
 
         // Cooldown tracking: key = "channelName:eventType", value = last trigger time
@@ -30,12 +32,14 @@ namespace Decatron.Services
             ILogger<EventAlertsService> logger,
             OverlayNotificationService overlayNotificationService,
             ITtsService ttsService,
+            ITtsCreditService creditService,
             IMessageSender messageSender)
         {
             _context = context;
             _logger = logger;
             _overlayNotificationService = overlayNotificationService;
             _ttsService = ttsService;
+            _creditService = creditService;
             _messageSender = messageSender;
         }
 
@@ -47,6 +51,12 @@ namespace Decatron.Services
 
         public async Task<EventAlertsConfig?> GetConfigByChannel(string channelName)
         {
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+            if (channelUserId != null)
+            {
+                var config = await _context.EventAlertsConfigs.FirstOrDefaultAsync(c => c.UserId == channelUserId);
+                if (config != null) return config;
+            }
             return await _context.EventAlertsConfigs
                 .FirstOrDefaultAsync(c => c.ChannelName.ToLower() == channelName.ToLower());
         }
@@ -234,9 +244,17 @@ namespace Decatron.Services
                     ttsCfg.TryGetProperty("enabled", out var ttsOn) &&
                     ttsOn.GetBoolean())
                 {
-                    var voice = ttsCfg.TryGetProperty("voice", out var vp) ? vp.GetString() ?? "Lupe" : "Lupe";
                     var engine = ttsCfg.TryGetProperty("engine", out var ep) ? ep.GetString() ?? "standard" : "standard";
                     var lang = ttsCfg.TryGetProperty("languageCode", out var lp) ? lp.GetString() ?? "es-US" : "es-US";
+
+                    // Motor de esta alerta: "polly" gasta créditos premium, "piper" los
+                    // estándar y se sintetiza en el servidor. Los dos producen un MP3.
+                    var provider = ttsCfg.TryGetProperty("provider", out var pvp)
+                        ? pvp.GetString() ?? "polly" : "polly";
+
+                    var voice = provider == "piper"
+                        ? (ttsCfg.TryGetProperty("standardVoice", out var svp) ? svp.GetString() ?? "" : "")
+                        : (ttsCfg.TryGetProperty("voice", out var vp) ? vp.GetString() ?? "Lupe" : "Lupe");
 
                     // Volúmenes separados (con fallback a volume legacy)
                     var legacyVolume = ttsCfg.TryGetProperty("volume", out var volP) ? volP.GetInt32() : 80;
@@ -251,7 +269,9 @@ namespace Decatron.Services
                         var templateText = ReplaceVariables(ttsTemplate, username, amount, tierLabel, months ?? amount, level ?? 1, null);
                         if (!string.IsNullOrWhiteSpace(templateText))
                         {
-                            ttsTemplateUrl = await _ttsService.GenerateAsync(templateText, voice, engine, lang, channelName);
+                            ttsTemplateUrl = await _creditService.GenerateWithCreditsAsync(
+                                config.UserId, templateText, voice, engine, lang, "event_alerts", channelName,
+                                provider);
                         }
                     }
 
@@ -263,7 +283,9 @@ namespace Decatron.Services
                         var truncated = userMessage.Length > maxChars ? userMessage[..maxChars] : userMessage;
                         if (!string.IsNullOrWhiteSpace(truncated))
                         {
-                            ttsUserMessageUrl = await _ttsService.GenerateAsync(truncated, voice, engine, lang, channelName);
+                            ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
+                                config.UserId, truncated, voice, engine, lang, "event_alerts", channelName,
+                                provider);
                         }
                     }
 
@@ -861,16 +883,9 @@ namespace Decatron.Services
         }
 
         private static string ReplaceVariables(string template, string username, int amount, string tier, int months, int level, string? userMessage)
-        {
-            return template
-                .Replace("{username}", username)
-                .Replace("{amount}", amount.ToString())
-                .Replace("{viewers}", amount.ToString())
-                .Replace("{months}", months.ToString())
-                .Replace("{tier}", tier)
-                .Replace("{level}", level.ToString())
-                .Replace("{message}", userMessage ?? "");
-        }
+            => AlertTemplateVars.Replace(
+                template, username, amount.ToString(), tier,
+                months.ToString(), level.ToString(), userMessage);
 
         private static string MapSubTierKey(string? twitchTier) => twitchTier switch
         {

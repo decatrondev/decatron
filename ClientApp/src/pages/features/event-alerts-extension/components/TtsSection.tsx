@@ -5,6 +5,8 @@
 
 import React, { useState } from 'react';
 import type { TtsConfig } from '../types/index';
+import { TtsCreditsCard, useTtsCredits } from '../../../../components/tts/TtsCreditsCard';
+import { useStandardVoices, standardVoicesForLanguage } from '../../../../components/tts/useStandardVoices';
 
 // Voces TTS disponibles organizadas por idioma
 const TTS_VOICES = [
@@ -131,11 +133,16 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   // Si la voz actual no está disponible con el nuevo idioma/engine, resetear
   const currentVoiceCompatible = compatibleVoices.some(v => v.id === config.voice);
 
+  // Al cambiar de idioma se reajusta la voz de los dos catálogos: si solo se tocara
+  // el del motor activo, cambiar de motor después dejaría una voz de otro idioma.
   const handleLanguageChange = (langCode: string) => {
-    const voices = TTS_VOICES.filter(v => v.lang === langCode && v.engines.includes(config.engine));
+    const pollyVoices = TTS_VOICES.filter(v => v.lang === langCode && v.engines.includes(config.engine));
+    const standardForLang = standardVoicesForLanguage(standardVoices, langCode);
+
     onChange({
       languageCode: langCode,
-      voice: voices[0]?.id ?? config.voice,
+      voice: pollyVoices[0]?.id ?? config.voice,
+      standardVoice: standardForLang[0]?.id ?? '',
     });
   };
 
@@ -146,6 +153,24 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
       voice: voices[0]?.id ?? config.voice,
     });
   };
+
+  const { credits } = useTtsCredits();
+
+  // Ausente = polly, para no cambiar lo ya configurado. "browser" es el motor viejo,
+  // que ya no existe: se lee como voz estándar, que es lo que hace lo que aquella
+  // prometía.
+  const provider = config.provider === 'piper' || config.provider === 'browser' ? 'piper' : 'polly';
+  const usingStandard = provider === 'piper';
+
+  const { voices: standardVoices } = useStandardVoices();
+  const voicesForThisLanguage = standardVoicesForLanguage(standardVoices, config.languageCode);
+
+  // Piper no tiene japonés ni coreano a ninguna calidad, así que ofrecerlos con voz
+  // estándar sería mentir: se listan solo los idiomas que hay instalados de verdad.
+  const standardPrefixes = new Set(standardVoices.map(v => v.languagePrefix));
+  const languageOptions = (usingStandard && standardPrefixes.size > 0)
+    ? LANGUAGE_OPTIONS.filter(l => standardPrefixes.has(l.code.substring(0, 2).toLowerCase()))
+    : LANGUAGE_OPTIONS;
 
   return (
     <div className={`rounded-xl border-2 transition-all ${
@@ -166,7 +191,9 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             </div>
             {config.enabled && (
               <div className="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
-                {TTS_VOICES.find(v => v.id === config.voice)?.name ?? config.voice} · {config.engine} · {config.languageCode}
+                {usingStandard
+                  ? `🆓 ${standardVoices.find(v => v.id === config.standardVoice)?.speaker ?? 'Voz automática'} · estándar · ${config.languageCode}`
+                  : `🎙️ ${TTS_VOICES.find(v => v.id === config.voice)?.name ?? config.voice} · ${config.engine} · ${config.languageCode}`}
               </div>
             )}
           </div>
@@ -189,8 +216,51 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
       {expanded && (
         <div className="px-4 pb-4 space-y-4 border-t border-purple-200 dark:border-purple-800">
           <div className="pt-4">
-            {/* Idioma + Engine */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Saldo de créditos */}
+            <div className="mb-4">
+              <TtsCreditsCard credits={credits} compact standard={usingStandard} />
+            </div>
+
+            {/* Motor de voz: la decisión que más cambia el resultado, así que va primero */}
+            <div className="mb-4">
+              <label className={labelClass}>Motor de voz</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => onChange({ provider: 'piper' })}
+                  className={`px-3 py-3 rounded-lg text-left transition-all border-2 ${
+                    usingStandard
+                      ? 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300'
+                      : 'bg-white dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-green-300'
+                  }`}
+                >
+                  <div className="text-sm font-bold">🆓 Voz estándar</div>
+                  <div className="text-xs mt-0.5 opacity-80">Incluida en tu plan. Suena en cualquier OBS.</div>
+                </button>
+                <button
+                  onClick={() => onChange({ provider: 'polly' })}
+                  className={`px-3 py-3 rounded-lg text-left transition-all border-2 ${
+                    !usingStandard
+                      ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-700 dark:text-purple-300'
+                      : 'bg-white dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-purple-300'
+                  }`}
+                >
+                  <div className="text-sm font-bold">🎙️ Voz premium</div>
+                  <div className="text-xs mt-0.5 opacity-80">Gasta créditos premium. Más idiomas, incluido japonés.</div>
+                </button>
+              </div>
+
+              {!usingStandard && (
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
+                  Si te quedas sin créditos premium la alerta no se queda muda: se lee con
+                  tu voz estándar{standardPrefixes.size > 0 && !standardPrefixes.has(config.languageCode.substring(0, 2).toLowerCase())
+                    ? ', y como este idioma no existe en voz estándar sonará en español'
+                    : ''}.
+                </p>
+              )}
+            </div>
+
+            {/* Idioma + Engine (el engine solo aplica a Polly) */}
+            <div className={`grid gap-4 mb-4 ${usingStandard ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <div>
                 <label className={labelClass}>Idioma</label>
                 <select
@@ -198,25 +268,64 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                   onChange={e => handleLanguageChange(e.target.value)}
                   className={inputClass}
                 >
-                  {LANGUAGE_OPTIONS.map(l => (
+                  {languageOptions.map(l => (
                     <option key={l.code} value={l.code}>{l.label}</option>
                   ))}
                 </select>
+                {usingStandard && (
+                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                    El japonés y el coreano solo están en voz premium.
+                  </p>
+                )}
               </div>
-              <div>
-                <label className={labelClass}>Motor</label>
-                <select
-                  value={config.engine}
-                  onChange={e => handleEngineChange(e.target.value as 'standard' | 'neural')}
-                  className={inputClass}
-                >
-                  <option value="standard">Standard</option>
-                  <option value="neural" disabled>Neural (próximamente)</option>
-                </select>
-              </div>
+              {!usingStandard && (
+                <div>
+                  <label className={labelClass}>Calidad</label>
+                  <select
+                    value={config.engine}
+                    onChange={e => handleEngineChange(e.target.value as 'standard' | 'neural')}
+                    className={inputClass}
+                  >
+                    <option value="standard">Standard</option>
+                    <option value="neural" disabled>Neural (próximamente)</option>
+                  </select>
+                </div>
+              )}
             </div>
 
-            {/* Voz */}
+            {/* Voz estándar */}
+            {usingStandard && (
+              <div className="mb-4">
+                <label className={labelClass}>Voz</label>
+                {voicesForThisLanguage.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {voicesForThisLanguage.map(v => (
+                      <button
+                        key={v.id}
+                        onClick={() => onChange({ standardVoice: v.id })}
+                        className={`px-3 py-2 rounded-lg text-sm font-bold transition-all border ${
+                          config.standardVoice === v.id
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white border-transparent shadow-md'
+                            : 'bg-white dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-green-300'
+                        }`}
+                      >
+                        {v.speaker}
+                        <span className="block text-[10px] font-normal opacity-70">
+                          {v.languageName} · {v.quality}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                    ⚠️ No hay voces estándar para este idioma. Cambia de idioma o usa voz premium.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Voz de Polly */}
+            {!usingStandard && (
             <div className="mb-4">
               <label className={labelClass}>Voz</label>
               {compatibleVoices.length > 0 ? (
@@ -246,6 +355,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 </p>
               )}
             </div>
+            )}
 
             {/* Presets */}
             {eventType && TTS_PRESETS[eventType] && (

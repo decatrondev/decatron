@@ -492,6 +492,68 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Registra una suscripción EventSub para channel.subscription.message (Resubs).
+        ///
+        /// OJO: channel.subscribe NO cubre las resuscripciones, solo las suscripciones
+        /// nuevas. Sin este tipo, un "se ha suscrito por 3 meses" nunca llega al bot y la
+        /// alerta no salta. El manejador ya existía en TwitchWebhookController, pero nadie
+        /// pedía el evento.
+        /// </summary>
+        public async Task<EventSubSubscriptionResult> SubscribeToResubMessagesAsync(string broadcasterUserId)
+        {
+            try
+            {
+                var accessToken = await GetBotAppAccessTokenAsync();
+                var clientId = _configuration["TwitchSettings:ClientId"];
+                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
+                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
+
+                var payload = new
+                {
+                    type = "channel.subscription.message",
+                    version = "1",
+                    condition = new
+                    {
+                        broadcaster_user_id = broadcasterUserId
+                    },
+                    transport = new
+                    {
+                        method = "webhook",
+                        callback = webhookUrl,
+                        secret = webhookSecret
+                    }
+                };
+
+                var json = JsonSerializer.Serialize(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
+                request.Headers.Add("Client-ID", clientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+                request.Content = content;
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"✅ Suscripción a channel.subscription.message creada para broadcaster: {broadcasterUserId}");
+                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
+                }
+                else
+                {
+                    _logger.LogError($"❌ Error al suscribirse a channel.subscription.message: {response.StatusCode} - {responseBody}");
+                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al suscribirse a channel.subscription.message");
+                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        /// <summary>
         /// Registra una suscripción EventSub para channel.subscription.gift (Gift Subscriptions)
         /// </summary>
         public async Task<EventSubSubscriptionResult> SubscribeToGiftSubsAsync(string broadcasterUserId)
@@ -1028,6 +1090,28 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error asegurando suscripción de subscribe para broadcaster {broadcasterUserId}");
+                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        /// <summary>
+        /// Registra suscripción de resubs (channel.subscription.message) solo si no existe
+        /// </summary>
+        public async Task<EventSubSubscriptionResult> EnsureResubMessagesSubscriptionAsync(string broadcasterUserId)
+        {
+            try
+            {
+                var hasSubscription = await HasActiveSubscriptionAsync(broadcasterUserId, "channel.subscription.message");
+                if (hasSubscription)
+                {
+                    _logger.LogInformation($"⏭️ Suscripción de resubs ya existe para broadcaster {broadcasterUserId}, omitiendo");
+                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de resubs ya existe", ResponseBody = null };
+                }
+                return await SubscribeToResubMessagesAsync(broadcasterUserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error asegurando suscripción de resubs para broadcaster {broadcasterUserId}");
                 return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
             }
         }

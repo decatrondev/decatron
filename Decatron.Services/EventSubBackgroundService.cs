@@ -183,6 +183,29 @@ namespace Decatron.Services
                                 errorCount++;
                             }
 
+                            // Suscribir a channel.subscription.message (Resubs) - CON VALIDACIÓN
+                            // channel.subscribe solo cubre subs NUEVAS; sin esto los resubs
+                            // ("se ha suscrito por 3 meses") nunca llegan y no salta la alerta.
+                            var resubResult = await eventSubService.EnsureResubMessagesSubscriptionAsync(user.TwitchId);
+
+                            if (resubResult.Success)
+                            {
+                                if (!resubResult.Message.Contains("ya existe"))
+                                {
+                                    _logger.LogInformation($"🆕 {user.Login}: Nueva suscripción Resubs creada");
+                                    registeredCount++;
+                                }
+                                else
+                                {
+                                    _logger.LogInformation($"✅ {user.Login}: Suscripción Resubs ya existía");
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogError($"❌ {user.Login}: Error al registrar suscripción Resubs - {resubResult.Message}");
+                                errorCount++;
+                            }
+
                             // Suscribir a channel.subscription.gift (Gift Subs) - CON VALIDACIÓN
                             var giftSubResult = await eventSubService.EnsureGiftSubsSubscriptionAsync(user.TwitchId);
 

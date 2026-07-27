@@ -1,3 +1,4 @@
+using Decatron.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _dbContext;
         private readonly Decatron.Services.OverlayNotificationService _overlayNotificationService;
         private readonly ITtsService _ttsService;
+        private readonly ITtsCreditService _creditService;
         private readonly IMessageSender _messageSender;
 
         public EventAlertsController(
@@ -33,6 +35,7 @@ namespace Decatron.Controllers
             DecatronDbContext dbContext,
             Decatron.Services.OverlayNotificationService overlayNotificationService,
             ITtsService ttsService,
+            ITtsCreditService creditService,
             IMessageSender messageSender)
         {
             _eventAlertsService = eventAlertsService;
@@ -40,6 +43,7 @@ namespace Decatron.Controllers
             _dbContext = dbContext;
             _overlayNotificationService = overlayNotificationService;
             _ttsService = ttsService;
+            _creditService = creditService;
             _messageSender = messageSender;
         }
 
@@ -367,9 +371,17 @@ namespace Decatron.Controllers
                     ttsEnabled.GetBoolean())
                 {
                     var template = ttsConfig.TryGetProperty("template", out var tmplProp) ? tmplProp.GetString() ?? "" : "";
-                    var voice = ttsConfig.TryGetProperty("voice", out var voiceProp) ? voiceProp.GetString() ?? "Lupe" : "Lupe";
                     var engine = ttsConfig.TryGetProperty("engine", out var engineProp) ? engineProp.GetString() ?? "standard" : "standard";
                     var languageCode = ttsConfig.TryGetProperty("languageCode", out var langProp) ? langProp.GetString() ?? "es-US" : "es-US";
+
+                    // La prueba tiene que cobrar y sonar igual que la alerta real, o no
+                    // sirve para probar nada.
+                    var provider = ttsConfig.TryGetProperty("provider", out var provProp)
+                        ? provProp.GetString() ?? "polly" : "polly";
+
+                    var voice = provider == "piper"
+                        ? (ttsConfig.TryGetProperty("standardVoice", out var svProp) ? svProp.GetString() ?? "" : "")
+                        : (ttsConfig.TryGetProperty("voice", out var voiceProp) ? voiceProp.GetString() ?? "Lupe" : "Lupe");
 
                     // Volúmenes separados (con fallback a volume legacy)
                     var legacyVolume = ttsConfig.TryGetProperty("volume", out var volProp) ? volProp.GetInt32() : 80;
@@ -380,19 +392,21 @@ namespace Decatron.Controllers
                     // [3/4] TTS del template ("¡Gracias {username}!")
                     if (!string.IsNullOrWhiteSpace(template))
                     {
-                        var templateText = template
-                            .Replace("{username}", username ?? "TestUser")
-                            .Replace("{amount}", amount.ToString())
-                            .Replace("{viewers}", amount.ToString())
-                            .Replace("{months}", amount.ToString())
-                            .Replace("{tier}", "Tier 1")
-                            .Replace("{level}", amount.ToString())
-                            .Replace("{message}", ""); // No incluir mensaje en template
+                        // Mismas reglas que la alerta real: si la prueba sustituye distinto,
+                        // deja de servir para probar. No incluye el mensaje del usuario.
+                        var templateText = AlertTemplateVars.Replace(
+                            template,
+                            username ?? "TestUser",
+                            amount.ToString(),
+                            tier: "Tier 1",
+                            userMessage: "");
 
                         if (!string.IsNullOrWhiteSpace(templateText))
                         {
                             _logger.LogInformation("🔊 [EventAlerts] Generando TTS Template: '{Text}' con voz {Voice}", templateText, voice);
-                            ttsTemplateUrl = await _ttsService.GenerateAsync(templateText, voice, engine, languageCode, channelName);
+                            ttsTemplateUrl = await _creditService.GenerateWithCreditsAsync(
+                                channelOwnerId, templateText, voice, engine, languageCode, "event_alerts", channelName,
+                                provider);
                         }
                     }
 
@@ -405,7 +419,9 @@ namespace Decatron.Controllers
                         if (!string.IsNullOrWhiteSpace(truncated))
                         {
                             _logger.LogInformation("🔊 [EventAlerts] Generando TTS UserMessage: '{Text}' con voz {Voice}", truncated, voice);
-                            ttsUserMessageUrl = await _ttsService.GenerateAsync(truncated, voice, engine, languageCode, channelName);
+                            ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
+                                channelOwnerId, truncated, voice, engine, languageCode, "event_alerts", channelName,
+                                provider);
                         }
                     }
 

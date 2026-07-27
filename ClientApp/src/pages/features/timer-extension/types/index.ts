@@ -426,9 +426,10 @@ export type TabType =
     | 'history'
     | 'media'
     | 'overlay'
-    | 'theme';
+    | 'theme'
+    | 'widgets';
 
-export type DragElement = 'title' | 'time' | 'percentage' | 'progressbar' | 'elapsed' | null;
+export type DragElement = 'title' | 'time' | 'percentage' | 'progressbar' | 'elapsed' | 'widget' | null;
 
 export type TimeUnit = 'seconds' | 'minutes' | 'hours' | 'days';
 
@@ -438,3 +439,54 @@ export type SaveMessageType = {
 } | null;
 
 export type AlertsSubTab = 'template' | 'style' | 'events' | 'sounds';
+
+// ============================================================================
+// WIDGETS CONFIGURATION (Stats, Uptime, Happy Hour Indicator)
+// ============================================================================
+
+export interface WidgetItemConfig {
+    enabled: boolean;
+    position: { x: number; y: number };
+    fontSize: number;
+    textColor: string;
+    label: string;
+    fontFamily: string;
+    fontWeight: string;
+    textShadow: 'none' | 'normal' | 'strong' | 'glow';
+}
+
+export interface StatsWidgetsConfig {
+    enabled: boolean;
+    widgets: {
+        subsToday: WidgetItemConfig;
+        totalSubs: WidgetItemConfig;
+        bitsToday: WidgetItemConfig;
+        tipsToday: WidgetItemConfig;
+        totalRevenue: WidgetItemConfig;
+        eventCount: WidgetItemConfig;
+    };
+}
+
+export interface UptimeWidgetConfig extends WidgetItemConfig {}
+
+export interface HappyHourWidgetConfig {
+    enabled: boolean;
+    position: { x: number; y: number };
+    fontSize: number;
+    textColor: string;
+    backgroundColor: string;
+    label: string;
+    showMultiplier: boolean;
+    showCountdown: boolean;
+    fontFamily: string;
+    fontWeight: string;
+    textShadow: 'none' | 'normal' | 'strong' | 'glow';
+    borderRadius: number;
+    padding: number;
+}
+
+export interface WidgetsConfig {
+    stats: StatsWidgetsConfig;
+    uptime: UptimeWidgetConfig;
+    happyHour: HappyHourWidgetConfig;
+}

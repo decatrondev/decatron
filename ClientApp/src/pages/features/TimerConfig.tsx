@@ -40,7 +40,8 @@ import {
     OverlayTab,
     ThemeTab,
     RafflesTab,
-    GuideTab
+    GuideTab,
+    WidgetsTab
 } from './timer-extension/components/tabs';
 
 // Types
@@ -223,6 +224,7 @@ const TimerConfig = () => {
         { id: 'advanced', label: t('timerConfig.tabs.advanced'), icon: '🔧' },
         { id: 'history', label: t('timerConfig.tabs.history'), icon: '📈' },
         { id: 'media', label: t('timerConfig.tabs.media'), icon: '🎬' },
+        { id: 'widgets', label: t('timerConfig.tabs.widgets'), icon: '📊' },
         { id: 'overlay', label: t('timerConfig.tabs.overlay'), icon: '🖥️' }
     ];
 
@@ -390,6 +392,7 @@ const TimerConfig = () => {
                             {ui.activeTab === 'animations' && (
                                 <AnimationsTab
                                     animationConfig={timerConfig.animationConfig}
+                            widgetsConfig={timerConfig.widgetsConfig}
                                     onAnimationConfigChange={timerConfig.updateAnimationConfig}
                                 />
                             )}
@@ -460,6 +463,13 @@ const TimerConfig = () => {
                                 <MediaTab />
                             )}
 
+                            {ui.activeTab === 'widgets' && (
+                                <WidgetsTab
+                                    widgetsConfig={timerConfig.widgetsConfig}
+                                    onWidgetsConfigChange={timerConfig.updateWidgetsConfig}
+                                />
+                            )}
+
                             {ui.activeTab === 'overlay' && (
                                 <OverlayTab
                                     progressBarConfig={timerConfig.progressBarConfig}
@@ -474,6 +484,8 @@ const TimerConfig = () => {
                                     onGoalConfigChange={timerConfig.updateGoalConfig}
                                     onDisplayConfigChange={timerConfig.updateDisplayConfig}
                                     onStyleConfigChange={timerConfig.updateStyleConfig}
+                                    widgetsConfig={timerConfig.widgetsConfig}
+                                    onWidgetsConfigChange={timerConfig.setWidgetsConfig}
                                     onCanvasWidthChange={timerConfig.setCanvasWidth}
                                     onCanvasHeightChange={timerConfig.setCanvasHeight}
                                     onSave={handleSave}
@@ -502,6 +514,7 @@ const TimerConfig = () => {
                             onStopPreview={preview.stopPreview}
                             initialTimeOffset={timerConfig.advancedConfig.initialTimeOffset}
                             animationConfig={timerConfig.animationConfig}
+                            widgetsConfig={timerConfig.widgetsConfig}
                         />
                     </div>
                 </div>

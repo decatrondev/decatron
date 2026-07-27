@@ -11,6 +11,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
+import { startVersionWatcher, reloadOverlay } from '../utils/overlayVersion';
 
 // ============================================================================
 // STYLES & ANIMATIONS
@@ -152,6 +153,7 @@ interface EventAlertData {
 
     // [3/4] TTS del template ("¡Gracias {username}!")
     ttsTemplateUrl?: string;
+    // Fallback de voz del navegador cuando no hay créditos para Polly
     ttsTemplateVolume?: number;
 
     // [4/4] TTS del mensaje del usuario (bits, subs con mensaje)
@@ -259,6 +261,8 @@ export default function EventAlertsOverlay() {
                 .configureLogging(signalR.LogLevel.None)
                 .build();
 
+            connection.on('RefreshOverlay', () => reloadOverlay());
+
             connection.on('ShowEventAlert', (data: EventAlertData) => {
                 console.log('[EventAlertsOverlay] Recibido evento:', data.eventType);
                 console.log('[EventAlertsOverlay] Media:', {
@@ -330,6 +334,11 @@ export default function EventAlertsOverlay() {
             connectionRef.current?.stop();
         };
     }, [channel]);
+
+    // La fuente de OBS nunca se recarga sola: sin esto se queda con el bundle viejo
+    // para siempre. El vigilante compara el hash del bundle con el desplegado.
+    useEffect(() => startVersionWatcher(), []);
+
 
     // ============================================================================
     // QUEUE MANAGEMENT - Encolar alertas y procesar secuencialmente

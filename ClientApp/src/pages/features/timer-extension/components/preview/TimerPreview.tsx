@@ -16,7 +16,7 @@ import ProgressBarHorizontal from '../../../../../components/timer/ProgressBarHo
 import ProgressBarVertical from '../../../../../components/timer/ProgressBarVertical';
 import ProgressBarCircular from '../../../../../components/timer/ProgressBarCircular';
 import { hexToRgba } from '../../utils';
-import type { DisplayConfig, ProgressBarConfig, StyleConfig, ThemeConfig, AnimationConfig } from '../../types';
+import type { DisplayConfig, ProgressBarConfig, StyleConfig, ThemeConfig, AnimationConfig, WidgetsConfig } from '../../types';
 
 interface TimerPreviewProps {
     displayConfig: DisplayConfig;
@@ -24,6 +24,7 @@ interface TimerPreviewProps {
     styleConfig: StyleConfig;
     themeConfig: ThemeConfig;
     animationConfig?: AnimationConfig;
+    widgetsConfig?: WidgetsConfig;
     canvasWidth?: number;
     canvasHeight?: number;
     previewTimeRemaining: number;
@@ -44,6 +45,7 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
     styleConfig,
     themeConfig,
     animationConfig,
+    widgetsConfig,
     canvasWidth = 1000,
     canvasHeight = 300,
     previewTimeRemaining,
@@ -60,6 +62,7 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [scale, setScale] = useState(1);
     const [isCriticalMode, setIsCriticalMode] = useState(false);
+    const [simulateHappyHour, setSimulateHappyHour] = useState(false);
     
     // Estado para controlar qué canción de la playlist suena
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -578,6 +581,74 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
                                     />
                                 )}
                             </div>
+
+                            {/* ═══ WIDGETS PREVIEW ═══ */}
+
+                            {/* Stats Widgets */}
+                            {widgetsConfig?.stats?.enabled && Object.entries(widgetsConfig.stats.widgets || {}).map(([key, w]: [string, any]) => {
+                                if (!w?.enabled) return null;
+                                return (
+                                    <div key={`stat-${key}`} style={{
+                                        position: 'absolute',
+                                        left: `${w.position?.x || 0}px`,
+                                        top: `${w.position?.y || 0}px`,
+                                        fontSize: `${w.fontSize || 18}px`,
+                                        color: w.textColor || '#ffffff',
+                                        fontFamily: w.fontFamily || 'Inter',
+                                        fontWeight: w.fontWeight || 'bold',
+                                        textShadow: getTextShadowStyle(w.textShadow || 'normal'),
+                                        whiteSpace: 'nowrap',
+                                    }}>
+                                        <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{w.label || key}</span>
+                                        <span>0</span>
+                                    </div>
+                                );
+                            })}
+
+                            {/* Uptime Widget */}
+                            {widgetsConfig?.uptime?.enabled && (
+                                <div style={{
+                                    position: 'absolute',
+                                    left: `${widgetsConfig.uptime.position?.x || 0}px`,
+                                    top: `${widgetsConfig.uptime.position?.y || 0}px`,
+                                    fontSize: `${widgetsConfig.uptime.fontSize || 20}px`,
+                                    color: widgetsConfig.uptime.textColor || '#00ff88',
+                                    fontFamily: widgetsConfig.uptime.fontFamily || 'Inter',
+                                    fontWeight: widgetsConfig.uptime.fontWeight || 'bold',
+                                    textShadow: getTextShadowStyle(widgetsConfig.uptime.textShadow || 'glow'),
+                                    whiteSpace: 'nowrap',
+                                }}>
+                                    <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{widgetsConfig.uptime.label || 'EN VIVO'}</span>
+                                    <span>00:00:00</span>
+                                </div>
+                            )}
+
+                            {/* Happy Hour Indicator (only when simulating) */}
+                            {widgetsConfig?.happyHour?.enabled && simulateHappyHour && (
+                                <div style={{
+                                    position: 'absolute',
+                                    left: `${widgetsConfig.happyHour.position?.x || 0}px`,
+                                    top: `${widgetsConfig.happyHour.position?.y || 0}px`,
+                                    fontSize: `${widgetsConfig.happyHour.fontSize || 16}px`,
+                                    color: widgetsConfig.happyHour.textColor || '#ffffff',
+                                    fontFamily: widgetsConfig.happyHour.fontFamily || 'Inter',
+                                    fontWeight: widgetsConfig.happyHour.fontWeight || 'bold',
+                                    textShadow: getTextShadowStyle(widgetsConfig.happyHour.textShadow || 'normal'),
+                                    backgroundColor: widgetsConfig.happyHour.backgroundColor || 'rgba(255,100,0,0.8)',
+                                    borderRadius: `${widgetsConfig.happyHour.borderRadius || 8}px`,
+                                    padding: `${widgetsConfig.happyHour.padding || 8}px ${(widgetsConfig.happyHour.padding || 8) * 2}px`,
+                                    whiteSpace: 'nowrap',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                }}>
+                                    <span>🔥 {widgetsConfig.happyHour.label || 'HAPPY HOUR'}</span>
+                                    {widgetsConfig.happyHour.showMultiplier && <span>x2</span>}
+                                    {widgetsConfig.happyHour.showCountdown && (
+                                        <span style={{ opacity: 0.8, fontSize: '0.85em' }}>| Termina en 39:57</span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -615,6 +686,19 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
                     >
                         <StopCircle className="w-5 h-5 fill-current" />
                     </button>
+                    {widgetsConfig?.happyHour?.enabled && (
+                        <button
+                            onClick={() => setSimulateHappyHour(!simulateHappyHour)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                                simulateHappyHour
+                                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                            title="Simular Happy Hour"
+                        >
+                            🔥 HH
+                        </button>
+                    )}
                 </div>
             </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
+import { startVersionWatcher, reloadOverlay } from '../utils/overlayVersion';
 import ProgressBarHorizontal from '../components/timer/ProgressBarHorizontal';
 import ProgressBarVertical from '../components/timer/ProgressBarVertical';
 import ProgressBarCircular from '../components/timer/ProgressBarCircular';
@@ -127,6 +128,7 @@ interface TimerEventAlert {
     advancedMediaEnabled?: boolean; advancedMedia?: any;
     // TTS Fields
     ttsTemplateUrl?: string;
+    // Fallback de voz del navegador cuando no hay créditos para Polly
     ttsTemplateVolume?: number;
     ttsUserMessageUrl?: string;
     ttsUserMessageVolume?: number;
@@ -139,6 +141,11 @@ interface TimerEventAlert {
 export default function TimerOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
+
+    // La fuente de OBS nunca se recarga sola: sin esto se queda con el bundle viejo
+    // para siempre. El vigilante compara el hash del bundle con el desplegado.
+    useEffect(() => startVersionWatcher(), []);
+
 
     // Estado Básico
     const [isVisible, setIsVisible] = useState(false);
@@ -168,6 +175,14 @@ export default function TimerOverlay() {
     // Estado Alertas Eventos
     const [currentAlert, setCurrentAlert] = useState<TimerEventAlert | null>(null);
     const [isAlertVisible, setIsAlertVisible] = useState(false);
+
+    // Estado Widgets
+    const [widgetsConfig, setWidgetsConfig] = useState<any>(null);
+    const [sessionStats, setSessionStats] = useState({ subsToday: 0, totalSubs: 0, bitsToday: 0, tipsToday: 0, totalRevenue: 0, eventCount: 0 });
+    const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
+    const [happyHourState, setHappyHourState] = useState<{ active: boolean; multiplier: number; endsAt: string | null }>({ active: false, multiplier: 1, endsAt: null });
+    const [uptimeDisplay, setUptimeDisplay] = useState('00:00:00');
+    const [hhCountdown, setHhCountdown] = useState('');
 
     // Cleanup audio sequence when alert hides
     useEffect(() => {
@@ -249,6 +264,21 @@ export default function TimerOverlay() {
                     if (['running', 'paused', 'auto_paused', 'stream_paused'].includes(status)) setIsVisible(true);
                     else if (status === 'stopped') setIsVisible(false);
                 }
+
+                // Widgets config
+                if (data.config?.widgetsConfig) setWidgetsConfig(data.config.widgetsConfig);
+                // Happy Hour live state
+                if (data.happyHourLive) setHappyHourState(data.happyHourLive);
+
+                // Load session stats + stream uptime
+                try {
+                    const statsRes = await fetch(`/api/timer/overlay/${channel}/stats`);
+                    const statsData = await statsRes.json();
+                    if (statsData.success) setSessionStats(statsData.stats);
+                    if (statsData.streamStartedAt) {
+                        setSessionStartedAt(new Date(statsData.streamStartedAt).getTime());
+                    }
+                } catch {}
             }
         } catch (err) {
             console.error('[OVERLAY] Error loading config:', err);
@@ -410,7 +440,6 @@ export default function TimerOverlay() {
             // 2. TTS Template (configured message like "¡Gracias {userName}!")
             if (alert.ttsTemplateUrl && ttsTemplateRef.current) {
                 await playAudio(ttsTemplateRef.current, alert.ttsTemplateUrl, alert.ttsTemplateVolume ?? 80);
-                if (signal.aborted) return;
             }
 
             // 3. TTS User Message (user's custom message from bits/subs/tips)
@@ -531,6 +560,8 @@ export default function TimerOverlay() {
             .configureLogging(signalR.LogLevel.Error)
             .build();
 
+        connection.on('RefreshOverlay', () => reloadOverlay());
+
         connection.on("StartTimer", () => loadConfiguration());
         connection.on("PauseTimer", () => loadConfiguration());
         connection.on("ResumeTimer", () => loadConfiguration());
@@ -578,6 +609,33 @@ export default function TimerOverlay() {
             alertTimeoutRef.current = setTimeout(() => {
                 setIsAlertVisible(false);
             }, alertDuration);
+
+            // Accumulate widget stats
+            if (data.eventType) {
+                setSessionStats(prev => {
+                    const next = { ...prev, eventCount: prev.eventCount + 1 };
+                    const subTypes = ['sub', 'gift', 'prime', 'subscribe', 'subscribe_prime', 'gift_sub', 'subPrime', 'subTier1', 'subTier2', 'subTier3'];
+                    if (subTypes.includes(data.eventType)) {
+                        next.subsToday += data.amount || 1;
+                        next.totalSubs += data.amount || 1;
+                    }
+                    if (data.eventType === 'bits' || data.eventType === 'cheer') next.bitsToday += data.amount || 0;
+                    if (data.eventType === 'tips' || data.eventType === 'tip') {
+                        next.tipsToday += data.amount || 0;
+                        next.totalRevenue += data.amount || 0;
+                    }
+                    if (data.eventType === 'bits' || data.eventType === 'cheer') next.totalRevenue += (data.amount || 0) * 0.01;
+                    return next;
+                });
+            }
+        });
+
+        // Happy Hour SignalR events
+        connection.on("HappyHourStarted", (data: { multiplier: number; endsAt: string }) => {
+            setHappyHourState({ active: true, multiplier: data.multiplier, endsAt: data.endsAt });
+        });
+        connection.on("HappyHourEnded", () => {
+            setHappyHourState({ active: false, multiplier: 1, endsAt: null });
         });
 
         // Connection Lifecycle
@@ -767,6 +825,47 @@ export default function TimerOverlay() {
     } else {
         animatorStyle.backgroundColor = hexToRgba(themeConfig.containerBackground, themeConfig.containerOpacity / 100);
     }
+
+    // Uptime timer
+    useEffect(() => {
+        if (!sessionStartedAt || !widgetsConfig?.uptime?.enabled) return;
+        const interval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - sessionStartedAt) / 1000);
+            const h = Math.floor(elapsed / 3600);
+            const m = Math.floor((elapsed % 3600) / 60);
+            const s = elapsed % 60;
+            setUptimeDisplay(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [sessionStartedAt, widgetsConfig?.uptime?.enabled]);
+
+    // Happy Hour countdown
+    useEffect(() => {
+        if (!happyHourState.active || !happyHourState.endsAt || !widgetsConfig?.happyHour?.showCountdown) {
+            setHhCountdown('');
+            return;
+        }
+        const interval = setInterval(() => {
+            const remaining = Math.floor((new Date(happyHourState.endsAt!).getTime() - Date.now()) / 1000);
+            if (remaining <= 0) {
+                setHhCountdown('');
+                setHappyHourState({ active: false, multiplier: 1, endsAt: null });
+                return;
+            }
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            setHhCountdown(`${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [happyHourState.active, happyHourState.endsAt, widgetsConfig?.happyHour?.showCountdown]);
+
+    // Helper: text shadow for widgets
+    const getWidgetShadow = (shadow: string) => {
+        if (shadow === 'normal') return '2px 2px 4px rgba(0,0,0,0.5)';
+        if (shadow === 'strong') return '3px 3px 6px rgba(0,0,0,0.8)';
+        if (shadow === 'glow') return '0 0 10px rgba(255,255,255,0.8)';
+        return 'none';
+    };
 
     if (!displayConfig.showTitle) return null;
 
@@ -975,6 +1074,76 @@ export default function TimerOverlay() {
                         />
                     )}
                  </div>
+
+                {/* ═══ WIDGETS ═══ */}
+
+                {/* Stats Widgets */}
+                {widgetsConfig?.stats?.enabled && Object.entries(widgetsConfig.stats.widgets || {}).map(([key, w]: [string, any]) => {
+                    if (!w?.enabled) return null;
+                    const val = sessionStats[key as keyof typeof sessionStats] ?? 0;
+                    const display = typeof val === 'number' && !Number.isInteger(val) ? val.toFixed(2) : val;
+                    return (
+                        <div key={`stat-${key}`} style={{
+                            position: 'absolute',
+                            left: `${w.position?.x || 0}px`,
+                            top: `${w.position?.y || 0}px`,
+                            fontSize: `${w.fontSize || 18}px`,
+                            color: w.textColor || '#ffffff',
+                            fontFamily: w.fontFamily || 'Inter',
+                            fontWeight: w.fontWeight || 'bold',
+                            textShadow: getWidgetShadow(w.textShadow || 'normal'),
+                            whiteSpace: 'nowrap',
+                        }}>
+                            <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{w.label || key}</span>
+                            <span>{display}</span>
+                        </div>
+                    );
+                })}
+
+                {/* Uptime Widget */}
+                {widgetsConfig?.uptime?.enabled && (
+                    <div style={{
+                        position: 'absolute',
+                        left: `${widgetsConfig.uptime.position?.x || 0}px`,
+                        top: `${widgetsConfig.uptime.position?.y || 0}px`,
+                        fontSize: `${widgetsConfig.uptime.fontSize || 20}px`,
+                        color: widgetsConfig.uptime.textColor || '#00ff88',
+                        fontFamily: widgetsConfig.uptime.fontFamily || 'Inter',
+                        fontWeight: widgetsConfig.uptime.fontWeight || 'bold',
+                        textShadow: getWidgetShadow(widgetsConfig.uptime.textShadow || 'glow'),
+                        whiteSpace: 'nowrap',
+                    }}>
+                        <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{widgetsConfig.uptime.label || 'EN VIVO'}</span>
+                        <span>{uptimeDisplay}</span>
+                    </div>
+                )}
+
+                {/* Happy Hour Indicator */}
+                {widgetsConfig?.happyHour?.enabled && happyHourState.active && (
+                    <div style={{
+                        position: 'absolute',
+                        left: `${widgetsConfig.happyHour.position?.x || 0}px`,
+                        top: `${widgetsConfig.happyHour.position?.y || 0}px`,
+                        fontSize: `${widgetsConfig.happyHour.fontSize || 16}px`,
+                        color: widgetsConfig.happyHour.textColor || '#ffffff',
+                        fontFamily: widgetsConfig.happyHour.fontFamily || 'Inter',
+                        fontWeight: widgetsConfig.happyHour.fontWeight || 'bold',
+                        textShadow: getWidgetShadow(widgetsConfig.happyHour.textShadow || 'normal'),
+                        backgroundColor: widgetsConfig.happyHour.backgroundColor || 'rgba(255,100,0,0.8)',
+                        borderRadius: `${widgetsConfig.happyHour.borderRadius || 8}px`,
+                        padding: `${widgetsConfig.happyHour.padding || 8}px ${(widgetsConfig.happyHour.padding || 8) * 2}px`,
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                    }}>
+                        <span>🔥 {widgetsConfig.happyHour.label || 'HAPPY HOUR'}</span>
+                        {widgetsConfig.happyHour.showMultiplier && <span>x{happyHourState.multiplier}</span>}
+                        {widgetsConfig.happyHour.showCountdown && hhCountdown && (
+                            <span style={{ opacity: 0.8, fontSize: '0.85em' }}>| Termina en {hhCountdown}</span>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
         </>

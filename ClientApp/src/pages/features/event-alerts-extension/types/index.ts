@@ -274,6 +274,13 @@ export interface TtsConfig {
   engine: 'standard' | 'neural';
   languageCode: string;    // ej: "es-US", "en-US"
 
+  // Motor de voz. 'piper' es la voz estándar, incluida en el plan y sintetizada en el
+  // servidor; 'polly' gasta créditos premium. Ausente = 'polly' para no cambiar lo ya
+  // configurado. 'browser' es el motor viejo, que se lee como 'piper': no llegaba a
+  // sonar dentro de OBS.
+  provider?: 'polly' | 'piper' | 'browser';
+  standardVoice?: string;  // Id de la voz de Piper, ej: "es_MX-claude-high"
+
   // Template TTS (mensaje configurado: "¡Gracias {username}!")
   template: string;        // Texto a leer, con variables: {username}, {amount}, etc.
   templateVolume: number;  // 0-100 - Volumen del template

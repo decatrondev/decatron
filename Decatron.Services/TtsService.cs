@@ -39,8 +39,24 @@ namespace Decatron.Services
 
         public async Task<string?> GenerateAsync(string text, string voiceId, string engine, string languageCode, string? channelName = null)
         {
+            var result = await GenerateWithInfoAsync(text, voiceId, engine, languageCode, channelName);
+            return result.Url;
+        }
+
+        public async Task<bool> IsCachedAsync(string text, string voiceId, string engine, string languageCode)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+
+            var hash = ComputeHash($"{voiceId}:{engine}:{languageCode}:{text.Trim().ToLowerInvariant()}");
+            var cached = await _context.TtsCacheEntries.FirstOrDefaultAsync(e => e.Hash == hash);
+
+            return cached != null && File.Exists(cached.FilePath);
+        }
+
+        public async Task<TtsGenerationResult> GenerateWithInfoAsync(string text, string voiceId, string engine, string languageCode, string? channelName = null)
+        {
             if (string.IsNullOrWhiteSpace(text))
-                return null;
+                return TtsGenerationResult.Failed();
 
             // Normalize text
             var normalizedText = text.Trim().ToLowerInvariant();
@@ -61,7 +77,7 @@ namespace Decatron.Services
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("[TTS] Cache hit for hash {Hash}", hash);
-                return BuildPublicUrl(cached.FilePath);
+                return new TtsGenerationResult(BuildPublicUrl(cached.FilePath), FromCache: true);
             }
 
             // Cache miss - call Polly
@@ -128,12 +144,12 @@ namespace Decatron.Services
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("[TTS] Generated audio for voice {Voice} ({Engine}), size {Size} bytes", voiceId, engine, fileSize);
-                return BuildPublicUrl(filePath);
+                return new TtsGenerationResult(BuildPublicUrl(filePath), FromCache: false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[TTS] Failed to generate audio via Polly for voice {Voice}", voiceId);
-                return null;
+                return TtsGenerationResult.Failed();
             }
         }
 

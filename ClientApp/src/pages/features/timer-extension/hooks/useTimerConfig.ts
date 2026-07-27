@@ -18,6 +18,7 @@ import type {
     AdvancedConfig,
     HistoryConfig,
     RafflesConfig,
+    WidgetsConfig,
     TimeUnit,
     AlertsSubTab,
     TimerEventType
@@ -36,7 +37,8 @@ import {
     DEFAULT_GOAL_CONFIG,
     DEFAULT_ADVANCED_CONFIG,
     DEFAULT_HISTORY_CONFIG,
-    DEFAULT_RAFFLES_CONFIG
+    DEFAULT_RAFFLES_CONFIG,
+    DEFAULT_WIDGETS_CONFIG
 } from '../constants';
 import { DEFAULT_ALERTS_CONFIG } from '../../../../types/timer-alerts';
 
@@ -109,6 +111,9 @@ export const useTimerConfig = () => {
     // Configuración de historial
     const [historyConfig, setHistoryConfig] = useState<HistoryConfig>(DEFAULT_HISTORY_CONFIG);
 
+    // Configuración de widgets
+    const [widgetsConfig, setWidgetsConfig] = useState<WidgetsConfig>(DEFAULT_WIDGETS_CONFIG);
+
     // Overlay URL
     const [overlayUrl, setOverlayUrl] = useState('');
 
@@ -169,6 +174,10 @@ export const useTimerConfig = () => {
         setHistoryConfig((prev) => ({ ...prev, ...updates }));
     };
 
+    const updateWidgetsConfig = (updates: Partial<WidgetsConfig>) => {
+        setWidgetsConfig((prev) => ({ ...prev, ...updates }));
+    };
+
     // ========================================================================
     // OBTENER CONFIGURACIÓN COMPLETA
     // ========================================================================
@@ -191,7 +200,8 @@ export const useTimerConfig = () => {
         goalConfig,
         rafflesConfig,
         advancedConfig,
-        historyConfig
+        historyConfig,
+        widgetsConfig
     });
 
     // ========================================================================
@@ -237,6 +247,13 @@ export const useTimerConfig = () => {
         if (config.rafflesConfig) setRafflesConfig({ ...DEFAULT_RAFFLES_CONFIG, ...config.rafflesConfig });
         if (config.advancedConfig) setAdvancedConfig({ ...DEFAULT_ADVANCED_CONFIG, ...config.advancedConfig });
         if (config.historyConfig) setHistoryConfig({ ...DEFAULT_HISTORY_CONFIG, ...config.historyConfig });
+        if (config.widgetsConfig) setWidgetsConfig({ ...DEFAULT_WIDGETS_CONFIG, ...config.widgetsConfig,
+            stats: { ...DEFAULT_WIDGETS_CONFIG.stats, ...config.widgetsConfig.stats,
+                widgets: { ...DEFAULT_WIDGETS_CONFIG.stats.widgets, ...config.widgetsConfig.stats?.widgets }
+            },
+            uptime: { ...DEFAULT_WIDGETS_CONFIG.uptime, ...config.widgetsConfig.uptime },
+            happyHour: { ...DEFAULT_WIDGETS_CONFIG.happyHour, ...config.widgetsConfig.happyHour }
+        });
     };
 
     return {
@@ -265,6 +282,7 @@ export const useTimerConfig = () => {
         rafflesConfig,
         advancedConfig,
         historyConfig,
+        widgetsConfig,
         overlayUrl,
 
         // Setters directos
@@ -292,6 +310,7 @@ export const useTimerConfig = () => {
         setRafflesConfig,
         setAdvancedConfig,
         setHistoryConfig,
+        setWidgetsConfig,
         setOverlayUrl,
 
         // Métodos helper
@@ -307,6 +326,7 @@ export const useTimerConfig = () => {
         updateRafflesConfig,
         updateAdvancedConfig,
         updateHistoryConfig,
+        updateWidgetsConfig,
 
         // Utilidades
         getCompleteConfig,

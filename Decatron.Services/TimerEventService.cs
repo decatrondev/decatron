@@ -32,6 +32,20 @@ namespace Decatron.Services
         public int time { get; set; } // Tiempo base por unidad
         public int cooldown { get; set; } = 0;
         public List<EventRule> rules { get; set; } = new List<EventRule>();
+
+        /// <summary>
+        /// Legacy alias: algunas configs almacenan "tiers" en vez de "rules".
+        /// Al deserializar, si "tiers" tiene datos y "rules" está vacío, se usa tiers.
+        /// </summary>
+        public List<EventRule> tiers
+        {
+            get => null; // nunca serializar
+            set
+            {
+                if (value != null && value.Count > 0 && (rules == null || rules.Count == 0))
+                    rules = value;
+            }
+        }
     }
 
     // Legacy support for Bits specific fields if needed, but EventConfig covers it
@@ -115,6 +129,16 @@ namespace Decatron.Services
         public int userMessageVolume { get; set; } = 80;
         public int maxChars { get; set; } = 150;
         public bool waitForSound { get; set; } = true;
+
+        /// <summary>"polly" gasta créditos premium; "piper", los estándar del servidor.</summary>
+        public string provider { get; set; } = "polly";
+
+        /// <summary>Id de la voz de Piper cuando provider es "piper" (es_MX-claude-high).</summary>
+        public string standardVoice { get; set; } = "";
+
+        /// <summary>La voz que toca según el proveedor elegido.</summary>
+        public string SelectedVoice =>
+            provider == "piper" ? (standardVoice ?? "") : (voice ?? "Lupe");
     }
 
     public class AlertDefaultConfig
@@ -209,19 +233,22 @@ namespace Decatron.Services
         private readonly ILogger<TimerEventService> _logger;
         private readonly IMessageSender _messageSender;
         private readonly ITtsService _ttsService;
+        private readonly ITtsCreditService _creditService;
 
         public TimerEventService(
             DecatronDbContext dbContext,
             OverlayNotificationService overlayNotificationService,
             ILogger<TimerEventService> logger,
             IMessageSender messageSender,
-            ITtsService ttsService)
+            ITtsService ttsService,
+            ITtsCreditService creditService)
         {
             _dbContext = dbContext;
             _overlayNotificationService = overlayNotificationService;
             _logger = logger;
             _messageSender = messageSender;
             _ttsService = ttsService;
+            _creditService = creditService;
         }
 
         // ========================================================================
@@ -1534,6 +1561,75 @@ namespace Decatron.Services
             }
         }
 
+        public async Task<(bool Active, double Multiplier, DateTime? EndsAt)> GetActiveHappyHourInfoAsync(string channelName)
+        {
+            try
+            {
+                // Check manual Happy Hour first
+                if (ManualHappyHours.TryGetValue(channelName, out var manual))
+                {
+                    if (DateTime.UtcNow < manual.ExpiresAt)
+                        return (true, manual.Multiplier, manual.ExpiresAt);
+                    else
+                        ManualHappyHours.TryRemove(channelName, out _);
+                }
+
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login.ToLower() == channelName);
+                if (user == null) return (false, 1.0, null);
+
+                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == user.Id);
+                var now = TimerDateTimeHelper.NowForDb();
+                TimeZoneInfo? tz = null;
+                if (config != null && !string.IsNullOrEmpty(config.TimeZone))
+                {
+                    try { tz = TimeZoneInfo.FindSystemTimeZoneById(config.TimeZone); now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz); } catch { }
+                }
+
+                var currentTime = now.TimeOfDay;
+                var currentDayOfWeek = (int)now.DayOfWeek;
+
+                var activeHappyHours = await _dbContext.TimerHappyHours
+                    .Where(hh => hh.UserId == user.Id && hh.Enabled)
+                    .ToListAsync();
+
+                foreach (var hh in activeHappyHours)
+                {
+                    bool[] daysOfWeek;
+                    try { daysOfWeek = System.Text.Json.JsonSerializer.Deserialize<bool[]>(hh.DaysOfWeek); }
+                    catch { continue; }
+
+                    if (daysOfWeek == null || daysOfWeek.Length < 7 || !daysOfWeek[currentDayOfWeek]) continue;
+
+                    var startTime = hh.StartTime;
+                    var endTime = hh.EndTime;
+                    bool isInTimeRange = endTime >= startTime
+                        ? currentTime >= startTime && currentTime <= endTime
+                        : currentTime >= startTime || currentTime <= endTime;
+
+                    if (isInTimeRange)
+                    {
+                        // Calculate endsAt in UTC
+                        var todayLocal = now.Date;
+                        DateTime endsAtLocal;
+                        if (endTime >= startTime)
+                            endsAtLocal = todayLocal.Add(endTime);
+                        else
+                            endsAtLocal = todayLocal.AddDays(1).Add(endTime);
+
+                        var endsAtUtc = tz != null ? TimeZoneInfo.ConvertTimeToUtc(endsAtLocal, tz) : endsAtLocal;
+                        return (true, (double)hh.Multiplier, endsAtUtc);
+                    }
+                }
+
+                return (false, 1.0, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[HAPPY HOUR] Error en GetActiveHappyHourInfoAsync");
+                return (false, 1.0, null);
+            }
+        }
+
         /// <summary>
         /// Genera URLs TTS para template y mensaje del usuario
         /// </summary>
@@ -1554,6 +1650,14 @@ namespace Decatron.Services
             if (ttsConfig == null || !ttsConfig.enabled)
             {
                 return (null, 80, null, 80);
+            }
+
+            // Los créditos se cobran al dueño del canal
+            var channelOwnerId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channelName);
+            if (channelOwnerId == null)
+            {
+                _logger.LogWarning("[TIMER TTS] Canal {Channel} no encontrado, sin TTS", channelName);
+                return (null, ttsTemplateVolume, null, ttsUserMessageVolume);
             }
 
             // Formatear moneda para TTS (texto legible, no símbolos)
@@ -1604,12 +1708,15 @@ namespace Decatron.Services
                         // Tiempo (placeholder)
                         .Replace("{time}", "tiempo");
 
-                    ttsTemplateUrl = await _ttsService.GenerateAsync(
+                    ttsTemplateUrl = await _creditService.GenerateWithCreditsAsync(
+                        channelOwnerId.Value,
                         templateText,
-                        ttsConfig.voice ?? "Lupe",
+                        ttsConfig.SelectedVoice,
                         ttsConfig.engine ?? "standard",
                         ttsConfig.languageCode ?? "es-US",
-                        channelName
+                        "timer_alerts",
+                        channelName,
+                        ttsConfig.provider ?? "polly"
                     );
                     _logger.LogInformation("[TIMER TTS] Template URL generada: {Url}", ttsTemplateUrl);
                 }
@@ -1622,12 +1729,15 @@ namespace Decatron.Services
                         ? userMessage.Substring(0, maxChars)
                         : userMessage;
 
-                    ttsUserMessageUrl = await _ttsService.GenerateAsync(
+                    ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
+                        channelOwnerId.Value,
                         truncatedMessage,
-                        ttsConfig.voice ?? "Lupe",
+                        ttsConfig.SelectedVoice,
                         ttsConfig.engine ?? "standard",
                         ttsConfig.languageCode ?? "es-US",
-                        channelName
+                        "timer_alerts",
+                        channelName,
+                        ttsConfig.provider ?? "polly"
                     );
                     _logger.LogInformation("[TIMER TTS] User message URL generada: {Url}", ttsUserMessageUrl);
                 }

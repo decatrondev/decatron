@@ -94,17 +94,29 @@ export default function TipsConfig() {
     // Handle PayPal OAuth callback
     useEffect(() => {
         const paypalStatus = searchParams.get('paypal');
-        const encodedEmail = searchParams.get('email');
+        const emailToken = searchParams.get('token');
 
-        if (paypalStatus === 'success' && encodedEmail) {
-            try {
-                const email = atob(encodedEmail);
-                setSettings(prev => ({ ...prev, paypalEmail: email, paypalConnected: true }));
-                savePayPalEmail(email);
+        if (paypalStatus === 'success' && emailToken) {
+            const confirmPayPal = async () => {
+                try {
+                    const authToken = localStorage.getItem('token');
+                    const response = await fetch(`/api/tips/paypal/resolve-token?token=${emailToken}`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }).then(r => r.json());
+                    if (response?.email) {
+                        setSettings(prev => ({ ...prev, paypalEmail: response.email, paypalConnected: true }));
+                        savePayPalEmail(response.email);
+                    }
+                } catch (e) {
+                    console.error('Error confirming PayPal:', e);
+                    alert(t('tipsConfig.paypalError'));
+                }
                 setSearchParams({});
-            } catch (e) {
-                console.error('Error decoding email:', e);
-            }
+            };
+            confirmPayPal();
+        } else if (paypalStatus === 'no_email') {
+            alert(t('tipsConfig.paypalNoEmail', 'Could not get email from PayPal. Please try again.'));
+            setSearchParams({});
         } else if (paypalStatus === 'error') {
             alert(t('tipsConfig.paypalError'));
             setSearchParams({});

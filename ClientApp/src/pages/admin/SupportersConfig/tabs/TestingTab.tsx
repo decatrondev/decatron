@@ -3,13 +3,16 @@ import { Save, Check, Clock } from 'lucide-react';
 import type { TierId, TierDuration, DurationUnit } from '../types';
 import { CARD, INPUT, LABEL, DURATION_UNITS, UNIT_MS, TIER_OPTIONS } from '../constants';
 import api from '../../../../services/api';
+import { UserSearchInput, type AdminUser } from '../../../../components/admin/UserSearchInput';
 
 export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }: {
     tierDurations: Record<TierId, TierDuration>;
     setTierDurations: React.Dispatch<React.SetStateAction<Record<TierId, TierDuration>>>;
     onSaveDurations: (durations: Record<TierId, TierDuration>) => Promise<void>;
 }) {
-    const [username, setUsername] = useState('');
+    // Se elige de una lista, no se escribe: un login mal tecleado asignaba el tier a
+    // nadie y la pantalla decía "asignado" igual.
+    const [target, setTarget]     = useState<AdminUser | null>(null);
     const [tier, setTier]         = useState<TierId>('supporter');
     const [applying, setApplying] = useState(false);
     const [savingDur, setSavingDur] = useState(false);
@@ -40,12 +43,12 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
     };
 
     const handleApply = async () => {
-        if (!username.trim()) return;
+        if (!target) return;
         setApplying(true);
         setResult(null);
         try {
             await api.post('/supporters/assign-tier', {
-                twitchLogin: username.trim().toLowerCase(),
+                twitchLogin: target.login,
                 tier,
                 isPermanent: cur.isPermanent,
                 duration: cur.isPermanent ? null : cur.duration,
@@ -54,10 +57,10 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
             const durationLabel = cur.isPermanent
                 ? 'permanentemente'
                 : `por ${cur.duration} ${DURATION_UNITS.find(u => u.value === cur.unit)?.label.toLowerCase()}`;
-            setResult({ type: 'success', text: `✅ Tier "${tier}" asignado a @${username} ${durationLabel}` });
-            setUsername('');
+            setResult({ type: 'success', text: `✅ Tier "${tier}" asignado a @${target.login} ${durationLabel}` });
+            setTarget(null);
         } catch {
-            setResult({ type: 'error', text: `❌ Error al asignar el tier a @${username}` });
+            setResult({ type: 'error', text: `❌ Error al asignar el tier a @${target.login}` });
         } finally {
             setApplying(false);
             setTimeout(() => setResult(null), 7000);
@@ -65,16 +68,17 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
     };
 
     const handleRemove = async () => {
-        if (!username.trim()) return;
+        if (!target) return;
+        const login = target.login;
         setApplying(true);
         setResult(null);
         try {
             await api.post('/supporters/assign-tier', {
-                twitchLogin: username.trim().toLowerCase(),
+                twitchLogin: login,
                 tier: 'free', isPermanent: true, duration: null, unit: null,
             });
-            setResult({ type: 'success', text: `✅ Tier removido de @${username} — cuenta en free` });
-            setUsername('');
+            setResult({ type: 'success', text: `✅ Tier removido de @${login} — cuenta en free` });
+            setTarget(null);
         } catch {
             setResult({ type: 'error', text: '❌ Error al remover el tier' });
         } finally {
@@ -94,19 +98,15 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                 </p>
 
                 <div className="space-y-5">
-                    {/* Username */}
+                    {/* Canal */}
                     <div>
                         <label className={`${LABEL} block mb-1.5`}>Usuario de Twitch</label>
-                        <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94a3b8] font-bold">@</span>
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
-                                className={`${INPUT} pl-8`}
-                                placeholder="nombre_de_usuario"
-                            />
-                        </div>
+                        <UserSearchInput
+                            value={target}
+                            onSelect={setTarget}
+                            onClear={() => setTarget(null)}
+                            inputClassName={INPUT}
+                        />
                     </div>
 
                     {/* Tier selector */}
@@ -243,15 +243,15 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                     <div className="flex items-center gap-3 pt-1">
                         <button
                             onClick={handleApply}
-                            disabled={applying || !username.trim()}
+                            disabled={applying || !target}
                             className="flex-1 py-3 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-60 text-white rounded-xl font-black transition-all shadow-lg flex items-center justify-center gap-2"
                         >
                             <Check className="w-4 h-4" />
-                            {applying ? 'Asignando...' : `Asignar "${tier}" a @${username || '...'}`}
+                            {applying ? 'Asignando...' : `Asignar "${tier}" a @${target?.login ?? '...'}`}
                         </button>
                         <button
                             onClick={handleRemove}
-                            disabled={applying || !username.trim()}
+                            disabled={applying || !target}
                             className="px-5 py-3 border border-red-200 dark:border-red-800 bg-white dark:bg-[#262626] hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-xl font-bold transition-all disabled:opacity-60"
                         >
                             Quitar tier

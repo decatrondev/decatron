@@ -6,7 +6,7 @@
 
 import { Monitor } from 'lucide-react';
 import OverlayEditor from '../../../../../components/timer/OverlayEditor';
-import type { ProgressBarConfig, AlertsConfig, GoalConfig, DisplayConfig, StyleConfig } from '../../types';
+import type { ProgressBarConfig, AlertsConfig, GoalConfig, DisplayConfig, StyleConfig, WidgetsConfig } from '../../types';
 
 interface OverlayTabProps {
     progressBarConfig: ProgressBarConfig;
@@ -14,6 +14,7 @@ interface OverlayTabProps {
     goalConfig: GoalConfig;
     displayConfig?: DisplayConfig;
     styleConfig?: StyleConfig;
+    widgetsConfig?: WidgetsConfig;
     canvasWidth?: number;
     canvasHeight?: number;
     onProgressBarConfigChange: (config: ProgressBarConfig) => void;
@@ -21,6 +22,7 @@ interface OverlayTabProps {
     onGoalConfigChange: (config: GoalConfig) => void;
     onDisplayConfigChange?: (config: DisplayConfig) => void;
     onStyleConfigChange?: (config: StyleConfig) => void;
+    onWidgetsConfigChange?: (config: WidgetsConfig) => void;
     onCanvasWidthChange?: (width: number) => void;
     onCanvasHeightChange?: (height: number) => void;
     onSave: () => void;
@@ -32,6 +34,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
     goalConfig,
     displayConfig,
     styleConfig,
+    widgetsConfig,
     canvasWidth,
     canvasHeight,
     onProgressBarConfigChange,
@@ -39,6 +42,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
     onGoalConfigChange,
     onDisplayConfigChange,
     onStyleConfigChange,
+    onWidgetsConfigChange,
     onCanvasWidthChange,
     onCanvasHeightChange,
     onSave
@@ -70,6 +74,8 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                 setDisplayConfig={onDisplayConfigChange}
                 styleConfig={styleConfig}
                 setStyleConfig={onStyleConfigChange}
+                widgetsConfig={widgetsConfig}
+                setWidgetsConfig={onWidgetsConfigChange}
                 canvasWidth={canvasWidth}
                 canvasHeight={canvasHeight}
                 setCanvasWidth={onCanvasWidthChange}

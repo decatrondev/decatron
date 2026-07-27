@@ -43,13 +43,15 @@ namespace Decatron.Controllers
         private readonly Decatron.Core.Interfaces.IEventAlertsService _eventAlertsService;
         private readonly IStreamStatusService _streamStatusService;
         private readonly Decatron.Discord.Events.LiveAlertHandler _liveAlertHandler;
+        private readonly Decatron.Core.Interfaces.ISpeakChatService _speakChatService;
 
 
         // ✨ NUEVO: Cache para evitar procesar el mismo mensaje dos veces
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
 
-        public TwitchWebhookController(IConfiguration configuration, ILogger<TwitchWebhookController> logger, TwitchClient twitchClient, TwitchBotService twitchBotService, EventSubService eventSubService, IHubContext<OverlayHub> hubContext, DecatronDbContext dbContext, Decatron.Core.Services.FollowersService followersService, TimerEventService timerEventService, Decatron.Core.Interfaces.IEventAlertsService eventAlertsService, IStreamStatusService streamStatusService, Decatron.Discord.Events.LiveAlertHandler liveAlertHandler)
+        public TwitchWebhookController(IConfiguration configuration, ILogger<TwitchWebhookController> logger, TwitchClient twitchClient, TwitchBotService twitchBotService, EventSubService eventSubService, IHubContext<OverlayHub> hubContext, DecatronDbContext dbContext, Decatron.Core.Services.FollowersService followersService, TimerEventService timerEventService, Decatron.Core.Interfaces.IEventAlertsService eventAlertsService, IStreamStatusService streamStatusService, Decatron.Discord.Events.LiveAlertHandler liveAlertHandler, Decatron.Core.Interfaces.ISpeakChatService speakChatService)
         {
+            _speakChatService = speakChatService;
             _configuration = configuration;
             _logger = logger;
             _twitchClient = twitchClient;
@@ -151,6 +153,8 @@ namespace Decatron.Controllers
         {
             var tipoEvento = json["subscription"]["type"].ToString();
             var datosEvento = json["event"] as JObject;
+            var broadcasterId = datosEvento?["broadcaster_user_id"]?.ToString() ?? "?";
+            _logger.LogWarning($"📨 [WEBHOOK] Evento recibido: {tipoEvento} | broadcaster: {broadcasterId}");
 
             if (tipoEvento == "channel.follow")
             {
@@ -260,9 +264,10 @@ namespace Decatron.Controllers
                 // Extraer datos del evento
                 var messageId = datosEvento["message_id"]?.ToString();
                 var broadcasterUserId = datosEvento["broadcaster_user_id"]?.ToString();
-                var broadcasterUserName = datosEvento["broadcaster_user_name"]?.ToString();
+                var broadcasterUserLogin = datosEvento["broadcaster_user_login"]?.ToString();
+                var broadcasterUserName = !string.IsNullOrEmpty(broadcasterUserLogin) ? broadcasterUserLogin : datosEvento["broadcaster_user_name"]?.ToString();
                 var chatterUserId = datosEvento["chatter_user_id"]?.ToString();
-                var chatterUserName = datosEvento["chatter_user_name"]?.ToString();
+                var chatterUserName = datosEvento["chatter_user_login"]?.ToString() ?? datosEvento["chatter_user_name"]?.ToString();
                 var messageText = datosEvento["message"]?["text"]?.ToString();
 
                 // ✨ FIX SHARED CHAT: Extraer source_broadcaster_user_id si existe
@@ -305,6 +310,7 @@ namespace Decatron.Controllers
                 // Extraer badges para determinar roles
                 var badges = datosEvento["badges"] as JArray;
                 bool isModerator = false;
+                bool isLeadModerator = false;
                 bool isVip = false;
                 bool isSubscriber = false;
                 bool isBroadcaster = chatterUserId == broadcasterUserId;
@@ -326,14 +332,17 @@ namespace Decatron.Controllers
                             allBadgesLog.Add($"{badgeId}/{badgeVersion}");
                         }
 
-                        // Check expanded moderator roles
-                        // Incluye 'moderator', 'lead_moderator', y cualquier variante futura que contenga 'moderator'
-                        if (badgeId == "moderator" || badgeId == "staff" || badgeId == "admin" || badgeId == "global_mod" || 
-                            badgeId == "lead_moderator" || badgeId.Contains("moderator")) 
+                        // Lead Moderator es un nivel propio, distinto de moderator normal (introducido por Twitch en dic 2025)
+                        if (badgeId == "lead_moderator")
+                        {
+                            isLeadModerator = true;
+                        }
+                        else if (badgeId == "moderator" || badgeId == "staff" || badgeId == "admin" || badgeId == "global_mod" ||
+                            badgeId.Contains("moderator"))
                         {
                             isModerator = true;
                         }
-                        
+
                         if (badgeId == "vip") isVip = true;
                         if (badgeId == "subscriber" || badgeId == "founder")
                         {
@@ -352,7 +361,7 @@ namespace Decatron.Controllers
                     // Log de todas las medallas detectadas para depuración
                     if (allBadgesLog.Any())
                     {
-                         _logger.LogInformation($"🏷️ [BADGES DETECTADOS] {chatterUserName}: {string.Join(", ", allBadgesLog)} | EsMod={isModerator}");
+                         _logger.LogInformation($"🏷️ [BADGES DETECTADOS] {chatterUserName}: {string.Join(", ", allBadgesLog)} | EsMod={isModerator} | EsLeadMod={isLeadModerator}");
                     }
 
                     // Guardar badge-info en metadata
@@ -361,6 +370,25 @@ namespace Decatron.Controllers
                         metadata["badge-info"] = badgeInfoStr;
                         _logger.LogDebug($"🎯 [BADGE-INFO] {chatterUserName}: {badgeInfoStr}");
                     }
+                }
+
+                // Canje de puntos de canal con texto obligatorio: el mensaje llega por
+                // chat con el id de la recompensa. Lo pasamos para las reglas de Speak Chat.
+                var chatRewardId = datosEvento["channel_points_custom_reward_id"]?.ToString();
+                if (!string.IsNullOrEmpty(chatRewardId))
+                {
+                    metadata["channel_points_reward_id"] = chatRewardId;
+                    _logger.LogInformation($"⭐ [CHANNEL POINTS] {chatterUserName} canjeó reward {chatRewardId} con mensaje");
+                }
+
+                // Bits enviados junto al mensaje (cheer).
+                // Twitch manda "cheer": null en los mensajes normales, y eso llega como
+                // JValue nulo: indexarlo con ["bits"] lanza excepción. Hay que castear.
+                var cheerBits = (datosEvento["cheer"] as JObject)?["bits"]?.ToString();
+                if (!string.IsNullOrEmpty(cheerBits) && int.TryParse(cheerBits, out var bitsFromChat) && bitsFromChat > 0)
+                {
+                    metadata["bits"] = bitsFromChat;
+                    _logger.LogInformation($"💎 [BITS] {chatterUserName} envió {bitsFromChat} bits con el mensaje");
                 }
 
                 // Procesar el mensaje usando el mismo flujo que IRC
@@ -372,6 +400,7 @@ namespace Decatron.Controllers
                     roomId: roomId, // ✅ FIX: Usar source_broadcaster_user_id si existe
                     message: messageText,
                     isModerator: isModerator,
+                    isLeadModerator: isLeadModerator,
                     isVip: isVip,
                     isSubscriber: isSubscriber,
                     isBroadcaster: isBroadcaster,
@@ -409,6 +438,24 @@ namespace Decatron.Controllers
                 LogToFile($"EVENTO CANJE: {redeemerUserName} canjeó '{rewardTitle}' en el canal {broadcasterUserName}");
                 _logger.LogInformation($"Channel Points Redemption - Reward: {rewardTitle}, Redeemer: {redeemerUserName}, Channel: {broadcasterUserName}");
 
+                // Speak Chat TTS por canje (recompensas con texto que no pasan por el chat).
+                // Si el canje ya se procesó por el mensaje de chat, el servicio lo deduplica.
+                try
+                {
+                    var userInput = datosEvento["user_input"]?.ToString();
+                    await _speakChatService.ProcessChannelPointRedemptionAsync(
+                        channelName: broadcasterUserName.ToLower(),
+                        username: redeemerUserName,
+                        userId: redeemerUserId ?? "",
+                        rewardId: rewardId,
+                        userInput: userInput,
+                        isBroadcaster: !string.IsNullOrEmpty(redeemerUserId) && redeemerUserId == broadcasterUserId);
+                }
+                catch (Exception speakEx)
+                {
+                    _logger.LogError(speakEx, "❌ [SpeakChat] Error procesando canje en [{Channel}]", broadcasterUserName);
+                }
+
                 // Buscar archivo de sound alert asociado a esta recompensa
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
                 using var conn = new NpgsqlConnection(connectionString);
@@ -433,7 +480,7 @@ namespace Decatron.Controllers
 
                     // Registrar en historial aunque no haya archivo
                     await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                        null, redeemerUserName, redeemerUserId, redeemedAt, false, "No hay archivo configurado");
+                        null, redeemerUserName, redeemerUserId, redeemedAt, false, "No hay archivo configurado", broadcasterUserId);
                     return;
                 }
 
@@ -455,7 +502,7 @@ namespace Decatron.Controllers
                 {
                     _logger.LogInformation($"Sound alert deshabilitado para reward {rewardId}");
                     await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                        filePath, redeemerUserName, redeemerUserId, redeemedAt, false, "Alerta deshabilitada");
+                        filePath, redeemerUserName, redeemerUserId, redeemedAt, false, "Alerta deshabilitada", broadcasterUserId);
                     return;
                 }
 
@@ -506,7 +553,7 @@ namespace Decatron.Controllers
                 {
                     _logger.LogInformation($"Sound alerts deshabilitados globalmente para {broadcasterUserName}");
                     await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                        filePath, redeemerUserName, redeemerUserId, redeemedAt, false, "Sistema deshabilitado");
+                        filePath, redeemerUserName, redeemerUserId, redeemedAt, false, "Sistema deshabilitado", broadcasterUserId);
                     return;
                 }
 
@@ -597,7 +644,7 @@ namespace Decatron.Controllers
 
                 // Registrar en historial
                 await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                    filePath, redeemerUserName, redeemerUserId, redeemedAt, true, null);
+                    filePath, redeemerUserName, redeemerUserId, redeemedAt, true, null, broadcasterUserId);
             }
             catch (Exception ex)
             {
@@ -608,17 +655,18 @@ namespace Decatron.Controllers
 
         private async Task RegistrarHistorialCanje(NpgsqlConnection conn, string channelName, string rewardId,
             string rewardTitle, string? filePath, string redeemedBy, string? redeemedById,
-            string? redeemedAt, bool playedSuccessfully, string? errorMessage)
+            string? redeemedAt, bool playedSuccessfully, string? errorMessage, string? broadcasterTwitchId = null)
         {
             try
             {
                 const string insertQuery = @"
                     INSERT INTO sound_alert_history
                         (channel_name, reward_id, reward_title, file_path, redeemed_by, redeemed_by_id,
-                         redeemed_at, played_successfully, error_message)
+                         redeemed_at, played_successfully, error_message, user_id)
                     VALUES
                         (@channelName, @rewardId, @rewardTitle, @filePath, @redeemedBy, @redeemedById,
-                         @redeemedAt, @playedSuccessfully, @errorMessage)";
+                         @redeemedAt, @playedSuccessfully, @errorMessage,
+                         (SELECT id FROM users WHERE twitch_id = @broadcasterTwitchId LIMIT 1))";
 
                 using var cmd = new NpgsqlCommand(insertQuery, conn);
                 cmd.Parameters.AddWithValue("@channelName", channelName.ToLower());
@@ -639,6 +687,7 @@ namespace Decatron.Controllers
 
                 cmd.Parameters.AddWithValue("@playedSuccessfully", playedSuccessfully);
                 cmd.Parameters.AddWithValue("@errorMessage", (object?)errorMessage ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@broadcasterTwitchId", (object?)broadcasterTwitchId ?? DBNull.Value);
 
                 await cmd.ExecuteNonQueryAsync();
 
@@ -677,6 +726,11 @@ namespace Decatron.Controllers
                 }
                 var channelNameLower = broadcasterName.ToLower();
 
+                // Obtener UserId del canal para FK constraint
+                var channelUser = await _dbContext.Users
+                    .FirstOrDefaultAsync(u => u.TwitchId == broadcasterId);
+                var channelUserId = channelUser?.Id ?? 0;
+
                 _logger.LogInformation($"❤️ [FOLLOW] {userName} siguió a {broadcasterName}");
 
                 // ✨ NUEVO: Guardar en sistema de followers
@@ -712,66 +766,7 @@ namespace Decatron.Controllers
                     _logger.LogError(ex, $"❌ [FOLLOWERS] Error guardando follower {userName} en sistema de followers");
                 }
 
-                // Obtener configuración de follow alerts
-                var config = await _dbContext.FollowAlertConfigs
-                    .FirstOrDefaultAsync(c => c.ChannelName == channelNameLower);
-
-                if (config == null || !config.Enabled)
-                {
-                    _logger.LogInformation($"Follow alerts desactivados para {broadcasterName}");
-
-                    // Guardar en historial sin enviar mensaje
-                    _dbContext.FollowAlertHistories.Add(new Decatron.Core.Models.FollowAlertHistory
-                    {
-                        ChannelName = channelNameLower,
-                        FollowerUsername = userName.ToLower(),
-                        FollowedAt = followedAt,
-                        MessageSent = false,
-                        CreatedAt = DateTime.UtcNow
-                    });
-                    await _dbContext.SaveChangesAsync();
-                    return;
-                }
-
-                // Verificar cooldown
-                var cooldownMinutes = config.CooldownMinutes;
-                var cooldownCutoff = DateTime.UtcNow.AddMinutes(-cooldownMinutes);
-
-                var recentFollow = await _dbContext.FollowAlertHistories
-                    .Where(f => f.ChannelName == channelNameLower &&
-                                f.FollowerUsername == userName.ToLower() &&
-                                f.FollowedAt >= cooldownCutoff)
-                    .OrderByDescending(f => f.FollowedAt)
-                    .FirstOrDefaultAsync();
-
-                bool shouldSendMessage = recentFollow == null;
-
-                if (!shouldSendMessage)
-                {
-                    var minutesSinceLastFollow = (DateTime.UtcNow - recentFollow.FollowedAt).TotalMinutes;
-                    _logger.LogInformation($"⏱️ [FOLLOW] {userName} en cooldown ({minutesSinceLastFollow:F1}/{cooldownMinutes} minutos)");
-                }
-
-                // Guardar en historial
-                _dbContext.FollowAlertHistories.Add(new Decatron.Core.Models.FollowAlertHistory
-                {
-                    ChannelName = channelNameLower,
-                    FollowerUsername = userName.ToLower(),
-                    FollowedAt = followedAt,
-                    MessageSent = shouldSendMessage,
-                    CreatedAt = DateTime.UtcNow
-                });
-                await _dbContext.SaveChangesAsync();
-
-                // Enviar mensaje si debe
-                if (shouldSendMessage)
-                {
-                    var message = config.Message.Replace("{username}", userName);
-                    await _twitchBotService.SendMessage(channelNameLower, message);
-                    _logger.LogInformation($"✅ [FOLLOW] Mensaje enviado: {message}");
-                }
-
-                // ⚡ NUEVO: Procesar evento de follow para el timer
+                // ⚡ Procesar evento de follow para el timer
                 try
                 {
                     await _timerEventService.ProcessFollowEventAsync(broadcasterName, userName, userId);
@@ -781,7 +776,7 @@ namespace Decatron.Controllers
                     _logger.LogError(timerEx, $"Error procesando follow para timer: {userName}");
                 }
 
-                // 🎉 Event Alert
+                // 🎉 Event Alert (overlay + chat message configurado en event alerts)
                 try
                 {
                     await _eventAlertsService.TriggerAlertAsync(channelNameLower, "follow", userName);

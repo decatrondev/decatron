@@ -21,3 +21,4 @@ export { OverlayTab } from './OverlayTab';
 export { ThemeTab } from './ThemeTab';
 export { RafflesTab } from './RafflesTab';
 export { GuideTab } from './GuideTab';
+export { WidgetsTab } from './WidgetsTab';

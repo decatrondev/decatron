@@ -1,3 +1,4 @@
+using Decatron.Core.Helpers;
 using Decatron.Core.Interfaces;
 using Decatron.Core.Models;
 using Decatron.Data;
@@ -53,6 +54,7 @@ namespace Decatron.Services
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly TimerEventService _timerEventService;
         private readonly ITtsService _ttsService;
+        private readonly ITtsCreditService _creditService;
         private readonly IGachaService _gachaService;
 
         public TipsService(
@@ -61,6 +63,7 @@ namespace Decatron.Services
             OverlayNotificationService overlayNotificationService,
             TimerEventService timerEventService,
             ITtsService ttsService,
+            ITtsCreditService creditService,
             IGachaService gachaService)
         {
             _context = context;
@@ -68,6 +71,7 @@ namespace Decatron.Services
             _overlayNotificationService = overlayNotificationService;
             _timerEventService = timerEventService;
             _ttsService = ttsService;
+            _creditService = creditService;
             _gachaService = gachaService;
         }
 
@@ -79,6 +83,12 @@ namespace Decatron.Services
 
         public async Task<TipsConfig?> GetConfigByChannel(string channelName)
         {
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
+            if (channelUserId != null)
+            {
+                var config = await _context.TipsConfigs.FirstOrDefaultAsync(c => c.UserId == channelUserId);
+                if (config != null) return config;
+            }
             return await _context.TipsConfigs
                 .FirstOrDefaultAsync(c => c.ChannelName.ToLower() == channelName.ToLower());
         }
@@ -161,9 +171,11 @@ namespace Decatron.Services
                 timeAdded = (int)(amount * config.SecondsPerCurrency * unitMultiplier);
             }
 
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName) ?? 0;
             var tip = new TipHistory
             {
                 ChannelName = channelName,
+                UserId = channelUserId,
                 DonorName = donorName,
                 DonorEmail = donorEmail,
                 Amount = amount,
@@ -347,22 +359,28 @@ namespace Decatron.Services
                     catch { }
                 }
 
-                if (ttsConfig?.Enabled == true)
+                if (ttsConfig?.Enabled == true && config != null)
                 {
                     // Generate TTS for template
                     if (!string.IsNullOrEmpty(ttsConfig.Template))
                     {
-                        var templateText = ttsConfig.Template
-                            .Replace("{donorName}", tip.DonorName)
-                            .Replace("{amount}", FormatAmount(tip.Amount, tip.Currency))
-                            .Replace("{message}", tip.Message ?? "");
+                        // Las plantillas predefinidas del panel usan {userName}; antes aquí
+                        // solo se sustituía {donorName} y se leía el marcador en voz alta.
+                        var templateText = AlertTemplateVars.Replace(
+                            ttsConfig.Template,
+                            tip.DonorName,
+                            FormatAmount(tip.Amount, tip.Currency),
+                            userMessage: tip.Message ?? "");
 
-                        ttsTemplateUrl = await _ttsService.GenerateAsync(
+                        ttsTemplateUrl = await _creditService.GenerateWithCreditsAsync(
+                            config.UserId,
                             templateText,
-                            ttsConfig.Voice ?? "Lupe",
+                            ttsConfig.SelectedVoice,
                             ttsConfig.Engine ?? "standard",
                             ttsConfig.LanguageCode ?? "es-US",
-                            tip.ChannelName);
+                            "tips",
+                            tip.ChannelName,
+                            ttsConfig.Provider ?? "polly");
                         ttsTemplateVolume = ttsConfig.TemplateVolume ?? 80;
                     }
 
@@ -375,12 +393,15 @@ namespace Decatron.Services
                             userMessage = userMessage.Substring(0, ttsConfig.MaxChars);
                         }
 
-                        ttsUserMessageUrl = await _ttsService.GenerateAsync(
+                        ttsUserMessageUrl = await _creditService.GenerateWithCreditsAsync(
+                            config.UserId,
                             userMessage,
-                            ttsConfig.Voice ?? "Lupe",
+                            ttsConfig.SelectedVoice,
                             ttsConfig.Engine ?? "standard",
                             ttsConfig.LanguageCode ?? "es-US",
-                            tip.ChannelName);
+                            "tips",
+                            tip.ChannelName,
+                            ttsConfig.Provider ?? "polly");
                         ttsUserMessageVolume = ttsConfig.UserMessageVolume ?? 80;
                     }
                 }
@@ -714,6 +735,16 @@ namespace Decatron.Services
             public bool? ReadUserMessage { get; set; }
             public int? UserMessageVolume { get; set; }
             public int MaxChars { get; set; } = 150;
+
+            /// <summary>"polly" gasta créditos premium; "piper", los estándar del servidor.</summary>
+            public string? Provider { get; set; }
+
+            /// <summary>Id de la voz de Piper cuando Provider es "piper" (es_MX-claude-high).</summary>
+            public string? StandardVoice { get; set; }
+
+            /// <summary>La voz que toca según el proveedor elegido.</summary>
+            public string SelectedVoice =>
+                Provider == "piper" ? (StandardVoice ?? "") : (Voice ?? "Lupe");
         }
 
         private static string FormatAmount(decimal amount, string currency)

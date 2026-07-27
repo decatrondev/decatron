@@ -16,7 +16,8 @@ import type {
     GoalConfig,
     AdvancedConfig,
     HistoryConfig,
-    TimeUnit
+    TimeUnit,
+    WidgetsConfig
 } from '../types';
 
 // ============================================================================
@@ -376,3 +377,57 @@ export const DEFAULT_HISTORY_CONFIG: HistoryConfig = {
 
 export const DEFAULT_PREVIEW_TIME = 150; // 2:30 default
 export const DEFAULT_PREVIEW_RUNNING = true;
+
+// ============================================================================
+// WIDGETS CONFIGURATION
+// ============================================================================
+
+const defaultWidget = (label: string, x: number, y: number) => ({
+    enabled: false,
+    position: { x, y },
+    fontSize: 18,
+    textColor: '#ffffff',
+    label,
+    fontFamily: 'Inter',
+    fontWeight: 'bold',
+    textShadow: 'normal' as const,
+});
+
+export const DEFAULT_WIDGETS_CONFIG: WidgetsConfig = {
+    stats: {
+        enabled: false,
+        widgets: {
+            subsToday: defaultWidget('SUBS HOY', 50, 10),
+            totalSubs: defaultWidget('TOTAL SUBS', 200, 10),
+            bitsToday: defaultWidget('BITS HOY', 350, 10),
+            tipsToday: defaultWidget('TIPS HOY', 500, 10),
+            totalRevenue: defaultWidget('RECAUDADO', 650, 10),
+            eventCount: defaultWidget('EVENTOS', 800, 10),
+        }
+    },
+    uptime: {
+        enabled: false,
+        position: { x: 50, y: 40 },
+        fontSize: 20,
+        textColor: '#00ff88',
+        label: 'EN VIVO',
+        fontFamily: 'Inter',
+        fontWeight: 'bold',
+        textShadow: 'glow',
+    },
+    happyHour: {
+        enabled: false,
+        position: { x: 350, y: 270 },
+        fontSize: 16,
+        textColor: '#ffffff',
+        backgroundColor: 'rgba(255, 100, 0, 0.8)',
+        label: 'HAPPY HOUR',
+        showMultiplier: true,
+        showCountdown: true,
+        fontFamily: 'Inter',
+        fontWeight: 'bold',
+        textShadow: 'normal',
+        borderRadius: 8,
+        padding: 8,
+    }
+};
