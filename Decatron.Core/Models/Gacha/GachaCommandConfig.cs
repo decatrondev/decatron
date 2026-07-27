@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Decatron.Core.Models.Gacha
 {
-    [Table("gacha_items")]
-    public class GachaItem
+    [Table("gacha_command_configs")]
+    public class GachaCommandConfig
     {
         [Key]
         [Column("id")]
@@ -22,21 +22,25 @@ namespace Decatron.Core.Models.Gacha
         public Decatron.Core.Models.User? ChannelUser { get; set; }
 
         [Required]
-        [Column("name")]
-        [MaxLength(255)]
-        public string Name { get; set; } = "";
-
-        [Required]
-        [Column("rarity")]
+        [Column("command")]
         [MaxLength(50)]
-        public string Rarity { get; set; } = "common";
+        public string Command { get; set; } = "";
 
-        [Column("image")]
-        [MaxLength(500)]
-        public string? Image { get; set; }
+        [Column("enabled")]
+        public bool Enabled { get; set; } = true;
 
-        [Column("available")]
-        public bool Available { get; set; } = true;
+        [Column("permission")]
+        [MaxLength(20)]
+        public string Permission { get; set; } = "everyone";
+
+        [Column("cooldown_global")]
+        public int CooldownGlobal { get; set; } = 0;
+
+        [Column("cooldown_user")]
+        public int CooldownUser { get; set; } = 3;
+
+        [Column("custom_response")]
+        public string? CustomResponse { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

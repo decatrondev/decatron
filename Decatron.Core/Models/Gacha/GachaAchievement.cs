@@ -16,6 +16,12 @@ namespace Decatron.Core.Models.Gacha
         [MaxLength(100)]
         public string? ChannelName { get; set; }
 
+        [Column("user_id")]
+        public long? UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public Decatron.Core.Models.User? ChannelUser { get; set; }
+
         [Required]
         [Column("code")]
         [MaxLength(50)]

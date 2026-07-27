@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dices, Shield, Sparkles, BarChart3, Clock, Image, Users, Monitor, Link2 } from 'lucide-react';
+import { Dices, Shield, Sparkles, BarChart3, Clock, Image, Users, Monitor, Volume2, Link2, Terminal } from 'lucide-react';
 import type { GachaTabType } from './types';
 import { ItemsTab } from './components/tabs/ItemsTab';
 import { RestrictionsTab } from './components/tabs/RestrictionsTab';
@@ -10,6 +10,8 @@ import { BannersTab } from './components/tabs/BannersTab';
 import { ParticipantsTab } from './components/tabs/ParticipantsTab';
 import { OverlayTab } from './components/tabs/OverlayTab';
 import { IntegrationsTab } from './components/tabs/IntegrationsTab';
+import { CommandsTab } from './components/tabs/CommandsTab';
+import { SoundsTab } from './components/tabs/SoundsTab';
 
 const TABS: { id: GachaTabType; label: string; icon: React.ReactNode }[] = [
     { id: 'items',               label: 'Items',           icon: <Dices className="w-4 h-4" /> },
@@ -20,7 +22,9 @@ const TABS: { id: GachaTabType; label: string; icon: React.ReactNode }[] = [
     { id: 'banners',             label: 'Banners',         icon: <Image className="w-4 h-4" /> },
     { id: 'participants',        label: 'Participantes',   icon: <Users className="w-4 h-4" /> },
     { id: 'overlay',             label: 'Overlay',         icon: <Monitor className="w-4 h-4" /> },
+    { id: 'sounds',              label: 'Sonidos',         icon: <Volume2 className="w-4 h-4" /> },
     { id: 'integrations',        label: 'Integraciones',   icon: <Link2 className="w-4 h-4" /> },
+    { id: 'commands',            label: 'Comandos',        icon: <Terminal className="w-4 h-4" /> },
 ];
 
 export default function GachaConfig() {
@@ -63,7 +67,9 @@ export default function GachaConfig() {
             {activeTab === 'banners' && <BannersTab />}
             {activeTab === 'participants' && <ParticipantsTab />}
             {activeTab === 'overlay' && <OverlayTab />}
+            {activeTab === 'sounds' && <SoundsTab />}
             {activeTab === 'integrations' && <IntegrationsTab />}
+            {activeTab === 'commands' && <CommandsTab />}
         </div>
     );
 }

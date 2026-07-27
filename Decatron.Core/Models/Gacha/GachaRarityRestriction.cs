@@ -15,6 +15,12 @@ namespace Decatron.Core.Models.Gacha
         [MaxLength(100)]
         public string ChannelName { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public Decatron.Core.Models.User? ChannelUser { get; set; }
+
         [Column("item_id")]
         public int? ItemId { get; set; }
 
@@ -37,6 +43,16 @@ namespace Decatron.Core.Models.Gacha
 
         [Column("is_active")]
         public bool IsActive { get; set; } = true;
+
+        [Column("coin_pull_interval")]
+        public int? CoinPullInterval { get; set; }
+
+        [Column("coin_time_interval")]
+        public int? CoinTimeInterval { get; set; }
+
+        [Column("coin_time_unit")]
+        [MaxLength(10)]
+        public string? CoinTimeUnit { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

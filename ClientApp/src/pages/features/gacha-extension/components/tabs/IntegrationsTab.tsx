@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link2, DollarSign, Coins, Save, Zap, Star, Gift, Diamond } from 'lucide-react';
+import { Link2, DollarSign, Coins, Save, Zap, Star, Gift, Diamond, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 
 interface IntegrationConfig {
@@ -34,6 +34,7 @@ export const IntegrationsTab: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -77,6 +78,46 @@ export const IntegrationsTab: React.FC = () => {
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Conecta eventos de Twitch con el gacha para dar tiros automaticamente</p>
                     </div>
                 </div>
+            </div>
+
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan las integraciones</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Cada integracion convierte <strong className="text-[#1e293b] dark:text-[#f8fafc]">eventos de Twitch</strong> en tiros del gacha automaticamente</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Tips/PayPal</strong> — cada dolar donado = X tiros</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Bits</strong> — cada X bits = 1 tiro</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Subs</strong> — tiros automaticos por tier (Prime, T1, T2, T3)</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">5</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Gift Subs</strong> — tiros para quien regala las subs</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">6</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">DecaCoins</strong> — los viewers compran tiros con la moneda del bot</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Puedes activar o desactivar cada integracion individualmente. Los tiros se dan automaticamente cuando ocurre el evento.
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Bits */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, ChevronDown, ChevronUp, Package, History, DollarSign, Gift, Filter, X, Heart } from 'lucide-react';
+import { Users, Search, ChevronDown, ChevronUp, Package, History, DollarSign, Gift, Filter, X, Heart, Pencil, Eye, EyeOff, Coins, HelpCircle } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaParticipant, GachaInventory, GachaPullLog, GachaCollectionStats, RarityType } from '../../types';
 import { RARITY_CONFIG, RARITY_ORDER, getRarityStars } from '../../types';
@@ -27,7 +27,9 @@ export const ParticipantsTab: React.FC = () => {
     const [donationMsg, setDonationMsg] = useState('');
     const [invFilter, setInvFilter] = useState<RarityType | 'all' | 'redeemed'>('all');
     const [invSearch, setInvSearch] = useState('');
+    const [showHelp, setShowHelp] = useState(false);
     const [mostWished, setMostWished] = useState<WishedItem[]>([]);
+    const [milestones, setMilestones] = useState<{ itemName: string; rarity: string; donationThreshold?: number; coinsThreshold?: number; guarantee: boolean; probability?: number }[]>([]);
 
     const loadParticipants = async () => {
         setLoading(true);
@@ -57,14 +59,24 @@ export const ParticipantsTab: React.FC = () => {
         setInvSearch('');
         setDetailLoading(true);
         try {
-            const [sRes, iRes, lRes] = await Promise.all([
+            const [sRes, iRes, lRes, rRes] = await Promise.all([
                 api.get(`/gacha/stats/${id}`),
                 api.get(`/gacha/inventory/${id}`),
                 api.get(`/gacha/logs/${id}`),
+                api.get('/gacha/restrictions'),
             ]);
             setStats(sRes.data.stats || null);
             setInventory(iRes.data.inventory || []);
             setLogs(lRes.data.logs || []);
+            const restrictions = (rRes.data.restrictions || []).filter((r: any) => r.cumulativeDonationThreshold || r.cumulativeCoinsThreshold);
+            setMilestones(restrictions.map((r: any) => ({
+                itemName: r.item?.name ?? `Item #${r.itemId}`,
+                rarity: r.item?.rarity ?? 'common',
+                donationThreshold: r.cumulativeDonationThreshold,
+                coinsThreshold: r.cumulativeCoinsThreshold,
+                guarantee: r.cumulativeGuarantee,
+                probability: r.cumulativeProbability,
+            })));
         } catch (err) {
             console.error('Error loading participant details', err);
         } finally {
@@ -123,6 +135,38 @@ export const ParticipantsTab: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Participantes y donaciones</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Aqui ves <strong className="text-[#1e293b] dark:text-[#f8fafc]">todos los viewers</strong> que han participado en tu gacha</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>Puedes ver su <strong className="text-[#1e293b] dark:text-[#f8fafc]">inventario</strong>, <strong className="text-[#1e293b] dark:text-[#f8fafc]">historial de pulls</strong> y <strong className="text-[#1e293b] dark:text-[#f8fafc]">progreso de milestones</strong></span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Usa <strong className="text-[#1e293b] dark:text-[#f8fafc]">Donar</strong> para registrar donaciones manuales (ej: donaciones fuera del bot)</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>La seccion <strong className="text-[#1e293b] dark:text-[#f8fafc]">Cartas Mas Deseadas</strong> muestra que cartas quieren mas tus viewers</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> El progreso de milestones es oculto para los viewers. Solo tu lo ves aqui.
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Donation Form */}
             <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
@@ -220,23 +264,28 @@ export const ParticipantsTab: React.FC = () => {
                 ) : (
                     <div className="space-y-2">
                         {/* Header */}
-                        <div className="grid grid-cols-5 gap-4 px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">
-                            <span>Nombre</span><span>Total Donado</span><span>Tiros Usados</span><span>Tiros Disponibles</span><span></span>
+                        <div className="grid grid-cols-7 gap-3 px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">
+                            <span>Nombre</span><span>Donado</span><span>Usados</span><span>Donacion</span><span>Coins</span><span>Coins $</span><span></span>
                         </div>
                         {filtered.map(p => (
                             <div key={p.id}>
                                 <div
-                                    className={`grid grid-cols-5 gap-4 items-center px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                                    className={`grid grid-cols-7 gap-3 items-center px-4 py-3 rounded-xl border cursor-pointer transition-all ${
                                         expandedId === p.id
                                             ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
                                             : 'bg-[#f8fafc] dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-300 dark:hover:border-blue-700'
                                     }`}
                                     onClick={() => toggleExpand(p.id)}
                                 >
-                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{p.name}</span>
+                                    <div className="min-w-0">
+                                        <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] block truncate">{p.displayName ?? p.name}</span>
+                                        {p.displayName && <span className="text-[10px] text-[#94a3b8] block truncate">{p.name}</span>}
+                                    </div>
                                     <span className="text-sm text-green-600 dark:text-green-400 font-bold">${p.donationAmount.toFixed(2)}</span>
                                     <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">{p.pulls}</span>
                                     <span className="text-sm font-bold text-blue-600">{Math.floor(p.effectiveDonation)}</span>
+                                    <span className="text-sm font-bold text-purple-600">{p.coinPullsAvailable}</span>
+                                    <span className="text-xs text-[#94a3b8]">{p.coinsSpentTotal}</span>
                                     <span className="text-right">{expandedId === p.id ? <ChevronUp className="w-4 h-4 text-[#64748b] inline" /> : <ChevronDown className="w-4 h-4 text-[#64748b] inline" />}</span>
                                 </div>
 
@@ -247,6 +296,88 @@ export const ParticipantsTab: React.FC = () => {
                                             <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-4">Cargando detalles...</p>
                                         ) : (
                                             <>
+                                                {/* Display Name & Milestones */}
+                                                <div className="flex flex-wrap gap-2 items-center">
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            const name = prompt('Nombre visible (vacio para restaurar):', p.displayName ?? '');
+                                                            if (name === null) return;
+                                                            try {
+                                                                if (name.trim()) {
+                                                                    await api.put(`/gacha/participants/${p.id}/display-name`, { displayName: name.trim() });
+                                                                } else {
+                                                                    await api.delete(`/gacha/participants/${p.id}/display-name`);
+                                                                }
+                                                                loadParticipants();
+                                                            } catch (err) { console.error(err); }
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors flex items-center gap-1"
+                                                    >
+                                                        <Pencil className="w-3 h-3" /> Editar Nombre
+                                                    </button>
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            try {
+                                                                await api.put(`/gacha/participants/${p.id}/display-name`, { displayName: 'Anonimo' });
+                                                                loadParticipants();
+                                                            } catch (err) { console.error(err); }
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors flex items-center gap-1"
+                                                    >
+                                                        <EyeOff className="w-3 h-3" /> Hacer Anonimo
+                                                    </button>
+                                                    {p.displayName && (
+                                                        <button
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                try {
+                                                                    await api.delete(`/gacha/participants/${p.id}/display-name`);
+                                                                    loadParticipants();
+                                                                } catch (err) { console.error(err); }
+                                                            }}
+                                                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-50 dark:bg-gray-500/10 text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500/20 transition-colors flex items-center gap-1"
+                                                        >
+                                                            <Eye className="w-3 h-3" /> Restaurar Nombre
+                                                        </button>
+                                                    )}
+                                                    {milestones.length > 0 && (
+                                                        <div className="flex flex-col gap-1.5 ml-auto text-xs w-full mt-2">
+                                                            {milestones.map((m, idx) => {
+                                                                const rc = RARITY_CONFIG[m.rarity as RarityType] || RARITY_CONFIG.common;
+                                                                if (m.donationThreshold) {
+                                                                    const pct = Math.min(100, (p.cumulativeDonationProgress / m.donationThreshold) * 100);
+                                                                    return (
+                                                                        <div key={`d${idx}`} className="flex items-center gap-2">
+                                                                            <span className="font-bold whitespace-nowrap" style={{ color: rc.color }}>{m.itemName}</span>
+                                                                            <div className="flex-1 h-3 bg-[#f1f5f9] dark:bg-[#374151] rounded-full overflow-hidden">
+                                                                                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: rc.color }} />
+                                                                            </div>
+                                                                            <span className="font-bold whitespace-nowrap text-[#64748b] dark:text-[#94a3b8]">${p.cumulativeDonationProgress.toFixed(0)} / ${m.donationThreshold}</span>
+                                                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ backgroundColor: rc.bg, color: rc.color }}>{m.guarantee ? 'Garantizado' : `${m.probability}%`}</span>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                if (m.coinsThreshold) {
+                                                                    const pct = Math.min(100, (p.cumulativeCoinsProgress / m.coinsThreshold) * 100);
+                                                                    return (
+                                                                        <div key={`c${idx}`} className="flex items-center gap-2">
+                                                                            <span className="font-bold whitespace-nowrap" style={{ color: rc.color }}>{m.itemName}</span>
+                                                                            <div className="flex-1 h-3 bg-[#f1f5f9] dark:bg-[#374151] rounded-full overflow-hidden">
+                                                                                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: '#a855f7' }} />
+                                                                            </div>
+                                                                            <span className="font-bold whitespace-nowrap text-[#64748b] dark:text-[#94a3b8]">{p.cumulativeCoinsProgress} / {m.coinsThreshold} coins</span>
+                                                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ backgroundColor: rc.bg, color: rc.color }}>{m.guarantee ? 'Garantizado' : `${m.probability}%`}</span>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+
                                                 {/* Stats */}
                                                 {stats && (
                                                     <div>

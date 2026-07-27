@@ -15,6 +15,12 @@ namespace Decatron.Core.Models.Gacha
         [MaxLength(100)]
         public string ChannelName { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public Decatron.Core.Models.User? ChannelUser { get; set; }
+
         [Required]
         [Column("rarity")]
         [MaxLength(50)]
@@ -23,6 +29,9 @@ namespace Decatron.Core.Models.Gacha
         [Required]
         [Column("probability")]
         public decimal Probability { get; set; }
+
+        [Column("coin_probability")]
+        public decimal? CoinProbability { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

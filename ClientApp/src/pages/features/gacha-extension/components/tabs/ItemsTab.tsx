@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Package, X, ImagePlus } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, X, ImagePlus, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaItem, RarityType } from '../../types';
 import { RARITY_CONFIG, getRarityStars } from '../../types';
@@ -28,6 +28,7 @@ export const ItemsTab: React.FC = () => {
     const [form, setForm] = useState<ItemForm>(emptyForm);
     const [saving, setSaving] = useState(false);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     const loadItems = async () => {
         try {
@@ -96,6 +97,38 @@ export const ItemsTab: React.FC = () => {
                 <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">
                     <Plus className="w-4 h-4" /> Agregar Item
                 </button>
+            </div>
+
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como crear cartas para tu gacha</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Haz clic en <strong className="text-[#1e293b] dark:text-[#f8fafc]">Agregar Item</strong> para crear una nueva carta</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>Asigna un <strong className="text-[#1e293b] dark:text-[#f8fafc]">nombre</strong>, sube una <strong className="text-[#1e293b] dark:text-[#f8fafc]">imagen</strong> y selecciona la <strong className="text-[#1e293b] dark:text-[#f8fafc]">rareza</strong> (1-5 estrellas)</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Las cartas se muestran a los viewers cuando las ganan en un pull</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Puedes <strong className="text-[#1e293b] dark:text-[#f8fafc]">editar</strong> o <strong className="text-[#1e293b] dark:text-[#f8fafc]">eliminar</strong> cartas en cualquier momento</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Las imagenes se recomiendan en formato vertical (3:4). Usa JPG o PNG de buena calidad.
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Grid */}

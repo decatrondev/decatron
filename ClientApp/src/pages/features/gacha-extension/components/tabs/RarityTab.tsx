@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, Save, RotateCcw } from 'lucide-react';
+import { BarChart3, Save, RotateCcw, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaRarityConfig, RarityType } from '../../types';
 import { RARITY_CONFIG, getRarityStars } from '../../types';
@@ -12,20 +12,34 @@ const DEFAULTS: Record<RarityType, number> = { common: 50, uncommon: 25, rare: 1
 
 export const RarityTab: React.FC = () => {
     const [probabilities, setProbabilities] = useState<Record<RarityType, number>>({ ...DEFAULTS });
+    const [coinProbabilities, setCoinProbabilities] = useState<Record<RarityType, number | null>>({ common: null, uncommon: null, rare: null, epic: null, legendary: null });
+    const [coinsEnabled, setCoinsEnabled] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     const loadConfig = async () => {
         try {
-            const { data } = await api.get('/gacha/rarity-config');
-            const configs: GachaRarityConfig[] = data.configs || [];
+            const [rarityRes, integrationRes] = await Promise.all([
+                api.get('/gacha/rarity-config'),
+                api.get('/gacha/integration-config')
+            ]);
+            const configs: GachaRarityConfig[] = rarityRes.data.configs || [];
             if (configs.length > 0) {
                 const map = { ...DEFAULTS };
+                const coinMap: Record<RarityType, number | null> = { common: null, uncommon: null, rare: null, epic: null, legendary: null };
                 configs.forEach(c => {
-                    if (c.rarity in map) map[c.rarity as RarityType] = c.probability;
+                    if (c.rarity in map) {
+                        map[c.rarity as RarityType] = c.probability;
+                        coinMap[c.rarity as RarityType] = c.coinProbability ?? null;
+                    }
                 });
                 setProbabilities(map);
+                setCoinProbabilities(coinMap);
+            }
+            if (integrationRes.data.config) {
+                setCoinsEnabled(integrationRes.data.config.coinsEnabled ?? false);
             }
         } catch (err) {
             console.error('Error loading rarity config:', err);
@@ -44,16 +58,30 @@ export const RarityTab: React.FC = () => {
         setSaved(false);
     };
 
+    const handleCoinChange = (rarity: RarityType, value: string) => {
+        setCoinProbabilities(prev => ({ ...prev, [rarity]: value === '' ? null : Number(value) }));
+        setSaved(false);
+    };
+
+    const coinTotal = Object.values(coinProbabilities).reduce((a, b) => a + (b ?? 0), 0);
+    const hasCoinValues = Object.values(coinProbabilities).some(v => v !== null);
+    const coinValid = !hasCoinValues || Math.abs(coinTotal - 100) < 0.01;
+
     const handleReset = () => {
         setProbabilities({ ...DEFAULTS });
+        setCoinProbabilities({ common: null, uncommon: null, rare: null, epic: null, legendary: null });
         setSaved(false);
     };
 
     const handleSave = async () => {
-        if (!isValid) return;
+        if (!isValid || !coinValid) return;
         setSaving(true);
         try {
-            const payload = RARITIES.map(r => ({ rarity: r, probability: probabilities[r] }));
+            const payload = RARITIES.map(r => ({
+                rarity: r,
+                probability: probabilities[r],
+                coinProbability: coinProbabilities[r]
+            }));
             await api.post('/gacha/rarity-config', payload);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
@@ -84,11 +112,50 @@ export const RarityTab: React.FC = () => {
                 </div>
             </div>
 
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan las probabilidades</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Cada rareza tiene un <strong className="text-[#1e293b] dark:text-[#f8fafc]">porcentaje base</strong> de probabilidad de salir en un pull</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>El total debe sumar exactamente <strong className="text-[#1e293b] dark:text-[#f8fafc]">100%</strong></span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Si aceptas <strong className="text-[#1e293b] dark:text-[#f8fafc]">DecaCoins</strong>, puedes configurar probabilidades separadas para tiros con coins</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Si dejas los coins vacios, usaran las mismas probabilidades de donacion</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Los valores por defecto (50/25/15/7/3) son un buen punto de partida. Ajusta segun cuantas cartas tengas de cada rareza.
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <div className={cardClass}>
                 <div className="space-y-5">
+                    {/* Header labels */}
+                    <div className="flex items-center justify-end gap-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">
+                        <span className="w-24 text-center">Donacion %</span>
+                        {coinsEnabled && <span className="w-24 text-center ml-2">Coins %</span>}
+                        <span className="w-6" />
+                    </div>
                     {RARITIES.map(rarity => {
                         const rc = RARITY_CONFIG[rarity];
                         const pct = probabilities[rarity];
+                        const coinPct = coinProbabilities[rarity];
                         return (
                             <div key={rarity} className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -107,6 +174,18 @@ export const RarityTab: React.FC = () => {
                                             value={pct}
                                             onChange={e => handleChange(rarity, Number(e.target.value))}
                                         />
+                                        {coinsEnabled && (
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.1"
+                                                placeholder={String(pct)}
+                                                className={`${inputClass} w-24 text-center ml-2`}
+                                                value={coinPct ?? ''}
+                                                onChange={e => handleCoinChange(rarity, e.target.value)}
+                                            />
+                                        )}
                                         <span className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] w-6">%</span>
                                     </div>
                                 </div>
@@ -139,6 +218,24 @@ export const RarityTab: React.FC = () => {
                     {!isValid && (
                         <p className="text-sm text-red-500 mt-2 font-bold">
                             El total debe ser exactamente 100%. {total > 100 ? `Sobran ${(total - 100).toFixed(1)}%` : `Faltan ${(100 - total).toFixed(1)}%`}
+                        </p>
+                    )}
+                    {coinsEnabled && hasCoinValues && (
+                        <div className="flex items-center justify-between mt-3">
+                            <span className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Total Coins</span>
+                            <span className={`text-sm font-black ${coinValid ? 'text-green-500' : 'text-red-500'}`}>
+                                {coinTotal.toFixed(1)}%
+                            </span>
+                        </div>
+                    )}
+                    {coinsEnabled && hasCoinValues && !coinValid && (
+                        <p className="text-sm text-red-500 mt-1 font-bold">
+                            Coins total debe ser 100%. {coinTotal > 100 ? `Sobran ${(coinTotal - 100).toFixed(1)}%` : `Faltan ${(100 - coinTotal).toFixed(1)}%`}
+                        </p>
+                    )}
+                    {coinsEnabled && !hasCoinValues && (
+                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2 italic">
+                            Coins sin configurar — usaran las mismas probabilidades de donacion
                         </p>
                     )}
                 </div>

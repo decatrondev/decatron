@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Sparkles, X, Globe, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Sparkles, X, Globe, User, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaPreference, GachaItem, GachaParticipant } from '../../types';
 import { RARITY_CONFIG, getRarityStars } from '../../types';
@@ -14,11 +14,12 @@ interface PrefForm {
     itemId: number;
     participantId: number | null;
     probabilityPercentage: number;
+    coinProbabilityOverride: string;
     isActive: boolean;
     scope: PrefScope;
 }
 
-const emptyForm: PrefForm = { itemId: 0, participantId: null, probabilityPercentage: 0, isActive: true, scope: 'global' };
+const emptyForm: PrefForm = { itemId: 0, participantId: null, probabilityPercentage: 0, coinProbabilityOverride: '', isActive: true, scope: 'global' };
 
 export const PreferencesTab: React.FC = () => {
     const [preferences, setPreferences] = useState<GachaPreference[]>([]);
@@ -29,6 +30,7 @@ export const PreferencesTab: React.FC = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [form, setForm] = useState<PrefForm>(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     const loadData = async () => {
         try {
@@ -64,6 +66,7 @@ export const PreferencesTab: React.FC = () => {
             itemId: p.itemId,
             participantId: p.participantId ?? null,
             probabilityPercentage: p.probabilityPercentage,
+            coinProbabilityOverride: p.coinProbabilityOverride != null ? String(p.coinProbabilityOverride) : '',
             isActive: p.isActive,
             scope: p.participantId ? 'individual' : 'global',
         });
@@ -77,6 +80,7 @@ export const PreferencesTab: React.FC = () => {
             itemId: form.itemId,
             participantId: form.scope === 'global' ? null : form.participantId,
             probabilityPercentage: form.probabilityPercentage,
+            coinProbabilityOverride: form.coinProbabilityOverride ? Number(form.coinProbabilityOverride) : null,
             isActive: form.isActive,
         };
         try {
@@ -124,6 +128,38 @@ export const PreferencesTab: React.FC = () => {
                 </div>
             </div>
 
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan las preferencias</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Las preferencias permiten <strong className="text-[#1e293b] dark:text-[#f8fafc]">modificar la probabilidad</strong> de una carta especifica</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Global</strong> — aplica a todos los viewers del canal</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Individual</strong> — aplica solo a un viewer especifico (tiene prioridad sobre global)</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Solo aplican si el viewer cumple el <strong className="text-[#1e293b] dark:text-[#f8fafc]">minimo de donacion</strong> de la carta</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Usa preferencias individuales para premiar a tus mejores donantes con mayor chance de cartas raras.
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {preferences.length === 0 ? (
                 <div className={cardClass}>
                     <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-12">No hay preferencias configuradas.</p>
@@ -156,7 +192,8 @@ export const PreferencesTab: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-4 mt-1 text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                        <span>Probabilidad: <strong>{p.probabilityPercentage}%</strong></span>
+                                        <span>Donacion: <strong>{p.probabilityPercentage}%</strong></span>
+                                        {p.coinProbabilityOverride != null && <span>Coins: <strong>{p.coinProbabilityOverride}%</strong></span>}
                                         <span className={p.isActive ? 'text-green-500' : 'text-red-400'}>{p.isActive ? 'Activa' : 'Inactiva'}</span>
                                     </div>
                                 </div>
@@ -200,8 +237,12 @@ export const PreferencesTab: React.FC = () => {
                                 </div>
                             )}
                             <div>
-                                <label className={labelClass}>Probabilidad (%)</label>
+                                <label className={labelClass}>Probabilidad donacion (%)</label>
                                 <input type="number" min="0" max="100" step="0.1" className={inputClass} value={form.probabilityPercentage} onChange={e => setForm({ ...form, probabilityPercentage: Number(e.target.value) })} />
+                            </div>
+                            <div>
+                                <label className={labelClass}>Probabilidad coins (% — vacio = usa donacion)</label>
+                                <input type="number" min="0" max="100" step="0.1" className={inputClass} value={form.coinProbabilityOverride} onChange={e => setForm({ ...form, coinProbabilityOverride: e.target.value })} placeholder="Misma que donacion" />
                             </div>
                             <div className="flex items-center gap-3">
                                 <label className={labelClass}>Activa</label>

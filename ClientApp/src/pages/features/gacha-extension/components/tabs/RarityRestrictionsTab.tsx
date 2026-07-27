@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Plus, Trash2, X, Globe, User } from 'lucide-react';
+import { Clock, Plus, Trash2, X, Globe, User, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaRarityRestriction, GachaItem, GachaParticipant, RarityType } from '../../types';
 import { RARITY_CONFIG, RARITY_ORDER, getRarityStars } from '../../types';
@@ -9,6 +9,7 @@ export const RarityRestrictionsTab: React.FC = () => {
     const [items, setItems] = useState<GachaItem[]>([]);
     const [participants, setParticipants] = useState<GachaParticipant[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showHelp, setShowHelp] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState({
         itemId: '' as string | number,
@@ -17,6 +18,9 @@ export const RarityRestrictionsTab: React.FC = () => {
         pullInterval: 1,
         timeInterval: 1,
         timeUnit: 'hours',
+        coinPullInterval: '' as string | number,
+        coinTimeInterval: '' as string | number,
+        coinTimeUnit: '',
         isActive: true,
     });
 
@@ -49,10 +53,13 @@ export const RarityRestrictionsTab: React.FC = () => {
                 pullInterval: form.pullInterval,
                 timeInterval: form.timeInterval,
                 timeUnit: form.timeUnit,
+                coinPullInterval: form.coinPullInterval || null,
+                coinTimeInterval: form.coinTimeInterval || null,
+                coinTimeUnit: form.coinTimeUnit || null,
                 isActive: form.isActive,
             });
             setShowModal(false);
-            setForm({ itemId: '', participantId: '', rarity: 'common', pullInterval: 1, timeInterval: 1, timeUnit: 'hours', isActive: true });
+            setForm({ itemId: '', participantId: '', rarity: 'common', pullInterval: 1, timeInterval: 1, timeUnit: 'hours', coinPullInterval: '', coinTimeInterval: '', coinTimeUnit: '', isActive: true });
             loadData();
         } catch (err) {
             console.error('Error creating restriction', err);
@@ -99,6 +106,38 @@ export const RarityRestrictionsTab: React.FC = () => {
                 </button>
             </div>
 
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan los limites de rareza</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Los limites controlan <strong className="text-[#1e293b] dark:text-[#f8fafc]">cada cuanto</strong> puede salir una carta de cada rareza</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Intervalo de pulls</strong> — minimo de tiros entre cartas de la misma rareza (ej: 5 pulls entre legendarias)</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Intervalo de tiempo</strong> — tiempo minimo entre cartas de la misma rareza (ej: 1 hora entre epicas)</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Aplica por <strong className="text-[#1e293b] dark:text-[#f8fafc]">viewer individual</strong>, no globalmente</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Esto evita que un viewer con suerte se lleve todas las legendarias de golpe.
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* List */}
             {loading ? (
                 <p className="text-center text-[#64748b] dark:text-[#94a3b8] py-8">Cargando...</p>
@@ -118,8 +157,10 @@ export const RarityRestrictionsTab: React.FC = () => {
                                     </div>
                                     <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Item: {getItemName(r)}</span>
                                     <span className="text-sm font-bold" style={{ color: cfg?.color }}>{getRarityStars(rarity)} {cfg?.label}</span>
-                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Cada {r.pullInterval} pulls</span>
-                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">o {r.timeInterval} {r.timeUnit}</span>
+                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Donacion: {r.pullInterval} pulls / {r.timeInterval} {r.timeUnit}</span>
+                                    {(r.coinPullInterval || r.coinTimeInterval) && (
+                                        <span className="text-xs text-purple-500 dark:text-purple-400">Coins: {r.coinPullInterval ?? '—'} pulls / {r.coinTimeInterval ?? '—'} {r.coinTimeUnit ?? ''}</span>
+                                    )}
                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${r.isActive ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
                                         {r.isActive ? 'Activo' : 'Inactivo'}
                                     </span>
@@ -189,6 +230,30 @@ export const RarityRestrictionsTab: React.FC = () => {
                                 <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`w-full px-4 py-3 rounded-xl font-bold transition-all ${form.isActive ? 'bg-green-500 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
                                     {form.isActive ? 'Activo' : 'Inactivo'}
                                 </button>
+                            </div>
+                        </div>
+
+                        {/* Coin-specific intervals */}
+                        <div className="pt-3 border-t border-[#e2e8f0] dark:border-[#374151]">
+                            <p className="text-xs font-bold text-purple-600 dark:text-purple-400 mb-2 uppercase tracking-wide">Intervalos para Coins (opcional)</p>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Pulls (coins)</label>
+                                    <input type="number" min={0} value={form.coinPullInterval} onChange={(e) => setForm({ ...form, coinPullInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Tiempo (coins)</label>
+                                    <input type="number" min={0} value={form.coinTimeInterval} onChange={(e) => setForm({ ...form, coinTimeInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                                </div>
+                            </div>
+                            <div className="mt-2">
+                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Unidad tiempo (coins)</label>
+                                <select value={form.coinTimeUnit} onChange={(e) => setForm({ ...form, coinTimeUnit: e.target.value })} className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]">
+                                    <option value="">Usar misma que donacion</option>
+                                    <option value="minutes">Minutos</option>
+                                    <option value="hours">Horas</option>
+                                    <option value="days">Dias</option>
+                                </select>
                             </div>
                         </div>
 

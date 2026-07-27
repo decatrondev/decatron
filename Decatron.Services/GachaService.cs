@@ -4,6 +4,7 @@ using Decatron.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace Decatron.Services
 {
@@ -20,6 +21,7 @@ namespace Decatron.Services
         Task<GachaItemRestriction> CreateRestrictionAsync(GachaItemRestriction restriction);
         Task<GachaItemRestriction> UpdateRestrictionAsync(GachaItemRestriction restriction);
         Task DeleteRestrictionAsync(int id, string channelName);
+        Task ReorderMilestonesAsync(string channelName, List<int> orderedRestrictionIds);
 
         // Preferences CRUD
         Task<List<GachaPreference>> GetPreferencesAsync(string channelName);
@@ -47,6 +49,10 @@ namespace Decatron.Services
         Task<GachaOverlayConfig?> GetOverlayConfigAsync(string channelName);
         Task<GachaOverlayConfig> SaveOverlayConfigAsync(GachaOverlayConfig config);
 
+        // Sound Config
+        Task<GachaSoundConfig?> GetSoundConfigAsync(string channelName);
+        Task<GachaSoundConfig> SaveSoundConfigAsync(GachaSoundConfig config);
+
         // Integration Config
         Task<GachaIntegrationConfig?> GetIntegrationConfigAsync(string channelName);
         Task<GachaIntegrationConfig> SaveIntegrationConfigAsync(GachaIntegrationConfig config);
@@ -61,7 +67,10 @@ namespace Decatron.Services
         Task<GachaParticipant> AddDonationAsync(string channelName, string participantName, decimal amount, string? twitchUserId = null);
 
         // Core Pull Logic
-        Task<GachaPullResult> PerformPullAsync(string channelName, int participantId);
+        Task<GachaPullResult> PerformPullAsync(string channelName, int participantId, string pullType = "donation");
+
+        // Display Name
+        Task UpdateDisplayNameAsync(int participantId, string channelName, string? displayName);
 
         // Collection/Inventory
         Task<List<GachaInventory>> GetInventoryAsync(string channelName, int participantId);
@@ -89,6 +98,13 @@ namespace Decatron.Services
 
         // Coin Purchase
         Task<GachaCoinPurchaseResult> PurchaseWithCoinsAsync(string channelName, string username, long userId, int pullCount);
+
+        // Command Configs
+        Task<List<GachaCommandConfig>> GetCommandConfigsAsync(string channelName);
+        Task<GachaCommandConfig> UpdateCommandConfigAsync(string channelName, string command, GachaCommandConfig config);
+        Task<List<GachaCommandAlias>> GetCommandAliasesAsync(string channelName);
+        Task<GachaCommandAlias> CreateCommandAliasAsync(string channelName, string alias, string targetCommand);
+        Task DeleteCommandAliasAsync(string channelName, string alias);
     }
 
     public class GachaService : IGachaService
@@ -112,6 +128,18 @@ namespace Decatron.Services
             _context = context;
             _overlayService = overlayService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Resolves channelName to userId for INSERT operations.
+        /// </summary>
+        private async Task<long> ResolveChannelUserIdAsync(string channelName)
+        {
+            var userId = await _context.Users
+                .Where(u => u.Login == channelName.ToLower() && u.IsActive)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+            return userId;
         }
 
         // ========================================================================
@@ -193,10 +221,32 @@ namespace Decatron.Services
             existing.IsUnique = restriction.IsUnique;
             existing.CooldownPeriod = restriction.CooldownPeriod;
             existing.CooldownValue = restriction.CooldownValue;
+            existing.AllowedPullTypes = restriction.AllowedPullTypes;
+            existing.CoinMinSpent = restriction.CoinMinSpent;
+            existing.CumulativeDonationThreshold = restriction.CumulativeDonationThreshold;
+            existing.CumulativeCoinsThreshold = restriction.CumulativeCoinsThreshold;
+            existing.CumulativeGuarantee = restriction.CumulativeGuarantee;
+            existing.CumulativeProbability = restriction.CumulativeProbability;
+            existing.MilestonePriority = restriction.MilestonePriority;
             existing.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return existing;
+        }
+
+        public async Task ReorderMilestonesAsync(string channelName, List<int> orderedRestrictionIds)
+        {
+            var restrictions = await _context.GachaItemRestrictions
+                .Where(r => r.ChannelName == channelName)
+                .ToListAsync();
+
+            for (int i = 0; i < orderedRestrictionIds.Count; i++)
+            {
+                var r = restrictions.FirstOrDefault(x => x.Id == orderedRestrictionIds[i]);
+                if (r != null) r.MilestonePriority = i;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteRestrictionAsync(int id, string channelName)
@@ -239,6 +289,7 @@ namespace Decatron.Services
                 throw new KeyNotFoundException("Preferencia no encontrada");
 
             existing.ProbabilityPercentage = preference.ProbabilityPercentage;
+            existing.CoinProbabilityOverride = preference.CoinProbabilityOverride;
             existing.IsActive = preference.IsActive;
             existing.UpdatedAt = DateTime.UtcNow;
 
@@ -287,6 +338,7 @@ namespace Decatron.Services
                 if (existing != null)
                 {
                     existing.Probability = config.Probability;
+                    existing.CoinProbability = config.CoinProbability;
                     existing.UpdatedAt = DateTime.UtcNow;
                 }
                 else
@@ -294,8 +346,10 @@ namespace Decatron.Services
                     _context.GachaRarityConfigs.Add(new GachaRarityConfig
                     {
                         ChannelName = channelName,
+                        UserId = config.UserId,
                         Rarity = config.Rarity,
-                        Probability = config.Probability
+                        Probability = config.Probability,
+                        CoinProbability = config.CoinProbability
                     });
                 }
             }
@@ -334,6 +388,9 @@ namespace Decatron.Services
             existing.PullInterval = restriction.PullInterval;
             existing.TimeInterval = restriction.TimeInterval;
             existing.TimeUnit = restriction.TimeUnit;
+            existing.CoinPullInterval = restriction.CoinPullInterval;
+            existing.CoinTimeInterval = restriction.CoinTimeInterval;
+            existing.CoinTimeUnit = restriction.CoinTimeUnit;
             existing.IsActive = restriction.IsActive;
             existing.UpdatedAt = DateTime.UtcNow;
 
@@ -441,6 +498,40 @@ namespace Decatron.Services
         }
 
         // ========================================================================
+        // SOUND CONFIG
+        // ========================================================================
+
+        public async Task<GachaSoundConfig?> GetSoundConfigAsync(string channelName)
+        {
+            return await _context.GachaSoundConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName);
+        }
+
+        public async Task<GachaSoundConfig> SaveSoundConfigAsync(GachaSoundConfig config)
+        {
+            var existing = await _context.GachaSoundConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == config.ChannelName);
+
+            if (existing != null)
+            {
+                existing.MasterVolume = config.MasterVolume;
+                existing.EnableSounds = config.EnableSounds;
+                existing.SoundsJson = config.SoundsJson;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                config.CreatedAt = DateTime.UtcNow;
+                config.UpdatedAt = DateTime.UtcNow;
+                _context.GachaSoundConfigs.Add(config);
+                existing = config;
+            }
+
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        // ========================================================================
         // PARTICIPANTS & DONATIONS
         // ========================================================================
 
@@ -469,18 +560,22 @@ namespace Decatron.Services
             {
                 participant.DonationAmount += amount;
                 participant.EffectiveDonation += amount;
+                participant.CumulativeDonationProgress += amount;
                 participant.UpdatedAt = DateTime.UtcNow;
                 if (twitchUserId != null) participant.TwitchUserId = twitchUserId;
             }
             else
             {
+                var channelUserId = await ResolveChannelUserIdAsync(channelName);
                 participant = new GachaParticipant
                 {
                     ChannelName = channelName,
+                    UserId = channelUserId,
                     Name = participantName,
                     TwitchUserId = twitchUserId,
                     DonationAmount = amount,
-                    EffectiveDonation = amount
+                    EffectiveDonation = amount,
+                    CumulativeDonationProgress = amount
                 };
                 _context.GachaParticipants.Add(participant);
             }
@@ -497,14 +592,25 @@ namespace Decatron.Services
         // CORE PULL LOGIC
         // ========================================================================
 
-        public async Task<GachaPullResult> PerformPullAsync(string channelName, int participantId)
+        public async Task<GachaPullResult> PerformPullAsync(string channelName, int participantId, string pullType = "donation")
         {
             var participant = await _context.GachaParticipants.FindAsync(participantId);
             if (participant == null || participant.ChannelName != channelName)
                 throw new KeyNotFoundException("Participante no encontrado");
 
-            if (participant.EffectiveDonation < 1)
-                throw new InvalidOperationException("No tienes tiros disponibles");
+            var channelUserId = participant.UserId;
+
+            // Validate pulls available based on type
+            if (pullType == "coins")
+            {
+                if (participant.CoinPullsAvailable < 1)
+                    throw new InvalidOperationException("No tienes tiros de coins disponibles");
+            }
+            else
+            {
+                if (participant.EffectiveDonation < 1)
+                    throw new InvalidOperationException("No tienes tiros disponibles");
+            }
 
             // Load all data
             var items = await _context.GachaItems
@@ -532,33 +638,72 @@ namespace Decatron.Services
                 .Where(r => r.ChannelName == channelName && r.IsActive)
                 .ToListAsync();
 
+            // Check milestone status for this participant
+            var milestoneItemId = await CheckMilestoneEligibility(participant, restrictions, pullType);
+
             // Calculate probabilities for each item
             var itemProbabilities = new List<(GachaItem Item, decimal Probability)>();
 
             foreach (var item in items)
             {
-                var baseProbability = GetBaseProbability(item.Rarity, rarityConfigs);
-                var isEligible = await CheckItemEligibility(item, participant, restrictions, rarityRestrictions);
+                var restriction = restrictions.FirstOrDefault(r => r.ItemId == item.Id);
 
-                if (!isEligible)
+                // Filter by allowed pull types
+                if (restriction != null && restriction.AllowedPullTypes != "all")
                 {
-                    continue;
+                    if (pullType == "coins" && restriction.AllowedPullTypes == "donation_only") continue;
+                    if (pullType == "donation" && restriction.AllowedPullTypes == "coins_only") continue;
                 }
 
-                // Check for preference overrides
-                var restriction = restrictions.FirstOrDefault(r => r.ItemId == item.Id);
+                // Check coin_min_spent for coin pulls
+                if (pullType == "coins" && restriction?.CoinMinSpent != null && participant.CoinsSpentTotal < restriction.CoinMinSpent)
+                    continue;
+
+                var baseProbability = GetBaseProbability(item.Rarity, rarityConfigs, pullType);
+                var isEligible = await CheckItemEligibility(item, participant, restrictions, rarityRestrictions, pullType);
+
+                if (!isEligible) continue;
+
+                // If this item has a milestone guarantee, force it
+                if (milestoneItemId == item.Id)
+                {
+                    // Check milestone config
+                    var milestoneRestriction = restriction;
+                    if (milestoneRestriction != null && milestoneRestriction.CumulativeGuarantee)
+                    {
+                        // Guaranteed: clear all others, only this item
+                        itemProbabilities.Clear();
+                        itemProbabilities.Add((item, 1.0m));
+                        break;
+                    }
+                    else if (milestoneRestriction?.CumulativeProbability != null)
+                    {
+                        // Boosted probability for milestone
+                        itemProbabilities.Add((item, milestoneRestriction.CumulativeProbability.Value / 100m));
+                        continue;
+                    }
+                }
+
+                // Check for preference overrides (pull-type aware)
                 var userPref = userPreferences.FirstOrDefault(p => p.ItemId == item.Id);
                 var globalPref = globalPreferences.FirstOrDefault(p => p.ItemId == item.Id);
 
                 decimal finalProbability = baseProbability;
 
-                if (userPref != null && restriction != null && participant.EffectiveDonation >= restriction.MinDonationRequired)
+                if (userPref != null && restriction != null && participant.DonationAmount >= restriction.MinDonationRequired)
                 {
-                    finalProbability = userPref.ProbabilityPercentage / 100m;
+                    // Use coin override if available for coin pulls
+                    if (pullType == "coins" && userPref.CoinProbabilityOverride.HasValue)
+                        finalProbability = userPref.CoinProbabilityOverride.Value / 100m;
+                    else
+                        finalProbability = userPref.ProbabilityPercentage / 100m;
                 }
-                else if (globalPref != null && restriction != null && participant.EffectiveDonation >= restriction.MinDonationRequired)
+                else if (globalPref != null && restriction != null && participant.DonationAmount >= restriction.MinDonationRequired)
                 {
-                    finalProbability = globalPref.ProbabilityPercentage / 100m;
+                    if (pullType == "coins" && globalPref.CoinProbabilityOverride.HasValue)
+                        finalProbability = globalPref.CoinProbabilityOverride.Value / 100m;
+                    else
+                        finalProbability = globalPref.ProbabilityPercentage / 100m;
                 }
 
                 itemProbabilities.Add((item, finalProbability));
@@ -574,10 +719,41 @@ namespace Decatron.Services
             // Cryptographic random selection
             var selectedItem = CryptoWeightedSelect(normalized);
 
-            // Update database
-            participant.EffectiveDonation -= 1;
+            // Update database — decrement correct counter
+            if (pullType == "coins")
+                participant.CoinPullsAvailable -= 1;
+            else
+                participant.EffectiveDonation -= 1;
+
             participant.Pulls += 1;
             participant.UpdatedAt = DateTime.UtcNow;
+
+            // Deduct milestone threshold if won via milestone (keep excess progress)
+            if (milestoneItemId == selectedItem.Id)
+            {
+                var milestoneRestriction = restrictions.FirstOrDefault(r => r.ItemId == selectedItem.Id);
+                if (pullType == "coins" && milestoneRestriction?.CumulativeCoinsThreshold != null)
+                {
+                    participant.CumulativeCoinsProgress = Math.Max(0,
+                        participant.CumulativeCoinsProgress - milestoneRestriction.CumulativeCoinsThreshold.Value);
+                }
+                else if (milestoneRestriction?.CumulativeDonationThreshold != null)
+                {
+                    participant.CumulativeDonationProgress = Math.Max(0,
+                        participant.CumulativeDonationProgress - milestoneRestriction.CumulativeDonationThreshold.Value);
+                }
+
+                // Track won milestone in current cycle
+                var wonItems = JsonSerializer.Deserialize<List<int>>(participant.MilestoneWonItems ?? "[]") ?? new();
+                if (!wonItems.Contains(selectedItem.Id))
+                    wonItems.Add(selectedItem.Id);
+                participant.MilestoneWonItems = JsonSerializer.Serialize(wonItems);
+
+                _logger.LogInformation("[GACHA] Milestone deducted for {Name} after winning {Item} via {PullType} in {Channel} (donation progress: {DonProg}, coins progress: {CoinProg}, won cycle: [{Won}])",
+                    participant.Name, selectedItem.Name, pullType, channelName,
+                    participant.CumulativeDonationProgress, participant.CumulativeCoinsProgress,
+                    string.Join(",", wonItems));
+            }
 
             // Add to inventory
             var existingInventory = await _context.GachaInventories
@@ -596,6 +772,7 @@ namespace Decatron.Services
                 _context.GachaInventories.Add(new GachaInventory
                 {
                     ChannelName = channelName,
+                    UserId = channelUserId,
                     ParticipantId = participantId,
                     ItemId = selectedItem.Id,
                     Quantity = 1,
@@ -611,20 +788,26 @@ namespace Decatron.Services
                 itemRestriction.UpdatedAt = DateTime.UtcNow;
             }
 
-            // Log the pull
+            // Log the pull with pull_type
             _context.GachaPullLogs.Add(new GachaPullLog
             {
                 ChannelName = channelName,
+                UserId = channelUserId,
                 ParticipantId = participantId,
                 ItemId = selectedItem.Id,
                 Action = "pull",
+                PullType = pullType,
                 OccurredAt = DateTime.UtcNow
             });
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("[GACHA] Pull: {Name} obtuvo {Item} ({Rarity}) en {Channel}",
-                participant.Name, selectedItem.Name, selectedItem.Rarity, channelName);
+            var pullsRemaining = pullType == "coins"
+                ? participant.CoinPullsAvailable
+                : (int)participant.EffectiveDonation;
+
+            _logger.LogInformation("[GACHA] Pull ({PullType}): {Name} obtuvo {Item} ({Rarity}) en {Channel}",
+                pullType, participant.Name, selectedItem.Name, selectedItem.Rarity, channelName);
 
             // Emit overlay event
             if (_overlayService != null)
@@ -635,8 +818,9 @@ namespace Decatron.Services
                     itemName = selectedItem.Name,
                     rarity = selectedItem.Rarity,
                     image = selectedItem.Image,
-                    participantName = participant.Name,
-                    pullsRemaining = (int)participant.EffectiveDonation,
+                    participantName = participant.DisplayName ?? participant.Name,
+                    pullType,
+                    pullsRemaining,
                     timestamp = DateTime.UtcNow
                 });
             }
@@ -648,7 +832,8 @@ namespace Decatron.Services
             {
                 Item = selectedItem,
                 Participant = participant,
-                PullsRemaining = (int)participant.EffectiveDonation
+                PullsRemaining = pullsRemaining,
+                PullType = pullType
             };
         }
 
@@ -702,6 +887,7 @@ namespace Decatron.Services
                 _context.GachaInventories.Add(new GachaInventory
                 {
                     ChannelName = inv.ChannelName,
+                    UserId = inv.UserId,
                     ParticipantId = inv.ParticipantId,
                     ItemId = inv.ItemId,
                     Quantity = 1,
@@ -763,6 +949,9 @@ namespace Decatron.Services
                 existing.PullsPerGift = Math.Max(1, config.PullsPerGift);
                 existing.CoinsEnabled = config.CoinsEnabled;
                 existing.CoinsPerPull = Math.Max(1, config.CoinsPerPull);
+                existing.MultiPullEnabled = config.MultiPullEnabled;
+                existing.MultiPullMax = Math.Clamp(config.MultiPullMax, 1, 50);
+                existing.MultiPullDelay = Math.Clamp(config.MultiPullDelay, 5, 30);
                 existing.UpdatedAt = DateTime.UtcNow;
             }
             else
@@ -896,7 +1085,7 @@ namespace Decatron.Services
             if (userCoins == null || userCoins.Balance < totalCost)
                 throw new InvalidOperationException($"Insufficient coins. Need {totalCost}, have {userCoins?.Balance ?? 0}");
 
-            // 5. Deduct coins
+            // 5. Deduct coins from viewer
             userCoins.Balance -= totalCost;
             userCoins.TotalSpent += totalCost;
             userCoins.UpdatedAt = DateTime.UtcNow;
@@ -911,17 +1100,78 @@ namespace Decatron.Services
                 CreatedAt = DateTime.UtcNow
             });
 
-            // 6. Add pulls
-            var participant = await AddDonationAsync(channelName, username.ToLower(), pullCount);
+            // 6. Transfer coins to streamer
+            var streamer = await _context.Users
+                .FirstOrDefaultAsync(u => u.Login != null && u.Login.ToLower() == channelName.ToLower());
 
-            // 7. Log for daily limit tracking
+            if (streamer != null)
+            {
+                var streamerCoins = await _context.UserCoins.FirstOrDefaultAsync(c => c.UserId == streamer.Id);
+                if (streamerCoins == null)
+                {
+                    streamerCoins = new UserCoins
+                    {
+                        UserId = streamer.Id,
+                        Balance = 0,
+                        TotalEarned = 0,
+                        TotalSpent = 0,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.UserCoins.Add(streamerCoins);
+                }
+
+                streamerCoins.Balance += totalCost;
+                streamerCoins.TotalEarned += totalCost;
+                streamerCoins.UpdatedAt = DateTime.UtcNow;
+
+                _context.CoinTransactions.Add(new CoinTransaction
+                {
+                    UserId = streamer.Id,
+                    Amount = totalCost,
+                    BalanceAfter = streamerCoins.Balance,
+                    Type = "transfer_in",
+                    Description = $"Gacha purchase from {username}: {pullCount} pulls",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // 7. Add pulls as coin pulls (NOT donation pulls)
+            var participantName = username.ToLower().Trim();
+            var participant = await GetParticipantByNameAsync(channelName, participantName);
+            if (participant != null)
+            {
+                participant.CoinPullsAvailable += pullCount;
+                participant.CoinsSpentTotal += totalCost;
+                participant.CumulativeCoinsProgress += totalCost;
+                participant.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                var channelUserId = await ResolveChannelUserIdAsync(channelName);
+                participant = new GachaParticipant
+                {
+                    ChannelName = channelName,
+                    UserId = channelUserId,
+                    Name = participantName,
+                    CoinPullsAvailable = pullCount,
+                    CoinsSpentTotal = totalCost,
+                    CumulativeCoinsProgress = totalCost
+                };
+                _context.GachaParticipants.Add(participant);
+                await _context.SaveChangesAsync(); // Save to get participant.Id
+            }
+
+            // 8. Log for daily limit tracking
             _context.GachaPullLogs.Add(new GachaPullLog
             {
                 ChannelName = channelName,
+                UserId = participant.UserId,
                 ParticipantId = participant.Id,
                 ItemId = null,
                 Action = "coin_purchase",
                 Amount = totalCost,
+                PullType = "coins",
                 OccurredAt = DateTime.UtcNow
             });
 
@@ -1147,6 +1397,119 @@ namespace Decatron.Services
         }
 
         // ========================================================================
+        // DISPLAY NAME
+        // ========================================================================
+
+        public async Task UpdateDisplayNameAsync(int participantId, string channelName, string? displayName)
+        {
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null || participant.ChannelName != channelName)
+                throw new KeyNotFoundException("Participante no encontrado");
+
+            participant.DisplayName = string.IsNullOrWhiteSpace(displayName) ? null : displayName.Trim();
+            participant.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+
+        // ========================================================================
+        // COMMAND CONFIGS
+        // ========================================================================
+
+        private static readonly string[] DefaultCommands = { "pull", "pulls", "col", "buy", "price", "donate", "pause", "resume" };
+
+        public async Task<List<GachaCommandConfig>> GetCommandConfigsAsync(string channelName)
+        {
+            var configs = await _context.GachaCommandConfigs
+                .Where(c => c.ChannelName == channelName)
+                .OrderBy(c => c.Command)
+                .ToListAsync();
+
+            // Seed defaults if none exist
+            if (configs.Count == 0)
+            {
+                var channelUserId = await ResolveChannelUserIdAsync(channelName);
+                foreach (var cmd in DefaultCommands)
+                {
+                    var config = new GachaCommandConfig
+                    {
+                        ChannelName = channelName,
+                        UserId = channelUserId,
+                        Command = cmd,
+                        Permission = cmd == "donate" ? "moderator" : "everyone",
+                        CooldownUser = cmd == "pull" ? 3 : 0
+                    };
+                    _context.GachaCommandConfigs.Add(config);
+                    configs.Add(config);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return configs;
+        }
+
+        public async Task<GachaCommandConfig> UpdateCommandConfigAsync(string channelName, string command, GachaCommandConfig update)
+        {
+            var existing = await _context.GachaCommandConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName && c.Command == command);
+
+            if (existing == null)
+                throw new KeyNotFoundException($"Comando '{command}' no encontrado");
+
+            existing.Enabled = update.Enabled;
+            existing.Permission = update.Permission;
+            existing.CooldownGlobal = update.CooldownGlobal;
+            existing.CooldownUser = update.CooldownUser;
+            existing.CustomResponse = update.CustomResponse;
+            existing.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        public async Task<List<GachaCommandAlias>> GetCommandAliasesAsync(string channelName)
+        {
+            return await _context.GachaCommandAliases
+                .Where(a => a.ChannelName == channelName)
+                .OrderBy(a => a.Alias)
+                .ToListAsync();
+        }
+
+        public async Task<GachaCommandAlias> CreateCommandAliasAsync(string channelName, string alias, string targetCommand)
+        {
+            alias = alias.ToLower().Trim().TrimStart('!');
+            if (string.IsNullOrWhiteSpace(alias))
+                throw new ArgumentException("El alias no puede estar vacio");
+            if (!DefaultCommands.Contains(targetCommand))
+                throw new ArgumentException($"Comando destino '{targetCommand}' no es valido");
+
+            var exists = await _context.GachaCommandAliases
+                .AnyAsync(a => a.ChannelName == channelName && a.Alias == alias);
+            if (exists)
+                throw new InvalidOperationException($"El alias '!{alias}' ya existe");
+
+            var channelUserId = await ResolveChannelUserIdAsync(channelName);
+            var entry = new GachaCommandAlias
+            {
+                ChannelName = channelName,
+                UserId = channelUserId,
+                Alias = alias,
+                TargetCommand = targetCommand
+            };
+            _context.GachaCommandAliases.Add(entry);
+            await _context.SaveChangesAsync();
+            return entry;
+        }
+
+        public async Task DeleteCommandAliasAsync(string channelName, string alias)
+        {
+            var entry = await _context.GachaCommandAliases
+                .FirstOrDefaultAsync(a => a.ChannelName == channelName && a.Alias == alias.ToLower().Trim());
+            if (entry == null) throw new KeyNotFoundException("Alias no encontrado");
+            _context.GachaCommandAliases.Remove(entry);
+            await _context.SaveChangesAsync();
+        }
+
+        // ========================================================================
         // ADVANCED STATS
         // ========================================================================
 
@@ -1229,6 +1592,10 @@ namespace Decatron.Services
             var completionPercentage = totalAvailable > 0
                 ? Math.Round((double)uniqueOwned / totalAvailable * 100, 1) : 0;
 
+            // Pulls by type
+            var donationPulls = pullLogs.Count(l => l.Action == "pull" && l.PullType == "donation");
+            var coinPulls = pullLogs.Count(l => l.Action == "pull" && l.PullType == "coins");
+
             return new
             {
                 luckScore,
@@ -1240,7 +1607,14 @@ namespace Decatron.Services
                 totalPulls,
                 legendaryPulls,
                 actualLegendaryPct = Math.Round(actualLegendaryPct, 2),
-                expectedLegendaryPct
+                expectedLegendaryPct,
+                donationPulls,
+                coinPulls,
+                coinPullsAvailable = participant.CoinPullsAvailable,
+                donationPullsAvailable = (int)participant.EffectiveDonation,
+                coinsSpentTotal = participant.CoinsSpentTotal,
+                cumulativeDonationProgress = participant.CumulativeDonationProgress,
+                cumulativeCoinsProgress = participant.CumulativeCoinsProgress
             };
         }
 
@@ -1248,10 +1622,16 @@ namespace Decatron.Services
         // PRIVATE HELPERS
         // ========================================================================
 
-        private decimal GetBaseProbability(string rarity, List<GachaRarityConfig> configs)
+        private decimal GetBaseProbability(string rarity, List<GachaRarityConfig> configs, string pullType = "donation")
         {
             var config = configs.FirstOrDefault(c => c.Rarity == rarity.ToLower());
-            if (config != null) return config.Probability / 100m;
+            if (config != null)
+            {
+                // Use coin probability if available and pull type is coins
+                if (pullType == "coins" && config.CoinProbability.HasValue)
+                    return config.CoinProbability.Value / 100m;
+                return config.Probability / 100m;
+            }
             return DefaultProbabilities.GetValueOrDefault(rarity.ToLower(), 50m) / 100m;
         }
 
@@ -1259,14 +1639,15 @@ namespace Decatron.Services
             GachaItem item,
             GachaParticipant participant,
             List<GachaItemRestriction> restrictions,
-            List<GachaRarityRestriction> rarityRestrictions)
+            List<GachaRarityRestriction> rarityRestrictions,
+            string pullType = "donation")
         {
             var restriction = restrictions.FirstOrDefault(r => r.ItemId == item.Id);
 
             if (restriction != null)
             {
-                // Min donation check
-                if (participant.EffectiveDonation < restriction.MinDonationRequired)
+                // Min donation check (only for donation pulls) — uses total historical, not available pulls
+                if (pullType == "donation" && participant.DonationAmount < restriction.MinDonationRequired)
                     return false;
 
                 // Total quantity exhausted
@@ -1317,13 +1698,18 @@ namespace Decatron.Services
 
             foreach (var rr in applicableRarityRestrictions)
             {
-                // Pull interval: minimum pulls since last win of this rarity
-                if (rr.PullInterval.HasValue && rr.PullInterval > 0)
+                // Pull interval: use coin-specific interval if available for coin pulls
+                var effectivePullInterval = (pullType == "coins" && rr.CoinPullInterval.HasValue)
+                    ? rr.CoinPullInterval.Value
+                    : rr.PullInterval ?? 0;
+
+                if (effectivePullInterval > 0)
                 {
                     var lastRarityWin = await _context.GachaPullLogs
                         .Include(l => l.Item)
                         .Where(l => l.ParticipantId == participant.Id
                                  && l.ChannelName == item.ChannelName
+                                 && l.PullType == pullType
                                  && l.Item != null && l.Item.Rarity == item.Rarity)
                         .OrderByDescending(l => l.OccurredAt)
                         .FirstOrDefaultAsync();
@@ -1333,20 +1719,29 @@ namespace Decatron.Services
                         var pullsSince = await _context.GachaPullLogs
                             .CountAsync(l => l.ParticipantId == participant.Id
                                           && l.ChannelName == item.ChannelName
+                                          && l.PullType == pullType
                                           && l.OccurredAt > lastRarityWin.OccurredAt);
 
-                        if (pullsSince < rr.PullInterval.Value)
+                        if (pullsSince < effectivePullInterval)
                             return false;
                     }
                 }
 
-                // Time interval: minimum time since last win of this rarity
-                if (rr.TimeInterval.HasValue && rr.TimeInterval > 0 && !string.IsNullOrEmpty(rr.TimeUnit))
+                // Time interval: use coin-specific interval if available for coin pulls
+                var effectiveTimeInterval = (pullType == "coins" && rr.CoinTimeInterval.HasValue)
+                    ? rr.CoinTimeInterval.Value
+                    : rr.TimeInterval ?? 0;
+                var effectiveTimeUnit = (pullType == "coins" && !string.IsNullOrEmpty(rr.CoinTimeUnit))
+                    ? rr.CoinTimeUnit!
+                    : rr.TimeUnit;
+
+                if (effectiveTimeInterval > 0 && !string.IsNullOrEmpty(effectiveTimeUnit))
                 {
                     var lastRarityWinTime = await _context.GachaPullLogs
                         .Include(l => l.Item)
                         .Where(l => l.ParticipantId == participant.Id
                                  && l.ChannelName == item.ChannelName
+                                 && l.PullType == pullType
                                  && l.Item != null && l.Item.Rarity == item.Rarity)
                         .OrderByDescending(l => l.OccurredAt)
                         .Select(l => (DateTime?)l.OccurredAt)
@@ -1354,11 +1749,11 @@ namespace Decatron.Services
 
                     if (lastRarityWinTime.HasValue)
                     {
-                        var interval = rr.TimeUnit switch
+                        var interval = effectiveTimeUnit switch
                         {
-                            "minutes" => TimeSpan.FromMinutes(rr.TimeInterval.Value),
-                            "hours" => TimeSpan.FromHours(rr.TimeInterval.Value),
-                            "days" => TimeSpan.FromDays(rr.TimeInterval.Value),
+                            "minutes" => TimeSpan.FromMinutes(effectiveTimeInterval),
+                            "hours" => TimeSpan.FromHours(effectiveTimeInterval),
+                            "days" => TimeSpan.FromDays(effectiveTimeInterval),
                             _ => TimeSpan.Zero
                         };
 
@@ -1370,6 +1765,69 @@ namespace Decatron.Services
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Checks if participant has reached any cumulative milestone threshold.
+        /// Returns the item ID that should be awarded, or null if no milestone met.
+        /// Evaluates cheapest threshold first, skips already-won milestones in current cycle.
+        /// When all milestones are won, resets the cycle.
+        /// </summary>
+        private async Task<int?> CheckMilestoneEligibility(
+            GachaParticipant participant,
+            List<GachaItemRestriction> restrictions,
+            string pullType)
+        {
+            // Parse won milestones for current cycle
+            var wonItems = JsonSerializer.Deserialize<List<int>>(participant.MilestoneWonItems ?? "[]") ?? new();
+
+            // Get milestone restrictions sorted by streamer priority, then threshold ascending as fallback
+            List<GachaItemRestriction> milestoneRestrictions;
+            if (pullType == "coins")
+            {
+                milestoneRestrictions = restrictions
+                    .Where(r => r.CumulativeCoinsThreshold.HasValue)
+                    .OrderBy(r => r.MilestonePriority)
+                    .ThenBy(r => r.CumulativeCoinsThreshold!.Value)
+                    .ToList();
+            }
+            else
+            {
+                milestoneRestrictions = restrictions
+                    .Where(r => r.CumulativeDonationThreshold.HasValue)
+                    .OrderBy(r => r.MilestonePriority)
+                    .ThenBy(r => r.CumulativeDonationThreshold!.Value)
+                    .ToList();
+            }
+
+            if (milestoneRestrictions.Count == 0) return null;
+
+            // If all milestones already won in this cycle, reset and start new cycle
+            var allMilestoneItemIds = milestoneRestrictions.Select(r => r.ItemId).ToHashSet();
+            if (allMilestoneItemIds.All(id => wonItems.Contains(id)))
+            {
+                wonItems.Clear();
+                participant.MilestoneWonItems = "[]";
+            }
+
+            // Find first eligible milestone not yet won in this cycle
+            foreach (var restriction in milestoneRestrictions)
+            {
+                if (wonItems.Contains(restriction.ItemId)) continue;
+
+                if (pullType == "coins")
+                {
+                    if (participant.CumulativeCoinsProgress >= restriction.CumulativeCoinsThreshold!.Value)
+                        return restriction.ItemId;
+                }
+                else
+                {
+                    if (participant.CumulativeDonationProgress >= restriction.CumulativeDonationThreshold!.Value)
+                        return restriction.ItemId;
+                }
+            }
+
+            return null;
         }
 
         private static GachaItem CryptoWeightedSelect(List<(GachaItem Item, decimal Probability)> items)
@@ -1390,12 +1848,14 @@ namespace Decatron.Services
 
         private async Task<List<GachaRarityConfig>> SeedDefaultRarityConfigsAsync(string channelName)
         {
+            var channelUserId = await ResolveChannelUserIdAsync(channelName);
             var configs = new List<GachaRarityConfig>();
             foreach (var (rarity, probability) in DefaultProbabilities)
             {
                 var config = new GachaRarityConfig
                 {
                     ChannelName = channelName,
+                    UserId = channelUserId,
                     Rarity = rarity,
                     Probability = probability
                 };
@@ -1416,6 +1876,7 @@ namespace Decatron.Services
         public GachaItem Item { get; set; } = null!;
         public GachaParticipant Participant { get; set; } = null!;
         public int PullsRemaining { get; set; }
+        public string PullType { get; set; } = "donation";
     }
 
     public class GachaCollectionStats

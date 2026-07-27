@@ -21,7 +21,7 @@ interface CollectionData {
     participant: { name: string; donationAmount: number; pulls: number; effectiveDonation: number } | null;
     stats: { uniqueCards: number; totalCards: number; totalAvailable: number; pullsUsed: number; totalDonated: number; byRarity: Record<string, number> };
     inventory: { id: number; itemId: number; name: string; rarity: string; image?: string; quantity: number; isRedeemed: boolean; lastWonAt: string }[];
-    history: { id: number; itemName: string; rarity: string; image?: string; occurredAt: string }[];
+    history: { id: number; itemName: string; rarity: string; image?: string; pullType?: string; occurredAt: string }[];
     progress: { rarity: string; owned: number; total: number; percentage: number }[];
     showcase?: { itemId: number; name: string; rarity: string; image?: string; position: number }[];
     achievements?: { code: string; name: string; description: string; icon: string; badgeRarity: string; isUnlocked: boolean; unlockedAt?: string }[];
@@ -410,6 +410,9 @@ export default function GachaCollection() {
                                             <p className="text-xs font-bold truncate">{h.itemName}</p>
                                             <p className="text-[10px]" style={{ color: rc.color }}>{rc.stars} {rc.label}</p>
                                         </div>
+                                        {h.pullType === 'coins' && (
+                                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-purple-500/20 text-purple-400">COINS</span>
+                                        )}
                                         <span className="text-[10px] text-gray-500 whitespace-nowrap">{new Date(h.occurredAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
                                 );

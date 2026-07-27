@@ -12,6 +12,31 @@ interface GachaPullEvent {
     timestamp: string;
 }
 
+interface SoundEventConfig {
+    enabled: boolean;
+    volume: number;
+    url: string | null;
+    useDefault: boolean;
+}
+
+interface SoundConfig {
+    masterVolume: number;
+    enableSounds: boolean;
+    sounds: Record<string, SoundEventConfig>;
+}
+
+const DEFAULT_SOUND_URLS: Record<string, string> = {
+    drum_roll: '/assets/gacha/sounds/drum_roll.mp3',
+    flash: '/assets/gacha/sounds/flash.mp3',
+    reveal_common: '/assets/gacha/sounds/reveal_common.mp3',
+    reveal_uncommon: '/assets/gacha/sounds/reveal_uncommon.mp3',
+    reveal_rare: '/assets/gacha/sounds/reveal_rare.mp3',
+    reveal_epic: '/assets/gacha/sounds/reveal_epic.mp3',
+    reveal_legendary: '/assets/gacha/sounds/reveal_legendary.mp3',
+    win: '/assets/gacha/sounds/win.mp3',
+    ambient: '/assets/gacha/sounds/ambient.mp3',
+};
+
 const RARITY_COLORS: Record<string, { primary: string; secondary: string; glow: string }> = {
     legendary: { primary: '#ffd700', secondary: '#ff8c00', glow: '#ffff00' },
     epic:      { primary: '#a855f7', secondary: '#7c3aed', glow: '#c084fc' },
@@ -42,6 +67,106 @@ export default function GachaOverlay() {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const processingRef = useRef(false);
     const processedRef = useRef(new Set<string>());
+    const soundConfigRef = useRef<SoundConfig | null>(null);
+    const audioBuffersRef = useRef<Map<string, AudioBuffer>>(new Map());
+    const audioContextRef = useRef<AudioContext | null>(null);
+
+    // Load sound config + preload audio buffers
+    useEffect(() => {
+        if (!channel) return;
+
+        const loadSounds = async () => {
+            try {
+                let config: SoundConfig = {
+                    masterVolume: 80,
+                    enableSounds: false,
+                    sounds: {},
+                };
+
+                try {
+                    const res = await fetch(`/api/gacha/public/sound-config/${channel}`);
+                    const data = await res.json();
+                    if (data.success && data.config) {
+                        const parsed = JSON.parse(data.config.soundsJson || '{}');
+                        config = {
+                            masterVolume: data.config.masterVolume ?? 80,
+                            enableSounds: data.config.enableSounds ?? true,
+                            sounds: parsed,
+                        };
+                    }
+                } catch { /* no config saved, use defaults */ }
+
+                soundConfigRef.current = config;
+
+                if (!config.enableSounds) return;
+
+                const ctx = new AudioContext();
+                audioContextRef.current = ctx;
+                const buffers = new Map<string, AudioBuffer>();
+
+                await Promise.allSettled(
+                    Object.keys(DEFAULT_SOUND_URLS).map(async (key) => {
+                        const eventCfg = config.sounds[key];
+                        if (eventCfg && !eventCfg.enabled) return;
+
+                        const url = (eventCfg && !eventCfg.useDefault && eventCfg.url)
+                            ? eventCfg.url
+                            : DEFAULT_SOUND_URLS[key];
+                        if (!url) return;
+
+                        try {
+                            const response = await fetch(url);
+                            if (!response.ok) return;
+                            const arrayBuffer = await response.arrayBuffer();
+                            const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+                            buffers.set(key, audioBuffer);
+                        } catch { /* skip failed sounds */ }
+                    })
+                );
+
+                audioBuffersRef.current = buffers;
+            } catch { /* config not available, sounds disabled */ }
+        };
+
+        loadSounds();
+
+        // Unlock AudioContext for OBS browser source
+        const unlockAudio = () => {
+            if (audioContextRef.current?.state === 'suspended') {
+                audioContextRef.current.resume();
+            }
+        };
+        document.addEventListener('click', unlockAudio, { once: true });
+
+        return () => {
+            document.removeEventListener('click', unlockAudio);
+            audioContextRef.current?.close();
+        };
+    }, [channel]);
+
+    const playSound = useCallback((key: string) => {
+        const config = soundConfigRef.current;
+        if (!config?.enableSounds) return;
+        const ctx = audioContextRef.current;
+        if (!ctx) return;
+
+        const buffer = audioBuffersRef.current.get(key);
+        if (!buffer) return;
+
+        const eventCfg = config.sounds[key];
+        if (eventCfg && !eventCfg.enabled) return;
+
+        const eventVolume = (eventCfg?.volume ?? 80) / 100;
+        const masterVolume = config.masterVolume / 100;
+
+        const source = ctx.createBufferSource();
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = masterVolume * eventVolume;
+        source.buffer = buffer;
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        source.start(0);
+    }, []);
 
     // SignalR connection
     useEffect(() => {
@@ -95,33 +220,47 @@ export default function GachaOverlay() {
         const isHighRarity = event.rarity === 'legendary' || event.rarity === 'epic';
         const colors = RARITY_COLORS[event.rarity] || RARITY_COLORS.common;
 
+        // Resume AudioContext (OBS browser source policy)
+        if (audioContextRef.current?.state === 'suspended') {
+            await audioContextRef.current.resume();
+        }
+
+        // Sound: drum roll build-up
+        playSound('drum_roll');
+
         // Phase 1: Flash (only for legendary/epic)
         if (isHighRarity) {
             setPhase('flash');
+            playSound('flash');
             await delay(1500);
         }
 
         // Phase 2: Particles
         const count = PARTICLE_COUNTS[event.rarity] || 15;
+        const vw = window.innerWidth;
+        const scale = Math.min(vw / 480, 1.5); // scale factor relative to 480px base
         const newParticles = Array.from({ length: count }, (_, i) => ({
             id: i,
             x: 50 + (Math.random() - 0.5) * 10,
             y: 50 + (Math.random() - 0.5) * 10,
-            size: 4 + Math.random() * 8,
+            size: (4 + Math.random() * 8) * scale,
             color: Math.random() > 0.5 ? colors.primary : colors.secondary,
             angle: (360 / count) * i + Math.random() * 30,
-            speed: 150 + Math.random() * 200,
+            speed: (150 + Math.random() * 200) * scale,
         }));
         setParticles(newParticles);
         setPhase('particles');
         await delay(2000);
 
-        // Phase 3: Card reveal
+        // Phase 3: Card reveal + rarity-specific sound
         setPhase('reveal');
+        playSound(`reveal_${event.rarity}`);
         await delay(500);
 
-        // Phase 4: Display
+        // Phase 4: Display + celebration (high rarity) + ambient
         setPhase('display');
+        if (isHighRarity) playSound('win');
+        playSound('ambient');
         await delay(4000);
 
         // Phase 5: Fade out
@@ -133,7 +272,7 @@ export default function GachaOverlay() {
         setCurrentEvent(null);
         setParticles([]);
         processingRef.current = false;
-    }, []);
+    }, [playSound]);
 
     const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -179,18 +318,21 @@ export default function GachaOverlay() {
 
             {/* Legendary extra stars */}
             {phase === 'particles' && currentEvent?.rarity === 'legendary' && (
-                Array.from({ length: 12 }, (_, i) => (
-                    <div key={`star-${i}`} style={{
-                        position: 'absolute',
-                        left: '50%', top: '50%',
-                        width: 6, height: 6,
-                        backgroundColor: '#ffd700',
-                        clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
-                        animation: `starBurst 2.5s ease-out forwards`,
-                        '--angle': `${(360 / 12) * i}deg`,
-                        '--speed': `${200 + Math.random() * 150}px`,
-                    } as React.CSSProperties} />
-                ))
+                Array.from({ length: 12 }, (_, i) => {
+                    const starScale = Math.min(window.innerWidth / 480, 1.5);
+                    return (
+                        <div key={`star-${i}`} style={{
+                            position: 'absolute',
+                            left: '50%', top: '50%',
+                            width: 6 * starScale, height: 6 * starScale,
+                            backgroundColor: '#ffd700',
+                            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+                            animation: `starBurst 2.5s ease-out forwards`,
+                            '--angle': `${(360 / 12) * i}deg`,
+                            '--speed': `${(200 + Math.random() * 150) * starScale}px`,
+                        } as React.CSSProperties} />
+                    );
+                })
             )}
 
             {/* Card */}
@@ -207,19 +349,20 @@ export default function GachaOverlay() {
                     opacity: phase === 'display' ? 1 : undefined,
                 }}>
                     <div style={{
-                        width: 280, minHeight: 380,
-                        borderRadius: 20,
+                        width: 'min(58vw, 280px)', minHeight: 'min(80vw, 380px)',
+                        borderRadius: 'min(4vw, 20px)',
                         background: `linear-gradient(145deg, #1a1a2e, #16213e)`,
-                        border: `3px solid ${colors.primary}`,
+                        border: `clamp(2px, 0.6vw, 3px) solid ${colors.primary}`,
                         boxShadow: `0 0 30px ${colors.primary}50, 0 0 60px ${colors.primary}25, inset 0 0 30px ${colors.primary}10`,
                         display: 'flex', flexDirection: 'column', alignItems: 'center',
-                        padding: '20px 16px',
-                        gap: 12,
+                        padding: 'min(4vw, 20px) min(3.5vw, 16px)',
+                        gap: 'min(2.5vw, 12px)',
                         fontFamily: "'Segoe UI', Arial, sans-serif",
                     }}>
                         {/* Image */}
                         <div style={{
-                            width: 200, height: 200, borderRadius: 14,
+                            width: 'min(42vw, 200px)', height: 'min(42vw, 200px)',
+                            borderRadius: 'min(3vw, 14px)',
                             overflow: 'hidden',
                             border: `2px solid ${colors.primary}40`,
                             background: '#0f172a',
@@ -228,13 +371,13 @@ export default function GachaOverlay() {
                             {currentEvent.image ? (
                                 <img src={currentEvent.image} alt={currentEvent.itemName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                                <span style={{ fontSize: 64, opacity: 0.3 }}>🎴</span>
+                                <span style={{ fontSize: 'min(13vw, 64px)', opacity: 0.3 }}>🎴</span>
                             )}
                         </div>
 
                         {/* Name */}
                         <h2 style={{
-                            color: '#ffffff', fontSize: 20, fontWeight: 800,
+                            color: '#ffffff', fontSize: 'clamp(12px, 4.2vw, 20px)', fontWeight: 800,
                             textAlign: 'center', margin: 0,
                             textShadow: `0 0 10px ${colors.glow}50`,
                         }}>
@@ -243,7 +386,7 @@ export default function GachaOverlay() {
 
                         {/* Stars */}
                         <div style={{
-                            color: colors.primary, fontSize: 22,
+                            color: colors.primary, fontSize: 'clamp(14px, 4.6vw, 22px)',
                             textShadow: `0 0 8px ${colors.primary}`,
                             letterSpacing: 2,
                         }}>
@@ -252,11 +395,12 @@ export default function GachaOverlay() {
 
                         {/* Rarity label */}
                         <div style={{
-                            padding: '4px 16px', borderRadius: 20,
+                            padding: 'min(0.8vw, 4px) min(3.3vw, 16px)',
+                            borderRadius: 'min(4vw, 20px)',
                             background: `${colors.primary}20`,
                             border: `1px solid ${colors.primary}60`,
                             color: colors.primary,
-                            fontSize: 12, fontWeight: 700,
+                            fontSize: 'clamp(8px, 2.5vw, 12px)', fontWeight: 700,
                             textTransform: 'uppercase',
                             letterSpacing: 1,
                         }}>
@@ -264,7 +408,7 @@ export default function GachaOverlay() {
                         </div>
 
                         {/* Participant */}
-                        <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 4 }}>
+                        <div style={{ color: '#94a3b8', fontSize: 'clamp(8px, 2.5vw, 12px)', marginTop: 'min(0.8vw, 4px)' }}>
                             {currentEvent.participantName}
                         </div>
                     </div>

@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Decatron.Core.Models.Gacha
 {
-    [Table("gacha_items")]
-    public class GachaItem
+    [Table("gacha_sound_configs")]
+    public class GachaSoundConfig
     {
         [Key]
         [Column("id")]
@@ -21,22 +21,14 @@ namespace Decatron.Core.Models.Gacha
         [ForeignKey("UserId")]
         public Decatron.Core.Models.User? ChannelUser { get; set; }
 
-        [Required]
-        [Column("name")]
-        [MaxLength(255)]
-        public string Name { get; set; } = "";
+        [Column("master_volume")]
+        public int MasterVolume { get; set; } = 80;
 
-        [Required]
-        [Column("rarity")]
-        [MaxLength(50)]
-        public string Rarity { get; set; } = "common";
+        [Column("enable_sounds")]
+        public bool EnableSounds { get; set; } = false;
 
-        [Column("image")]
-        [MaxLength(500)]
-        public string? Image { get; set; }
-
-        [Column("available")]
-        public bool Available { get; set; } = true;
+        [Column("sounds_json", TypeName = "jsonb")]
+        public string SoundsJson { get; set; } = "{}";
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

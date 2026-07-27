@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, Plus, Trash2, CheckCircle, X, AlertCircle, ImagePlus } from 'lucide-react';
+import { Image, Plus, Trash2, CheckCircle, X, AlertCircle, ImagePlus, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { GachaBanner } from '../../types';
 import MediaSelector from '../../../../../components/timer/MediaSelector';
@@ -11,6 +11,7 @@ export const BannersTab: React.FC = () => {
     const [bannerUrl, setBannerUrl] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
 
     const loadBanners = async () => {
         setLoading(true);
@@ -78,6 +79,34 @@ export const BannersTab: React.FC = () => {
                 <button onClick={() => setShowModal(true)} disabled={banners.length >= 5} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all">
                     <Plus className="w-4 h-4" /> Agregar Banner
                 </button>
+            </div>
+
+            {/* Help Banner */}
+            <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] overflow-hidden">
+                <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+                    <HelpCircle className="w-5 h-5 text-[#94a3b8] flex-shrink-0" />
+                    <span className="flex-1 text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Como funcionan los banners</span>
+                    {showHelp ? <ChevronUp className="w-4 h-4 text-[#94a3b8]" /> : <ChevronDown className="w-4 h-4 text-[#94a3b8]" />}
+                </button>
+                {showHelp && (
+                    <div className="px-4 pb-4 space-y-3 text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Los banners son <strong className="text-[#1e293b] dark:text-[#f8fafc]">imagenes decorativas</strong> que se muestran en la pagina publica de coleccion</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">2</span>
+                            <span>Sube hasta <strong className="text-[#1e293b] dark:text-[#f8fafc]">5 banners</strong> y activa uno a la vez</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Se muestra en la parte superior de la coleccion cuando un viewer visita su pagina</span>
+                        </div>
+                        <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
+                            <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Usa imagenes horizontales (16:9) de buena calidad. Ideal para mostrar las cartas mas raras de tu gacha.
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Max notice */}

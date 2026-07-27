@@ -15,6 +15,12 @@ namespace Decatron.Core.Models.Gacha
         [MaxLength(100)]
         public string ChannelName { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public Decatron.Core.Models.User? ChannelUser { get; set; }
+
         [Required]
         [Column("name")]
         [MaxLength(255)]
@@ -32,6 +38,25 @@ namespace Decatron.Core.Models.Gacha
 
         [Column("pulls")]
         public int Pulls { get; set; } = 0;
+
+        [Column("coin_pulls_available")]
+        public int CoinPullsAvailable { get; set; } = 0;
+
+        [Column("coins_spent_total")]
+        public int CoinsSpentTotal { get; set; } = 0;
+
+        [Column("cumulative_donation_progress")]
+        public decimal CumulativeDonationProgress { get; set; } = 0;
+
+        [Column("cumulative_coins_progress")]
+        public int CumulativeCoinsProgress { get; set; } = 0;
+
+        [Column("milestone_won_items", TypeName = "jsonb")]
+        public string MilestoneWonItems { get; set; } = "[]";
+
+        [Column("display_name")]
+        [MaxLength(100)]
+        public string? DisplayName { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

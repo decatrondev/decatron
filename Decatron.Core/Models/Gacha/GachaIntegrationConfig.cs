@@ -15,6 +15,12 @@ namespace Decatron.Core.Models.Gacha
         [MaxLength(100)]
         public string ChannelName { get; set; } = "";
 
+        [Column("user_id")]
+        public long UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public Decatron.Core.Models.User? ChannelUser { get; set; }
+
         // Tips/PayPal
         [Column("tips_enabled")]
         public bool TipsEnabled { get; set; } = false;
@@ -62,6 +68,16 @@ namespace Decatron.Core.Models.Gacha
         /// <summary>0 = sin limite, X = maximo tiros por dia por viewer</summary>
         [Column("coins_daily_limit")]
         public int CoinsDailyLimit { get; set; } = 0;
+
+        // Multi-pull
+        [Column("multi_pull_enabled")]
+        public bool MultiPullEnabled { get; set; } = true;
+
+        [Column("multi_pull_max")]
+        public int MultiPullMax { get; set; } = 10;
+
+        [Column("multi_pull_delay")]
+        public int MultiPullDelay { get; set; } = 10;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

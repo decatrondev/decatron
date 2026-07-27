@@ -86,6 +86,7 @@ namespace Decatron.Controllers
             var item = new GachaItem
             {
                 ChannelName = ctx.Value.channelName,
+                UserId = ctx.Value.channelOwnerId,
                 Name = dto.Name,
                 Rarity = dto.Rarity,
                 Image = dto.Image,
@@ -109,6 +110,7 @@ namespace Decatron.Controllers
                 {
                     Id = id,
                     ChannelName = ctx.Value.channelName,
+                    UserId = ctx.Value.channelOwnerId,
                     Name = dto.Name,
                     Rarity = dto.Rarity,
                     Image = dto.Image,
@@ -160,12 +162,20 @@ namespace Decatron.Controllers
             var restriction = new GachaItemRestriction
             {
                 ChannelName = ctx.Value.channelName,
+                UserId = ctx.Value.channelOwnerId,
                 ItemId = dto.ItemId,
                 MinDonationRequired = dto.MinDonationRequired,
                 TotalQuantity = dto.TotalQuantity,
                 IsUnique = dto.IsUnique,
                 CooldownPeriod = dto.CooldownPeriod ?? "none",
-                CooldownValue = dto.CooldownValue
+                CooldownValue = dto.CooldownValue,
+                AllowedPullTypes = dto.AllowedPullTypes ?? "all",
+                CoinMinSpent = dto.CoinMinSpent,
+                CumulativeDonationThreshold = dto.CumulativeDonationThreshold,
+                CumulativeCoinsThreshold = dto.CumulativeCoinsThreshold,
+                CumulativeGuarantee = dto.CumulativeGuarantee,
+                CumulativeProbability = dto.CumulativeProbability,
+                MilestonePriority = dto.MilestonePriority
             };
 
             var created = await _gachaService.CreateRestrictionAsync(restriction);
@@ -185,16 +195,35 @@ namespace Decatron.Controllers
                 {
                     Id = id,
                     ChannelName = ctx.Value.channelName,
+                    UserId = ctx.Value.channelOwnerId,
                     MinDonationRequired = dto.MinDonationRequired,
                     TotalQuantity = dto.TotalQuantity,
                     IsUnique = dto.IsUnique,
                     CooldownPeriod = dto.CooldownPeriod ?? "none",
-                    CooldownValue = dto.CooldownValue
+                    CooldownValue = dto.CooldownValue,
+                    AllowedPullTypes = dto.AllowedPullTypes ?? "all",
+                    CoinMinSpent = dto.CoinMinSpent,
+                    CumulativeDonationThreshold = dto.CumulativeDonationThreshold,
+                    CumulativeCoinsThreshold = dto.CumulativeCoinsThreshold,
+                    CumulativeGuarantee = dto.CumulativeGuarantee,
+                    CumulativeProbability = dto.CumulativeProbability,
+                    MilestonePriority = dto.MilestonePriority
                 };
                 var updated = await _gachaService.UpdateRestrictionAsync(restriction);
                 return Ok(new { success = true, restriction = updated });
             }
             catch (KeyNotFoundException) { return NotFound(new { success = false, message = "Restriccion no encontrada" }); }
+        }
+
+        [HttpPut("restrictions/reorder-milestones")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> ReorderMilestones([FromBody] List<int> orderedIds)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            await _gachaService.ReorderMilestonesAsync(ctx.Value.channelName, orderedIds);
+            return Ok(new { success = true });
         }
 
         [HttpDelete("restrictions/{id:int}")]
@@ -239,9 +268,11 @@ namespace Decatron.Controllers
                 var preference = new GachaPreference
                 {
                     ChannelName = ctx.Value.channelName,
+                    UserId = ctx.Value.channelOwnerId,
                     ItemId = dto.ItemId,
                     ParticipantId = dto.ParticipantId,
                     ProbabilityPercentage = dto.ProbabilityPercentage,
+                    CoinProbabilityOverride = dto.CoinProbabilityOverride,
                     IsActive = dto.IsActive
                 };
                 var created = await _gachaService.CreatePreferenceAsync(preference);
@@ -263,7 +294,9 @@ namespace Decatron.Controllers
                 {
                     Id = id,
                     ChannelName = ctx.Value.channelName,
+                    UserId = ctx.Value.channelOwnerId,
                     ProbabilityPercentage = dto.ProbabilityPercentage,
+                    CoinProbabilityOverride = dto.CoinProbabilityOverride,
                     IsActive = dto.IsActive
                 };
                 var updated = await _gachaService.UpdatePreferenceAsync(preference);
@@ -311,7 +344,7 @@ namespace Decatron.Controllers
 
             try
             {
-                var configs = dtos.Select(d => new GachaRarityConfig { Rarity = d.Rarity, Probability = d.Probability }).ToList();
+                var configs = dtos.Select(d => new GachaRarityConfig { Rarity = d.Rarity, Probability = d.Probability, CoinProbability = d.CoinProbability, ChannelName = ctx.Value.channelName, UserId = ctx.Value.channelOwnerId }).ToList();
                 await _gachaService.UpdateRarityConfigsAsync(ctx.Value.channelName, configs);
                 return Ok(new { success = true, message = "Probabilidades actualizadas" });
             }
@@ -343,12 +376,16 @@ namespace Decatron.Controllers
             var restriction = new GachaRarityRestriction
             {
                 ChannelName = ctx.Value.channelName,
+                UserId = ctx.Value.channelOwnerId,
                 ItemId = dto.ItemId,
                 ParticipantId = dto.ParticipantId,
                 Rarity = dto.Rarity,
                 PullInterval = dto.PullInterval,
                 TimeInterval = dto.TimeInterval,
                 TimeUnit = dto.TimeUnit,
+                CoinPullInterval = dto.CoinPullInterval,
+                CoinTimeInterval = dto.CoinTimeInterval,
+                CoinTimeUnit = dto.CoinTimeUnit,
                 IsActive = dto.IsActive
             };
             var created = await _gachaService.CreateRarityRestrictionAsync(restriction);
@@ -394,7 +431,7 @@ namespace Decatron.Controllers
 
             try
             {
-                var banner = new GachaBanner { ChannelName = ctx.Value.channelName, BannerUrl = dto.BannerUrl };
+                var banner = new GachaBanner { ChannelName = ctx.Value.channelName, UserId = ctx.Value.channelOwnerId, BannerUrl = dto.BannerUrl };
                 var created = await _gachaService.CreateBannerAsync(banner);
                 return Ok(new { success = true, banner = created });
             }
@@ -453,6 +490,7 @@ namespace Decatron.Controllers
             var config = new GachaOverlayConfig
             {
                 ChannelName = ctx.Value.channelName,
+                UserId = ctx.Value.channelOwnerId,
                 OverlaySize = dto.OverlaySize ?? "standard",
                 CustomWidth = dto.CustomWidth,
                 CustomHeight = dto.CustomHeight,
@@ -461,6 +499,40 @@ namespace Decatron.Controllers
                 EnableSounds = dto.EnableSounds
             };
             var saved = await _gachaService.SaveOverlayConfigAsync(config);
+            return Ok(new { success = true, config = saved });
+        }
+
+        // ========================================================================
+        // SOUND CONFIG
+        // ========================================================================
+
+        [HttpGet("sound-config")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> GetSoundConfig()
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            var config = await _gachaService.GetSoundConfigAsync(ctx.Value.channelName);
+            return Ok(new { success = true, config });
+        }
+
+        [HttpPost("sound-config")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> SaveSoundConfig([FromBody] GachaSoundConfigDto dto)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            var config = new GachaSoundConfig
+            {
+                ChannelName = ctx.Value.channelName,
+                UserId = ctx.Value.channelOwnerId,
+                MasterVolume = Math.Clamp(dto.MasterVolume, 0, 100),
+                EnableSounds = dto.EnableSounds,
+                SoundsJson = dto.SoundsJson ?? "{}"
+            };
+            var saved = await _gachaService.SaveSoundConfigAsync(config);
             return Ok(new { success = true, config = saved });
         }
 
@@ -495,6 +567,122 @@ namespace Decatron.Controllers
         }
 
         // ========================================================================
+        // DISPLAY NAME
+        // ========================================================================
+
+        [HttpPut("participants/{participantId:int}/display-name")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> UpdateDisplayName(int participantId, [FromBody] DisplayNameDto dto)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            try
+            {
+                await _gachaService.UpdateDisplayNameAsync(participantId, ctx.Value.channelName, dto.DisplayName);
+                return Ok(new { success = true });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpDelete("participants/{participantId:int}/display-name")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> ResetDisplayName(int participantId)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            try
+            {
+                await _gachaService.UpdateDisplayNameAsync(participantId, ctx.Value.channelName, null);
+                return Ok(new { success = true });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
+        }
+
+        // ========================================================================
+        // COMMAND CONFIGS
+        // ========================================================================
+
+        [HttpGet("command-configs")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> GetCommandConfigs()
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            var configs = await _gachaService.GetCommandConfigsAsync(ctx.Value.channelName);
+            return Ok(new { success = true, configs });
+        }
+
+        [HttpPut("command-configs/{command}")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> UpdateCommandConfig(string command, [FromBody] GachaCommandConfigDto dto)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            try
+            {
+                var config = new GachaCommandConfig
+                {
+                    ChannelName = ctx.Value.channelName,
+                    UserId = ctx.Value.channelOwnerId,
+                    Enabled = dto.Enabled,
+                    Permission = dto.Permission ?? "everyone",
+                    CooldownGlobal = dto.CooldownGlobal,
+                    CooldownUser = dto.CooldownUser,
+                    CustomResponse = dto.CustomResponse
+                };
+                var updated = await _gachaService.UpdateCommandConfigAsync(ctx.Value.channelName, command, config);
+                return Ok(new { success = true, config = updated });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpGet("command-aliases")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> GetCommandAliases()
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            var aliases = await _gachaService.GetCommandAliasesAsync(ctx.Value.channelName);
+            return Ok(new { success = true, aliases });
+        }
+
+        [HttpPost("command-aliases")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> CreateCommandAlias([FromBody] GachaCommandAliasDto dto)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            try
+            {
+                var alias = await _gachaService.CreateCommandAliasAsync(ctx.Value.channelName, dto.Alias, dto.TargetCommand);
+                return Ok(new { success = true, alias });
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+            { return BadRequest(new { success = false, message = ex.Message }); }
+        }
+
+        [HttpDelete("command-aliases/{alias}")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> DeleteCommandAlias(string alias)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            try
+            {
+                await _gachaService.DeleteCommandAliasAsync(ctx.Value.channelName, alias);
+                return Ok(new { success = true });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
+        }
+
+        // ========================================================================
         // PULL
         // ========================================================================
 
@@ -507,7 +695,8 @@ namespace Decatron.Controllers
 
             try
             {
-                var result = await _gachaService.PerformPullAsync(ctx.Value.channelName, dto.ParticipantId);
+                var pullType = dto.PullType == "coins" ? "coins" : "donation";
+                var result = await _gachaService.PerformPullAsync(ctx.Value.channelName, dto.ParticipantId, pullType);
                 return Ok(new
                 {
                     success = true,
@@ -524,9 +713,13 @@ namespace Decatron.Controllers
                         result.Participant.Name,
                         result.Participant.DonationAmount,
                         result.Participant.Pulls,
-                        result.Participant.EffectiveDonation
+                        result.Participant.EffectiveDonation,
+                        result.Participant.CoinPullsAvailable,
+                        result.Participant.CoinsSpentTotal,
+                        result.Participant.DisplayName
                     },
-                    pullsRemaining = result.PullsRemaining
+                    pullsRemaining = result.PullsRemaining,
+                    pullType = result.PullType
                 });
             }
             catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
@@ -615,6 +808,7 @@ namespace Decatron.Controllers
             var config = new Decatron.Core.Models.Gacha.GachaIntegrationConfig
             {
                 ChannelName = ctx.Value.channelName,
+                UserId = ctx.Value.channelOwnerId,
                 TipsEnabled = dto.TipsEnabled,
                 PullsPerDollar = dto.PullsPerDollar,
                 BitsEnabled = dto.BitsEnabled,
@@ -627,7 +821,10 @@ namespace Decatron.Controllers
                 GiftSubsEnabled = dto.GiftSubsEnabled,
                 PullsPerGift = dto.PullsPerGift,
                 CoinsEnabled = dto.CoinsEnabled,
-                CoinsPerPull = dto.CoinsPerPull
+                CoinsPerPull = dto.CoinsPerPull,
+                MultiPullEnabled = dto.MultiPullEnabled,
+                MultiPullMax = dto.MultiPullMax,
+                MultiPullDelay = dto.MultiPullDelay
             };
             var saved = await _gachaService.SaveIntegrationConfigAsync(config);
             return Ok(new { success = true, config = saved });
@@ -686,6 +883,13 @@ namespace Decatron.Controllers
         public bool IsUnique { get; set; } = false;
         public string? CooldownPeriod { get; set; } = "none";
         public int CooldownValue { get; set; } = 0;
+        public string AllowedPullTypes { get; set; } = "all";
+        public int? CoinMinSpent { get; set; }
+        public decimal? CumulativeDonationThreshold { get; set; }
+        public int? CumulativeCoinsThreshold { get; set; }
+        public bool CumulativeGuarantee { get; set; } = true;
+        public decimal? CumulativeProbability { get; set; }
+        public int MilestonePriority { get; set; } = 0;
     }
 
     public class GachaPreferenceDto
@@ -693,6 +897,7 @@ namespace Decatron.Controllers
         public int ItemId { get; set; }
         public int? ParticipantId { get; set; }
         public decimal ProbabilityPercentage { get; set; }
+        public decimal? CoinProbabilityOverride { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -700,6 +905,7 @@ namespace Decatron.Controllers
     {
         public string Rarity { get; set; } = "";
         public decimal Probability { get; set; }
+        public decimal? CoinProbability { get; set; }
     }
 
     public class GachaRarityRestrictionDto
@@ -710,6 +916,9 @@ namespace Decatron.Controllers
         public int? PullInterval { get; set; }
         public int? TimeInterval { get; set; }
         public string? TimeUnit { get; set; }
+        public int? CoinPullInterval { get; set; }
+        public int? CoinTimeInterval { get; set; }
+        public string? CoinTimeUnit { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -743,6 +952,9 @@ namespace Decatron.Controllers
         public int PullsPerGift { get; set; } = 1;
         public bool CoinsEnabled { get; set; } = false;
         public int CoinsPerPull { get; set; } = 100;
+        public bool MultiPullEnabled { get; set; } = true;
+        public int MultiPullMax { get; set; } = 10;
+        public int MultiPullDelay { get; set; } = 10;
     }
 
     public class GachaDonationDto
@@ -755,5 +967,33 @@ namespace Decatron.Controllers
     public class GachaPullDto
     {
         public int ParticipantId { get; set; }
+        public string PullType { get; set; } = "donation";
+    }
+
+    public class DisplayNameDto
+    {
+        public string? DisplayName { get; set; }
+    }
+
+    public class GachaCommandConfigDto
+    {
+        public bool Enabled { get; set; } = true;
+        public string? Permission { get; set; } = "everyone";
+        public int CooldownGlobal { get; set; } = 0;
+        public int CooldownUser { get; set; } = 3;
+        public string? CustomResponse { get; set; }
+    }
+
+    public class GachaCommandAliasDto
+    {
+        public string Alias { get; set; } = "";
+        public string TargetCommand { get; set; } = "";
+    }
+
+    public class GachaSoundConfigDto
+    {
+        public int MasterVolume { get; set; } = 80;
+        public bool EnableSounds { get; set; } = true;
+        public string? SoundsJson { get; set; }
     }
 }
