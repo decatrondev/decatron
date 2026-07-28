@@ -6,46 +6,18 @@
 import React, { useState } from 'react';
 import type { TtsConfig } from '../types/index';
 import { TtsCreditsCard, useTtsCredits } from '../../../../components/tts/TtsCreditsCard';
-import { useStandardVoices, standardVoicesForLanguage } from '../../../../components/tts/useStandardVoices';
+import {
+  useVoiceCatalog,
+  standardVoicesForLanguage,
+  premiumVoicesForLanguage,
+  languagesFor,
+  languageLabel,
+} from '../../../../components/tts/useVoiceCatalog';
 
-// Voces TTS disponibles organizadas por idioma
-const TTS_VOICES = [
-  // Español
-  { id: 'Lupe',      name: 'Lupe',      lang: 'es-US', langLabel: 'Español (US)',    gender: 'F', engines: ['standard'] },
-  { id: 'Penelope',  name: 'Penelope',  lang: 'es-US', langLabel: 'Español (US)',    gender: 'F', engines: ['standard'] },
-  { id: 'Miguel',    name: 'Miguel',    lang: 'es-US', langLabel: 'Español (US)',    gender: 'M', engines: ['standard'] },
-  { id: 'Lucia',     name: 'Lucía',     lang: 'es-ES', langLabel: 'Español (España)', gender: 'F', engines: ['standard'] },
-  { id: 'Conchita',  name: 'Conchita',  lang: 'es-ES', langLabel: 'Español (España)', gender: 'F', engines: ['standard'] },
-  { id: 'Enrique',   name: 'Enrique',   lang: 'es-ES', langLabel: 'Español (España)', gender: 'M', engines: ['standard'] },
-  { id: 'Mia',       name: 'Mia',       lang: 'es-MX', langLabel: 'Español (México)', gender: 'F', engines: ['standard'] },
-  // Inglés
-  { id: 'Joanna',    name: 'Joanna',    lang: 'en-US', langLabel: 'English (US)',    gender: 'F', engines: ['standard'] },
-  { id: 'Matthew',   name: 'Matthew',   lang: 'en-US', langLabel: 'English (US)',    gender: 'M', engines: ['standard'] },
-  { id: 'Kendra',    name: 'Kendra',    lang: 'en-US', langLabel: 'English (US)',    gender: 'F', engines: ['standard'] },
-  { id: 'Kimberly',  name: 'Kimberly',  lang: 'en-US', langLabel: 'English (US)',    gender: 'F', engines: ['standard'] },
-  { id: 'Joey',      name: 'Joey',      lang: 'en-US', langLabel: 'English (US)',    gender: 'M', engines: ['standard'] },
-  { id: 'Amy',       name: 'Amy',       lang: 'en-GB', langLabel: 'English (UK)',    gender: 'F', engines: ['standard'] },
-  { id: 'Brian',     name: 'Brian',     lang: 'en-GB', langLabel: 'English (UK)',    gender: 'M', engines: ['standard'] },
-  { id: 'Emma',      name: 'Emma',      lang: 'en-GB', langLabel: 'English (UK)',    gender: 'F', engines: ['standard'] },
-  // Portugués
-  { id: 'Camila',    name: 'Camila',    lang: 'pt-BR', langLabel: 'Português (BR)',  gender: 'F', engines: ['standard'] },
-  { id: 'Ricardo',   name: 'Ricardo',   lang: 'pt-BR', langLabel: 'Português (BR)',  gender: 'M', engines: ['standard'] },
-  { id: 'Vitoria',   name: 'Vitória',   lang: 'pt-BR', langLabel: 'Português (BR)',  gender: 'F', engines: ['standard'] },
-  // Japonés
-  { id: 'Takumi',    name: 'Takumi',    lang: 'ja-JP', langLabel: '日本語 (Japanese)', gender: 'M', engines: ['standard'] },
-  { id: 'Mizuki',    name: 'Mizuki',    lang: 'ja-JP', langLabel: '日本語 (Japanese)', gender: 'F', engines: ['standard'] },
-  { id: 'Kazuha',    name: 'Kazuha',    lang: 'ja-JP', langLabel: '日本語 (Japanese)', gender: 'F', engines: ['standard'] },
-];
-
-const LANGUAGE_OPTIONS = [
-  { code: 'es-US', label: 'Español (US)' },
-  { code: 'es-ES', label: 'Español (España)' },
-  { code: 'es-MX', label: 'Español (México)' },
-  { code: 'en-US', label: 'English (US)' },
-  { code: 'en-GB', label: 'English (UK)' },
-  { code: 'pt-BR', label: 'Português (BR)' },
-  { code: 'ja-JP', label: '日本語 (Japanese)' },
-];
+// Las voces y los idiomas vienen del servidor, no de una lista escrita aquí. La que
+// había en este archivo tenía 21 voces, la de Speak Chat 16, y ninguna coincidía con lo
+// que AWS ofrece de verdad. Además marcaban todas `engines: ['standard']`, así que las
+// voces neurales no se podían elegir aunque el cobro ya supiera cobrarlas.
 
 // Presets de templates por tipo de evento
 const TTS_PRESETS: Record<string, { label: string; template: string }[]> = {
@@ -125,32 +97,48 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   const inputClass = "w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm";
   const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2";
 
-  // Filtrar voces compatibles con el idioma y engine seleccionados
-  const compatibleVoices = TTS_VOICES.filter(
-    v => v.lang === config.languageCode && v.engines.includes(config.engine)
-  );
+  const { catalog: voiceCatalog } = useVoiceCatalog();
+
+  // Voces premium del idioma y motor elegidos. Filtrar por motor importa: no todas las
+  // voces hacen neural, y ofrecer una que no puede acaba en un fallo de síntesis en
+  // directo.
+  const compatibleVoices = premiumVoicesForLanguage(voiceCatalog, config.languageCode, config.engine);
 
   // Si la voz actual no está disponible con el nuevo idioma/engine, resetear
   const currentVoiceCompatible = compatibleVoices.some(v => v.id === config.voice);
 
   // Al cambiar de idioma se reajusta la voz de los dos catálogos: si solo se tocara
   // el del motor activo, cambiar de motor después dejaría una voz de otro idioma.
+  //
+  // Si no hay ninguna voz para la combinación nueva se deja vacío. Antes se conservaba
+  // la anterior, y eso guardaba una voz que no puede hacer ese motor: se aceptaba sin
+  // una queja y fallaba al sintetizar, en pleno directo.
   const handleLanguageChange = (langCode: string) => {
-    const pollyVoices = TTS_VOICES.filter(v => v.lang === langCode && v.engines.includes(config.engine));
-    const standardForLang = standardVoicesForLanguage(standardVoices, langCode);
+    const pollyVoices = premiumVoicesForLanguage(voiceCatalog, langCode, config.engine);
+    const standardForLang = standardVoicesForLanguage(voiceCatalog, langCode);
 
     onChange({
       languageCode: langCode,
-      voice: pollyVoices[0]?.id ?? config.voice,
+      voice: pollyVoices[0]?.id ?? '',
       standardVoice: standardForLang[0]?.id ?? '',
     });
   };
 
+  // La calidad manda sobre el idioma, no al revés: hay 13 idiomas que solo existen en
+  // alta calidad y 6 solo en normal. Al cambiarla se conserva el idioma si sigue estando
+  // disponible; si no, se salta al primero que sí, y la pantalla lo dice.
   const handleEngineChange = (engine: 'standard' | 'neural') => {
-    const voices = TTS_VOICES.filter(v => v.lang === config.languageCode && v.engines.includes(engine));
+    const availableLangs = languagesFor(voiceCatalog, 'polly', engine);
+    const keepsLanguage = availableLangs.some(l => l.code === config.languageCode);
+    const languageCode = keepsLanguage
+      ? config.languageCode
+      : (availableLangs[0]?.code ?? config.languageCode);
+
+    const voices = premiumVoicesForLanguage(voiceCatalog, languageCode, engine);
     onChange({
       engine,
-      voice: voices[0]?.id ?? config.voice,
+      languageCode,
+      voice: voices[0]?.id ?? '',
     });
   };
 
@@ -162,15 +150,14 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   const provider = config.provider === 'piper' || config.provider === 'browser' ? 'piper' : 'polly';
   const usingStandard = provider === 'piper';
 
-  const { voices: standardVoices } = useStandardVoices();
-  const voicesForThisLanguage = standardVoicesForLanguage(standardVoices, config.languageCode);
+  const voicesForThisLanguage = standardVoicesForLanguage(voiceCatalog, config.languageCode);
 
-  // Piper no tiene japonés ni coreano a ninguna calidad, así que ofrecerlos con voz
-  // estándar sería mentir: se listan solo los idiomas que hay instalados de verdad.
-  const standardPrefixes = new Set(standardVoices.map(v => v.languagePrefix));
-  const languageOptions = (usingStandard && standardPrefixes.size > 0)
-    ? LANGUAGE_OPTIONS.filter(l => standardPrefixes.has(l.code.substring(0, 2).toLowerCase()))
-    : LANGUAGE_OPTIONS;
+  // Los idiomas dependen de lo elegido antes: del proveedor y, en premium, también de la
+  // calidad. Antes solo se miraba el proveedor, así que con alta calidad seguían saliendo
+  // los idiomas que solo existen en normal y el selector de voces quedaba vacío.
+  const languageOptions = usingStandard
+    ? languagesFor(voiceCatalog, 'piper')
+    : languagesFor(voiceCatalog, 'polly', config.engine);
 
   return (
     <div className={`rounded-xl border-2 transition-all ${
@@ -192,8 +179,8 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             {config.enabled && (
               <div className="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
                 {usingStandard
-                  ? `🆓 ${standardVoices.find(v => v.id === config.standardVoice)?.speaker ?? 'Voz automática'} · estándar · ${config.languageCode}`
-                  : `🎙️ ${TTS_VOICES.find(v => v.id === config.voice)?.name ?? config.voice} · ${config.engine} · ${config.languageCode}`}
+                  ? `🆓 ${voiceCatalog.standard.voices.find(v => v.id === config.standardVoice)?.name ?? 'Voz automática'} · estándar · ${config.languageCode}`
+                  : `🎙️ ${voiceCatalog.premium.voices.find(v => v.id === config.voice)?.name ?? config.voice} · ${config.engine === 'neural' ? 'alta calidad' : 'normal'} · ${languageLabel(voiceCatalog, config.languageCode)}`}
               </div>
             )}
           </div>
@@ -252,44 +239,55 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
               {!usingStandard && (
                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
                   Si te quedas sin créditos premium la alerta no se queda muda: se lee con
-                  tu voz estándar{standardPrefixes.size > 0 && !standardPrefixes.has(config.languageCode.substring(0, 2).toLowerCase())
+                  tu voz estándar{voiceCatalog.standard.voices.length > 0 && voicesForThisLanguage.length === 0
                     ? ', y como este idioma no existe en voz estándar sonará en español'
                     : ''}.
                 </p>
               )}
             </div>
 
-            {/* Idioma + Engine (el engine solo aplica a Polly) */}
-            <div className={`grid gap-4 mb-4 ${usingStandard ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              <div>
-                <label className={labelClass}>Idioma</label>
+            {/* Calidad primero: es lo que decide el precio y lo que recorta los idiomas */}
+            {!usingStandard && (
+              <div className="mb-4">
+                <label className={labelClass}>Calidad</label>
                 <select
-                  value={config.languageCode}
-                  onChange={e => handleLanguageChange(e.target.value)}
+                  value={config.engine}
+                  onChange={e => handleEngineChange(e.target.value as 'standard' | 'neural')}
                   className={inputClass}
                 >
-                  {languageOptions.map(l => (
-                    <option key={l.code} value={l.code}>{l.label}</option>
-                  ))}
+                  <option value="standard">Normal · 1 crédito por carácter</option>
+                  <option value="neural">Alta calidad · 4 créditos por carácter</option>
                 </select>
-                {usingStandard && (
-                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
-                    El japonés y el coreano solo están en voz premium.
+                {config.engine === 'neural' && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    Suena bastante mejor, pero gasta cuatro veces más. Con el saldo
+                    agotado, la alerta cae a voz estándar en vez de quedarse muda.
                   </p>
                 )}
               </div>
-              {!usingStandard && (
-                <div>
-                  <label className={labelClass}>Calidad</label>
-                  <select
-                    value={config.engine}
-                    onChange={e => handleEngineChange(e.target.value as 'standard' | 'neural')}
-                    className={inputClass}
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="neural" disabled>Neural (próximamente)</option>
-                  </select>
-                </div>
+            )}
+
+            {/* Idioma: depende de la calidad elegida arriba */}
+            <div className="mb-4">
+              <label className={labelClass}>Idioma</label>
+              <select
+                value={config.languageCode}
+                onChange={e => handleLanguageChange(e.target.value)}
+                className={inputClass}
+              >
+                {languageOptions.map(l => (
+                  <option key={l.code} value={l.code}>{l.label}</option>
+                ))}
+              </select>
+              {usingStandard ? (
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                  El japonés y el coreano solo están en voz premium.
+                </p>
+              ) : (
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                  Solo los idiomas con voces en la calidad elegida. Algunos existen en una
+                  y no en la otra.
+                </p>
               )}
             </div>
 
@@ -309,7 +307,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                             : 'bg-white dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-green-300'
                         }`}
                       >
-                        {v.speaker}
+                        {v.name}
                         <span className="block text-[10px] font-normal opacity-70">
                           {v.languageName} · {v.quality}
                         </span>
@@ -340,13 +338,13 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                           : 'bg-white dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-purple-300'
                       }`}
                     >
-                      {voice.gender === 'F' ? '👩' : '👨'} {voice.name}
+                      {voice.gender === 'Female' ? '👩' : '👨'} {voice.name}
                     </button>
                   ))}
                 </div>
               ) : (
                 <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                  ⚠️ No hay voces disponibles para este idioma con motor {config.engine}. Prueba con otro motor.
+                  ⚠️ No hay voces para este idioma en calidad {config.engine === 'neural' ? 'alta' : 'normal'}. Prueba con la otra.
                 </p>
               )}
               {!currentVoiceCompatible && compatibleVoices.length > 0 && (
