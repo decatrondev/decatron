@@ -151,6 +151,21 @@ namespace Decatron.Controllers
                 if (string.IsNullOrEmpty(channelName))
                     return BadRequest(new { success = false, message = "No se pudo identificar el canal" });
 
+                // Con Speak Chat apagado no se genera nada. Antes la prueba llamaba a AWS
+                // y descontaba créditos con la función desactivada: el usuario apaga el
+                // interruptor esperando dejar de gastar, y seguía gastando.
+                var config = await _speakChatService.GetConfigAsync(channelOwnerId);
+                if (config == null || !config.IsEnabled || !IsGloballyEnabled(config.ConfigJson))
+                {
+                    _logger.LogInformation(
+                        "[SpeakChat] Prueba rechazada en {Channel}: Speak Chat está desactivado", channelName);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Speak Chat está desactivado. Actívalo para poder probar la voz."
+                    });
+                }
+
                 var text = body?.Message ?? "Mensaje de prueba del Speak Chat";
                 var languageCode = body?.LanguageCode ?? "es-US";
 
@@ -295,6 +310,27 @@ namespace Decatron.Controllers
             if (long.TryParse(userIdClaim, out var userId))
                 return userId;
             return 0;
+        }
+
+        /// <summary>
+        /// El interruptor general que hay dentro del JSON, aparte del `IsEnabled` de la
+        /// fila. Los dos tienen que estar puestos para que Speak Chat funcione, y la
+        /// prueba debe respetar exactamente lo mismo que un mensaje real.
+        /// </summary>
+        private static bool IsGloballyEnabled(string? configJson)
+        {
+            if (string.IsNullOrWhiteSpace(configJson)) return false;
+            try
+            {
+                var cfg = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(configJson);
+                if (cfg.TryGetProperty("global", out var global) &&
+                    global.TryGetProperty("enabled", out var enabled))
+                    return enabled.GetBoolean();
+
+                // Sin el campo se asume activo: es como se comporta el camino del chat.
+                return true;
+            }
+            catch { return false; }
         }
 
         private long GetChannelOwnerId()
