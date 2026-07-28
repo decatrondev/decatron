@@ -3,6 +3,7 @@
  * Usado por GiftSubsTab, RaidsTab, ResubsTab
  */
 
+import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import React, { useState } from 'react';
 import type { AlertTier, TtsConfig, VariantsConfig } from '../types/index';
 import { MediaEditor } from '../../timer-extension/components/MediaEditor';
@@ -111,7 +112,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
       effects: { enabled: tierIndex > 0, effects: tierIndex === 1 ? ['glow'] : tierIndex === 2 ? ['glow', 'confetti'] : [] },
       tts: {
         enabled: false,
-        voice: 'Lupe',
+        voice: DEFAULT_PREMIUM_VOICE,
         engine: 'standard' as const,
         languageCode: 'es-US',
         templateVolume: 80,

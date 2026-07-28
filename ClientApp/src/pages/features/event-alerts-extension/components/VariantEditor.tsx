@@ -3,6 +3,7 @@
  * Permite configurar múltiples variantes de una alerta (video, sonido, mensaje, etc.)
  */
 
+import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import React, { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronUp, Shuffle, ListOrdered, Percent, RefreshCw } from 'lucide-react';
 import type { VariantsConfig, AlertVariant, VariantSelectionMode, TtsConfig, AnimationConfig, EffectsConfig, ChatMessageConfig } from '../types/index';
@@ -54,7 +55,7 @@ const createDefaultVariant = (index: number): AlertVariant => ({
   effects: { enabled: false, effects: [] },
   tts: {
     enabled: false,
-    voice: 'Lupe',
+    voice: DEFAULT_PREMIUM_VOICE,
     engine: 'standard' as const,
     languageCode: 'es-US',
     templateVolume: 80,

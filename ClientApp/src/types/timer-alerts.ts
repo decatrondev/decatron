@@ -2,6 +2,8 @@
 // INTERFACES PARA SISTEMA DE ALERTAS PERSONALIZABLES (PROFESIONAL)
 // ============================================================================
 
+import { DEFAULT_PREMIUM_VOICE } from '../components/tts/voiceDefaults';
+
 export type AlertTemplate = 'minimal' | 'colorful' | 'gaming' | 'custom';
 export type TimeUnit = 'seconds' | 'minutes' | 'hours' | 'days';
 export type BackgroundType = 'color' | 'gradient' | 'image' | 'gif';
@@ -139,7 +141,7 @@ export interface TtsConfig {
 
 export const DEFAULT_TTS_CONFIG: TtsConfig = {
     enabled: false,
-    voice: 'Lupe',
+    voice: DEFAULT_PREMIUM_VOICE,
     engine: 'standard',
     languageCode: 'es-US',
     template: '',

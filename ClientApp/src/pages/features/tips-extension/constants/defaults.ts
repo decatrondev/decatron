@@ -2,6 +2,7 @@
  * Default values for Tips Overlay Editor
  */
 
+import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import type {
   TipsOverlayConfig,
   OverlayMediaElement,
@@ -158,7 +159,7 @@ export const DEFAULT_TIPS_BASE_ALERT: TipsBaseAlertConfig = {
   },
   tts: {
     enabled: false,
-    voice: 'Lupe',
+    voice: DEFAULT_PREMIUM_VOICE,
     engine: 'standard',
     languageCode: 'es-US',
     template: '¡Gracias {donorName} por donar {amount}!',

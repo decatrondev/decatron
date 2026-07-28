@@ -5,6 +5,7 @@
  * Diseño idéntico al Timer Extensible
  */
 
+import { DEFAULT_PREMIUM_VOICE } from '../../../../../components/tts/voiceDefaults';
 import React, { useState } from 'react';
 import type { BitsAlertConfig, AlertTier, VariantsConfig } from '../../types/index';
 import { MediaEditor } from '../../../timer-extension/components/MediaEditor';
@@ -51,7 +52,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
       effects: { enabled: tierIndex > 0, effects: tierIndex === 1 ? ['glow', 'shake'] : tierIndex === 2 ? ['glow', 'shake', 'confetti'] : [] },
       tts: {
         enabled: false,
-        voice: 'Lupe',
+        voice: DEFAULT_PREMIUM_VOICE,
         engine: 'standard' as const,
         languageCode: 'es-US',
         templateVolume: 80,

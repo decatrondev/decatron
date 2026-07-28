@@ -6,6 +6,7 @@
  * Orchestrator - tabs extracted to tips-extension/components/tabs/
  */
 
+import { DEFAULT_PREMIUM_VOICE } from '../../components/tts/voiceDefaults';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -46,7 +47,7 @@ const DEFAULT_SETTINGS: TipsSettings = {
     basicAlertMessage: '¡{donorName} donó {amount}! {message}',
     basicAlertTts: {
         enabled: false,
-        voice: 'Lupe',
+        voice: DEFAULT_PREMIUM_VOICE,
         engine: 'standard',
         languageCode: 'es-US',
         template: '¡{donorName} donó {amount}!',

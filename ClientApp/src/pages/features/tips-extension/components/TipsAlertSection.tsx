@@ -3,6 +3,7 @@
  * Similar a AlertTierSection pero específico para donaciones
  */
 
+import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import React, { useState } from 'react';
 import type { TipsBaseAlertConfig, TipsTier, TtsConfig, VariantsConfig } from '../types/index';
 import { TIPS_MESSAGE_TEMPLATES, TIPS_TTS_TEMPLATES, TIPS_CHAT_TEMPLATES } from '../types/index';
@@ -97,7 +98,7 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
       effects: { enabled: tierIndex > 0, effects: tierIndex === 1 ? ['glow'] : tierIndex === 2 ? ['glow', 'confetti'] : [] },
       tts: {
         enabled: false,
-        voice: 'Lupe',
+        voice: DEFAULT_PREMIUM_VOICE,
         engine: 'standard' as const,
         languageCode: 'es-US',
         templateVolume: 80,

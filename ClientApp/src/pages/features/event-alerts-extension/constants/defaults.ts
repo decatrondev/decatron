@@ -1,3 +1,4 @@
+import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import type {
   GlobalAlertsConfig,
   FollowAlertConfig,
@@ -239,7 +240,7 @@ export const DEFAULT_MEDIA: AlertMediaConfig = {
 
 export const DEFAULT_TTS: TtsConfig = {
   enabled: false,
-  voice: 'Lupe',
+  voice: DEFAULT_PREMIUM_VOICE,
   engine: 'standard',
   languageCode: 'es-US',
 
