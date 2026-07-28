@@ -330,7 +330,12 @@ namespace Decatron.Services
                     var key = channelName;
                     if (_globalCooldowns.TryGetValue(key, out var lastGlobal) &&
                         (DateTime.UtcNow - lastGlobal).TotalSeconds < globalCooldownSecs)
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: descartado por enfriamiento global ({Secs}s)",
+                            channelName, globalCooldownSecs);
                         return;
+                    }
                     _globalCooldowns[key] = DateTime.UtcNow;
                 }
 
@@ -342,7 +347,12 @@ namespace Decatron.Services
                     var key = $"{channelName}:{userId}";
                     if (_perUserCooldowns.TryGetValue(key, out var lastUser) &&
                         (DateTime.UtcNow - lastUser).TotalSeconds < perUserCooldownSecs)
+                    {
+                        _logger.LogInformation(
+                            "[SpeakChat] {Channel}: {User} en enfriamiento ({Secs}s entre mensajes)",
+                            channelName, username, perUserCooldownSecs);
                         return;
+                    }
                     _perUserCooldowns[key] = DateTime.UtcNow;
                 }
 
@@ -361,7 +371,12 @@ namespace Decatron.Services
                         var w = word.GetString();
                         if (!string.IsNullOrEmpty(w) &&
                             textToSpeak.Contains(w, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogInformation(
+                                "[SpeakChat] {Channel}: mensaje de {User} descartado por palabra bloqueada",
+                                channelName, username);
                             return;
+                        }
                     }
                 }
 
@@ -374,7 +389,12 @@ namespace Decatron.Services
                         var u = blockedUser.GetString();
                         if (!string.IsNullOrEmpty(u) &&
                             u.Equals(username, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogInformation(
+                                "[SpeakChat] {Channel}: {User} está en la lista de bloqueados",
+                                channelName, username);
                             return;
+                        }
                     }
                 }
 
@@ -451,6 +471,24 @@ namespace Decatron.Services
                         : new { showBubble = true, position = "bottom-left", fontSize = 16, duration = 5000 },
                     timestamp = DateTime.UtcNow
                 });
+
+                // Hasta aquí todo puede haber salido bien —permisos, cobro, síntesis— y
+                // aun así no oírse nada, porque el overlay no está puesto en OBS. Sin
+                // esta línea no había forma de distinguir "no se generó" de "no había
+                // nadie escuchando", y las dos se ven igual desde el chat.
+                var listeners = Hubs.OverlayHub.CountOverlays(channelName, "speak_chat");
+                if (listeners == 0)
+                {
+                    _logger.LogWarning(
+                        "[SpeakChat] Audio generado para {Channel} pero NO hay overlay de Speak Chat conectado — no se va a oír. Overlays presentes: {Detalle}",
+                        channelName, Hubs.OverlayHub.DescribeOverlays(channelName));
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "[SpeakChat] Enviado a {Channel} ({Listeners} overlay(s) escuchando)",
+                        channelName, listeners);
+                }
             }
             catch (Exception ex)
             {
