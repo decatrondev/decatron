@@ -505,14 +505,41 @@ namespace Decatron.Controllers
                     .GetProperty("captures")[0]
                     .TryGetProperty("custom_id", out var cidEl) ? cidEl.GetString() : null;
 
-                var parts       = customId?.Split('|');
-                var tier        = parts?.Length >= 1 ? parts[0] : req.Tier;
-                var billingType = parts?.Length >= 2 ? parts[1] : req.BillingType;
-                var codeIdStr   = parts?.Length >= 3 ? parts[2] : null;
+                // El custom_id lo escribe este servidor al crear la orden, con el tier que
+                // él mismo tarificó, y PayPal lo devuelve intacto. Es el único dato de
+                // aquí en el que se puede confiar.
+                //
+                // Antes, si faltaba, se caía a `req.Tier` y `req.BillingType`, que vienen
+                // del cuerpo de la petición: cualquiera podía capturar una orden de un
+                // dólar declarando tier "fundador" y facturación "permanent". Un pago
+                // tiene que valer lo que el servidor decidió, no lo que diga el cliente.
+                var parts = customId?.Split('|');
+                if (parts == null || parts.Length < 2 || string.IsNullOrWhiteSpace(parts[0]))
+                {
+                    _logger.LogError(
+                        "Captura de {Order} sin custom_id utilizable ({Custom}). No se acredita nada.",
+                        req.OrderId, customId ?? "ausente");
+                    return BadRequest(new
+                    {
+                        error = "No se pudo verificar qué se compró. El cobro está hecho: escribe a soporte y se resuelve a mano."
+                    });
+                }
+
+                var tier        = parts[0];
+                var billingType = parts[1];
+                var codeIdStr   = parts.Length >= 3 ? parts[2] : null;
                 int.TryParse(codeIdStr, out var codeId);
 
-                if (string.IsNullOrEmpty(tier))
-                    return BadRequest(new { error = "No se pudo determinar el tier del pago" });
+                // Si lo declarado en la petición no coincide con lo que se cobró, manda el
+                // custom_id — pero queda escrito, porque o es un error del panel o es un
+                // intento de colarse.
+                if ((!string.IsNullOrEmpty(req.Tier) && !string.Equals(req.Tier, tier, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(req.BillingType) && !string.Equals(req.BillingType, billingType, StringComparison.OrdinalIgnoreCase)))
+                {
+                    _logger.LogWarning(
+                        "Captura de {Order}: la petición decía {ReqTier}/{ReqBilling} y la orden era {Tier}/{Billing}. Se usa la orden.",
+                        req.OrderId, req.Tier, req.BillingType, tier, billingType);
+                }
 
                 var isPermanent = billingType == "permanent";
 
