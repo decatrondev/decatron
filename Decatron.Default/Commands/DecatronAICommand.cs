@@ -298,7 +298,8 @@ namespace Decatron.Default.Commands
                 ["subscriber"] = 1,
                 ["vip"] = 2,
                 ["moderator"] = 3,
-                ["broadcaster"] = 4
+                ["lead_moderator"] = 4,
+                ["broadcaster"] = 5
             };
 
             var requiredLevel = permissionHierarchy.GetValueOrDefault(config.PermissionLevel, 0);
@@ -307,7 +308,10 @@ namespace Decatron.Default.Commands
             if (context.IsSubscriber) userLevel = Math.Max(userLevel, 1);
             if (context.IsVip) userLevel = Math.Max(userLevel, 2);
             if (context.IsModerator) userLevel = Math.Max(userLevel, 3);
-            if (username == channel) userLevel = 4; // broadcaster
+            // Twitch da la insignia de lead_moderator en lugar de la de moderator, así que
+            // sin esta línea un mod líder quedaba por debajo de un moderador normal.
+            if (context.IsLeadModerator) userLevel = Math.Max(userLevel, 4);
+            if (username == channel) userLevel = 5; // broadcaster
 
             if (userLevel < requiredLevel)
             {
