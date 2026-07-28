@@ -12,6 +12,7 @@ import {
   premiumVoicesForLanguage,
   languagesFor,
   languageLabel,
+  describeVoiceMismatch,
 } from '../../../../components/tts/useVoiceCatalog';
 
 // Las voces y los idiomas vienen del servidor, no de una lista escrita aquí. La que
@@ -151,6 +152,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
   const usingStandard = provider === 'piper';
 
   const voicesForThisLanguage = standardVoicesForLanguage(voiceCatalog, config.languageCode);
+  const voiceMismatch = describeVoiceMismatch(voiceCatalog, config.voice, config.languageCode);
 
   // Los idiomas dependen de lo elegido antes: del proveedor y, en premium, también de la
   // calidad. Antes solo se miraba el proveedor, así que con alta calidad seguían saliendo
@@ -264,6 +266,15 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                     agotado, la alerta cae a voz estándar en vez de quedarse muda.
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Configuraciones guardadas antes de que existiera el filtro: la voz y el
+                idioma pueden no cuadrar. El filtro nuevo impide crearlas, no arregla las
+                que ya están, así que hay que decirlo. */}
+            {!usingStandard && voiceMismatch && (
+              <div className="mb-4 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-700 dark:text-amber-300">
+                ⚠️ {voiceMismatch}
               </div>
             )}
 

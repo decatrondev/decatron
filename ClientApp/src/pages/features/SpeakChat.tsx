@@ -10,7 +10,13 @@ import {
     standardVoicesForLanguage,
     premiumVoicesForLanguage,
     languagesFor,
+    describeVoiceMismatch,
 } from '../../components/tts/useVoiceCatalog';
+import {
+    DEFAULT_PREMIUM_VOICE,
+    DEFAULT_LANGUAGE_CODE,
+    DEFAULT_POLLY_ENGINE,
+} from '../../components/tts/voiceDefaults';
 
 // ===================== TYPES =====================
 
@@ -83,7 +89,15 @@ const defaultConfig: SpeakChatConfigData = {
             { type: 'all', enabled: false },
         ]
     },
-    voice: { engine: 'piper', voice: 'Lupe', pollyVoice: 'Lupe', standardVoice: '', pollyEngine: 'standard', languageCode: 'es-US', volume: 80 },
+    voice: {
+        engine: 'piper',
+        voice: DEFAULT_PREMIUM_VOICE,
+        pollyVoice: DEFAULT_PREMIUM_VOICE,
+        standardVoice: '',
+        pollyEngine: DEFAULT_POLLY_ENGINE,
+        languageCode: DEFAULT_LANGUAGE_CODE,
+        volume: 80,
+    },
     filters: { globalCooldownSeconds: 0, perUserCooldownSeconds: 10, maxChars: 200, blockedWords: [], blockedUsers: [] },
     overlay: { showBubble: true, position: 'bottom-left', fontSize: 16, backgroundColor: 'rgba(0,0,0,0.75)', textColor: '#ffffff', duration: 5000 }
 };
@@ -309,6 +323,11 @@ export default function SpeakChat() {
     const languageOptions = config.voice.engine === 'polly'
         ? languagesFor(voiceCatalog, 'polly', config.voice.pollyEngine)
         : languagesFor(voiceCatalog, 'piper');
+
+    // Configuraciones guardadas antes del filtro: la voz puede ser de otro idioma. El
+    // filtro nuevo impide crear esas combinaciones, no arregla las que ya existen.
+    const voiceMismatch = describeVoiceMismatch(
+        voiceCatalog, config.voice.pollyVoice, config.voice.languageCode);
 
     // Cambiar la calidad puede dejar el idioma sin voces. Se conserva si sigue estando y,
     // si no, se salta al primero disponible: nunca se guarda una combinación imposible.
@@ -741,6 +760,12 @@ export default function SpeakChat() {
                                     ))}
                                 </div>
                             </div>
+
+                            {config.voice.engine === 'polly' && voiceMismatch && (
+                                <div className="px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-700 dark:text-amber-300">
+                                    ⚠️ {voiceMismatch}
+                                </div>
+                            )}
 
                             {/* Calidad primero: decide el precio y recorta los idiomas */}
                             {config.voice.engine === 'polly' && (
