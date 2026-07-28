@@ -5,7 +5,12 @@ import {
     Filter, Monitor, TestTube2, ChevronDown, ChevronUp, Lock, AlertCircle
 } from 'lucide-react';
 import api from '../../services/api';
-import { useStandardVoices, standardVoicesForLanguage } from '../../components/tts/useStandardVoices';
+import {
+    useVoiceCatalog,
+    standardVoicesForLanguage,
+    premiumVoicesForLanguage,
+    languagesFor,
+} from '../../components/tts/useVoiceCatalog';
 
 // ===================== TYPES =====================
 
@@ -56,7 +61,9 @@ interface SpeakChatConfigData {
     activation: { rules: ActivationRule[] };
     // `voice` es el campo antiguo (nombre de voz Polly). Se conserva por
     // compatibilidad, pero cada motor tiene ya su propio campo.
-    voice: { engine: 'piper' | 'polly'; voice: string; pollyVoice: string; standardVoice: string; languageCode: string; volume: number };
+    // `engine` es el proveedor (estándar o premium); `pollyEngine`, la calidad dentro de
+    // Polly, que es lo que decide el multiplicador de créditos.
+    voice: { engine: 'piper' | 'polly'; voice: string; pollyVoice: string; standardVoice: string; pollyEngine: 'standard' | 'neural'; languageCode: string; volume: number };
     filters: { globalCooldownSeconds: number; perUserCooldownSeconds: number; maxChars: number; blockedWords: string[]; blockedUsers: string[] };
     overlay: { showBubble: boolean; position: string; fontSize: number; backgroundColor: string; textColor: string; duration: number };
 }
@@ -76,41 +83,16 @@ const defaultConfig: SpeakChatConfigData = {
             { type: 'all', enabled: false },
         ]
     },
-    voice: { engine: 'piper', voice: 'Lupe', pollyVoice: 'Lupe', standardVoice: '', languageCode: 'es-US', volume: 80 },
+    voice: { engine: 'piper', voice: 'Lupe', pollyVoice: 'Lupe', standardVoice: '', pollyEngine: 'standard', languageCode: 'es-US', volume: 80 },
     filters: { globalCooldownSeconds: 0, perUserCooldownSeconds: 10, maxChars: 200, blockedWords: [], blockedUsers: [] },
     overlay: { showBubble: true, position: 'bottom-left', fontSize: 16, backgroundColor: 'rgba(0,0,0,0.75)', textColor: '#ffffff', duration: 5000 }
 };
 
 // ===================== VOICE DATA =====================
-
-const TTS_VOICES = [
-    { id: 'Lupe', name: 'Lupe', lang: 'es-US' },
-    { id: 'Penelope', name: 'Penelope', lang: 'es-US' },
-    { id: 'Miguel', name: 'Miguel', lang: 'es-US' },
-    { id: 'Lucia', name: 'Lucía', lang: 'es-ES' },
-    { id: 'Conchita', name: 'Conchita', lang: 'es-ES' },
-    { id: 'Enrique', name: 'Enrique', lang: 'es-ES' },
-    { id: 'Mia', name: 'Mia', lang: 'es-MX' },
-    { id: 'Joanna', name: 'Joanna', lang: 'en-US' },
-    { id: 'Matthew', name: 'Matthew', lang: 'en-US' },
-    { id: 'Kendra', name: 'Kendra', lang: 'en-US' },
-    { id: 'Amy', name: 'Amy', lang: 'en-GB' },
-    { id: 'Brian', name: 'Brian', lang: 'en-GB' },
-    { id: 'Camila', name: 'Camila', lang: 'pt-BR' },
-    { id: 'Ricardo', name: 'Ricardo', lang: 'pt-BR' },
-    { id: 'Takumi', name: 'Takumi', lang: 'ja-JP' },
-    { id: 'Mizuki', name: 'Mizuki', lang: 'ja-JP' },
-];
-
-const LANG_OPTIONS = [
-    { code: 'es-US', label: 'Español (US)' },
-    { code: 'es-ES', label: 'Español (España)' },
-    { code: 'es-MX', label: 'Español (México)' },
-    { code: 'en-US', label: 'English (US)' },
-    { code: 'en-GB', label: 'English (UK)' },
-    { code: 'pt-BR', label: 'Português (BR)' },
-    { code: 'ja-JP', label: '日本語' },
-];
+//
+// Las voces y los idiomas ya no se escriben aquí: vienen de `useVoiceCatalog`, que los
+// pide al servidor. La lista de este archivo tenía 16 voces y la de las alertas 21, y
+// ninguna de las dos coincidía con lo que AWS ofrece de verdad.
 
 const RULE_META: Record<string, { label: string; emoji: string; desc: string }> = {
     command:       { label: 'Comando de chat',    emoji: '💬', desc: 'El viewer escribe el comando seguido del texto a leer' },
@@ -159,6 +141,7 @@ export default function SpeakChat() {
     const [saving, setSaving] = useState(false);
     const [testing, setTesting] = useState(false);
     const [saved, setSaved] = useState<'success' | 'error' | null>(null);
+    const [testError, setTestError] = useState<string | null>(null);
     const [config, setConfig] = useState<SpeakChatConfigData>(defaultConfig);
     const [expandedRules, setExpandedRules] = useState<Record<number, boolean>>({});
     const [usage, setUsage] = useState<CreditUsage | null>(null);
@@ -170,7 +153,7 @@ export default function SpeakChat() {
     const [copiedUrl, setCopiedUrl] = useState(false);
     const [blockedWordsText, setBlockedWordsText] = useState('');
     const [blockedUsersText, setBlockedUsersText] = useState('');
-    const { voices: standardVoices } = useStandardVoices();
+    const { catalog: voiceCatalog } = useVoiceCatalog();
 
     useEffect(() => {
         Promise.all([loadConfig(), loadUsage(), loadRewards()]);
@@ -272,14 +255,22 @@ export default function SpeakChat() {
                 // Cada motor tiene su propio catálogo de voces
                 voice: config.voice.engine === 'polly' ? config.voice.pollyVoice : config.voice.standardVoice,
                 engine: config.voice.engine,
+                // Sin esto la prueba sonaría siempre en estándar y no se podría
+                // comprobar la voz neural antes de dejarla puesta.
+                pollyEngine: config.voice.pollyEngine,
                 languageCode: config.voice.languageCode,
             });
+            setTestError(null);
             setSaved('success');
-        } catch {
+        } catch (err: any) {
+            // El servidor explica por qué rechazó la prueba —lo más habitual, que Speak
+            // Chat esté apagado—. Enseñar "error al guardar" a secas manda al usuario a
+            // buscar un problema que no existe.
+            setTestError(err?.response?.data?.message ?? 'No se pudo enviar la prueba');
             setSaved('error');
         } finally {
             setTesting(false);
-            setTimeout(() => setSaved(null), 3000);
+            setTimeout(() => { setSaved(null); setTestError(null); }, 6000);
         }
     };
 
@@ -306,14 +297,37 @@ export default function SpeakChat() {
     const isPollyAvailable = !!usage && (usage.isUnlimited || usage.totalAvailable > 0);
 
     // Catálogo de voces estándar, servido por el servidor: igual para todo el mundo
-    const standardVoicesForLang = standardVoicesForLanguage(standardVoices, config.voice.languageCode);
+    const standardVoicesForLang = standardVoicesForLanguage(voiceCatalog, config.voice.languageCode);
+    // Filtradas por la calidad elegida: no todas las voces hacen neural, y ofrecer una
+    // que no puede acabaría en un fallo de síntesis en pleno directo.
+    const premiumVoicesForLang = premiumVoicesForLanguage(
+        voiceCatalog, config.voice.languageCode, config.voice.pollyEngine);
 
-    // Piper no tiene japonés ni coreano, así que con voz estándar no se ofrecen:
-    // proponerlos sería prometer algo que no se cumple.
-    const standardPrefixes = new Set(standardVoices.map(v => v.languagePrefix));
-    const languageOptions = (config.voice.engine !== 'polly' && standardPrefixes.size > 0)
-        ? LANG_OPTIONS.filter(l => standardPrefixes.has(l.code.substring(0, 2).toLowerCase()))
-        : LANG_OPTIONS;
+    // Los idiomas dependen de lo elegido antes: del proveedor y, en premium, también de
+    // la calidad. Hay 13 idiomas que solo existen en alta calidad y 6 solo en normal, así
+    // que sin filtrar por ella se puede elegir un idioma sin ninguna voz detrás.
+    const languageOptions = config.voice.engine === 'polly'
+        ? languagesFor(voiceCatalog, 'polly', config.voice.pollyEngine)
+        : languagesFor(voiceCatalog, 'piper');
+
+    // Cambiar la calidad puede dejar el idioma sin voces. Se conserva si sigue estando y,
+    // si no, se salta al primero disponible: nunca se guarda una combinación imposible.
+    const changePollyEngine = (pollyEngine: 'standard' | 'neural') => {
+        const langs = languagesFor(voiceCatalog, 'polly', pollyEngine);
+        const keeps = langs.some(l => l.code === config.voice.languageCode);
+        const languageCode = keeps ? config.voice.languageCode : (langs[0]?.code ?? config.voice.languageCode);
+        const firstVoice = premiumVoicesForLanguage(voiceCatalog, languageCode, pollyEngine)[0];
+
+        setConfig(c => ({
+            ...c,
+            voice: {
+                ...c.voice,
+                pollyEngine,
+                languageCode,
+                pollyVoice: firstVoice?.id ?? '',
+            }
+        }));
+    };
 
     // Créditos Polly restantes
     const charsLeft = usage && !usage.isUnlimited ? usage.totalAvailable : null;
@@ -370,7 +384,7 @@ export default function SpeakChat() {
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                 : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                         }`}>
-                            {saved === 'success' ? '✅ Guardado' : '❌ Error al guardar'}
+                            {saved === 'success' ? '✅ Guardado' : `❌ ${testError ?? 'Error al guardar'}`}
                         </span>
                     )}
                     <button
@@ -728,21 +742,45 @@ export default function SpeakChat() {
                                 </div>
                             </div>
 
-                            {/* Idioma */}
+                            {/* Calidad primero: decide el precio y recorta los idiomas */}
+                            {config.voice.engine === 'polly' && (
+                                <div>
+                                    <label className={labelClass}>Calidad</label>
+                                    <select
+                                        value={config.voice.pollyEngine}
+                                        onChange={e => changePollyEngine(e.target.value as 'standard' | 'neural')}
+                                        className={inputClass}
+                                    >
+                                        <option value="standard">Normal · 1 crédito por carácter</option>
+                                        <option value="neural">Alta calidad · 4 créditos por carácter</option>
+                                    </select>
+                                    {config.voice.pollyEngine === 'neural' && (
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                            Suena mucho mejor, pero cada mensaje gasta cuatro veces más.
+                                            Speak Chat lee mucho: revisa el saldo antes de dejarlo puesto.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Idioma: depende de la calidad elegida arriba */}
                             <div>
                                 <label className={labelClass}>Idioma</label>
                                 <select
                                     value={config.voice.languageCode}
                                     onChange={e => {
                                         const lang = e.target.value;
-                                        const firstVoice = TTS_VOICES.find(v => v.lang === lang);
-                                        const firstStandard = standardVoicesForLanguage(standardVoices, lang)[0];
+                                        // Al cambiar de idioma se reasignan las dos voces. Dejar la
+                                        // anterior es lo que producía "voz japonesa, idioma español".
+                                        const firstPremium = premiumVoicesForLanguage(
+                                            voiceCatalog, lang, config.voice.pollyEngine)[0];
+                                        const firstStandard = standardVoicesForLanguage(voiceCatalog, lang)[0];
                                         setConfig(c => ({
                                             ...c,
                                             voice: {
                                                 ...c.voice,
                                                 languageCode: lang,
-                                                pollyVoice: firstVoice?.id ?? c.voice.pollyVoice,
+                                                pollyVoice: firstPremium?.id ?? '',
                                                 standardVoice: firstStandard?.id ?? '',
                                             }
                                         }));
@@ -751,9 +789,14 @@ export default function SpeakChat() {
                                 >
                                     {languageOptions.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
                                 </select>
-                                {config.voice.engine !== 'polly' && (
+                                {config.voice.engine !== 'polly' ? (
                                     <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
                                         El japonés y el coreano solo están en voz premium.
+                                    </p>
+                                ) : (
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                        Solo los idiomas con voces en la calidad elegida. Algunos existen
+                                        en una y no en la otra.
                                     </p>
                                 )}
                             </div>
@@ -767,12 +810,17 @@ export default function SpeakChat() {
                                         onChange={e => setConfig(c => ({ ...c, voice: { ...c.voice, pollyVoice: e.target.value } }))}
                                         className={inputClass}
                                     >
-                                        {TTS_VOICES.filter(v => v.lang === config.voice.languageCode).map(v => (
-                                            <option key={v.id} value={v.id}>{v.name}</option>
+                                        {premiumVoicesForLang.map(v => (
+                                            <option key={v.id} value={v.id}>
+                                                {v.name}{v.gender ? ` · ${v.gender === 'Female' ? 'F' : 'M'}` : ''}
+                                            </option>
                                         ))}
                                     </select>
-                                    {TTS_VOICES.filter(v => v.lang === config.voice.languageCode).length === 0 && (
-                                        <p className="text-xs text-yellow-500 mt-1">No hay voces Polly para este idioma</p>
+                                    {premiumVoicesForLang.length === 0 && (
+                                        <p className="text-xs text-yellow-500 mt-1">
+                                            No hay voces para este idioma en calidad{' '}
+                                            {config.voice.pollyEngine === 'neural' ? 'alta' : 'normal'}. Prueba con la otra.
+                                        </p>
                                     )}
                                 </div>
                             ) : (
@@ -800,7 +848,7 @@ export default function SpeakChat() {
                                                 <option value="">Automática (la primera del idioma)</option>
                                                 {standardVoicesForLang.map(v => (
                                                     <option key={v.id} value={v.id}>
-                                                        {v.speaker} — {v.languageName} ({v.quality})
+                                                        {v.name} — {v.languageName} ({v.quality})
                                                     </option>
                                                 ))}
                                             </select>
