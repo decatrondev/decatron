@@ -683,7 +683,9 @@ namespace Decatron.Services
                 var payload = new
                 {
                     type = "channel.hype_train.begin",
-                    version = "1",
+                    // Twitch retiró la versión 1: pedirla devolvía BadRequest y ningún
+                    // canal tenía hype trains registrados.
+                    version = "2",
                     condition = new
                     {
                         broadcaster_user_id = broadcasterUserId
