@@ -217,6 +217,10 @@ try
     builder.Services.AddScoped(sp => new PiperTtsService(
         sp.GetRequiredService<ILogger<PiperTtsService>>(),
         builder.Configuration["TtsSettings:CachePath"] ?? "/var/www/html/decatron/tts-cache"));
+    // Catálogo de voces de Polly. Singleton: la lista es la misma para todo el mundo y
+    // se cachea un día, así que no tiene sentido reconstruirlo por petición.
+    builder.Services.AddSingleton<PollyVoiceCatalogService>();
+
     // Radiografía del propio repositorio para /admin. Singleton porque cachea el
     // resultado y la raíz no cambia mientras el proceso viva.
     builder.Services.AddSingleton(sp => new ProjectAnalysisService(
