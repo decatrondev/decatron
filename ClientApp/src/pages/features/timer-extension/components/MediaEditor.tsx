@@ -11,7 +11,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Volume2, Image as ImageIcon, Video, Music, VolumeX, RefreshCw, FileAudio, Trash2, Play, X } from 'lucide-react';
 import MediaInputWithSelector from '../../../../components/timer/MediaInputWithSelector';
-import type { AlertMediaConfig } from '../../types/timer-alerts';
+import type { AlertMediaConfig } from '../../../../types/timer-alerts';
 
 // ============================================================================
 // ALERT CONTEXT TYPE (for full preview)
