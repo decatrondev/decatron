@@ -105,25 +105,48 @@ namespace Decatron.Services
             bool isSubscriber,
             int bitsAmount,
             string? channelPointsRewardId,
-            Dictionary<string, object>? metadata)
+            Dictionary<string, object>? metadata,
+            bool isLeadModerator = false)
         {
             try
             {
+                // El mod líder cuenta como moderador para los permisos. Twitch le da su
+                // propia insignia en lugar de la de moderator, así que si no se suma aquí
+                // el usuario con MÁS rango es el único al que se le niega el paso.
+                isModerator = isModerator || isLeadModerator;
+
                 var config = await GetConfigByChannelAsync(channelName);
                 if (config == null || !config.IsEnabled) return;
 
                 JsonElement cfg;
                 try { cfg = JsonSerializer.Deserialize<JsonElement>(config.ConfigJson); }
-                catch { return; }
+                catch
+                {
+                    _logger.LogWarning("[SpeakChat] {Channel}: la configuración guardada no es JSON válido", channelName);
+                    return;
+                }
 
                 // Verificar enabled global
+                //
+                // Este corte era mudo, y desde el chat se ve idéntico a que esté roto:
+                // llegó el comando y no pasó nada. Se dejó una tarde entera buscando en
+                // la base de datos algo que una línea de registro responde al momento.
                 if (cfg.TryGetProperty("global", out var global) &&
                     global.TryGetProperty("enabled", out var enabledProp) &&
                     !enabledProp.GetBoolean())
+                {
+                    _logger.LogInformation(
+                        "[SpeakChat] {Channel}: llegó un mensaje de {User} pero Speak Chat está DESACTIVADO",
+                        channelName, username);
                     return;
+                }
 
                 // ===== REGLAS DE ACTIVACIÓN =====
-                if (!cfg.TryGetProperty("activation", out var activation)) return;
+                if (!cfg.TryGetProperty("activation", out var activation))
+                {
+                    _logger.LogWarning("[SpeakChat] {Channel}: no hay reglas de activación configuradas", channelName);
+                    return;
+                }
 
                 var activated = false;
                 var textToSpeak = message;
@@ -141,16 +164,34 @@ namespace Decatron.Services
                         {
                             case "command":
                             {
-                                var cmdName = rule.TryGetProperty("commandName", out var cn) ? cn.GetString() ?? "!tts" : "!tts";
-                                if (message.StartsWith(cmdName, StringComparison.OrdinalIgnoreCase) &&
-                                    IsRoleAllowed(rule, isBroadcaster, isModerator, isVip, isSubscriber))
+                                var cmdName = (rule.TryGetProperty("commandName", out var cn) ? cn.GetString() : null)?.Trim();
+                                if (string.IsNullOrWhiteSpace(cmdName)) cmdName = "!tts";
+
+                                if (!MatchesCommand(message, cmdName)) break;
+
+                                // El comando es correcto: a partir de aquí, si no suena,
+                                // hay un motivo concreto y merece quedar escrito.
+                                if (!IsRoleAllowed(rule, isBroadcaster, isModerator, isVip, isSubscriber))
                                 {
-                                    textToSpeak = message.Length > cmdName.Length
-                                        ? message.Substring(cmdName.Length).Trim()
-                                        : string.Empty;
-                                    if (string.IsNullOrWhiteSpace(textToSpeak)) break;
-                                    activated = true;
+                                    _logger.LogInformation(
+                                        "[SpeakChat] {Channel}: {User} usó {Cmd} pero su rol no está permitido",
+                                        channelName, username, cmdName);
+                                    break;
                                 }
+
+                                textToSpeak = message.Length > cmdName.Length
+                                    ? message.Substring(cmdName.Length).Trim()
+                                    : string.Empty;
+
+                                if (string.IsNullOrWhiteSpace(textToSpeak))
+                                {
+                                    _logger.LogInformation(
+                                        "[SpeakChat] {Channel}: {User} escribió {Cmd} sin texto detrás",
+                                        channelName, username, cmdName);
+                                    break;
+                                }
+
+                                activated = true;
                                 break;
                             }
                             case "bits":
@@ -438,6 +479,28 @@ namespace Decatron.Services
 
             _recentRedemptions[key] = now;
             return true;
+        }
+
+        /// <summary>
+        /// Si el mensaje empieza por el comando **completo**: o es exactamente el comando,
+        /// o va seguido de un espacio.
+        ///
+        /// Antes bastaba con que el mensaje empezara por esas letras, y con un comando
+        /// corto como "!s" eso atrapaba media conversación: "!spotify", "!sorteo" y
+        /// "!salud a todos" disparaban el TTS. Y encima se comía la primera letra, porque
+        /// el texto se recorta por la longitud del comando: "!salud a todos" se leía como
+        /// "alud a todos". Cada uno de esos falsos positivos se cobraba en créditos.
+        /// </summary>
+        private static bool MatchesCommand(string message, string cmdName)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return false;
+            if (!message.StartsWith(cmdName, StringComparison.OrdinalIgnoreCase)) return false;
+
+            // Exactamente el comando, sin texto detrás.
+            if (message.Length == cmdName.Length) return true;
+
+            // Con texto detrás, tiene que haber un separador: "!s hola" sí, "!shola" no.
+            return char.IsWhiteSpace(message[cmdName.Length]);
         }
 
         private static bool IsRoleAllowed(JsonElement rule, bool isBroadcaster, bool isModerator, bool isVip, bool isSubscriber)

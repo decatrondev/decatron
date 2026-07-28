@@ -641,7 +641,8 @@ namespace Decatron.Services
                             isSubscriber: isSubscriber,
                             bitsAmount: bitsAmount,
                             channelPointsRewardId: channelPointsRewardId,
-                            metadata: metadata);
+                            metadata: metadata,
+                            isLeadModerator: isLeadModerator);
                     }
                 }
                 catch (Exception speakEx)

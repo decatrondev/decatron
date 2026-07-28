@@ -25,7 +25,11 @@ namespace Decatron.Core.Interfaces
             bool isSubscriber,
             int bitsAmount,
             string? channelPointsRewardId,
-            Dictionary<string, object>? metadata);
+            Dictionary<string, object>? metadata,
+            // Twitch reparte la insignia de lead_moderator EN LUGAR de la de moderator,
+            // así que un mod líder llega aquí con isModerator=false. Sin este dato se le
+            // niega el TTS aunque tenga más rango que un moderador normal.
+            bool isLeadModerator = false);
 
         /// <summary>
         /// Punto de entrada desde el evento de canje de puntos de canal.
