@@ -231,10 +231,28 @@ export default function SpeakChatOverlay() {
         connection.on('RefreshOverlay', () => reloadOverlay());
         connection.on('ShowSoundAlert', () => {});
 
+        // SignalR reconecta solo, pero NO vuelve a meterte en tu grupo: eso hay que
+        // pedirlo otra vez. Sin esto, cada reinicio del backend dejaba el overlay
+        // conectado y mudo para siempre, sin un solo error en consola, hasta que alguien
+        // recargaba la fuente en OBS a mano. Los otros nueve overlays ya lo hacían.
+        connection.onreconnected(async () => {
+            try {
+                await connection.invoke('JoinChannel', channel);
+                await connection.invoke('RegisterOverlay', channel, 'speak_chat').catch(() => {});
+                console.log('[SpeakChat] 🔄 Reconectado y reincorporado al canal:', channel);
+            } catch (err) {
+                console.error('[SpeakChat] ❌ Error al reincorporarse al canal:', err);
+            }
+        });
+
         const start = async () => {
             try {
                 await connection.start();
                 await connection.invoke('JoinChannel', channel);
+                // Identificarse permite que el servidor avise en los registros cuando
+                // genera audio para un canal sin este overlay puesto. Si el backend es
+                // viejo y no conoce el método, no pasa nada: el overlay funciona igual.
+                await connection.invoke('RegisterOverlay', channel, 'speak_chat').catch(() => {});
                 console.log('[SpeakChat] ✅ SignalR conectado al canal:', channel);
             } catch (e) {
                 console.error('[SpeakChat] ❌ Error SignalR:', e);
