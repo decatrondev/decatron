@@ -232,6 +232,7 @@ try
     builder.Services.AddScoped<ITtsCreditService, TtsCreditService>();
     builder.Services.AddScoped<ITipsService, TipsService>();
     builder.Services.AddScoped<ISupportersService, SupportersService>();
+    builder.Services.AddScoped<ISupporterInvoiceService, SupporterInvoiceService>();
     builder.Services.AddSingleton<IStreamStatusService, StreamStatusService>();
     builder.Services.AddScoped<IWatchTimeTrackingService, WatchTimeTrackingService>();
     builder.Services.AddScoped<IChatActivityService, ChatActivityService>();
@@ -286,6 +287,7 @@ try
     builder.Services.AddHostedService<StreamStatusHydrationService>(); // Hidrata estado en vivo al arrancar (IStreamStatusService es solo en memoria)
     builder.Services.AddHostedService<NowPlayingBackgroundService>(); // Polling Last.fm/Spotify now playing
     builder.Services.AddHostedService<UsernameCheckBackgroundService>(); // Check Twitch username changes every 24h
+    builder.Services.AddHostedService<SupporterInvoiceBackgroundService>(); // Emite los comprobantes de compras de tier
 
     // Twitch services
     builder.Services.AddSingleton<TwitchClient>(provider => new TwitchClient());

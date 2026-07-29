@@ -364,6 +364,12 @@ function TierCards() {
     const [codeValidation, setCodeValidation] = useState<DiscountValidation | null>(null);
     const [codeError, setCodeError]           = useState<string | null>(null);
 
+    // Datos del comprobante. Vacíos = boleta sin documento, que es lo correcto por defecto.
+    const [showBillingInput, setShowBillingInput] = useState(false);
+    const [billingDocType, setBillingDocType]     = useState('RUC');
+    const [billingDocNumber, setBillingDocNumber] = useState('');
+    const [billingCountry, setBillingCountry]     = useState('');
+
     const handleValidateCode = async (tier: string) => {
         if (!codeInput.trim()) return;
         setValidatingCode(true);
@@ -469,6 +475,9 @@ function TierCards() {
                             discountCode: codeValidation ? codeInput.trim() : undefined,
                             firstName,
                             lastName,
+                            country:   billingCountry   || undefined,
+                            docType:   billingDocNumber ? billingDocType : undefined,
+                            docNumber: billingDocNumber || undefined,
                         });
                         if (res.data.success) {
                             setSuccessTier(tierId);
@@ -570,6 +579,59 @@ function TierCards() {
                             {codeError && (
                                 <div className="text-red-600 dark:text-red-400 text-sm font-semibold">{codeError}</div>
                             )}
+                        </div>
+                    )}
+                </div>
+
+                {/*
+                    Datos para el comprobante. Todo opcional a propósito: sin nada de esto
+                    sale una boleta sin documento, que es válida porque los tiers están muy
+                    por debajo de S/700. Solo hace falta llenarlo si se quiere factura con
+                    RUC, o si el comprador está fuera del Perú y le corresponde una factura
+                    de exportación de servicios.
+                */}
+                <div className="flex justify-center mb-8">
+                    {!showBillingInput ? (
+                        <button
+                            onClick={() => setShowBillingInput(true)}
+                            className="text-xs text-[#64748b] dark:text-[#94a3b8] underline underline-offset-2 hover:text-[#2563eb] transition-colors"
+                        >
+                            {t('needInvoice')}
+                        </button>
+                    ) : (
+                        <div className="flex flex-col gap-2 w-full max-w-sm">
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={billingDocType}
+                                    onChange={e => setBillingDocType(e.target.value)}
+                                    className="px-3 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                                >
+                                    <option value="RUC">RUC</option>
+                                    <option value="DNI">DNI</option>
+                                    <option value="CE">Carné de extranjería</option>
+                                    <option value="PASAPORTE">Pasaporte</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    value={billingDocNumber}
+                                    onChange={e => setBillingDocNumber(e.target.value.trim())}
+                                    placeholder={t('invoiceDocPlaceholder')}
+                                    className="flex-1 min-w-0 px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                                />
+                                <button
+                                    onClick={() => { setShowBillingInput(false); setBillingDocNumber(''); setBillingCountry(''); }}
+                                    className="text-[#94a3b8] hover:text-[#64748b] text-sm"
+                                >&times;</button>
+                            </div>
+                            <input
+                                type="text"
+                                value={billingCountry}
+                                onChange={e => setBillingCountry(e.target.value.toUpperCase().slice(0, 2))}
+                                placeholder={t('invoiceCountryPlaceholder')}
+                                maxLength={2}
+                                className="px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                            />
+                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{t('invoiceHint')}</p>
                         </div>
                     )}
                 </div>

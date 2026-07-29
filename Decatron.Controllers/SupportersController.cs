@@ -558,6 +558,8 @@ namespace Decatron.Controllers
                 }
                 catch { /* non-critical */ }
 
+                var payer = ExtractPayPalPayer(doc);
+
                 // Increment discount code usage if one was applied
                 if (codeId > 0)
                 {
@@ -598,8 +600,16 @@ namespace Decatron.Controllers
                         tier, userLogin, req.OrderId, billingType, duration, unit);
 
                     // Record payment
-                    await _service.RecordPaymentAsync(resolvedUserId, userLogin, capturedAmount,
-                        tier, billingType, req.OrderId, codeId > 0 ? codeId : null, "tier");
+                    await _service.RecordPaymentAsync(new RecordPaymentInput
+                    {
+                        UserId = resolvedUserId, TwitchLogin = userLogin, Amount = capturedAmount,
+                        Tier = tier, BillingType = billingType, OrderId = req.OrderId,
+                        DiscountCodeId = codeId > 0 ? codeId : null, PaymentType = "tier",
+                        ChargedAmount = capturedAmount, ChargedCurrency = "USD", Provider = "paypal",
+                        CustomerEmail = payer.Email, CustomerName = payer.Name,
+                        CustomerCountry = payer.Country,
+                        InvoiceStatus = "PENDING",
+                    });
 
                     return Ok(new
                     {
@@ -620,8 +630,16 @@ namespace Decatron.Controllers
                         "Anonymous PayPal order {OrderId} captured for tier '{Tier}' ({Billing}) — no account linked",
                         req.OrderId, tier, billingType);
 
-                    await _service.RecordPaymentAsync(null, null, capturedAmount,
-                        tier, billingType, req.OrderId, codeId > 0 ? codeId : null, "tier");
+                    await _service.RecordPaymentAsync(new RecordPaymentInput
+                    {
+                        Amount = capturedAmount, Tier = tier, BillingType = billingType,
+                        OrderId = req.OrderId, DiscountCodeId = codeId > 0 ? codeId : null,
+                        PaymentType = "tier",
+                        ChargedAmount = capturedAmount, ChargedCurrency = "USD", Provider = "paypal",
+                        CustomerEmail = payer.Email, CustomerName = payer.Name,
+                        CustomerCountry = payer.Country,
+                        InvoiceStatus = "PENDING",
+                    });
 
                     return Ok(new
                     {
@@ -786,8 +804,18 @@ namespace Decatron.Controllers
                     ? (User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value)
                     : null;
 
-                await _service.RecordPaymentAsync(null, userLogin, capturedAmount,
-                    null, "donation", req.OrderId, null, "donation");
+                var donorPayer = ExtractPayPalPayer(doc);
+
+                // Sin InvoiceStatus: una donación es una liberalidad, no venta de servicio,
+                // así que no lleva comprobante.
+                await _service.RecordPaymentAsync(new RecordPaymentInput
+                {
+                    TwitchLogin = userLogin, Amount = capturedAmount,
+                    BillingType = "donation", OrderId = req.OrderId, PaymentType = "donation",
+                    ChargedAmount = capturedAmount, ChargedCurrency = "USD", Provider = "paypal",
+                    CustomerEmail = donorPayer.Email, CustomerName = donorPayer.Name,
+                    CustomerCountry = donorPayer.Country,
+                });
 
                 _logger.LogInformation(
                     "Free donation ${Amount} captured. PayPal order {OrderId}. User: {Login}",
@@ -986,8 +1014,18 @@ namespace Decatron.Controllers
                         "Tier '{Tier}' assigned to @{Login} via Culqi charge {ChargeId} ({Billing})",
                         req.Tier, userLogin, chargeId, req.BillingType);
 
-                    await _service.RecordPaymentAsync(resolvedUserId, userLogin, finalAmountUsd,
-                        req.Tier, req.BillingType, chargeId, appliedCodeId, "tier");
+                    await _service.RecordPaymentAsync(new RecordPaymentInput
+                    {
+                        UserId = resolvedUserId, TwitchLogin = userLogin, Amount = finalAmountUsd,
+                        Tier = req.Tier, BillingType = req.BillingType, OrderId = chargeId,
+                        DiscountCodeId = appliedCodeId, PaymentType = "tier",
+                        ChargedAmount = amountCentavos / 100m, ChargedCurrency = "PEN", Provider = "culqi",
+                        CustomerEmail = req.CulqiEmail,
+                        CustomerName = $"{req.FirstName} {req.LastName}".Trim(),
+                        CustomerCountry = req.Country,
+                        CustomerDocType = req.DocType, CustomerDocNumber = req.DocNumber,
+                        InvoiceStatus = "PENDING",
+                    });
 
                     return Ok(new
                     {
@@ -1003,8 +1041,17 @@ namespace Decatron.Controllers
                 }
                 else
                 {
-                    await _service.RecordPaymentAsync(null, null, finalAmountUsd,
-                        req.Tier, req.BillingType, chargeId, appliedCodeId, "tier");
+                    await _service.RecordPaymentAsync(new RecordPaymentInput
+                    {
+                        Amount = finalAmountUsd, Tier = req.Tier, BillingType = req.BillingType,
+                        OrderId = chargeId, DiscountCodeId = appliedCodeId, PaymentType = "tier",
+                        ChargedAmount = amountCentavos / 100m, ChargedCurrency = "PEN", Provider = "culqi",
+                        CustomerEmail = req.CulqiEmail,
+                        CustomerName = $"{req.FirstName} {req.LastName}".Trim(),
+                        CustomerCountry = req.Country,
+                        CustomerDocType = req.DocType, CustomerDocNumber = req.DocNumber,
+                        InvoiceStatus = "PENDING",
+                    });
 
                     return Ok(new
                     {
@@ -1090,8 +1137,15 @@ namespace Decatron.Controllers
                     : null;
                 long? resolvedUserId = userLogin != null ? await _service.ResolveUserIdAsync(userLogin) : null;
 
-                await _service.RecordPaymentAsync(resolvedUserId, userLogin, req.AmountUsd,
-                    null, "donation", chargeId, null, "donation");
+                // Sin InvoiceStatus: donación, no venta de servicio.
+                await _service.RecordPaymentAsync(new RecordPaymentInput
+                {
+                    UserId = resolvedUserId, TwitchLogin = userLogin, Amount = req.AmountUsd,
+                    BillingType = "donation", OrderId = chargeId, PaymentType = "donation",
+                    ChargedAmount = amountCentavos / 100m, ChargedCurrency = "PEN", Provider = "culqi",
+                    CustomerEmail = req.CulqiEmail,
+                    CustomerName = $"{req.FirstName} {req.LastName}".Trim(),
+                });
 
                 _logger.LogInformation(
                     "Free Culqi donation ${Amount} charged {ChargeId}. User: {Login}",
@@ -1124,6 +1178,46 @@ namespace Decatron.Controllers
                 "years"   => n == 1 ? "año"     : "años",
                 _         => "días",
             };
+        }
+
+        /// <summary>
+        /// Saca del cuerpo de una captura de PayPal lo que se sabe del comprador.
+        ///
+        /// PayPal no pide documento de identidad, así que de acá nunca sale un RUC ni un
+        /// DNI: solo nombre, correo y país. El país es lo que decide si la venta es
+        /// interna o exportación de servicios, y es el único de los tres que importa
+        /// para el comprobante.
+        /// </summary>
+        private static (string? Email, string? Name, string? Country) ExtractPayPalPayer(JsonDocument doc)
+        {
+            try
+            {
+                if (!doc.RootElement.TryGetProperty("payer", out var payer))
+                    return (null, null, null);
+
+                string? email = payer.TryGetProperty("email_address", out var e) ? e.GetString() : null;
+
+                string? name = null;
+                if (payer.TryGetProperty("name", out var n))
+                {
+                    var given   = n.TryGetProperty("given_name", out var g) ? g.GetString() : null;
+                    var surname = n.TryGetProperty("surname",    out var s) ? s.GetString() : null;
+                    name = $"{given} {surname}".Trim();
+                    if (name.Length == 0) name = null;
+                }
+
+                string? country = payer.TryGetProperty("address", out var addr)
+                    && addr.TryGetProperty("country_code", out var c)
+                        ? c.GetString()
+                        : null;
+
+                return (email, name, country);
+            }
+            catch
+            {
+                // Que falte el comprador no puede tumbar un cobro ya hecho.
+                return (null, null, null);
+            }
         }
 
         // ── PayPal helpers ────────────────────────────────────────────────────────
@@ -1194,6 +1288,14 @@ namespace Decatron.Controllers
         public string? DiscountCode { get; set; }
         public string? FirstName    { get; set; }
         public string? LastName     { get; set; }
+
+        // Datos para el comprobante. Todos opcionales: sin ellos sale una boleta sin
+        // documento, que es válida porque los tiers están muy por debajo de S/700.
+        /// <summary>ISO-3166 alpha-2. Vacío o "PE" = venta interna.</summary>
+        public string? Country      { get; set; }
+        /// <summary>Catálogo 06: DNI, RUC, CE, PASAPORTE… Con RUC sale factura.</summary>
+        public string? DocType      { get; set; }
+        public string? DocNumber    { get; set; }
     }
 
     public class CulqiDonationRequest

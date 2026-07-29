@@ -13,6 +13,45 @@ namespace Decatron.Services
 {
     // ─── DTOs ────────────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Lo que se guarda de un pago capturado.
+    ///
+    /// <para><see cref="Amount"/> es el precio de lista en USD, que es lo que miran los
+    /// reportes de supporters. <see cref="ChargedAmount"/> y <see cref="ChargedCurrency"/>
+    /// son lo que realmente cobró la pasarela — Culqi cobra en PEN convirtiendo con un
+    /// tipo de cambio fijo, así que las dos cifras no coinciden. El comprobante se emite
+    /// por lo cobrado.</para>
+    /// </summary>
+    public class RecordPaymentInput
+    {
+        public long?   UserId      { get; set; }
+        public string? TwitchLogin { get; set; }
+        public decimal Amount      { get; set; }
+        public string? Tier        { get; set; }
+        public string  BillingType { get; set; } = "monthly";
+        public string  OrderId     { get; set; } = string.Empty;
+        public int?    DiscountCodeId { get; set; }
+        public string  PaymentType { get; set; } = "tier";
+
+        public decimal? ChargedAmount   { get; set; }
+        public string?  ChargedCurrency { get; set; }
+        /// <summary>"culqi" o "paypal".</summary>
+        public string?  Provider        { get; set; }
+
+        public string? CustomerEmail     { get; set; }
+        public string? CustomerName      { get; set; }
+        /// <summary>ISO-3166 alpha-2. NULL o "PE" = domiciliado.</summary>
+        public string? CustomerCountry   { get; set; }
+        public string? CustomerDocType   { get; set; }
+        public string? CustomerDocNumber { get; set; }
+
+        /// <summary>
+        /// NULL = no corresponde comprobante. Las donaciones son liberalidades, no venta
+        /// de servicio, así que no llevan boleta ni factura.
+        /// </summary>
+        public string? InvoiceStatus { get; set; }
+    }
+
     public class TierDurationConfig
     {
         public bool   IsPermanent { get; set; } = false;
@@ -122,7 +161,7 @@ namespace Decatron.Services
         Task AssignTierAsync(string twitchLogin, string tier, bool isPermanent, int? duration, string? unit, string source = "manual");
         Task<ValidateCodeResult> ValidateDiscountCodeAsync(string code, string tier, string billingType, decimal baseAmount);
         Task IncrementCodeUsageAsync(int codeId);
-        Task RecordPaymentAsync(long? userId, string? twitchLogin, decimal amount, string? tier, string billingType, string orderId, int? discountCodeId, string paymentType = "tier");
+        Task<int> RecordPaymentAsync(RecordPaymentInput input);
 
         Task<List<DiscountCode>> GetDiscountCodesAsync();
         Task<DiscountCode> CreateDiscountCodeAsync(CreateDiscountCodeRequest request);
@@ -254,30 +293,49 @@ namespace Decatron.Services
             }
         }
 
-        public async Task RecordPaymentAsync(
-            long? userId, string? twitchLogin, decimal amount,
-            string? tier, string billingType, string orderId,
-            int? discountCodeId, string paymentType = "tier")
+        /// <summary>Guarda el pago y devuelve su id, que es lo que enlaza el comprobante.</summary>
+        public async Task<int> RecordPaymentAsync(RecordPaymentInput input)
         {
             await using var conn = CreateConnection();
             await conn.OpenAsync();
 
             await using var cmd = new NpgsqlCommand(@"
                 INSERT INTO supporter_payments
-                    (user_id, twitch_login, amount, paypal_order_id, tier, billing_type, discount_code_id, payment_type, captured_at)
+                    (user_id, twitch_login, amount, currency, paypal_order_id, tier, billing_type,
+                     discount_code_id, payment_type, captured_at,
+                     charged_amount, charged_currency, provider,
+                     customer_email, customer_name, customer_country,
+                     customer_doc_type, customer_doc_number, invoice_status)
                 VALUES
-                    (@userId, @login, @amount, @orderId, @tier, @billing, @codeId, @type, NOW())", conn);
+                    (@userId, @login, @amount, 'USD', @orderId, @tier, @billing,
+                     @codeId, @type, NOW(),
+                     @chargedAmount, @chargedCurrency, @provider,
+                     @email, @name, @country,
+                     @docType, @docNumber, @invoiceStatus)
+                RETURNING id", conn);
 
-            cmd.Parameters.AddWithValue("userId",   (object?)userId ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("login",    (object?)twitchLogin ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("amount",   amount);
-            cmd.Parameters.AddWithValue("orderId",  orderId);
-            cmd.Parameters.AddWithValue("tier",     (object?)tier ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("billing",  billingType);
-            cmd.Parameters.AddWithValue("codeId",   (object?)discountCodeId ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("type",     paymentType);
+            cmd.Parameters.AddWithValue("userId",   (object?)input.UserId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("login",    (object?)input.TwitchLogin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("amount",   input.Amount);
+            cmd.Parameters.AddWithValue("orderId",  input.OrderId);
+            cmd.Parameters.AddWithValue("tier",     (object?)input.Tier ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("billing",  input.BillingType);
+            cmd.Parameters.AddWithValue("codeId",   (object?)input.DiscountCodeId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("type",     input.PaymentType);
 
-            await cmd.ExecuteNonQueryAsync();
+            cmd.Parameters.AddWithValue("chargedAmount",   (object?)input.ChargedAmount ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("chargedCurrency", (object?)input.ChargedCurrency ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("provider",        (object?)input.Provider ?? DBNull.Value);
+
+            cmd.Parameters.AddWithValue("email",     (object?)input.CustomerEmail ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("name",      (object?)input.CustomerName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("country",   (object?)input.CustomerCountry ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("docType",   (object?)input.CustomerDocType ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("docNumber", (object?)input.CustomerDocNumber ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("invoiceStatus", (object?)input.InvoiceStatus ?? DBNull.Value);
+
+            var id = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(id);
         }
 
         // ── Supporters List ───────────────────────────────────────────────────────
