@@ -84,50 +84,71 @@ namespace Decatron.Services
             _logger.LogInformation("🔍 [USERNAME CHECK] App token obtained, starting batch checks");
 
             int changesDetected = 0;
+            int changesFailed = 0;
 
             // Process in batches of 100 (Twitch API limit)
             foreach (var batch in users.Chunk(100))
             {
                 ct.ThrowIfCancellationRequested();
 
+                List<TwitchUserInfo> twitchUsers;
                 try
                 {
                     var twitchIds = batch.Select(u => u.TwitchId).ToList();
-                    var twitchUsers = await GetTwitchUsersByIdsAsync(twitchIds, appToken, ct);
-
-                    foreach (var user in batch)
-                    {
-                        var twitchUser = twitchUsers.FirstOrDefault(t => t.Id == user.TwitchId);
-                        if (twitchUser == null)
-                        {
-                            _logger.LogWarning("Twitch user {TwitchId} ({Login}) not found via API — account may be suspended/deleted",
-                                user.TwitchId, user.Login);
-                            continue;
-                        }
-
-                        var newLogin = twitchUser.Login.ToLower();
-                        if (!user.Login.Equals(newLogin, StringComparison.OrdinalIgnoreCase))
-                        {
-                            var changed = await usernameUpdateService.DetectAndPropagateAsync(
-                                user.Id, user.Login, newLogin,
-                                detectedBy: "periodic_sync",
-                                updateUserTable: true);
-
-                            if (changed) changesDetected++;
-                        }
-                    }
-
-                    // Respect rate limits
-                    await Task.Delay(100, ct);
+                    twitchUsers = await GetTwitchUsersByIdsAsync(twitchIds, appToken, ct);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error checking username batch");
+                    _logger.LogError(ex, "Error fetching username batch from Twitch");
+                    continue;
                 }
+
+                foreach (var user in batch)
+                {
+                    var twitchUser = twitchUsers.FirstOrDefault(t => t.Id == user.TwitchId);
+                    if (twitchUser == null)
+                    {
+                        _logger.LogWarning("Twitch user {TwitchId} ({Login}) not found via API — account may be suspended/deleted",
+                            user.TwitchId, user.Login);
+                        continue;
+                    }
+
+                    var newLogin = twitchUser.Login.ToLower();
+                    if (user.Login.Equals(newLogin, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // One user failing must not stop the rest of the batch from being checked
+                    try
+                    {
+                        var changed = await usernameUpdateService.DetectAndPropagateAsync(
+                            user.Id, user.Login, newLogin,
+                            detectedBy: "periodic_sync",
+                            updateUserTable: true);
+
+                        if (changed) changesDetected++;
+                    }
+                    catch (Exception ex)
+                    {
+                        changesFailed++;
+                        _logger.LogError(ex, "Failed to apply username change for user {UserId} ({OldLogin} → {NewLogin})",
+                            user.Id, user.Login, newLogin);
+                    }
+                }
+
+                // Respect rate limits
+                await Task.Delay(100, ct);
             }
 
-            _logger.LogWarning("🔍 [USERNAME CHECK] Complete. Changes detected: {Changes}/{Total}",
-                changesDetected, users.Count);
+            if (changesFailed > 0)
+            {
+                _logger.LogError("🔍 [USERNAME CHECK] Complete. Changes applied: {Changes}/{Total}, FAILED: {Failed}",
+                    changesDetected, users.Count, changesFailed);
+            }
+            else
+            {
+                _logger.LogWarning("🔍 [USERNAME CHECK] Complete. Changes applied: {Changes}/{Total}",
+                    changesDetected, users.Count);
+            }
         }
 
         private async Task<string?> GetAppAccessTokenAsync(CancellationToken ct)
