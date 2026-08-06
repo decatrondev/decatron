@@ -41,6 +41,26 @@
     <PackageReference Include="TwitchLib" Version="3.5.3" />
   </ItemGroup>
 
+  <!--
+    Decatron.Core es ahora un proyecto propio. Hay que excluir su carpeta del
+    globbing de este proyecto o los mismos .cs se compilarian dos veces.
+  -->
+  <ItemGroup>
+    <Compile Remove="Decatron.Core/**/*.cs" />
+    <Compile Remove="Decatron.Data/**/*.cs" />
+    <Compile Remove="Hubs/**/*.cs" />
+    <Compile Remove="Decatron.OAuth/**/*.cs" />
+    <Compile Remove="Decatron.Services/**/*.cs" />
+    <Compile Remove="Decatron.Default/**/*.cs" />
+    <Compile Remove="Decatron.Scripting/**/*.cs" />
+    <Compile Remove="Decatron.Custom/**/*.cs" />
+    <Compile Remove="Decatron.Attributes/**/*.cs" />
+    <Compile Remove="Decatron.Business/**/*.cs" />
+    <ProjectReference Include="Decatron.Core/Decatron.Core.csproj" />
+    <ProjectReference Include="Decatron.Data/Decatron.Data.csproj" />
+    <ProjectReference Include="Decatron.Business/Decatron.Business.csproj" />
+  </ItemGroup>
+
   <!-- Excluir carpeta reutilizar/ del build (son archivos de referencia) -->
   <ItemGroup>
     <Compile Remove="reutilizar/**/*.cs" />

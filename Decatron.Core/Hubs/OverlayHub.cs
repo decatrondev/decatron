@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Decatron.Hubs

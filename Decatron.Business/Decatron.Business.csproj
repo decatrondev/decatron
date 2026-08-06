@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Capa de negocio: servicios, comandos del bot, motor de scripting y atributos.
+
+    Agrupa CINCO carpetas que estaban sueltas en la raiz. Se hace asi, con
+    Compile Include explicitos, en lugar de mover fisicamente las carpetas,
+    por dos razones:
+
+      1. Evita reescribir cientos de rutas en scripts, documentacion y en la
+         cabeza de quien conoce el proyecto.
+      2. Sobre todo: Decatron.Services y Decatron.Default estan acopladas de
+         forma estructural (CommandService ES el registro de comandos y conoce
+         a todos los de Default). Separarlas en dos proyectos exigiria
+         rediseniar el registro con inyeccion de dependencias. Agruparlas
+         elimina el ciclo sin tocar una sola linea de logica.
+
+    Las fronteras de un .csproj no tienen por que coincidir con las carpetas.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Decatron</RootNamespace>
+    <AssemblyName>Decatron.Business</AssemblyName>
+    <!-- El globbing por defecto no sirve: los fuentes viven fuera de esta carpeta -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../Decatron.Services/**/*.cs"   Exclude="../Decatron.Services/**/obj/**;../Decatron.Services/**/bin/**" />
+    <Compile Include="../Decatron.Default/**/*.cs"    Exclude="../Decatron.Default/**/obj/**;../Decatron.Default/**/bin/**" />
+    <Compile Include="../Decatron.Scripting/**/*.cs"  Exclude="../Decatron.Scripting/**/obj/**;../Decatron.Scripting/**/bin/**" />
+    <Compile Include="../Decatron.Custom/**/*.cs"     Exclude="../Decatron.Custom/**/obj/**;../Decatron.Custom/**/bin/**" />
+    <Compile Include="../Decatron.Attributes/**/*.cs" Exclude="../Decatron.Attributes/**/obj/**;../Decatron.Attributes/**/bin/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      El SDK "Microsoft.NET.Sdk.Web" del proyecto original inyectaba estos
+      namespaces como using implicitos. Una biblioteca normal no los trae, y
+      sin ellos fallan 24 referencias a ILogger<>, IFormFile e
+      IWebHostEnvironment repartidas por los servicios y comandos.
+
+      Se declaran aqui como using globales en lugar de anadir la linea a mano
+      en decenas de archivos: mismo efecto, un solo sitio donde mirar.
+    -->
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Microsoft.AspNetCore.Http" />
+    <Using Include="Microsoft.AspNetCore.Hosting" />
+    <!-- GetRequiredService<T>() es un metodo de extension: sin este namespace
+         el compilador solo ve el GetService(Type) no generico. -->
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Polly" Version="4.0.3.15" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="TwitchLib" Version="3.5.3" />
+    <!--
+      TwitchLib 3.5.3 trae TwitchLib.EventSub.Websockets 0.0.3 y
+      TwitchLib.EventSub.Core 2.0.0 de forma transitiva — versiones muy
+      tempranas de un paquete pre-1.0. Se fijan explícitas en las últimas
+      estables publicadas (0.8.0 / 3.0.0) para el cliente WebSocket de
+      EventSub que procesa el chat en producción.
+    -->
+    <PackageReference Include="TwitchLib.EventSub.Websockets" Version="0.8.0" />
+    <PackageReference Include="TwitchLib.EventSub.Core" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Decatron.Core/Decatron.Core.csproj" />
+    <ProjectReference Include="../Decatron.Data/Decatron.Data.csproj" />
+  </ItemGroup>
+
+</Project>

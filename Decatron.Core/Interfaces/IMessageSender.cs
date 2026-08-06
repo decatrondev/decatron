@@ -1,4 +1,4 @@
-﻿namespace Decatron.Services
+namespace Decatron.Core.Interfaces
 {
     public interface IMessageSender
     {

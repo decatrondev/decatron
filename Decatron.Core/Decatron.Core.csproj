@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Capa base: modelos, DTOs, interfaces y helpers sin acceso a datos.
+
+    Validado el 2026-08-05: este proyecto NO depende de ningun otro proyecto de
+    la solucion. Es la hoja del grafo. Si algun dia aparece un ProjectReference
+    aqui, es senal de que algo se coloco en la capa equivocada.
+
+    Para llegar a esto hubo que sacar de aqui 6 archivos que consultaban la base
+    de datos (ver roadmap 1.3) y traer IMessageSender desde Decatron.Services.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Decatron.Core</RootNamespace>
+    <AssemblyName>Decatron.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Necesario para OverlayHub (SignalR) y para la capa OAuth (filtros de
+      autorizacion de MVC). Se bajaron a Core el 2026-08-05 porque
+      Decatron.Business los usa, y dejarlos en el host habria creado un ciclo
+      Business -> Host -> Business.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Newtonsoft.Json y Npgsql se declaran explicitamente a proposito.
+      Hasta ahora llegaban de forma transitiva (Newtonsoft via TwitchLib y
+      DSharpPlus), lo que significa que una actualizacion de esas librerias
+      podia romper codigo que ni las menciona. Las versiones son las que ya
+      estaban resolviendose, asi que no cambia nada en tiempo de ejecucion.
+    -->
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+  </ItemGroup>
+
+</Project>

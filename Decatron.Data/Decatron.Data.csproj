@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Capa de acceso a datos: DecatronDbContext, repositorios y cifrado de tokens.
+
+    Solo depende de Decatron.Core (los modelos de entidad). Validado el
+    2026-08-05: para llegar aqui hubo que mover los 18 modelos de entidad de
+    Discord a Core, porque el DbContext declara sus DbSet y eso creaba un ciclo
+    Data <-> Discord. Los modelos de entidad tienen que vivir POR DEBAJO del
+    DbContext, no por encima.
+
+    Sus namespaces se conservaron (Decatron.Discord.Models), asi que ningun
+    consumidor cambio. Namespace y ensamblado son cosas independientes en C#.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Decatron.Data</RootNamespace>
+    <AssemblyName>Decatron.Data</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Decatron.Core/Decatron.Core.csproj" />
+  </ItemGroup>
+
+</Project>
