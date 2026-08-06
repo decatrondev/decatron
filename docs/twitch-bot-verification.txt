@@ -1,0 +1,460 @@
+========================================================================
+TWITCH BOT VERIFICATION REQUEST - decatronstreambot
+Borrador de respuestas. Copiar y pegar campo por campo.
+========================================================================
+
+
+========================================================================
+DEVELOPER'S FULL NAME
+========================================================================
+
+Anthony Adrian Chaparro Salas
+
+
+========================================================================
+DEVELOPER'S EMAIL ADDRESS
+========================================================================
+
+anthonydeca@decatron.net
+
+
+========================================================================
+BOT USERNAME
+========================================================================
+
+decatronstreambot
+
+
+========================================================================
+BOT DESCRIPTION
+========================================================================
+
+Decatron Bot is a free, self-service chat bot and stream automation
+platform for Twitch, operated at https://twitch.decatron.net. Any
+streamer can connect their channel by signing in with their Twitch
+account and granting the scopes the features they enable require; there
+is no invite list or approval step. The core service is free, with
+optional paid supporter tiers for higher usage quotas.
+
+The bot has been in continuous production since November 2025 and
+currently serves 40 connected channels, all of them active. It runs from
+a single bot account, decatronstreambot, which is present in every
+connected channel.
+
+Technically, the bot reads chat through EventSub channel.chat.message
+subscriptions and sends every message through the Helix
+POST /helix/chat/messages endpoint, authenticated as the bot account. It
+also subscribes to channel point redemptions, follows, cheers,
+subscriptions, resubscriptions, gift subscriptions, raids, hype train
+events, and stream online/offline events - roughly eleven subscription
+types per connected channel, which at our current size is on the order
+of a few hundred active subscriptions in total.
+
+Feature set available to broadcasters:
+
+- Chat commands - a set of built-in commands plus per-channel custom
+  commands that broadcasters create from the web dashboard.
+- Timers and scheduled messages - recurring chat announcements and a
+  browser-source timer overlay that reacts to channel events.
+- Automated moderation - configurable banned-word filters with
+  escalating warnings, timeouts, and a strike system, all controlled by
+  the broadcaster.
+- Event alerts - on-screen and in-chat alerts for follows,
+  subscriptions, cheers, raids, and channel point redemptions,
+  including sound alerts.
+- Viewer engagement - watch time tracking, an experience and loyalty
+  points system, giveaways managed from the dashboard, and tip goals.
+- AI chat assistant - an opt-in feature that lets viewers ask the bot
+  questions in chat, with per-channel limits and permissions set by the
+  broadcaster.
+- Text-to-speech - optional TTS that a broadcaster can trigger from a
+  chat command, a channel point redemption, a cheer, or a viewer role.
+- Discord integration - go-live announcements posted to a linked
+  Discord server.
+
+Every feature is opt-in and configured per channel from the web
+dashboard, and any feature can be disabled there individually. Our
+dashboard also has a single Bot Status switch that turns the bot off for
+a channel outright: the bot leaves that chat and stops posting
+immediately. Broadcasters who want to remove us entirely revoke the
+application's access from their Twitch account settings.
+
+
+========================================================================
+REASON FOR BOT VERIFICATION REQUEST
+(Please include the rate limit that you are hitting)
+========================================================================
+
+Current rate limit situation - stated honestly: we are not yet being
+throttled. Our outgoing chat volume peaks at roughly 9 messages per
+minute across all channels combined, and we have no 429 responses in our
+logs. We would rather state that plainly than overstate our situation.
+
+We are requesting verification for three reasons:
+
+1. Our architecture concentrates all traffic on one account, and it is
+scaling. Decatron Bot serves 40 channels from a single bot account, so
+every message from every channel shares one rate limit budget rather
+than being spread across accounts. Under the standard
+20-messages-per-30-seconds limit that applies to a non-verified bot, our
+send path is a single serialized queue. Today that is comfortable. Our
+growth is not linear: we added 1-3 channels per month through the first
+half of 2026, then 13 in July alone and 4 in the first four days of
+August. Our EventSub subscription count grows by roughly eleven
+subscriptions per channel we onboard. We are asking now so that we are
+not requesting verification retroactively, from a position where users
+are already experiencing dropped or delayed messages during peak
+concurrent streams.
+
+2. Viewer trust. The verified badge is what tells a viewer that a bot
+posting in their chat is a legitimate, reviewed service rather than an
+unknown account. Established chat bots such as Nightbot and
+StreamElements carry it - StreamElements maintains it across multiple
+accounts. For a bot that is joining an increasing number of third-party
+channels, that badge is a meaningful signal to broadcasters deciding
+whether to trust us with moderation permissions, and to viewers seeing
+our messages.
+
+3. Correct platform identity. We already send all chat through the
+official Helix POST /helix/chat/messages endpoint with the bot as
+sender_id, and we read chat through EventSub rather than IRC - the
+current, recommended integration path. Verification would align our
+platform identity with an integration we have deliberately built to
+Twitch's current standards.
+
+If our current volume does not meet the threshold for verification, we
+understand and would welcome guidance on what usage level we should
+reach before reapplying.
+
+
+========================================================================
+BOT COMMANDS
+(Please share the full list with explanation of what each command does)
+========================================================================
+
+Decatron Bot uses the "!" prefix. Commands fall into six groups. Unless
+stated otherwise, a command is available to everyone in chat, and every
+command can be individually disabled by the broadcaster from our web
+dashboard. Permission levels and cooldowns marked "configurable" are set
+per channel by the broadcaster; the value shown is our default.
+
+The bot is under active development and we add features regularly, so
+this list reflects the commands in production as of August 2026.
+
+
+--- STREAM TIMER / MARATHON ---
+
+Our main feature is a countdown timer shown as a browser source overlay,
+used for subathons and marathon streams, where channel events add time.
+
+!dstart <duration>  Starts the timer with a given duration, for example
+                    "!dstart 5m" or "!dstart 1h30m".
+                    Moderators and broadcaster only.
+
+!dtimer <duration>  Starts the timer, or adds and removes time from a
+                    running one ("!dtimer add 1h").
+                    Moderators and broadcaster only.
+
+!dpause             Pauses the running timer.
+                    Moderators and broadcaster only.
+
+!dplay              Resumes a paused timer.
+                    Moderators and broadcaster only.
+
+!dreset             Resets the timer back to its full duration.
+                    Moderators and broadcaster only.
+
+!dstop              Stops the timer and hides the overlay.
+                    Moderators and broadcaster only.
+
+!dtiempo            Replies with the time remaining on the timer.
+                    Everyone by default (configurable).
+                    30 second cooldown by default (configurable).
+
+!dcuando            Replies with the date and time the timer will end.
+                    Everyone by default (configurable).
+                    30 second cooldown by default (configurable).
+
+!dstats             Replies with statistics for the current timer
+                    session, such as time added and events received.
+                    Everyone by default (configurable).
+                    30 second cooldown by default (configurable).
+
+!drecord            Replies with the channel's all-time longest timer
+                    session.
+                    Everyone by default (configurable).
+                    60 second cooldown by default (configurable).
+
+!dtop               Replies with the viewers who contributed the most
+                    time to the current session.
+                    Everyone by default (configurable).
+                    60 second cooldown by default (configurable).
+
+
+--- STREAM MANAGEMENT ---
+
+!title              With no argument, replies with the current stream
+                    title. With text after it, updates the stream title.
+                    Reading is open to everyone; changing the title
+                    requires moderator or broadcaster.
+
+!t                  Short alias of !title, identical behaviour.
+
+!game               With no argument, replies with the current stream
+                    category. With text after it, updates the category.
+                    Reading is open to everyone; changing the category
+                    requires moderator or broadcaster.
+
+!g                  Manages a channel's category shortcuts, with the
+                    subcommands help, list, set, and remove. Lets a
+                    broadcaster define a short word that switches the
+                    stream to a given category.
+                    Moderators and broadcaster only.
+
+<channel shortcuts> Shortcuts created through !g. Each one switches the
+                    stream category in a single word. They exist only in
+                    the channel that created them.
+                    Moderators and broadcaster only.
+
+
+--- COMMUNITY AND VIEWER COMMANDS ---
+
+!followage          Replies with how long the viewer has been following
+                    the channel.
+                    Everyone.
+
+!watchtime          Replies with how long the viewer has been watching
+                    the current stream.
+                    Permission configurable per channel.
+                    Separate global and per-user cooldowns, configurable.
+                    Broadcasters may define their own aliases for it.
+
+!commands           Replies with a link to the channel's public command
+                    list on our website.
+                    Everyone. 10 second global cooldown.
+
+!so <username>      Posts a shoutout for another streamer, including
+                    their profile information and most recent clip.
+                    Moderators and broadcaster only.
+                    30 second cooldown per shouted-out user.
+
+!ia <question>      Asks our AI assistant a question and replies in chat.
+                    Disabled by default; the broadcaster must enable it
+                    and choose which viewer roles may use it.
+                    Channel-wide cooldown, configurable, with usage
+                    quotas per channel.
+
+!tts <text>         Reads the message aloud through text-to-speech on the
+                    broadcaster's stream. The command name is
+                    configurable per channel; !tts is the default.
+                    Allowed roles are set by the broadcaster.
+
+
+--- OPTIONAL MINI-GAME (GACHA) ---
+
+An opt-in collectible mini-game. Disabled unless the broadcaster turns
+it on. Every subcommand has its own permission level and its own global
+and per-user cooldowns, all configurable, and broadcasters may define
+custom aliases for them.
+
+!gacha <subcommand> Main entry point. Subcommands: pull (draw an item),
+                    pulls (show remaining draws), col (show collection),
+                    buy (buy draws with channel currency), price (show
+                    cost), donate, pause, resume. Subcommands also accept
+                    Spanish and Portuguese spellings.
+
+!gc <subcommand>    Short alias of !gacha.
+
+!gcpull, !gcpulls, !gccol, !gcbuy, !gcprice, !gcpause, !gcresume
+                    Single-word shortcuts equivalent to the matching
+                    !gacha subcommand.
+
+
+--- OPTIONAL GAME TRACKER (FORTNITE) ---
+
+!spirits            Shows the viewer's collection progress for a
+                    Fortnite in-game collectible set. Also accepts
+                    "!spirits top" for a channel leaderboard and
+                    "!spirits missing" for items not yet collected.
+
+!spirit <name>      Marks a collectible as obtained.
+                    "!spirit remove <name>" unmarks it.
+
+
+--- BROADCASTER-DEFINED CUSTOM COMMANDS ---
+
+!crear              Lets a broadcaster or moderator create a custom
+                    command for their own channel directly from chat.
+                    Moderators and broadcaster only.
+
+<custom commands>   Broadcasters can create their own commands, either
+                    from chat with !crear or from our web dashboard.
+                    These exist only in the channel that created them,
+                    and are subject to exactly the same rate limiting as
+                    every other message we send. There are currently 24
+                    such commands across 6 channels. Typical examples our
+                    users have created are !redes (social links), !donar
+                    (a link to the streamer's donation page), and !ds (a
+                    link to their Discord server).
+
+                    Most custom commands simply reply with text the
+                    broadcaster wrote, optionally including placeholders
+                    such as the viewer's name, the current category, or
+                    the stream uptime.
+
+                    For broadcasters who want conditional replies, our
+                    web dashboard also offers a small purpose-built
+                    scripting editor. We want to be precise about what
+                    this is, since "scripting" can mean very different
+                    things:
+
+                    - The language has exactly three statements: assign a
+                      variable, evaluate a condition, and send a chat
+                      message. It has no loops, so the number of messages
+                      a command can send is fixed by the script text
+                      itself and cannot grow at runtime.
+                    - It offers a small closed set of helper functions:
+                      simple counters and dice/random pickers.
+                    - It can read a fixed, closed set of values: the
+                      viewer's name, a mentioned user, the channel name,
+                      the current category, and the stream uptime.
+                    - It has no network access, no file system access,
+                      and no ability to execute arbitrary code. It is not
+                      a general-purpose programming language and cannot
+                      be used to call the Twitch API directly.
+                    - Scripts only ever affect the channel that owns
+                      them, and are validated for syntax before they are
+                      saved. The dashboard editor has a preview mode that
+                      runs a script against test data without sending
+                      anything to chat.
+
+                    There are currently 20 such scripted commands in
+                    production. A representative example is a !dado
+                    ("dice") command that rolls a number and posts the
+                    result naming the viewer who rolled it.
+
+
+--- NON-COMMAND CHAT BEHAVIOUR ---
+
+For completeness, the bot also posts messages that are not replies to a
+command:
+
+- Scheduled recurring announcements configured by the broadcaster.
+- Alerts for follows, subscriptions, resubscriptions, gift
+  subscriptions, cheers, raids, and hype trains, where enabled.
+- Automated moderation actions: deleting messages matching a
+  broadcaster-configured banned word list, issuing warnings, timeouts,
+  and bans according to a strike system the broadcaster controls.
+- Stream going live and going offline notices.
+
+All of the above are opt-in per channel.
+
+
+========================================================================
+CANAL DE TWITCH: PANELES REQUERIDOS
+Twitch exige que el canal del bot tenga paneles con: (1) contacto del
+dueño, (2) descripcion del bot, (3) como agregarlo, (4) como quitarlo.
+
+Se crean en twitch.tv/decatronstreambot -> pestaña "Acerca de" ->
+activar el interruptor "Editar paneles" -> "Añadir un panel".
+
+Marcar "Yes" en el formulario SOLO despues de que los cuatro existan.
+========================================================================
+
+
+--- PANEL 1 ---
+Titulo: About Decatron Bot / Sobre Decatron Bot
+
+Decatron Bot is a free chat bot and stream automation platform for
+Twitch. It provides a countdown timer overlay for subathons, sound
+alerts, scheduled chat announcements, automated moderation, custom
+commands, viewer watch time tracking and an optional AI chat assistant.
+Every feature is opt-in and configured by the broadcaster.
+
+Decatron Bot es un bot de chat y plataforma de automatizacion gratuita
+para Twitch: overlay de temporizador para subathons, alertas de sonido,
+mensajes programados, moderacion automatica, comandos personalizados,
+tiempo de visualizacion y asistente de IA opcional. Todo es opcional y
+lo configura el streamer.
+
+Enlace: https://twitch.decatron.net
+
+
+--- PANEL 2 ---
+Titulo: Contact / Contacto
+
+Owner / Responsable: Anthony Adrian Chaparro Salas
+Email: anthonydeca@decatron.net
+Website: https://twitch.decatron.net
+
+For questions, bug reports or account issues, email us at the address
+above. / Para dudas, errores o problemas con tu cuenta, escribenos al
+correo de arriba.
+
+
+--- PANEL 3 ---
+Titulo: How to add the bot / Como agregar el bot
+
+1. Go to https://twitch.decatron.net
+2. Click "Sign in with Twitch" and authorize the application.
+3. Choose which features you want and enable them in the dashboard.
+4. The bot will join your chat automatically. No approval or invite is
+   needed and the service is free.
+
+1. Entra a https://twitch.decatron.net
+2. Pulsa "Iniciar sesion con Twitch" y autoriza la aplicacion.
+3. Elige las funciones que quieras y activalas en el panel.
+4. El bot entrara a tu chat automaticamente. No hace falta aprobacion
+   ni invitacion, y el servicio es gratuito.
+
+Enlace: https://twitch.decatron.net
+
+
+--- PANEL 4 ---
+Titulo: How to remove the bot / Como quitar el bot
+
+TURN THE BOT OFF (reversible)
+Sign in at https://twitch.decatron.net, go to Settings -> Bot Status and
+switch it off. The bot immediately leaves your chat and stops posting.
+Turn it back on at any time.
+
+REMOVE IT COMPLETELY
+1. Go to https://www.twitch.tv/settings/connections
+2. Find Decatron under "Other Connections".
+3. Click "Disconnect".
+This revokes our access to your channel entirely. You can also unmod or
+ban the bot account from your channel at any time.
+
+- - -
+
+APAGAR EL BOT (reversible)
+Entra a https://twitch.decatron.net, ve a Ajustes -> Estado del Bot y
+desactivalo. El bot sale de tu chat y deja de escribir al instante.
+Puedes volver a activarlo cuando quieras.
+
+QUITARLO DEL TODO
+1. Entra a https://www.twitch.tv/settings/connections
+2. Busca Decatron en "Otras conexiones".
+3. Pulsa "Desconectar".
+Esto revoca nuestro acceso por completo. Tambien puedes quitarle el mod
+o banear la cuenta del bot en tu canal.
+
+Enlace: https://twitch.decatron.net
+
+
+========================================================================
+PENDIENTE ANTES DE ENVIAR
+========================================================================
+
+[ ] Crear los cuatro paneles en el canal del bot.
+[ ] Verificar el nombre exacto con el que aparece la app en
+    twitch.tv/settings/connections (el Panel 4 dice "Decatron"; hay que
+    confirmar como se llama realmente ahi y corregirlo si no coincide).
+[ ] Considerar quitar "24/7 lofi stream" de la bio del canal del bot
+    (abre preguntas de derechos de musica que no aportan nada aqui).
+
+MEJORA RECOMENDADA (no bloquea el envio):
+[ ] El toggle "Estado del Bot" apaga el bot (deja de escribir) pero no
+    cancela las suscripciones de EventSub: se siguen recibiendo eventos
+    del canal aunque el bot no responda. Convendria cancelarlas al
+    apagar, para no gastar suscripciones en canales inactivos.

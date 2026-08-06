@@ -3,6 +3,9 @@ import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';
 import { SUPPORTED_LANGUAGE_CODES, DEFAULT_LANGUAGE } from './languages';
 
+// Lo inyecta vite.config.ts en cada build.
+declare const __BUILD_ID__: string;
+
 // Re-export for backward compatibility
 export const SUPPORTED_LANGUAGES = SUPPORTED_LANGUAGE_CODES;
 export type SupportedLanguage = string;
@@ -32,7 +35,9 @@ i18n
 
     // Backend options for loading translations
     backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
+      // El ?v= cambia en cada build, asi que un navegador nunca se queda pegado a
+      // una copia vieja de las traducciones (y no hace falta pedir Ctrl+Shift+R).
+      loadPath: `/locales/{{lng}}/{{ns}}.json?v=${__BUILD_ID__}`,
     },
 
     // Interpolation options

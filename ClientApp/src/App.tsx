@@ -119,6 +119,8 @@ import LibroReclamacionesPage from './pages/legal/LibroReclamacionesPage';
 import MeOverview from './pages/me/MeOverview';
 import MeAccount from './pages/me/MeAccount';
 import MeCoins from './pages/me/MeCoins';
+import MeBilling from './pages/me/MeBilling';
+import MeInvoices from './pages/me/MeInvoices';
 import SpritesGallery from './pages/SpritesGallery';
 import SpiritCollection from './pages/SpiritCollection';
 import MySpiritCollection from './pages/me/MySpiritCollection';
@@ -267,6 +269,8 @@ function App() {
                     <Route path="me" element={<SafeRoute name="Profile"><MeOverview /></SafeRoute>} />
                     <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
                     <Route path="me/coins" element={<SafeRoute name="Coins"><MeCoins /></SafeRoute>} />
+                    <Route path="me/billing" element={<SafeRoute name="Billing"><MeBilling /></SafeRoute>} />
+                    <Route path="me/invoices" element={<SafeRoute name="Invoices"><MeInvoices /></SafeRoute>} />
                     <Route path="me/gacha" element={<SafeRoute name="My Gacha"><MeGacha /></SafeRoute>} />
                     <Route path="me/spirits" element={<SafeRoute name="My Spirits"><MySpiritCollection /></SafeRoute>} />
 

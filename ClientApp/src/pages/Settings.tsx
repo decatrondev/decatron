@@ -42,7 +42,8 @@ interface UserInfo {
 }
 
 interface AccountTier {
-    tier: 'free' | 'supporter' | 'premium' | 'admin';
+    /** El backend devuelve lo que haya en la base; no está acotado a esta lista. */
+    tier: string;
     tierStartedAt: string | null;
     tierExpiresAt: string | null;
     source: string | null;
@@ -797,15 +798,23 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     );
 }
 
-const TIER_CONFIG = {
+const TIER_CONFIG: Record<string, { label: string; color: string; description: string }> = {
     free:      { label: 'Free',      color: 'bg-gray-500',    description: 'Plan gratuito' },
-    supporter: { label: 'Supporter', color: 'bg-blue-600',    description: 'Gracias por apoyar el proyecto' },
-    premium:   { label: 'Premium',   color: 'bg-purple-600',  description: 'Acceso completo a todas las funciones' },
+    supporter: { label: '⚡ Supporter', color: 'bg-blue-600', description: 'Gracias por apoyar el proyecto' },
+    premium:   { label: '💎 Premium',  color: 'bg-purple-600', description: 'Acceso completo a todas las funciones' },
+    fundador:  { label: '🌟 Fundador', color: 'bg-amber-500',  description: 'Apoyo fundador — gracias por estar desde el principio' },
     admin:     { label: 'Admin',     color: 'bg-yellow-500',  description: 'Acceso total de administrador' },
 };
 
 function TierBadge({ tier }: { tier: AccountTier }) {
-    const config = TIER_CONFIG[tier.tier] ?? TIER_CONFIG.free;
+    // Un tier desconocido se muestra tal cual, nunca como 'free'. Caer a gratuito hacía que
+    // una compra real pareciera no haber pasado: el tier estaba activo y la pantalla decía
+    // que no. Es mejor un badge con un nombre raro que un badge que miente.
+    const config = TIER_CONFIG[tier.tier] ?? {
+        label: tier.tier,
+        color: 'bg-slate-600',
+        description: 'Plan activo',
+    };
     const startDate = tier.tierStartedAt ? new Date(tier.tierStartedAt).toLocaleDateString('es-ES') : null;
     const expiresDate = tier.tierExpiresAt ? new Date(tier.tierExpiresAt).toLocaleDateString('es-ES') : null;
 

@@ -37,7 +37,7 @@ export default function CommandsHub() {
         {
             id: 'scripting',
             name: 'Scripting',
-            description: 'Scripts avanzados con JavaScript para automatizaciones complejas',
+            description: 'Scripts con condicionales para respuestas dinamicas',
             icon: <Terminal className="w-6 h-6 text-[#2563eb]" />,
             route: '/commands/scripting'
         },

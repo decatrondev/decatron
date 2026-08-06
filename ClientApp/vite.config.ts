@@ -3,6 +3,12 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
     plugins: [react()],
+    // Sello de build. Se le pega como ?v= a los JSON de traducciones, que no llevan
+    // hash en el nombre: sin esto un navegador con la copia vieja en cache sigue
+    // mostrando las claves crudas hasta que el cache expire por su cuenta.
+    define: {
+        __BUILD_ID__: JSON.stringify(Date.now().toString(36)),
+    },
     server: {
         port: 5173,
         host: true, // Escuchar en todas las interfaces

@@ -253,9 +253,9 @@ Viewer: !intentos
                         <h4 className="font-bold text-amber-900 dark:text-amber-400 mb-2">Scripts</h4>
                         <ul className="space-y-2 text-amber-800 dark:text-amber-300 text-sm">
                             <li>✓ Lógica compleja con condicionales</li>
-                            <li>✓ Acceso completo a APIs externas</li>
-                            <li>✓ Cálculos matemáticos avanzados</li>
-                            <li>✓ Requiere conocimientos de JavaScript</li>
+                            <li>✓ Variables del canal, del viewer y del stream</li>
+                            <li>✓ Contadores y funciones de azar</li>
+                            <li>✓ Lenguaje propio y sencillo (set / when / send)</li>
                         </ul>
                     </div>
                 </div>
