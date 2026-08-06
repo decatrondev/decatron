@@ -139,6 +139,7 @@ export const TABS: { id: TabType; label: string; icon: string }[] = [
     { id: 'tiers', label: 'Tiers', icon: '🏆' },
     { id: 'supporters', label: 'Supporters', icon: '👥' },
     { id: 'codes', label: 'Códigos', icon: '🎟️' },
+    { id: 'invoices', label: 'Comprobantes', icon: '🧾' },
     { id: 'testing', label: 'Gestión manual', icon: '⚙️' },
     { id: 'appearance', label: 'Apariencia', icon: '🎨' },
     { id: 'cupos', label: 'Cupos Spotify', icon: '🎵' },

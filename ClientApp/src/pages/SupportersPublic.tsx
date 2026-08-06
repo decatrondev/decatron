@@ -164,7 +164,7 @@ function SupportersNav() {
                         </a>
                     ) : (
                         <a
-                            href="/login"
+                            href="/login?redirect=supporters"
                             className="px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] text-sm font-bold rounded-xl hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
                         >
                             {t('navLogin')}
@@ -342,6 +342,23 @@ function usePayPalReturn(onSuccess: (result: PayPalResult) => void, t: (key: str
 
 // ─── Tier Cards ───────────────────────────────────────────────────────────────
 
+/** Fecha corta para contarle al comprador hasta cuándo le llega el tier. */
+function fechaCorta(iso: string | null): string {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/** Qué le hace una compra al tier vigente. Lo calcula el backend en /billing-preview. */
+interface TierChange {
+    allowed: boolean;
+    action: 'nuevo' | 'extiende' | 'sube' | 'baja' | 'yapermanente';
+    reason: string | null;
+    currentTier: string | null;
+    currentExpiresAt: string | null;
+    currentIsPermanent: boolean;
+    newExpiresAt: string | null;
+}
+
 interface DiscountValidation {
     valid: boolean;
     error?: string;
@@ -357,6 +374,14 @@ function TierCards() {
     const [billingType, setBillingType] = useState<'monthly' | 'permanent'>('monthly');
     const [successTier, setSuccessTier] = useState<string | null>(null);
 
+    /*
+        Compra completada. El botón de la tarjeta cambiando a "activado" no alcanzaba: es
+        chico, está abajo, y no dice nada del comprobante — que tarda un par de minutos
+        porque se emite fuera del cobro. Sin este aviso, quien acaba de pagar entra a
+        buscar su factura, no la encuentra y cree que el pago falló.
+    */
+    const [compraLista, setCompraLista] = useState<string | null>(null);
+
     // Discount code
     const [showCodeInput, setShowCodeInput] = useState(false);
     const [codeInput, setCodeInput]         = useState('');
@@ -364,11 +389,86 @@ function TierCards() {
     const [codeValidation, setCodeValidation] = useState<DiscountValidation | null>(null);
     const [codeError, setCodeError]           = useState<string | null>(null);
 
-    // Datos del comprobante. Vacíos = boleta sin documento, que es lo correcto por defecto.
-    const [showBillingInput, setShowBillingInput] = useState(false);
-    const [billingDocType, setBillingDocType]     = useState('RUC');
-    const [billingDocNumber, setBillingDocNumber] = useState('');
-    const [billingCountry, setBillingCountry]     = useState('');
+    /*
+        Compra en dos pasos: primero la vista previa del comprobante, después Culqi.
+
+        Los datos NO se piden acá. Salen del perfil de facturación del usuario, que se
+        completa una sola vez en /me/billing. Pedirlos en medio del pago era el error de
+        antes: un comprobante se emite sobre un cobro ya hecho, y si el dato está mal
+        cuando llega a SUNAT ya no hay a quién preguntarle.
+    */
+    const [checkoutTier, setCheckoutTier]     = useState<string | null>(null);
+    const [preview, setPreview]               = useState<any | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [needsProfile, setNeedsProfile]     = useState(false);
+    const [prefiereFactura, setPrefiereFactura] = useState(false);
+    const [checkoutError, setCheckoutError]   = useState<string | null>(null);
+    const [needsLogin, setNeedsLogin]         = useState(false);
+
+    /*
+        Qué le hace esta compra al tier que ya tiene. Lo decide el backend, que es el único
+        que puede saberlo, y se muestra ANTES de pagar: comprar algo que te deja peor de lo
+        que estabas no se arregla después del cobro.
+    */
+    const [tierChange, setTierChange] = useState<TierChange | null>(null);
+
+    const pedirPreview = useCallback(async (tierId: string, factura: boolean) => {
+        setPreviewLoading(true);
+        setCheckoutError(null);
+        try {
+            const { data } = await api.post('/supporters/billing-preview', {
+                tier: tierId,
+                billingType,
+                discountCode: codeValidation ? codeInput.trim() : undefined,
+                prefiereFactura: factura,
+            });
+            setPreview(data.preview);
+            setTierChange(data.tierChange ?? null);
+            setNeedsProfile(false);
+        } catch (err: any) {
+            // Sin perfil no se puede ni previsualizar: es exactamente lo que falta.
+            if (err.response?.data?.error === 'PROFILE_REQUIRED') {
+                setNeedsProfile(true);
+                setPreview(null);
+                setTierChange(null);
+            } else {
+                setCheckoutError(err.response?.data?.message || err.response?.data?.error || 'No se pudo calcular el comprobante.');
+            }
+        } finally {
+            setPreviewLoading(false);
+        }
+    }, [billingType, codeValidation, codeInput]);
+
+    const openCheckout = (tierId: string) => {
+        setCheckoutTier(tierId);
+        setPreview(null);
+        setNeedsProfile(false);
+        setCheckoutError(null);
+        setPrefiereFactura(false);
+
+        // Sin sesión no se llama a la API a propósito: el interceptor de axios manda a
+        // /login ante un 401, y el comprador terminaba en Twitch sin entender por qué se
+        // fue de la página. Mejor decírselo y que decida él.
+        if (!localStorage.getItem('token')) {
+            setNeedsLogin(true);
+            return;
+        }
+
+        setNeedsLogin(false);
+        pedirPreview(tierId, false);
+    };
+
+    /** Solo quien tiene RUC ve esta opción; al cambiarla se recalcula el comprobante. */
+    const cambiarFactura = (factura: boolean) => {
+        setPrefiereFactura(factura);
+        if (checkoutTier) pedirPreview(checkoutTier, factura);
+    };
+
+    const confirmCheckout = () => {
+        const tierId = checkoutTier!;
+        setCheckoutTier(null);
+        handleCulqiSupport(tierId);
+    };
 
     const handleValidateCode = async (tier: string) => {
         if (!codeInput.trim()) return;
@@ -475,13 +575,15 @@ function TierCards() {
                             discountCode: codeValidation ? codeInput.trim() : undefined,
                             firstName,
                             lastName,
-                            country:   billingCountry   || undefined,
-                            docType:   billingDocNumber ? billingDocType : undefined,
-                            docNumber: billingDocNumber || undefined,
+                            // Los datos del comprobante ya no viajan desde acá: el backend
+                            // los toma del perfil, que el navegador no puede falsear.
+                            prefiereFactura,
                         });
                         if (res.data.success) {
                             setSuccessTier(tierId);
                             setPaymentError(null);
+                            setCheckoutTier(null);
+                            setCompraLista(tierId);
                         }
                     } catch (err: any) {
                         const msg = err.response?.data?.error || 'Error al procesar el pago con tarjeta';
@@ -584,57 +686,218 @@ function TierCards() {
                 </div>
 
                 {/*
-                    Datos para el comprobante. Todo opcional a propósito: sin nada de esto
-                    sale una boleta sin documento, que es válida porque los tiers están muy
-                    por debajo de S/700. Solo hace falta llenarlo si se quiere factura con
-                    RUC, o si el comprador está fuera del Perú y le corresponde una factura
-                    de exportación de servicios.
+                    Vista previa del comprobante, antes de pagar.
+
+                    No pide datos: los muestra. Salen del perfil de facturación, que se
+                    completa una sola vez en /me/billing. Lo único que se decide acá es si
+                    quien tiene RUC quiere factura o boleta.
                 */}
-                <div className="flex justify-center mb-8">
-                    {!showBillingInput ? (
-                        <button
-                            onClick={() => setShowBillingInput(true)}
-                            className="text-xs text-[#64748b] dark:text-[#94a3b8] underline underline-offset-2 hover:text-[#2563eb] transition-colors"
+                {checkoutTier && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                        onClick={() => setCheckoutTier(null)}
+                    >
+                        <div
+                            className="w-full max-w-md bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 shadow-2xl"
+                            onClick={e => e.stopPropagation()}
                         >
-                            {t('needInvoice')}
-                        </button>
-                    ) : (
-                        <div className="flex flex-col gap-2 w-full max-w-sm">
-                            <div className="flex items-center gap-2">
-                                <select
-                                    value={billingDocType}
-                                    onChange={e => setBillingDocType(e.target.value)}
-                                    className="px-3 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-                                >
-                                    <option value="RUC">RUC</option>
-                                    <option value="DNI">DNI</option>
-                                    <option value="CE">Carné de extranjería</option>
-                                    <option value="PASAPORTE">Pasaporte</option>
-                                </select>
-                                <input
-                                    type="text"
-                                    value={billingDocNumber}
-                                    onChange={e => setBillingDocNumber(e.target.value.trim())}
-                                    placeholder={t('invoiceDocPlaceholder')}
-                                    className="flex-1 min-w-0 px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-                                />
-                                <button
-                                    onClick={() => { setShowBillingInput(false); setBillingDocNumber(''); setBillingCountry(''); }}
-                                    className="text-[#94a3b8] hover:text-[#64748b] text-sm"
-                                >&times;</button>
-                            </div>
-                            <input
-                                type="text"
-                                value={billingCountry}
-                                onChange={e => setBillingCountry(e.target.value.toUpperCase().slice(0, 2))}
-                                placeholder={t('invoiceCountryPlaceholder')}
-                                maxLength={2}
-                                className="px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
-                            />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{t('invoiceHint')}</p>
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">
+                                {t('previewTitle')}
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-5">
+                                {t('previewSubtitle')}
+                            </p>
+
+                            {!needsLogin && previewLoading && (
+                                <div className="flex items-center justify-center py-10">
+                                    <Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" />
+                                </div>
+                            )}
+
+                            {/* Sin sesión: se explica antes de mandarlo a Twitch. */}
+                            {needsLogin && (
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-2 text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-[#111213] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3">
+                                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#2563eb]" />
+                                        <span>{t('previewNeedsLogin')}</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setCheckoutTier(null)}
+                                            className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
+                                        >
+                                            {t('invoiceCancel')}
+                                        </button>
+                                        {/* El ?redirect= lo lee Login.tsx y devuelve acá al terminar:
+                                            sin eso, el comprador se pierde en el dashboard. */}
+                                        <a
+                                            href="/login?redirect=supporters"
+                                            className="flex-1 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black text-center hover:bg-[#1d4ed8] transition-colors"
+                                        >
+                                            {t('previewGoToLogin')}
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Sin perfil no se puede comprar: es lo que falta, y se dice. */}
+                            {!previewLoading && needsProfile && (
+                                <div className="space-y-4">
+                                    <div className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+                                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                        <span>{t('previewNeedsProfile')}</span>
+                                    </div>
+                                    <a
+                                        href="/me/billing"
+                                        className="block w-full py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black text-center hover:bg-[#1d4ed8] transition-colors"
+                                    >
+                                        {t('previewGoToProfile')}
+                                    </a>
+                                </div>
+                            )}
+
+                            {!previewLoading && checkoutError && (
+                                <div className="text-sm font-semibold text-red-600 dark:text-red-400 mb-4">{checkoutError}</div>
+                            )}
+
+                            {!previewLoading && preview && (
+                                <div className="space-y-4">
+                                    {/* Lo que le pasa al tier. Bloqueante en rojo, informativo
+                                        en azul: en los dos casos se dice antes de pagar. */}
+                                    {tierChange && tierChange.currentTier && (
+                                        <div className={`flex items-start gap-2 text-sm rounded-xl px-4 py-3 border ${
+                                            tierChange.allowed
+                                                ? 'text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-[#111213] border-[#e2e8f0] dark:border-[#374151]'
+                                                : 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                                        }`}>
+                                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                            <span>
+                                                {!tierChange.allowed
+                                                    ? tierChange.reason
+                                                    : tierChange.action === 'extiende' && tierChange.newExpiresAt
+                                                        ? t('tierChangeExtends', {
+                                                            tier: tierChange.currentTier,
+                                                            hasta: fechaCorta(tierChange.currentExpiresAt),
+                                                            nueva: fechaCorta(tierChange.newExpiresAt),
+                                                        })
+                                                        : t('tierChangeUpgrades', {
+                                                            actual: tierChange.currentTier,
+                                                            nuevo: checkoutTier ?? '',
+                                                        })}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Quien tiene RUC elige; el resto no ve nada de esto. */}
+                                    {preview.documentType && preview.canChooseFactura && (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                onClick={() => cambiarFactura(false)}
+                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                            >
+                                                {t('previewWantBoleta')}
+                                            </button>
+                                            <button
+                                                onClick={() => cambiarFactura(true)}
+                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                            >
+                                                {t('previewWantFactura')}
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden text-sm">
+                                        <div className="bg-[#f8fafc] dark:bg-[#111213] px-4 py-2.5 font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                            {preview.documentType === 'FACTURA' ? t('previewDocFactura') : t('previewDocBoleta')}
+                                        </div>
+                                        <dl className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                                            <div className="flex justify-between gap-4 px-4 py-2">
+                                                <dt className="text-[#64748b] dark:text-[#94a3b8]">{t('previewName')}</dt>
+                                                <dd className="font-semibold text-right text-[#1e293b] dark:text-[#f8fafc]">{preview.customerName}</dd>
+                                            </div>
+                                            <div className="flex justify-between gap-4 px-4 py-2">
+                                                <dt className="text-[#64748b] dark:text-[#94a3b8]">{t('previewDoc')}</dt>
+                                                <dd className="font-semibold text-right text-[#1e293b] dark:text-[#f8fafc]">{preview.customerDoc}</dd>
+                                            </div>
+                                            <div className="flex justify-between gap-4 px-4 py-2">
+                                                <dt className="text-[#64748b] dark:text-[#94a3b8]">{t('previewSubtotal')}</dt>
+                                                <dd className="text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.subtotal?.toFixed(2)}</dd>
+                                            </div>
+                                            <div className="flex justify-between gap-4 px-4 py-2">
+                                                <dt className="text-[#64748b] dark:text-[#94a3b8]">IGV {preview.igvRate > 0 ? `${preview.igvRate}%` : ''}</dt>
+                                                <dd className="text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.igv?.toFixed(2)}</dd>
+                                            </div>
+                                            <div className="flex justify-between gap-4 px-4 py-2.5 bg-[#f8fafc] dark:bg-[#111213]">
+                                                <dt className="font-black text-[#1e293b] dark:text-[#f8fafc]">{t('previewTotal')}</dt>
+                                                <dd className="font-black text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.total?.toFixed(2)}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{preview.note}</p>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setCheckoutTier(null)}
+                                            className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
+                                        >
+                                            {t('invoiceCancel')}
+                                        </button>
+                                        <button
+                                            onClick={confirmCheckout}
+                                            disabled={tierChange ? !tierChange.allowed : false}
+                                            className="flex-1 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black hover:bg-[#1d4ed8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#2563eb]"
+                                        >
+                                            {t('invoiceContinue')}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
+
+                {/* Compra lista: el tier ya está, el comprobante viene en camino. */}
+                {compraLista && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                        onClick={() => setCompraLista(null)}
+                    >
+                        <div
+                            className="w-full max-w-md bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 shadow-2xl text-center"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                            </div>
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                {t('purchaseDoneTitle')}
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                                {t('purchaseDoneTier', {
+                                    tier: TIERS.find(x => x.id === compraLista)?.name ?? compraLista,
+                                })}
+                            </p>
+                            <div className="text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-[#111213] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3 mb-5 text-left">
+                                {t('purchaseDoneInvoice')}
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <a
+                                    href="/me/invoices"
+                                    className="flex-1 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black hover:bg-[#1d4ed8] transition-colors"
+                                >
+                                    {t('purchaseDoneGoToInvoices')}
+                                </a>
+                                <button
+                                    onClick={() => setCompraLista(null)}
+                                    className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
+                                >
+                                    {t('purchaseDoneClose')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Cards grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
@@ -731,7 +994,7 @@ function TierCards() {
                                     </div>
                                 ) : !unavailable ? (
                                     <button
-                                        onClick={() => handleCulqiSupport(tier.id)}
+                                        onClick={() => openCheckout(tier.id)}
                                         disabled={culqiLoading !== null}
                                         className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border-2 hover:opacity-90 disabled:opacity-70"
                                         style={{ borderColor: tier.color, color: tier.color }}

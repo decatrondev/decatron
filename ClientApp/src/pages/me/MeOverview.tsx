@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Server, TrendingUp, Coins, Palette, ShoppingBag, BarChart3, Settings, Dices, Zap } from 'lucide-react';
+import { Trophy, Server, TrendingUp, Coins, Palette, ShoppingBag, BarChart3, Settings, Dices, Zap, Receipt, FileText } from 'lucide-react';
 
 // Mock data — will be replaced with real API calls
 const MOCK_USER = {
@@ -29,6 +29,8 @@ const SECTIONS = [
     { id: 'gacha', name: 'Mi Gacha', description: 'Tus colecciones de cartas, vitrina, wishlist y logros', icon: <Dices className="w-6 h-6 text-[#3b82f6]" />, route: '/me/gacha', ready: true },
     { id: 'spirits', name: 'Mis Spirits', description: 'Trackea tu colección de Fortnite Spirits, marca los que tienes y comparte tu progreso', icon: <Zap className="w-6 h-6 text-[#7B61FF]" />, route: '/me/spirits', ready: true },
     { id: 'coins', name: 'DecaCoins', description: 'Tu balance, compra paquetes y historial de transacciones', icon: <Coins className="w-6 h-6 text-[#eab308]" />, route: '/me/coins', ready: true },
+    { id: 'invoices', name: 'Mis comprobantes', description: 'Las boletas y facturas de tus compras de tier, para ver y descargar', icon: <Receipt className="w-6 h-6 text-[#0ea5e9]" />, route: '/me/invoices', ready: true },
+    { id: 'billing', name: 'Datos de facturación', description: 'Tu documento y razón social. Se completan una sola vez y valen para toda compra', icon: <FileText className="w-6 h-6 text-[#64748b]" />, route: '/me/billing', ready: true },
     { id: 'progression', name: 'Progresion', description: 'Graficos de XP, actividad y estadisticas detalladas', icon: <BarChart3 className="w-6 h-6 text-[#22c55e]" />, route: '/me/progression', ready: false },
 ];
 

@@ -31,7 +31,52 @@ namespace Decatron.Services
 
         /// <summary>Emite el comprobante de un pago concreto. Devuelve false si no se pudo.</summary>
         Task<bool> EmitirAsync(int paymentId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Trae un archivo del comprobante desde DecatronAPI. <paramref name="formato"/> es
+        /// <c>pdf</c>, <c>xml</c> o <c>cdr</c>. Null si no existe o no se pudo traer.
+        /// </summary>
+        Task<ArchivoComprobante?> DescargarAsync(int documentId, string formato, CancellationToken ct = default);
+
+        /// <summary>
+        /// Vuelve a intentar un comprobante que quedó a medias. Si nunca se emitió, lo emite;
+        /// si ya existe el documento, solo actualiza su estado desde SUNAT.
+        /// </summary>
+        Task<bool> ReintentarAsync(int paymentId, CancellationToken ct = default);
+
+        /// <summary>Con qué empresa se está emitiendo y qué otras hay disponibles.</summary>
+        Task<EstadoFacturacion> ObtenerEstadoAsync(CancellationToken ct = default);
+
+        /// <summary>Cambia la empresa emisora. Devuelve el motivo si no se pudo.</summary>
+        Task<(bool Ok, string? Error)> CambiarEmpresaAsync(int companyId, string? quien, CancellationToken ct = default);
     }
+
+    /// <summary>Una empresa emisora de DecatronAPI, con lo justo para decidir si sirve.</summary>
+    public sealed record EmpresaEmisora(
+        int Id,
+        string Ruc,
+        string RazonSocial,
+        /// <summary>Etiqueta interna de DecatronAPI. Es lo único que distingue dos empresas del mismo RUC.</summary>
+        string? Alias,
+        bool EsBeta,
+        string? SerieBoleta,
+        string? SerieFactura,
+        bool TieneCertificado,
+        bool TieneClaveSol);
+
+    /// <summary>
+    /// Estado del emisor. <c>Activa</c> es null cuando la empresa configurada no existe o
+    /// DecatronAPI no responde — y eso hay que mostrarlo, no esconderlo detrás de un cero.
+    /// </summary>
+    public sealed record EstadoFacturacion(
+        bool Configurado,
+        int? CompanyId,
+        EmpresaEmisora? Activa,
+        IReadOnlyList<EmpresaEmisora> Disponibles,
+        string? Error);
+
+    /// <summary>Un archivo del comprobante tal como lo devolvió DecatronAPI.</summary>
+    public sealed record ArchivoComprobante(byte[] Contenido, string ContentType, string NombreArchivo);
 
     public class SupporterInvoiceService : ISupporterInvoiceService
     {
@@ -58,8 +103,38 @@ namespace Decatron.Services
 
         private bool Habilitado =>
             !string.IsNullOrWhiteSpace(_configuration["DecatronApi:ApiKey"])
-            && !string.IsNullOrWhiteSpace(_configuration["DecatronApi:CompanyId"])
             && _configuration.GetValue("DecatronApi:Enabled", true);
+
+        /// <summary>
+        /// La empresa que emite. Manda lo guardado en <c>invoicing_settings</c>; el valor de
+        /// appsettings queda solo como arranque, para el día que la tabla está vacía.
+        /// </summary>
+        private async Task<int?> ObtenerCompanyIdAsync(CancellationToken ct)
+        {
+            await using (var conn = new NpgsqlConnection(ConnectionString))
+            {
+                await conn.OpenAsync(ct);
+                await using var cmd = new NpgsqlCommand(
+                    "SELECT company_id FROM invoicing_settings WHERE id = 1", conn);
+
+                var valor = await cmd.ExecuteScalarAsync(ct);
+                if (valor is int guardado) return guardado;
+            }
+
+            return int.TryParse(_configuration["DecatronApi:CompanyId"], out var config) ? config : null;
+        }
+
+        private string BaseUrl =>
+            (_configuration["DecatronApi:BaseUrl"] ?? "https://decatronapi.decatron.net").TrimEnd('/');
+
+        private HttpClient CrearCliente(int timeoutSegundos)
+        {
+            var client = _httpClientFactory.CreateClient();
+            client.Timeout = TimeSpan.FromSeconds(timeoutSegundos);
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _configuration["DecatronApi:ApiKey"]);
+            return client;
+        }
 
         // ── Pendientes ────────────────────────────────────────────────────────────
 
@@ -127,17 +202,21 @@ namespace Decatron.Services
                 return false;
             }
 
-            var (endpoint, cuerpo) = ArmarPeticion(pago);
+            var companyId = await ObtenerCompanyIdAsync(ct);
+            if (companyId == null)
+            {
+                // Falta elegir empresa emisora. Es un problema de configuración, no del pago:
+                // no se gasta un intento con esto, porque reintentarlo no lo arregla.
+                _logger.LogWarning("No hay empresa emisora configurada; el pago {Id} queda pendiente", paymentId);
+                return false;
+            }
+
+            var (endpoint, cuerpo) = ArmarPeticion(pago, companyId.Value);
 
             try
             {
-                var baseUrl = (_configuration["DecatronApi:BaseUrl"] ?? "https://decatronapi.decatron.net")
-                    .TrimEnd('/');
-
-                using var client = _httpClientFactory.CreateClient();
-                client.Timeout = TimeSpan.FromSeconds(60);
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", _configuration["DecatronApi:ApiKey"]);
+                var baseUrl = BaseUrl;
+                using var client = CrearCliente(60);
 
                 var json = JsonSerializer.Serialize(cuerpo);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -212,9 +291,8 @@ namespace Decatron.Services
         /// lista: Culqi cobra en soles y el precio está en dólares. Y el precio ya
         /// incluye IGV, que es lo que espera <c>unitPrice</c> de la API.</para>
         /// </summary>
-        private (string Endpoint, object Cuerpo) ArmarPeticion(PagoParaFacturar pago)
+        private (string Endpoint, object Cuerpo) ArmarPeticion(PagoParaFacturar pago, int companyId)
         {
-            var companyId = int.Parse(_configuration["DecatronApi:CompanyId"]!);
             var pais = string.IsNullOrWhiteSpace(pago.CustomerCountry) ? "PE" : pago.CustomerCountry.ToUpperInvariant();
             var exportacion = pais != "PE";
 
@@ -253,7 +331,10 @@ namespace Decatron.Services
                 return ("factura", comun);
             }
 
-            var esFactura = string.Equals(pago.CustomerDocType, "RUC", StringComparison.OrdinalIgnoreCase)
+            // Tener RUC no obliga a pedir factura: un RUC 10 es persona natural con
+            // negocio y muchas veces prefiere boleta. La eleccion se guardo con la compra.
+            var esFactura = pago.PreferFactura
+                && string.Equals(pago.CustomerDocType, "RUC", StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrWhiteSpace(pago.CustomerDocNumber);
 
             comun["customer"] = new Dictionary<string, object?>
@@ -278,6 +359,268 @@ namespace Decatron.Services
                 ["igvType"]     = igvType,
             };
 
+        // ── Emisor: quién factura y en qué entorno ────────────────────────────────
+
+        public async Task<EstadoFacturacion> ObtenerEstadoAsync(CancellationToken ct = default)
+        {
+            var companyId = await ObtenerCompanyIdAsync(ct);
+
+            if (!Habilitado)
+                return new EstadoFacturacion(false, companyId, null, Array.Empty<EmpresaEmisora>(),
+                    "Falta la API key de DecatronAPI: no se emite nada y los pagos quedan pendientes.");
+
+            try
+            {
+                using var client = CrearCliente(20);
+                var response = await client.GetAsync($"{BaseUrl}/api/v1/facturacion/companies", ct);
+                var body = await response.Content.ReadAsStringAsync(ct);
+
+                if (!response.IsSuccessStatusCode)
+                    return new EstadoFacturacion(true, companyId, null, Array.Empty<EmpresaEmisora>(),
+                        $"DecatronAPI respondió {(int)response.StatusCode} al pedir las empresas.");
+
+                using var doc = JsonDocument.Parse(body);
+                if (!doc.RootElement.TryGetProperty("companies", out var lista))
+                    return new EstadoFacturacion(true, companyId, null, Array.Empty<EmpresaEmisora>(),
+                        "DecatronAPI devolvió una respuesta inesperada.");
+
+                var empresas = new List<EmpresaEmisora>();
+                foreach (var e in lista.EnumerateArray())
+                {
+                    var empresa = LeerEmpresa(e);
+                    if (empresa != null) empresas.Add(empresa);
+                }
+
+                var activa = companyId == null ? null : empresas.Find(e => e.Id == companyId.Value);
+
+                var error = companyId == null
+                    ? "No hay ninguna empresa emisora elegida."
+                    : activa == null
+                        ? $"La empresa {companyId} no existe en DecatronAPI."
+                        : null;
+
+                return new EstadoFacturacion(true, companyId, activa, empresas, error);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consultando las empresas emisoras");
+                return new EstadoFacturacion(true, companyId, null, Array.Empty<EmpresaEmisora>(),
+                    "No se pudo hablar con DecatronAPI.");
+            }
+        }
+
+        private static EmpresaEmisora? LeerEmpresa(JsonElement e)
+        {
+            if (!e.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.Number) return null;
+
+            string? Texto(string nombre) =>
+                e.TryGetProperty(nombre, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+
+            bool Bandera(string nombre) =>
+                e.TryGetProperty(nombre, out var v) && v.ValueKind == JsonValueKind.True;
+
+            return new EmpresaEmisora(
+                id.GetInt32(),
+                Texto("ruc") ?? "",
+                Texto("razonSocial") ?? "",
+                Texto("alias"),
+                Bandera("isBeta"),
+                Texto("boletaSeries"),
+                Texto("facturaSeries"),
+                Bandera("hasCert"),
+                Bandera("hasSolCredentials"));
+        }
+
+        public async Task<(bool Ok, string? Error)> CambiarEmpresaAsync(
+            int companyId, string? quien, CancellationToken ct = default)
+        {
+            var estado = await ObtenerEstadoAsync(ct);
+
+            // Se valida contra la lista real antes de guardar. Un id inventado dejaría al bot
+            // cobrando sin poder emitir, y de eso solo se enteraría el job.
+            var empresa = estado.Disponibles.Count == 0
+                ? null
+                : System.Linq.Enumerable.FirstOrDefault(estado.Disponibles, e => e.Id == companyId);
+
+            if (empresa == null)
+                return (false, "Esa empresa no existe en DecatronAPI o no se pudo verificar.");
+
+            if (!empresa.TieneCertificado || !empresa.TieneClaveSol)
+                return (false, $"{empresa.RazonSocial} no tiene "
+                    + (!empresa.TieneCertificado ? "certificado digital" : "clave SOL")
+                    + " cargado en DecatronAPI: no podría emitir nada.");
+
+            await using var conn = new NpgsqlConnection(ConnectionString);
+            await conn.OpenAsync(ct);
+
+            await using var cmd = new NpgsqlCommand(@"
+                INSERT INTO invoicing_settings (id, company_id, updated_at, updated_by)
+                VALUES (1, @companyId, NOW(), @quien)
+                ON CONFLICT (id) DO UPDATE
+                SET company_id = @companyId, updated_at = NOW(), updated_by = @quien", conn);
+            cmd.Parameters.AddWithValue("companyId", companyId);
+            cmd.Parameters.AddWithValue("quien", (object?)quien ?? DBNull.Value);
+            await cmd.ExecuteNonQueryAsync(ct);
+
+            _logger.LogWarning(
+                "Empresa emisora cambiada a {Id} ({Razon}, RUC {Ruc}, {Modo}) por {Quien}",
+                empresa.Id, empresa.RazonSocial, empresa.Ruc, empresa.EsBeta ? "beta" : "PRODUCCIÓN", quien ?? "?");
+
+            return (true, null);
+        }
+
+        // ── Descarga ──────────────────────────────────────────────────────────────
+
+        private static readonly HashSet<string> FormatosDescarga =
+            new(StringComparer.OrdinalIgnoreCase) { "pdf", "xml", "cdr" };
+
+        public async Task<ArchivoComprobante?> DescargarAsync(
+            int documentId, string formato, CancellationToken ct = default)
+        {
+            if (!Habilitado || !FormatosDescarga.Contains(formato)) return null;
+
+            try
+            {
+                using var client = CrearCliente(30);
+                var response = await client.GetAsync(
+                    $"{BaseUrl}/api/v1/facturacion/documents/{documentId}/{formato.ToLowerInvariant()}", ct);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning(
+                        "DecatronAPI devolvió {Code} al pedir el {Formato} del documento {Doc}",
+                        (int)response.StatusCode, formato, documentId);
+                    return null;
+                }
+
+                var contenido = await response.Content.ReadAsByteArrayAsync(ct);
+
+                // El nombre lo pone DecatronAPI: es serie-numero, que es como el comprador
+                // espera encontrarlo en su carpeta de descargas. El CDR viene como XML.
+                var nombre = response.Content.Headers.ContentDisposition?.FileName?.Trim('"');
+                if (string.IsNullOrWhiteSpace(nombre))
+                    nombre = $"comprobante-{documentId}.{(FormatoEsPdf(formato) ? "pdf" : "xml")}";
+
+                var contentType = response.Content.Headers.ContentType?.MediaType
+                                  ?? (FormatoEsPdf(formato) ? "application/pdf" : "application/xml");
+
+                return new ArchivoComprobante(contenido, contentType, nombre);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error descargando el {Formato} del documento {Doc}", formato, documentId);
+                return null;
+            }
+        }
+
+        private static bool FormatoEsPdf(string formato) =>
+            string.Equals(formato, "pdf", StringComparison.OrdinalIgnoreCase);
+
+        // ── Reintento manual ──────────────────────────────────────────────────────
+
+        public async Task<bool> ReintentarAsync(int paymentId, CancellationToken ct = default)
+        {
+            if (!Habilitado) return false;
+
+            int? documentId;
+            await using (var conn = new NpgsqlConnection(ConnectionString))
+            {
+                await conn.OpenAsync(ct);
+                await using var cmd = new NpgsqlCommand(
+                    "SELECT invoice_document_id FROM supporter_payments WHERE id = @id AND payment_type = 'tier'",
+                    conn);
+                cmd.Parameters.AddWithValue("id", paymentId);
+
+                var valor = await cmd.ExecuteScalarAsync(ct);
+                if (valor == null) return false;                       // no existe o es donación
+                documentId = valor is DBNull ? null : (int)valor;
+            }
+
+            // Ya hay documento emitido: volver a emitir sacaría un segundo comprobante por la
+            // misma venta, y eso solo se deshace con una nota de crédito. Lo único correcto
+            // acá es preguntarle a DecatronAPI en qué quedó el que ya existe.
+            if (documentId.HasValue)
+                return await SincronizarEstadoAsync(paymentId, documentId.Value, ct);
+
+            // Nunca se emitió: se le devuelven los intentos y se emite ahora mismo, sin
+            // esperar a la pasada del job.
+            await using (var conn = new NpgsqlConnection(ConnectionString))
+            {
+                await conn.OpenAsync(ct);
+                await using var cmd = new NpgsqlCommand(@"
+                    UPDATE supporter_payments
+                    SET invoice_status = 'PENDING', invoice_attempts = 0, invoice_error = NULL
+                    WHERE id = @id AND invoice_document_id IS NULL", conn);
+                cmd.Parameters.AddWithValue("id", paymentId);
+                await cmd.ExecuteNonQueryAsync(ct);
+            }
+
+            return await EmitirAsync(paymentId, ct);
+        }
+
+        /// <summary>
+        /// Relee el estado de un documento ya emitido. SUNAT puede aceptar minutos después,
+        /// y entonces la fila local se queda diciendo PENDING para siempre.
+        /// </summary>
+        private async Task<bool> SincronizarEstadoAsync(int paymentId, int documentId, CancellationToken ct)
+        {
+            try
+            {
+                using var client = CrearCliente(30);
+                var response = await client.GetAsync($"{BaseUrl}/api/v1/facturacion/documents/{documentId}", ct);
+                var body = await response.Content.ReadAsStringAsync(ct);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning(
+                        "DecatronAPI devolvió {Code} al consultar el documento {Doc}",
+                        (int)response.StatusCode, documentId);
+                    return false;
+                }
+
+                using var doc = JsonDocument.Parse(body);
+                var root = doc.RootElement;
+                var documento = root.TryGetProperty("document", out var d) ? d : root;
+
+                var estado  = documento.TryGetProperty("sunatStatus", out var st) ? st.GetString() : null;
+                var mensaje = documento.TryGetProperty("sunatMessage", out var m) ? m.GetString() : null;
+                if (string.IsNullOrWhiteSpace(estado)) return false;
+
+                await using var conn = new NpgsqlConnection(ConnectionString);
+                await conn.OpenAsync(ct);
+                await using var cmd = new NpgsqlCommand(@"
+                    UPDATE supporter_payments
+                    SET invoice_status = @estado, invoice_error = @error
+                    WHERE id = @id", conn);
+                cmd.Parameters.AddWithValue("id", paymentId);
+                cmd.Parameters.AddWithValue("estado", estado);
+                cmd.Parameters.AddWithValue("error", (object?)mensaje ?? DBNull.Value);
+                await cmd.ExecuteNonQueryAsync(ct);
+
+                _logger.LogInformation(
+                    "Pago {Id}: el documento {Doc} está {Estado} en SUNAT", paymentId, documentId, estado);
+
+                return estado == "ACCEPTED";
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consultando el documento {Doc}", documentId);
+                return false;
+            }
+        }
+
         // ── Persistencia ──────────────────────────────────────────────────────────
 
         private sealed class PagoParaFacturar
@@ -295,6 +638,7 @@ namespace Decatron.Services
             public string?  CustomerCountry { get; init; }
             public string?  CustomerDocType { get; init; }
             public string?  CustomerDocNumber { get; init; }
+            public bool     PreferFactura { get; init; }
         }
 
         private async Task<PagoParaFacturar?> CargarPagoAsync(int id, CancellationToken ct)
@@ -305,7 +649,8 @@ namespace Decatron.Services
             await using var cmd = new NpgsqlCommand(@"
                 SELECT twitch_login, tier, billing_type, payment_type, paypal_order_id, captured_at,
                        charged_amount, charged_currency,
-                       customer_name, customer_country, customer_doc_type, customer_doc_number
+                       customer_name, customer_country, customer_doc_type, customer_doc_number,
+                       prefer_factura
                 FROM supporter_payments WHERE id = @id", conn);
             cmd.Parameters.AddWithValue("id", id);
 
@@ -327,6 +672,7 @@ namespace Decatron.Services
                 CustomerCountry   = reader.IsDBNull(9)  ? null : reader.GetString(9),
                 CustomerDocType   = reader.IsDBNull(10) ? null : reader.GetString(10),
                 CustomerDocNumber = reader.IsDBNull(11) ? null : reader.GetString(11),
+                PreferFactura     = !reader.IsDBNull(12) && reader.GetBoolean(12),
             };
         }
 

@@ -49,7 +49,7 @@ export interface DiscountCode {
 }
 
 export type DurationUnit = 'minutes' | 'hours' | 'days' | 'weeks' | 'months' | 'years';
-export type TabType = 'general' | 'tiers' | 'supporters' | 'codes' | 'testing' | 'appearance' | 'cupos';
+export type TabType = 'general' | 'tiers' | 'supporters' | 'codes' | 'testing' | 'appearance' | 'cupos' | 'invoices';
 
 export interface SpotifySlotRequest {
     userId: number;

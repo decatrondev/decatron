@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -34,18 +35,25 @@ namespace Decatron.Controllers
             ["fundador"]  = new() { ["monthly"] = 25.00m, ["permanent"] = 100.00m },
         };
 
+        private readonly IBillingProfileService _billing;
+        private readonly ISupporterInvoiceService _invoices;
+
         public SupportersController(
             ISupportersService service,
             DecatronDbContext db,
             ILogger<SupportersController> logger,
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IBillingProfileService billing,
+            ISupporterInvoiceService invoices)
         {
+            _invoices           = invoices;
             _service            = service;
             _db                 = db;
             _logger             = logger;
             _configuration      = configuration;
             _httpClientFactory  = httpClientFactory;
+            _billing            = billing;
         }
 
         // ── Auth helper (same pattern as DecatronAIAdminController) ──────────────
@@ -353,13 +361,37 @@ namespace Decatron.Controllers
             }
         }
 
-        /// <summary>Creates a PayPal order for a supporter tier. Returns orderId + approvalUrl. No auth required.</summary>
-        [AllowAnonymous]
+        /// <summary>
+        /// Crea la orden de PayPal de un tier. Devuelve orderId + approvalUrl.
+        ///
+        /// <para>Exige sesión y perfil de facturación completo. Antes admitía compras
+        /// anónimas, pero una venta que no se puede facturar no debería existir: el
+        /// comprobante se emite sobre plata que ya se movió, y sin datos del comprador no
+        /// hay a quién emitírselo.</para>
+        /// </summary>
+        [Authorize]
         [HttpPost("create-paypal-order")]
         public async Task<IActionResult> CreatePayPalOrder([FromBody] CreateSupporterOrderRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.Tier) || string.IsNullOrWhiteSpace(req.BillingType))
                 return BadRequest(new { error = "Tier y billingType son obligatorios" });
+
+            var compradorPaypalId = await ResolveCurrentUserIdAsync();
+            if (compradorPaypalId == null)
+                return Unauthorized(new { error = "Sesión no válida" });
+
+            if (await _billing.GetAsync(compradorPaypalId.Value) == null)
+            {
+                return BadRequest(new
+                {
+                    error = "PROFILE_REQUIRED",
+                    message = "Completa tus datos de facturación antes de comprar.",
+                });
+            }
+
+            var evaluacionPaypal = await EvaluarTierAsync(compradorPaypalId, req.Tier, req.BillingType);
+            if (!evaluacionPaypal.Permitida)
+                return BadRequest(new { error = "TIER_CONFLICT", message = evaluacionPaypal.Motivo });
 
             if (!TierPrices.TryGetValue(req.Tier, out var prices))
                 return BadRequest(new { error = $"Tier inválido: {req.Tier}" });
@@ -560,6 +592,14 @@ namespace Decatron.Controllers
 
                 var payer = ExtractPayPalPayer(doc);
 
+                // Acá el dinero ya se movió, así que el perfil NO se exige: si falta, se
+                // registra igual con lo que devolvió PayPal y el comprobante se resuelve
+                // después. Perder el registro de un cobro sería mucho peor que emitir tarde.
+                var compradorCapturaId = await ResolveCurrentUserIdAsync();
+                var perfilCaptura = compradorCapturaId != null
+                    ? await _billing.GetAsync(compradorCapturaId.Value)
+                    : null;
+
                 // Increment discount code usage if one was applied
                 if (codeId > 0)
                 {
@@ -593,7 +633,13 @@ namespace Decatron.Controllers
                         duration = 30; unit = "days";
                     }
 
-                    await _service.AssignTierAsync(userLogin, tier!, isPermanent, duration, unit, source: "paypal");
+                    var evalCreditoPaypal = await EvaluarTierAsync(resolvedUserId, tier!, billingType);
+
+                    await _service.AssignTierAsync(
+                        userLogin, tier!, isPermanent, duration, unit,
+                        source: "paypal", sourceReference: req.OrderId,
+                        amountPaid: capturedAmount, currency: "USD",
+                        expiresAtOverride: evalCreditoPaypal.NuevoVencimiento);
 
                     _logger.LogInformation(
                         "Tier '{Tier}' assigned to @{Login} via PayPal order {OrderId} ({Billing}, {Duration} {Unit})",
@@ -606,8 +652,13 @@ namespace Decatron.Controllers
                         Tier = tier, BillingType = billingType, OrderId = req.OrderId,
                         DiscountCodeId = codeId > 0 ? codeId : null, PaymentType = "tier",
                         ChargedAmount = capturedAmount, ChargedCurrency = "USD", Provider = "paypal",
-                        CustomerEmail = payer.Email, CustomerName = payer.Name,
-                        CustomerCountry = payer.Country,
+                        // El perfil manda; lo de PayPal solo cubre el hueco si falta.
+                        CustomerEmail = perfilCaptura?.Email ?? payer.Email,
+                        CustomerName = perfilCaptura?.LegalName ?? payer.Name,
+                        CustomerCountry = perfilCaptura?.Country ?? payer.Country,
+                        CustomerDocType = perfilCaptura?.DocType,
+                        CustomerDocNumber = perfilCaptura?.DocNumber,
+                        PreferFactura = perfilCaptura?.PuedeFactura == true && req.PrefiereFactura,
                         InvoiceStatus = "PENDING",
                     });
 
@@ -636,8 +687,13 @@ namespace Decatron.Controllers
                         OrderId = req.OrderId, DiscountCodeId = codeId > 0 ? codeId : null,
                         PaymentType = "tier",
                         ChargedAmount = capturedAmount, ChargedCurrency = "USD", Provider = "paypal",
-                        CustomerEmail = payer.Email, CustomerName = payer.Name,
-                        CustomerCountry = payer.Country,
+                        // El perfil manda; lo de PayPal solo cubre el hueco si falta.
+                        CustomerEmail = perfilCaptura?.Email ?? payer.Email,
+                        CustomerName = perfilCaptura?.LegalName ?? payer.Name,
+                        CustomerCountry = perfilCaptura?.Country ?? payer.Country,
+                        CustomerDocType = perfilCaptura?.DocType,
+                        CustomerDocNumber = perfilCaptura?.DocNumber,
+                        PreferFactura = perfilCaptura?.PuedeFactura == true && req.PrefiereFactura,
                         InvoiceStatus = "PENDING",
                     });
 
@@ -877,6 +933,436 @@ namespace Decatron.Controllers
 
         // ── Helpers ───────────────────────────────────────────────────────────────
 
+        // ── Perfil de facturación ────────────────────────────────────────────────
+        //
+        // Los datos con los que se emite el comprobante se completan una sola vez, acá, y
+        // no en medio del pago: un comprobante se emite sobre un cobro ya hecho, así que
+        // si el documento está mal o falta, después ya no hay a quién preguntarle.
+
+        [Authorize]
+        [HttpGet("billing-profile")]
+        public async Task<IActionResult> GetBillingProfile()
+        {
+            var userId = await ResolveCurrentUserIdAsync();
+            if (userId == null) return Unauthorized(new { error = "Sesión no válida" });
+
+            var perfil = await _billing.GetAsync(userId.Value);
+            if (perfil == null)
+                return Ok(new { complete = false, profile = (object?)null });
+
+            return Ok(new { complete = true, profile = Publico(perfil) });
+        }
+
+        [Authorize]
+        [HttpPut("billing-profile")]
+        public async Task<IActionResult> SaveBillingProfile([FromBody] BillingProfileInput input)
+        {
+            var userId = await ResolveCurrentUserIdAsync();
+            if (userId == null) return Unauthorized(new { error = "Sesión no válida" });
+
+            var error = _billing.Validar(input);
+            if (error != null) return BadRequest(new { error });
+
+            try
+            {
+                var perfil = await _billing.SaveAsync(userId.Value, input);
+                return Ok(new { success = true, profile = Publico(perfil) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando el perfil de facturación del usuario {UserId}", userId);
+                return StatusCode(500, new { error = "No se pudo guardar. Intenta de nuevo." });
+            }
+        }
+
+        /// <summary>Trae la razón social desde SUNAT para que nadie la escriba a mano.</summary>
+        [Authorize]
+        [HttpGet("billing-profile/ruc/{ruc}")]
+        public async Task<IActionResult> LookupRuc(string ruc)
+        {
+            var resultado = await _billing.LookupRucAsync(ruc);
+            if (!resultado.Found)
+                return NotFound(new { error = resultado.Error ?? "No se encontró el RUC" });
+
+            return Ok(new
+            {
+                found = true,
+                razonSocial = resultado.RazonSocial,
+                direccion = resultado.Direccion,
+                estado = resultado.Estado,
+            });
+        }
+
+        /// <summary>
+        /// Cómo va a salir el comprobante de esta compra, antes de cobrar nada.
+        ///
+        /// El precio se calcula del lado del servidor, igual que en el cobro: lo que venga
+        /// en el cuerpo es solo qué tier y si prefiere factura.
+        /// </summary>
+        [Authorize]
+        [HttpPost("billing-preview")]
+        public async Task<IActionResult> BillingPreview([FromBody] BillingPreviewRequest req)
+        {
+            var userId = await ResolveCurrentUserIdAsync();
+            if (userId == null) return Unauthorized(new { error = "Sesión no válida" });
+
+            var perfil = await _billing.GetAsync(userId.Value);
+            if (perfil == null)
+                return BadRequest(new { error = "PROFILE_REQUIRED", message = "Completa tus datos de facturación antes de comprar." });
+
+            if (string.IsNullOrWhiteSpace(req.Tier) || !TierPrices.TryGetValue(req.Tier, out var prices))
+                return BadRequest(new { error = $"Tier inválido: {req.Tier}" });
+
+            if (!prices.TryGetValue(req.BillingType ?? "monthly", out var baseAmountUsd))
+                return BadRequest(new { error = $"El tier '{req.Tier}' no tiene opción '{req.BillingType}'" });
+
+            var finalAmountUsd = baseAmountUsd;
+            if (!string.IsNullOrWhiteSpace(req.DiscountCode))
+            {
+                var validation = await _service.ValidateDiscountCodeAsync(
+                    req.DiscountCode, req.Tier, req.BillingType ?? "monthly", baseAmountUsd);
+                if (validation.Valid) finalAmountUsd = validation.DiscountedAmount;
+            }
+
+            // Culqi cobra en soles, así que el comprobante va en soles por lo que se cobra.
+            var totalPen = decimal.Round(finalAmountUsd * PEN_PER_USD, 2);
+            var preview = _billing.Preview(perfil, totalPen, "PEN", req.PrefiereFactura);
+
+            // Qué le hace esta compra al tier que ya tiene. Se le dice antes de pagar: si la
+            // compra está bloqueada, el modal lo muestra en vez de dejarlo llegar al cobro.
+            var evaluacion = await EvaluarTierAsync(userId, req.Tier, req.BillingType);
+
+            return Ok(new
+            {
+                success = true,
+                preview,
+                priceUsd = finalAmountUsd,
+                tierChange = new
+                {
+                    allowed      = evaluacion.Permitida,
+                    action       = evaluacion.Accion.ToString().ToLowerInvariant(),
+                    reason       = evaluacion.Motivo,
+                    currentTier  = evaluacion.Actual?.Tier,
+                    currentExpiresAt = evaluacion.Actual?.ExpiresAt,
+                    currentIsPermanent = evaluacion.Actual?.EsPermanente ?? false,
+                    newExpiresAt = evaluacion.NuevoVencimiento,
+                },
+            });
+        }
+
+        /// <summary>Lo que se le puede devolver al navegador del perfil.</summary>
+        private static object Publico(Decatron.Core.Models.BillingProfile p) => new
+        {
+            country = p.Country,
+            docType = p.DocType,
+            docNumber = p.DocNumber,
+            legalName = p.LegalName,
+            address = p.Address,
+            email = p.Email,
+            nameFromSunat = p.NameSource == "sunat",
+            canChooseFactura = p.PuedeFactura,
+            isForeign = p.EsExtranjero,
+        };
+
+        /// <summary>
+        /// Qué le haría al tier vigente comprar <paramref name="tier"/>. La duración sale de
+        /// la config de la página, igual que al acreditarlo, para que la fecha que se le
+        /// promete al comprador en la vista previa sea la que después se guarda.
+        /// </summary>
+        private async Task<EvaluacionCompra> EvaluarTierAsync(long? userId, string tier, string? billingType)
+        {
+            var isPermanent = billingType == "permanent";
+            var (duration, unit) = await DuracionDelTierAsync(tier, isPermanent);
+            return await _service.EvaluarCompraAsync(userId, tier, isPermanent, duration, unit);
+        }
+
+        /// <summary>Duración configurada de un tier. 30 días si no hay nada dicho.</summary>
+        private async Task<(int? Duration, string? Unit)> DuracionDelTierAsync(string tier, bool isPermanent)
+        {
+            if (isPermanent) return (null, null);
+
+            var pageConfig = await _service.GetConfigAsync();
+            return pageConfig.Config.TierDurations.TryGetValue(tier, out var d)
+                ? (d.Duration, d.Unit)
+                : (30, "days");
+        }
+
+        /// <summary>El id interno del usuario de la sesión, o null si no se pudo resolver.</summary>
+        private async Task<long?> ResolveCurrentUserIdAsync()
+        {
+            var login = User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
+            if (string.IsNullOrWhiteSpace(login)) return null;
+            return await _service.ResolveUserIdAsync(login);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // COMPROBANTES
+        // ═══════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Los comprobantes de quien está en sesión. Solo compras de tier: las donaciones
+        /// no llevan comprobante y no tienen nada que mostrar acá.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-invoices")]
+        public async Task<IActionResult> GetMyInvoices()
+        {
+            var userId = await ResolveCurrentUserIdAsync();
+            if (userId == null) return Unauthorized();
+
+            var pagos = await _db.SupporterPayments
+                .Where(p => p.UserId == userId && p.PaymentType == "tier")
+                .OrderByDescending(p => p.CapturedAt)
+                .Take(100)
+                .ToListAsync();
+
+            return Ok(pagos.Select(p => new
+            {
+                paymentId  = p.Id,
+                tier       = p.Tier,
+                billingType = p.BillingType,
+                capturedAt = p.CapturedAt,
+                amount     = p.ChargedAmount ?? p.Amount,
+                currency   = p.ChargedCurrency ?? p.Currency,
+                status     = p.InvoiceStatus,
+                type       = p.InvoiceType,
+                // El número del comprobante ya formateado: es como aparece en el papel y
+                // como SUNAT lo pide en su consulta pública.
+                number     = p.InvoiceSeries == null || p.InvoiceNumber == null
+                    ? null
+                    : $"{p.InvoiceSeries}-{p.InvoiceNumber.Value:D8}",
+                customerName   = p.CustomerName,
+                customerDoc    = p.CustomerDocNumber,
+                // Solo hay archivos cuando el documento existe del lado de DecatronAPI.
+                canDownload    = p.InvoiceDocumentId != null,
+            }));
+        }
+
+        /// <summary>
+        /// Descarga un archivo del comprobante propio. <c>formato</c> es pdf, xml o cdr.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-invoices/{paymentId:int}/download/{formato}")]
+        public async Task<IActionResult> DownloadMyInvoice(int paymentId, string formato)
+        {
+            var userId = await ResolveCurrentUserIdAsync();
+            if (userId == null) return Unauthorized();
+
+            // La condición de dueño va en el WHERE a propósito: pedir el pago y después
+            // comparar deja la puerta abierta a devolver el comprobante de otro.
+            var pago = await _db.SupporterPayments
+                .FirstOrDefaultAsync(p => p.Id == paymentId && p.UserId == userId);
+
+            if (pago?.InvoiceDocumentId == null)
+                return NotFound(new { message = "Este pago todavía no tiene comprobante" });
+
+            return await DevolverArchivoAsync(pago.InvoiceDocumentId.Value, formato);
+        }
+
+        // ── Vista del dueño ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Todos los comprobantes, con su estado. Es la única forma de enterarse de que uno
+        /// quedó en ERROR: el job lo reintenta 5 veces y después se queda callado.
+        /// </summary>
+        [Authorize]
+        [HttpGet("admin/invoices")]
+        public async Task<IActionResult> GetAdminInvoices(
+            [FromQuery] string? status = null,
+            [FromQuery] string? q = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 25)
+        {
+            if (!await IsOwnerAsync()) return Forbid();
+
+            if (page < 1) page = 1;
+            pageSize = Math.Clamp(pageSize, 1, 100);
+
+            var baseQuery = _db.SupporterPayments.Where(p => p.PaymentType == "tier");
+
+            // Los contadores salen sin filtrar por estado: son el semáforo de la pantalla y
+            // tienen que seguir diciendo la verdad aunque estés mirando solo los ERROR.
+            var resumen = await baseQuery
+                .GroupBy(p => p.InvoiceStatus)
+                .Select(g => new { Estado = g.Key, Total = g.Count() })
+                .ToListAsync();
+
+            var query = baseQuery;
+
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(p => p.InvoiceStatus == status);
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var termino = $"%{q.Trim()}%";
+                query = query.Where(p =>
+                    EF.Functions.ILike(p.TwitchLogin ?? "", termino) ||
+                    EF.Functions.ILike(p.CustomerName ?? "", termino) ||
+                    EF.Functions.ILike(p.CustomerDocNumber ?? "", termino) ||
+                    EF.Functions.ILike(p.InvoiceSeries ?? "", termino) ||
+                    EF.Functions.ILike(p.PaypalOrderId ?? "", termino));
+            }
+
+            var total = await query.CountAsync();
+
+            var pagos = await query
+                .OrderByDescending(p => p.CapturedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                total,
+                page,
+                pageSize,
+                counts = new
+                {
+                    accepted = resumen.FirstOrDefault(r => r.Estado == "ACCEPTED")?.Total ?? 0,
+                    pending  = resumen.FirstOrDefault(r => r.Estado == "PENDING")?.Total ?? 0,
+                    rejected = resumen.FirstOrDefault(r => r.Estado == "REJECTED")?.Total ?? 0,
+                    error    = resumen.FirstOrDefault(r => r.Estado == "ERROR")?.Total ?? 0,
+                    none     = resumen.FirstOrDefault(r => r.Estado == null)?.Total ?? 0,
+                },
+                items = pagos.Select(p => new
+                {
+                    paymentId   = p.Id,
+                    twitchLogin = p.TwitchLogin,
+                    tier        = p.Tier,
+                    billingType = p.BillingType,
+                    capturedAt  = p.CapturedAt,
+                    provider    = p.Provider,
+                    orderId     = p.PaypalOrderId,
+                    amount      = p.ChargedAmount ?? p.Amount,
+                    currency    = p.ChargedCurrency ?? p.Currency,
+                    customerName    = p.CustomerName,
+                    customerDocType = p.CustomerDocType,
+                    customerDoc     = p.CustomerDocNumber,
+                    customerCountry = p.CustomerCountry,
+                    status      = p.InvoiceStatus,
+                    type        = p.InvoiceType,
+                    number      = p.InvoiceSeries == null || p.InvoiceNumber == null
+                        ? null
+                        : $"{p.InvoiceSeries}-{p.InvoiceNumber.Value:D8}",
+                    documentId  = p.InvoiceDocumentId,
+                    error       = p.InvoiceError,
+                    attempts    = p.InvoiceAttempts,
+                    lastAttempt = p.InvoiceLastAttemptAt,
+                    canDownload = p.InvoiceDocumentId != null,
+                })
+            });
+        }
+
+        /// <summary>Descarga cualquier comprobante. Solo el dueño.</summary>
+        [Authorize]
+        [HttpGet("admin/invoices/{paymentId:int}/download/{formato}")]
+        public async Task<IActionResult> DownloadAdminInvoice(int paymentId, string formato)
+        {
+            if (!await IsOwnerAsync()) return Forbid();
+
+            var pago = await _db.SupporterPayments.FirstOrDefaultAsync(p => p.Id == paymentId);
+            if (pago?.InvoiceDocumentId == null)
+                return NotFound(new { message = "Este pago no tiene comprobante" });
+
+            return await DevolverArchivoAsync(pago.InvoiceDocumentId.Value, formato);
+        }
+
+        /// <summary>
+        /// Reintenta el comprobante de un pago. Si ya se emitió no vuelve a emitir: solo
+        /// consulta en qué quedó, porque un segundo comprobante por la misma venta se
+        /// arregla con una nota de crédito y no con un botón.
+        /// </summary>
+        [Authorize]
+        [HttpPost("admin/invoices/{paymentId:int}/retry")]
+        public async Task<IActionResult> RetryInvoice(int paymentId)
+        {
+            if (!await IsOwnerAsync()) return Forbid();
+
+            var ok = await _invoices.ReintentarAsync(paymentId, HttpContext.RequestAborted);
+
+            var pago = await _db.SupporterPayments.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == paymentId);
+
+            return Ok(new
+            {
+                accepted = ok,
+                status   = pago?.InvoiceStatus,
+                error    = pago?.InvoiceError,
+                number   = pago?.InvoiceSeries == null || pago.InvoiceNumber == null
+                    ? null
+                    : $"{pago.InvoiceSeries}-{pago.InvoiceNumber.Value:D8}",
+            });
+        }
+
+        // ── Emisor ────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Con qué empresa se está facturando y si eso es real o es beta. Es el dato más
+        /// importante de toda la pantalla: en beta nada de lo emitido existe para SUNAT.
+        /// </summary>
+        [Authorize]
+        [HttpGet("admin/invoicing-status")]
+        public async Task<IActionResult> GetInvoicingStatus()
+        {
+            if (!await IsOwnerAsync()) return Forbid();
+
+            var estado = await _invoices.ObtenerEstadoAsync(HttpContext.RequestAborted);
+
+            return Ok(new
+            {
+                configured = estado.Configurado,
+                companyId  = estado.CompanyId,
+                error      = estado.Error,
+                active     = estado.Activa == null ? null : Empresa(estado.Activa),
+                companies  = estado.Disponibles.Select(Empresa),
+            });
+        }
+
+        /// <summary>Elige con qué empresa emitir. El modo beta/producción es de la empresa.</summary>
+        [Authorize]
+        [HttpPut("admin/invoicing-company")]
+        public async Task<IActionResult> SetInvoicingCompany([FromBody] SetInvoicingCompanyRequest req)
+        {
+            if (!await IsOwnerAsync()) return Forbid();
+
+            var quien = User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
+            var (ok, error) = await _invoices.CambiarEmpresaAsync(req.CompanyId, quien, HttpContext.RequestAborted);
+
+            if (!ok) return BadRequest(new { message = error });
+
+            return Ok(new { message = "Empresa emisora actualizada" });
+        }
+
+        private static object Empresa(EmpresaEmisora e) => new
+        {
+            id           = e.Id,
+            ruc          = e.Ruc,
+            razonSocial  = e.RazonSocial,
+            alias        = e.Alias,
+            isBeta       = e.EsBeta,
+            boletaSeries = e.SerieBoleta,
+            facturaSeries = e.SerieFactura,
+            // Sin una de las dos cosas la empresa no puede firmar ni enviar nada a SUNAT.
+            hasCert          = e.TieneCertificado,
+            hasSolCredentials = e.TieneClaveSol,
+            ready            = e.TieneCertificado && e.TieneClaveSol,
+        };
+
+        public class SetInvoicingCompanyRequest
+        {
+            public int CompanyId { get; set; }
+        }
+
+        private async Task<IActionResult> DevolverArchivoAsync(int documentId, string formato)
+        {
+            var archivo = await _invoices.DescargarAsync(documentId, formato, HttpContext.RequestAborted);
+
+            if (archivo == null)
+                return NotFound(new { message = "El archivo no está disponible" });
+
+            return File(archivo.Contenido, archivo.ContentType, archivo.NombreArchivo);
+        }
+
         // ── Culqi endpoints ─────────────────────────────────────────────────────
 
         private const decimal PEN_PER_USD = 3.80m; // Fixed conversion rate for Culqi (PEN)
@@ -903,6 +1389,30 @@ namespace Decatron.Controllers
 
             if (!prices.TryGetValue(req.BillingType, out var baseAmountUsd))
                 return BadRequest(new { error = $"El tier '{req.Tier}' no tiene opción '{req.BillingType}'" });
+
+            // El perfil de facturación se exige ANTES de cobrar. Después del cargo ya no se
+            // puede pedir nada: el comprobante se emite sobre plata que ya se movió, y si
+            // faltan los datos la única salida es una nota de crédito.
+            var compradorId = await ResolveCurrentUserIdAsync();
+            if (compradorId == null)
+                return Unauthorized(new { error = "Sesión no válida" });
+
+            var perfil = await _billing.GetAsync(compradorId.Value);
+            if (perfil == null)
+            {
+                return BadRequest(new
+                {
+                    error = "PROFILE_REQUIRED",
+                    message = "Completa tus datos de facturación antes de comprar.",
+                });
+            }
+
+            // Y acá se mira qué le haría esta compra al tier que ya tiene. Va antes del cargo
+            // a propósito: cobrar y recién después descubrir que lo dejamos peor que antes se
+            // arregla con una devolución y una nota de crédito, o sea no se arregla.
+            var evaluacion = await EvaluarTierAsync(compradorId, req.Tier, req.BillingType);
+            if (!evaluacion.Permitida)
+                return BadRequest(new { error = "TIER_CONFLICT", message = evaluacion.Motivo });
 
             // Apply discount code if provided
             var finalAmountUsd = baseAmountUsd;
@@ -976,7 +1486,25 @@ namespace Decatron.Controllers
                 }
 
                 using var chargeDoc = JsonDocument.Parse(body);
-                var chargeId = chargeDoc.RootElement.GetProperty("id").GetString() ?? "";
+
+                // Un 2xx sin `id` no deberia pasar, pero si pasa no se puede seguir: sin id
+                // de cargo no hay como registrar el pago ni como reclamarle nada a Culqi.
+                //
+                // Antes esto reventaba con KeyNotFoundException y el usuario veia un 500,
+                // sin que quedara rastro en la base — y el cobro pudo haberse hecho igual.
+                // Ahora queda escrito el cuerpo entero para poder resolverlo a mano.
+                if (!chargeDoc.RootElement.TryGetProperty("id", out var chargeIdEl))
+                {
+                    _logger.LogError(
+                        "Culqi respondio {Code} sin id de cargo para el tier {Tier}. REVISAR A MANO, el cobro puede haberse hecho. Cuerpo: {Body}",
+                        (int)response.StatusCode, req.Tier, body);
+                    return StatusCode(502, new
+                    {
+                        error = "El pago no se pudo confirmar. Si te llegó el cargo, escribe a soporte con tu comprobante y se resuelve — no vuelvas a pagar.",
+                    });
+                }
+
+                var chargeId = chargeIdEl.GetString() ?? "";
 
                 // Increment discount code usage
                 if (appliedCodeId.HasValue && appliedCodeId > 0)
@@ -1008,7 +1536,17 @@ namespace Decatron.Controllers
                         duration = 30; unit = "days";
                     }
 
-                    await _service.AssignTierAsync(userLogin, req.Tier, isPermanent, duration, unit, source: "culqi");
+                    // Se reevalúa acá y no se reusa la evaluación previa al cargo: entre una
+                    // cosa y otra el tier pudo cambiar. Lo que importa es el vencimiento, que
+                    // suma sobre lo que ya tenía en vez de reiniciar desde hoy.
+                    var evalCredito = await EvaluarTierAsync(resolvedUserId, req.Tier, req.BillingType);
+
+                    await _service.AssignTierAsync(
+                        userLogin, req.Tier, isPermanent, duration, unit,
+                        source: "culqi", sourceReference: chargeId,
+                        // Lo cobrado, no el precio de lista: Culqi cobra en soles.
+                        amountPaid: amountCentavos / 100m, currency: "PEN",
+                        expiresAtOverride: evalCredito.NuevoVencimiento);
 
                     _logger.LogInformation(
                         "Tier '{Tier}' assigned to @{Login} via Culqi charge {ChargeId} ({Billing})",
@@ -1020,10 +1558,14 @@ namespace Decatron.Controllers
                         Tier = req.Tier, BillingType = req.BillingType, OrderId = chargeId,
                         DiscountCodeId = appliedCodeId, PaymentType = "tier",
                         ChargedAmount = amountCentavos / 100m, ChargedCurrency = "PEN", Provider = "culqi",
-                        CustomerEmail = req.CulqiEmail,
-                        CustomerName = $"{req.FirstName} {req.LastName}".Trim(),
-                        CustomerCountry = req.Country,
-                        CustomerDocType = req.DocType, CustomerDocNumber = req.DocNumber,
+                        // Los datos se COPIAN del perfil, no se referencian: el comprobante
+                        // tiene que seguir diciendo lo que decía el día que se emitió,
+                        // aunque el usuario cambie su RUC el mes que viene.
+                        CustomerEmail = perfil.Email ?? req.CulqiEmail,
+                        CustomerName = perfil.LegalName,
+                        CustomerCountry = perfil.Country,
+                        CustomerDocType = perfil.DocType, CustomerDocNumber = perfil.DocNumber,
+                        PreferFactura = perfil.PuedeFactura && req.PrefiereFactura,
                         InvoiceStatus = "PENDING",
                     });
 
@@ -1046,10 +1588,11 @@ namespace Decatron.Controllers
                         Amount = finalAmountUsd, Tier = req.Tier, BillingType = req.BillingType,
                         OrderId = chargeId, DiscountCodeId = appliedCodeId, PaymentType = "tier",
                         ChargedAmount = amountCentavos / 100m, ChargedCurrency = "PEN", Provider = "culqi",
-                        CustomerEmail = req.CulqiEmail,
-                        CustomerName = $"{req.FirstName} {req.LastName}".Trim(),
-                        CustomerCountry = req.Country,
-                        CustomerDocType = req.DocType, CustomerDocNumber = req.DocNumber,
+                        CustomerEmail = perfil.Email ?? req.CulqiEmail,
+                        CustomerName = perfil.LegalName,
+                        CustomerCountry = perfil.Country,
+                        CustomerDocType = perfil.DocType, CustomerDocNumber = perfil.DocNumber,
+                        PreferFactura = perfil.PuedeFactura && req.PrefiereFactura,
                         InvoiceStatus = "PENDING",
                     });
 
@@ -1130,7 +1673,19 @@ namespace Decatron.Controllers
                 }
 
                 using var chargeDoc = JsonDocument.Parse(body);
-                var chargeId = chargeDoc.RootElement.GetProperty("id").GetString() ?? "";
+                // Mismo caso que en el cargo de tier: sin id no hay como registrar nada.
+                if (!chargeDoc.RootElement.TryGetProperty("id", out var donationIdEl))
+                {
+                    _logger.LogError(
+                        "Culqi respondio {Code} sin id de cargo en una donacion. REVISAR A MANO. Cuerpo: {Body}",
+                        (int)response.StatusCode, body);
+                    return StatusCode(502, new
+                    {
+                        error = "El pago no se pudo confirmar. Si te llegó el cargo, escribe a soporte y se resuelve — no vuelvas a pagar.",
+                    });
+                }
+
+                var chargeId = donationIdEl.GetString() ?? "";
 
                 var userLogin = User.Identity?.IsAuthenticated == true
                     ? (User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value)
@@ -1279,6 +1834,15 @@ namespace Decatron.Controllers
         public string? Unit       { get; set; }
     }
 
+    public class BillingPreviewRequest
+    {
+        public string  Tier            { get; set; } = string.Empty;
+        public string? BillingType     { get; set; } = "monthly";
+        public string? DiscountCode    { get; set; }
+        /// <summary>Solo lo mira quien tiene RUC: sin RUC siempre va boleta.</summary>
+        public bool    PrefiereFactura { get; set; }
+    }
+
     public class CulqiChargeRequest
     {
         public string  CulqiToken   { get; set; } = string.Empty;
@@ -1289,13 +1853,10 @@ namespace Decatron.Controllers
         public string? FirstName    { get; set; }
         public string? LastName     { get; set; }
 
-        // Datos para el comprobante. Todos opcionales: sin ellos sale una boleta sin
-        // documento, que es válida porque los tiers están muy por debajo de S/700.
-        /// <summary>ISO-3166 alpha-2. Vacío o "PE" = venta interna.</summary>
-        public string? Country      { get; set; }
-        /// <summary>Catálogo 06: DNI, RUC, CE, PASAPORTE… Con RUC sale factura.</summary>
-        public string? DocType      { get; set; }
-        public string? DocNumber    { get; set; }
+        // Los datos del comprobante ya no vienen de acá: salen del perfil de facturación
+        // del comprador, que se completa una vez y no se puede falsear desde el navegador.
+        // Lo único que se decide por compra es si quiere factura, y solo aplica con RUC.
+        public bool PrefiereFactura { get; set; }
     }
 
     public class CulqiDonationRequest
@@ -1316,6 +1877,8 @@ namespace Decatron.Controllers
 
     public class CaptureSupporterOrderRequest
     {
+        /// <summary>Solo aplica con RUC: sin RUC siempre sale boleta.</summary>
+        public bool   PrefiereFactura { get; set; }
         public string OrderId     { get; set; } = string.Empty;
         public string Tier        { get; set; } = string.Empty;
         public string BillingType { get; set; } = "monthly";

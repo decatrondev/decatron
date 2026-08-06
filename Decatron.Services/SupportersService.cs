@@ -46,6 +46,12 @@ namespace Decatron.Services
         public string? CustomerDocNumber { get; set; }
 
         /// <summary>
+        /// Si el comprador con RUC pidió factura. Sin RUC no significa nada: va boleta.
+        /// Es decisión de cada compra, no del perfil.
+        /// </summary>
+        public bool PreferFactura { get; set; }
+
+        /// <summary>
         /// NULL = no corresponde comprobante. Las donaciones son liberalidades, no venta
         /// de servicio, así que no llevan boleta ni factura.
         /// </summary>
@@ -158,7 +164,24 @@ namespace Decatron.Services
         Task<List<PublicSupporterDto>> GetPublicSupportersAsync();
 
         Task<long?> ResolveUserIdAsync(string? twitchLogin);
-        Task AssignTierAsync(string twitchLogin, string tier, bool isPermanent, int? duration, string? unit, string source = "manual");
+        /// <summary>
+        /// Qué le pasaría al tier del usuario si comprara esto. Se consulta ANTES de cobrar:
+        /// si devuelve <c>Permitida = false</c> el cobro no debe ocurrir.
+        /// </summary>
+        Task<EvaluacionCompra> EvaluarCompraAsync(
+            long? userId, string tier, bool isPermanent, int? duration, string? unit);
+
+        /// <summary>
+        /// Asigna un tier. <paramref name="sourceReference"/> es el id de la orden en la
+        /// pasarela: sin él, una compra real no se distingue de un regalo manual.
+        /// <paramref name="expiresAtOverride"/> lo usa la compra para extender en vez de
+        /// reiniciar; sin él vale la duración tal cual, que es lo que quiere el admin.
+        /// </summary>
+        Task AssignTierAsync(
+            string twitchLogin, string tier, bool isPermanent, int? duration, string? unit,
+            string source = "manual", string? sourceReference = null,
+            decimal? amountPaid = null, string? currency = null,
+            DateTime? expiresAtOverride = null);
         Task<ValidateCodeResult> ValidateDiscountCodeAsync(string code, string tier, string billingType, decimal baseAmount);
         Task IncrementCodeUsageAsync(int codeId);
         Task<int> RecordPaymentAsync(RecordPaymentInput input);
@@ -168,6 +191,35 @@ namespace Decatron.Services
         Task<bool> ToggleDiscountCodeAsync(int id, bool active);
         Task DeleteDiscountCodeAsync(int id);
     }
+
+    /// <summary>Qué tier tiene hoy un usuario.</summary>
+    public sealed record EstadoTier(string Tier, DateTime? ExpiresAt, bool EsPermanente);
+
+    /// <summary>Qué le haría al tier una compra.</summary>
+    public enum TierAccion
+    {
+        /// <summary>No tenía nada vigente.</summary>
+        Nuevo,
+        /// <summary>Mismo tier: se le suma tiempo al que ya tiene.</summary>
+        Extiende,
+        /// <summary>Pasa a un tier mejor, o de mensual a permanente.</summary>
+        Sube,
+        /// <summary>Bajaría de tier. No se permite.</summary>
+        Baja,
+        /// <summary>Ya tiene un permanente que esto arruinaría. No se permite.</summary>
+        YaPermanente,
+    }
+
+    /// <summary>
+    /// Resultado de mirar una compra antes de cobrarla. <c>NuevoVencimiento</c> es null
+    /// cuando la compra es permanente o cuando está bloqueada.
+    /// </summary>
+    public sealed record EvaluacionCompra(
+        bool Permitida,
+        TierAccion Accion,
+        string? Motivo,
+        EstadoTier? Actual,
+        DateTime? NuevoVencimiento);
 
     // ─── Implementation ───────────────────────────────────────────────────────────
 
@@ -197,6 +249,115 @@ namespace Decatron.Services
 
         private NpgsqlConnection CreateConnection() =>
             new NpgsqlConnection(_config.GetConnectionString("DefaultConnection"));
+
+        // ── Política de cambio de tier ────────────────────────────────────────────
+
+        /// <summary>
+        /// Orden de los tiers. Solo sirve para comparar: no se usa en ningún otro lado y no
+        /// tiene por qué coincidir con el precio.
+        /// </summary>
+        private static int Rango(string? tier) => tier?.ToLowerInvariant() switch
+        {
+            "supporter" => 1,
+            "premium"   => 2,
+            "fundador"  => 3,
+            _           => 0, // free, null o cualquier cosa que no reconozcamos
+        };
+
+        /// <summary>El tier vigente de un usuario, o null si no tiene o ya venció.</summary>
+        public async Task<EstadoTier?> GetTierActualAsync(long userId)
+        {
+            await using var conn = CreateConnection();
+            await conn.OpenAsync();
+
+            await using var cmd = new NpgsqlCommand(@"
+                SELECT tier, tier_expires_at
+                FROM user_subscription_tiers
+                WHERE user_id = @userId
+                  AND tier <> 'free'
+                  AND (tier_expires_at IS NULL OR tier_expires_at > NOW())", conn);
+            cmd.Parameters.AddWithValue("userId", userId);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return null;
+
+            var expira = reader.IsDBNull(1) ? (DateTime?)null : reader.GetDateTime(1);
+            return new EstadoTier(reader.GetString(0), expira, expira == null);
+        }
+
+        /// <summary>
+        /// Qué pasaría si este usuario comprara este tier.
+        ///
+        /// <para>Las reglas salen de una sola idea: <b>una compra nunca puede dejar al
+        /// comprador con menos de lo que ya tenía</b>. Renovar suma tiempo en vez de
+        /// reiniciarlo, subir de tier se permite, y bajar —o comprar teniendo un permanente—
+        /// se bloquea antes de cobrar, porque cobrar por un perjuicio no se arregla
+        /// después.</para>
+        /// </summary>
+        public async Task<EvaluacionCompra> EvaluarCompraAsync(
+            long? userId, string tier, bool isPermanent, int? duration, string? unit)
+        {
+            var vencimientoNuevo = CalculateExpiry(isPermanent, duration, unit);
+
+            var actual = userId == null ? null : await GetTierActualAsync(userId.Value);
+
+            if (actual == null)
+                return new EvaluacionCompra(true, TierAccion.Nuevo, null, null, vencimientoNuevo);
+
+            var rangoActual = Rango(actual.Tier);
+            var rangoNuevo  = Rango(tier);
+            var mismoTier   = string.Equals(actual.Tier, tier, StringComparison.OrdinalIgnoreCase);
+
+            // Con un permanente encima, lo único que tiene sentido comprar es un permanente
+            // mejor. Todo lo demás le pone fecha de vencimiento a algo que no vencía.
+            if (actual.EsPermanente && !(isPermanent && rangoNuevo > rangoActual))
+            {
+                return new EvaluacionCompra(false, TierAccion.YaPermanente,
+                    $"Ya tenés {actual.Tier} permanente, que no vence. Esta compra le pondría " +
+                    "fecha de fin a un acceso que hoy es para siempre.",
+                    actual, null);
+            }
+
+            if (mismoTier && isPermanent)
+            {
+                // De mensual a permanente: es una mejora, deja de vencer.
+                return new EvaluacionCompra(true, TierAccion.Sube, null, actual, null);
+            }
+
+            if (mismoTier)
+            {
+                // Renovación. Se suma desde donde termina lo que ya pagó, no desde hoy: si
+                // renueva con días por delante, esos días son suyos y no se tiran.
+                var desde = actual.ExpiresAt is { } fin && fin > DateTime.Now ? fin : DateTime.Now;
+                return new EvaluacionCompra(true, TierAccion.Extiende, null, actual,
+                    SumarDuracion(desde, duration, unit));
+            }
+
+            if (rangoNuevo > rangoActual)
+                return new EvaluacionCompra(true, TierAccion.Sube, null, actual, vencimientoNuevo);
+
+            return new EvaluacionCompra(false, TierAccion.Baja,
+                $"Ya tenés {actual.Tier}, que es superior a {tier}. Esta compra te dejaría con " +
+                "menos beneficios y perderías el tiempo que te queda del actual.",
+                actual, null);
+        }
+
+        /// <summary>Suma una duración a una fecha concreta, no a "ahora".</summary>
+        private static DateTime SumarDuracion(DateTime desde, int? duration, string? unit)
+        {
+            if (duration == null || string.IsNullOrEmpty(unit)) return desde.AddDays(30);
+
+            return unit switch
+            {
+                "minutes" => desde.AddMinutes(duration.Value),
+                "hours"   => desde.AddHours(duration.Value),
+                "days"    => desde.AddDays(duration.Value),
+                "weeks"   => desde.AddDays(duration.Value * 7),
+                "months"  => desde.AddMonths(duration.Value),
+                "years"   => desde.AddYears(duration.Value),
+                _         => desde.AddDays(30),
+            };
+        }
 
         private DateTime? CalculateExpiry(bool isPermanent, int? duration, string? unit)
         {
@@ -305,13 +466,13 @@ namespace Decatron.Services
                      discount_code_id, payment_type, captured_at,
                      charged_amount, charged_currency, provider,
                      customer_email, customer_name, customer_country,
-                     customer_doc_type, customer_doc_number, invoice_status)
+                     customer_doc_type, customer_doc_number, invoice_status, prefer_factura)
                 VALUES
                     (@userId, @login, @amount, 'USD', @orderId, @tier, @billing,
                      @codeId, @type, NOW(),
                      @chargedAmount, @chargedCurrency, @provider,
                      @email, @name, @country,
-                     @docType, @docNumber, @invoiceStatus)
+                     @docType, @docNumber, @invoiceStatus, @preferFactura)
                 RETURNING id", conn);
 
             cmd.Parameters.AddWithValue("userId",   (object?)input.UserId ?? DBNull.Value);
@@ -333,6 +494,7 @@ namespace Decatron.Services
             cmd.Parameters.AddWithValue("docType",   (object?)input.CustomerDocType ?? DBNull.Value);
             cmd.Parameters.AddWithValue("docNumber", (object?)input.CustomerDocNumber ?? DBNull.Value);
             cmd.Parameters.AddWithValue("invoiceStatus", (object?)input.InvoiceStatus ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("preferFactura", input.PreferFactura);
 
             var id = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(id);
@@ -458,9 +620,13 @@ namespace Decatron.Services
 
         // ── Tier Assignment ───────────────────────────────────────────────────────
 
-        public async Task AssignTierAsync(string twitchLogin, string tier, bool isPermanent, int? duration, string? unit, string source = "manual")
+        public async Task AssignTierAsync(
+            string twitchLogin, string tier, bool isPermanent, int? duration, string? unit,
+            string source = "manual", string? sourceReference = null,
+            decimal? amountPaid = null, string? currency = null,
+            DateTime? expiresAtOverride = null)
         {
-            var expiresAt = CalculateExpiry(isPermanent, duration, unit);
+            var expiresAt = isPermanent ? null : (expiresAtOverride ?? CalculateExpiry(isPermanent, duration, unit));
 
             await using var conn = CreateConnection();
             await conn.OpenAsync();
@@ -476,33 +642,98 @@ namespace Decatron.Services
 
             var userId = Convert.ToInt64(userIdObj);
 
-            var notes = source == "paypal"
-                ? (isPermanent ? "PayPal payment — permanent" : $"PayPal payment — {duration} {unit}")
-                : (isPermanent ? "Manual assignment — permanent" : $"Manual assignment — {duration} {unit}");
+            // El origen decide el texto. Antes solo se distinguía PayPal, así que una compra
+            // con tarjeta quedaba anotada como "Manual assignment" — o sea, como un regalo.
+            var origen = source switch
+            {
+                "paypal" => "PayPal payment",
+                "culqi"  => "Culqi payment",
+                "manual" => "Manual assignment",
+                _        => source,
+            };
+            var notes = isPermanent ? $"{origen} — permanent" : $"{origen} — {duration} {unit}";
+
+            // El tier anterior, para el historial. Se lee antes del upsert porque después ya
+            // no existe: la tabla guarda un solo estado por usuario, no una línea de tiempo.
+            await using var previoCmd = new NpgsqlCommand(
+                "SELECT tier FROM user_subscription_tiers WHERE user_id = @userId", conn);
+            previoCmd.Parameters.AddWithValue("userId", userId);
+            var previoObj = await previoCmd.ExecuteScalarAsync();
+            var tierPrevio = previoObj is string previo ? previo : null;
+
+            // Red de seguridad, independiente de la política: si ya tenía este mismo tier con
+            // más tiempo por delante, el tiempo no se toca. Cubre la carrera entre el momento
+            // en que se evaluó la compra y el momento en que se acredita, donde el dinero ya
+            // entró y quitarle días al comprador no sería reparable.
+            if (!isPermanent && string.Equals(tierPrevio, tier, StringComparison.OrdinalIgnoreCase))
+            {
+                await using var vigenteCmd = new NpgsqlCommand(
+                    "SELECT tier_expires_at FROM user_subscription_tiers WHERE user_id = @userId", conn);
+                vigenteCmd.Parameters.AddWithValue("userId", userId);
+                var vigenteObj = await vigenteCmd.ExecuteScalarAsync();
+
+                if (vigenteObj is DBNull)
+                {
+                    expiresAt = null;                      // era permanente: sigue siéndolo
+                }
+                else if (vigenteObj is DateTime vigente && expiresAt is { } nuevo && vigente > nuevo)
+                {
+                    _logger.LogWarning(
+                        "Tier '{Tier}' de '{Login}': el vencimiento calculado ({Nuevo}) era anterior al vigente ({Vigente}); se conserva el vigente",
+                        tier, twitchLogin, nuevo, vigente);
+                    expiresAt = vigente;
+                }
+            }
 
             await using var upsertCmd = new NpgsqlCommand(@"
                 INSERT INTO user_subscription_tiers
-                    (user_id, tier, tier_started_at, tier_expires_at, source, notes)
+                    (user_id, tier, tier_started_at, tier_expires_at, source, source_reference,
+                     amount_paid, currency, notes)
                 VALUES
-                    (@userId, @tier, NOW(), @expiresAt, @source, @notes)
+                    (@userId, @tier, NOW(), @expiresAt, @source, @sourceRef,
+                     @amountPaid, @currency, @notes)
                 ON CONFLICT (user_id) DO UPDATE
-                    SET tier            = EXCLUDED.tier,
-                        tier_started_at = EXCLUDED.tier_started_at,
-                        tier_expires_at = EXCLUDED.tier_expires_at,
-                        source          = EXCLUDED.source,
-                        notes           = EXCLUDED.notes", conn);
+                    SET tier             = EXCLUDED.tier,
+                        tier_started_at  = EXCLUDED.tier_started_at,
+                        tier_expires_at  = EXCLUDED.tier_expires_at,
+                        source           = EXCLUDED.source,
+                        source_reference = EXCLUDED.source_reference,
+                        amount_paid      = EXCLUDED.amount_paid,
+                        currency         = EXCLUDED.currency,
+                        notes            = EXCLUDED.notes,
+                        updated_at       = NOW()", conn);
 
-            upsertCmd.Parameters.AddWithValue("userId",   userId);
-            upsertCmd.Parameters.AddWithValue("tier",     tier);
-            upsertCmd.Parameters.AddWithValue("source",   source);
-            upsertCmd.Parameters.AddWithValue("expiresAt",(object?)expiresAt ?? DBNull.Value);
-            upsertCmd.Parameters.AddWithValue("notes",    notes);
+            upsertCmd.Parameters.AddWithValue("userId",     userId);
+            upsertCmd.Parameters.AddWithValue("tier",       tier);
+            upsertCmd.Parameters.AddWithValue("source",     source);
+            upsertCmd.Parameters.AddWithValue("expiresAt",  (object?)expiresAt ?? DBNull.Value);
+            upsertCmd.Parameters.AddWithValue("sourceRef",  (object?)sourceReference ?? DBNull.Value);
+            upsertCmd.Parameters.AddWithValue("amountPaid", (object?)amountPaid ?? DBNull.Value);
+            upsertCmd.Parameters.AddWithValue("currency",   (object?)currency ?? DBNull.Value);
+            upsertCmd.Parameters.AddWithValue("notes",      notes);
 
             await upsertCmd.ExecuteNonQueryAsync();
 
+            // Historial. Es lo único que queda si mañana hay que reconstruir qué se le dio a
+            // quién y por qué: la tabla de tiers se sobrescribe en cada cambio.
+            await using var histCmd = new NpgsqlCommand(@"
+                INSERT INTO tier_history
+                    (user_id, previous_tier, new_tier, change_reason, source, source_reference)
+                VALUES
+                    (@userId, @previo, @tier, @razon, @source, @sourceRef)", conn);
+
+            histCmd.Parameters.AddWithValue("userId",    userId);
+            histCmd.Parameters.AddWithValue("previo",    (object?)tierPrevio ?? DBNull.Value);
+            histCmd.Parameters.AddWithValue("tier",      tier);
+            histCmd.Parameters.AddWithValue("razon",     notes);
+            histCmd.Parameters.AddWithValue("source",    source);
+            histCmd.Parameters.AddWithValue("sourceRef", (object?)sourceReference ?? DBNull.Value);
+
+            await histCmd.ExecuteNonQueryAsync();
+
             _logger.LogInformation(
-                "Tier '{Tier}' assigned to user '{Login}' via {Source} (expires: {Expiry})",
-                tier, twitchLogin, source, expiresAt?.ToString("O") ?? "never");
+                "Tier '{Tier}' assigned to user '{Login}' via {Source} {Ref} (expires: {Expiry})",
+                tier, twitchLogin, source, sourceReference ?? "-", expiresAt?.ToString("O") ?? "never");
         }
 
         public async Task<ValidateCodeResult> ValidateDiscountCodeAsync(string code, string tier, string billingType, decimal baseAmount)

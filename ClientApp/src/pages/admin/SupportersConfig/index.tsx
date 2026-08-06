@@ -21,6 +21,7 @@ import {
     TestingTab,
     AppearanceTab,
     SpotifySlotsTab,
+    InvoicesTab,
 } from './tabs';
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -162,6 +163,7 @@ export default function SupportersConfig() {
                         {activeTab === 'tiers' && <TiersTab tiers={tiers} onChange={setTiers} />}
                         {activeTab === 'supporters' && <SupportersTab />}
                         {activeTab === 'codes' && <CodesTab />}
+                        {activeTab === 'invoices' && <InvoicesTab />}
                         {activeTab === 'testing' && <TestingTab
                             tierDurations={tierDurations}
                             setTierDurations={setTierDurations}
