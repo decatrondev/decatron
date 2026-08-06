@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -14,7 +15,7 @@ namespace Decatron.Services
         private readonly string _downloadsPath;
         private readonly string _ytDlpCommand;
 
-        public ClipDownloadService(ILogger<ClipDownloadService> logger)
+        public ClipDownloadService(ILogger<ClipDownloadService> logger, IConfiguration configuration)
         {
             _logger = logger;
 
@@ -22,9 +23,10 @@ namespace Decatron.Services
             _ytDlpCommand = GetYtDlpCommand();
             _logger.LogInformation($"Sistema detectado: {GetOSName()}, usando comando: {_ytDlpCommand}");
 
-            // Ruta para React: ClientApp/public/downloads
-            var projectRoot = Directory.GetCurrentDirectory();
-            _downloadsPath = Path.Combine(projectRoot, "ClientApp", "public", "downloads");
+            // Fuera de ClientApp/public a propósito: Vite copiaba estos 19 GB a
+            // dist/ en cada build. La URL pública sigue siendo /downloads/...
+            _downloadsPath = configuration["ClipSettings:DownloadsPath"]
+                             ?? "/var/www/html/decatron/clips";
 
             // Crear directorio si no existe
             if (!Directory.Exists(_downloadsPath))

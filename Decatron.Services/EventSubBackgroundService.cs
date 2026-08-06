@@ -39,6 +39,36 @@ namespace Decatron.Services
                     var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                     var eventSubService = scope.ServiceProvider.GetRequiredService<EventSubService>();
 
+                    // Streamers nuevos se suscriben directo por conduit (Fase 2.1 del
+                    // roadmap, completada). Si por algún motivo no hay conduit todavía
+                    // (no debería pasar — EventSubWebSocketService lo crea al arrancar),
+                    // cae a webhook para no dejar al streamer sin ningún evento.
+                    var transportMode = EventSubTransportMode.Webhook;
+                    string? conduitId = null;
+                    var conduitsResult = await eventSubService.GetConduitsAsync();
+                    if (conduitsResult.Success && !string.IsNullOrEmpty(conduitsResult.ResponseBody))
+                    {
+                        try
+                        {
+                            var conduitsJson = System.Text.Json.JsonDocument.Parse(conduitsResult.ResponseBody);
+                            var conduitsData = conduitsJson.RootElement.GetProperty("data");
+                            if (conduitsData.GetArrayLength() > 0)
+                            {
+                                conduitId = conduitsData[0].GetProperty("id").GetString();
+                                transportMode = EventSubTransportMode.Conduit;
+                                _logger.LogInformation($"Usando conduit {conduitId} para nuevas suscripciones");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error parseando la lista de conduits, se sigue con webhook");
+                        }
+                    }
+                    if (transportMode == EventSubTransportMode.Webhook)
+                    {
+                        _logger.LogWarning("⚠️ No hay conduit disponible — las nuevas suscripciones se crean por webhook");
+                    }
+
                     // Obtener todos los usuarios activos que tienen el bot habilitado
                     var activeUsers = await dbContext.Users
                         .Where(u => u.IsActive)
@@ -79,7 +109,7 @@ namespace Decatron.Services
                             _logger.LogInformation($"🔄 Verificando suscripciones EventSub para {user.Login} (ID: {user.TwitchId})");
 
                             // Suscribir a channel.chat.message
-                            var result = await eventSubService.EnsureSubscriptionAsync(user.TwitchId);
+                            var result = await eventSubService.EnsureSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (result.Success)
                             {
@@ -100,7 +130,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.channel_points_custom_reward_redemption.add
-                            var channelPointsResult = await eventSubService.EnsureChannelPointsSubscriptionAsync(user.TwitchId);
+                            var channelPointsResult = await eventSubService.EnsureChannelPointsSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (channelPointsResult.Success)
                             {
@@ -121,7 +151,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.follow
-                            var followsResult = await eventSubService.EnsureFollowsSubscriptionAsync(user.TwitchId);
+                            var followsResult = await eventSubService.EnsureFollowsSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (followsResult.Success)
                             {
@@ -142,7 +172,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.cheer (Bits) - CON VALIDACIÓN
-                            var cheerResult = await eventSubService.EnsureCheerSubscriptionAsync(user.TwitchId);
+                            var cheerResult = await eventSubService.EnsureCheerSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (cheerResult.Success)
                             {
@@ -163,7 +193,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.subscribe (Subscriptions) - CON VALIDACIÓN
-                            var subscribeResult = await eventSubService.EnsureSubscriptionsSubscriptionAsync(user.TwitchId);
+                            var subscribeResult = await eventSubService.EnsureSubscriptionsSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (subscribeResult.Success)
                             {
@@ -186,7 +216,7 @@ namespace Decatron.Services
                             // Suscribir a channel.subscription.message (Resubs) - CON VALIDACIÓN
                             // channel.subscribe solo cubre subs NUEVAS; sin esto los resubs
                             // ("se ha suscrito por 3 meses") nunca llegan y no salta la alerta.
-                            var resubResult = await eventSubService.EnsureResubMessagesSubscriptionAsync(user.TwitchId);
+                            var resubResult = await eventSubService.EnsureResubMessagesSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (resubResult.Success)
                             {
@@ -207,7 +237,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.subscription.gift (Gift Subs) - CON VALIDACIÓN
-                            var giftSubResult = await eventSubService.EnsureGiftSubsSubscriptionAsync(user.TwitchId);
+                            var giftSubResult = await eventSubService.EnsureGiftSubsSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (giftSubResult.Success)
                             {
@@ -228,7 +258,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.raid (Raids) - CON VALIDACIÓN
-                            var raidResult = await eventSubService.EnsureRaidSubscriptionAsync(user.TwitchId);
+                            var raidResult = await eventSubService.EnsureRaidSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (raidResult.Success)
                             {
@@ -249,7 +279,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a channel.hype_train.begin (Hype Trains) - CON VALIDACIÓN
-                            var hypeTrainResult = await eventSubService.EnsureHypeTrainSubscriptionAsync(user.TwitchId);
+                            var hypeTrainResult = await eventSubService.EnsureHypeTrainSubscriptionAsync(user.TwitchId, transportMode, conduitId);
 
                             if (hypeTrainResult.Success)
                             {
@@ -270,7 +300,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a stream.online
-                            var streamOnlineResult = await eventSubService.EnsureStreamOnlineSubscriptionAsync(user.TwitchId);
+                            var streamOnlineResult = await eventSubService.EnsureStreamOnlineSubscriptionAsync(user.TwitchId, transportMode, conduitId);
                             if (streamOnlineResult.Success)
                             {
                                 if (!streamOnlineResult.Message.Contains("ya existe"))
@@ -288,7 +318,7 @@ namespace Decatron.Services
                             }
 
                             // Suscribir a stream.offline
-                            var streamOfflineResult = await eventSubService.EnsureStreamOfflineSubscriptionAsync(user.TwitchId);
+                            var streamOfflineResult = await eventSubService.EnsureStreamOfflineSubscriptionAsync(user.TwitchId, transportMode, conduitId);
                             if (streamOfflineResult.Success)
                             {
                                 if (!streamOfflineResult.Message.Contains("ya existe"))

@@ -318,16 +318,42 @@ namespace Decatron.Controllers
                         {
                             logger.LogInformation($"🔔 Verificando suscripciones EventSub para {userLogin} (paralelo)");
 
+                            // Mismo criterio que EventSubBackgroundService: streamers se
+                            // suscriben por conduit si hay uno disponible, webhook como
+                            // fallback. Sin esto, cada login/reconexión revivía
+                            // suscripciones webhook aunque el streamer ya estuviera
+                            // migrado — encontrado el 5 ago 2026 al cerrar la migración.
+                            var transportMode = EventSubTransportMode.Webhook;
+                            string? conduitId = null;
+                            var conduitsResult = await eventSubService.GetConduitsAsync();
+                            if (conduitsResult.Success && !string.IsNullOrEmpty(conduitsResult.ResponseBody))
+                            {
+                                try
+                                {
+                                    var conduitsJson = System.Text.Json.JsonDocument.Parse(conduitsResult.ResponseBody);
+                                    var conduitsData = conduitsJson.RootElement.GetProperty("data");
+                                    if (conduitsData.GetArrayLength() > 0)
+                                    {
+                                        conduitId = conduitsData[0].GetProperty("id").GetString();
+                                        transportMode = EventSubTransportMode.Conduit;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    logger.LogError(ex, "Error parseando la lista de conduits, se sigue con webhook");
+                                }
+                            }
+
                             var tasks = new Dictionary<string, Task<EventSubSubscriptionResult>>
                             {
-                                ["Chat"] = eventSubService.EnsureSubscriptionAsync(twitchId),
-                                ["Channel Points"] = eventSubService.EnsureChannelPointsSubscriptionAsync(twitchId),
-                                ["Follows"] = eventSubService.EnsureFollowsSubscriptionAsync(twitchId),
-                                ["Bits"] = eventSubService.EnsureCheerSubscriptionAsync(twitchId),
-                                ["Subs"] = eventSubService.EnsureSubscriptionsSubscriptionAsync(twitchId),
-                                ["Gift Subs"] = eventSubService.EnsureGiftSubsSubscriptionAsync(twitchId),
-                                ["Raids"] = eventSubService.EnsureRaidSubscriptionAsync(twitchId),
-                                ["Hype Train"] = eventSubService.EnsureHypeTrainSubscriptionAsync(twitchId)
+                                ["Chat"] = eventSubService.EnsureSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Channel Points"] = eventSubService.EnsureChannelPointsSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Follows"] = eventSubService.EnsureFollowsSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Bits"] = eventSubService.EnsureCheerSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Subs"] = eventSubService.EnsureSubscriptionsSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Gift Subs"] = eventSubService.EnsureGiftSubsSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Raids"] = eventSubService.EnsureRaidSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Hype Train"] = eventSubService.EnsureHypeTrainSubscriptionAsync(twitchId, transportMode, conduitId)
                             };
 
                             await Task.WhenAll(tasks.Values);

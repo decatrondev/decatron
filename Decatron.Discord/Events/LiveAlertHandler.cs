@@ -1,5 +1,6 @@
 using DSharpPlus;
 using DSharpPlus.Entities;
+using Decatron.Core.Interfaces;
 using Decatron.Data;
 using Decatron.Discord.Models;
 using Decatron.Services;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Decatron.Discord.Events;
 
-public class LiveAlertHandler
+public class LiveAlertHandler : ILiveAlertHandler
 {
     private readonly DiscordClientProvider _clientProvider;
     private readonly TwitchApiService _twitchApi;

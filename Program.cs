@@ -233,6 +233,7 @@ try
     builder.Services.AddScoped<ITipsService, TipsService>();
     builder.Services.AddScoped<ISupportersService, SupportersService>();
     builder.Services.AddScoped<ISupporterInvoiceService, SupporterInvoiceService>();
+    builder.Services.AddScoped<IBillingProfileService, BillingProfileService>();
     builder.Services.AddSingleton<IStreamStatusService, StreamStatusService>();
     builder.Services.AddScoped<IWatchTimeTrackingService, WatchTimeTrackingService>();
     builder.Services.AddScoped<IChatActivityService, ChatActivityService>();
@@ -300,10 +301,18 @@ try
     builder.Services.AddSingleton<CommandService>();
     builder.Services.AddSingleton<Decatron.Scripting.Services.ScriptingService>();
     builder.Services.AddHttpClient<EventSubService>();
+    // Dispatcher de negocio de EventSub, compartido entre el controller de webhook
+    // y EventSubWebSocketService. Scoped porque depende de DecatronDbContext.
+    builder.Services.AddScoped<EventSubNotificationHandler>();
+    // Transporte WebSocket/Conduit de EventSub (Fase 2.1 del roadmap). Convive con
+    // el webhook mientras dura la migración — ver EventSubWebSocketService.
+    builder.Services.AddHostedService<EventSubWebSocketService>();
 
     // Discord services
     builder.Services.AddSingleton<Decatron.Discord.DiscordClientProvider>();
     builder.Services.AddSingleton<Decatron.Discord.Events.LiveAlertHandler>();
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.ILiveAlertHandler>(provider =>
+        provider.GetRequiredService<Decatron.Discord.Events.LiveAlertHandler>());
     builder.Services.AddSingleton<Decatron.Discord.Events.WelcomeHandler>();
     builder.Services.AddSingleton<Decatron.Discord.WelcomeImageGenerator>();
     builder.Services.AddSingleton<Decatron.Discord.Services.XpBoostService>();
@@ -328,8 +337,12 @@ try
 
     app.UseHttpsRedirection();
 
-    // Servir archivos estáticos desde ClientApp/public/downloads para clips
-    var downloadsPath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "public", "downloads");
+    // Clips de !so. Fuera de ClientApp/public a propósito: Vite copia todo
+    // public/ a dist/ en cada build, y eran 19 GB duplicados en cada compilación.
+    // La ruta pública sigue siendo /downloads, así que las URLs guardadas en
+    // shoutout_history.clip_local_path siguen siendo válidas.
+    var downloadsPath = builder.Configuration["ClipSettings:DownloadsPath"]
+                        ?? "/var/www/html/decatron/clips";
     if (Directory.Exists(downloadsPath))
     {
         app.UseStaticFiles(new StaticFileOptions

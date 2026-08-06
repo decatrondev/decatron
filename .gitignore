@@ -1,4 +1,9 @@
 # =========================
+# Claude Code (config local, no del proyecto)
+# =========================
+.claude/
+
+# =========================
 # .NET / Visual Studio / Build
 # =========================
 bin/

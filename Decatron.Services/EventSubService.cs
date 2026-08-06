@@ -10,6 +10,16 @@ using Npgsql;
 
 namespace Decatron.Services
 {
+    /// <summary>
+    /// Transporte usado al crear una suscripción EventSub. "Conduit" no lleva session_id:
+    /// la asociación shard-sesión se hace aparte vía UpdateConduitShardsAsync.
+    /// </summary>
+    public enum EventSubTransportMode
+    {
+        Webhook,
+        Conduit
+    }
+
     public class EventSubService
     {
         private readonly IConfiguration _configuration;
@@ -120,44 +130,51 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Registra una suscripción EventSub para channel.chat.message
+        /// Construye el payload y hace el POST a /helix/eventsub/subscriptions.
+        /// Único punto donde se arma una suscripción, sea webhook o conduit — antes
+        /// esto estaba duplicado en 10 métodos casi idénticos.
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToChatMessagesAsync(string broadcasterUserId)
+        private async Task<EventSubSubscriptionResult> CreateSubscriptionAsync(
+            string type,
+            string version,
+            object condition,
+            EventSubTransportMode transportMode,
+            string conduitId = null)
         {
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
                 var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
+                object transport;
 
-                if (string.IsNullOrEmpty(webhookUrl))
+                if (transportMode == EventSubTransportMode.Conduit)
                 {
-                    throw new InvalidOperationException("WebhookCallbackUrl no configurado en appsettings.json");
-                }
-
-                if (string.IsNullOrEmpty(webhookSecret))
-                {
-                    throw new InvalidOperationException("WebhookSecret no configurado en appsettings.json");
-                }
-
-                var payload = new
-                {
-                    type = "channel.chat.message",
-                    version = "1",
-                    condition = new
+                    if (string.IsNullOrEmpty(conduitId))
                     {
-                        broadcaster_user_id = broadcasterUserId,
-                        user_id = await GetBotUserIdAsync(accessToken)
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
+                        throw new InvalidOperationException("conduitId es obligatorio para transporte conduit");
                     }
-                };
 
+                    transport = new { method = "conduit", conduit_id = conduitId };
+                }
+                else
+                {
+                    var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
+                    var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
+
+                    if (string.IsNullOrEmpty(webhookUrl))
+                    {
+                        throw new InvalidOperationException("WebhookCallbackUrl no configurado en appsettings.json");
+                    }
+
+                    if (string.IsNullOrEmpty(webhookSecret))
+                    {
+                        throw new InvalidOperationException("WebhookSecret no configurado en appsettings.json");
+                    }
+
+                    transport = new { method = "webhook", callback = webhookUrl, secret = webhookSecret };
+                }
+
+                var payload = new { type, version, condition, transport };
                 var jsonContent = JsonSerializer.Serialize(payload);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -174,7 +191,7 @@ namespace Decatron.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation($"✅ Suscripción EventSub creada para broadcaster {broadcasterUserId}: channel.chat.message");
+                    _logger.LogInformation($"✅ Suscripción EventSub creada ({type}, transporte {transportMode}): {responseBody}");
                     return new EventSubSubscriptionResult
                     {
                         Success = true,
@@ -184,7 +201,7 @@ namespace Decatron.Services
                 }
                 else
                 {
-                    _logger.LogError($"❌ Error al crear suscripción EventSub: {response.StatusCode} - {responseBody}");
+                    _logger.LogError($"❌ Error al crear suscripción EventSub ({type}, transporte {transportMode}): {response.StatusCode} - {responseBody}");
                     return new EventSubSubscriptionResult
                     {
                         Success = false,
@@ -195,7 +212,7 @@ namespace Decatron.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear suscripción EventSub para channel.chat.message");
+                _logger.LogError(ex, $"Error al crear suscripción EventSub para {type}");
                 return new EventSubSubscriptionResult
                 {
                     Success = false,
@@ -203,292 +220,91 @@ namespace Decatron.Services
                     ResponseBody = null
                 };
             }
+        }
+
+        /// <summary>
+        /// Registra una suscripción EventSub para channel.chat.message
+        /// </summary>
+        public async Task<EventSubSubscriptionResult> SubscribeToChatMessagesAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
+        {
+            var accessToken = await GetBotAppAccessTokenAsync();
+            var botUserId = await GetBotUserIdAsync(accessToken);
+
+            return await CreateSubscriptionAsync(
+                "channel.chat.message",
+                "1",
+                new { broadcaster_user_id = broadcasterUserId, user_id = botUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.channel_points_custom_reward_redemption.add
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToChannelPointsRedemptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToChannelPointsRedemptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                if (string.IsNullOrEmpty(webhookUrl))
-                {
-                    throw new InvalidOperationException("WebhookCallbackUrl no configurado en appsettings.json");
-                }
-
-                if (string.IsNullOrEmpty(webhookSecret))
-                {
-                    throw new InvalidOperationException("WebhookSecret no configurado en appsettings.json");
-                }
-
-                var payload = new
-                {
-                    type = "channel.channel_points_custom_reward_redemption.add",
-                    version = "1",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(payload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions")
-                {
-                    Content = content
-                };
-
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción EventSub creada para broadcaster {broadcasterUserId}: channel.channel_points_custom_reward_redemption.add");
-                    return new EventSubSubscriptionResult
-                    {
-                        Success = true,
-                        Message = "Suscripción creada exitosamente",
-                        ResponseBody = responseBody
-                    };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al crear suscripción EventSub: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult
-                    {
-                        Success = false,
-                        Message = $"Error: {response.StatusCode}",
-                        ResponseBody = responseBody
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear suscripción EventSub para channel.channel_points_custom_reward_redemption.add");
-                return new EventSubSubscriptionResult
-                {
-                    Success = false,
-                    Message = ex.Message,
-                    ResponseBody = null
-                };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.channel_points_custom_reward_redemption.add",
+                "1",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.follow
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToFollowsAsync(string broadcasterUserId, string moderatorUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToFollowsAsync(
+            string broadcasterUserId,
+            string moderatorUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                if (string.IsNullOrEmpty(webhookUrl))
-                {
-                    throw new InvalidOperationException("WebhookCallbackUrl no configurado en appsettings.json");
-                }
-
-                if (string.IsNullOrEmpty(webhookSecret))
-                {
-                    throw new InvalidOperationException("WebhookSecret no configurado en appsettings.json");
-                }
-
-                var payload = new
-                {
-                    type = "channel.follow",
-                    version = "2",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId,
-                        moderator_user_id = moderatorUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(payload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions")
-                {
-                    Content = content
-                };
-
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción EventSub creada para broadcaster {broadcasterUserId}: channel.follow");
-                    return new EventSubSubscriptionResult
-                    {
-                        Success = true,
-                        Message = "Suscripción creada exitosamente",
-                        ResponseBody = responseBody
-                    };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al crear suscripción EventSub: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult
-                    {
-                        Success = false,
-                        Message = $"Error: {response.StatusCode}",
-                        ResponseBody = responseBody
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al crear suscripción EventSub para channel.follow");
-                return new EventSubSubscriptionResult
-                {
-                    Success = false,
-                    Message = ex.Message,
-                    ResponseBody = null
-                };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.follow",
+                "2",
+                new { broadcaster_user_id = broadcasterUserId, moderator_user_id = moderatorUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.cheer (Bits)
         /// El broadcaster debe tener scope bits:read autorizado, pero la suscripción se crea con App Access Token
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToCheerAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToCheerAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                var payload = new
-                {
-                    type = "channel.cheer",
-                    version = "1",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción a channel.cheer creada para broadcaster: {broadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a channel.cheer: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al suscribirse a channel.cheer");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.cheer",
+                "1",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.subscribe (Subscriptions)
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToSubscriptionsAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToSubscriptionsAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                var payload = new
-                {
-                    type = "channel.subscribe",
-                    version = "1",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción a channel.subscribe creada para broadcaster: {broadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a channel.subscribe: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al suscribirse a channel.subscribe");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.subscribe",
+                "1",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
@@ -499,232 +315,68 @@ namespace Decatron.Services
         /// alerta no salta. El manejador ya existía en TwitchWebhookController, pero nadie
         /// pedía el evento.
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToResubMessagesAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToResubMessagesAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                var payload = new
-                {
-                    type = "channel.subscription.message",
-                    version = "1",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción a channel.subscription.message creada para broadcaster: {broadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a channel.subscription.message: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al suscribirse a channel.subscription.message");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.subscription.message",
+                "1",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.subscription.gift (Gift Subscriptions)
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToGiftSubsAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToGiftSubsAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                var payload = new
-                {
-                    type = "channel.subscription.gift",
-                    version = "1",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción a channel.subscription.gift creada para broadcaster: {broadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a channel.subscription.gift: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al suscribirse a channel.subscription.gift");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.subscription.gift",
+                "1",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.raid
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToRaidAsync(string toBroadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToRaidAsync(
+            string toBroadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                var payload = new
-                {
-                    type = "channel.raid",
-                    version = "1",
-                    condition = new
-                    {
-                        to_broadcaster_user_id = toBroadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción a channel.raid creada para broadcaster: {toBroadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a channel.raid: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al suscribirse a channel.raid");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.raid",
+                "1",
+                new { to_broadcaster_user_id = toBroadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
         /// Registra una suscripción EventSub para channel.hype_train.begin
         /// El broadcaster debe tener scope channel:read:hype_train autorizado, pero la suscripción se crea con App Access Token
         /// </summary>
-        public async Task<EventSubSubscriptionResult> SubscribeToHypeTrainBeginAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> SubscribeToHypeTrainBeginAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
-            try
-            {
-                var accessToken = await GetBotAppAccessTokenAsync();
-                var clientId = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
-
-                var payload = new
-                {
-                    type = "channel.hype_train.begin",
-                    // Twitch retiró la versión 1: pedirla devolvía BadRequest y ningún
-                    // canal tenía hype trains registrados.
-                    version = "2",
-                    condition = new
-                    {
-                        broadcaster_user_id = broadcasterUserId
-                    },
-                    transport = new
-                    {
-                        method = "webhook",
-                        callback = webhookUrl,
-                        secret = webhookSecret
-                    }
-                };
-
-                var json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
-
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation($"✅ Suscripción a channel.hype_train.begin creada para broadcaster: {broadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
-                }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a channel.hype_train.begin: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al suscribirse a channel.hype_train.begin");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
-            }
+            return await CreateSubscriptionAsync(
+                "channel.hype_train.begin",
+                // Twitch retiró la versión 1: pedirla devolvía BadRequest y ningún
+                // canal tenía hype trains registrados.
+                "2",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
         }
 
         /// <summary>
@@ -828,7 +480,13 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Verifica si ya existe una suscripción activa para un broadcaster
+        /// Verifica si ya existe una suscripción activa para un broadcaster.
+        ///
+        /// "webhook_callback_verification_pending" es un estado exclusivo del transporte
+        /// webhook. Las suscripciones por conduit no pasan por ese paso — deberían quedar
+        /// "enabled" directamente si el conduit ya tiene shards con sesión asociada. Si
+        /// durante la migración (Fase B.4) aparece algún otro estado transitorio para
+        /// conduit, se verá en este log y hay que sumarlo aquí.
         /// </summary>
         public async Task<bool> HasActiveSubscriptionAsync(string broadcasterUserId, string eventType = "channel.chat.message")
         {
@@ -847,28 +505,34 @@ namespace Decatron.Services
                     var type = subscription.GetProperty("type").GetString();
                     var status = subscription.GetProperty("status").GetString();
 
-                    if (type == eventType && (status == "enabled" || status == "webhook_callback_verification_pending"))
+                    if (type != eventType)
+                        continue;
+
+                    if (status != "enabled" && status != "webhook_callback_verification_pending")
                     {
-                        var condition = subscription.GetProperty("condition");
+                        _logger.LogWarning($"Suscripción {eventType} encontrada con estado no reconocido: {status}");
+                        continue;
+                    }
 
-                        // channel.raid usa to_broadcaster_user_id en lugar de broadcaster_user_id
-                        string subBroadcasterId = null;
-                        if (eventType == "channel.raid")
-                        {
-                            if (condition.TryGetProperty("to_broadcaster_user_id", out var toId))
-                                subBroadcasterId = toId.GetString();
-                        }
-                        else
-                        {
-                            if (condition.TryGetProperty("broadcaster_user_id", out var broadcasterId))
-                                subBroadcasterId = broadcasterId.GetString();
-                        }
+                    var condition = subscription.GetProperty("condition");
 
-                        if (subBroadcasterId == broadcasterUserId)
-                        {
-                            _logger.LogInformation($"✅ Suscripción {eventType} ya existe para broadcaster {broadcasterUserId}");
-                            return true;
-                        }
+                    // channel.raid usa to_broadcaster_user_id en lugar de broadcaster_user_id
+                    string subBroadcasterId = null;
+                    if (eventType == "channel.raid")
+                    {
+                        if (condition.TryGetProperty("to_broadcaster_user_id", out var toId))
+                            subBroadcasterId = toId.GetString();
+                    }
+                    else
+                    {
+                        if (condition.TryGetProperty("broadcaster_user_id", out var broadcasterId))
+                            subBroadcasterId = broadcasterId.GetString();
+                    }
+
+                    if (subBroadcasterId == broadcasterUserId)
+                    {
+                        _logger.LogInformation($"✅ Suscripción {eventType} ya existe para broadcaster {broadcasterUserId}");
+                        return true;
                     }
                 }
 
@@ -884,11 +548,13 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
-                // Verificar si ya existe
                 var hasSubscription = await HasActiveSubscriptionAsync(broadcasterUserId);
 
                 if (hasSubscription)
@@ -902,8 +568,7 @@ namespace Decatron.Services
                     };
                 }
 
-                // No existe, crear nueva
-                return await SubscribeToChatMessagesAsync(broadcasterUserId);
+                return await SubscribeToChatMessagesAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -920,11 +585,13 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de channel points solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureChannelPointsSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureChannelPointsSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
-                // Verificar si ya existe
                 var hasSubscription = await HasActiveSubscriptionAsync(broadcasterUserId, "channel.channel_points_custom_reward_redemption.add");
 
                 if (hasSubscription)
@@ -938,8 +605,7 @@ namespace Decatron.Services
                     };
                 }
 
-                // No existe, crear nueva
-                return await SubscribeToChannelPointsRedemptionAsync(broadcasterUserId);
+                return await SubscribeToChannelPointsRedemptionAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -956,11 +622,13 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de follows solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureFollowsSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureFollowsSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
-                // Verificar si ya existe
                 var hasSubscription = await HasActiveSubscriptionAsync(broadcasterUserId, "channel.follow");
 
                 if (hasSubscription)
@@ -974,8 +642,8 @@ namespace Decatron.Services
                     };
                 }
 
-                // No existe, crear nueva (moderator_user_id = broadcaster_user_id)
-                return await SubscribeToFollowsAsync(broadcasterUserId, broadcasterUserId);
+                // moderator_user_id = broadcaster_user_id
+                return await SubscribeToFollowsAsync(broadcasterUserId, broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1055,7 +723,10 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de cheer (bits) solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureCheerSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureCheerSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1065,7 +736,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción de cheer ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de cheer ya existe", ResponseBody = null };
                 }
-                return await SubscribeToCheerAsync(broadcasterUserId);
+                return await SubscribeToCheerAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1077,7 +748,10 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de subscriptions (subs) solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureSubscriptionsSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureSubscriptionsSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1087,7 +761,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción de subscribe ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de subscribe ya existe", ResponseBody = null };
                 }
-                return await SubscribeToSubscriptionsAsync(broadcasterUserId);
+                return await SubscribeToSubscriptionsAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1099,7 +773,10 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de resubs (channel.subscription.message) solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureResubMessagesSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureResubMessagesSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1109,7 +786,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción de resubs ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de resubs ya existe", ResponseBody = null };
                 }
-                return await SubscribeToResubMessagesAsync(broadcasterUserId);
+                return await SubscribeToResubMessagesAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1121,7 +798,10 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de gift subs solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureGiftSubsSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureGiftSubsSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1131,7 +811,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción de gift subs ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de gift subs ya existe", ResponseBody = null };
                 }
-                return await SubscribeToGiftSubsAsync(broadcasterUserId);
+                return await SubscribeToGiftSubsAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1143,7 +823,10 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de raids solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureRaidSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureRaidSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1153,7 +836,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción de raid ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de raid ya existe", ResponseBody = null };
                 }
-                return await SubscribeToRaidAsync(broadcasterUserId);
+                return await SubscribeToRaidAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1165,7 +848,10 @@ namespace Decatron.Services
         /// <summary>
         /// Registra suscripción de hype train solo si no existe
         /// </summary>
-        public async Task<EventSubSubscriptionResult> EnsureHypeTrainSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureHypeTrainSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1175,7 +861,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción de hype train ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción de hype train ya existe", ResponseBody = null };
                 }
-                return await SubscribeToHypeTrainBeginAsync(broadcasterUserId);
+                return await SubscribeToHypeTrainBeginAsync(broadcasterUserId, transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1186,7 +872,10 @@ namespace Decatron.Services
 
         // ── stream.online ─────────────────────────────────────────────────────────
 
-        public async Task<EventSubSubscriptionResult> EnsureStreamOnlineSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureStreamOnlineSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1196,7 +885,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción stream.online ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción stream.online ya existe", ResponseBody = null };
                 }
-                return await SubscribeToStreamEventAsync(broadcasterUserId, "stream.online");
+                return await SubscribeToStreamEventAsync(broadcasterUserId, "stream.online", transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1207,7 +896,10 @@ namespace Decatron.Services
 
         // ── stream.offline ────────────────────────────────────────────────────────
 
-        public async Task<EventSubSubscriptionResult> EnsureStreamOfflineSubscriptionAsync(string broadcasterUserId)
+        public async Task<EventSubSubscriptionResult> EnsureStreamOfflineSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
         {
             try
             {
@@ -1217,7 +909,7 @@ namespace Decatron.Services
                     _logger.LogInformation($"⏭️ Suscripción stream.offline ya existe para broadcaster {broadcasterUserId}, omitiendo");
                     return new EventSubSubscriptionResult { Success = true, Message = "Suscripción stream.offline ya existe", ResponseBody = null };
                 }
-                return await SubscribeToStreamEventAsync(broadcasterUserId, "stream.offline");
+                return await SubscribeToStreamEventAsync(broadcasterUserId, "stream.offline", transportMode, conduitId);
             }
             catch (Exception ex)
             {
@@ -1226,54 +918,196 @@ namespace Decatron.Services
             }
         }
 
-        private async Task<EventSubSubscriptionResult> SubscribeToStreamEventAsync(string broadcasterUserId, string eventType)
+        /// <summary>
+        /// Registra stream.online o stream.offline directamente, sin pasar por Ensure*
+        /// (que no distingue transporte y por eso no sirve para forzar la migración a
+        /// conduit de un tipo que ya tiene una suscripción webhook activa).
+        /// </summary>
+        public async Task<EventSubSubscriptionResult> SubscribeToStreamEventAsync(
+            string broadcasterUserId,
+            string eventType,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
+        {
+            return await CreateSubscriptionAsync(
+                eventType,
+                "1",
+                new { broadcaster_user_id = broadcasterUserId },
+                transportMode,
+                conduitId);
+        }
+
+        // ============================================================================
+        // CONDUITS
+        // ============================================================================
+
+        /// <summary>
+        /// Crea un conduit nuevo con N shards. Solo debe llamarse si GetConduitsAsync()
+        /// confirma que no existe ninguno todavía — un conduit persiste entre reinicios
+        /// del bot, no hay que recrearlo cada vez que arranca el proceso.
+        /// </summary>
+        public async Task<EventSubConduitResult> CreateConduitAsync(int shardCount)
         {
             try
             {
-                var accessToken  = await GetBotAppAccessTokenAsync();
-                var clientId     = _configuration["TwitchSettings:ClientId"];
-                var webhookUrl   = _configuration["TwitchSettings:WebhookCallbackUrl"];
-                var webhookSecret = _configuration["TwitchSettings:WebhookSecret"];
+                var accessToken = await GetBotAppAccessTokenAsync();
+                var clientId = _configuration["TwitchSettings:ClientId"];
 
-                var payload = new
+                var payload = new { shard_count = shardCount };
+                var jsonContent = JsonSerializer.Serialize(payload);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/conduits")
                 {
-                    type = eventType,
-                    version = "1",
-                    condition = new { broadcaster_user_id = broadcasterUserId },
-                    transport = new
-                    {
-                        method   = "webhook",
-                        callback = webhookUrl,
-                        secret   = webhookSecret
-                    }
+                    Content = content
                 };
-
-                var json    = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.twitch.tv/helix/eventsub/subscriptions");
                 request.Headers.Add("Client-ID", clientId);
                 request.Headers.Add("Authorization", $"Bearer {accessToken}");
-                request.Content = content;
 
-                var response     = await _httpClient.SendAsync(request);
+                var response = await _httpClient.SendAsync(request);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogInformation($"✅ Suscripción {eventType} creada para broadcaster: {broadcasterUserId}");
-                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción creada", ResponseBody = responseBody };
+                    _logger.LogInformation($"✅ Conduit creado con {shardCount} shards: {responseBody}");
+                    return new EventSubConduitResult { Success = true, Message = "Conduit creado exitosamente", ResponseBody = responseBody };
                 }
-                else
-                {
-                    _logger.LogError($"❌ Error al suscribirse a {eventType}: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
-                }
+
+                _logger.LogError($"❌ Error al crear conduit: {response.StatusCode} - {responseBody}");
+                return new EventSubConduitResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error al suscribirse a {eventType}");
-                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
+                _logger.LogError(ex, "Error al crear conduit");
+                return new EventSubConduitResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        /// <summary>
+        /// Lista los conduits existentes de este client_id. Twitch permite máximo 5
+        /// conduits habilitados por cliente — este es el mecanismo para reusar el que
+        /// ya existe en vez de crear uno nuevo en cada reinicio.
+        /// </summary>
+        public async Task<EventSubConduitResult> GetConduitsAsync()
+        {
+            try
+            {
+                var accessToken = await GetBotAppAccessTokenAsync();
+                var clientId = _configuration["TwitchSettings:ClientId"];
+
+                var request = new HttpRequestMessage(HttpMethod.Get, "https://api.twitch.tv/helix/eventsub/conduits");
+                request.Headers.Add("Client-ID", clientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new EventSubConduitResult { Success = true, Message = "Lista de conduits obtenida", ResponseBody = responseBody };
+                }
+
+                _logger.LogError($"❌ Error al listar conduits: {response.StatusCode} - {responseBody}");
+                return new EventSubConduitResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al listar conduits");
+                return new EventSubConduitResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        /// <summary>
+        /// Escala un conduit existente a un número distinto de shards, sin recrearlo
+        /// ni tocar sus suscripciones.
+        /// </summary>
+        public async Task<EventSubConduitResult> UpdateConduitAsync(string conduitId, int newShardCount)
+        {
+            try
+            {
+                var accessToken = await GetBotAppAccessTokenAsync();
+                var clientId = _configuration["TwitchSettings:ClientId"];
+
+                var payload = new { id = conduitId, shard_count = newShardCount };
+                var jsonContent = JsonSerializer.Serialize(payload);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var request = new HttpRequestMessage(HttpMethod.Patch, "https://api.twitch.tv/helix/eventsub/conduits")
+                {
+                    Content = content
+                };
+                request.Headers.Add("Client-ID", clientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"✅ Conduit {conduitId} actualizado a {newShardCount} shards");
+                    return new EventSubConduitResult { Success = true, Message = "Conduit actualizado", ResponseBody = responseBody };
+                }
+
+                _logger.LogError($"❌ Error al actualizar conduit {conduitId}: {response.StatusCode} - {responseBody}");
+                return new EventSubConduitResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al actualizar conduit {conduitId}");
+                return new EventSubConduitResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        /// <summary>
+        /// Asocia un shard del conduit a una sesión WebSocket activa. Se llama tanto en
+        /// la conexión inicial como en cada reconexión — las suscripciones no se tocan,
+        /// solo se actualiza a qué sesión apunta el shard.
+        /// </summary>
+        public async Task<EventSubConduitResult> UpdateConduitShardsAsync(string conduitId, string shardId, string sessionId)
+        {
+            try
+            {
+                var accessToken = await GetBotAppAccessTokenAsync();
+                var clientId = _configuration["TwitchSettings:ClientId"];
+
+                var payload = new
+                {
+                    conduit_id = conduitId,
+                    shards = new[]
+                    {
+                        new
+                        {
+                            id = shardId,
+                            transport = new { method = "websocket", session_id = sessionId }
+                        }
+                    }
+                };
+                var jsonContent = JsonSerializer.Serialize(payload);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var request = new HttpRequestMessage(HttpMethod.Patch, "https://api.twitch.tv/helix/eventsub/conduits/shards")
+                {
+                    Content = content
+                };
+                request.Headers.Add("Client-ID", clientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"✅ Shard {shardId} del conduit {conduitId} asociado a sesión {sessionId}");
+                    return new EventSubConduitResult { Success = true, Message = "Shard actualizado", ResponseBody = responseBody };
+                }
+
+                _logger.LogError($"❌ Error al actualizar shard {shardId} del conduit {conduitId}: {response.StatusCode} - {responseBody}");
+                return new EventSubConduitResult { Success = false, Message = $"Error: {response.StatusCode}", ResponseBody = responseBody };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error al actualizar shard {shardId} del conduit {conduitId}");
+                return new EventSubConduitResult { Success = false, Message = ex.Message, ResponseBody = null };
             }
         }
     }
@@ -1286,6 +1120,13 @@ namespace Decatron.Services
     }
 
     public class EventSubSubscriptionListResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public string ResponseBody { get; set; }
+    }
+
+    public class EventSubConduitResult
     {
         public bool Success { get; set; }
         public string Message { get; set; }
