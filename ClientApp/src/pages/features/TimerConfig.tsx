@@ -357,6 +357,7 @@ const TimerConfig = () => {
                                     autoStopOnStreamOffline={timerConfig.advancedConfig.autoStopOnStreamOffline}
                                     onAutoPlayOnStreamOnlineChange={(v) => timerConfig.updateAdvancedConfig({ autoPlayOnStreamOnline: v })}
                                     onAutoStopOnStreamOfflineChange={(v) => timerConfig.updateAdvancedConfig({ autoStopOnStreamOffline: v })}
+                                    timeZone={timerConfig.timeZone}
                                 />
                             )}
 
@@ -440,6 +441,7 @@ const TimerConfig = () => {
                                 <RafflesTab
                                     rafflesConfig={timerConfig.rafflesConfig}
                                     onRafflesConfigChange={timerConfig.updateRafflesConfig}
+                                    timeZone={timerConfig.timeZone}
                                 />
                             )}
 
@@ -456,6 +458,7 @@ const TimerConfig = () => {
                                 <HistoryTab
                                     historyConfig={timerConfig.historyConfig}
                                     onHistoryConfigChange={timerConfig.updateHistoryConfig}
+                                    timeZone={timerConfig.timeZone}
                                 />
                             )}
 
@@ -467,6 +470,7 @@ const TimerConfig = () => {
                                 <WidgetsTab
                                     widgetsConfig={timerConfig.widgetsConfig}
                                     onWidgetsConfigChange={timerConfig.updateWidgetsConfig}
+                                    timeZone={timerConfig.timeZone}
                                 />
                             )}
 

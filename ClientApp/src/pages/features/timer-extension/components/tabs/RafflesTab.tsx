@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { Gift, Users, Award, Plus, X, RotateCcw, AlertCircle, Loader2, UserPlus, Search, Trash2, Ban, DownloadCloud, Settings2, Trophy, Filter, Clock, Zap, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { RafflesConfig } from '../../types';
+import { formatDateOnlyIn, formatShortDateTimeIn } from '../../utils';
 
 interface TimerSessionInfo {
     id: number;
@@ -24,6 +25,8 @@ interface TimerSessionInfo {
 interface RafflesTabProps {
     rafflesConfig: RafflesConfig;
     onRafflesConfigChange: (updates: Partial<RafflesConfig>) => void;
+    /** Zona horaria configurada por el streamer (IANA, ej: "America/Lima"). */
+    timeZone?: string;
 }
 
 interface Raffle {
@@ -81,7 +84,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) =>
     </label>
 );
 
-export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRafflesConfigChange }) => {
+export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRafflesConfigChange, timeZone }) => {
     // Estado local solo para UI efímera
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [raffles, setRaffles] = useState<Raffle[]>([]);
@@ -957,7 +960,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                             </span>
                                                                         </div>
                                                                         <span className="text-gray-500">
-                                                                            {new Date(session.startedAt).toLocaleDateString()} {new Date(session.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                            {formatShortDateTimeIn(session.startedAt, timeZone)}
                                                                         </span>
                                                                     </div>
                                                                     <div className="flex gap-4 mt-1 text-gray-400">
@@ -1238,7 +1241,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                     #{session.id}
                                                                     {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold">ACTIVA</span>}
                                                                 </span>
-                                                                <span className="text-gray-500">{new Date(session.startedAt).toLocaleDateString()}</span>
+                                                                <span className="text-gray-500">{formatDateOnlyIn(session.startedAt, timeZone)}</span>
                                                             </div>
                                                             <div className="flex gap-3 mt-1 text-gray-400">
                                                                 <span>Eventos: {session.totalEvents}</span>

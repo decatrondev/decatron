@@ -1,3 +1,4 @@
+using Decatron.Core.Interfaces;
 using Decatron.Core.Models.Gacha;
 using Decatron.Core.Models.Economy;
 using Decatron.Data;
@@ -58,8 +59,12 @@ namespace Decatron.Services
         Task<GachaIntegrationConfig> SaveIntegrationConfigAsync(GachaIntegrationConfig config);
         Task ProcessTipDonationAsync(string channelName, string donorName, decimal amount, string currency);
         Task ProcessBitsEventAsync(string channelName, string username, int bitsAmount);
-        Task ProcessSubEventAsync(string channelName, string username, string tier);
+        Task ProcessSubEventAsync(string channelName, string username, string tier, bool isResub = false);
         Task ProcessGiftSubEventAsync(string channelName, string gifterUsername, int giftCount);
+
+        // Bonus pulls (no cuentan como donación)
+        Task<GachaParticipant> AddBonusPullsAsync(string channelName, string participantName, int pulls, string reason);
+        Task<int> ExpireBonusPullsOnStreamEndAsync(string channelName);
 
         // Participants
         Task<List<GachaParticipant>> GetParticipantsAsync(string channelName);
@@ -71,6 +76,7 @@ namespace Decatron.Services
 
         // Display Name
         Task UpdateDisplayNameAsync(int participantId, string channelName, string? displayName);
+        Task SetForcedItemAsync(int participantId, string channelName, int? itemId);
 
         // Collection/Inventory
         Task<List<GachaInventory>> GetInventoryAsync(string channelName, int participantId);
@@ -95,6 +101,9 @@ namespace Decatron.Services
 
         // Advanced Stats
         Task<object> GetAdvancedStatsAsync(string channelName, int participantId);
+
+        // Ranking público del canal
+        Task<GachaRanking> GetRankingAsync(string channelName, int limit = 10);
 
         // Coin Purchase
         Task<GachaCoinPurchaseResult> PurchaseWithCoinsAsync(string channelName, string username, long userId, int pullCount);
@@ -122,11 +131,13 @@ namespace Decatron.Services
         };
 
         private readonly OverlayNotificationService? _overlayService;
+        private readonly IMessageSender? _chat;
 
-        public GachaService(DecatronDbContext context, ILogger<GachaService> logger, OverlayNotificationService? overlayService = null)
+        public GachaService(DecatronDbContext context, ILogger<GachaService> logger, OverlayNotificationService? overlayService = null, IMessageSender? chat = null)
         {
             _context = context;
             _overlayService = overlayService;
+            _chat = chat;
             _logger = logger;
         }
 
@@ -173,6 +184,9 @@ namespace Decatron.Services
             existing.Rarity = item.Rarity;
             existing.Image = item.Image ?? existing.Image;
             existing.Available = item.Available;
+            existing.EffectType = GachaItemEffects.EsValido(item.EffectType) ? item.EffectType : GachaItemEffects.None;
+            existing.EffectValue = item.EffectValue;
+            existing.Consumable = item.Consumable;
             existing.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -606,6 +620,11 @@ namespace Decatron.Services
                 if (participant.CoinPullsAvailable < 1)
                     throw new InvalidOperationException("No tienes tiros de coins disponibles");
             }
+            else if (pullType == "bonus")
+            {
+                if (participant.BonusPullsAvailable < 1)
+                    throw new InvalidOperationException("No tienes tiros bonus disponibles");
+            }
             else
             {
                 if (participant.EffectiveDonation < 1)
@@ -638,8 +657,11 @@ namespace Decatron.Services
                 .Where(r => r.ChannelName == channelName && r.IsActive)
                 .ToListAsync();
 
-            // Check milestone status for this participant
-            var milestoneItemId = await CheckMilestoneEligibility(participant, restrictions, pullType);
+            // Check milestone status for this participant. Los bonus no son dinero
+            // ni coins, así que no participan de las garantías por acumulado.
+            var milestoneItemId = pullType == "bonus"
+                ? null
+                : await CheckMilestoneEligibility(participant, restrictions, pullType);
 
             // Calculate probabilities for each item
             var itemProbabilities = new List<(GachaItem Item, decimal Probability)>();
@@ -652,7 +674,7 @@ namespace Decatron.Services
                 if (restriction != null && restriction.AllowedPullTypes != "all")
                 {
                     if (pullType == "coins" && restriction.AllowedPullTypes == "donation_only") continue;
-                    if (pullType == "donation" && restriction.AllowedPullTypes == "coins_only") continue;
+                    if (pullType != "coins" && restriction.AllowedPullTypes == "coins_only") continue;
                 }
 
                 // Check coin_min_spent for coin pulls
@@ -716,12 +738,29 @@ namespace Decatron.Services
             var totalProbability = itemProbabilities.Sum(p => p.Probability);
             var normalized = itemProbabilities.Select(p => (p.Item, Probability: p.Probability / totalProbability)).ToList();
 
-            // Cryptographic random selection
-            var selectedItem = CryptoWeightedSelect(normalized);
+            // Cryptographic random selection — salvo que el streamer haya forzado
+            // una carta para este participante (un solo uso).
+            GachaItem selectedItem;
+            var forced = participant.ForcedItemId.HasValue
+                ? items.FirstOrDefault(i => i.Id == participant.ForcedItemId.Value)
+                : null;
+            if (forced != null)
+            {
+                selectedItem = forced;
+                participant.ForcedItemId = null;
+                _logger.LogInformation("[GACHA] Tiro forzado: {Name} recibe {Item} en {Channel}", participant.Name, forced.Name, channelName);
+            }
+            else
+            {
+                if (participant.ForcedItemId.HasValue) participant.ForcedItemId = null; // item borrado o no disponible
+                selectedItem = CryptoWeightedSelect(normalized);
+            }
 
             // Update database — decrement correct counter
             if (pullType == "coins")
                 participant.CoinPullsAvailable -= 1;
+            else if (pullType == "bonus")
+                participant.BonusPullsAvailable -= 1;
             else
                 participant.EffectiveDonation -= 1;
 
@@ -755,30 +794,36 @@ namespace Decatron.Services
                     string.Join(",", wonItems));
             }
 
-            // Add to inventory
-            var existingInventory = await _context.GachaInventories
-                .FirstOrDefaultAsync(inv => inv.ChannelName == channelName
-                    && inv.ParticipantId == participantId
-                    && inv.ItemId == selectedItem.Id
-                    && !inv.IsRedeemed);
+            // Add to inventory. Los consumibles se usan al salir y no se guardan.
+            if (!selectedItem.Consumable)
+            {
+                var existingInventory = await _context.GachaInventories
+                    .FirstOrDefaultAsync(inv => inv.ChannelName == channelName
+                        && inv.ParticipantId == participantId
+                        && inv.ItemId == selectedItem.Id
+                        && !inv.IsRedeemed);
 
-            if (existingInventory != null)
-            {
-                existingInventory.Quantity += 1;
-                existingInventory.LastWonAt = DateTime.UtcNow;
-            }
-            else
-            {
-                _context.GachaInventories.Add(new GachaInventory
+                if (existingInventory != null)
                 {
-                    ChannelName = channelName,
-                    UserId = channelUserId,
-                    ParticipantId = participantId,
-                    ItemId = selectedItem.Id,
-                    Quantity = 1,
-                    LastWonAt = DateTime.UtcNow
-                });
+                    existingInventory.Quantity += 1;
+                    existingInventory.LastWonAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    _context.GachaInventories.Add(new GachaInventory
+                    {
+                        ChannelName = channelName,
+                        UserId = channelUserId,
+                        ParticipantId = participantId,
+                        ItemId = selectedItem.Id,
+                        Quantity = 1,
+                        LastWonAt = DateTime.UtcNow
+                    });
+                }
             }
+
+            // Efecto del item (tiro extra, tiros bonus, tiempo al timer)
+            var effect = await ApplyItemEffectAsync(channelName, participant, selectedItem);
 
             // Decrement total quantity if restricted
             var itemRestriction = restrictions.FirstOrDefault(r => r.ItemId == selectedItem.Id);
@@ -802,9 +847,12 @@ namespace Decatron.Services
 
             await _context.SaveChangesAsync();
 
-            var pullsRemaining = pullType == "coins"
-                ? participant.CoinPullsAvailable
-                : (int)participant.EffectiveDonation;
+            var pullsRemaining = pullType switch
+            {
+                "coins" => participant.CoinPullsAvailable,
+                "bonus" => participant.BonusPullsAvailable,
+                _ => (int)participant.EffectiveDonation
+            };
 
             _logger.LogInformation("[GACHA] Pull ({PullType}): {Name} obtuvo {Item} ({Rarity}) en {Channel}",
                 pullType, participant.Name, selectedItem.Name, selectedItem.Rarity, channelName);
@@ -821,6 +869,9 @@ namespace Decatron.Services
                     participantName = participant.DisplayName ?? participant.Name,
                     pullType,
                     pullsRemaining,
+                    effectType = effect.Type,
+                    effectValue = effect.Value,
+                    effectApplied = effect.Applied,
                     timestamp = DateTime.UtcNow
                 });
             }
@@ -833,8 +884,80 @@ namespace Decatron.Services
                 Item = selectedItem,
                 Participant = participant,
                 PullsRemaining = pullsRemaining,
-                PullType = pullType
+                PullType = pullType,
+                EffectType = effect.Type,
+                EffectValue = effect.Value,
+                EffectApplied = effect.Applied
             };
+        }
+
+        /// <summary>
+        /// Ejecuta el efecto del item sobre el participante. No guarda: el
+        /// SaveChanges lo hace PerformPullAsync junto con el resto del tiro.
+        /// Devuelve qué efecto fue y si se pudo aplicar (el timer puede no estar
+        /// activo; en ese caso el efecto se pierde y se avisa).
+        /// </summary>
+        private async Task<(string Type, int Value, bool Applied)> ApplyItemEffectAsync(string channelName, GachaParticipant participant, GachaItem item)
+        {
+            switch (item.EffectType)
+            {
+                case GachaItemEffects.RollAgain:
+                    participant.BonusPullsAvailable += 1;
+                    return (item.EffectType, 1, true);
+
+                case GachaItemEffects.ExtraPulls:
+                {
+                    var pulls = Math.Max(0, item.EffectValue);
+                    if (pulls == 0) return (item.EffectType, 0, false);
+                    participant.BonusPullsAvailable += pulls;
+                    return (item.EffectType, pulls, true);
+                }
+
+                case GachaItemEffects.TimerTime:
+                {
+                    var segundos = item.EffectValue;
+                    if (segundos == 0) return (item.EffectType, 0, false);
+
+                    // Mismo criterio que la Rueda: solo si el timer está corriendo o en pausa.
+                    var estado = await _context.TimerStates.FirstOrDefaultAsync(t => t.ChannelName == channelName);
+                    if (estado == null || (estado.Status != "running" && estado.Status != "paused"))
+                        return (item.EffectType, segundos, false);
+
+                    // Un item "maldito" resta, pero nunca deja el timer en negativo.
+                    if (segundos < 0) segundos = -Math.Min(-segundos, estado.CurrentTime);
+                    if (segundos == 0) return (item.EffectType, item.EffectValue, false);
+
+                    estado.CurrentTime += segundos;
+                    if (segundos > 0) estado.TotalTime += segundos;
+                    estado.UpdatedAt = DateTime.UtcNow;
+
+                    if (estado.CurrentSessionId.HasValue)
+                    {
+                        var sesion = await _context.TimerSessions.FindAsync(estado.CurrentSessionId.Value);
+                        if (sesion != null) sesion.TotalAddedTime += segundos;
+
+                        _context.TimerEventLogs.Add(new Decatron.Core.Models.TimerEventLog
+                        {
+                            ChannelName = channelName,
+                            EventType = "gacha",
+                            Username = participant.Name,
+                            TimeAdded = segundos,
+                            Details = $"Gachapón: {item.Name}",
+                            TimerSessionId = estado.CurrentSessionId,
+                            CreatedAt = DateTime.UtcNow,
+                            OccurredAt = Decatron.Core.Helpers.TimerDateTimeHelper.NowForDb(),
+                        });
+                    }
+
+                    if (_overlayService != null)
+                        await _overlayService.SendAddTimeAsync(channelName, segundos);
+
+                    return (item.EffectType, segundos, true);
+                }
+
+                default:
+                    return (GachaItemEffects.None, 0, false);
+            }
         }
 
         // ========================================================================
@@ -952,6 +1075,8 @@ namespace Decatron.Services
                 existing.MultiPullEnabled = config.MultiPullEnabled;
                 existing.MultiPullMax = Math.Clamp(config.MultiPullMax, 1, 50);
                 existing.MultiPullDelay = Math.Clamp(config.MultiPullDelay, 5, 30);
+                existing.ChatNotifyEnabled = config.ChatNotifyEnabled;
+                existing.BonusExpireOnStreamEnd = config.BonusExpireOnStreamEnd;
                 existing.UpdatedAt = DateTime.UtcNow;
             }
             else
@@ -1001,9 +1126,11 @@ namespace Decatron.Services
             await AddDonationAsync(channelName, username.ToLower(), totalPulls);
             _logger.LogInformation("[GACHA] Bits → pulls: {User} {Bits} bits = {Pulls} pulls in {Channel}",
                 username, bitsAmount, totalPulls, channelName);
+
+            await NotifyPullsGrantedAsync(config, channelName, username, totalPulls, "bits");
         }
 
-        public async Task ProcessSubEventAsync(string channelName, string username, string tier)
+        public async Task ProcessSubEventAsync(string channelName, string username, string tier, bool isResub = false)
         {
             var config = await _context.GachaIntegrationConfigs
                 .FirstOrDefaultAsync(c => c.ChannelName == channelName && c.SubsEnabled);
@@ -1021,8 +1148,10 @@ namespace Decatron.Services
             if (pulls <= 0) return;
 
             await AddDonationAsync(channelName, username.ToLower(), pulls);
-            _logger.LogInformation("[GACHA] Sub → pulls: {User} ({Tier}) = {Pulls} pulls in {Channel}",
-                username, tier, pulls, channelName);
+            _logger.LogInformation("[GACHA] {Kind} → pulls: {User} ({Tier}) = {Pulls} pulls in {Channel}",
+                isResub ? "Resub" : "Sub", username, tier, pulls, channelName);
+
+            await NotifyPullsGrantedAsync(config, channelName, username, pulls, isResub ? "resub" : "sub");
         }
 
         public async Task ProcessGiftSubEventAsync(string channelName, string gifterUsername, int giftCount)
@@ -1037,6 +1166,146 @@ namespace Decatron.Services
             await AddDonationAsync(channelName, gifterUsername.ToLower(), totalPulls);
             _logger.LogInformation("[GACHA] GiftSub → pulls: {User} x{Gifts} = {Pulls} pulls in {Channel}",
                 gifterUsername, giftCount, totalPulls, channelName);
+
+            await NotifyPullsGrantedAsync(config, channelName, gifterUsername, totalPulls, "gift");
+        }
+
+        /// <summary>
+        /// Avisa en el chat que el viewer ganó tiros. Sin esto el viewer no se entera
+        /// de que tiene tiros hasta que alguien le dice. Respeta el toggle del canal y
+        /// nunca rompe el flujo del evento que lo llamó.
+        /// </summary>
+        private async Task NotifyPullsGrantedAsync(GachaIntegrationConfig config, string channelName, string username, int pulls, string source)
+        {
+            if (_chat == null || !config.ChatNotifyEnabled || pulls <= 0) return;
+
+            try
+            {
+                var lang = await _context.Users
+                    .Where(u => u.Login == channelName)
+                    .Select(u => u.PreferredLanguage)
+                    .FirstOrDefaultAsync() ?? "es";
+
+                var participant = await GetParticipantByNameAsync(channelName, username.ToLower());
+                var total = participant == null ? pulls
+                    : (int)participant.EffectiveDonation + participant.CoinPullsAvailable + participant.BonusPullsAvailable;
+
+                var reason = (lang, source) switch
+                {
+                    ("en", "sub")   => "for subscribing",
+                    ("en", "resub") => "for your resub",
+                    ("en", "bits")  => "for your bits",
+                    ("en", "gift")  => "for gifting subs",
+                    ("pt", "sub")   => "pela sua sub",
+                    ("pt", "resub") => "pela sua resub",
+                    ("pt", "bits")  => "pelos seus bits",
+                    ("pt", "gift")  => "por presentear subs",
+                    (_, "sub")      => "por tu sub",
+                    (_, "resub")    => "por tu resub",
+                    (_, "bits")     => "por tus bits",
+                    (_, "gift")     => "por regalar subs",
+                    _               => ""
+                };
+
+                var msg = lang switch
+                {
+                    "en" => $"🎰 @{username} you won {pulls} gacha pull(s) {reason}! You have {total} available, use !gcpull",
+                    "pt" => $"🎰 @{username} você ganhou {pulls} puxada(s) do gacha {reason}! Tem {total} disponíveis, use !gcpull",
+                    _    => $"🎰 @{username} ganaste {pulls} tiro(s) del gacha {reason}! Tienes {total} disponibles, usa !gcpull"
+                };
+
+                await _chat.SendMessageAsync(channelName, msg);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[GACHA] No se pudo avisar en chat los tiros de {User} en {Channel}", username, channelName);
+            }
+        }
+
+        public async Task SetForcedItemAsync(int participantId, string channelName, int? itemId)
+        {
+            var participant = await _context.GachaParticipants.FindAsync(participantId);
+            if (participant == null || participant.ChannelName != channelName)
+                throw new KeyNotFoundException("Participante no encontrado");
+
+            if (itemId.HasValue)
+            {
+                var exists = await _context.GachaItems.AnyAsync(i => i.Id == itemId.Value && i.ChannelName == channelName);
+                if (!exists) throw new KeyNotFoundException("Item no encontrado");
+            }
+
+            participant.ForcedItemId = itemId;
+            participant.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+
+        // ========================================================================
+        // BONUS PULLS
+        // ========================================================================
+
+        public async Task<GachaParticipant> AddBonusPullsAsync(string channelName, string participantName, int pulls, string reason)
+        {
+            if (pulls <= 0) throw new ArgumentException("La cantidad de tiros debe ser mayor a 0");
+
+            participantName = participantName.ToLower().Trim();
+            var participant = await GetParticipantByNameAsync(channelName, participantName);
+
+            if (participant == null)
+            {
+                var channelUserId = await ResolveChannelUserIdAsync(channelName);
+                participant = new GachaParticipant
+                {
+                    ChannelName = channelName,
+                    UserId = channelUserId,
+                    Name = participantName
+                };
+                _context.GachaParticipants.Add(participant);
+                await _context.SaveChangesAsync();
+            }
+
+            participant.BonusPullsAvailable += pulls;
+            participant.UpdatedAt = DateTime.UtcNow;
+
+            _context.GachaPullLogs.Add(new GachaPullLog
+            {
+                ChannelName = channelName,
+                UserId = participant.UserId,
+                ParticipantId = participant.Id,
+                Action = "bonus_" + reason,
+                Amount = pulls,
+                PullType = "bonus",
+                OccurredAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("[GACHA] Bonus ({Reason}): {Name} +{Pulls} tiros bonus en {Channel} (disponible: {Available})",
+                reason, participantName, pulls, channelName, participant.BonusPullsAvailable);
+
+            return participant;
+        }
+
+        /// <summary>
+        /// Vence los tiros bonus del canal si el streamer lo configuró así. Devuelve
+        /// cuántos participantes perdieron tiros. Solo se llama desde stream.offline,
+        /// que es el único momento en que "fin de stream" es verificable.
+        /// </summary>
+        public async Task<int> ExpireBonusPullsOnStreamEndAsync(string channelName)
+        {
+            var config = await _context.GachaIntegrationConfigs
+                .FirstOrDefaultAsync(c => c.ChannelName == channelName && c.BonusExpireOnStreamEnd);
+            if (config == null) return 0;
+
+            var affected = await _context.GachaParticipants
+                .Where(p => p.ChannelName == channelName && p.BonusPullsAvailable > 0)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.BonusPullsAvailable, 0)
+                    .SetProperty(p => p.UpdatedAt, DateTime.UtcNow));
+
+            if (affected > 0)
+                _logger.LogInformation("[GACHA] Tiros bonus vencidos al terminar stream de {Channel}: {Count} participantes", channelName, affected);
+
+            return affected;
         }
 
         // ========================================================================
@@ -1415,7 +1684,105 @@ namespace Decatron.Services
         // COMMAND CONFIGS
         // ========================================================================
 
-        private static readonly string[] DefaultCommands = { "pull", "pulls", "col", "buy", "price", "donate", "pause", "resume" };
+        private static readonly string[] DefaultCommands = { "pull", "pulls", "col", "top", "buy", "price", "donate", "pause", "resume" };
+
+        // ========================================================================
+        // RANKING
+        // ========================================================================
+
+        /// <summary>
+        /// Top del canal en tres tablas: coleccionistas (cartas únicas), cazadores
+        /// (legendarias + épicas) y más tiros. Respeta la privacidad del viewer: si
+        /// puso su colección privada (global o para este canal) aparece como
+        /// "Anónimo", igual que si el streamer le puso nombre anónimo.
+        /// </summary>
+        public async Task<GachaRanking> GetRankingAsync(string channelName, int limit = 10)
+        {
+            limit = Math.Clamp(limit, 1, 50);
+
+            var totalAvailable = await _context.GachaItems
+                .CountAsync(i => i.ChannelName == channelName && i.Available);
+
+            var participants = await _context.GachaParticipants
+                .Where(p => p.ChannelName == channelName)
+                .Select(p => new { p.Id, p.Name, p.DisplayName, p.Pulls })
+                .ToListAsync();
+            if (participants.Count == 0)
+                return new GachaRanking { TotalAvailable = totalAvailable };
+
+            // Cartas únicas y cantidad de legendarias/épicas por participante, en una sola pasada
+            // (se agrupa en memoria: EF no traduce Distinct().Count() dentro de un GroupBy)
+            var inventoryRows = await _context.GachaInventories
+                .Where(inv => inv.ChannelName == channelName)
+                .Join(_context.GachaItems, inv => inv.ItemId, it => it.Id, (inv, it) => new { inv.ParticipantId, inv.ItemId, inv.Quantity, it.Rarity })
+                .ToListAsync();
+            var inventoryAgg = inventoryRows
+                .GroupBy(x => x.ParticipantId)
+                .Select(g => new
+                {
+                    ParticipantId = g.Key,
+                    UniqueCards = g.Select(x => x.ItemId).Distinct().Count(),
+                    Legendary = g.Where(x => x.Rarity == "legendary").Sum(x => x.Quantity),
+                    Epic = g.Where(x => x.Rarity == "epic").Sum(x => x.Quantity),
+                })
+                .ToList();
+            var aggById = inventoryAgg.ToDictionary(a => a.ParticipantId);
+
+            // Privacidad: viewers que pidieron colección privada
+            var names = participants.Select(p => p.Name).ToList();
+            var privateSettings = await _context.GachaViewerSettings
+                .Where(s => names.Contains(s.TwitchUsername))
+                .Select(s => new { s.TwitchUsername, s.CollectionsPublic, s.PrivateChannelsJson })
+                .ToListAsync();
+            var privateNames = privateSettings
+                .Where(s => !s.CollectionsPublic
+                    || (JsonSerializer.Deserialize<List<string>>(s.PrivateChannelsJson ?? "[]") ?? new()).Contains(channelName))
+                .Select(s => s.TwitchUsername)
+                .ToHashSet();
+
+            GachaRankingEntry Entry(int id, string name, string? displayName, int value, int secondary = 0)
+            {
+                var isPrivate = privateNames.Contains(name);
+                return new GachaRankingEntry
+                {
+                    Name = isPrivate ? "Anónimo" : (displayName ?? name),
+                    Login = isPrivate || displayName != null ? null : name,
+                    Value = value,
+                    Secondary = secondary
+                };
+            }
+
+            var collectors = participants
+                .Select(p => (p, unique: aggById.TryGetValue(p.Id, out var a) ? a.UniqueCards : 0))
+                .Where(x => x.unique > 0)
+                .OrderByDescending(x => x.unique).ThenBy(x => x.p.Pulls)
+                .Take(limit)
+                .Select(x => Entry(x.p.Id, x.p.Name, x.p.DisplayName, x.unique))
+                .ToList();
+
+            var hunters = participants
+                .Select(p => (p, leg: aggById.TryGetValue(p.Id, out var a) ? a.Legendary : 0, epic: aggById.TryGetValue(p.Id, out var b) ? b.Epic : 0))
+                .Where(x => x.leg > 0 || x.epic > 0)
+                .OrderByDescending(x => x.leg).ThenByDescending(x => x.epic)
+                .Take(limit)
+                .Select(x => Entry(x.p.Id, x.p.Name, x.p.DisplayName, x.leg, x.epic))
+                .ToList();
+
+            var pullers = participants
+                .Where(p => p.Pulls > 0)
+                .OrderByDescending(p => p.Pulls)
+                .Take(limit)
+                .Select(p => Entry(p.Id, p.Name, p.DisplayName, p.Pulls))
+                .ToList();
+
+            return new GachaRanking
+            {
+                TotalAvailable = totalAvailable,
+                Collectors = collectors,
+                Hunters = hunters,
+                Pullers = pullers
+            };
+        }
 
         public async Task<List<GachaCommandConfig>> GetCommandConfigsAsync(string channelName)
         {
@@ -1424,11 +1791,13 @@ namespace Decatron.Services
                 .OrderBy(c => c.Command)
                 .ToListAsync();
 
-            // Seed defaults if none exist
-            if (configs.Count == 0)
+            // Seed defaults: los que falten (canales viejos no tienen los comandos
+            // agregados después, como "top")
+            var missing = DefaultCommands.Where(cmd => configs.All(c => c.Command != cmd)).ToList();
+            if (missing.Count > 0)
             {
                 var channelUserId = await ResolveChannelUserIdAsync(channelName);
-                foreach (var cmd in DefaultCommands)
+                foreach (var cmd in missing)
                 {
                     var config = new GachaCommandConfig
                     {
@@ -1877,6 +2246,27 @@ namespace Decatron.Services
         public GachaParticipant Participant { get; set; } = null!;
         public int PullsRemaining { get; set; }
         public string PullType { get; set; } = "donation";
+        public string EffectType { get; set; } = GachaItemEffects.None;
+        public int EffectValue { get; set; }
+        public bool EffectApplied { get; set; }
+    }
+
+    public class GachaRanking
+    {
+        public int TotalAvailable { get; set; }
+        public List<GachaRankingEntry> Collectors { get; set; } = new();
+        public List<GachaRankingEntry> Hunters { get; set; } = new();
+        public List<GachaRankingEntry> Pullers { get; set; } = new();
+    }
+
+    public class GachaRankingEntry
+    {
+        public string Name { get; set; } = "";
+        /// <summary>Login real para linkear a la colección; null si es anónimo.</summary>
+        public string? Login { get; set; }
+        public int Value { get; set; }
+        /// <summary>Dato secundario: épicas en cazadores.</summary>
+        public int Secondary { get; set; }
     }
 
     public class GachaCollectionStats

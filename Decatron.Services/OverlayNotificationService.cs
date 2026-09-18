@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Decatron.Hubs;
 
 namespace Decatron.Services
@@ -372,6 +372,76 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error enviando GachaPull a overlay_{channel}");
+            }
+        }
+
+        /// <summary>
+        /// Manda un giro ya resuelto a los overlays de la Rueda de la Suerte.
+        ///
+        /// <para>El backend decide el gajo ganador y el overlay solo anima hasta ese
+        /// ángulo, nunca al revés: si el azar viviera en el navegador, cualquiera con
+        /// las DevTools abiertas elegiría su premio.</para>
+        ///
+        /// <para>Todos los overlays del canal reciben el mensaje; el <c>slug</c> del
+        /// payload le dice a cada uno si el giro era suyo, porque un streamer puede
+        /// tener varias ruedas en escena a la vez.</para>
+        /// </summary>
+        public async Task SendWheelSpinAsync(string channel, object spinResult)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"overlay_{channel}")
+                    .SendAsync("WheelSpin", spinResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error enviando WheelSpin a overlay_{channel}");
+            }
+        }
+
+        /// <summary>
+        /// Avisa al overlay que arrancó un Happy Hour, para que muestre el indicador
+        /// al instante en vez de esperar al resync periódico de 30s.
+        /// </summary>
+        public async Task SendHappyHourStartedAsync(string channel, double multiplier, DateTime? endsAtUtc)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"overlay_{channel}")
+                    .SendAsync("HappyHourStarted", new
+                    {
+                        multiplier,
+                        endsAt = endsAtUtc.HasValue
+                            ? DateTime.SpecifyKind(endsAtUtc.Value, DateTimeKind.Utc).ToString("o")
+                            : null
+                    });
+
+                _logger.LogInformation($"🔥 HappyHourStarted enviado a overlay_{channel} (x{multiplier})");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error enviando HappyHourStarted a overlay_{channel}");
+            }
+        }
+
+        /// <summary>
+        /// Avisa al overlay que terminó el Happy Hour, para que saque el indicador.
+        /// </summary>
+        public async Task SendHappyHourEndedAsync(string channel)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"overlay_{channel}")
+                    .SendAsync("HappyHourEnded", new { });
+
+                _logger.LogInformation($"🔥 HappyHourEnded enviado a overlay_{channel}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error enviando HappyHourEnded a overlay_{channel}");
             }
         }
 

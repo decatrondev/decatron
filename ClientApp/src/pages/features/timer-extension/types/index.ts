@@ -453,6 +453,13 @@ export interface WidgetItemConfig {
     fontFamily: string;
     fontWeight: string;
     textShadow: 'none' | 'normal' | 'strong' | 'glow';
+    /**
+     * Fondo del widget. Opcionales a proposito: las configuraciones guardadas antes de
+     * que existiera el fondo no los traen, y sin fondo es exactamente como se veian.
+     */
+    backgroundColor?: string;
+    borderRadius?: number;
+    padding?: number;
 }
 
 export interface StatsWidgetsConfig {
@@ -485,8 +492,44 @@ export interface HappyHourWidgetConfig {
     padding: number;
 }
 
+/**
+ * Widget "Tiempo acumulado": lo mismo que muestra el elemento Transcurrido
+ * (+153:08:53) pero escrito en palabras: "1 año, 4 meses, 2 semanas".
+ */
+export interface AccumulatedTimeWidgetConfig extends WidgetItemConfig {
+    /**
+     * Qué se cuenta. 'wallclock' = hace cuánto arrancó el subathon (lo que pregunta
+     * el chat), 'active' = cuánto corrió el timer sin las pausas, 'customDate' = desde
+     * una fecha escrita a mano.
+     */
+    source: 'wallclock' | 'active' | 'customDate';
+    /** Fecha manual, formato "2026-08-28T18:33". Se lee en la zona horaria del canal. */
+    customDate: string;
+    /** Qué unidades entran en la cuenta. El orden lo fija el código, no esta config. */
+    units: {
+        years: boolean;
+        months: boolean;
+        weeks: boolean;
+        days: boolean;
+        hours: boolean;
+        minutes: boolean;
+        seconds: boolean;
+    };
+    /** Saca de la frase las unidades que dan cero. */
+    hideZeroUnits: boolean;
+    /** Cuántas unidades entran en pantalla como máximo. 0 = todas las activas. */
+    maxUnits: number;
+    /** Texto del overlay. {tiempo} se reemplaza por la frase armada. */
+    template: string;
+    /** 'long' = "1 año, 4 meses" · 'short' = "1a 4mes" */
+    format: 'long' | 'short';
+    separator: string;
+    language: 'es' | 'en';
+}
+
 export interface WidgetsConfig {
     stats: StatsWidgetsConfig;
     uptime: UptimeWidgetConfig;
     happyHour: HappyHourWidgetConfig;
+    accumulatedTime: AccumulatedTimeWidgetConfig;
 }

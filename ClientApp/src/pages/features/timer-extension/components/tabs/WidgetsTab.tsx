@@ -1,9 +1,14 @@
-import { BarChart3, Clock, Flame, Eye, EyeOff } from 'lucide-react';
+import { BarChart3, Clock, Flame, Eye, EyeOff, CalendarClock } from 'lucide-react';
 import type { WidgetsConfig, WidgetItemConfig } from '../../types';
+import { ColorWithAlphaField } from '../common/ColorWithAlphaField';
+import { renderAccumulatedTime, TIME_UNIT_ORDER } from '../../utils';
+import type { TimeUnit } from '../../utils';
 
 interface WidgetsTabProps {
     widgetsConfig: WidgetsConfig;
     onWidgetsConfigChange: (updates: Partial<WidgetsConfig>) => void;
+    /** Zona horaria del canal: los meses y años se cuentan por calendario. */
+    timeZone?: string;
 }
 
 const FONT_OPTIONS = [
@@ -22,16 +27,19 @@ const inputClass = "w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border bo
 const labelClass = "block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase";
 const selectClass = "w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]";
 
-function WidgetEditor({ widget, onChange, label }: {
+function WidgetEditor({ widget, onChange, label, hideLabelField = false, hideEnableToggle = false }: {
     widget: WidgetItemConfig;
     onChange: (updates: Partial<WidgetItemConfig>) => void;
     label: string;
+    /** El tiempo acumulado no usa "Etiqueta": su texto sale de la plantilla. */
+    hideLabelField?: boolean;
+    hideEnableToggle?: boolean;
 }) {
     return (
         <div className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4 space-y-3 bg-white dark:bg-[#1B1C1D]">
             <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{label}</span>
-                <button
+                {!hideEnableToggle && <button
                     onClick={() => onChange({ enabled: !widget.enabled })}
                     className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                         widget.enabled
@@ -41,15 +49,15 @@ function WidgetEditor({ widget, onChange, label }: {
                 >
                     {widget.enabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                     {widget.enabled ? 'Activo' : 'Inactivo'}
-                </button>
+                </button>}
             </div>
 
             {widget.enabled && (
                 <div className="grid grid-cols-2 gap-3">
-                    <div>
+                    {!hideLabelField && <div>
                         <label className={labelClass}>Etiqueta</label>
                         <input type="text" value={widget.label} onChange={e => onChange({ label: e.target.value })} className={inputClass} />
-                    </div>
+                    </div>}
                     <div>
                         <label className={labelClass}>Color</label>
                         <div className="flex gap-2">
@@ -91,14 +99,55 @@ function WidgetEditor({ widget, onChange, label }: {
                             {TEXT_SHADOWS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                         </select>
                     </div>
+                    <div className="col-span-2">
+                        <ColorWithAlphaField
+                            label="Color de fondo"
+                            value={widget.backgroundColor ?? 'rgba(0, 0, 0, 0)'}
+                            onChange={v => onChange({ backgroundColor: v })}
+                            hint="Dejalo en Sin fondo si solo querés el texto sobre tu stream."
+                        />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Redondeo</label>
+                        <input type="number" value={widget.borderRadius ?? 8} onChange={e => onChange({ borderRadius: Number(e.target.value) })} min={0} max={50} className={inputClass} />
+                    </div>
+                    <div>
+                        <label className={labelClass}>Relleno</label>
+                        <input type="number" value={widget.padding ?? 0} onChange={e => onChange({ padding: Number(e.target.value) })} min={0} max={40} className={inputClass} />
+                    </div>
                 </div>
             )}
         </div>
     );
 }
 
-export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange }: WidgetsTabProps) {
-    const { stats, uptime, happyHour } = widgetsConfig;
+const UNIT_LABELS: Record<TimeUnit, string> = {
+    years: 'Años',
+    months: 'Meses',
+    weeks: 'Semanas',
+    days: 'Días',
+    hours: 'Horas',
+    minutes: 'Minutos',
+    seconds: 'Segundos',
+};
+
+export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: WidgetsTabProps) {
+    const { stats, uptime, happyHour, accumulatedTime } = widgetsConfig;
+
+    const updateAccumulated = (updates: Partial<typeof accumulatedTime>) =>
+        onWidgetsConfigChange({ accumulatedTime: { ...accumulatedTime, ...updates } });
+
+    // Ejemplo en vivo, con los mismos números de un subathon real (20 días de reloj de
+    // pared contra 5 de timer activo), para que se vea la diferencia entre las fuentes
+    // sin esperar a que el subathon crezca.
+    const accumulatedSample = renderAccumulatedTime(
+        { ...accumulatedTime, timeZone },
+        {
+            wallclockSeconds: 20 * 86400 + 3600,
+            activeSeconds: 5 * 86400 + 9 * 3600 + 53 * 60,
+            customSeconds: (365 + 128) * 86400 + 5 * 3600
+        }
+    );
 
     const updateStatsWidget = (key: keyof typeof stats.widgets, updates: Partial<WidgetItemConfig>) => {
         onWidgetsConfigChange({
@@ -196,6 +245,14 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange }: WidgetsTabP
                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Muestra un indicador visual cuando Happy Hour esta activo (ej: HAPPY HOUR x2 | Termina en 39:57).</p>
 
                 {happyHour.enabled && (
+                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3">
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                            <strong>Ojo:</strong> en tu overlay real este cartel aparece <strong>solo mientras haya un Happy Hour corriendo</strong>. Si lo configurás y no lo ves, no está roto: no hay ninguno activo. Para verlo y acomodarlo ahora mismo, usá el botón <strong>🔥 Simular Happy Hour</strong> de la vista previa.
+                        </p>
+                    </div>
+                )}
+
+                {happyHour.enabled && (
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
@@ -209,9 +266,13 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange }: WidgetsTabP
                                     <input type="text" value={happyHour.textColor} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, textColor: e.target.value } })} className={inputClass + " font-mono text-xs"} />
                                 </div>
                             </div>
-                            <div>
-                                <label className={labelClass}>Color fondo</label>
-                                <input type="text" value={happyHour.backgroundColor} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, backgroundColor: e.target.value } })} placeholder="rgba(255,100,0,0.8)" className={inputClass + " font-mono text-xs"} />
+                            <div className="col-span-2">
+                                <ColorWithAlphaField
+                                    label="Color de fondo"
+                                    value={happyHour.backgroundColor}
+                                    onChange={v => onWidgetsConfigChange({ happyHour: { ...happyHour, backgroundColor: v } })}
+                                    hint="Movés la barra a la izquierda del todo (o tocás Sin fondo) para dejarlo transparente."
+                                />
                             </div>
                             <div>
                                 <label className={labelClass}>Tamaño fuente</label>
@@ -245,6 +306,174 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange }: WidgetsTabP
                                 <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">Mostrar countdown</span>
                             </label>
                         </div>
+                    </div>
+                )}
+            </div>
+
+            <hr className="border-[#e2e8f0] dark:border-[#374151]" />
+
+            {/* Tiempo acumulado */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <CalendarClock className="w-5 h-5 text-purple-500" />
+                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Tiempo acumulado</h3>
+                    </div>
+                    <button
+                        onClick={() => updateAccumulated({ enabled: !accumulatedTime.enabled })}
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                            accumulatedTime.enabled
+                                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                        }`}
+                    >
+                        {accumulatedTime.enabled ? 'Activado' : 'Desactivado'}
+                    </button>
+                </div>
+                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    Cuánto lleva corriendo tu timer, escrito en palabras (ej: 1 año, 4 meses, 2 semanas) en vez de un contador gigante tipo 11928:45:03. No cuenta el tiempo que el timer estuvo pausado, e incluye el tiempo base acumulado si migraste desde otra herramienta.
+                </p>
+
+                {accumulatedTime.enabled && (
+                    <div className="space-y-4">
+                        {/* Ejemplo en vivo */}
+                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
+                            <p className="text-[10px] font-bold text-purple-500 uppercase mb-1">Así se vería ahora mismo</p>
+                            <p className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] break-words">
+                                {accumulatedSample || '—'}
+                            </p>
+                            <p className="text-[10px] text-[#94a3b8] mt-1">
+                                Ejemplo con los números de un subathon real: 20 días desde que arrancó, de los cuales el timer estuvo corriendo 5. En el overlay van los tuyos.
+                            </p>
+                        </div>
+
+                        {/* Qué se cuenta */}
+                        <div>
+                            <label className={labelClass}>Qué contar</label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                {[
+                                    { value: 'wallclock' as const, titulo: 'Desde que arrancó', detalle: 'Cuántos días lleva el subathon, corriendo de corrido aunque el timer esté pausado. Es lo que pregunta el chat.' },
+                                    { value: 'active' as const, titulo: 'Timer en marcha', detalle: 'Solo el tiempo que el timer estuvo corriendo, sin contar las pausas. El mismo número que el "Transcurrido".' },
+                                    { value: 'customDate' as const, titulo: 'Desde una fecha', detalle: 'Vos elegís el día de arranque. Sirve si reseteaste el timer sin querer o venís de otra herramienta.' },
+                                ].map(op => (
+                                    <button
+                                        key={op.value}
+                                        onClick={() => updateAccumulated({ source: op.value })}
+                                        className={`text-left p-3 rounded-xl border transition-all ${
+                                            accumulatedTime.source === op.value
+                                                ? 'bg-purple-500/20 border-purple-500/40'
+                                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 border-[#e2e8f0] dark:border-[#374151] hover:border-purple-500/30'
+                                        }`}
+                                    >
+                                        <p className={`text-xs font-bold mb-1 ${accumulatedTime.source === op.value ? 'text-purple-500' : 'text-[#1e293b] dark:text-[#f8fafc]'}`}>{op.titulo}</p>
+                                        <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] leading-snug">{op.detalle}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {accumulatedTime.source === 'customDate' && (
+                            <div>
+                                <label className={labelClass}>Fecha y hora de arranque</label>
+                                <input
+                                    type="datetime-local"
+                                    value={accumulatedTime.customDate || ''}
+                                    onChange={e => updateAccumulated({ customDate: e.target.value })}
+                                    className={inputClass}
+                                />
+                                <p className="text-[10px] text-[#94a3b8] mt-1">
+                                    Se lee en la zona horaria de tu canal{timeZone ? ` (${timeZone})` : ''}, no en la de quien mire el overlay. Si la dejás vacía, se usa el tiempo del timer en marcha.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Unidades */}
+                        <div>
+                            <label className={labelClass}>Unidades que querés mostrar</label>
+                            <div className="flex flex-wrap gap-2">
+                                {TIME_UNIT_ORDER.map(unit => (
+                                    <button
+                                        key={unit}
+                                        onClick={() => updateAccumulated({ units: { ...accumulatedTime.units, [unit]: !accumulatedTime.units[unit] } })}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                                            accumulatedTime.units[unit]
+                                                ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border-[#e2e8f0] dark:border-[#374151]'
+                                        }`}
+                                    >
+                                        {UNIT_LABELS[unit]}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-[10px] text-[#94a3b8] mt-1">
+                                Se llenan de mayor a menor: si apagás Semanas, esos días pasan a contarse como días sueltos (17 días en vez de 2 semanas y 3 días).
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className={labelClass}>Texto</label>
+                                <input
+                                    type="text"
+                                    value={accumulatedTime.template}
+                                    onChange={e => updateAccumulated({ template: e.target.value })}
+                                    placeholder="{tiempo}"
+                                    className={inputClass}
+                                />
+                                <p className="text-[10px] text-[#94a3b8] mt-1">
+                                    Escribí lo que quieras y poné <span className="font-mono">{'{tiempo}'}</span> donde va la cuenta.
+                                    También podés usar <span className="font-mono">{'{calendario}'}</span> (desde que arrancó) y <span className="font-mono">{'{activo}'}</span> (timer en marcha) para mostrar las dos juntas.
+                                </p>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Máximo de unidades</label>
+                                <select
+                                    value={accumulatedTime.maxUnits}
+                                    onChange={e => updateAccumulated({ maxUnits: Number(e.target.value) })}
+                                    className={selectClass}
+                                >
+                                    <option value={1}>Solo la más grande</option>
+                                    <option value={2}>2</option>
+                                    <option value={3}>3</option>
+                                    <option value={4}>4</option>
+                                    <option value={0}>Todas</option>
+                                </select>
+                                <p className="text-[10px] text-[#94a3b8] mt-1">Entran siempre las más grandes del momento.</p>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Formato</label>
+                                <select value={accumulatedTime.format} onChange={e => updateAccumulated({ format: e.target.value as 'long' | 'short' })} className={selectClass}>
+                                    <option value="long">Largo (1 año, 4 meses)</option>
+                                    <option value="short">Corto (1a 4mes)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Idioma</label>
+                                <select value={accumulatedTime.language} onChange={e => updateAccumulated({ language: e.target.value as 'es' | 'en' })} className={selectClass}>
+                                    <option value="es">Español</option>
+                                    <option value="en">Inglés</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className={labelClass}>Separador</label>
+                                <input type="text" value={accumulatedTime.separator} onChange={e => updateAccumulated({ separator: e.target.value })} placeholder=", " className={inputClass + " font-mono text-xs"} />
+                            </div>
+                            <div className="flex items-end">
+                                <label className="flex items-center gap-2 cursor-pointer py-2">
+                                    <input type="checkbox" checked={accumulatedTime.hideZeroUnits} onChange={e => updateAccumulated({ hideZeroUnits: e.target.checked })} className="w-4 h-4 rounded border-[#e2e8f0] dark:border-[#374151] text-[#2563eb] focus:ring-[#2563eb]" />
+                                    <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">Ocultar unidades en cero</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Apariencia, igual que los demas widgets */}
+                        <WidgetEditor
+                            widget={accumulatedTime}
+                            onChange={u => updateAccumulated(u)}
+                            label="Apariencia y posición"
+                            hideLabelField
+                            hideEnableToggle
+                        />
                     </div>
                 )}
             </div>

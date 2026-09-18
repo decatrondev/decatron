@@ -252,7 +252,12 @@ export const useTimerConfig = () => {
                 widgets: { ...DEFAULT_WIDGETS_CONFIG.stats.widgets, ...config.widgetsConfig.stats?.widgets }
             },
             uptime: { ...DEFAULT_WIDGETS_CONFIG.uptime, ...config.widgetsConfig.uptime },
-            happyHour: { ...DEFAULT_WIDGETS_CONFIG.happyHour, ...config.widgetsConfig.happyHour }
+            happyHour: { ...DEFAULT_WIDGETS_CONFIG.happyHour, ...config.widgetsConfig.happyHour },
+            accumulatedTime: {
+                ...DEFAULT_WIDGETS_CONFIG.accumulatedTime,
+                ...config.widgetsConfig.accumulatedTime,
+                units: { ...DEFAULT_WIDGETS_CONFIG.accumulatedTime.units, ...config.widgetsConfig.accumulatedTime?.units }
+            }
         });
     };
 

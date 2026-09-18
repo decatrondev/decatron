@@ -217,17 +217,8 @@ namespace Decatron.Services
     /// <summary>
     /// Servicio para procesar eventos de Twitch y añadir tiempo al timer
     /// </summary>
-    public class ManualHappyHour
-    {
-        public double Multiplier { get; set; }
-        public DateTime ExpiresAt { get; set; }
-    }
-
     public class TimerEventService
     {
-        // Static storage for manual Happy Hour activations (channel -> ManualHappyHour)
-        public static readonly ConcurrentDictionary<string, ManualHappyHour> ManualHappyHours = new();
-
         private readonly DecatronDbContext _dbContext;
         private readonly OverlayNotificationService _overlayNotificationService;
         private readonly ILogger<TimerEventService> _logger;
@@ -254,6 +245,29 @@ namespace Decatron.Services
         // ========================================================================
         // HELPERS DE CÁLCULO (NUEVA LÓGICA UNIVERSAL)
         // ========================================================================
+
+        /// <summary>
+        /// Devuelve el Happy Hour manual vigente del canal, o null si no hay o ya venció.
+        /// Si venció, borra la fila de paso.
+        ///
+        /// OJO con las fechas: expires_at se guarda con la convención del proyecto
+        /// (hora de Lima, ver TimerDateTimeHelper), así que la comparación se hace en
+        /// memoria tras normalizar a UTC, nunca en SQL.
+        /// </summary>
+        private async Task<TimerManualHappyHour?> GetVigentManualHappyHourAsync(string channelName)
+        {
+            var manual = await _dbContext.TimerManualHappyHours
+                .FirstOrDefaultAsync(m => m.ChannelName == channelName);
+
+            if (manual == null) return null;
+
+            if (TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt) > DateTime.UtcNow)
+                return manual;
+
+            _dbContext.TimerManualHappyHours.Remove(manual);
+            await _dbContext.SaveChangesAsync();
+            return null;
+        }
 
         /// <summary>
         /// Calcula el tiempo a añadir basado en la configuración y las reglas (Tiers)
@@ -388,7 +402,8 @@ namespace Decatron.Services
                     secondsToAdd,
                     "bits",
                     userName,
-                    new { bits = bitsAmount } 
+                    new { bits = bitsAmount },
+                    $"{bitsAmount} bits"
                 );
 
                 if (!result) return false;
@@ -514,7 +529,8 @@ namespace Decatron.Services
                     secondsToAdd,
                     eventType,
                     userName,
-                    new { tier = tier, tierName = tierName, months = months, isPrime = isPrime }
+                    new { tier = tier, tierName = tierName, months = months, isPrime = isPrime },
+                    months > 1 ? $"Sub {tierName} · {months} meses" : $"Sub {tierName}"
                 );
                 if (!result) return false;
 
@@ -616,7 +632,8 @@ namespace Decatron.Services
                     secondsToAdd,
                     "giftsub",
                     userName,
-                    new { total = total }
+                    new { total = total },
+                    $"{total} subs de regalo"
                 );
                 if (!result) return false;
 
@@ -665,6 +682,11 @@ namespace Decatron.Services
 
                 var eventsConfig = ParseEventsConfig(config.EventsConfig);
                 if (eventsConfig == null) return false;
+                if (eventsConfig.raid == null || !eventsConfig.raid.enabled)
+                {
+                    _logger.LogInformation($"[TIMER RAID] Evento de raid desactivado en {channelLower}, no se añade tiempo");
+                    return false;
+                }
 
                 // --- CÁLCULO DE TIEMPO ---
                 // Raid tiene lógica especial: Base + (Viewer * TimePerViewer)
@@ -698,6 +720,8 @@ namespace Decatron.Services
                     secondsToAdd = eventsConfig.raid.time + (viewers * eventsConfig.raid.timePerParticipant);
                     _logger.LogInformation($"[TIMER RAID] Using Standard Raid Calc: {eventsConfig.raid.time} + ({viewers} * {eventsConfig.raid.timePerParticipant}) = {secondsToAdd}");
                 }
+
+                if (secondsToAdd <= 0) return false;
 
                 var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
                 if (happyHourMultiplier > 1.0)
@@ -743,7 +767,8 @@ namespace Decatron.Services
                     secondsToAdd,
                     "raid",
                     raiderName,
-                    new { viewers = viewers }
+                    new { viewers = viewers },
+                    $"Raid de {viewers} viewers"
                 );
                 if (!result) return false;
 
@@ -840,7 +865,8 @@ namespace Decatron.Services
                     secondsToAdd,
                     "hypetrain",
                     channelName,
-                    new { level = level }
+                    new { level = level },
+                    $"Hype Train nivel {level}"
                 );
                 if (!result) return false;
 
@@ -970,7 +996,8 @@ namespace Decatron.Services
                     secondsToAdd,
                     "tips",
                     donorName,
-                    new { amount = amount, currency = currency, message = message }
+                    new { amount = amount, currency = currency, message = message },
+                    $"Tip {amount} {currency}"
                 );
 
                 if (!result) return false;
@@ -1156,7 +1183,8 @@ namespace Decatron.Services
             int secondsToAdd,
             string eventType = "unknown",
             string username = "Unknown",
-            object? eventData = null)
+            object? eventData = null,
+            string? details = null)
         {
             var channelName = initialState.ChannelName;
 
@@ -1241,6 +1269,7 @@ namespace Decatron.Services
                     EventType = eventType,
                     Username = username,
                     TimeAdded = secondsToAdd,
+                    Details = details,
                     EventData = JsonSerializer.Serialize(eventData ?? new { }),
                     TimerSessionId = state.CurrentSessionId, // Vincular a la sesión actual
                     OccurredAt = TimerDateTimeHelper.NowForDb(),
@@ -1454,18 +1483,11 @@ namespace Decatron.Services
             try
             {
                 // Check manual Happy Hour first
-                if (ManualHappyHours.TryGetValue(channelName, out var manual))
+                var manual = await GetVigentManualHappyHourAsync(channelName);
+                if (manual != null)
                 {
-                    if (DateTime.UtcNow < manual.ExpiresAt)
-                    {
-                        _logger.LogInformation($"[HAPPY HOUR] Manual Happy Hour activo para {channelName} con multiplicador {manual.Multiplier}x (expira {manual.ExpiresAt:HH:mm:ss} UTC)");
-                        return manual.Multiplier;
-                    }
-                    else
-                    {
-                        // Expired, remove it
-                        ManualHappyHours.TryRemove(channelName, out _);
-                    }
+                    _logger.LogInformation($"[HAPPY HOUR] Manual Happy Hour activo para {channelName} con multiplicador {manual.Multiplier}x (expira {TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt):HH:mm:ss} UTC)");
+                    return manual.Multiplier;
                 }
 
                 // Obtener el UserId a partir del channelName
@@ -1566,13 +1588,9 @@ namespace Decatron.Services
             try
             {
                 // Check manual Happy Hour first
-                if (ManualHappyHours.TryGetValue(channelName, out var manual))
-                {
-                    if (DateTime.UtcNow < manual.ExpiresAt)
-                        return (true, manual.Multiplier, manual.ExpiresAt);
-                    else
-                        ManualHappyHours.TryRemove(channelName, out _);
-                }
+                var manual = await GetVigentManualHappyHourAsync(channelName);
+                if (manual != null)
+                    return (true, manual.Multiplier, TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt));
 
                 var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login.ToLower() == channelName);
                 if (user == null) return (false, 1.0, null);
@@ -1616,7 +1634,11 @@ namespace Decatron.Services
                         else
                             endsAtLocal = todayLocal.AddDays(1).Add(endTime);
 
-                        var endsAtUtc = tz != null ? TimeZoneInfo.ConvertTimeToUtc(endsAtLocal, tz) : endsAtLocal;
+                        // Sin timezone configurada, 'now' viene de NowForDb() (hora de Lima):
+                        // hay que normalizarla igual, si no el countdown del overlay sale corrido.
+                        var endsAtUtc = tz != null
+                            ? TimeZoneInfo.ConvertTimeToUtc(endsAtLocal, tz)
+                            : TimerDateTimeHelper.NormalizeToUtc(endsAtLocal);
                         return (true, (double)hh.Multiplier, endsAtUtc);
                     }
                 }

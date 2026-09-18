@@ -8,11 +8,19 @@ import { useState, useEffect, useMemo } from 'react';
 import { Calendar, Clock, RefreshCw, RotateCcw } from 'lucide-react';
 import api from '../../../../../services/api';
 import type { HistoryConfig, EventLogEntry } from '../../types';
-import { formatTimeProfessional } from '../../utils';
+import {
+    formatTimeProfessional,
+    formatDateTimeIn,
+    formatTimeOnlyIn,
+    formatShortDateTimeIn,
+    timeZoneLabel
+} from '../../utils';
 
 interface HistoryTabProps {
     historyConfig: HistoryConfig;
     onHistoryConfigChange: (updates: Partial<HistoryConfig>) => void;
+    /** Zona horaria configurada por el streamer (IANA, ej: "America/Lima"). */
+    timeZone?: string;
 }
 
 interface TimerSession {
@@ -43,8 +51,15 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) =>
 
 export const HistoryTab: React.FC<HistoryTabProps> = ({
     historyConfig,
-    onHistoryConfigChange
+    onHistoryConfigChange,
+    timeZone
 }) => {
+    // Las fechas se muestran en la zona horaria que configuró el streamer.
+    const zoneLabel = timeZoneLabel(timeZone);
+    const formatDateTime = (v: string | null | undefined) => formatDateTimeIn(v, timeZone);
+    const formatTimeOnly = (v: string | null | undefined) => formatTimeOnlyIn(v, timeZone);
+    const formatShortDateTime = (v: string | null | undefined) => formatShortDateTimeIn(v, timeZone);
+
     // Estado para sesiones y logs
     const [sessions, setSessions] = useState<TimerSession[]>([]);
     const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
@@ -176,6 +191,10 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             raids: 0,
             hypeTrain: 0,
             commands: 0,
+            tips: 0,
+            gacha: 0,
+            wheel: 0,
+            others: 0,
             subs: {
                 total: 0,
                 prime: 0,
@@ -199,6 +218,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             else if (type.includes('raid')) result.raids += time;
             else if (type.includes('hype')) result.hypeTrain += time;
             else if (type.includes('command')) result.commands += time;
+            else if (type.includes('tip') || type.includes('donation')) result.tips += time;
+            else if (type.includes('gacha')) result.gacha += time;
+            else if (type.includes('wheel') || type.includes('ruleta')) result.wheel += time;
             else if (type.includes('sub') || type.includes('gift')) {
                 result.subs.total += time;
                 
@@ -208,6 +230,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                 else if (details.includes('Tier 2')) result.subs.tier2 += time;
                 else result.subs.tier1 += time; // Default a Tier 1
             }
+            else result.others += time;
         });
 
         return result;
@@ -233,6 +256,10 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
         if (type === 'follow') return '❤️ Follow';
         if (type === 'hypetrain' || type === 'hype') return '🔥 Hype Train';
         if (type === 'command') return '💬 Comando';
+        if (type === 'tips' || type === 'tip' || type === 'donation') return '💰 Tip';
+        if (type === 'gacha') return '🎰 Gachapón';
+        if (type === 'wheel') return '🎡 Ruleta';
+        if (type === 'migration_offset') return '📦 Tiempo base';
 
         return type.charAt(0).toUpperCase() + type.slice(1);
     };
@@ -285,8 +312,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                     className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                                 >
                                     {sessions.map(session => {
-                                        const d = new Date(session.startedAt);
-                                        const dateStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                                        const dateStr = formatShortDateTime(session.startedAt);
                                         const statusIcon = session.isActive ? '🔴 ACTIVA' : '📅';
                                         const initial = session.initialDuration > 0 ? ` | Ini: ${formatTimeProfessional(session.initialDuration)}` : '';
                                         const added = session.totalAddedTime > 0 ? ` | +${formatTimeProfessional(session.totalAddedTime)}` : '';
@@ -337,9 +363,9 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                             {hasBackup ? 'Respaldo guardado disponible' : 'Restaurar sesión manualmente'}
                                         </h3>
                                         <p className={`text-xs mb-3 ${hasBackup ? 'text-blue-600 dark:text-blue-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
-                                            Sesión iniciada el <strong>{new Date(selectedSession.startedAt).toLocaleString()}</strong>
+                                            Sesión iniciada el <strong>{formatDateTime(selectedSession.startedAt)}</strong>
                                             {hasBackup && selectedSession.backupCreatedAt && (
-                                                <> · Backup del <strong>{new Date(selectedSession.backupCreatedAt).toLocaleString()}</strong></>
+                                                <> · Backup del <strong>{formatDateTime(selectedSession.backupCreatedAt)}</strong></>
                                             )}
                                         </p>
 
@@ -468,7 +494,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
                                 <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">❤️ Follows</p>
                                 <p className="text-sm md:text-base font-black text-[#1e293b] dark:text-[#f8fafc] break-words">
@@ -481,6 +507,32 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                     {formatTimeProfessional(stats.commands)}
                                 </p>
                             </div>
+                            <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">💰 Tips</p>
+                                <p className="text-sm md:text-base font-black text-[#1e293b] dark:text-[#f8fafc] break-words">
+                                    {formatTimeProfessional(stats.tips)}
+                                </p>
+                            </div>
+                            <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">🎰 Gachapón</p>
+                                <p className="text-sm md:text-base font-black text-[#1e293b] dark:text-[#f8fafc] break-words">
+                                    {formatTimeProfessional(stats.gacha)}
+                                </p>
+                            </div>
+                            <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">🎡 Ruleta</p>
+                                <p className="text-sm md:text-base font-black text-[#1e293b] dark:text-[#f8fafc] break-words">
+                                    {formatTimeProfessional(stats.wheel)}
+                                </p>
+                            </div>
+                            {stats.others !== 0 && (
+                                <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">📦 Otros</p>
+                                    <p className="text-sm md:text-base font-black text-[#1e293b] dark:text-[#f8fafc] break-words">
+                                        {formatTimeProfessional(stats.others)}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -489,7 +541,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center justify-between">
                             <span>📋 Logs de la Sesión</span>
                             <span className="text-xs font-normal text-[#64748b] dark:text-[#94a3b8]">
-                                Mostrando {sessionLogs.length} eventos
+                                Mostrando {sessionLogs.length} eventos · horas en {zoneLabel}
                             </span>
                         </h3>
 
@@ -533,7 +585,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                                 </div>
                                             </div>
                                             <span className="text-[10px] text-[#94a3b8] dark:text-[#64748b] whitespace-nowrap mt-1 font-mono">
-                                                {new Date(log.timestamp).toLocaleTimeString()}
+                                                {formatTimeOnly(log.timestamp)}
                                             </span>
                                         </div>
                                     </div>

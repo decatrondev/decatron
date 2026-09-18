@@ -255,7 +255,7 @@ namespace Decatron.Services
                                     Details = $"Tip (Independent Alert) {amount} {currency}",
                                     TimerSessionId = timerState.CurrentSessionId,
                                     CreatedAt = DateTime.UtcNow,
-                                    OccurredAt = DateTime.UtcNow
+                                    OccurredAt = TimerDateTimeHelper.NowForDb()
                                 });
                             }
 

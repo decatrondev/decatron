@@ -142,20 +142,30 @@ namespace Decatron.Controllers
 
                 // Obtener logs reales (query by UserId with ChannelName fallback)
                 var channelOwnerIdStr = channelOwnerId.ToString();
-                var logs = await _dbContext.TimerEventLogs
+                var logRows = await _dbContext.TimerEventLogs
                     .Where(l => l.UserId == channelOwnerIdStr || l.ChannelName == username)
                     .OrderByDescending(l => l.OccurredAt)
                     .Take(100)
                     .Select(l => new
                     {
-                        id = l.Id.ToString(),
-                        timestamp = l.OccurredAt,
-                        eventType = l.EventType,
-                        username = l.Username,
-                        timeAdded = l.TimeAdded,
-                        details = l.Details ?? ""
+                        l.Id,
+                        l.OccurredAt,
+                        l.EventType,
+                        l.Username,
+                        l.TimeAdded,
+                        l.Details
                     })
                     .ToListAsync();
+
+                var logs = logRows.Select(l => new
+                {
+                    id = l.Id.ToString(),
+                    timestamp = ToUtcIso(l.OccurredAt),
+                    eventType = l.EventType,
+                    username = l.Username,
+                    timeAdded = l.TimeAdded,
+                    details = l.Details ?? ""
+                }).ToList();
 
                 historyConfigDict["logs"] = logs;
 
@@ -916,6 +926,9 @@ namespace Decatron.Controllers
                 {
                     defaultDuration = config.DefaultDuration,
                     autoStart = config.AutoStart,
+                    // El overlay la necesita para el widget de tiempo acumulado: los meses y
+                    // los años se cuentan por calendario y eso depende de la zona del canal.
+                    timeZone = config.TimeZone,
                     canvasWidth = config.CanvasWidth,
                     canvasHeight = config.CanvasHeight,
                     displayConfig = JsonSerializer.Deserialize<object>(config.DisplayConfig),
@@ -948,6 +961,18 @@ namespace Decatron.Controllers
                 }
                 else
                 {
+                    // Cuándo arrancó la sesión (el subathon), que NO es lo mismo que
+                    // state.StartedAt: ese se reinicia cuando el timer resucita con una
+                    // vida extra, y el widget de tiempo acumulado se iría a cero en vivo.
+                    DateTime? sessionStartedAt = null;
+                    if (state.CurrentSessionId.HasValue)
+                    {
+                        var currentSession = await _dbContext.TimerSessions
+                            .FirstOrDefaultAsync(ts => ts.Id == state.CurrentSessionId.Value);
+                        if (currentSession != null)
+                            sessionStartedAt = TimerDateTimeHelper.NormalizeToUtc(currentSession.StartedAt);
+                    }
+
                     var elapsedSeconds = 0;
                     if (state.Status == "running" && state.StartedAt.HasValue)
                     {
@@ -976,6 +1001,7 @@ namespace Decatron.Controllers
                         remainingSeconds = remainingSeconds,
                         isPaused = state.Status == "paused" || state.Status == "auto_paused" || state.Status == "stream_paused",
                         startTime = state.StartedAt.HasValue ? new DateTimeOffset(TimerDateTimeHelper.NormalizeToUtc(state.StartedAt.Value), TimeSpan.Zero).ToUnixTimeMilliseconds() : (long?)null,
+                        sessionStartedAt = sessionStartedAt?.ToString("o"),
                         status = state.Status
                     };
                 }
@@ -1145,6 +1171,31 @@ namespace Decatron.Controllers
         }
 
         // ========================================================================
+        // HELPERS DE FECHA PARA LA API
+        // ========================================================================
+
+        /// <summary>
+        /// Serializa una fecha guardada con la convención "hora de Lima" (TimerDateTimeHelper.NowForDb)
+        /// como ISO-8601 en UTC con zona explícita, para que el cliente la pueda mostrar
+        /// en la zona horaria que configuró el streamer.
+        /// </summary>
+        private static string? ToUtcIso(DateTime? dt)
+        {
+            if (!dt.HasValue) return null;
+            return TimerDateTimeHelper.NormalizeToUtc(dt.Value).ToString("o");
+        }
+
+        /// <summary>
+        /// Serializa una fecha guardada directamente como DateTime.UtcNow (sin pasar por NowForDb),
+        /// que Npgsql devuelve con Kind=Unspecified pero cuyo valor ya es UTC.
+        /// </summary>
+        private static string? ToUtcIsoFromRawUtc(DateTime? dt)
+        {
+            if (!dt.HasValue) return null;
+            return DateTime.SpecifyKind(dt.Value, DateTimeKind.Utc).ToString("o");
+        }
+
+        // ========================================================================
         // HISTORIAL / SESIONES ENDPOINTS
         // ========================================================================
 
@@ -1164,15 +1215,15 @@ namespace Decatron.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var sessionsList = await _dbContext.TimerSessions
+                var sessionRows = await _dbContext.TimerSessions
                     .Where(s => s.UserId == channelOwnerId || s.ChannelName == username)
                     .OrderByDescending(s => s.StartedAt)
                     .Take(20)
                     .Select(s => new
                     {
                         id = s.Id,
-                        startedAt = s.StartedAt,
-                        endedAt = s.EndedAt,
+                        startedAtRaw = s.StartedAt,
+                        endedAtRaw = s.EndedAt,
                         initialDuration = s.InitialDuration,
                         totalAddedTime = s.TotalAddedTime,
                         isActive = !s.EndedAt.HasValue,
@@ -1182,7 +1233,7 @@ namespace Decatron.Controllers
                             .OrderByDescending(b => b.CreatedAt)
                             .Select(b => (int?)b.RemainingSeconds)
                             .FirstOrDefault(),
-                        backupCreatedAt = _dbContext.TimerSessionBackups
+                        backupCreatedAtRaw = _dbContext.TimerSessionBackups
                             .Where(b => b.TimerSessionId == s.Id)
                             .OrderByDescending(b => b.CreatedAt)
                             .Select(b => (DateTime?)b.CreatedAt)
@@ -1194,6 +1245,20 @@ namespace Decatron.Controllers
                             .FirstOrDefault()
                     })
                     .ToListAsync();
+
+                var sessionsList = sessionRows.Select(s => new
+                {
+                    s.id,
+                    startedAt = ToUtcIso(s.startedAtRaw),
+                    endedAt = ToUtcIso(s.endedAtRaw),
+                    s.initialDuration,
+                    s.totalAddedTime,
+                    s.isActive,
+                    s.hasBackup,
+                    s.backupRemainingSeconds,
+                    backupCreatedAt = ToUtcIsoFromRawUtc(s.backupCreatedAtRaw),
+                    s.backupReason
+                }).ToList();
 
                 _logger.LogInformation($"[HISTORY DEBUG] Encontradas {sessionsList.Count} sesiones para {username}");
 
@@ -1225,20 +1290,30 @@ namespace Decatron.Controllers
                     return NotFound(new { success = false, message = "Sesión no encontrada" });
                 }
 
-                var logs = await _dbContext.TimerEventLogs
+                var logRows = await _dbContext.TimerEventLogs
                     .Where(l => l.TimerSessionId == id)
                     .OrderByDescending(l => l.OccurredAt)
                     .Take(limit)
                     .Select(l => new
                     {
-                        id = l.Id.ToString(),
-                        timestamp = l.OccurredAt,
-                        eventType = l.EventType,
-                        username = l.Username,
-                        timeAdded = l.TimeAdded,
-                        details = l.Details ?? ""
+                        l.Id,
+                        l.OccurredAt,
+                        l.EventType,
+                        l.Username,
+                        l.TimeAdded,
+                        l.Details
                     })
                     .ToListAsync();
+
+                var logs = logRows.Select(l => new
+                {
+                    id = l.Id.ToString(),
+                    timestamp = ToUtcIso(l.OccurredAt),
+                    eventType = l.EventType,
+                    username = l.Username,
+                    timeAdded = l.TimeAdded,
+                    details = l.Details ?? ""
+                }).ToList();
 
                 _logger.LogInformation($"[HISTORY DEBUG] Encontrados {logs.Count} logs para Sesión {id}");
 
@@ -1702,14 +1777,30 @@ namespace Decatron.Controllers
                 if (request.Multiplier < 1 || request.Multiplier > 10) return BadRequest(new { success = false, message = "Multiplicador inválido (1-10)" });
                 if (request.DurationMinutes < 1 || request.DurationMinutes > 1440) return BadRequest(new { success = false, message = "Duración inválida (1-1440 minutos)" });
 
-                var manual = new ManualHappyHour
-                {
-                    Multiplier = (double)request.Multiplier,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(request.DurationMinutes)
-                };
-                TimerEventService.ManualHappyHours[username] = manual;
+                // Una fila por canal: si ya había uno activo, se pisa.
+                var manual = await _dbContext.TimerManualHappyHours
+                    .FirstOrDefaultAsync(m => m.ChannelName == username);
 
-                return Ok(new { success = true, message = $"Happy Hour manual activado: {request.Multiplier}x por {request.DurationMinutes} minutos", expiresAt = manual.ExpiresAt });
+                if (manual == null)
+                {
+                    manual = new TimerManualHappyHour { ChannelName = username, UserId = userId };
+                    _dbContext.TimerManualHappyHours.Add(manual);
+                }
+
+                manual.UserId = userId;
+                manual.Multiplier = (double)request.Multiplier;
+                manual.ExpiresAt = TimerDateTimeHelper.NowForDb().AddMinutes(request.DurationMinutes);
+                manual.CreatedAt = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync();
+
+                var expiresAtUtc = TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt);
+
+                // El overlay ya escucha este evento: sin esto el indicador tardaba hasta
+                // 30s en aparecer, que es lo que hacía parecer que no funcionaba.
+                await _overlayNotificationService.SendHappyHourStartedAsync(username, manual.Multiplier, expiresAtUtc);
+
+                return Ok(new { success = true, message = $"Happy Hour manual activado: {request.Multiplier}x por {request.DurationMinutes} minutos", expiresAt = expiresAtUtc.ToString("o") });
             }
             catch (Exception ex) { return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." }); }
         }
@@ -1723,7 +1814,17 @@ namespace Decatron.Controllers
                 var username = await GetChannelUsernameAsync(userId);
                 if (string.IsNullOrEmpty(username)) return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                TimerEventService.ManualHappyHours.TryRemove(username, out _);
+                var manual = await _dbContext.TimerManualHappyHours
+                    .FirstOrDefaultAsync(m => m.ChannelName == username);
+
+                if (manual != null)
+                {
+                    _dbContext.TimerManualHappyHours.Remove(manual);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                await _overlayNotificationService.SendHappyHourEndedAsync(username);
+
                 return Ok(new { success = true, message = "Happy Hour manual desactivado" });
             }
             catch (Exception ex) { return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." }); }
@@ -1738,15 +1839,22 @@ namespace Decatron.Controllers
                 var username = await GetChannelUsernameAsync(userId);
                 if (string.IsNullOrEmpty(username)) return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                if (TimerEventService.ManualHappyHours.TryGetValue(username, out var manual) && DateTime.UtcNow < manual.ExpiresAt)
+                var manual = await _dbContext.TimerManualHappyHours
+                    .FirstOrDefaultAsync(m => m.ChannelName == username);
+
+                if (manual != null)
                 {
-                    return Ok(new { success = true, active = true, multiplier = manual.Multiplier, expiresAt = manual.ExpiresAt });
+                    var expiresAtUtc = TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt);
+                    if (expiresAtUtc > DateTime.UtcNow)
+                    {
+                        return Ok(new { success = true, active = true, multiplier = manual.Multiplier, expiresAt = expiresAtUtc.ToString("o") });
+                    }
+
+                    _dbContext.TimerManualHappyHours.Remove(manual);
+                    await _dbContext.SaveChangesAsync();
                 }
-                else
-                {
-                    TimerEventService.ManualHappyHours.TryRemove(username, out _);
-                    return Ok(new { success = true, active = false });
-                }
+
+                return Ok(new { success = true, active = false });
             }
             catch (Exception ex) { return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." }); }
         }

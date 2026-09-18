@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
 import { startVersionWatcher, reloadOverlay } from '../utils/overlayVersion';
+import { renderAccumulatedTime, parseLocalDateTimeInZone, secondsSince } from './features/timer-extension/utils/accumulatedTime';
 import ProgressBarHorizontal from '../components/timer/ProgressBarHorizontal';
 import ProgressBarVertical from '../components/timer/ProgressBarVertical';
 import ProgressBarCircular from '../components/timer/ProgressBarCircular';
@@ -182,6 +183,11 @@ export default function TimerOverlay() {
     const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
     const [happyHourState, setHappyHourState] = useState<{ active: boolean; multiplier: number; endsAt: string | null }>({ active: false, multiplier: 1, endsAt: null });
     const [uptimeDisplay, setUptimeDisplay] = useState('00:00:00');
+    const [accumulatedDisplay, setAccumulatedDisplay] = useState('');
+    const [channelTimeZone, setChannelTimeZone] = useState<string | undefined>(undefined);
+    // Cuándo arrancó la sesión del timer (el subathon). No es lo mismo que el inicio
+    // del stream de Twitch, que es lo que usa el widget de uptime.
+    const [timerSessionStartedAt, setTimerSessionStartedAt] = useState<number | null>(null);
     const [hhCountdown, setHhCountdown] = useState('');
 
     // Cleanup audio sequence when alert hides
@@ -257,6 +263,9 @@ export default function TimerOverlay() {
                 }
 
                 if (data.state) {
+                    setTimerSessionStartedAt(
+                        data.state.sessionStartedAt ? new Date(data.state.sessionStartedAt).getTime() : null
+                    );
                     setTargetSeconds(data.state.targetSeconds);
                     setElapsedSeconds(data.state.elapsedSeconds);
                     setIsPaused(data.state.isPaused);
@@ -267,6 +276,7 @@ export default function TimerOverlay() {
 
                 // Widgets config
                 if (data.config?.widgetsConfig) setWidgetsConfig(data.config.widgetsConfig);
+                if (data.config?.timeZone) setChannelTimeZone(data.config.timeZone);
                 // Happy Hour live state
                 if (data.happyHourLive) setHappyHourState(data.happyHourLive);
 
@@ -839,6 +849,34 @@ export default function TimerOverlay() {
         return () => clearInterval(interval);
     }, [sessionStartedAt, widgetsConfig?.uptime?.enabled]);
 
+    // Tiempo acumulado (el "Transcurrido" pero en palabras)
+    useEffect(() => {
+        const cfg = widgetsConfig?.accumulatedTime;
+        if (!cfg?.enabled) {
+            setAccumulatedDisplay('');
+            return;
+        }
+
+        const customStartMs = parseLocalDateTimeInZone(cfg.customDate, channelTimeZone);
+
+        const compute = () => {
+            setAccumulatedDisplay(renderAccumulatedTime(
+                { ...cfg, timeZone: channelTimeZone },
+                {
+                    wallclockSeconds: secondsSince(timerSessionStartedAt),
+                    activeSeconds: elapsedSecondsRef.current + initialTimeOffset,
+                    customSeconds: secondsSince(customStartMs)
+                }
+            ));
+        };
+
+        compute();
+        // Si no muestra segundos no hace falta recalcular cada segundo: le ahorra
+        // trabajo a OBS, que corre esto adentro de un navegador embebido.
+        const interval = setInterval(compute, cfg.units?.seconds ? 1000 : 15000);
+        return () => clearInterval(interval);
+    }, [widgetsConfig?.accumulatedTime, initialTimeOffset, channelTimeZone, timerSessionStartedAt]);
+
     // Happy Hour countdown
     useEffect(() => {
         if (!happyHourState.active || !happyHourState.endsAt || !widgetsConfig?.happyHour?.showCountdown) {
@@ -1092,6 +1130,9 @@ export default function TimerOverlay() {
                             fontFamily: w.fontFamily || 'Inter',
                             fontWeight: w.fontWeight || 'bold',
                             textShadow: getWidgetShadow(w.textShadow || 'normal'),
+                            backgroundColor: w.backgroundColor || 'transparent',
+                            borderRadius: `${w.borderRadius ?? 8}px`,
+                            padding: `${w.padding ?? 0}px ${(w.padding ?? 0) * 2}px`,
                             whiteSpace: 'nowrap',
                         }}>
                             <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{w.label || key}</span>
@@ -1111,10 +1152,33 @@ export default function TimerOverlay() {
                         fontFamily: widgetsConfig.uptime.fontFamily || 'Inter',
                         fontWeight: widgetsConfig.uptime.fontWeight || 'bold',
                         textShadow: getWidgetShadow(widgetsConfig.uptime.textShadow || 'glow'),
+                        backgroundColor: widgetsConfig.uptime.backgroundColor || 'transparent',
+                        borderRadius: `${widgetsConfig.uptime.borderRadius ?? 8}px`,
+                        padding: `${widgetsConfig.uptime.padding ?? 0}px ${(widgetsConfig.uptime.padding ?? 0) * 2}px`,
                         whiteSpace: 'nowrap',
                     }}>
                         <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{widgetsConfig.uptime.label || 'EN VIVO'}</span>
                         <span>{uptimeDisplay}</span>
+                    </div>
+                )}
+
+                {/* Tiempo acumulado */}
+                {widgetsConfig?.accumulatedTime?.enabled && accumulatedDisplay && (
+                    <div style={{
+                        position: 'absolute',
+                        left: `${widgetsConfig.accumulatedTime.position?.x || 0}px`,
+                        top: `${widgetsConfig.accumulatedTime.position?.y || 0}px`,
+                        fontSize: `${widgetsConfig.accumulatedTime.fontSize || 20}px`,
+                        color: widgetsConfig.accumulatedTime.textColor || '#ffffff',
+                        fontFamily: widgetsConfig.accumulatedTime.fontFamily || 'Inter',
+                        fontWeight: widgetsConfig.accumulatedTime.fontWeight || 'bold',
+                        textShadow: getWidgetShadow(widgetsConfig.accumulatedTime.textShadow || 'normal'),
+                        backgroundColor: widgetsConfig.accumulatedTime.backgroundColor || 'transparent',
+                        borderRadius: `${widgetsConfig.accumulatedTime.borderRadius ?? 8}px`,
+                        padding: `${widgetsConfig.accumulatedTime.padding ?? 0}px ${(widgetsConfig.accumulatedTime.padding ?? 0) * 2}px`,
+                        whiteSpace: 'nowrap',
+                    }}>
+                        {accumulatedDisplay}
                     </div>
                 )}
 

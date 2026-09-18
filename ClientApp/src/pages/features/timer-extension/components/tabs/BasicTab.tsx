@@ -7,7 +7,7 @@
 import { Play, Pause, RotateCcw, StopCircle, Copy, Clock, Save, CloudUpload } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../../../../../services/api';
-import { formatTimeProfessional } from '../../utils';
+import { formatTimeProfessional, formatShortDateTimeIn } from '../../utils';
 
 interface TimerSessionBasic {
     id: number;
@@ -45,6 +45,8 @@ interface TimerSessionBasic {
         autoStopOnStreamOffline?: boolean;
         onAutoPlayOnStreamOnlineChange?: (v: boolean) => void;
         onAutoStopOnStreamOfflineChange?: (v: boolean) => void;
+        /** Zona horaria configurada por el streamer (IANA, ej: "America/Lima"). */
+        timeZone?: string;
     }
     
     export const BasicTab: React.FC<BasicTabProps> = ({
@@ -70,6 +72,7 @@ interface TimerSessionBasic {
         autoStopOnStreamOffline = false,
         onAutoPlayOnStreamOnlineChange,
         onAutoStopOnStreamOfflineChange,
+        timeZone,
     }) => {    // Usar activeTimerRemaining si hay timer activo (running/paused), sino defaultDuration
     const displayDuration = (activeTimerStatus === 'running' || activeTimerStatus === 'paused' || activeTimerStatus === 'auto_paused' || activeTimerStatus === 'stream_paused') && activeTimerRemaining !== null
         ? activeTimerRemaining
@@ -635,8 +638,7 @@ interface TimerSessionBasic {
                                 className="w-full text-xs border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2 bg-white dark:bg-[#1B1C1D] text-gray-700 dark:text-gray-300 mb-4"
                             >
                                 {sessions.map(s => {
-                                    const d = new Date(s.startedAt);
-                                    const dateStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                                    const dateStr = formatShortDateTimeIn(s.startedAt, timeZone);
                                     const initial = s.initialDuration > 0 ? ` | Ini: ${formatTimeProfessional(s.initialDuration)}` : '';
                                     const added = s.totalAddedTime > 0 ? ` | +${formatTimeProfessional(s.totalAddedTime)}` : '';
                                     const backup = s.hasBackup && s.backupRemainingSeconds !== null

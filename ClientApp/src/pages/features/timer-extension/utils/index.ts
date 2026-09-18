@@ -6,3 +6,5 @@
 
 export * from './timeConversions';
 export * from './colorHelpers';
+export * from './dateFormat';
+export * from './accumulatedTime';

@@ -15,7 +15,7 @@ import { useRef, useEffect, useState } from 'react';
 import ProgressBarHorizontal from '../../../../../components/timer/ProgressBarHorizontal';
 import ProgressBarVertical from '../../../../../components/timer/ProgressBarVertical';
 import ProgressBarCircular from '../../../../../components/timer/ProgressBarCircular';
-import { hexToRgba } from '../../utils';
+import { hexToRgba, renderAccumulatedTime } from '../../utils';
 import type { DisplayConfig, ProgressBarConfig, StyleConfig, ThemeConfig, AnimationConfig, WidgetsConfig } from '../../types';
 
 interface TimerPreviewProps {
@@ -62,7 +62,15 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [scale, setScale] = useState(1);
     const [isCriticalMode, setIsCriticalMode] = useState(false);
-    const [simulateHappyHour, setSimulateHappyHour] = useState(false);
+    // Arranca encendida cuando el widget está activo: el indicador solo se ve en el
+    // overlay real si hay un Happy Hour corriendo, así que sin esto el streamer lo
+    // configura a ciegas y cree que no funciona.
+    const [simulateHappyHour, setSimulateHappyHour] = useState(!!widgetsConfig?.happyHour?.enabled);
+    const happyHourWidgetEnabled = !!widgetsConfig?.happyHour?.enabled;
+
+    useEffect(() => {
+        if (happyHourWidgetEnabled) setSimulateHappyHour(true);
+    }, [happyHourWidgetEnabled]);
     
     // Estado para controlar qué canción de la playlist suena
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -597,6 +605,9 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
                                         fontFamily: w.fontFamily || 'Inter',
                                         fontWeight: w.fontWeight || 'bold',
                                         textShadow: getTextShadowStyle(w.textShadow || 'normal'),
+                                        backgroundColor: w.backgroundColor || 'transparent',
+                                        borderRadius: `${w.borderRadius ?? 8}px`,
+                                        padding: `${w.padding ?? 0}px ${(w.padding ?? 0) * 2}px`,
                                         whiteSpace: 'nowrap',
                                     }}>
                                         <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{w.label || key}</span>
@@ -616,12 +627,46 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
                                     fontFamily: widgetsConfig.uptime.fontFamily || 'Inter',
                                     fontWeight: widgetsConfig.uptime.fontWeight || 'bold',
                                     textShadow: getTextShadowStyle(widgetsConfig.uptime.textShadow || 'glow'),
+                                    backgroundColor: widgetsConfig.uptime.backgroundColor || 'transparent',
+                                    borderRadius: `${widgetsConfig.uptime.borderRadius ?? 8}px`,
+                                    padding: `${widgetsConfig.uptime.padding ?? 0}px ${(widgetsConfig.uptime.padding ?? 0) * 2}px`,
                                     whiteSpace: 'nowrap',
                                 }}>
                                     <span style={{ opacity: 0.7, fontSize: '0.75em', marginRight: '6px' }}>{widgetsConfig.uptime.label || 'EN VIVO'}</span>
                                     <span>00:00:00</span>
                                 </div>
                             )}
+
+                            {/* Tiempo acumulado */}
+                            {widgetsConfig?.accumulatedTime?.enabled && (() => {
+                                const cfg: any = widgetsConfig.accumulatedTime;
+                                // Números de muestra de un subathon real: 20 días de reloj de
+                                // pared contra 5 de timer activo. Así se ve la diferencia entre
+                                // las fuentes sin esperar a que el subathon crezca.
+                                const sample = renderAccumulatedTime(cfg, {
+                                    wallclockSeconds: 20 * 86400 + 3600,
+                                    activeSeconds: 5 * 86400 + 9 * 3600 + 53 * 60,
+                                    customSeconds: (365 + 128) * 86400 + 5 * 3600
+                                });
+                                return (
+                                    <div style={{
+                                        position: 'absolute',
+                                        left: `${cfg.position?.x || 0}px`,
+                                        top: `${cfg.position?.y || 0}px`,
+                                        fontSize: `${cfg.fontSize || 20}px`,
+                                        color: cfg.textColor || '#ffffff',
+                                        fontFamily: cfg.fontFamily || 'Inter',
+                                        fontWeight: cfg.fontWeight || 'bold',
+                                        textShadow: getTextShadowStyle(cfg.textShadow || 'normal'),
+                                        backgroundColor: cfg.backgroundColor || 'transparent',
+                                        borderRadius: `${cfg.borderRadius ?? 8}px`,
+                                        padding: `${cfg.padding ?? 0}px ${(cfg.padding ?? 0) * 2}px`,
+                                        whiteSpace: 'nowrap',
+                                    }}>
+                                        {sample}
+                                    </div>
+                                );
+                            })()}
 
                             {/* Happy Hour Indicator (only when simulating) */}
                             {widgetsConfig?.happyHour?.enabled && simulateHappyHour && (
@@ -694,9 +739,9 @@ export const TimerPreview: React.FC<TimerPreviewProps> = ({
                                     ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
                                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                             }`}
-                            title="Simular Happy Hour"
+                            title="Muestra el indicador de Happy Hour en esta vista previa. En el overlay real aparece solo cuando hay un Happy Hour activo."
                         >
-                            🔥 HH
+                            🔥 {simulateHappyHour ? 'Simulando Happy Hour' : 'Simular Happy Hour'}
                         </button>
                     )}
                 </div>

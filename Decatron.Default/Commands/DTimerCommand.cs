@@ -95,11 +95,11 @@ namespace Decatron.Default.Commands
                 // Detectar si es add/remove time
                 if (TimeParser.IsAddTimeCommand(argumentsString, out var addTimeValue))
                 {
-                    await HandleAddTimeAsync(channel, addTimeValue, messageSender);
+                    await HandleAddTimeAsync(channel, addTimeValue, messageSender, username);
                 }
                 else if (TimeParser.IsRemoveTimeCommand(argumentsString, out var removeTimeValue))
                 {
-                    await HandleRemoveTimeAsync(channel, removeTimeValue, messageSender);
+                    await HandleRemoveTimeAsync(channel, removeTimeValue, messageSender, username);
                 }
                 else
                 {
@@ -225,7 +225,7 @@ namespace Decatron.Default.Commands
             _logger.LogInformation($"✅ Timer iniciado en {channel}: {timeString}");
         }
 
-        private async Task HandleAddTimeAsync(string channel, string timeValue, IMessageSender messageSender)
+        private async Task HandleAddTimeAsync(string channel, string timeValue, IMessageSender messageSender, string commandUser)
         {
             var lang = await GetChannelLanguageAsync(channel);
 
@@ -263,6 +263,25 @@ namespace Decatron.Default.Commands
             state.TotalTime += seconds;
             state.UpdatedAt = TimerDateTimeHelper.NowForDb();
 
+            // HISTORIAL: registrar el tiempo añadido por comando en la sesión actual
+            if (state.CurrentSessionId.HasValue)
+            {
+                var session = await dbContext.TimerSessions.FindAsync(state.CurrentSessionId.Value);
+                if (session != null) session.TotalAddedTime += seconds;
+
+                dbContext.TimerEventLogs.Add(new TimerEventLog
+                {
+                    ChannelName = channelLower,
+                    EventType = "command",
+                    Username = commandUser ?? "Unknown",
+                    TimeAdded = seconds,
+                    Details = $"!dtimer +{TimeParser.FormatSeconds(seconds)}",
+                    TimerSessionId = state.CurrentSessionId,
+                    OccurredAt = TimerDateTimeHelper.NowForDb(),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
             // SINCRONIZACIÓN: Actualizar también DefaultDuration en la configuración
             var config = await dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == channelLower);
             if (config != null)
@@ -281,7 +300,7 @@ namespace Decatron.Default.Commands
             _logger.LogInformation($"✅ Tiempo añadido en {channel}: +{timeString}");
         }
 
-        private async Task HandleRemoveTimeAsync(string channel, string timeValue, IMessageSender messageSender)
+        private async Task HandleRemoveTimeAsync(string channel, string timeValue, IMessageSender messageSender, string commandUser)
         {
             var lang = await GetChannelLanguageAsync(channel);
 
@@ -318,6 +337,25 @@ namespace Decatron.Default.Commands
             state.CurrentTime = newTime;
             state.TotalTime = Math.Max(0, state.TotalTime - seconds);
             state.UpdatedAt = TimerDateTimeHelper.NowForDb();
+
+            // HISTORIAL: registrar el tiempo removido por comando en la sesión actual
+            if (state.CurrentSessionId.HasValue)
+            {
+                var session = await dbContext.TimerSessions.FindAsync(state.CurrentSessionId.Value);
+                if (session != null) session.TotalAddedTime -= removedSeconds;
+
+                dbContext.TimerEventLogs.Add(new TimerEventLog
+                {
+                    ChannelName = channelLower,
+                    EventType = "command",
+                    Username = commandUser ?? "Unknown",
+                    TimeAdded = -removedSeconds,
+                    Details = $"!dtimer -{TimeParser.FormatSeconds(removedSeconds)}",
+                    TimerSessionId = state.CurrentSessionId,
+                    OccurredAt = TimerDateTimeHelper.NowForDb(),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             // SINCRONIZACIÓN: Actualizar también DefaultDuration en la configuración
             var config = await dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == channelLower);

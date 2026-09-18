@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Decatron.Core.Models;
+using Decatron.Core.Helpers;
 using Decatron.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -151,8 +152,10 @@ namespace Decatron.Controllers
                         b.TotalDurationAtSnapshot,
                         b.TimerSessionId,
                         b.Reason,
-                        b.CreatedAt,
-                        sessionStartedAt = session?.StartedAt,
+                        CreatedAt = DateTime.SpecifyKind(b.CreatedAt, DateTimeKind.Utc).ToString("o"),
+                        sessionStartedAt = session != null
+                            ? TimerDateTimeHelper.NormalizeToUtc(session.StartedAt).ToString("o")
+                            : null,
                         sessionTotalAddedTime = session?.TotalAddedTime
                     };
                 });
@@ -254,11 +257,11 @@ namespace Decatron.Controllers
                 state.Status = "paused";
                 state.CurrentTime = request.RemainingSeconds;
                 state.TotalTime = request.RemainingSeconds;
-                state.StartedAt = DateTime.UtcNow;
-                state.PausedAt = DateTime.UtcNow;
+                state.StartedAt = TimerDateTimeHelper.NowForDb();
+                state.PausedAt = TimerDateTimeHelper.NowForDb();
                 state.ElapsedPausedTime = 0;
                 state.IsVisible = true; // Asegurar que el overlay sea visible al restaurar
-                state.UpdatedAt = DateTime.UtcNow;
+                state.UpdatedAt = TimerDateTimeHelper.NowForDb();
 
                 // Reactivar la sesión exacta
                 session.EndedAt = null;
@@ -317,11 +320,11 @@ namespace Decatron.Controllers
                 state.Status = "paused";
                 state.CurrentTime = backup.RemainingSeconds;
                 state.TotalTime = backup.RemainingSeconds;
-                state.StartedAt = DateTime.UtcNow;
-                state.PausedAt = DateTime.UtcNow;
+                state.StartedAt = TimerDateTimeHelper.NowForDb();
+                state.PausedAt = TimerDateTimeHelper.NowForDb();
                 state.ElapsedPausedTime = 0;
                 state.IsVisible = true; // Asegurar que el overlay sea visible al restaurar
-                state.UpdatedAt = DateTime.UtcNow;
+                state.UpdatedAt = TimerDateTimeHelper.NowForDb();
 
                 // Restaurar Offset de Tiempo Transcurrido en configuración
                 var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.ChannelName == channelName);

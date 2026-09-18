@@ -1,4 +1,4 @@
-using Amazon.Polly;
+﻿using Amazon.Polly;
 using Amazon.Runtime;
 using Decatron.Core.Interfaces;
 using Decatron.Core.Settings;
@@ -100,6 +100,16 @@ try
                   .AllowAnyMethod()
                   .AllowCredentials();
         });
+
+        // Milestone 3 del modulo de Torneos — overlays y widget de ranking embebible
+        // (fase 12) se sirven en sitios de terceros (OBS, la web de cualquier
+        // streamer), asi que necesitan CORS abierto — a diferencia de "AllowReact",
+        // sin AllowCredentials (son endpoints publicos sin sesion, no hace falta
+        // mandar cookies) y solo aplicado a esos dos endpoints via [EnableCors].
+        options.AddPolicy("TournamentEmbed", policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        });
     });
 
     // Configuration sections
@@ -109,6 +119,8 @@ try
     builder.Services.Configure<AwsPollySettings>(builder.Configuration.GetSection("AwsPolly"));
     builder.Services.Configure<Decatron.Core.Settings.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
     builder.Services.Configure<Decatron.Discord.Models.DiscordSettings>(builder.Configuration.GetSection("DiscordSettings"));
+    builder.Services.Configure<KickSettings>(builder.Configuration.GetSection("KickSettings"));
+    builder.Services.Configure<Decatron.Core.Settings.WheelOfLuckSettings>(builder.Configuration.GetSection(Decatron.Core.Settings.WheelOfLuckSettings.SectionName));
 
     // PostgreSQL DbContext
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -187,6 +199,91 @@ try
 
     builder.Services.AddAuthorization();
 
+    // Rate limit para el endpoint de imagenes del TCG — plan seccion 11: un patron de
+    // pedidos masivos en poco tiempo (script, no navegador humano) se corta antes de
+    // poder scrapear el catalogo de arte.
+    builder.Services.AddRateLimiter(options =>
+    {
+        // 429 y no el 503 por defecto: 503 dice "el servidor se cayó" y en la consola
+        // del navegador se lee como una falla nuestra, cuando en realidad es un límite.
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        options.AddPolicy("tcg-images", context =>
+        {
+            // El endpoint de imágenes es anónimo a propósito (un <img> no manda el
+            // Bearer), así que no hay usuario del cual partir: la clave sale de la IP.
+            //
+            // Y esa IP hay que sacarla de X-Forwarded-For, no de la conexión: detrás de
+            // nginx, RemoteIpAddress es siempre 127.0.0.1, con lo cual TODOS los
+            // jugadores caían en la misma partición y compartían un único cupo global.
+            // Eso es lo que hacía que las imágenes fallaran "a veces" sin patrón.
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    // Una página del catálogo son 30 imágenes y la colección 24: con 120
+                    // alcanzaba con navegar un rato para toparse con el límite. Esto es
+                    // un freno contra abuso, no un presupuesto de navegación — y de todas
+                    // formas la protección real del catálogo es la firma de la URL, que
+                    // impide pedir una imagen sin haberla obtenido antes por la API.
+                    PermitLimit = 600,
+                    QueueLimit = 0,
+                });
+        });
+
+        // Milestone 2 del modulo de Torneos — inscripcion (ahora requiere sesion
+        // propia, TournamentMeController) + vinculacion/verificacion de Riot. Se
+        // mantiene el mismo criterio de particion-por-IP (detras de nginx) que
+        // "tcg-images" aunque ya no sea anonimo — sigue siendo un freno util contra
+        // scripts que reintentan Riot IDs en loop. Ver
+        // .dev/torneos/05-inscripciones-checkin-verificacion.md #5 y
+        // .dev/torneos/07-disputas-legal-antiabuso.md #4.
+        options.AddPolicy("tournament-register", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(10),
+                    // Inscribirse es una accion rara por IP — 5 intentos en 10 min alcanza
+                    // de sobra para alguien real que se equivoca de Riot ID un par de veces.
+                    PermitLimit = 5,
+                    QueueLimit = 0,
+                });
+        });
+
+        // Widget de ranking embebible (fase 12 #2) — mas laxo que el form de
+        // inscripcion (es solo lectura, cacheable), pero presente: es un endpoint
+        // publico sin auth, no se deja sin ningun freno.
+        options.AddPolicy("tournament-embed", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 60,
+                    QueueLimit = 0,
+                });
+        });
+    });
+
     // Register repositories
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<IBotTokenRepository, BotTokenRepository>();
@@ -201,13 +298,22 @@ try
     builder.Services.AddScoped<ICommandMessagesService, CommandMessagesService>();
     builder.Services.AddScoped<IBotTokenRefreshService, BotTokenRefreshService>();
     builder.Services.AddScoped<IUserTokenRefreshService, UserTokenRefreshService>();
+    builder.Services.AddScoped<IKickTokenRefreshService, KickTokenRefreshService>();
+    builder.Services.AddScoped<IKickEventSubService, Decatron.Services.Platforms.Kick.KickEventSubService>();
+    builder.Services.AddScoped<IKickApiService, Decatron.Services.Platforms.Kick.KickApiService>();
+    builder.Services.AddScoped<ISoundAlertTriggerService, Decatron.Services.SoundAlertTriggerService>();
+    builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickOAuthClient>();
     builder.Services.AddScoped<ITimerService, TimerService>();
     builder.Services.AddScoped<TimerEventService>();
     builder.Services.AddScoped<IRaffleService, RaffleService>();
     builder.Services.AddScoped<IGachaService, GachaService>();
     builder.Services.AddScoped<IFortniteService, FortniteService>();
+    builder.Services.AddScoped<ISpiritNotificationDeliveryService, SpiritNotificationDeliveryService>();
     builder.Services.AddScoped<GiveawayService>();
     builder.Services.AddScoped<GoalsService>();
+    builder.Services.AddScoped<WheelWalletService>();
+    builder.Services.AddScoped<WheelService>();
+    builder.Services.AddScoped<WheelRaffleService>();
     builder.Services.AddScoped<NowPlayingService>();
     builder.Services.AddScoped<IEventAlertsService, EventAlertsService>();
     builder.Services.AddScoped<ITtsService, TtsService>();
@@ -233,6 +339,8 @@ try
     builder.Services.AddScoped<ITipsService, TipsService>();
     builder.Services.AddScoped<ISupportersService, SupportersService>();
     builder.Services.AddScoped<ISupporterInvoiceService, SupporterInvoiceService>();
+    builder.Services.AddScoped<ICoinInvoiceService, CoinInvoiceService>();
+    builder.Services.AddScoped<IPaymentModeService, PaymentModeService>();
     builder.Services.AddScoped<IBillingProfileService, BillingProfileService>();
     builder.Services.AddSingleton<IStreamStatusService, StreamStatusService>();
     builder.Services.AddScoped<IWatchTimeTrackingService, WatchTimeTrackingService>();
@@ -245,6 +353,8 @@ try
     builder.Services.AddScoped<Decatron.Services.OpenRouterService>();
     builder.Services.AddScoped<Decatron.Services.AIProviderService>();
     builder.Services.AddScoped<Decatron.Services.CoinService>();
+    builder.Services.AddScoped<Decatron.Services.TcgCardsService>();
+    builder.Services.AddSingleton<Decatron.Services.TcgImageSigningService>();
     builder.Services.AddScoped<Decatron.Services.EmailService>();
     builder.Services.AddScoped<Decatron.Services.UsernameUpdateService>();
     builder.Services.AddSingleton<ICommandStateService, CommandStateService>();
@@ -285,14 +395,24 @@ try
     builder.Services.AddHostedService<GiveawayBackgroundService>(); // Monitorea timeouts de giveaways
     builder.Services.AddHostedService<WatchTimeBackgroundService>(); // Actualiza watch times cada minuto
     builder.Services.AddHostedService<WatchtimeLurkerTrackingService>(); // Trackea lurkers vía polling de chatters
+    builder.Services.AddHostedService<HappyHourWatcherService>(); // Avisa al overlay cuando arranca o termina un Happy Hour
+    builder.Services.AddHostedService<RuletaBackgroundService>(); // Restaura el mod cuando expira un timeout de !ruleta contra un moderador
     builder.Services.AddHostedService<StreamStatusHydrationService>(); // Hidrata estado en vivo al arrancar (IStreamStatusService es solo en memoria)
     builder.Services.AddHostedService<NowPlayingBackgroundService>(); // Polling Last.fm/Spotify now playing
     builder.Services.AddHostedService<UsernameCheckBackgroundService>(); // Check Twitch username changes every 24h
-    builder.Services.AddHostedService<SupporterInvoiceBackgroundService>(); // Emite los comprobantes de compras de tier
+    builder.Services.AddHostedService<SupporterInvoiceBackgroundService>(); // Emite los comprobantes de compras de tier y de DecaCoins
+    builder.Services.AddHostedService<Decatron.Services.Tournament.TournamentRiotPollingService>(); // Torneos Milestone 0 — poller de Riot API, solo modo solo_q_climb
+    builder.Services.AddHostedService<SpiritNotifySweepBackgroundService>(); // Barrido cada 15min de avisos de Fortnite Spirits (Twitch chat + Discord DM)
 
     // Twitch services
     builder.Services.AddSingleton<TwitchClient>(provider => new TwitchClient());
-    builder.Services.AddSingleton<IMessageSender, MessageSenderService>();
+    // MessageSenderService ya no se registra directo como IMessageSender: con Kick
+    // real ademas de Twitch, algo tiene que decidir a cual mandar cada mensaje.
+    // Ver Decatron.Services.Platforms.MessageSenderRouter y el plan de
+    // unificacion, seccion 8.8.
+    builder.Services.AddSingleton<MessageSenderService>();
+    builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickConnector>();
+    builder.Services.AddSingleton<IMessageSender, Decatron.Services.Platforms.MessageSenderRouter>();
     builder.Services.AddSingleton<TwitchApiService>();
     builder.Services.AddSingleton<ClipDownloadService>();
     builder.Services.AddSingleton<TwitchBotService>();
@@ -301,6 +421,26 @@ try
     builder.Services.AddSingleton<CommandService>();
     builder.Services.AddSingleton<Decatron.Scripting.Services.ScriptingService>();
     builder.Services.AddHttpClient<EventSubService>();
+    // Modulo de Torneos (Milestone 0) — cliente de Riot API, la key la trae cada
+    // canal-tenant, ver .dev/torneos/03-riot-api-integracion.md.
+    builder.Services.AddHttpClient<Decatron.Services.Tournament.TournamentRiotApiClient>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentRiotSyncService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentBlueShellEngine>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentBlueShellService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentStandingsService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentBracketStandingsService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentPrizeService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentRegistrationService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentTeamService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.SingleEliminationBracketGenerator>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.RoundRobinBracketGenerator>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.DoubleEliminationBracketGenerator>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.SwissBracketGenerator>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentBracketService>();
+    // Condicion de victoria ARAM (Tema 2, 24-08-2026) — detecta cuando se cumple la
+    // condicion configurada en la partida real y declara ganador solo en el bracket.
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentWinConditionEngine>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentWinConditionSyncService>();
     // Dispatcher de negocio de EventSub, compartido entre el controller de webhook
     // y EventSubWebSocketService. Scoped porque depende de DecatronDbContext.
     builder.Services.AddScoped<EventSubNotificationHandler>();
@@ -310,6 +450,7 @@ try
 
     // Discord services
     builder.Services.AddSingleton<Decatron.Discord.DiscordClientProvider>();
+    builder.Services.AddScoped<Decatron.Core.Interfaces.IDiscordDmSender, Decatron.Discord.DiscordDmSender>();
     builder.Services.AddSingleton<Decatron.Discord.Events.LiveAlertHandler>();
     builder.Services.AddSingleton<Decatron.Core.Interfaces.ILiveAlertHandler>(provider =>
         provider.GetRequiredService<Decatron.Discord.Events.LiveAlertHandler>());
@@ -399,11 +540,27 @@ try
         Log.Information($"Sirviendo archivos del sistema desde: {systemFilesPath}");
     }
 
+    // Servir arte de sobres del TCG (packaging, no cartas — no necesita firma, es
+    // el mismo arte para todos, no hay catálogo que proteger)
+    var tcgPacksPath = builder.Configuration["TcgSettings:ImagesPath"] is string tcgImagesRoot
+        ? Path.Combine(tcgImagesRoot, "packs")
+        : "/var/www/html/decatron/tcg-card-images/packs";
+    if (Directory.Exists(tcgPacksPath))
+    {
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(tcgPacksPath),
+            RequestPath = "/tcg-packs",
+        });
+        Log.Information($"Sirviendo arte de sobres TCG desde: {tcgPacksPath}");
+    }
+
     app.UseCors("AllowReact");
     app.UseSession();
     app.UseAuthentication(); // CRITICAL: Debe estar ANTES de UseAuthorization
     app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseAuthorization();
+    app.UseRateLimiter();
     app.MapControllers();
     app.MapHub<Decatron.Hubs.OverlayHub>("/hubs/overlay");
 

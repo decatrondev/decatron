@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { ChevronDown, ChevronUp, Grid3x3, RotateCcw } from 'lucide-react';
+import { measureStatWidget, measureHappyHourWidget, measureAccumulatedWidget } from './widgetMetrics';
+import { renderAccumulatedTime } from '../../pages/features/timer-extension/utils/accumulatedTime';
 
 // ============================================================================
 // TYPES
@@ -7,7 +9,7 @@ import { ChevronDown, ChevronUp, Grid3x3, RotateCcw } from 'lucide-react';
 
 type DragElement = 'title' | 'counter' | 'percentage' | 'progressbar' | 'alerts' | 'elapsed'
     | 'w_subsToday' | 'w_totalSubs' | 'w_bitsToday' | 'w_tipsToday' | 'w_totalRevenue' | 'w_eventCount'
-    | 'w_uptime' | 'w_happyHour' | null;
+    | 'w_uptime' | 'w_happyHour' | 'w_accumulatedTime' | null;
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | null;
 
 interface OverlayEditorProps {
@@ -90,6 +92,17 @@ export default function OverlayEditor({
     const [controlsCollapsed, setControlsCollapsed] = useState(false);
 
     // Get position and size for each element
+    // Texto de muestra del tiempo acumulado: el mismo criterio que usa la vista previa.
+    const accumulatedSampleText = (() => {
+        const cfg: any = widgetsConfig?.accumulatedTime;
+        if (!cfg) return '';
+        return renderAccumulatedTime(cfg, {
+            wallclockSeconds: 20 * 86400 + 3600,
+            activeSeconds: 5 * 86400 + 9 * 3600 + 53 * 60,
+            customSeconds: (365 + 128) * 86400 + 5 * 3600
+        });
+    })();
+
     const getElementConfig = (element: DragElement) => {
         switch (element) {
             case 'title':
@@ -132,17 +145,24 @@ export default function OverlayEditor({
                 // Widget elements (w_subsToday, w_totalSubs, etc.)
                 if (element?.startsWith('w_')) {
                     const widgetKey = element.slice(2);
+                    // El tamaño se mide a partir de la config real (fuente, relleno, qué se
+                    // muestra), no con un rectángulo fijo: así la caja del editor coincide
+                    // con lo que después se ve en el overlay.
                     if (widgetKey === 'uptime') {
                         const w = widgetsConfig?.uptime;
-                        return { position: w?.position || { x: 50, y: 40 }, size: { width: 220, height: 30 }, enabled: w?.enabled || false };
+                        return { position: w?.position || { x: 50, y: 40 }, size: measureStatWidget(w, '00:00:00'), enabled: w?.enabled || false };
                     }
                     if (widgetKey === 'happyHour') {
                         const w = widgetsConfig?.happyHour;
-                        return { position: w?.position || { x: 350, y: 270 }, size: { width: 320, height: 30 }, enabled: w?.enabled || false };
+                        return { position: w?.position || { x: 350, y: 270 }, size: measureHappyHourWidget(w), enabled: w?.enabled || false };
+                    }
+                    if (widgetKey === 'accumulatedTime') {
+                        const w = widgetsConfig?.accumulatedTime;
+                        return { position: w?.position || { x: 50, y: 80 }, size: measureAccumulatedWidget(w, accumulatedSampleText), enabled: w?.enabled || false };
                     }
                     // Stats widgets
                     const w = widgetsConfig?.stats?.widgets?.[widgetKey];
-                    return { position: w?.position || { x: 50, y: 10 }, size: { width: 150, height: 30 }, enabled: (widgetsConfig?.stats?.enabled && w?.enabled) || false };
+                    return { position: w?.position || { x: 50, y: 10 }, size: measureStatWidget(w, '0000'), enabled: (widgetsConfig?.stats?.enabled && w?.enabled) || false };
                 }
                 return { position: { x: 0, y: 0 }, size: { width: 0, height: 0 }, enabled: false };
             }
@@ -191,6 +211,8 @@ export default function OverlayEditor({
                         setWidgetsConfig({ ...widgetsConfig, uptime: { ...widgetsConfig.uptime, position: { x, y } } });
                     } else if (widgetKey === 'happyHour') {
                         setWidgetsConfig({ ...widgetsConfig, happyHour: { ...widgetsConfig.happyHour, position: { x, y } } });
+                    } else if (widgetKey === 'accumulatedTime') {
+                        setWidgetsConfig({ ...widgetsConfig, accumulatedTime: { ...widgetsConfig.accumulatedTime, position: { x, y } } });
                     } else {
                         setWidgetsConfig({
                             ...widgetsConfig,
@@ -426,7 +448,7 @@ export default function OverlayEditor({
                     )}
                     {element?.startsWith('w_') && (
                         <div className="text-xs font-bold text-white truncate px-1">
-                            {label}
+                            {element === 'w_accumulatedTime' ? (accumulatedSampleText || label) : label}
                         </div>
                     )}
                 </div>
@@ -557,6 +579,7 @@ export default function OverlayEditor({
                         {renderElement('w_eventCount', 'Eventos', 'bg-[#64748b]')}
                         {renderElement('w_uptime', 'Uptime', 'bg-[#059669]')}
                         {renderElement('w_happyHour', 'Happy Hour', 'bg-[#ea580c]')}
+                        {renderElement('w_accumulatedTime', 'Tiempo acumulado', 'bg-[#9333ea]')}
                     </div>
                 </div>
             </div>

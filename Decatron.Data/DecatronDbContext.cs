@@ -4,6 +4,8 @@ using Decatron.Core.Models.Email;
 using Decatron.Core.Models.Fortnite;
 using Decatron.Core.Models.Gacha;
 using Decatron.Core.Models.OAuth;
+using Decatron.Core.Models.Tournament;
+using Decatron.Core.Models.WheelOfLuck;
 using Decatron.Data.Encryption;
 using Decatron.Scripting.Models;
 using Microsoft.EntityFrameworkCore;
@@ -22,12 +24,16 @@ namespace Decatron.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<UserRiotAccount> UserRiotAccounts { get; set; }
         public DbSet<SystemSettings> SystemSettings { get; set; }
         public DbSet<UserAccess> UserAccess { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<BotTokens> BotTokens { get; set; }
         public DbSet<CommandSettings> CommandSettings { get; set; }
         public DbSet<WatchtimeCommandConfig> WatchtimeCommandConfigs { get; set; }
+        public DbSet<RuletaCommandConfig> RuletaCommandConfigs { get; set; }
+        public DbSet<RuletaModRestore> RuletaModRestores { get; set; }
         public DbSet<PublicCommandOverride> PublicCommandOverrides { get; set; }
         public DbSet<TitleHistory> TitleHistory { get; set; }
         public DbSet<GameHistory> GameHistory { get; set; }
@@ -51,6 +57,7 @@ namespace Decatron.Data
         public DbSet<SoundAlertConfig> SoundAlertConfigs { get; set; }
         public DbSet<SoundAlertFile> SoundAlertFiles { get; set; }
         public DbSet<SoundAlertHistory> SoundAlertHistories { get; set; }
+        public DbSet<SoundAlertRewardFile> SoundAlertRewardFiles { get; set; }
         public DbSet<FollowAlertConfig> FollowAlertConfigs { get; set; }
         public DbSet<FollowAlertHistory> FollowAlertHistories { get; set; }
         public DbSet<ChannelFollower> ChannelFollowers { get; set; }
@@ -79,6 +86,7 @@ namespace Decatron.Data
         public DbSet<TimerTemplate> TimerTemplates { get; set; }
         public DbSet<TimerSchedule> TimerSchedules { get; set; }
         public DbSet<TimerHappyHour> TimerHappyHours { get; set; }
+        public DbSet<TimerManualHappyHour> TimerManualHappyHours { get; set; } // Happy Hour activado a mano (persistente)
         public DbSet<TimerSessionBackup> TimerSessionBackups { get; set; } // Nuevo: Respaldos de emergencia
 
         // Raffles/Sorteos
@@ -141,6 +149,37 @@ namespace Decatron.Data
         public DbSet<CoinReferral> CoinReferrals { get; set; }
         public DbSet<CoinFlag> CoinFlags { get; set; }
 
+        // TCG de cards coleccionables (.dev/plans/TCG_CARTAS_COLECCIONABLES_PLAN.md)
+        public DbSet<Decatron.Core.Models.Tcg.Card> Cards { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.PlayerCardInstance> PlayerCardInstances { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.UpgradeAttemptLog> UpgradeAttemptLogs { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.CardLevelArt> CardLevelArts { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.CardSobreTier> CardSobreTiers { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.PlayerPityCounter> PlayerPityCounters { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.CardEventBanner> CardEventBanners { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.PlayerPackInventory> PlayerPackInventories { get; set; }
+        public DbSet<Decatron.Core.Models.Tcg.TcgFreePackClaim> TcgFreePackClaims { get; set; }
+
+        // Torneos (Milestone 0 — ver .dev/torneos/01-modelo-de-datos.md)
+        public DbSet<TournamentEdition> TournamentEditions { get; set; }
+        public DbSet<TournamentDivision> TournamentDivisions { get; set; }
+        public DbSet<TournamentTeam> TournamentTeams { get; set; }
+        public DbSet<TournamentParticipant> TournamentParticipants { get; set; }
+        public DbSet<TournamentLpSnapshot> TournamentLpSnapshots { get; set; }
+        public DbSet<TournamentRiotConfig> TournamentRiotConfigs { get; set; }
+        public DbSet<TournamentPunishmentType> TournamentPunishmentTypes { get; set; }
+        public DbSet<TournamentShellTrigger> TournamentShellTriggers { get; set; }
+        public DbSet<TournamentBlueShellRules> TournamentBlueShellRules { get; set; }
+        public DbSet<TournamentShellInventory> TournamentShellInventories { get; set; }
+        public DbSet<TournamentShellEvent> TournamentShellEvents { get; set; }
+        public DbSet<TournamentPrizeTier> TournamentPrizeTiers { get; set; }
+        public DbSet<TournamentRuleDocument> TournamentRuleDocuments { get; set; }
+        public DbSet<TournamentSponsor> TournamentSponsors { get; set; }
+        public DbSet<TournamentOverlayConfig> TournamentOverlayConfigs { get; set; }
+        public DbSet<TournamentMatch> TournamentMatches { get; set; }
+        public DbSet<TournamentGame> TournamentGames { get; set; }
+        public DbSet<TournamentWinCondition> TournamentWinConditions { get; set; }
+
         // OAuth2 System (API Pública)
         public DbSet<OAuthApplication> OAuthApplications { get; set; }
         public DbSet<OAuthAuthorizationCode> OAuthAuthorizationCodes { get; set; }
@@ -200,6 +239,17 @@ namespace Decatron.Data
         // Fortnite Spirit Tracker
         public DbSet<FortniteSprite> FortniteSprites { get; set; }
         public DbSet<UserFortniteSprite> UserFortniteSprites { get; set; }
+        public DbSet<UserSpiritNotificationPref> UserSpiritNotificationPrefs { get; set; }
+
+        // Rueda de la Suerte
+        public DbSet<Wheel> Wheels { get; set; }
+        public DbSet<WheelSegment> WheelSegments { get; set; }
+        public DbSet<WheelWallet> WheelWallets { get; set; }
+        public DbSet<WheelWalletSource> WheelWalletSources { get; set; }
+        public DbSet<WheelSpin> WheelSpins { get; set; }
+        public DbSet<WheelPendingDelivery> WheelPendingDeliveries { get; set; }
+        public DbSet<WheelRaffleEntry> WheelRaffleEntries { get; set; }
+        public DbSet<WheelRaffleConfig> WheelRaffleConfigs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -217,7 +267,7 @@ namespace Decatron.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasColumnName("id");
-                entity.Property(e => e.TwitchId).IsRequired().HasMaxLength(50).HasColumnName("twitch_id");
+                entity.Property(e => e.TwitchId).HasMaxLength(50).HasColumnName("twitch_id");
                 entity.Property(e => e.Login).IsRequired().HasMaxLength(100).HasColumnName("login");
                 entity.Property(e => e.DisplayName).HasMaxLength(150).HasColumnName("display_name");
                 entity.Property(e => e.Email).HasMaxLength(255).HasColumnName("email");
@@ -228,7 +278,7 @@ namespace Decatron.Data
                 entity.Property(e => e.Description).HasMaxLength(500).HasColumnName("description");
                 entity.Property(e => e.AccessToken).IsRequired().HasMaxLength(2000).HasColumnName("access_token");
                 entity.Property(e => e.RefreshToken).HasMaxLength(2000).HasColumnName("refresh_token");
-                if (encConverter != null) { entity.Property(e => e.AccessToken).HasConversion(encConverter); entity.Property(e => e.RefreshToken).HasConversion(encConverter); entity.Property(e => e.DiscordAccessToken).HasConversion(encConverter); entity.Property(e => e.DiscordRefreshToken).HasConversion(encConverter); }
+                if (encConverter != null) { entity.Property(e => e.AccessToken).HasConversion(encConverter); entity.Property(e => e.RefreshToken).HasConversion(encConverter); entity.Property(e => e.DiscordAccessToken).HasConversion(encConverter); entity.Property(e => e.DiscordRefreshToken).HasConversion(encConverter); entity.Property(e => e.KickAccessToken).HasConversion(encConverter); entity.Property(e => e.KickRefreshToken).HasConversion(encConverter); }
                 entity.Property(e => e.TokenExpiration).IsRequired().HasColumnName("token_expiration");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnName("updated_at");
@@ -240,7 +290,19 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.Email);
                 entity.HasIndex(e => e.UniqueId).IsUnique();
 
+                entity.Property(e => e.AccountId).HasColumnName("account_id");
+                entity.HasIndex(e => e.AccountId);
+
                 entity.ToTable("users");
+            });
+
+            // Accounts Configuration
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
+                entity.ToTable("accounts");
             });
 
             // UsernameHistory Configuration
@@ -596,6 +658,20 @@ namespace Decatron.Data
                 entity.ToTable("shoutout_configs");
             });
 
+            // TCG — Card (tabla base, ver .dev/plans/TCG_CARTAS_COLECCIONABLES_PLAN.md)
+            modelBuilder.Entity<Decatron.Core.Models.Tcg.Card>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.AbilitiesJson).HasColumnName("abilities").HasColumnType("jsonb");
+            });
+
+            // TCG — cooldown del sobre gratis. Clave compuesta (cuenta, tier): no tiene
+            // Id propio porque una cuenta tiene exactamente una fila por tier.
+            modelBuilder.Entity<Decatron.Core.Models.Tcg.TcgFreePackClaim>(entity =>
+            {
+                entity.HasKey(e => new { e.OwnerAccountId, e.SobreTierId });
+            });
+
             // ShoutoutHistory Configuration
             modelBuilder.Entity<ShoutoutHistory>(entity =>
             {
@@ -817,6 +893,34 @@ namespace Decatron.Data
                 entity.HasIndex(e => new { e.ChannelName, e.RedeemedAt }).HasDatabaseName("idx_sound_alert_history_channel_date");
 
                 entity.ToTable("sound_alert_history");
+            });
+
+            // SoundAlertRewardFile Configuration
+            modelBuilder.Entity<SoundAlertRewardFile>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.UserId).IsRequired().HasColumnName("user_id");
+                entity.Property(e => e.RewardId).IsRequired().HasMaxLength(100).HasColumnName("reward_id");
+                entity.Property(e => e.RewardTitle).HasMaxLength(200).HasColumnName("reward_title");
+                entity.Property(e => e.MediaFileId).HasColumnName("media_file_id");
+                entity.Property(e => e.SystemFilePath).HasMaxLength(500).HasColumnName("system_file_path");
+                entity.Property(e => e.Volume).HasColumnName("volume");
+                entity.Property(e => e.Enabled).IsRequired().HasColumnName("enabled");
+                entity.Property(e => e.ImagePath).HasMaxLength(500).HasColumnName("image_path");
+                entity.Property(e => e.ImageName).HasMaxLength(255).HasColumnName("image_name");
+                entity.Property(e => e.ShowImage).IsRequired().HasColumnName("show_image");
+                entity.Property(e => e.ImageUrl).HasMaxLength(1000).HasColumnName("image_url");
+                entity.Property(e => e.ImageSource).IsRequired().HasMaxLength(20).HasColumnName("image_source");
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnName("updated_at");
+
+                entity.HasIndex(e => new { e.UserId, e.RewardId })
+                    .IsUnique()
+                    .HasDatabaseName("uq_sound_alert_reward_files_userid_reward");
+                entity.HasIndex(e => e.MediaFileId).HasDatabaseName("idx_sound_alert_reward_files_media_file");
+
+                entity.ToTable("sound_alert_reward_files");
             });
 
             // SystemAdmin Configuration
@@ -1711,6 +1815,172 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.CampaignId).HasDatabaseName("idx_email_logs_campaign");
                 entity.HasIndex(e => e.RecipientUserId).HasDatabaseName("idx_email_logs_recipient");
                 entity.ToTable("email_logs");
+            });
+
+            // ─── Torneos (Milestone 0) ────────────────────────────────────────────────
+            modelBuilder.Entity<TournamentEdition>(entity =>
+            {
+                entity.HasIndex(e => new { e.ChannelOwnerId, e.Slug }).IsUnique().HasDatabaseName("uq_tournament_editions_channel_slug");
+                entity.HasIndex(e => e.ChannelOwnerId).HasDatabaseName("idx_tournament_editions_channel");
+            });
+
+            modelBuilder.Entity<TournamentParticipant>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.RiotPuuid }).IsUnique().HasDatabaseName("uq_tournament_participants_edition_puuid");
+                entity.HasIndex(e => new { e.TournamentEditionId, e.AccountId }).IsUnique()
+                    .HasFilter("account_id IS NOT NULL")
+                    .HasDatabaseName("uq_tournament_participants_edition_account");
+                entity.HasIndex(e => e.DiscordUserId).HasDatabaseName("idx_tournament_participants_discord");
+            });
+
+            modelBuilder.Entity<TournamentLpSnapshot>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentParticipantId, e.RiotMatchId }).IsUnique().HasDatabaseName("uq_tournament_lp_snapshots_participant_match");
+                entity.HasIndex(e => new { e.TournamentParticipantId, e.OccurredAt }).HasDatabaseName("idx_tournament_lp_snapshots_participant");
+            });
+
+            modelBuilder.Entity<TournamentRiotConfig>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelOwnerId).IsUnique().HasDatabaseName("uq_tournament_riot_configs_channel");
+                // La Riot API key la trae cada tenant — se cifra igual que los tokens OAuth
+                // ya existentes, ver .dev/torneos/03-riot-api-integracion.md #1.
+                if (encConverter != null) { entity.Property(e => e.ApiKey).HasConversion(encConverter); }
+            });
+
+            // ─── Torneos: motor Blue Shell / Aegis (Milestone 1) ──────────────────────
+            modelBuilder.Entity<TournamentPunishmentType>(entity =>
+            {
+                entity.HasIndex(e => e.TournamentEditionId).HasDatabaseName("idx_tournament_punishment_types_edition");
+            });
+
+            modelBuilder.Entity<TournamentShellTrigger>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.IsActive }).HasDatabaseName("idx_tournament_shell_triggers_edition");
+            });
+
+            modelBuilder.Entity<TournamentBlueShellRules>(entity =>
+            {
+                entity.HasIndex(e => e.TournamentEditionId).IsUnique().HasDatabaseName("uq_tournament_blue_shell_rules_edition");
+                entity.Property(e => e.CooldownByRank).HasColumnType("jsonb");
+                entity.Property(e => e.ReverseChanceByRank).HasColumnType("jsonb");
+            });
+
+            modelBuilder.Entity<TournamentWinCondition>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.IsActive }).HasDatabaseName("idx_tournament_win_conditions_edition");
+            });
+
+            modelBuilder.Entity<TournamentShellInventory>(entity =>
+            {
+                entity.HasIndex(e => e.TournamentParticipantId).IsUnique().HasDatabaseName("uq_tournament_shell_inventories_participant");
+            });
+
+            modelBuilder.Entity<TournamentShellEvent>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.CreatedAt }).HasDatabaseName("idx_tournament_shell_events_edition");
+                entity.HasIndex(e => e.SourceParticipantId).HasDatabaseName("idx_tournament_shell_events_source");
+                entity.HasIndex(e => e.TargetParticipantId).HasDatabaseName("idx_tournament_shell_events_target");
+            });
+
+            modelBuilder.Entity<TournamentPrizeTier>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.SortOrder }).HasDatabaseName("idx_tournament_prize_tiers_edition");
+            });
+
+            modelBuilder.Entity<TournamentRuleDocument>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.Type }).IsUnique().HasDatabaseName("uq_tournament_rule_documents_edition_type");
+            });
+
+            modelBuilder.Entity<TournamentSponsor>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.Status }).HasDatabaseName("idx_tournament_sponsors_edition");
+                entity.Property(e => e.Slots).HasColumnType("jsonb");
+            });
+
+            modelBuilder.Entity<TournamentOverlayConfig>(entity =>
+            {
+                entity.HasIndex(e => e.TournamentParticipantId).IsUnique().HasDatabaseName("uq_tournament_overlay_configs_participant");
+                entity.HasIndex(e => e.Token).IsUnique().HasDatabaseName("uq_tournament_overlay_configs_token");
+                entity.Property(e => e.EnabledWidgets).HasColumnType("jsonb");
+            });
+
+            modelBuilder.Entity<TournamentMatch>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentEditionId, e.RoundNumber }).HasDatabaseName("idx_tournament_matches_edition");
+            });
+
+            modelBuilder.Entity<TournamentGame>(entity =>
+            {
+                entity.HasIndex(e => new { e.TournamentMatchId, e.GameNumber }).IsUnique().HasDatabaseName("uq_tournament_games_match_number");
+            });
+
+            modelBuilder.Entity<TournamentTeam>(entity =>
+            {
+                entity.HasIndex(e => e.JoinCode).IsUnique().HasFilter("join_code IS NOT NULL").HasDatabaseName("uq_tournament_teams_join_code");
+            });
+
+            // ========================================================================
+            // RUEDA DE LA SUERTE
+            // ========================================================================
+
+            modelBuilder.Entity<Wheel>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelId).HasDatabaseName("idx_wheels_channel");
+                entity.HasIndex(e => new { e.ChannelId, e.Slug }).IsUnique().HasDatabaseName("uq_wheels_channel_slug");
+                entity.HasOne(e => e.Channel).WithMany().HasForeignKey(e => e.ChannelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WheelSegment>(entity =>
+            {
+                entity.HasIndex(e => e.WheelId).HasDatabaseName("idx_wheel_segments_wheel");
+                entity.HasIndex(e => new { e.WheelId, e.DisplayOrder }).HasDatabaseName("idx_wheel_segments_wheel_order");
+                entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WheelWallet>(entity =>
+            {
+                entity.HasIndex(e => e.ChannelId).HasDatabaseName("idx_wheel_wallets_channel");
+                entity.HasIndex(e => e.ViewerUserId).HasDatabaseName("idx_wheel_wallets_viewer");
+                entity.HasIndex(e => new { e.ChannelId, e.ViewerLogin }).IsUnique().HasDatabaseName("uq_wheel_wallets_channel_viewer");
+                entity.HasOne(e => e.Channel).WithMany().HasForeignKey(e => e.ChannelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WheelWalletSource>(entity =>
+            {
+                entity.HasIndex(e => e.WheelId).HasDatabaseName("idx_wheel_wallet_sources_wheel");
+                entity.HasIndex(e => new { e.WheelId, e.Source }).IsUnique().HasDatabaseName("uq_wheel_wallet_sources");
+                entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WheelSpin>(entity =>
+            {
+                entity.HasIndex(e => new { e.WheelId, e.CreatedAt }).HasDatabaseName("idx_wheel_spins_wheel");
+                entity.HasIndex(e => e.SpinnerLogin).HasDatabaseName("idx_wheel_spins_spinner");
+                entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
+                // Borrar un gajo no puede llevarse los giros que lo ganaron: el premio
+                // real ya quedo copiado en result_prize.
+                entity.HasOne(e => e.ResultSegment).WithMany().HasForeignKey(e => e.ResultSegmentId).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<WheelPendingDelivery>(entity =>
+            {
+                entity.HasIndex(e => new { e.WheelId, e.Status }).HasDatabaseName("idx_wheel_deliveries_wheel");
+                entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Spin).WithMany().HasForeignKey(e => e.SpinId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WheelRaffleEntry>(entity =>
+            {
+                entity.HasIndex(e => e.WheelId).HasDatabaseName("idx_wheel_raffle_entries_wheel");
+                entity.HasIndex(e => new { e.WheelId, e.ViewerLogin }).IsUnique().HasDatabaseName("uq_wheel_raffle_entry");
+                entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<WheelRaffleConfig>(entity =>
+            {
+                entity.HasIndex(e => e.WheelId).IsUnique().HasDatabaseName("uq_wheel_raffle_configs_wheel");
+                entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

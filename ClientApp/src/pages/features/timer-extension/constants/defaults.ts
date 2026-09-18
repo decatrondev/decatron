@@ -391,6 +391,11 @@ const defaultWidget = (label: string, x: number, y: number) => ({
     fontFamily: 'Inter',
     fontWeight: 'bold',
     textShadow: 'normal' as const,
+    // Sin fondo por defecto: es como se veian estos widgets antes de que el fondo
+    // existiera, asi que nadie ve cambiar su overlay de un dia para el otro.
+    backgroundColor: 'rgba(0, 0, 0, 0)',
+    borderRadius: 8,
+    padding: 0,
 });
 
 export const DEFAULT_WIDGETS_CONFIG: WidgetsConfig = {
@@ -414,6 +419,9 @@ export const DEFAULT_WIDGETS_CONFIG: WidgetsConfig = {
         fontFamily: 'Inter',
         fontWeight: 'bold',
         textShadow: 'glow',
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderRadius: 8,
+        padding: 0,
     },
     happyHour: {
         enabled: false,
@@ -429,5 +437,42 @@ export const DEFAULT_WIDGETS_CONFIG: WidgetsConfig = {
         textShadow: 'normal',
         borderRadius: 8,
         padding: 8,
+    },
+    accumulatedTime: {
+        enabled: false,
+        position: { x: 50, y: 80 },
+        fontSize: 20,
+        textColor: '#ffffff',
+        label: '',
+        fontFamily: 'Inter',
+        fontWeight: 'bold',
+        textShadow: 'normal',
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+        borderRadius: 8,
+        padding: 0,
+        // Sin segundos: en un subathon largo no aportan y obligan a refrescar cada
+        // segundo al pedo. Sin semanas: la pregunta del chat es "¿cuántos días
+        // llevás?", y "20 días" la contesta mejor que "2 semanas, 6 días".
+        units: {
+            years: true,
+            months: true,
+            weeks: false,
+            days: true,
+            hours: true,
+            minutes: true,
+            seconds: false,
+        },
+        // Por defecto, el reloj de pared: es la pregunta que hace el chat
+        // ("¿cuántos días llevas?") y la que el streamer no sabe contestar.
+        source: 'wallclock',
+        customDate: '',
+        hideZeroUnits: true,
+        // Dos unidades entran cómodas en cualquier overlay y siguen siendo precisas:
+        // "20 días, 1 hora" al mes, "1 año, 4 meses" al año y medio.
+        maxUnits: 2,
+        template: '{tiempo}',
+        format: 'long',
+        separator: ', ',
+        language: 'es',
     }
 };
