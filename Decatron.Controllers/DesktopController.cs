@@ -45,7 +45,7 @@ namespace Decatron.Controllers
         /// </summary>
         [HttpGet("releases/latest")]
         [AllowAnonymous]
-        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<ActionResult<ReleaseInfo>> LatestRelease(CancellationToken ct)
         {
             var info = await _cache.GetOrCreateAsync("desktop:latest-release", async e =>

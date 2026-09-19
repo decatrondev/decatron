@@ -26,7 +26,7 @@ let inflight: Promise<ReleaseInfo> | null = null;
 function fetchRelease(): Promise<ReleaseInfo> {
     if (cached) return Promise.resolve(cached);
     if (!inflight) {
-        inflight = fetch('/api/desktop/releases/latest')
+        inflight = fetch('/api/desktop/releases/latest', { cache: 'no-store' })
             .then(r => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
             .then((info: ReleaseInfo) => { cached = info; return info; })
             .finally(() => { inflight = null; });
