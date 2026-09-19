@@ -18,5 +18,12 @@
   "reset": "Restablecer",
   "apply": "Aplicar",
   "yes": "Sí",
-  "no": "No"
+  "no": "No",
+  "desktopDownload": {
+    "windows": "Descargar para Windows",
+    "macos": "Descargar para macOS",
+    "linux": "Descargar para Linux",
+    "generic": "Descargar",
+    "other": "Otras plataformas"
+  }
 }

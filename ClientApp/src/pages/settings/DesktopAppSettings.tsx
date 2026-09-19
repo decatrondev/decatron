@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Monitor, Loader2, Trash2, Download, Copy, Check, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useDesktopDownload } from '../../hooks/useDesktopDownload';
 import api from '../../services/api';
 
 interface Device {
@@ -12,7 +13,6 @@ interface Device {
     lastSeenAt?: string | null;
 }
 
-const RELEASES_URL = 'https://github.com/decatrondev/decatron-desktop/releases/latest';
 
 /**
  * Tarjeta "Decatron Desktop" en Ajustes → Integraciones: genera el código de
@@ -22,6 +22,7 @@ const RELEASES_URL = 'https://github.com/decatrondev/decatron-desktop/releases/l
  */
 export default function DesktopAppSettings() {
     const { t } = useTranslation(['settings']);
+    const download = useDesktopDownload();
     const [devices, setDevices] = useState<Device[]>([]);
     const [loading, setLoading] = useState(true);
     const [code, setCode] = useState<string | null>(null);
@@ -107,9 +108,9 @@ export default function DesktopAppSettings() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <a href={RELEASES_URL} target="_blank" rel="noreferrer"
+                    <a href={download.url} target="_blank" rel="noreferrer" title={download.version ? `v${download.version}` : undefined}
                        className="px-3 py-2 text-sm rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] hover:bg-gray-100 dark:hover:bg-[#2a2b2d] flex items-center gap-2">
-                        <Download className="w-4 h-4" /> {t('settings:desktop.download')}
+                        <Download className="w-4 h-4" /> {download.label}
                     </a>
                     <button onClick={generate} disabled={generating}
                             className="px-3 py-2 text-sm rounded-lg bg-[#9146FF] hover:bg-[#a970ff] text-white font-semibold flex items-center gap-2 disabled:opacity-50">

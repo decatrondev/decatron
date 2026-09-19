@@ -5,6 +5,8 @@ using Decatron.Services.Desktop;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
+using System.Text.Json;
 
 namespace Decatron.Controllers
 {
@@ -18,10 +20,64 @@ namespace Decatron.Controllers
     public class DesktopController : ControllerBase
     {
         private readonly DesktopDeviceService _devices;
+        private readonly IHttpClientFactory _http;
+        private readonly IMemoryCache _cache;
 
-        public DesktopController(DesktopDeviceService devices)
+        public DesktopController(DesktopDeviceService devices, IHttpClientFactory http, IMemoryCache cache)
         {
             _devices = devices;
+            _http = http;
+            _cache = cache;
+        }
+
+        private const string ReleasesRepo = "decatrondev/decatron-desktop";
+        private const string ReleasesLatestUrl = $"https://github.com/{ReleasesRepo}/releases/latest";
+
+        public record ReleaseInfo(string? Version, string ReleaseUrl, string? Windows, string? MacOs, string? Linux);
+
+        /// <summary>
+        /// URL de descarga del último release por plataforma, para que el botón «Descargar» del
+        /// dashboard y de /translate apunten directo al archivo. Se lee de la API de GitHub y se
+        /// cachea 1 h en memoria (la API anónima tiene 60 req/h por IP y /translate es pública).
+        /// Los nombres de los assets los fija release.yml del repo de la app. Si GitHub falla se
+        /// devuelve solo la página del release, así el botón nunca queda roto.
+        /// </summary>
+        [HttpGet("releases/latest")]
+        [AllowAnonymous]
+        [ResponseCache(Duration = 600, Location = ResponseCacheLocation.Any)]
+        public async Task<ActionResult<ReleaseInfo>> LatestRelease(CancellationToken ct)
+        {
+            var info = await _cache.GetOrCreateAsync("desktop:latest-release", async e =>
+            {
+                try
+                {
+                    var client = _http.CreateClient();
+                    client.Timeout = TimeSpan.FromSeconds(8);
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("Decatron/1.0 (+https://decatron.net)");
+                    client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+                    using var doc = JsonDocument.Parse(await client.GetStringAsync($"https://api.github.com/repos/{ReleasesRepo}/releases/latest", ct));
+                    var root = doc.RootElement;
+                    string? Asset(string name) => root.TryGetProperty("assets", out var assets)
+                        ? assets.EnumerateArray()
+                            .Where(a => a.GetProperty("name").GetString() == name)
+                            .Select(a => a.GetProperty("browser_download_url").GetString())
+                            .FirstOrDefault()
+                        : null;
+                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    return new ReleaseInfo(
+                        root.GetProperty("tag_name").GetString()?.TrimStart('v'),
+                        root.TryGetProperty("html_url", out var h) ? h.GetString() ?? ReleasesLatestUrl : ReleasesLatestUrl,
+                        Asset("DecatronDesktop-Setup.exe"),
+                        Asset("DecatronDesktop-osx-Setup.pkg"),
+                        Asset("DecatronDesktop.AppImage"));
+                }
+                catch
+                {
+                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                    return new ReleaseInfo(null, ReleasesLatestUrl, null, null, null);
+                }
+            });
+            return Ok(info);
         }
 
         public record ClaimRequest(

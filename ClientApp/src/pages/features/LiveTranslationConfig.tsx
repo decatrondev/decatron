@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useDesktopDownload } from '../../hooks/useDesktopDownload';
 import { ArrowLeft, Languages, Loader2, Save, Square, Monitor, Chrome, Download, Radio, Users, Coins, Clock } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
@@ -35,7 +36,6 @@ interface SessionRow {
 }
 
 const LANG_NAMES: Record<string, string> = { en: 'English', es: 'Español', pt: 'Português', fr: 'Français', de: 'Deutsch', it: 'Italiano', ja: '日本語', ko: '한국어', ru: 'Русский' };
-const DESKTOP_URL = 'https://github.com/decatrondev/decatron-desktop/releases/latest';
 const EXTENSION_URL = 'https://github.com/decatrondev/decatron-extension';
 
 const fmtDuration = (s: number) => {
@@ -46,6 +46,7 @@ const fmtDuration = (s: number) => {
 export default function LiveTranslationConfig() {
     const navigate = useNavigate();
     const { t } = useTranslation(['features']);
+    const download = useDesktopDownload();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const canEdit = hasMinimumLevel('control_total');
 
@@ -203,12 +204,18 @@ export default function LiveTranslationConfig() {
 
             {/* Cómo funciona / descargas */}
             <div className="grid md:grid-cols-2 gap-4">
-                <a href={DESKTOP_URL} target="_blank" rel="noreferrer" className={`${card} hover:border-[#9146FF] transition-colors flex gap-4 items-start`}>
+                <a href={download.url} target="_blank" rel="noreferrer" className={`${card} hover:border-[#9146FF] transition-colors flex gap-4 items-start`}>
                     <div className="w-10 h-10 rounded-lg bg-[#9146FF] text-white flex items-center justify-center shrink-0"><Monitor className="w-5 h-5" /></div>
                     <div>
                         <div className={label}>{t('liveTranslation.steps.app.title')}</div>
                         <p className={`${muted} mt-1`}>{t('liveTranslation.steps.app.text')}</p>
-                        <span className="text-sm text-[#7c3aed] dark:text-[#bf94ff] mt-2 inline-flex items-center gap-1"><Download className="w-4 h-4" /> {t('liveTranslation.steps.app.cta')}</span>
+                        <span className="text-sm text-[#7c3aed] dark:text-[#bf94ff] mt-2 inline-flex items-center gap-1"><Download className="w-4 h-4" /> {download.label}</span>
+                        {/* El card ya es un <a>: no se puede anidar otro enlace. */}
+                        <span role="link" tabIndex={0} className={`${muted} text-xs mt-1 block underline-offset-2 hover:underline`}
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); window.open(download.releasesUrl, '_blank', 'noopener'); }}
+                              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); window.open(download.releasesUrl, '_blank', 'noopener'); } }}>
+                            {download.otherPlatformsLabel}
+                        </span>
                     </div>
                 </a>
                 <a href={EXTENSION_URL} target="_blank" rel="noreferrer" className={`${card} hover:border-[#9146FF] transition-colors flex gap-4 items-start`}>

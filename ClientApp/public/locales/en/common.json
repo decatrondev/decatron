@@ -18,5 +18,12 @@
   "reset": "Reset",
   "apply": "Apply",
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+  "desktopDownload": {
+    "windows": "Download for Windows",
+    "macos": "Download for macOS",
+    "linux": "Download for Linux",
+    "generic": "Download",
+    "other": "Other platforms"
+  }
 }

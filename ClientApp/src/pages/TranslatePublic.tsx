@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDesktopDownload } from '../hooks/useDesktopDownload';
 import { Link } from 'react-router-dom';
 import { Chrome, Globe, Headphones, MessageSquareText, ShieldCheck, Monitor } from 'lucide-react';
 
 const EXTENSION_URL = 'https://github.com/decatrondev/decatron-extension';
-const DESKTOP_URL = 'https://github.com/decatrondev/decatron-desktop/releases/latest';
 
 // Frases del demo: original y traducción, en el orden en que "suenan".
 const DEMO = [
@@ -20,6 +20,7 @@ const DEMO = [
  */
 export default function TranslatePublic() {
     const { t } = useTranslation(['landing']);
+    const download = useDesktopDownload();
     const [i, setI] = useState(0);
     const [shown, setShown] = useState(0); // palabras reveladas de la frase actual
 
@@ -135,7 +136,8 @@ export default function TranslatePublic() {
                         <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">{t('translate.streamers.text')}</p>
                         <div className="flex flex-wrap gap-3 mt-4">
                             <Link to="/login" className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-[#a970ff] text-white font-semibold">{t('translate.streamers.cta')}</Link>
-                            <a href={DESKTOP_URL} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] font-semibold">{t('translate.streamers.app')}</a>
+                            <a href={download.url} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] font-semibold">{download.label}</a>
+                            <a href={download.releasesUrl} target="_blank" rel="noreferrer" className="px-2 py-2 text-sm text-[#64748b] dark:text-[#94a3b8] hover:underline self-center">{download.otherPlatformsLabel}</a>
                         </div>
                     </div>
                 </div>
