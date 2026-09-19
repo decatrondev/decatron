@@ -7,6 +7,7 @@ using Decatron.Core.Models.LiveTranslation;
 using Decatron.Data;
 using Decatron.Services.LiveTranslation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,7 @@ namespace Decatron.Controllers
         /// <summary>¿Este canal ofrece traducción y está traduciendo ahora mismo?</summary>
         [HttpGet("public/{login}")]
         [AllowAnonymous]
+        [EnableCors("TournamentEmbed")]   // público y de solo lectura: lo consulta la extensión y páginas de terceros
         [EnableRateLimiting("live-translation-public")]
         public async Task<IActionResult> GetPublic(string login)
         {

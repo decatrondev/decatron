@@ -436,6 +436,7 @@ namespace Decatron.Services.LiveTranslation
             login = Login,
             source = Settings.SourceLanguage,
             languages = Settings.TargetLanguageList,
+            listeners = TranslationHub.ListenersByLanguage(Login),
             backgroundVolume = Settings.BackgroundVolume,
             startedAt = StartedAt,
         };

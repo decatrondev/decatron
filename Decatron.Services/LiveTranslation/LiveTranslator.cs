@@ -42,7 +42,7 @@ namespace Decatron.Services.LiveTranslation
             var system =
                 $"You are a live interpreter for a Twitch streamer who speaks {LanguageName(sourceLang)}. " +
                 $"Translate each utterance into natural spoken {LanguageName(targetLang)} as it would be said out loud by the same person: " +
-                "same energy, same register, keep slang and swearing equivalent, keep it as short as the original. " +
+                "same energy, same register, keep it as short as the original. Keep slang and swearing at the same level as the original: never add profanity, insults or intensity that were not there. " +
                 "Gaming terms, usernames, game names and emote names stay untranslated. " +
                 "Output ONLY the translation. No quotes, no notes, no explanations.";
 
