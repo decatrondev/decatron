@@ -295,6 +295,11 @@ namespace Decatron.Services.LiveTranslation
         public DateTime LastAudioUtc { get; private set; } = DateTime.UtcNow;
         /// <summary>Cuándo llegó el primer frame de audio: reloj de referencia para el eje de tiempo de Deepgram.</summary>
         public DateTime? FirstAudioUtc { get; private set; }
+        private long _audioBytes;
+        /// <summary>Segundos de audio recibidos (PCM16 16 kHz mono = 32000 B/s).</summary>
+        public double AudioSecondsReceived => _audioBytes / 32000.0;
+        /// <summary>Cuánto va el flujo de audio por detrás del reloj real: tiempo transcurrido − audio recibido. Positivo = la app se atrasa (búfer/deriva).</summary>
+        public double StreamLagSeconds => FirstAudioUtc is { } f ? (LastAudioUtc - f).TotalSeconds - AudioSecondsReceived : 0;
         public CancellationToken Token => _cts.Token;
 
         public double SpeechSeconds => _speechSeconds;
@@ -328,6 +333,7 @@ namespace Decatron.Services.LiveTranslation
         {
             LastAudioUtc = DateTime.UtcNow;
             FirstAudioUtc ??= LastAudioUtc;
+            Interlocked.Add(ref _audioBytes, pcm16.Length);
             return _stt?.SendAudioAsync(pcm16, ct) ?? Task.CompletedTask;
         }
 
@@ -532,10 +538,13 @@ namespace Decatron.Services.LiveTranslation
             // Cuánto tardó Deepgram en cerrar la frase desde que el streamer calló: el audio
             // llega en tiempo real, así que "fin de habla" ≈ primer frame + t1.
             double? sttLag = _session.FirstAudioUtc is { } f0 ? (u.FinalAtUtc - f0).TotalSeconds - u.EndSec : null;
+            var streamLag = _session.StreamLagSeconds;
             var start = new
             {
                 seq = q.Seq, lang = _lang, t0 = u.StartSec, t1 = u.EndSec,
-                source = u.Text, text = translated, sttAt = u.FinalAtUtc, sttLag,
+                source = u.Text, text = translated, sttAt = u.FinalAtUtc,
+                sttLag = sttLag.HasValue ? sttLag.Value - streamLag : (double?)null,  // solo Deepgram
+                streamLag,                                                              // solo la app/red
             };
             await Notify("SegmentStart", start);
 
