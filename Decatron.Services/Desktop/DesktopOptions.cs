@@ -9,6 +9,6 @@ namespace Decatron.Services.Desktop
         public int LinkCodeMinutes { get; set; } = 10;
 
         /// <summary>Versión mínima de la app aceptada; más vieja ⇒ se le pide actualizar.</summary>
-        public string MinAppVersion { get; set; } = "0.1.0";
+        public string MinAppVersion { get; set; } = "0.0.1";
     }
 }
