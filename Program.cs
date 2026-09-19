@@ -387,7 +387,12 @@ try
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>();
     builder.Services.AddSingleton<Decatron.Hubs.ITranslationListenerNotifier>(sp =>
         sp.GetRequiredService<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>());
-    builder.Services.AddScoped<Decatron.Services.LiveTranslation.LiveTranslationDeviceService>();
+    builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.LiveTranslation.TranslationDesktopChannel>();
+
+    // Decatron Desktop (app de escritorio; la traducción en vivo es su primer módulo)
+    builder.Services.Configure<Decatron.Services.Desktop.DesktopOptions>(
+        builder.Configuration.GetSection(Decatron.Services.Desktop.DesktopOptions.Section));
+    builder.Services.AddScoped<Decatron.Services.Desktop.DesktopDeviceService>();
     builder.Services.AddScoped<IWatchTimeTrackingService, WatchTimeTrackingService>();
     builder.Services.AddScoped<IChatActivityService, ChatActivityService>();
     builder.Services.AddScoped<GameSearchService>();
@@ -623,7 +628,7 @@ try
                 await seeder.SeedGameCacheAndAliasesAsync();
             }
     app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
-    app.UseMiddleware<Decatron.Services.LiveTranslation.LiveTranslationIngestMiddleware>(); // WS de audio de la app de escritorio
+    app.UseMiddleware<Decatron.Services.Desktop.DesktopWsMiddleware>(); // WS único de Decatron Desktop (todos los módulos)
             catch (Exception ex)
             {
     app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador

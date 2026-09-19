@@ -16,10 +16,10 @@ namespace Decatron.Controllers
     /// <summary>
     /// Traducción en vivo (doblaje por espectador). Plan: .dev/plans/REALTIME_TRANSLATION_PLAN.md
     ///
-    /// Tres públicos: el streamer (config, dispositivos, estado, historial), la app de
-    /// escritorio (canje del código de vinculación, anónimo) y la extensión del espectador
-    /// (estado público del canal, anónimo). El audio no pasa por aquí: entra por el
-    /// WebSocket de <see cref="LiveTranslationIngestMiddleware"/>.
+    /// Dos públicos: el streamer (config, estado, historial) y la extensión del espectador
+    /// (estado público del canal, anónimo). La app de escritorio no pasa por aquí: se
+    /// vincula en <see cref="DesktopController"/> y manda el audio por el canal
+    /// <c>translation</c> del WebSocket de escritorio (TranslationDesktopChannel).
     /// </summary>
     [ApiController]
     [Route("api/live-translation")]
@@ -27,18 +27,16 @@ namespace Decatron.Controllers
     {
         private readonly DecatronDbContext _db;
         private readonly LiveTranslationSessionManager _mgr;
-        private readonly LiveTranslationDeviceService _devices;
         private readonly ITtsCreditService _credits;
         private readonly ILogger<LiveTranslationController> _logger;
 
         public LiveTranslationController(
             DecatronDbContext db,
             LiveTranslationSessionManager mgr,
-            LiveTranslationDeviceService devices,
             ITtsCreditService credits,
             ILogger<LiveTranslationController> logger)
         {
-            _db = db; _mgr = mgr; _devices = devices; _credits = credits; _logger = logger;
+            _db = db; _mgr = mgr; _credits = credits; _logger = logger;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -92,32 +90,6 @@ namespace Decatron.Controllers
             }),
             languages = LiveTranslator.SupportedLanguages,
         });
-
-        // ─────────────────────────────────────────────────────────────────────
-        // App de escritorio
-        // ─────────────────────────────────────────────────────────────────────
-
-        public record ClaimRequest([Required, MaxLength(12)] string Code, [MaxLength(80)] string? DeviceName);
-
-        /// <summary>La app canjea el código que el streamer generó en el dashboard.</summary>
-        [HttpPost("devices/claim")]
-        [AllowAnonymous]
-        [EnableRateLimiting("live-translation-claim")]
-        public async Task<IActionResult> ClaimDevice([FromBody] ClaimRequest req)
-        {
-            var result = await _devices.ClaimAsync(req.Code, req.DeviceName ?? "");
-            if (result == null)
-                return BadRequest(new { success = false, message = "Código inválido o vencido" });
-
-            var (device, token) = result.Value;
-            return Ok(new
-            {
-                success = true,
-                token,
-                deviceId = device.Id,
-                ingestUrl = $"wss://{Request.Host}{LiveTranslationIngestMiddleware.Path}",
-            });
-        }
 
         // ─────────────────────────────────────────────────────────────────────
         // Streamer (dashboard)
@@ -194,34 +166,6 @@ namespace Decatron.Controllers
                 await _mgr.StopAsync(userId, "stopped_by_user");
 
             return Ok(ToDto(s));
-        }
-
-        /// <summary>Código de un solo uso para vincular la app de escritorio.</summary>
-        [HttpPost("devices/link-code")]
-        [Authorize]
-        [RequirePermission("settings", "control_total")]
-        public IActionResult CreateLinkCode()
-        {
-            var (code, expiresAt) = _devices.CreateLinkCode(GetChannelOwnerId());
-            return Ok(new { code = $"{code[..4]}-{code[4..]}", expiresAt });
-        }
-
-        [HttpGet("devices")]
-        [Authorize]
-        [RequirePermission("settings")]
-        public async Task<IActionResult> ListDevices()
-        {
-            var list = await _devices.ListAsync(GetChannelOwnerId());
-            return Ok(list.Select(d => new { d.Id, d.Name, d.CreatedAt, d.LastSeenAt }));
-        }
-
-        [HttpDelete("devices/{id:long}")]
-        [Authorize]
-        [RequirePermission("settings", "control_total")]
-        public async Task<IActionResult> RevokeDevice(long id)
-        {
-            var ok = await _devices.RevokeAsync(GetChannelOwnerId(), id);
-            return ok ? Ok(new { success = true }) : NotFound();
         }
 
         /// <summary>Estado en vivo de la sesión actual (si hay) + saldo de créditos.</summary>

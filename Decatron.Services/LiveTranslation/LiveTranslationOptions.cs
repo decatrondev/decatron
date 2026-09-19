@@ -29,9 +29,6 @@ namespace Decatron.Services.LiveTranslation
         /// <summary>Máximo de idiomas destino por canal.</summary>
         public int MaxLanguagesPerChannel { get; set; } = 4;
 
-        /// <summary>Un código de vinculación de la app caduca a los N minutos.</summary>
-        public int LinkCodeMinutes { get; set; } = 10;
-
         /// <summary>Máximo de frases en cola por idioma antes de descartar las más viejas.</summary>
         public int MaxQueuedUtterances { get; set; } = 6;
     }

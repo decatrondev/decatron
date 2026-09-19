@@ -127,7 +127,7 @@ namespace Decatron.Data
         public DbSet<NowPlayingConfig> NowPlayingConfigs { get; set; }
         // Traducción en vivo (doblaje por espectador)
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSettings> LiveTranslationSettings { get; set; }
-        public DbSet<Core.Models.LiveTranslation.LiveTranslationDevice> LiveTranslationDevices { get; set; }
+        public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 
 

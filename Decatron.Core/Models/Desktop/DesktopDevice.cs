@@ -1,16 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Decatron.Core.Models.LiveTranslation
+namespace Decatron.Core.Models.Desktop
 {
     /// <summary>
-    /// App de escritorio vinculada a un canal. Se vincula con un código de un solo uso
-    /// generado desde el dashboard; a cambio recibe un token largo que solo sirve para
-    /// abrir el WebSocket de ingesta de audio (no da acceso a la API del dashboard).
-    /// Solo se guarda el hash del token.
+    /// Una instalación de Decatron Desktop vinculada a un canal. Se vincula una sola vez
+    /// con un código corto generado desde el dashboard; a cambio recibe un token largo que
+    /// solo sirve para abrir el WebSocket de escritorio (no da acceso a la API del
+    /// dashboard). Todos los módulos de la app (traducción en vivo, asistente de LoL…)
+    /// comparten esta vinculación. Solo se guarda el hash del token.
     /// </summary>
-    [Table("live_translation_devices")]
-    public class LiveTranslationDevice
+    [Table("desktop_devices")]
+    public class DesktopDevice
     {
         [Key]
         [Column("id")]
@@ -28,6 +29,16 @@ namespace Decatron.Core.Models.LiveTranslation
         [Column("token_hash")]
         [MaxLength(64)]
         public string TokenHash { get; set; } = "";
+
+        /// <summary>Versión de la app en la última conexión, para soporte.</summary>
+        [Column("app_version")]
+        [MaxLength(30)]
+        public string? AppVersion { get; set; }
+
+        /// <summary>windows · macos · linux</summary>
+        [Column("platform")]
+        [MaxLength(20)]
+        public string? Platform { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

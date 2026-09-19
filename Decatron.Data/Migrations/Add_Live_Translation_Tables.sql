@@ -16,21 +16,24 @@ CREATE TABLE IF NOT EXISTS live_translation_settings (
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS live_translation_devices (
+-- Vinculación de Decatron Desktop (compartida por todos los módulos de la app)
+CREATE TABLE IF NOT EXISTS desktop_devices (
     id            BIGSERIAL PRIMARY KEY,
     user_id       BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name          VARCHAR(80) NOT NULL DEFAULT '',
     token_hash    VARCHAR(64) NOT NULL UNIQUE,
+    app_version   VARCHAR(30),
+    platform      VARCHAR(20),
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_seen_at  TIMESTAMPTZ,
     revoked_at    TIMESTAMPTZ
 );
-CREATE INDEX IF NOT EXISTS ix_live_translation_devices_user ON live_translation_devices(user_id);
+CREATE INDEX IF NOT EXISTS ix_desktop_devices_user ON desktop_devices(user_id);
 
 CREATE TABLE IF NOT EXISTS live_translation_sessions (
     id                     BIGSERIAL PRIMARY KEY,
     user_id                BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    device_id              BIGINT REFERENCES live_translation_devices(id) ON DELETE SET NULL,
+    device_id              BIGINT REFERENCES desktop_devices(id) ON DELETE SET NULL,
     started_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ended_at               TIMESTAMPTZ,
     speech_seconds         DOUBLE PRECISION NOT NULL DEFAULT 0,
