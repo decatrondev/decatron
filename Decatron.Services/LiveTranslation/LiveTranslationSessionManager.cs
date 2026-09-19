@@ -100,7 +100,14 @@ namespace Decatron.Services.LiveTranslation
         public async Task<ChannelSession> StartAsync(long userId, long? deviceId, CancellationToken ct)
         {
             if (!IsConfigured) throw new InvalidOperationException("La traducción en vivo no está configurada en el servidor");
-            if (_byUser.ContainsKey(userId)) throw new InvalidOperationException("Ya hay otra app conectada a este canal");
+            if (_byUser.TryGetValue(userId, out var previous))
+            {
+                // La app se reconectó (o se abrió en otra PC) mientras la sesión anterior
+                // seguía viva del lado del servidor por una conexión a medio cerrar. El canal
+                // es el mismo streamer: la nueva releva a la vieja en vez de quedarse fuera.
+                _logger.LogInformation("[LiveTranslation] {Login}: nueva app releva a la sesión {Id}", previous.Login, previous.SessionId);
+                await StopAsync(userId, "replaced");
+            }
             if (_byUser.Count >= _opts.MaxConcurrentChannels) throw new InvalidOperationException("El servidor está al máximo de canales traduciendo; intenta más tarde");
 
             LiveTranslationSettings settings;
@@ -131,7 +138,7 @@ namespace Decatron.Services.LiveTranslation
 
             var session = new ChannelSession(this, userId, login, sessionId, settings);
             if (!_byUser.TryAdd(userId, session))
-                throw new InvalidOperationException("Ya hay otra app conectada a este canal");
+                throw new InvalidOperationException("Dos apps intentaron iniciar a la vez; vuelve a pulsar Iniciar");
             _byLogin[login] = session;
 
             try

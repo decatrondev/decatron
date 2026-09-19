@@ -55,7 +55,7 @@ namespace Decatron.Services.LiveTranslation
             {
                 case "start":
                 {
-                    if (conn.Items.ContainsKey(SessionKey)) { await conn.SendAsync(Name, "error", new { message = "Ya hay una sesión en esta conexión" }); return; }
+                    if (conn.Items.ContainsKey(SessionKey)) await StopAsync(conn, "restarted");
                     try
                     {
                         var session = await _mgr.StartAsync(conn.UserId, conn.Device.Id, conn.Token);
