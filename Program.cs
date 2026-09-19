@@ -388,6 +388,7 @@ try
     builder.Services.AddSingleton<Decatron.Hubs.ITranslationListenerNotifier>(sp =>
         sp.GetRequiredService<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>());
     builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.LiveTranslation.TranslationDesktopChannel>();
+    builder.Services.AddSingleton<Decatron.Services.Desktop.DesktopConnectionRegistry>();
 
     // Decatron Desktop (app de escritorio; la traducción en vivo es su primer módulo)
     builder.Services.Configure<Decatron.Services.Desktop.DesktopOptions>(

@@ -29,15 +29,17 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _db;
         private readonly LiveTranslationSessionManager _mgr;
         private readonly ITtsCreditService _credits;
+        private readonly Decatron.Services.Desktop.DesktopConnectionRegistry _desktop;
         private readonly ILogger<LiveTranslationController> _logger;
 
         public LiveTranslationController(
             DecatronDbContext db,
             LiveTranslationSessionManager mgr,
             ITtsCreditService credits,
+            Decatron.Services.Desktop.DesktopConnectionRegistry desktop,
             ILogger<LiveTranslationController> logger)
         {
-            _db = db; _mgr = mgr; _credits = credits; _logger = logger;
+            _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _logger = logger;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -166,6 +168,8 @@ namespace Decatron.Controllers
             // Si se apaga con la app conectada, se corta la sesión: la app verá el motivo.
             if (!s.Enabled && _mgr.IsActive(userId))
                 await _mgr.StopAsync(userId, "stopped_by_user");
+            // La app abierta se entera del cambio (activado/idiomas) sin reconectar.
+            await _desktop.NotifyModuleChangedAsync(userId, "translation");
 
             return Ok(ToDto(s));
         }

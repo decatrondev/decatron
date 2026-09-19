@@ -38,16 +38,18 @@ namespace Decatron.Services.Desktop
 
         private readonly RequestDelegate _next;
         private readonly IReadOnlyDictionary<string, IDesktopChannel> _channels;
+        private readonly DesktopConnectionRegistry _registry;
         private readonly DesktopOptions _opts;
         private readonly ILogger<DesktopWsMiddleware> _logger;
 
         private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
 
         public DesktopWsMiddleware(RequestDelegate next, IEnumerable<IDesktopChannel> channels,
-            IOptions<DesktopOptions> opts, ILogger<DesktopWsMiddleware> logger)
+            DesktopConnectionRegistry registry, IOptions<DesktopOptions> opts, ILogger<DesktopWsMiddleware> logger)
         {
             _next = next;
             _channels = channels.ToDictionary(c => c.Name, StringComparer.OrdinalIgnoreCase);
+            _registry = registry;
             _opts = opts.Value;
             _logger = logger;
         }
@@ -90,6 +92,7 @@ namespace Decatron.Services.Desktop
             var conn = new DesktopConnection(ws, device, login.ToLowerInvariant(), ctx.RequestAborted, _json);
             _logger.LogInformation("[Desktop] {Login} conectó ({Device} v{Version} {Os})", conn.Login, device.Name, appVersion, platform);
 
+            _registry.Add(conn);
             try
             {
                 var modules = new Dictionary<string, object?>();
@@ -127,6 +130,7 @@ namespace Decatron.Services.Desktop
             catch (Exception ex) { _logger.LogWarning(ex, "[Desktop] conexión de {Login}", conn.Login); }
             finally
             {
+                _registry.Remove(conn);
                 conn.Cancel();
                 foreach (var ch in _channels.Values)
                 {
