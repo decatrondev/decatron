@@ -66,6 +66,7 @@ const FEATURE_LABEL: Record<string, string> = {
     event_alerts: 'Alertas',
     tips: 'Propinas',
     timer_alerts: 'Timer',
+    live_translation: 'Traducción en vivo',
     admin: 'Admin',
 };
 

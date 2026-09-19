@@ -231,6 +231,84 @@ namespace Decatron.Controllers
             return Ok(new { success = true });
         }
 
+        /// <summary>
+        /// Resumen para el admin: uso agregado, costo estimado por proveedor, límites vigentes
+        /// y tarifas en créditos. Los precios de proveedor son estimaciones a tarifa de lista
+        /// (Deepgram Nova-3 streaming ≈ $0.0077/min; Aura-2 ≈ $0.030/1k chars; Gemini Flash-Lite
+        /// despreciable) — sirven para ver el orden de magnitud, no para contabilidad.
+        /// </summary>
+        [HttpGet("admin/overview")]
+        [Authorize]
+        public async Task<IActionResult> AdminOverview([FromQuery] int days = 30)
+        {
+            if (!IsAdmin()) return Forbid();
+            var since = DateTime.UtcNow.AddDays(-Math.Clamp(days, 1, 365));
+            var rows = await _db.LiveTranslationSessions.AsNoTracking()
+                .Where(s => s.StartedAt >= since).ToListAsync();
+
+            double connectedMin = rows.Sum(s => ((s.EndedAt ?? DateTime.UtcNow) - s.StartedAt).TotalMinutes);
+            double speechMin = rows.Sum(s => s.SpeechSeconds) / 60.0;
+            var chars = new Dictionary<string, long>();
+            foreach (var s in rows)
+            {
+                try
+                {
+                    foreach (var (k, v) in JsonSerializer.Deserialize<Dictionary<string, long>>(s.CharsByLanguageJson ?? "{}") ?? new())
+                        chars[k] = chars.GetValueOrDefault(k) + v;
+                }
+                catch { }
+            }
+            long totalChars = chars.Values.Sum();
+
+            // Créditos realmente cobrados a los canales en el periodo (ledger).
+            var credits = await _db.TtsCreditLedger.AsNoTracking()
+                .Where(l => l.Feature == LiveTranslationCredits.Feature && l.Type == "consume" && l.CreatedAt >= since)
+                .GroupBy(l => l.Engine)
+                .Select(g => new { engine = g.Key, credits = -g.Sum(x => x.Credits), entries = g.Count(), chars = g.Sum(x => (long)(x.Chars ?? 0)) })
+                .ToListAsync();
+
+            var byStreamer = await (
+                from s in _db.LiveTranslationSessions.AsNoTracking()
+                join u in _db.Users.AsNoTracking() on s.UserId equals u.Id
+                where s.StartedAt >= since
+                group s by new { s.UserId, u.Login } into g
+                orderby g.Sum(x => x.SpeechSeconds) descending
+                select new { g.Key.UserId, g.Key.Login, sessions = g.Count(), speechSeconds = g.Sum(x => x.SpeechSeconds), credits = g.Sum(x => x.CreditsUsed), peakListeners = g.Max(x => x.PeakListeners) }
+            ).Take(50).ToListAsync();
+
+            var o = _mgr.Options;
+            return Ok(new
+            {
+                days,
+                sessions = rows.Count,
+                connectedMinutes = Math.Round(connectedMin, 1),
+                speechMinutes = Math.Round(speechMin, 1),
+                charsByLanguage = chars,
+                totalChars,
+                creditsByEngine = credits,
+                // Con audio continuo el STT se paga por minuto conectado, no por minuto hablado.
+                estimatedCostUsd = new
+                {
+                    stt = Math.Round(connectedMin * 0.0077, 2),
+                    tts = Math.Round(totalChars / 1000.0 * 0.030, 2),
+                    total = Math.Round(connectedMin * 0.0077 + totalChars / 1000.0 * 0.030, 2),
+                },
+                byStreamer,
+                active = _mgr.GetAllStatuses(),
+                limits = new
+                {
+                    o.MaxConcurrentChannels, o.MaxLanguagesPerChannel, o.IdleLanguageStopSeconds,
+                    o.IngestTimeoutSeconds, o.MaxQueuedUtterances, o.SttModel, o.TranslationModel,
+                },
+                tariff = new
+                {
+                    sttCreditsPerSecond = o.SttCreditsPerSecond,
+                    ttsCreditsPerChar = new { deepgram_aura = 8, fish = 4 },
+                    note = "1 crédito = 1 carácter de voz estándar. El saldo es el mismo que usan Speak Chat, alertas, tips y timers; el tier define la cuota mensual y los paquetes se compran aparte.",
+                },
+            });
+        }
+
         [HttpGet("admin/sessions")]
         [Authorize]
         public async Task<IActionResult> AdminSessions([FromQuery] int days = 30)

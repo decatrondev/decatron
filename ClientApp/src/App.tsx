@@ -43,6 +43,7 @@ import TtsCreditsAdmin from './pages/admin/TtsCreditsAdmin';
 import ProjectAnalysis from './pages/admin/ProjectAnalysis';
 import AdminFortnite from './pages/admin/AdminFortnite';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
+import LiveTranslationAdmin from './pages/admin/LiveTranslationAdmin';
 import SupportersPublic from './pages/SupportersPublic';
 import PublicCommandsPage from './pages/PublicCommandsPage';
 import TranslatePublic from './pages/TranslatePublic';
@@ -286,6 +287,7 @@ function App() {
 
                     {/* Developer Portal */}
                     <Route path="developer" element={<SafeRoute name="Developer"><DeveloperPortal /></SafeRoute>} />
+                    <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
                     <Route path="developer/apps/new" element={<SafeRoute name="New App"><ApplicationCreate /></SafeRoute>} />
                     <Route path="developer/docs" element={<SafeRoute name="API Docs"><ApiReference /></SafeRoute>} />
 

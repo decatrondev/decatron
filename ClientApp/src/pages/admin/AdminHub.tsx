@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Languages } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -92,6 +92,14 @@ export default function AdminHub() {
             description: 'Compara las voces de Piper (gratis, en el servidor) con Polly: calidad, tiempo y coste',
             icon: <Mic className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/tts-lab',
+            ready: true
+        },
+        {
+            id: 'live-translation',
+            name: 'Traducción en vivo',
+            description: 'Uso, costo estimado por proveedor, sesiones activas y límites',
+            icon: <Languages className="w-6 h-6 text-[#9146FF]" />,
+            route: '/admin/live-translation',
             ready: true
         },
         {
