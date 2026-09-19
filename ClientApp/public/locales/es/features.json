@@ -620,5 +620,84 @@
     "topDonor": "Top donante:",
     "recentDonations": "Donaciones recientes",
     "noDonationsYet": "Aún no hay donaciones registradas"
+  },
+  "liveTranslation": {
+    "loading": "Cargando…",
+    "loadError": "No se pudo cargar la configuración.",
+    "saved": "Guardado.",
+    "saveError": "No se pudo guardar.",
+    "save": "Guardar",
+    "title": "Traducción en vivo",
+    "subtitle": "Tu voz se transcribe, se traduce y se dobla en tiempo real. Cada viewer elige su idioma desde la extensión de Chrome; solo él lo oye.",
+    "notConfigured": "El servidor no tiene configurados los servicios de voz; la función no puede arrancar todavía.",
+    "confirmStop": "¿Cortar la sesión en curso? La app dejará de mandar audio hasta que vuelvas a pulsar Iniciar.",
+    "live": {
+      "active": "Traduciendo ahora",
+      "idle": "Sin sesión activa",
+      "stop": "Detener",
+      "spoken": "hablado",
+      "phrases": "frases",
+      "listeners": "oyentes",
+      "credits": "créditos",
+      "hint": "Abre Decatron Desktop en tu PC y pulsa Iniciar en «Traducción en vivo». Aquí verás oyentes, frases y créditos en tiempo real.",
+      "unlimited": "Tu cuenta no consume créditos.",
+      "balance": "Saldo disponible: {{n}} créditos."
+    },
+    "steps": {
+      "app": {
+        "title": "1 · Decatron Desktop en tu PC",
+        "text": "Captura tu micrófono y lo manda al servidor. Vincúlala una vez desde Ajustes → Integraciones.",
+        "cta": "Descargar la app"
+      },
+      "ext": {
+        "title": "2 · Extensión para tus viewers",
+        "text": "Añade un botón 🌐 al player de Twitch: eligen idioma y escuchan la traducción con subtítulos.",
+        "cta": "Ver la extensión"
+      }
+    },
+    "config": {
+      "title": "Configuración",
+      "subtitle": "Qué idiomas ofreces y con qué voz suena cada uno.",
+      "enabled": "Activar traducción en vivo",
+      "source": "Idioma en que hablas",
+      "sourceHint": "El que transcribe el servidor.",
+      "targets": "Idiomas que ofreces",
+      "targetsHint": "Solo se traduce a un idioma mientras alguien lo escuche; sin oyentes no se gastan créditos de voz.",
+      "voices": "Voces",
+      "voicesHint": "Una voz por idioma. Fish Audio (clon de tu voz) llegará como motor opcional.",
+      "engine": "Motor de voz",
+      "soon": "próximamente",
+      "defaultVoice": "Voz por defecto",
+      "voiceIdPlaceholder": "ID de voz",
+      "announce": "Anunciar en el chat al iniciar",
+      "announceHint": "El bot avisa que el stream se puede escuchar en otros idiomas. Usa {languages} para la lista.",
+      "announcePlaceholder": "🌐 Este stream se puede escuchar en {languages} con la extensión Decatron Translate: https://decatron.net/translate",
+      "background": "Voz original de fondo",
+      "backgroundHint": "Volumen sugerido de tu voz mientras suena la traducción. Cada viewer puede cambiarlo."
+    },
+    "history": {
+      "title": "Sesiones anteriores",
+      "empty": "Todavía no hay sesiones.",
+      "date": "Inicio",
+      "duration": "Duración",
+      "spoken": "Hablado",
+      "phrases": "Frases",
+      "languages": "Caracteres por idioma",
+      "peak": "Pico de oyentes",
+      "credits": "Créditos",
+      "end": "Fin",
+      "ongoing": "en curso"
+    },
+    "reasons": {
+      "disconnected": "app desconectada",
+      "stopped_by_user": "detenida",
+      "no_credits": "sin créditos",
+      "timeout": "sin audio",
+      "error": "error",
+      "admin": "admin",
+      "replaced": "relevada",
+      "restarted": "reiniciada",
+      "server": "servidor"
+    }
   }
 }

@@ -620,5 +620,84 @@
     "topDonor": "Top donor:",
     "recentDonations": "Recent donations",
     "noDonationsYet": "No donations recorded yet"
+  },
+  "liveTranslation": {
+    "loading": "Loading…",
+    "loadError": "Couldn't load the settings.",
+    "saved": "Saved.",
+    "saveError": "Couldn't save.",
+    "save": "Save",
+    "title": "Live translation",
+    "subtitle": "Your voice is transcribed, translated and dubbed in real time. Each viewer picks their language from the Chrome extension; only they hear it.",
+    "notConfigured": "The server has no voice services configured; the feature can't start yet.",
+    "confirmStop": "Stop the current session? The app will stop sending audio until you press Start again.",
+    "live": {
+      "active": "Translating now",
+      "idle": "No active session",
+      "stop": "Stop",
+      "spoken": "spoken",
+      "phrases": "phrases",
+      "listeners": "listeners",
+      "credits": "credits",
+      "hint": "Open Decatron Desktop on your PC and press Start in “Live translation”. Listeners, phrases and credits show up here in real time.",
+      "unlimited": "Your account doesn't consume credits.",
+      "balance": "Available balance: {{n}} credits."
+    },
+    "steps": {
+      "app": {
+        "title": "1 · Decatron Desktop on your PC",
+        "text": "Captures your microphone and sends it to the server. Link it once from Settings → Integrations.",
+        "cta": "Download the app"
+      },
+      "ext": {
+        "title": "2 · Extension for your viewers",
+        "text": "Adds a 🌐 button to the Twitch player: they pick a language and hear the translation with captions.",
+        "cta": "See the extension"
+      }
+    },
+    "config": {
+      "title": "Settings",
+      "subtitle": "Which languages you offer and which voice each one uses.",
+      "enabled": "Enable live translation",
+      "source": "Language you speak",
+      "sourceHint": "What the server transcribes.",
+      "targets": "Languages you offer",
+      "targetsHint": "A language is only translated while someone is listening; no listeners, no voice credits spent.",
+      "voices": "Voices",
+      "voicesHint": "One voice per language. Fish Audio (a clone of your voice) will arrive as an optional engine.",
+      "engine": "Voice engine",
+      "soon": "coming soon",
+      "defaultVoice": "Default voice",
+      "voiceIdPlaceholder": "Voice ID",
+      "announce": "Announce in chat on start",
+      "announceHint": "The bot tells chat the stream can be heard in other languages. Use {languages} for the list.",
+      "announcePlaceholder": "🌐 This stream can be heard in {languages} with the Decatron Translate extension: https://decatron.net/translate",
+      "background": "Original voice in the background",
+      "backgroundHint": "Suggested volume of your voice while the translation plays. Each viewer can change it."
+    },
+    "history": {
+      "title": "Past sessions",
+      "empty": "No sessions yet.",
+      "date": "Started",
+      "duration": "Duration",
+      "spoken": "Spoken",
+      "phrases": "Phrases",
+      "languages": "Characters per language",
+      "peak": "Peak listeners",
+      "credits": "Credits",
+      "end": "End",
+      "ongoing": "ongoing"
+    },
+    "reasons": {
+      "disconnected": "app disconnected",
+      "stopped_by_user": "stopped",
+      "no_credits": "out of credits",
+      "timeout": "no audio",
+      "error": "error",
+      "admin": "admin",
+      "replaced": "replaced",
+      "restarted": "restarted",
+      "server": "server"
+    }
   }
 }

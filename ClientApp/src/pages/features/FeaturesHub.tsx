@@ -1,4 +1,5 @@
-import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap } from 'lucide-react';
+import { useMemo } from 'react';
+import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 
@@ -72,7 +73,15 @@ export default function FeaturesHub() {
             description: 'Colección visual de Fortnite Spirits. Tus viewers trackean cuáles tienen con comandos de Twitch y Discord',
             icon: <Zap className="w-6 h-6 text-[#7B61FF]" />,
             route: '/me/spirits',
-            buttonLabel: 'Ver colección'
+            buttonLabel: 'Ver colección',
+            kickVerified: true // Es por cuenta, no por canal — ver plan seccion 8.10.
+        },
+        {
+            id: 'live-translation',
+            name: 'Traducción en vivo',
+            description: 'Tus viewers te escuchan doblado a su idioma desde la extensión; cada uno elige el suyo y nadie más lo nota',
+            icon: <Languages className="w-6 h-6 text-[#9146FF]" />,
+            route: '/features/live-translation'
         },
         {
             id: 'decatron-ai',

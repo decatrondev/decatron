@@ -29,6 +29,7 @@ import BannedWords from './pages/features/moderation/BannedWords';
 import SoundAlerts from './pages/features/SoundAlerts';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import DecatronChat from './pages/features/DecatronChat';
+import LiveTranslationConfig from './pages/features/LiveTranslationConfig';
 import TipsConfig from './pages/features/TipsConfig';
 import AdminHub from './pages/admin/AdminHub';
 import AdminEconomy from './pages/admin/AdminEconomy';
@@ -265,6 +266,7 @@ function App() {
                     <Route path="gacha/terms" element={<SafeRoute name="Gacha Terms"><GachaTerms /></SafeRoute>} />
                     <Route path="gacha/success" element={<SafeRoute name="Gacha Success"><GachaSuccess /></SafeRoute>} />
 
+                    <Route path="features/live-translation" element={<SafeRoute name="Traducción en vivo"><LiveTranslationConfig /></SafeRoute>} />
                     {/* Viewer Profile */}
                     <Route path="me" element={<SafeRoute name="Profile"><MeOverview /></SafeRoute>} />
                     <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
