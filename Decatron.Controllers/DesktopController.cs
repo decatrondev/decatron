@@ -38,13 +38,14 @@ namespace Decatron.Controllers
         /// <summary>
         /// URL de descarga del último release por plataforma, para que el botón «Descargar» del
         /// dashboard y de /translate apunten directo al archivo. Se lee de la API de GitHub y se
-        /// cachea 1 h en memoria (la API anónima tiene 60 req/h por IP y /translate es pública).
+        /// cachea 5 min en memoria (la API anónima tiene 60 req/h por IP y /translate es pública;
+        /// más de eso hace que el botón siga sirviendo la versión anterior un rato después de publicar).
         /// Los nombres de los assets los fija release.yml del repo de la app. Si GitHub falla se
         /// devuelve solo la página del release, así el botón nunca queda roto.
         /// </summary>
         [HttpGet("releases/latest")]
         [AllowAnonymous]
-        [ResponseCache(Duration = 600, Location = ResponseCacheLocation.Any)]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
         public async Task<ActionResult<ReleaseInfo>> LatestRelease(CancellationToken ct)
         {
             var info = await _cache.GetOrCreateAsync("desktop:latest-release", async e =>
@@ -63,7 +64,7 @@ namespace Decatron.Controllers
                             .Select(a => a.GetProperty("browser_download_url").GetString())
                             .FirstOrDefault()
                         : null;
-                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
                     return new ReleaseInfo(
                         root.GetProperty("tag_name").GetString()?.TrimStart('v'),
                         root.TryGetProperty("html_url", out var h) ? h.GetString() ?? ReleasesLatestUrl : ReleasesLatestUrl,
@@ -73,7 +74,7 @@ namespace Decatron.Controllers
                 }
                 catch
                 {
-                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+                    e.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1);
                     return new ReleaseInfo(null, ReleasesLatestUrl, null, null, null);
                 }
             });
