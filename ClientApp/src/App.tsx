@@ -45,6 +45,7 @@ import AdminFortnite from './pages/admin/AdminFortnite';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import SupportersPublic from './pages/SupportersPublic';
 import PublicCommandsPage from './pages/PublicCommandsPage';
+import TranslatePublic from './pages/TranslatePublic';
 import GachaConfig from './pages/features/gacha-extension/GachaConfig';
 import GachaOverlay from './pages/GachaOverlay';
 import GachaCollection from './pages/GachaCollection';
@@ -140,6 +141,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<><PublicNav /><Index /></>} />
                 <Route path="/login" element={<><PublicNav /><Login /></>} />
+                <Route path="/translate" element={<><PublicNav /><TranslatePublic /></>} />
 
                 {/* Overlay Routes - No layout for OBS */}
                 <Route path="/overlay/shoutout" element={<SafeRoute name="Shoutout Overlay"><ShoutoutOverlay /></SafeRoute>} />

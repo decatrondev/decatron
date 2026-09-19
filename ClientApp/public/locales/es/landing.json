@@ -5,52 +5,97 @@
   "loginButton": "Iniciar Sesión",
   "viewFeatures": "Ver Características",
   "featuresHeading": "Características",
-
   "featureCommandsTitle": "Comandos",
   "featureCommandsDescription": "Crea comandos personalizados con variables dinámicas, cooldowns y permisos por rol. Incluye contadores, alias y respuestas condicionales.",
-
   "featureModerationTitle": "Moderación",
   "featureModerationDescription": "Protege tu chat con filtros de spam, links y palabras prohibidas. Configura advertencias automáticas, timeouts y bans con reglas totalmente personalizables.",
-
   "featureSettingsTitle": "Configuración",
   "featureSettingsDescription": "Ajusta cada detalle del bot desde un panel web intuitivo. Controla prefijos, idioma, módulos activos y comportamiento por canal sin tocar código.",
-
   "featureMultiChannelTitle": "Multi-Canal",
   "featureMultiChannelDescription": "Gestiona múltiples canales de Twitch desde una sola cuenta. Cada canal tiene su propia configuración independiente.",
-
   "featureStatsTitle": "Estadísticas",
   "featureStatsDescription": "Métricas en tiempo real: comandos más usados, usuarios activos, historial de chat y tendencias de actividad en gráficos claros.",
-
   "featurePerformanceTitle": "Rendimiento",
   "featurePerformanceDescription": "Respuestas en milisegundos con arquitectura optimizada. El bot se mantiene estable 24/7 sin interrupciones ni lag en tu chat.",
-
   "featureAITitle": "Inteligencia Artificial",
   "featureAIDescription": "Respuestas inteligentes con Gemini y OpenRouter. El bot puede chatear, responder preguntas y generar contenido directamente en tu stream.",
-
   "featureOverlaysTitle": "Overlays",
   "featureOverlaysDescription": "Overlays para OBS con alertas, metas y chat en pantalla. Personaliza colores, animaciones y posición para integrarlos a tu stream.",
-
   "statOnline": "24/7 Online",
   "statMultiChannel": "Multi-Canal",
   "statFree": "100% Gratis",
   "statLanguages": "Español e Inglés",
-
   "whyHeading": "¿Por qué Decatron?",
-
   "whyFreeTitle": "Gratis para siempre",
   "whyFreeDescription": "Sin planes de pago, sin funciones bloqueadas. Todas las características disponibles para todos los usuarios desde el día uno.",
-
   "whyCustomTitle": "Altamente personalizable",
   "whyCustomDescription": "Cada módulo se adapta a tu estilo. Desde comandos hasta moderación, todo es configurable desde el panel web sin complicaciones.",
-
   "whyLangTitle": "Multi-idioma",
   "whyLangDescription": "Soporte para Español e Inglés con más idiomas en camino. Implementándose poco a poco para cubrir más comunidades.",
-
   "ctaHeading": "Apoya el proyecto",
   "ctaDescription": "Decatron es un proyecto independiente y gratuito. Tu apoyo ayuda a mantener los servidores funcionando y financiar el desarrollo de nuevas funciones.",
   "ctaButton": "Ver Supporters",
-
   "footerSupporters": "Supporters",
   "footerLogin": "Iniciar Sesión",
-  "copyright": "© 2026 Decatron.net"
+  "copyright": "© 2026 Decatron.net",
+  "translate": {
+    "hero": {
+      "title": "Escucha a tu streamer favorito en tu idioma",
+      "text": "Una extensión para Chrome que dobla el stream en tiempo real y solo tú lo oyes. El canal, el chat y el resto del público siguen igual.",
+      "cta": "Instalar la extensión",
+      "how": "Cómo funciona",
+      "note": "Gratis para los viewers. Sin cuenta. Solo pide permiso en twitch.tv."
+    },
+    "demo": {
+      "stream": "tu stream aquí",
+      "caption": "El botón 🌐 aparece junto al engranaje del player cuando el canal ofrece traducción."
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "install": {
+        "title": "Instala la extensión",
+        "text": "Se añade a Chrome y solo actúa en twitch.tv. No pide cuenta ni datos."
+      },
+      "pick": {
+        "title": "Elige tu idioma en el player",
+        "text": "Si el canal ofrece traducción, verás un botón 🌐 junto al engranaje. Elige inglés, portugués o el que ofrezca el streamer."
+      },
+      "listen": {
+        "title": "Escucha y lee",
+        "text": "La voz traducida suena sobre la voz original bajada de volumen, con subtítulos. Puedes ajustar el volumen de fondo y el retraso."
+      }
+    },
+    "facts": {
+      "private": {
+        "title": "Solo tú lo oyes",
+        "text": "La traducción se reproduce en tu navegador. El streamer no tiene que cambiar nada de su emisión y los demás viewers no se enteran."
+      },
+      "captions": {
+        "title": "Con subtítulos",
+        "text": "Cada frase aparece escrita al ritmo del audio; si quieres, también la original."
+      },
+      "noaccount": {
+        "title": "Sin cuenta ni rastreo",
+        "text": "No hay registro. Tus preferencias (idioma, volumen) se guardan en tu propio Chrome."
+      }
+    },
+    "streamers": {
+      "title": "¿Eres streamer?",
+      "text": "Activa la traducción en vivo desde tu dashboard de Decatron, instala la app de escritorio que captura tu micrófono y elige los idiomas. Tus viewers de otros países te escuchan en el suyo.",
+      "cta": "Entrar al dashboard",
+      "app": "Descargar Decatron Desktop"
+    },
+    "privacy": {
+      "title": "Privacidad de la extensión",
+      "points": [
+        "La extensión solo se ejecuta en páginas de twitch.tv y solo habla con decatron.net.",
+        "No pide cuenta ni recoge datos personales. No lee el chat ni tu actividad en Twitch.",
+        "Lo único que envía al servidor es el nombre del canal que estás viendo y el idioma que elegiste, para recibir la traducción de ese canal.",
+        "Tus preferencias (idioma preferido, volumen de fondo, subtítulos) se guardan en el almacenamiento de tu navegador y se pueden borrar desinstalando la extensión.",
+        "El audio y el texto traducidos se generan a partir de la voz del streamer, con su autorización expresa al activar la función.",
+        "No hay publicidad ni venta de datos."
+      ],
+      "contact": "Dudas sobre privacidad:"
+    }
+  }
 }
