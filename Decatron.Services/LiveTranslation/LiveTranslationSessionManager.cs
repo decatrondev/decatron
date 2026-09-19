@@ -286,6 +286,8 @@ namespace Decatron.Services.LiveTranslation
         public LiveTranslationSettings Settings { get; }
         public DateTime StartedAt { get; } = DateTime.UtcNow;
         public DateTime LastAudioUtc { get; private set; } = DateTime.UtcNow;
+        /// <summary>Cuándo llegó el primer frame de audio: reloj de referencia para el eje de tiempo de Deepgram.</summary>
+        public DateTime? FirstAudioUtc { get; private set; }
         public CancellationToken Token => _cts.Token;
 
         public double SpeechSeconds => _speechSeconds;
@@ -318,6 +320,7 @@ namespace Decatron.Services.LiveTranslation
         public Task PushAudioAsync(ReadOnlyMemory<byte> pcm16, CancellationToken ct)
         {
             LastAudioUtc = DateTime.UtcNow;
+            FirstAudioUtc ??= LastAudioUtc;
             return _stt?.SendAudioAsync(pcm16, ct) ?? Task.CompletedTask;
         }
 
@@ -519,10 +522,13 @@ namespace Decatron.Services.LiveTranslation
             }
             _session.AddTtsUsage(_lang, translated.Length, charged);
 
+            // Cuánto tardó Deepgram en cerrar la frase desde que el streamer calló: el audio
+            // llega en tiempo real, así que "fin de habla" ≈ primer frame + t1.
+            double? sttLag = _session.FirstAudioUtc is { } f0 ? (u.FinalAtUtc - f0).TotalSeconds - u.EndSec : null;
             var start = new
             {
                 seq = q.Seq, lang = _lang, t0 = u.StartSec, t1 = u.EndSec,
-                source = u.Text, text = translated, sttAt = u.FinalAtUtc,
+                source = u.Text, text = translated, sttAt = u.FinalAtUtc, sttLag,
             };
             await Notify("SegmentStart", start);
 
