@@ -102,3 +102,23 @@
     "backToDashboard": "Back to Dashboard"
   }
 }
+  },
+  "desktop": {
+    "description": "The bot's desktop app: live translation and upcoming modules that need your PC.",
+    "download": "Download",
+    "linkButton": "Link app",
+    "codeHint": "Type this code in the app. It lasts 10 minutes and works once.",
+    "copy": "Copy",
+    "expiresIn": "expires in {{m}}:{{s}}",
+    "linkedDevices": "Linked PCs",
+    "refresh": "Refresh",
+    "noDevices": "None yet. Install the app, press “Link app” and type the code.",
+    "lastSeen": "last seen",
+    "neverSeen": "never",
+    "justNow": "just now",
+    "minutesAgo": "{{n}} min ago",
+    "hoursAgo": "{{n}} h ago",
+    "revoke": "Unlink",
+    "confirmRevoke": "Unlink “{{name}}”? The app will stop connecting until you link it again.",
+    "errorCode": "Couldn't generate the code.",
+    "errorRevoke": "Couldn't unlink."

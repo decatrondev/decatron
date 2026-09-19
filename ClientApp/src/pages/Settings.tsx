@@ -5,6 +5,8 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../components/LanguageSelector';
+import RiotAccountsSettings from './settings/RiotAccountsSettings';
+import DesktopAppSettings from './settings/DesktopAppSettings';
 
 function parseJwt(token: string | null): Record<string, string> {
     if (!token) return {};
@@ -952,6 +954,8 @@ function DiscordIntegration() {
                     <MessageSquare className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
+                            <DesktopAppSettings />
+                            <RiotAccountsSettings />
                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Discord</div>
                     <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
                         {loading ? 'Cargando...' : linkedGuilds.length > 0 ? `${linkedGuilds.length} servidor${linkedGuilds.length > 1 ? 'es' : ''} vinculado${linkedGuilds.length > 1 ? 's' : ''}` : 'No vinculado'}

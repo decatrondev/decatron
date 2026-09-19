@@ -102,3 +102,23 @@
     "backToDashboard": "Volver al Dashboard"
   }
 }
+  },
+  "desktop": {
+    "description": "La app de escritorio del bot: traducción en vivo y próximos módulos que necesitan tu PC.",
+    "download": "Descargar",
+    "linkButton": "Vincular app",
+    "codeHint": "Escribe este código en la app. Vale 10 minutos y se usa una sola vez.",
+    "copy": "Copiar",
+    "expiresIn": "vence en {{m}}:{{s}}",
+    "linkedDevices": "PCs vinculadas",
+    "refresh": "Actualizar",
+    "noDevices": "Ninguna todavía. Instala la app, pulsa «Vincular app» y escribe el código.",
+    "lastSeen": "última conexión",
+    "neverSeen": "nunca",
+    "justNow": "hace un momento",
+    "minutesAgo": "hace {{n}} min",
+    "hoursAgo": "hace {{n}} h",
+    "revoke": "Desvincular",
+    "confirmRevoke": "¿Desvincular «{{name}}»? La app dejará de conectarse hasta que la vincules de nuevo.",
+    "errorCode": "No se pudo generar el código.",
+    "errorRevoke": "No se pudo desvincular."
