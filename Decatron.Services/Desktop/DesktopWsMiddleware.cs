@@ -205,14 +205,17 @@ namespace Decatron.Services.Desktop
             node["ch"] = channel;
             node["type"] = type;
             var bytes = Encoding.UTF8.GetBytes(node.ToJsonString(_json));
-            await _sendLock.WaitAsync(Token);
+            // La app puede cerrar mientras aún le estamos respondiendo (p. ej. "stopped"):
+            // no es un error, simplemente ya no hay a quién mandarle.
+            try { await _sendLock.WaitAsync(Token); } catch (OperationCanceledException) { return; }
             try
             {
-                if (_ws.State == WebSocketState.Open)
+                if (_ws.State == WebSocketState.Open && !Token.IsCancellationRequested)
                     await _ws.SendAsync(bytes, WebSocketMessageType.Text, true, Token);
             }
             catch (OperationCanceledException) { }
             catch (WebSocketException) { }
+            catch (ObjectDisposedException) { }
             finally { _sendLock.Release(); }
         }
 
