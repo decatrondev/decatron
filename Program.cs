@@ -282,6 +282,40 @@ try
                     QueueLimit = 0,
                 });
         });
+
+        // Traducción en vivo: la extensión consulta el estado de un canal (anónimo) y la
+        // app de escritorio canjea códigos de vinculación (anónimo, y adivinable por
+        // fuerza bruta si no se frena: 32^8 combinaciones pero igual).
+        options.AddPolicy("live-translation-public", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 60,
+                    QueueLimit = 0,
+                });
+        });
+        options.AddPolicy("live-translation-claim", context =>
+        {
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            var clientIp = string.IsNullOrWhiteSpace(forwarded)
+                ? context.Connection.RemoteIpAddress?.ToString()
+                : forwarded.Split(',')[0].Trim();
+            return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: clientIp ?? "anon",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    Window = TimeSpan.FromMinutes(10),
+                    PermitLimit = 10,
+                    QueueLimit = 0,
+                });
+        });
     });
 
     // Register repositories
@@ -343,6 +377,17 @@ try
     builder.Services.AddScoped<IPaymentModeService, PaymentModeService>();
     builder.Services.AddScoped<IBillingProfileService, BillingProfileService>();
     builder.Services.AddSingleton<IStreamStatusService, StreamStatusService>();
+
+    // Traducción en vivo (doblaje por espectador) — .dev/plans/REALTIME_TRANSLATION_PLAN.md
+    builder.Services.Configure<Decatron.Services.LiveTranslation.LiveTranslationOptions>(
+        builder.Configuration.GetSection(Decatron.Services.LiveTranslation.LiveTranslationOptions.Section));
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.LiveTranslator>();
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.ITranslationTtsEngine, Decatron.Services.LiveTranslation.DeepgramAuraTtsEngine>();
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.ITranslationTtsEngine, Decatron.Services.LiveTranslation.FishAudioTtsEngine>();
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>();
+    builder.Services.AddSingleton<Decatron.Hubs.ITranslationListenerNotifier>(sp =>
+        sp.GetRequiredService<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>());
+    builder.Services.AddScoped<Decatron.Services.LiveTranslation.LiveTranslationDeviceService>();
     builder.Services.AddScoped<IWatchTimeTrackingService, WatchTimeTrackingService>();
     builder.Services.AddScoped<IChatActivityService, ChatActivityService>();
     builder.Services.AddScoped<GameSearchService>();
@@ -577,8 +622,11 @@ try
                 var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
                 await seeder.SeedGameCacheAndAliasesAsync();
             }
+    app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
+    app.UseMiddleware<Decatron.Services.LiveTranslation.LiveTranslationIngestMiddleware>(); // WS de audio de la app de escritorio
             catch (Exception ex)
             {
+    app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador
                 Log.Error(ex, "Error seeding database");
             }
         }

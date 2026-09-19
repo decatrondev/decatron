@@ -125,6 +125,11 @@ namespace Decatron.Data
 
         // Now Playing / Music System
         public DbSet<NowPlayingConfig> NowPlayingConfigs { get; set; }
+        // Traducción en vivo (doblaje por espectador)
+        public DbSet<Core.Models.LiveTranslation.LiveTranslationSettings> LiveTranslationSettings { get; set; }
+        public DbSet<Core.Models.LiveTranslation.LiveTranslationDevice> LiveTranslationDevices { get; set; }
+        public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
+
 
         // Supporters System
         public DbSet<DiscountCode> DiscountCodes { get; set; }

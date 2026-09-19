@@ -35,6 +35,10 @@ namespace Decatron.Services
             ["generative"] = 8,   // 7.5 real, redondeado hacia arriba
             ["longform"]   = 25,
             ["long-form"]  = 25,
+            // Traducción en vivo (.dev/plans/REALTIME_TRANSLATION_PLAN.md)
+            ["live_stt"]      = 1,   // unidades ya vienen en créditos (segundos × SttCreditsPerSecond)
+            ["deepgram_aura"] = 8,   // Aura-2 ≈ $30/M chars, el doble de Polly neural
+            ["fish"]          = 4,   // Fish ≈ $15/M chars
         };
 
         // Cuotas mensuales por tier (créditos)
