@@ -67,7 +67,7 @@ export default function DecatronChatAdmin() {
         enabled: false,
         aiProvider: 'gemini',
         fallbackEnabled: false,
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-3.5-flash-lite',
         openRouterModel: 'x-ai/grok-4.1-fast:free',
         maxTokens: 2000,
         systemPrompt: '',

@@ -32,7 +32,7 @@ namespace Decatron.Services
         public async Task<AIResponse> GenerateResponseAsync(
             string prompt,
             string systemPrompt,
-            string model = "gemini-2.0-flash-lite",
+            string model = "gemini-3.5-flash-lite",
             int maxTokens = 60,
             bool truncateForTwitch = true)
         {

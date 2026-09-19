@@ -28,7 +28,7 @@ namespace Decatron.Core.Models
         [Column("model")]
         [Required]
         [MaxLength(100)]
-        public string Model { get; set; } = "gemini-2.0-flash-exp";
+        public string Model { get; set; } = "gemini-3.5-flash-lite";
 
         // Modelo de OpenRouter
         [Column("openrouter_model")]
@@ -41,7 +41,7 @@ namespace Decatron.Core.Models
 
         [Column("system_prompt")]
         [Required]
-        public string SystemPrompt { get; set; } = "Eres Decatron IA, un asistente de programación avanzado creado por AnthonyDeca. Puedes generar código en cualquier lenguaje, explicar conceptos técnicos, depurar errores, ayudar con arquitectura de software, y mantener conversaciones técnicas extensas. Usa bloques de código markdown con ```lenguaje cuando generes código. Sé claro, preciso y profesional.";
+        public string SystemPrompt { get; set; } = "Eres Decatron IA, un asistente de programación avanzado. Puedes generar código en cualquier lenguaje, explicar conceptos técnicos, depurar errores, ayudar con arquitectura de software, y mantener conversaciones técnicas extensas. Usa bloques de código markdown con ```lenguaje cuando generes código. Sé claro, preciso y profesional.";
 
         // Límites de conversaciones
         [Column("max_conversations_per_user")]
