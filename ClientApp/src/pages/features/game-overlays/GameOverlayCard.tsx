@@ -280,6 +280,41 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
         );
     }
 
+    // Barra: una tira horizontal fina para el borde superior/inferior del stream.
+    // Todo en una linea con separadores, sin borde de acento lateral (lleva una linea
+    // de acento arriba), y las stats/ultimas partidas van inline en vez de apiladas.
+    if (layout === 'bar') {
+        const sep = <span style={{ width: 1, height: 22, background: 'rgba(255,255,255,.12)', flexShrink: 0 }} />;
+        const items: JSX.Element[] = [];
+        if (isVisible('emblem') && rank?.emblem) items.push(<img key="emblem" src={rank.emblem} alt="" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ width: emblemSize * 0.4, height: emblemSize * 0.4, objectFit: 'contain', flexShrink: 0 }} />);
+        if (isVisible('rank')) items.push(<span key="rank" style={{ ...fontStyle(el.rank?.font, 26), fontSize: (el.rank?.font?.size ?? 26) * 0.7 }}>{rankText}{queueTag ? <span style={{ fontSize: '0.5em', color: accent, marginLeft: 6, letterSpacing: 1 }}>{queueTag.toUpperCase()}</span> : null}</span>);
+        if (isVisible('lp') && pointsText) items.push(<span key="lp" style={fontStyle(el.lp?.font, 16)}>{pointsText}</span>);
+        if (isVisible('session') && (hasSession || aggregate)) items.push(
+            <span key="session" style={{ ...fontStyle(el.session?.font, 15), display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                <span style={{ color: NEUTRAL, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' }}>{L.today}</span>
+                <span><span style={{ color: WIN }}>{wins}W</span> <span style={{ color: LOSS }}>{losses}L</span></span>
+                {el.session?.showDelta !== false && deltaText && <span style={{ color: deltaColor, fontWeight: 700 }}>{deltaText}</span>}
+            </span>);
+        if (isVisible('recent') && session) items.push(<span key="recent"><RecentMatches matches={session.matches} cfg={{ ...(el.recent ?? { visible: true }), count: Math.min(el.recent?.count ?? 5, 8) }} noMatches="" /></span>);
+        const stats = <StatsBlocks el={{ ...el, topChamps: { ...el.topChamps, visible: false }, mastery: { ...el.mastery, visible: false }, lpGraph: { ...el.lpGraph, visible: false } } as typeof el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={id => el[id]?.visible === true} />;
+        if (isVisible('accountName')) items.push(<span key="name" style={{ ...fontStyle(el.accountName?.font, 13), color: el.accountName?.font?.color ?? NEUTRAL }}>{account.displayName}{accountCount > 1 ? ` ${accountIndex + 1}/${accountCount}` : ''}</span>);
+        if (isVisible('liveCharacter') && account.live?.inGame) items.push(
+            <span key="live" style={{ ...fontStyle(el.liveCharacter?.font, 13), display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: LOSS, boxShadow: `0 0 6px ${LOSS}` }} />
+                {account.live.characterIcon && <img src={account.live.characterIcon} alt="" style={{ width: 18, height: 18, borderRadius: 4 }} />}
+                {L.inGame}{account.live.character ? ` · ${account.live.character}` : ''}
+            </span>);
+        return (
+            <div style={{ ...bg, borderRadius: config.background.type === 'transparent' ? 0 : Math.min(config.background.radius, 8), borderTop: `3px solid ${accent}`, padding: '6px 18px', display: 'inline-flex', alignItems: 'center', gap: 14, minWidth: 520, animation: switchAnim }}>
+                {isVisible('gameLogo') && <span style={{ fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: accent, fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{gameName}</span>}
+                {items.flatMap((it, i) => i === 0 ? [it] : [<span key={`sep-${i}`} style={{ display: 'contents' }}>{sep}</span>, it])}
+                <span style={{ display: 'flex', gap: 14, alignItems: 'center' }}>{stats}</span>
+            </div>
+        );
+    }
+
+    // Compacto: tarjeta chica de dos columnas (emblema | rango + LP + sesion en una
+    // fila) pensada para una esquina. Las stats extra se apilan debajo en letra chica.
     return (
         <div style={{
             ...bg,
@@ -317,7 +352,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
 
             {/* Sesion */}
             {isVisible('session') && (hasSession || aggregate) && (
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, ...fontStyle(el.session?.font, 15) }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, ...fontStyle(el.session?.font, 15), ...(horizontal ? { flexDirection: 'column', gap: 2, borderLeft: '1px solid rgba(255,255,255,.12)', paddingLeft: 14 } : {}) }}>
                     <span style={{ color: NEUTRAL, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase' }}>{L.today}</span>
                     <span><span style={{ color: WIN }}>{wins}W</span> <span style={{ color: NEUTRAL }}>·</span> <span style={{ color: LOSS }}>{losses}L</span></span>
                     {el.session?.showDelta !== false && deltaText && <span style={{ color: deltaColor, fontWeight: 700 }}>{deltaText}</span>}
@@ -329,8 +364,10 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
                 <RecentMatches matches={session.matches} cfg={el.recent ?? { visible: true }} noMatches={L.noMatches} />
             )}
 
-            {/* Estadísticas (fase "LoL enriquecido") */}
-            <StatsBlocks el={el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={isVisible} />
+            {/* Estadísticas (fase "LoL enriquecido"); en compacto van en una columna aparte */}
+            {horizontal
+                ? <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderLeft: '1px solid rgba(255,255,255,.12)', paddingLeft: 14 }}><StatsBlocks el={el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={isVisible} /></div>
+                : <StatsBlocks el={el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={isVisible} />}
 
             {/* Partida en vivo */}
             {isVisible('liveCharacter') && account.live?.inGame && (
