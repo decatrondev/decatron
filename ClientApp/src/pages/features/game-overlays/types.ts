@@ -139,6 +139,12 @@ export interface LiveCoachInfo {
     comment: string; suggestion?: string | null; runes?: string | null; spells?: string | null; build?: string | null; matchup?: string | null;
     tips: string[]; coachName: string; at: string;
 }
+/** Predicción del chat (!pred win|loss) de la partida en curso: pozo por lado y resultado. */
+export interface LivePredictionInfo {
+    champion?: string | null; openedAt: string; closesAt: string;
+    poolWin: number; poolLoss: number; betsWin: number; betsLoss: number;
+    result?: 'win' | 'loss' | 'refund' | null; resolvedAt?: string | null; winners: number; top: string[];
+}
 export interface LivePhaseInfo {
     phase: LivePhaseId;
     queueId?: number | null;
@@ -148,6 +154,7 @@ export interface LivePhaseInfo {
     game?: LiveGameDetails | null;
     postGame?: LivePostGame | null;
     coach?: LiveCoachInfo | null;
+    prediction?: LivePredictionInfo | null;
     updatedAt: string;
 }
 
@@ -181,7 +188,7 @@ export type ElementId = 'emblem' | 'rank' | 'lp' | 'session' | 'recent' | 'accou
     // Fase "LoL enriquecido": estadísticas de las últimas partidas
     | 'winrate' | 'kdaCs' | 'streak' | 'topChamps' | 'mastery' | 'lpGraph'
     // Fase B: en vivo desde Decatron Desktop (selección de campeón, fin de partida)
-    | 'champSelect' | 'postGame' | 'coachSay';
+    | 'champSelect' | 'postGame' | 'coachSay' | 'prediction';
 
 export interface FontStyle {
     family?: string;
@@ -213,9 +220,9 @@ export type StylePreset = 'minimal' | 'stats' | 'full';
 export const STYLE_PRESET_LABELS: Record<StylePreset, string> = { minimal: 'Minimal', stats: 'Stats (op.gg)', full: 'Completo' };
 /** Qué elementos deja visibles cada preset; el resto de la config no se toca. */
 export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
-    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame', 'coachSay'],
-    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay'],
-    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay'],
+    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
+    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
+    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
 };
 
 /** Vistas por las que rota la tarjeta ("tipo GIF"): la principal, stats, campeones, gráfico. */
@@ -303,6 +310,7 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
             champSelect: { visible: true, font: { size: 12, weight: 600, color: '#e6edf3' } },
             postGame: { visible: true, font: { size: 14, weight: 600, color: '#e6edf3' } },
             coachSay: { visible: true, font: { size: 13, weight: 500, color: '#e6edf3' } },
+            prediction: { visible: true, font: { size: 13, weight: 600, color: '#e6edf3' } },
         },
         background: { type: 'solid', color: '#0f1115', opacity: 85, radius: 12 },
         accent: GAME_ACCENTS[game],
@@ -391,11 +399,11 @@ export const ELEMENT_LABELS: Record<ElementId, string> = {
     emblem: 'Emblema de rango', rank: 'Rango', lp: 'Puntos (LP/RR/ELO)', session: 'Sesión (W-L y delta)',
     recent: 'Últimas partidas', accountName: 'Nombre de cuenta', gameLogo: 'Nombre del juego', liveCharacter: 'En partida',
     winrate: 'Winrate', kdaCs: 'KDA / CS por minuto', streak: 'Racha', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'Gráfico de LP',
-    champSelect: 'Selección de campeón (Desktop)', postGame: 'Fin de partida (Desktop)', coachSay: 'Coach dice (IA)',
+    champSelect: 'Selección de campeón (Desktop)', postGame: 'Fin de partida (Desktop)', coachSay: 'Coach dice (IA)', prediction: 'Predicción del chat (!pred)',
 };
 
 /** Elementos que solo se alimentan del cliente de LoL vía Decatron Desktop. */
-export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame', 'coachSay'];
+export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame', 'coachSay', 'prediction'];
 
 /** Elementos que solo tienen sentido si el proveedor da esos datos (hoy: LoL). */
 export const STATS_ELEMENTS: ElementId[] = ['winrate', 'kdaCs', 'streak', 'topChamps', 'mastery', 'lpGraph'];

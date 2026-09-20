@@ -262,7 +262,7 @@ namespace Decatron.Services.GameData.LolLive
         {
             if (type is not ("ingame" or "eog")) return;
             var settings = await CoachSettingsAsync(conn.UserId);
-            if (!settings.PredictionsEnabled) return;
+            if (!settings.PredictionsEnabled) { entry.Phase.Prediction = null; return; }
             string lang;
             using (var scope = _scopes.CreateScope())
                 lang = await scope.ServiceProvider.GetRequiredService<DecatronDbContext>().Users.Where(u => u.Id == conn.UserId).Select(u => u.PreferredLanguage).FirstOrDefaultAsync() ?? "es";
@@ -271,6 +271,8 @@ namespace Decatron.Services.GameData.LolLive
             {
                 var started = g.StartedAt ?? DateTime.UtcNow;
                 var key = $"{entry.Puuid}:{started:yyyyMMddHHmm}";
+                // La de la partida anterior no debe quedar en el overlay si esta no llega a abrirse.
+                if (entry.Phase.Prediction is { } old && old.OpenedAt < started) entry.Phase.Prediction = null;
                 await _predictions.OpenAsync(conn.UserId, conn.Login, lang, settings, key, g.Champion?.Name, started);
             }
             else if (type == "eog" && entry.Phase.PostGame is { } pg)

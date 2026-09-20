@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Decatron.Core.Interfaces;
 using Decatron.Core.Models.GameOverlays;
 using Decatron.Data;
+using Decatron.Services.GameData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,11 +24,12 @@ namespace Decatron.Services.GameData.LolLive
 
         private readonly IServiceScopeFactory _scopes;
         private readonly IMessageSender _chat;
+        private readonly LolLiveStateStore _live;
         private readonly ILogger<LolPredictionService> _logger;
 
-        public LolPredictionService(IServiceScopeFactory scopes, IMessageSender chat, ILogger<LolPredictionService> logger)
+        public LolPredictionService(IServiceScopeFactory scopes, IMessageSender chat, LolLiveStateStore live, ILogger<LolPredictionService> logger)
         {
-            _scopes = scopes; _chat = chat; _logger = logger;
+            _scopes = scopes; _chat = chat; _live = live; _logger = logger;
         }
 
         private string Msg(IServiceProvider sp, string key, string lang, params object[] args) =>
@@ -46,8 +48,10 @@ namespace Decatron.Services.GameData.LolLive
 
             var closes = startedAt.AddMinutes(Math.Clamp(settings.PredictionCloseMinutes, 1, 20));
             if (closes <= DateTime.UtcNow.AddSeconds(30)) return; // llegamos tarde (reconexión a mitad de partida): no abrir
-            db.LolPredictions.Add(new LolPrediction { UserId = userId, GameKey = gameKey, Champion = champion, ClosesAt = closes });
+            var pred = new LolPrediction { UserId = userId, GameKey = gameKey, Champion = champion, ClosesAt = closes };
+            db.LolPredictions.Add(pred);
             await db.SaveChangesAsync();
+            await SyncOverlayAsync(scope.ServiceProvider, pred, 0, 0);
             var minutes = Math.Max(1, (int)Math.Round((closes - DateTime.UtcNow).TotalMinutes));
             await SayAsync(login, Msg(scope.ServiceProvider, "opened", lang, champion ?? "?", minutes, settings.PredictionStartPoints));
         }
@@ -60,6 +64,7 @@ namespace Decatron.Services.GameData.LolLive
             var pred = await db.LolPredictions.Where(p => p.UserId == userId && p.ResolvedAt == null).OrderByDescending(p => p.Id).FirstOrDefaultAsync();
             if (pred == null) return;
             var (result, winners, top) = await ResolveInternalAsync(db, pred, win);
+            await SyncOverlayAsync(scope.ServiceProvider, pred, winners: winners, top: top);
             if (result == "refund")
                 await SayAsync(login, Msg(scope.ServiceProvider, "refunded", lang, win ? Msg(scope.ServiceProvider, "side_win", lang) : Msg(scope.ServiceProvider, "side_loss", lang)));
             else
@@ -73,7 +78,54 @@ namespace Decatron.Services.GameData.LolLive
             using var scope = _scopes.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
             foreach (var p in await db.LolPredictions.Where(p => p.UserId == userId && p.ResolvedAt == null).ToListAsync())
+            {
                 await ResolveInternalAsync(db, p, null);
+                await SyncOverlayAsync(scope.ServiceProvider, p);
+            }
+        }
+
+        // ─── Widget del overlay ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// Refleja la predicción en la fase en vivo del canal (LivePhaseInfo.Prediction) y
+        /// publica el overlay. Si el Desktop no está conectado no hay fase: no hay nada que mostrar.
+        /// </summary>
+        private async Task SyncOverlayAsync(IServiceProvider sp, LolPrediction pred, int? betsWin = null, int? betsLoss = null, int winners = 0, string top = "")
+        {
+            var entry = _live.Get(pred.UserId);
+            if (entry == null) return;
+            var db = sp.GetRequiredService<DecatronDbContext>();
+            if (betsWin == null || betsLoss == null)
+            {
+                var counts = await db.LolPredictionBets.Where(b => b.PredictionId == pred.Id).GroupBy(b => b.Side)
+                    .Select(g => new { g.Key, N = g.Count() }).ToListAsync();
+                betsWin ??= counts.FirstOrDefault(c => c.Key == "win")?.N ?? 0;
+                betsLoss ??= counts.FirstOrDefault(c => c.Key == "loss")?.N ?? 0;
+            }
+            var info = entry.Phase.Prediction;
+            if (info == null || info.OpenedAt != pred.OpenedAt) entry.Phase.Prediction = info = new LivePredictionInfo { OpenedAt = pred.OpenedAt };
+            info.Champion = pred.Champion; info.ClosesAt = pred.ClosesAt;
+            info.PoolWin = pred.PoolWin; info.PoolLoss = pred.PoolLoss;
+            info.BetsWin = betsWin.Value; info.BetsLoss = betsLoss.Value;
+            info.Result = pred.Result; info.ResolvedAt = pred.ResolvedAt;
+            if (pred.ResolvedAt != null)
+            {
+                info.Winners = winners;
+                info.Top = top.Length == 0 ? new List<string>() : top.Split(", ").ToList();
+            }
+            entry.Phase.UpdatedAt = DateTime.UtcNow;
+            try { await sp.GetRequiredService<GameDataPollingService>().PushLivePhaseAsync(pred.UserId); }
+            catch (Exception ex) { _logger.LogDebug(ex, "[LolPred] push overlay user {UserId}", pred.UserId); }
+        }
+
+        /// <summary>Tras una apuesta desde el chat: actualiza el pozo en el overlay.</summary>
+        public async Task NotifyBetAsync(long userId)
+        {
+            if (_live.Get(userId) == null) return;
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            var pred = await db.LolPredictions.Where(p => p.UserId == userId && p.ResolvedAt == null).OrderByDescending(p => p.Id).FirstOrDefaultAsync();
+            if (pred != null) await SyncOverlayAsync(scope.ServiceProvider, pred);
         }
 
         private async Task<(string result, int winners, string top)> ResolveInternalAsync(DecatronDbContext db, LolPrediction pred, bool? win)

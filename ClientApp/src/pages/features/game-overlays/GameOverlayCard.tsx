@@ -60,12 +60,15 @@ export interface CardLabels {
     today: string; inGame: string; noMatches: string;
     winrate: string; last: string; season: string; streakWin: string; streakLoss: string; topChamps: string; mastery: string; lpGraph: string; games: string;
     lobby: string; matchmaking: string; champSelect: string; postGame: string; victory: string; defeat: string; yourTurn: string; bans: string; team: string; enemy: string;
+    prediction: string; predWin: string; predLoss: string; predClosesIn: string; predClosed: string; predRefund: string; predWinners: string; predHint: string; predNoBets: string;
 }
 export const CARD_LABELS: Record<'es' | 'en', CardLabels> = {
     es: { today: 'Hoy', inGame: 'En partida', noMatches: 'Sin partidas en esta sesión', winrate: 'Winrate', last: 'últimas', season: 'temporada', streakWin: 'victorias seguidas', streakLoss: 'derrotas seguidas', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'LP de hoy', games: 'partidas',
-          lobby: 'En lobby', matchmaking: 'Buscando partida', champSelect: 'Selección de campeón', postGame: 'Fin de partida', victory: 'Victoria', defeat: 'Derrota', yourTurn: '¡Tu turno!', bans: 'Bans', team: 'Equipo', enemy: 'Rival' },
+          lobby: 'En lobby', matchmaking: 'Buscando partida', champSelect: 'Selección de campeón', postGame: 'Fin de partida', victory: 'Victoria', defeat: 'Derrota', yourTurn: '¡Tu turno!', bans: 'Bans', team: 'Equipo', enemy: 'Rival',
+          prediction: 'Predicción del chat', predWin: 'Gana', predLoss: 'Pierde', predClosesIn: 'cierra en', predClosed: 'cerrada', predRefund: 'Sin apuestas en contra: puntos devueltos', predWinners: 'acertaron', predHint: '!pred win|loss [puntos]', predNoBets: 'Nadie apostó todavía' },
     en: { today: 'Today', inGame: 'In game', noMatches: 'No matches this session', winrate: 'Winrate', last: 'last', season: 'season', streakWin: 'win streak', streakLoss: 'loss streak', topChamps: 'Top champions', mastery: 'Mastery', lpGraph: "Today's LP", games: 'games',
-          lobby: 'In lobby', matchmaking: 'Finding match', champSelect: 'Champion select', postGame: 'Game over', victory: 'Victory', defeat: 'Defeat', yourTurn: 'Your turn!', bans: 'Bans', team: 'Team', enemy: 'Enemy' },
+          lobby: 'In lobby', matchmaking: 'Finding match', champSelect: 'Champion select', postGame: 'Game over', victory: 'Victory', defeat: 'Defeat', yourTurn: 'Your turn!', bans: 'Bans', team: 'Team', enemy: 'Enemy',
+          prediction: 'Chat prediction', predWin: 'Win', predLoss: 'Loss', predClosesIn: 'closes in', predClosed: 'closed', predRefund: 'No bets against: points refunded', predWinners: 'got it right', predHint: '!pred win|loss [points]', predNoBets: 'No bets yet' },
 };
 
 const WIN = '#4ade80';
@@ -310,6 +313,45 @@ function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; f
     );
 }
 
+/**
+ * Predicción del chat: barra con el pozo de cada lado (verde gana / rojo pierde) y la cuenta
+ * regresiva hasta el cierre; al terminar la partida, el lado ganador y quiénes acertaron.
+ */
+function PredictionBlock({ live, font, L, accent, now, compact }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number; compact?: boolean }) {
+    const p = live.prediction;
+    if (!p) return null;
+    const total = p.poolWin + p.poolLoss;
+    const pctWin = total > 0 ? Math.round(p.poolWin * 100 / total) : 50;
+    const secsLeft = Math.max(0, Math.floor((new Date(p.closesAt).getTime() - now) / 1000));
+    const resolved = !!p.result;
+    const label = { fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' as const, fontFamily: 'Inter, sans-serif', fontWeight: 700 };
+    const width = compact ? 220 : 280;
+
+    let status: JSX.Element;
+    if (resolved && p.result === 'refund') status = <span style={{ color: NEUTRAL }}>{L.predRefund}</span>;
+    else if (resolved) status = <span style={{ color: p.result === 'win' ? WIN : LOSS, fontWeight: 700 }}>{p.result === 'win' ? L.predWin : L.predLoss} · {p.winners} {L.predWinners}</span>;
+    else if (secsLeft > 0) status = <span style={{ color: NEUTRAL }}>{L.predClosesIn} <span style={{ color: '#e6edf3', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(secsLeft)}</span> · <span style={{ color: accent }}>{L.predHint}</span></span>;
+    else status = <span style={{ color: NEUTRAL }}>{L.predClosed}</span>;
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width }}>
+            <span style={{ ...label, color: accent }}>{L.prediction}{p.champion ? <span style={{ color: NEUTRAL, fontWeight: 500 }}> · {p.champion}</span> : null}</span>
+            <div style={{ ...font, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ color: WIN }}>{L.predWin} {fmtK(p.poolWin)} <span style={{ fontSize: '0.75em', color: NEUTRAL }}>({p.betsWin})</span></span>
+                <span style={{ color: LOSS }}><span style={{ fontSize: '0.75em', color: NEUTRAL }}>({p.betsLoss})</span> {fmtK(p.poolLoss)} {L.predLoss}</span>
+            </div>
+            <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', background: 'rgba(255,255,255,.1)' }}>
+                {total > 0 && <>
+                    <span style={{ width: `${pctWin}%`, background: WIN, opacity: resolved && p.result !== 'win' ? 0.35 : 1, transition: 'width .4s ease' }} />
+                    <span style={{ flex: 1, background: LOSS, opacity: resolved && p.result !== 'loss' ? 0.35 : 1 }} />
+                </>}
+            </div>
+            <div style={{ ...font, fontSize: '0.8em', whiteSpace: 'normal' }}>{total === 0 && !resolved ? <span style={{ color: NEUTRAL }}>{L.predNoBets} · <span style={{ color: accent }}>{L.predHint}</span></span> : status}</div>
+            {resolved && p.top.length > 0 && <div style={{ ...font, fontSize: '0.75em', color: NEUTRAL, whiteSpace: 'normal' }}>{p.top.join(' · ')}</div>}
+        </div>
+    );
+}
+
 function StatsBlocks({ el, stats, session, rank, L, accent, isVisible }: {
     el: GameVisualConfig['elements']; stats?: AccountStats | null; session?: SessionState | null; rank?: AccountOverlayState['rank'];
     L: CardLabels; accent: string; isVisible: (id: keyof GameVisualConfig['elements']) => boolean;
@@ -408,7 +450,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
     const pointsLabel = rank?.pointsLabel ?? '';
     const isVisible = (id: keyof typeof el) => el[id]?.visible !== false;
     const live = account.livePhase && account.livePhase.phase !== 'none' ? account.livePhase : null;
-    const now = useTicker(live?.phase === 'ingame');
+    const now = useTicker(live?.phase === 'ingame' || (!!live?.prediction && !live.prediction.result));
 
     const bg: CSSProperties = config.background.type === 'transparent'
         ? {}
@@ -520,6 +562,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
         if (live && isVisible('champSelect') && live.phase === 'champselect') items.push(<span key="cs"><ChampSelectBlock live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} /></span>);
         if (live && isVisible('postGame') && live.phase === 'postgame') items.push(<span key="pg"><PostGameBlock live={live} font={fontStyle(el.postGame?.font, 13)} L={L} /></span>);
         if (live && isVisible('coachSay') && live.coach && live.phase !== 'ingame') items.push(<span key="coach"><CoachSayBlock live={live} font={fontStyle(el.coachSay?.font, 12)} accent={accent} compact /></span>);
+        if (live && isVisible('prediction') && live.prediction && (live.phase === 'ingame' || live.phase === 'postgame')) items.push(<span key="pred"><PredictionBlock live={live} font={fontStyle(el.prediction?.font, 12)} L={L} accent={accent} now={now} compact /></span>);
         if (live && isVisible('liveCharacter')) items.push(<span key="live"><LiveStatusLine live={live} font={fontStyle(el.liveCharacter?.font, 13)} L={L} accent={accent} now={now} /></span>);
         else if (isVisible('liveCharacter') && account.live?.inGame) items.push(
             <span key="live" style={{ ...fontStyle(el.liveCharacter?.font, 13), display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -596,6 +639,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
             {live && isVisible('champSelect') && live.phase === 'champselect' && <ChampSelectBlock live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} />}
             {live && isVisible('postGame') && live.phase === 'postgame' && <PostGameBlock live={live} font={fontStyle(el.postGame?.font, 14)} L={L} />}
             {live && isVisible('coachSay') && live.coach && live.phase !== 'ingame' && <CoachSayBlock live={live} font={fontStyle(el.coachSay?.font, 13)} accent={accent} />}
+            {live && isVisible('prediction') && live.prediction && (live.phase === 'ingame' || live.phase === 'postgame') && <PredictionBlock live={live} font={fontStyle(el.prediction?.font, 13)} L={L} accent={accent} now={now} />}
 
             {/* Estado en vivo: con Desktop, la fase real; sin Desktop, "En partida" de la Riot API */}
             {isVisible('liveCharacter') && (live

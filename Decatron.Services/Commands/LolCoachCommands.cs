@@ -286,6 +286,7 @@ namespace Decatron.Services.Commands
                 case "not_enough": await SayPred(ctx, "not_enough", ctx.Context.Username, r.Balance); break;
                 default: await SayPred(ctx, "invalid", ctx.Context.Username, LolPredictionService.MinBet); break;
             }
+            if (r.Status == "ok") await svc.NotifyBetAsync(ctx.ChannelUserId); // pozo en vivo en el overlay
         }
 
         private Task SayPred(Ctx ctx, string key, params object[] args) => ctx.Sender.SendMessageAsync(ctx.Context.Channel, ctx.Messages.GetMessage("lolpred", key, ctx.Lang, args));

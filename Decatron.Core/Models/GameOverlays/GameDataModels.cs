@@ -339,6 +339,29 @@ public class LiveCoachInfo
     public DateTime At { get; set; } = DateTime.UtcNow;
 }
 
+/// <summary>
+/// Predicción del chat sobre la partida en curso, para el widget del overlay: pozo de cada
+/// lado en vivo, cuándo cierra y el resultado al terminar. Ver LolPredictionService.
+/// </summary>
+public class LivePredictionInfo
+{
+    public string? Champion { get; set; }
+    public DateTime OpenedAt { get; set; }
+    /// <summary>Hasta cuándo se aceptan apuestas (el overlay hace la cuenta regresiva).</summary>
+    public DateTime ClosesAt { get; set; }
+    public long PoolWin { get; set; }
+    public long PoolLoss { get; set; }
+    public int BetsWin { get; set; }
+    public int BetsLoss { get; set; }
+    /// <summary>null mientras está en curso; win | loss | refund al resolver.</summary>
+    public string? Result { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+    /// <summary>Cuántos acertaron (solo al resolver).</summary>
+    public int Winners { get; set; }
+    /// <summary>Hasta 3 ganadores con lo que ganaron, ej. "pepe +120".</summary>
+    public List<string> Top { get; set; } = new();
+}
+
 /// <summary>Lo que el cliente de LoL esta haciendo ahora, ya traducido a nombres e iconos.</summary>
 public class LivePhaseInfo
 {
@@ -352,5 +375,7 @@ public class LivePhaseInfo
     public LivePostGame? PostGame { get; set; }
     /// <summary>Ultimo comentario del coach (null si esta apagado o aun no hablo).</summary>
     public LiveCoachInfo? Coach { get; set; }
+    /// <summary>Predicción del chat de la partida actual (null si están apagadas o no hay).</summary>
+    public LivePredictionInfo? Prediction { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
