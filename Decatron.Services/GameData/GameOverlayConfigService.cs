@@ -190,6 +190,16 @@ namespace Decatron.Services.GameData
                                 accountQueues[kv.Name] = kv.Value.GetString()!;
                     node["accountQueues"] = JsonSerializer.SerializeToElement(accountQueues);
 
+                    // promo.enabled: en el tier gratis la tarjeta de Decatron no se puede apagar.
+                    if (!limits.CanHidePromo && node.TryGetValue("promo", out var promoEl) && promoEl.ValueKind == JsonValueKind.Object
+                        && promoEl.TryGetProperty("enabled", out var pen) && pen.ValueKind == JsonValueKind.False)
+                    {
+                        var promo = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(promoEl.GetRawText(), Json) ?? new();
+                        promo["enabled"] = JsonSerializer.SerializeToElement(true);
+                        node["promo"] = JsonSerializer.SerializeToElement(promo, Json);
+                        adjustments.Add($"{prop.Name}: la tarjeta de Decatron se puede ocultar a partir del plan Supporter.");
+                    }
+
                     output[prop.Name] = JsonSerializer.SerializeToElement(node, Json);
                 }
                 config.GamesJson = JsonSerializer.Serialize(output, Json);

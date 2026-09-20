@@ -181,6 +181,28 @@ export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
     full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter'],
 };
 
+/** Vistas por las que rota la tarjeta ("tipo GIF"): la principal, stats, campeones, gráfico. */
+export type SlideView = 'main' | 'stats' | 'champs' | 'graph';
+export const SLIDE_VIEW_LABELS: Record<SlideView, string> = { main: 'Principal', stats: 'Estadísticas', champs: 'Campeones', graph: 'Gráfico de LP' };
+export interface SlidesConfig {
+    enabled: boolean;
+    /** Segundos que dura cada vista. */
+    seconds: number;
+    views: SlideView[];
+}
+/**
+ * Tarjeta de Decatron: cada cierto tiempo tapa la tarjeta de la cuenta con el logo
+ * completo del bot y un mensaje ("Consigue Decatron gratis en decatron.net"). En el
+ * tier gratis no se puede apagar (el backend lo fuerza); en los de pago sí.
+ */
+export interface PromoConfig {
+    enabled: boolean;
+    /** Cada cuántos segundos aparece. */
+    everySeconds: number;
+    /** Cuántos segundos se queda. */
+    durationSeconds: number;
+}
+
 export interface GameVisualConfig {
     enabled: boolean;
     accounts: number[];
@@ -197,6 +219,8 @@ export interface GameVisualConfig {
     animation: { in: 'fade' | 'slide' | 'none'; out: 'fade' | 'slide' | 'none'; accountSwitch: 'fade' | 'slide' | 'none' };
     /** Posicion de la tarjeta en el canvas (px). */
     position: { x: number; y: number };
+    slides: SlidesConfig;
+    promo: PromoConfig;
 }
 
 export interface GameOverlayInstance {
@@ -243,6 +267,8 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
         accent: GAME_ACCENTS[game],
         animation: { in: 'fade', out: 'fade', accountSwitch: 'slide' },
         position: { x: 24, y: 24 },
+        slides: { enabled: false, seconds: 12, views: ['main', 'stats', 'champs', 'graph'] },
+        promo: { enabled: true, everySeconds: 180, durationSeconds: 8 },
     };
 }
 
@@ -262,6 +288,8 @@ export function resolveGameConfig(game: GameId, saved?: Partial<GameVisualConfig
         animation: { ...d.animation, ...saved.animation },
         position: { ...d.position, ...saved.position },
         accountQueues: { ...(saved.accountQueues ?? {}) },
+        slides: { ...d.slides, ...saved.slides, views: saved.slides?.views?.length ? saved.slides.views : d.slides.views },
+        promo: { ...d.promo, ...saved.promo },
         elements,
     };
 }

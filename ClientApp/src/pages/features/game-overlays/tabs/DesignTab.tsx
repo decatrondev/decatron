@@ -9,8 +9,9 @@ import { RotateCcw } from 'lucide-react';
 import { CanvasEditor } from '../../../../components/overlay-editor/CanvasEditor';
 import { Card, SectionTitle, Label, SubLabel, SelectInput, ColorInput, Slider, Toggle, NumberInput, Checkbox } from '../../now-playing-extension/components/ui/SharedUI';
 import { GameOverlayCard } from '../GameOverlayCard';
+import { CardView, availableViews } from '../slides';
 import { gameOverlaysApi } from '../api';
-import { ELEMENT_LABELS, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_LABELS, OverlayState, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESET_LABELS, StylePreset, defaultGameConfig, formatTier } from '../types';
+import { ELEMENT_LABELS, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_LABELS, OverlayState, SLIDE_VIEW_LABELS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESET_LABELS, SlideView, StylePreset, defaultGameConfig, formatTier } from '../types';
 
 const FONT_FAMILIES = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Oswald', 'Bebas Neue', 'Rajdhani', 'Exo 2', 'Press Start 2P', 'system-ui'];
 const BASE_ELEMENT_ORDER: ElementId[] = ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'recent', 'liveCharacter'];
@@ -21,15 +22,25 @@ interface Props {
     game: GameId;
     games: Record<GameId, GameVisualConfig>;
     canvas: { width: number; height: number };
+    /** false = tier gratis: la tarjeta de Decatron no se puede apagar. */
+    canHidePromo: boolean;
     onSelectGame: (g: GameId) => void;
     onChange: (game: GameId, patch: Partial<GameVisualConfig>) => void;
     onCanvasChange: (c: { width: number; height: number }) => void;
 }
 
-export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, onSelectGame, onChange, onCanvasChange }) => {
+export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHidePromo, onSelectGame, onChange, onCanvasChange }) => {
     const cfg = games[game];
     const [preview, setPreview] = useState<OverlayState | null>(null);
     const [selected, setSelected] = useState<ElementId>('rank');
+    // Qué vista se diseña en el canvas (la rotación real corre en el overlay, aquí se elige a mano).
+    const [previewView, setPreviewView] = useState<CardView>('main');
+    const promoForced = !canHidePromo;
+    const toggleView = (v: SlideView) => {
+        const views = cfg.slides.views.includes(v) ? cfg.slides.views.filter(x => x !== v) : [...cfg.slides.views, v];
+        if (views.length === 0) return;
+        onChange(game, { slides: { ...cfg.slides, views } });
+    };
     // Los widgets de estadisticas solo existen donde el proveedor da esos datos (hoy LoL).
     const hasStats = GAMES_WITH_STATS.includes(game);
     const ELEMENT_ORDER = hasStats ? ALL_ELEMENT_ORDER : BASE_ELEMENT_ORDER;
@@ -98,11 +109,19 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, onSelect
                             id: 'card',
                             position: cfg.position,
                             node: (
-                                <GameOverlayCard game={game} gameName={GAME_NAMES[game]} config={cfg} account={account}
+                                <GameOverlayCard game={game} gameName={GAME_NAMES[game]} config={cfg} account={account} view={previewView}
                                     accountIndex={0} accountCount={preview?.accounts.length ?? 1} switchAnimation="none" formatTier={formatTier} />
                             ),
                         }] : []}
                     />
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                    <span className="text-[11px] text-[#94a3b8] mr-1">Ver:</span>
+                    {([...(hasStats ? availableViews(cfg, account) : ['main' as SlideView]), 'promo'] as CardView[]).map(v => (
+                        <button key={v} onClick={() => setPreviewView(v)} className={`px-2.5 py-1 rounded-lg text-xs border ${previewView === v ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>
+                            {v === 'promo' ? 'Tarjeta Decatron' : SLIDE_VIEW_LABELS[v]}
+                        </button>
+                    ))}
                 </div>
                 <div className="flex flex-wrap items-end gap-4 mt-3">
                     <div className="w-40"><Label>Lienzo</Label>
@@ -230,6 +249,44 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, onSelect
                             </div>
                         )}
                         {selected === 'gameLogo' && <p className="text-[11px] text-[#6b7280]">Muestra el nombre del juego en el color de acento, arriba del rango.</p>}
+                    </div>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                <Card>
+                    <SectionTitle>Rotación de vistas</SectionTitle>
+                    <SubLabel>La tarjeta va cambiando sola entre vistas, como un GIF: principal → estadísticas → campeones → gráfico de LP. Solo se muestran las vistas que tienen datos.</SubLabel>
+                    <div className="space-y-4 mt-3">
+                        <Toggle checked={cfg.slides.enabled} onChange={v => onChange(game, { slides: { ...cfg.slides, enabled: v } })} label="Rotar vistas" size="sm" disabled={!hasStats} />
+                        {!hasStats && <p className="text-[11px] text-[#6b7280]">Disponible en juegos con estadísticas (por ahora League of Legends).</p>}
+                        {hasStats && (
+                            <>
+                                <div className="w-48"><Label>Segundos por vista</Label><NumberInput value={cfg.slides.seconds} onChange={v => onChange(game, { slides: { ...cfg.slides, seconds: Math.max(4, v) } })} min={4} max={120} /></div>
+                                <div>
+                                    <Label>Vistas</Label>
+                                    <div className="grid grid-cols-2 gap-2 mt-1">
+                                        {(Object.keys(SLIDE_VIEW_LABELS) as SlideView[]).map(v => (
+                                            <Checkbox key={v} checked={cfg.slides.views.includes(v)} onChange={() => toggleView(v)} label={SLIDE_VIEW_LABELS[v]} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </Card>
+
+                <Card>
+                    <SectionTitle>Tarjeta de Decatron</SectionTitle>
+                    <SubLabel>Cada cierto tiempo, la tarjeta de la cuenta se tapa unos segundos con el logo de Decatron y un mensaje para que tus viewers conozcan el bot.</SubLabel>
+                    <div className="space-y-4 mt-3">
+                        <Toggle checked={promoForced || cfg.promo.enabled} onChange={v => onChange(game, { promo: { ...cfg.promo, enabled: v } })} label="Mostrar tarjeta de Decatron" size="sm" disabled={promoForced} />
+                        {promoForced && <p className="text-[11px] text-[#94a3b8]">En el plan gratis siempre se muestra: es lo que mantiene a Decatron gratis. Se puede ocultar desde el plan Supporter. <a href="/supporters" className="text-blue-400 underline">Ver planes</a></p>}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div><Label>Cada cuántos segundos</Label><NumberInput value={cfg.promo.everySeconds} onChange={v => onChange(game, { promo: { ...cfg.promo, everySeconds: Math.max(30, v) } })} min={30} max={1800} /></div>
+                            <div><Label>Duración (s)</Label><NumberInput value={cfg.promo.durationSeconds} onChange={v => onChange(game, { promo: { ...cfg.promo, durationSeconds: Math.min(30, Math.max(3, v)) } })} min={3} max={30} /></div>
+                        </div>
+                        <p className="text-[11px] text-[#6b7280]">Usa el fondo y el acento de la tarjeta. Pulsa "Tarjeta Decatron" arriba del lienzo para verla.</p>
                     </div>
                 </Card>
             </div>

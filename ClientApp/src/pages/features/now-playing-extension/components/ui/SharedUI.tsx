@@ -153,19 +153,20 @@ export const Toggle: React.FC<{
     label: string;
     description?: string;
     size?: 'sm' | 'lg';
-}> = ({ checked, onChange, label, description, size = 'sm' }) => {
+    disabled?: boolean;
+}> = ({ checked, onChange, label, description, size = 'sm', disabled = false }) => {
     const trackSize = size === 'lg' ? 'w-14 h-7' : 'w-10 h-5';
     const dotSize = size === 'lg' ? 'w-5 h-5' : 'w-3.5 h-3.5';
     const dotTranslate = size === 'lg' ? (checked ? 'translate-x-7' : 'translate-x-1') : (checked ? 'translate-x-5' : 'translate-x-0.5');
 
     return (
-        <label className="flex items-center justify-between cursor-pointer group py-1">
+        <label className={`flex items-center justify-between group py-1 ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
             <div className="flex-1 mr-3">
                 <span className="text-sm font-medium text-[#f8fafc] group-hover:text-white transition-colors">{label}</span>
                 {description && <p className="text-xs text-[#64748b] mt-0.5">{description}</p>}
             </div>
             <div className={`relative ${trackSize} rounded-full transition-colors ${checked ? 'bg-blue-500' : 'bg-[#374151]'}`}
-                onClick={() => onChange(!checked)}>
+                onClick={() => { if (!disabled) onChange(!checked); }}>
                 <div className={`absolute top-1/2 -translate-y-1/2 ${dotSize} rounded-full bg-white shadow transition-transform ${dotTranslate}`} />
             </div>
         </label>

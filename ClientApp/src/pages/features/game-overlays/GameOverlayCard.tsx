@@ -7,6 +7,7 @@
  */
 import { CSSProperties } from 'react';
 import { AccountOverlayState, AccountStats, ElementConfig, FontStyle, GameId, GameVisualConfig, MatchSummary, PointsSample, ROLE_LABELS, SessionState } from './types';
+import { CardView, PROMO_MESSAGES } from './slides';
 
 interface Props {
     game: GameId;
@@ -20,6 +21,39 @@ interface Props {
     formatTier: (tier: string) => string;
     /** Textos fijos de la tarjeta (por defecto en español; el overlay usa el idioma del canal). */
     labels?: Partial<CardLabels>;
+    /** Vista actual de la rotación (ver slides.ts). undefined = principal. */
+    view?: CardView;
+    lang?: 'es' | 'en';
+}
+
+/** Tarjeta de Decatron: logo completo + mensaje + decatron.net. Tapa la tarjeta de la cuenta unos segundos. */
+export function PromoCard({ config, lang = 'es', animation }: { config: GameVisualConfig; lang?: 'es' | 'en'; animation?: string }) {
+    const accent = config.accent ?? '#3b82f6';
+    const bg: CSSProperties = config.background.type === 'transparent'
+        ? { background: 'rgba(15,17,21,.9)', borderRadius: 12 }
+        : { background: hexToRgba(config.background.color, Math.max(config.background.opacity, 70)), borderRadius: config.background.radius };
+    const msgs = PROMO_MESSAGES[lang];
+    const line = msgs.lines[Math.floor(Date.now() / 60000) % msgs.lines.length];
+    const url = <div style={{ fontSize: 20, fontWeight: 800, color: '#ffffff', letterSpacing: 0.5 }}>decatron<span style={{ color: '#3b82f6' }}>.net</span></div>;
+    if (config.layout === 'bar') {
+        return (
+            <div style={{ ...bg, borderRadius: config.background.type === 'transparent' ? 0 : Math.min(config.background.radius, 8), boxShadow: '0 4px 16px rgba(0,0,0,.35)', borderTop: `3px solid ${accent}`, padding: '6px 18px', display: 'inline-flex', alignItems: 'center', gap: 18, minWidth: 520, animation, fontFamily: 'Inter, system-ui, sans-serif' }}>
+                <img src="/brand/decatron-lockup-light.png" alt="Decatron" style={{ height: 40, width: 'auto', objectFit: 'contain' }} />
+                <span style={{ width: 1, height: 26, background: 'rgba(255,255,255,.12)' }} />
+                <div style={{ fontSize: 12, color: '#c9d1d9', whiteSpace: 'normal', maxWidth: 320 }}>{line}</div>
+                <span style={{ width: 1, height: 26, background: 'rgba(255,255,255,.12)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}><span style={{ fontSize: 9, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1 }}>{msgs.title}</span>{url}</div>
+            </div>
+        );
+    }
+    return (
+        <div style={{ ...bg, boxShadow: '0 4px 16px rgba(0,0,0,.35)', borderLeft: `3px solid ${accent}`, padding: '14px 18px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 280, maxWidth: 360, animation, fontFamily: 'Inter, system-ui, sans-serif', textAlign: 'center' }}>
+            <img src="/brand/decatron-lockup-light.png" alt="Decatron" style={{ width: 200, height: 'auto', objectFit: 'contain' }} />
+            <div style={{ fontSize: 12, color: '#c9d1d9', lineHeight: 1.3, whiteSpace: 'normal' }}>{line}</div>
+            <div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1 }}>{msgs.title}</div>
+            {url}
+        </div>
+    );
 }
 
 export interface CardLabels {
@@ -234,7 +268,7 @@ function StatsBlocks({ el, stats, session, rank, L, accent, isVisible }: {
     return blocks.length ? <>{blocks}</> : null;
 }
 
-export function GameOverlayCard({ game, gameName, config, account, aggregate, accountIndex, accountCount, switchAnimation, formatTier, labels }: Props) {
+export function GameOverlayCard({ game, gameName, config, account, aggregate, accountIndex, accountCount, switchAnimation, formatTier, labels, view, lang }: Props) {
     const L = { ...CARD_LABELS.es, ...labels };
     const el = config.elements;
     const accent = config.accent ?? '#c8aa6e';
@@ -270,12 +304,70 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
     const layout = config.layout;
     const horizontal = layout === 'compact' || layout === 'bar';
 
+    if (view === 'promo') return <PromoCard config={config} lang={lang} animation={switchAnim} />;
+
     if (layout === 'emblem-only') {
         return (
             <div style={{ ...bg, padding: 10, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4, animation: switchAnim, borderLeft: `3px solid ${accent}` }}>
                 {rank?.emblem && <img src={rank.emblem} alt="" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ width: emblemSize, height: emblemSize, objectFit: 'contain' }} />}
                 {isVisible('rank') && <div style={fontStyle(el.rank?.font, 18)}>{rankText}</div>}
                 {isVisible('lp') && pointsText && <div style={fontStyle(el.lp?.font, 13)}>{pointsText}</div>}
+            </div>
+        );
+    }
+
+    // Vistas de la rotación ("tipo GIF"): misma cabecera, cuerpo distinto. Fuerzan
+    // visibles los elementos de la vista aunque estén apagados en la principal.
+    if (view && view !== 'main') {
+        const header = (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {rank?.emblem && <img src={rank.emblem} alt="" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ width: emblemSize * 0.5, height: emblemSize * 0.5, objectFit: 'contain', flexShrink: 0 }} />}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ ...fontStyle(el.rank?.font, 26), fontSize: (el.rank?.font?.size ?? 26) * 0.7 }}>{rankText}{pointsText ? <span style={{ ...fontStyle(el.lp?.font, 16), fontSize: '0.65em', marginLeft: 8 }}>{pointsText}</span> : null}</div>
+                    {isVisible('accountName') && <div style={fontStyle(el.accountName?.font, 13)}>{account.displayName}</div>}
+                </div>
+            </div>
+        );
+        const on = (ids: (keyof typeof el)[], extra?: Partial<Record<keyof typeof el, Partial<ElementConfig>>>) => {
+            const e: typeof el = { ...el };
+            for (const id of ids) e[id] = { ...(el[id] ?? { visible: true }), ...(extra?.[id] ?? {}), visible: true };
+            return e;
+        };
+        let body: JSX.Element | null = null;
+        if (view === 'stats') {
+            const e = on(['winrate', 'kdaCs', 'streak'], { winrate: { scope: el.winrate?.scope ?? 'recent' }, kdaCs: { metrics: el.kdaCs?.metrics?.length ? el.kdaCs.metrics : ['kda', 'cs', 'damage', 'vision'] } });
+            body = <StatsBlocks el={e} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={id => ['winrate', 'kdaCs', 'streak'].includes(id as string)} />;
+        } else if (view === 'champs') {
+            const e = on(['topChamps', 'mastery']);
+            body = <div style={{ display: 'flex', gap: 18 }}><StatsBlocks el={e} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={id => ['topChamps', 'mastery'].includes(id as string)} /></div>;
+        } else if (view === 'graph') {
+            const e = on(['lpGraph'], { lpGraph: { height: Math.max(el.lpGraph?.height ?? 48, 64) } });
+            body = (
+                <>
+                    {(hasSession || aggregate) && (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, ...fontStyle(el.session?.font, 15), fontSize: (el.session?.font?.size ?? 15) * 1.2 }}>
+                            <span style={{ color: NEUTRAL, fontSize: 11, letterSpacing: 1, textTransform: 'uppercase' }}>{L.today}</span>
+                            <span><span style={{ color: WIN }}>{wins}W</span> <span style={{ color: NEUTRAL }}>·</span> <span style={{ color: LOSS }}>{losses}L</span></span>
+                            {deltaText && <span style={{ color: deltaColor, fontWeight: 700 }}>{deltaText}</span>}
+                        </div>
+                    )}
+                    <StatsBlocks el={e} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={id => id === 'lpGraph'} />
+                    {session && <RecentMatches matches={session.matches} cfg={{ ...(el.recent ?? { visible: true }), style: el.recent?.style === 'dots' ? 'icons' : el.recent?.style }} noMatches={L.noMatches} />}
+                </>
+            );
+        }
+        // En Barra/Compacto la vista también va en horizontal (cabecera | cuerpo) para no cambiar de forma al rotar.
+        const isBar = layout === 'bar';
+        return (
+            <div style={{
+                ...bg, padding: horizontal ? (isBar ? '6px 18px' : '10px 16px') : '14px 18px', display: 'inline-flex',
+                flexDirection: horizontal ? 'row' : 'column', alignItems: horizontal ? 'center' : 'stretch', gap: horizontal ? 16 : 10,
+                minWidth: isBar ? 520 : horizontal ? undefined : 280, animation: switchAnim,
+                ...(isBar ? { borderTop: `3px solid ${accent}`, borderRadius: config.background.type === 'transparent' ? 0 : Math.min(config.background.radius, 8) } : { borderLeft: `3px solid ${accent}` }),
+            }}>
+                {isVisible('gameLogo') && <div style={{ fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: accent, fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{gameName}</div>}
+                {header}
+                {horizontal ? <div style={{ display: 'flex', flexDirection: isBar ? 'row' : 'column', gap: isBar ? 16 : 6, alignItems: isBar ? 'center' : 'stretch', borderLeft: '1px solid rgba(255,255,255,.12)', paddingLeft: 14 }}>{body}</div> : body}
             </div>
         );
     }
