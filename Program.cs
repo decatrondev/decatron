@@ -400,6 +400,11 @@ try
     builder.Services.AddScoped<DatabaseSeeder>();
     builder.Services.AddScoped<Decatron.Core.Services.ModerationService>();
     builder.Services.AddScoped<Decatron.Core.Services.FollowersService>();
+    // IA unificada: cache de config/precios, registro de uso y cliente OpenRouter (singletons).
+    // Plan: .dev/plans/AI_OPENROUTER_UNIFICACION_PLAN.md
+    builder.Services.AddSingleton<Decatron.Services.AI.AiSettingsCache>();
+    builder.Services.AddSingleton<Decatron.Services.AI.AiUsageRecorder>();
+    builder.Services.AddSingleton<Decatron.Services.AI.OpenRouterClient>();
     builder.Services.AddScoped<Decatron.Services.GeminiService>();
     builder.Services.AddScoped<Decatron.Services.OpenRouterService>();
     builder.Services.AddScoped<Decatron.Services.AIProviderService>();
@@ -474,7 +479,23 @@ try
     builder.Services.AddHttpClient<EventSubService>();
     // Modulo de Torneos (Milestone 0) — cliente de Riot API, la key la trae cada
     // canal-tenant, ver .dev/torneos/03-riot-api-integracion.md.
-    builder.Services.AddHttpClient<Decatron.Services.Tournament.TournamentRiotApiClient>();
+    builder.Services.AddHttpClient<Decatron.Services.GameData.Riot.RiotApiClient>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.Riot.RiotApiKeys>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.Riot.RiotRateLimitGate>();
+    // Game Overlays (.dev/plans/GAME_OVERLAYS_PLAN.md) — proveedores por juego +
+    // cache compartida + deteccion de juego + sesiones. Agregar un juego = un
+    // IGameDataProvider mas en esta lista.
+    builder.Services.AddSingleton<Decatron.Services.GameData.GameDataCache>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.GameDetectionService>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.GameOverlayStateStore>();
+    builder.Services.AddScoped<Decatron.Services.GameData.GameSessionService>();
+    builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayConfigService>();
+    builder.Services.AddScoped<Decatron.Services.GameData.GameAccountService>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.IGameDataProvider, Decatron.Services.GameData.Providers.ManualProvider>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.IGameDataProvider, Decatron.Services.GameData.Providers.RiotLolProvider>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.GameDataProviderRegistry>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.GameDataPollingService>();
+    builder.Services.AddHostedService(sp => sp.GetRequiredService<Decatron.Services.GameData.GameDataPollingService>());
     builder.Services.AddScoped<Decatron.Services.Tournament.TournamentRiotSyncService>();
     builder.Services.AddScoped<Decatron.Services.Tournament.TournamentBlueShellEngine>();
     builder.Services.AddScoped<Decatron.Services.Tournament.TournamentBlueShellService>();
@@ -612,8 +633,11 @@ try
     app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseAuthorization();
     app.UseRateLimiter();
+    app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
+    app.UseMiddleware<Decatron.Services.Desktop.DesktopWsMiddleware>(); // WS único de Decatron Desktop (todos los módulos)
     app.MapControllers();
     app.MapHub<Decatron.Hubs.OverlayHub>("/hubs/overlay");
+    app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador
 
     Log.Information("API ready on https://localhost:7264");
     Log.Information("SignalR Overlay Hub disponible en /hubs/overlay");
@@ -628,11 +652,8 @@ try
                 var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
                 await seeder.SeedGameCacheAndAliasesAsync();
             }
-    app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
-    app.UseMiddleware<Decatron.Services.Desktop.DesktopWsMiddleware>(); // WS único de Decatron Desktop (todos los módulos)
             catch (Exception ex)
             {
-    app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador
                 Log.Error(ex, "Error seeding database");
             }
         }

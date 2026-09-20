@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Bot } from 'lucide-react';
+﻿import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import decatronLockup from './assets/decatron-lockup.png';
 import ThemeToggle from './components/ThemeToggle';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,6 +15,7 @@ import CustomCommands from './pages/commands/CustomCommands';
 import ScriptingList from './pages/commands/ScriptingList';
 import ScriptingEditor from './pages/commands/ScriptingEditor';
 import WatchtimeConfig from './pages/commands/WatchtimeConfig';
+import RuletaConfig from './pages/commands/RuletaConfig';
 import PublicCommandsConfig from './pages/commands/PublicCommandsConfig';
 import FeaturesHub from './pages/features/FeaturesHub';
 import ModerationHub from './pages/features/ModerationHub';
@@ -28,11 +29,13 @@ import EventAlertsConfig from './pages/features/EventAlertsConfig';
 import BannedWords from './pages/features/moderation/BannedWords';
 import SoundAlerts from './pages/features/SoundAlerts';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
-import DecatronChat from './pages/features/DecatronChat';
 import LiveTranslationConfig from './pages/features/LiveTranslationConfig';
+import DecatronChat from './pages/features/DecatronChat';
 import TipsConfig from './pages/features/TipsConfig';
 import AdminHub from './pages/admin/AdminHub';
 import AdminEconomy from './pages/admin/AdminEconomy';
+import AdminTcg from './pages/admin/AdminTcg';
+import AdminTcgArtQueue from './pages/admin/AdminTcgArtQueue';
 import DecatronAIAdmin from './pages/admin/DecatronAIAdmin';
 import DecatronChatAdmin from './pages/admin/DecatronChatAdmin';
 import AdminDonations from './pages/admin/Donations/index';
@@ -40,16 +43,28 @@ import EmailManagement from './pages/admin/EmailManagement/index';
 import DevDocs from './pages/admin/DevDocs';
 import TtsLab from './pages/admin/TtsLab';
 import TtsCreditsAdmin from './pages/admin/TtsCreditsAdmin';
+import LiveTranslationAdmin from './pages/admin/LiveTranslationAdmin';
+import AiCostsAdmin from './pages/admin/AiCostsAdmin';
 import ProjectAnalysis from './pages/admin/ProjectAnalysis';
 import AdminFortnite from './pages/admin/AdminFortnite';
+import LogoGuide from './pages/admin/LogoGuide';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
-import LiveTranslationAdmin from './pages/admin/LiveTranslationAdmin';
+import ChannelsVisibility from './pages/admin/ChannelsVisibility';
 import SupportersPublic from './pages/SupportersPublic';
 import PublicCommandsPage from './pages/PublicCommandsPage';
 import TranslatePublic from './pages/TranslatePublic';
+import TournamentPublicPage from './pages/TournamentPublicPage';
+import MyTournamentPage from './pages/tournament-public/MyTournamentPage';
+import TournamentOverlayPage from './pages/TournamentOverlayPage';
+import TournamentEmbedRankingPage from './pages/TournamentEmbedRankingPage';
 import GachaConfig from './pages/features/gacha-extension/GachaConfig';
+import TournamentConfig from './pages/features/tournament-extension/TournamentConfig';
 import GachaOverlay from './pages/GachaOverlay';
+import GameOverlay from './pages/GameOverlay';
+import GameOverlayDemo from './pages/GameOverlayDemo';
+import WheelOverlay from './pages/WheelOverlay';
 import GachaCollection from './pages/GachaCollection';
+import GachaRanking from './pages/GachaRanking';
 import MeGacha from './pages/me/MeGacha';
 import Analytics from './pages/analytics/Analytics';
 import Followers from './pages/Followers';
@@ -64,6 +79,8 @@ import NowPlayingOverlay from './pages/NowPlayingOverlay';
 import SpeakChatOverlay from './pages/SpeakChatOverlay';
 import SpeakChat from './pages/features/SpeakChat';
 import NowPlayingConfig from './pages/features/NowPlayingConfig';
+import GameOverlays from './pages/features/GameOverlays';
+import WheelConfig from './pages/features/WheelConfig';
 import TipsDonate from './pages/TipsDonate';
 import TipsPrivacy from './pages/TipsPrivacy';
 import TipsTerms from './pages/TipsTerms';
@@ -96,6 +113,7 @@ import AnalyticsDoc from './pages/docs/private/features/AnalyticsDoc';
 import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
 import NowPlayingDoc from './pages/docs/private/features/NowPlayingDoc';
+import GameOverlaysDoc from './pages/docs/private/features/GameOverlaysDoc';
 import DecatronChatDoc from './pages/docs/private/features/DecatronChatDoc';
 import DeveloperPortalDoc from './pages/docs/private/features/DeveloperPortalDoc';
 import GachaDoc from './pages/docs/private/features/GachaDoc';
@@ -111,6 +129,7 @@ import DiscordWelcome from './pages/discord/DiscordWelcome';
 import DiscordLevels from './pages/discord/DiscordLevels';
 import DeveloperPortal from './pages/developer/DeveloperPortal';
 import ApplicationCreate from './pages/developer/ApplicationCreate';
+import ApplicationEdit from './pages/developer/ApplicationEdit';
 import ApiReference from './pages/developer/ApiReference';
 import OAuthAuthorizePage from './pages/oauth/OAuthAuthorizePage';
 import ApiDocs from './pages/docs/public/ApiDocs';
@@ -122,6 +141,14 @@ import LibroReclamacionesPage from './pages/legal/LibroReclamacionesPage';
 import MeOverview from './pages/me/MeOverview';
 import MeAccount from './pages/me/MeAccount';
 import MeCoins from './pages/me/MeCoins';
+import TcgHub from './pages/me/tcg/TcgHub';
+import TcgShop from './pages/me/tcg/TcgShop';
+import TcgOpen from './pages/me/tcg/TcgOpen';
+import TcgClaim from './pages/me/tcg/TcgClaim';
+import TcgCollection from './pages/me/tcg/TcgCollection';
+import TcgCardDetail from './pages/me/tcg/TcgCardDetail';
+import TcgDex from './pages/me/tcg/TcgDex';
+import TcgStats from './pages/me/tcg/TcgStats';
 import MeBilling from './pages/me/MeBilling';
 import MeInvoices from './pages/me/MeInvoices';
 import SpritesGallery from './pages/SpritesGallery';
@@ -155,9 +182,13 @@ function App() {
                 <Route path="/overlay/now-playing" element={<SafeRoute name="Now Playing Overlay"><NowPlayingOverlay /></SafeRoute>} />
                 <Route path="/overlay/speak-chat" element={<SafeRoute name="Speak Chat Overlay"><SpeakChatOverlay /></SafeRoute>} />
                 <Route path="/overlay/gacha" element={<SafeRoute name="Gacha Overlay"><GachaOverlay /></SafeRoute>} />
+                <Route path="/overlay/rueda" element={<SafeRoute name="Wheel Overlay"><WheelOverlay /></SafeRoute>} />
+                <Route path="/overlay/games" element={<SafeRoute name="Game Overlay"><GameOverlay /></SafeRoute>} />
+                <Route path="/demo/game-overlay" element={<SafeRoute name="Game Overlay Demo"><GameOverlayDemo /></SafeRoute>} />
 
                 {/* Public Gacha Collection - No authentication required */}
                 <Route path="/gacha/collection" element={<SafeRoute name="Gacha Collection"><GachaCollection /></SafeRoute>} />
+                <Route path="/gacha/ranking" element={<SafeRoute name="Gacha Ranking"><GachaRanking /></SafeRoute>} />
 
                 {/* Public Spirit Tracker - No authentication required */}
                 <Route path="/sprites" element={<SafeRoute name="Sprites Gallery"><SpritesGallery /></SafeRoute>} />
@@ -168,6 +199,10 @@ function App() {
 
                 {/* Public Commands Page - No authentication required */}
                 <Route path="/commands/:channelName" element={<PublicCommandsPage />} />
+                <Route path="/torneos/:channelName/:editionSlug" element={<SafeRoute name="Tournament Public"><TournamentPublicPage /></SafeRoute>} />
+                <Route path="/torneos/:channelName/:editionSlug/mi-panel" element={<SafeRoute name="My Tournament"><MyTournamentPage /></SafeRoute>} />
+                <Route path="/overlay/torneo/:token" element={<SafeRoute name="Tournament Overlay"><TournamentOverlayPage /></SafeRoute>} />
+                <Route path="/embed/torneo/:channelName/:editionSlug/ranking" element={<SafeRoute name="Tournament Embed"><TournamentEmbedRankingPage /></SafeRoute>} />
 
                 {/* Public Tips/Donation Pages - No authentication required */}
                 <Route path="/tip/privacy" element={<TipsPrivacy />} />
@@ -224,6 +259,7 @@ function App() {
                     <Route path="commands/scripting/new" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
                     <Route path="commands/scripting/edit/:id" element={<SafeRoute name="Script Editor"><ScriptingEditor /></SafeRoute>} />
                     <Route path="commands/watchtime" element={<SafeRoute name="Watchtime"><WatchtimeConfig /></SafeRoute>} />
+                    <Route path="commands/ruleta" element={<SafeRoute name="Ruleta"><RuletaConfig /></SafeRoute>} />
                     <Route path="commands/public" element={<SafeRoute name="Public Commands"><PublicCommandsConfig /></SafeRoute>} />
 
                     {/* Rutas de Gestión */}
@@ -234,6 +270,7 @@ function App() {
                     <Route path="features/giveaways" element={<SafeRoute name="Giveaways"><GiveawayConfig /></SafeRoute>} />
                     <Route path="features/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
                     <Route path="features/decatron-ai" element={<SafeRoute name="Decatron AI"><DecatronAIConfig /></SafeRoute>} />
+                    <Route path="features/live-translation" element={<SafeRoute name="Traducción en vivo"><LiveTranslationConfig /></SafeRoute>} />
                     <Route path="features/decatron-chat" element={<SafeRoute name="Decatron Chat"><DecatronChat /></SafeRoute>} />
                     <Route path="features/tips" element={<SafeRoute name="Tips"><TipsConfig /></SafeRoute>} />
                     <Route path="features/speak-chat" element={<SafeRoute name="Speak Chat"><SpeakChat /></SafeRoute>} />
@@ -243,13 +280,19 @@ function App() {
                     <Route path="admin/decatron-chat" element={<SafeRoute name="Chat Admin"><DecatronChatAdmin /></SafeRoute>} />
                     <Route path="admin/donations" element={<SafeRoute name="Donations"><AdminDonations /></SafeRoute>} />
                     <Route path="admin/supporters" element={<SafeRoute name="Supporters"><SupportersConfig /></SafeRoute>} />
+                    <Route path="admin/channels" element={<SafeRoute name="Channels Visibility"><ChannelsVisibility /></SafeRoute>} />
                     <Route path="admin/economy" element={<SafeRoute name="Economy"><AdminEconomy /></SafeRoute>} />
+                    <Route path="admin/tcg" element={<SafeRoute name="TCG Admin"><AdminTcg /></SafeRoute>} />
+                    <Route path="admin/tcg-art-queue" element={<SafeRoute name="TCG Art Queue"><AdminTcgArtQueue /></SafeRoute>} />
                     <Route path="admin/email" element={<SafeRoute name="Email"><EmailManagement /></SafeRoute>} />
                     <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
                     <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
                     <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
+                    <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
+                    <Route path="admin/ai-costs" element={<SafeRoute name="AI Costs Admin"><AiCostsAdmin /></SafeRoute>} />
                     <Route path="admin/project-analysis" element={<SafeRoute name="Project Analysis"><ProjectAnalysis /></SafeRoute>} />
                     <Route path="admin/fortnite" element={<SafeRoute name="Fortnite Sprites"><AdminFortnite /></SafeRoute>} />
+                    <Route path="admin/logo" element={<SafeRoute name="Logo Guide"><LogoGuide /></SafeRoute>} />
 
                     {/* Chat Moderation */}
                     <Route path="features/moderation/banned-words" element={<SafeRoute name="Banned Words"><BannedWords /></SafeRoute>} />
@@ -261,19 +304,29 @@ function App() {
                     <Route path="overlays/goals" element={<SafeRoute name="Goals"><GoalsConfig /></SafeRoute>} />
                     <Route path="overlays/event-alerts" element={<SafeRoute name="Event Alerts"><EventAlertsConfig /></SafeRoute>} />
                     <Route path="overlays/now-playing" element={<SafeRoute name="Now Playing"><NowPlayingConfig /></SafeRoute>} />
+                    <Route path="overlays/games" element={<SafeRoute name="Game Overlays"><GameOverlays /></SafeRoute>} />
+                    <Route path="overlays/rueda" element={<SafeRoute name="Rueda de la Suerte"><WheelConfig /></SafeRoute>} />
 
                     {/* Gacha System */}
                     <Route path="features/gacha" element={<SafeRoute name="Gacha"><GachaConfig /></SafeRoute>} />
+                    <Route path="features/torneos" element={<SafeRoute name="Torneos"><TournamentConfig /></SafeRoute>} />
 
                     {/* Gacha Legacy */}
                     <Route path="gacha/terms" element={<SafeRoute name="Gacha Terms"><GachaTerms /></SafeRoute>} />
                     <Route path="gacha/success" element={<SafeRoute name="Gacha Success"><GachaSuccess /></SafeRoute>} />
 
-                    <Route path="features/live-translation" element={<SafeRoute name="Traducción en vivo"><LiveTranslationConfig /></SafeRoute>} />
                     {/* Viewer Profile */}
                     <Route path="me" element={<SafeRoute name="Profile"><MeOverview /></SafeRoute>} />
                     <Route path="me/account" element={<SafeRoute name="Account"><MeAccount /></SafeRoute>} />
                     <Route path="me/coins" element={<SafeRoute name="Coins"><MeCoins /></SafeRoute>} />
+                    <Route path="me/tcg" element={<SafeRoute name="TcgHub"><TcgHub /></SafeRoute>} />
+                    <Route path="me/tcg/shop" element={<SafeRoute name="TcgShop"><TcgShop /></SafeRoute>} />
+                    <Route path="me/tcg/open" element={<SafeRoute name="TcgOpen"><TcgOpen /></SafeRoute>} />
+                    <Route path="me/tcg/claim" element={<SafeRoute name="TcgClaim"><TcgClaim /></SafeRoute>} />
+                    <Route path="me/tcg/collection" element={<SafeRoute name="TcgCollection"><TcgCollection /></SafeRoute>} />
+                    <Route path="me/tcg/collection/:instanceId" element={<SafeRoute name="TcgCardDetail"><TcgCardDetail /></SafeRoute>} />
+                    <Route path="me/tcg/dex" element={<SafeRoute name="TcgDex"><TcgDex /></SafeRoute>} />
+                    <Route path="me/tcg/stats" element={<SafeRoute name="TcgStats"><TcgStats /></SafeRoute>} />
                     <Route path="me/billing" element={<SafeRoute name="Billing"><MeBilling /></SafeRoute>} />
                     <Route path="me/invoices" element={<SafeRoute name="Invoices"><MeInvoices /></SafeRoute>} />
                     <Route path="me/gacha" element={<SafeRoute name="My Gacha"><MeGacha /></SafeRoute>} />
@@ -287,8 +340,8 @@ function App() {
 
                     {/* Developer Portal */}
                     <Route path="developer" element={<SafeRoute name="Developer"><DeveloperPortal /></SafeRoute>} />
-                    <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
                     <Route path="developer/apps/new" element={<SafeRoute name="New App"><ApplicationCreate /></SafeRoute>} />
+                    <Route path="developer/apps/:id/edit" element={<SafeRoute name="Edit App"><ApplicationEdit /></SafeRoute>} />
                     <Route path="developer/docs" element={<SafeRoute name="API Docs"><ApiReference /></SafeRoute>} />
 
                     {/* Configuración */}
@@ -322,6 +375,7 @@ function App() {
                     <Route path="dashboard/docs/features/followers" element={<FollowersDoc />} />
                     <Route path="dashboard/docs/features/ai" element={<AIDoc />} />
                     <Route path="dashboard/docs/features/now-playing" element={<NowPlayingDoc />} />
+                    <Route path="dashboard/docs/features/game-overlays" element={<GameOverlaysDoc />} />
                     <Route path="dashboard/docs/features/decatron-chat" element={<DecatronChatDoc />} />
                     <Route path="dashboard/docs/features/developer" element={<DeveloperPortalDoc />} />
                     <Route path="dashboard/docs/features/gacha" element={<GachaDoc />} />
@@ -340,9 +394,8 @@ function PublicNav() {
     return (
         <nav className="sticky top-0 z-50 bg-white/95 dark:bg-[#1B1C1D]/95 backdrop-blur-sm border-b border-[#e2e8f0] dark:border-[#374151] shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <a href="/" className="flex items-center gap-2 text-2xl font-black text-[#2563eb]">
-                    <Bot className="w-8 h-8" />
-                    <span>Decatron</span>
+                <a href="/" className="flex items-center">
+                    <img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />
                 </a>
                 <ThemeToggle />
             </div>

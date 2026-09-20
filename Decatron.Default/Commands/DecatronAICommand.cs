@@ -179,7 +179,8 @@ namespace Decatron.Default.Commands
                 var aiResponse = await aiProviderService.GenerateResponseAsync(
                     prompt,
                     systemPrompt,
-                    globalConfig
+                    globalConfig,
+                    ctx: new AiCallContext("twitch-chat", channelUserInfo?.Id ?? 0, channelLower)
                 );
 
                 // 12. Guardar en historial

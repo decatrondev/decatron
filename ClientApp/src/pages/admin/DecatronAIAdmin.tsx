@@ -60,7 +60,7 @@ export default function DecatronAIAdmin() {
         aiProvider: 'gemini',
         fallbackEnabled: false,
         model: 'gemini-3.5-flash-lite',
-        openRouterModel: 'x-ai/grok-4.1-fast:free',
+        openRouterModel: 'qwen/qwen3.8-flash',
         maxTokens: 60,
         systemPrompt: '',
         responsePrefix: '',
@@ -397,10 +397,10 @@ export default function DecatronAIAdmin() {
                                 type="text"
                                 value={config.openRouterModel}
                                 onChange={(e) => setConfig({ ...config, openRouterModel: e.target.value })}
-                                placeholder="x-ai/grok-4.1-fast:free"
+                                placeholder="qwen/qwen3.8-flash"
                                 className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-medium"
                             />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Ej: x-ai/grok-4.1-fast:free, meta-llama/llama-3-8b-instruct:free</p>
+                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Ej: qwen/qwen3.8-flash, deepseek/deepseek-v4.1-flash — precios y uso en Admin → Costos de IA</p>
                         </div>
                     </div>
 

@@ -8,8 +8,11 @@ namespace Decatron.Services.LiveTranslation
         /// <summary>Modelo de Deepgram para STT streaming.</summary>
         public string SttModel { get; set; } = "nova-3";
 
-        /// <summary>Modelo de Gemini para traducir frase a frase.</summary>
-        public string TranslationModel { get; set; } = "gemini-3.5-flash-lite";
+        /// <summary>
+        /// Modelo de Gemini (directo) que se usa SOLO si OpenRouter falla. El modelo principal
+        /// de traducción vive en la config global de IA (DecatronAIGlobalConfig.TranslationModel).
+        /// </summary>
+        public string GeminiFallbackModel { get; set; } = "gemini-3.5-flash-lite";
 
         /// <summary>
         /// Créditos por segundo de voz transcrita. 1 crédito = 1 carácter de voz estándar

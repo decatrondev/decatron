@@ -524,7 +524,7 @@ namespace Decatron.Services.LiveTranslation
         private async Task ProcessAsync(QueuedUtterance q, CancellationToken ct)
         {
             var u = q.U;
-            var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, ct);
+            var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct);
 
             var (ok, charged) = await _mgr.ChargeAsync(_session.UserId, translated.Length, _engine.CreditEngine, _voice, _lang);
             if (!ok)

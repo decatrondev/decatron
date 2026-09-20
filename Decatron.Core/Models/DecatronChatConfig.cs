@@ -33,7 +33,7 @@ namespace Decatron.Core.Models
         // Modelo de OpenRouter
         [Column("openrouter_model")]
         [MaxLength(100)]
-        public string OpenRouterModel { get; set; } = "x-ai/grok-4.1-fast:free";
+        public string OpenRouterModel { get; set; } = "qwen/qwen3.8-flash";
 
         // Límite más alto para código
         [Column("max_tokens")]

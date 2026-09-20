@@ -17,7 +17,7 @@ namespace Decatron.Core.Models
         // Provider principal: "gemini", "openrouter"
         [Column("ai_provider")]
         [MaxLength(50)]
-        public string AIProvider { get; set; } = "gemini";
+        public string AIProvider { get; set; } = "openrouter";
 
         // Habilitar fallback al otro provider si el principal falla
         [Column("fallback_enabled")]
@@ -32,7 +32,28 @@ namespace Decatron.Core.Models
         // Modelo de OpenRouter
         [Column("openrouter_model")]
         [MaxLength(100)]
-        public string OpenRouterModel { get; set; } = "x-ai/grok-4.1-fast:free";
+        public string OpenRouterModel { get; set; } = "qwen/qwen3.8-flash";
+
+        // Modelo (OpenRouter) para la traducción en vivo. Se cambia desde /admin/ai-costs sin redeploy.
+        [MaxLength(120)]
+        [Column("translation_model")]
+        public string TranslationModel { get; set; } = "qwen/qwen3.8-flash";
+
+        // Modelo (OpenRouter) para el Coach de LoL.
+        [MaxLength(120)]
+        [Column("coach_model")]
+        public string CoachModel { get; set; } = "qwen/qwen3.8-flash";
+
+        // Tabla de precios por modelo en USD por 1M tokens: { "modelo": { "in": 0.15, "out": 0.47 } }.
+        // Se usa para estimar el costo de cada llamada en ai_usage_logs.
+        [Column("model_prices_json")]
+        public string ModelPricesJson { get; set; } = DefaultModelPricesJson;
+
+        public const string DefaultModelPricesJson =
+            "{\"qwen/qwen3.8-flash\":{\"in\":0.15,\"out\":0.47}," +
+            "\"deepseek/deepseek-v4.1-flash\":{\"in\":0.15,\"out\":0.60}," +
+            "\"gemini-3.5-flash-lite\":{\"in\":0.30,\"out\":2.50}," +
+            "\"gemini-2.5-flash-lite\":{\"in\":0.10,\"out\":0.40}}";
 
         [Column("max_tokens")]
         public int MaxTokens { get; set; } = 60;

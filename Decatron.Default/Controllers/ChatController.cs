@@ -420,7 +420,8 @@ namespace Decatron.Default.Controllers
                     promptWithContext,
                     config.SystemPrompt,
                     aiConfig,
-                    truncateForTwitch: false  // No truncar para chat privado
+                    truncateForTwitch: false,  // No truncar para chat privado
+                    ctx: new AiCallContext("web-chat", userId)
                 );
 
                 var responseTime = (int)(DateTime.UtcNow - startTime).TotalMilliseconds;
@@ -604,7 +605,7 @@ namespace Decatron.Default.Controllers
                 try
                 {
                     await foreach (var token in _aiProviderService.GenerateStreamingResponseAsync(
-                        promptWithContext, config.SystemPrompt, aiConfig, HttpContext.RequestAborted))
+                        promptWithContext, config.SystemPrompt, aiConfig, HttpContext.RequestAborted, new AiCallContext("web-chat", userId)))
                     {
                         fullResponse.Append(token);
                         var tokenData = JsonSerializer.Serialize(new { content = token }, jsonOpts);

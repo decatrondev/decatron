@@ -68,7 +68,7 @@ export default function DecatronChatAdmin() {
         aiProvider: 'gemini',
         fallbackEnabled: false,
         model: 'gemini-3.5-flash-lite',
-        openRouterModel: 'x-ai/grok-4.1-fast:free',
+        openRouterModel: 'qwen/qwen3.8-flash',
         maxTokens: 2000,
         systemPrompt: '',
         maxConversationsPerUser: 50,

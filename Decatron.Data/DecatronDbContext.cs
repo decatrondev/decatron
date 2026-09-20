@@ -25,7 +25,13 @@ namespace Decatron.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<UserRiotAccount> UserRiotAccounts { get; set; }
+        // Game Overlays (ver .dev/plans/GAME_OVERLAYS_PLAN.md). linked_game_accounts
+        // reemplaza a user_riot_accounts (migrada conservando ids el 18-09-2026).
+        public DbSet<Decatron.Core.Models.GameOverlays.LinkedGameAccount> LinkedGameAccounts { get; set; }
+        public DbSet<Decatron.Core.Models.GameOverlays.GameOverlayConfig> GameOverlayConfigs { get; set; }
+        public DbSet<Decatron.Core.Models.GameOverlays.GameCategoryMapping> GameCategoryMappings { get; set; }
+        public DbSet<Decatron.Core.Models.GameOverlays.GameSessionSnapshot> GameSessionSnapshots { get; set; }
+        public DbSet<Decatron.Core.Models.GameOverlays.GameDataCacheEntry> GameDataCache { get; set; }
         public DbSet<SystemSettings> SystemSettings { get; set; }
         public DbSet<UserAccess> UserAccess { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
@@ -69,6 +75,7 @@ namespace Decatron.Data
         public DbSet<DecatronAIChannelPermission> DecatronAIChannelPermissions { get; set; }
         public DbSet<DecatronAIChannelConfig> DecatronAIChannelConfigs { get; set; }
         public DbSet<DecatronAIUsage> DecatronAIUsages { get; set; }
+        public DbSet<AiUsageLog> AiUsageLogs { get; set; }
 
         // Decatron Chat
         public DbSet<DecatronChatPermission> DecatronChatPermissions { get; set; }
@@ -119,17 +126,17 @@ namespace Decatron.Data
         public DbSet<TtsCreditBalance> TtsCreditBalances { get; set; }
         public DbSet<TtsCreditLedgerEntry> TtsCreditLedger { get; set; }
 
+        // Traducción en vivo (doblaje por espectador)
+        public DbSet<Core.Models.LiveTranslation.LiveTranslationSettings> LiveTranslationSettings { get; set; }
+        public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
+        public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
+
         // Tips/Donations System
         public DbSet<TipsConfig> TipsConfigs { get; set; }
         public DbSet<TipHistory> TipsHistory { get; set; }
 
         // Now Playing / Music System
         public DbSet<NowPlayingConfig> NowPlayingConfigs { get; set; }
-        // Traducción en vivo (doblaje por espectador)
-        public DbSet<Core.Models.LiveTranslation.LiveTranslationSettings> LiveTranslationSettings { get; set; }
-        public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
-        public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
-
 
         // Supporters System
         public DbSet<DiscountCode> DiscountCodes { get; set; }
@@ -486,6 +493,8 @@ namespace Decatron.Data
                 entity.Property(e => e.GrantedUserId).IsRequired().HasColumnName("granted_user_id");
                 entity.Property(e => e.AccessLevel).IsRequired().HasMaxLength(50).HasColumnName("access_level");
                 entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true).HasColumnName("is_active");
+                entity.Property(e => e.IsHidden).IsRequired().HasDefaultValue(false).HasColumnName("is_hidden");
+                entity.Property(e => e.Alias).HasMaxLength(30).HasColumnName("alias");
                 entity.Property(e => e.GrantedBy).IsRequired().HasColumnName("granted_by");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnName("updated_at");
@@ -1023,6 +1032,31 @@ namespace Decatron.Data
                 entity.HasIndex(e => new { e.ChannelName, e.UsedAt }).HasDatabaseName("idx_decatron_ai_usage_channel_date");
 
                 entity.ToTable("decatron_ai_usage");
+            });
+
+            // AiUsageLog: una fila por llamada a un LLM, de cualquier módulo
+            modelBuilder.Entity<AiUsageLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Module).HasColumnName("module");
+                entity.Property(e => e.Provider).HasColumnName("provider");
+                entity.Property(e => e.Model).HasColumnName("model");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.ChannelName).HasColumnName("channel_name");
+                entity.Property(e => e.PromptTokens).HasColumnName("prompt_tokens");
+                entity.Property(e => e.CompletionTokens).HasColumnName("completion_tokens");
+                entity.Property(e => e.EstimatedCostUsd).HasColumnName("estimated_cost_usd");
+                entity.Property(e => e.ResponseTimeMs).HasColumnName("response_time_ms");
+                entity.Property(e => e.Success).HasColumnName("success");
+                entity.Property(e => e.ErrorMessage).HasColumnName("error_message");
+                entity.Property(e => e.UsedAt).HasColumnName("used_at");
+
+                entity.HasIndex(e => e.UsedAt).HasDatabaseName("idx_ai_usage_logs_used_at");
+                entity.HasIndex(e => new { e.Module, e.UsedAt }).HasDatabaseName("idx_ai_usage_logs_module_date");
+                entity.HasIndex(e => new { e.UserId, e.UsedAt }).HasDatabaseName("idx_ai_usage_logs_user_date");
+
+                entity.ToTable("ai_usage_logs");
             });
 
             // DecatronChatPermission Configuration
@@ -1986,6 +2020,24 @@ namespace Decatron.Data
             {
                 entity.HasIndex(e => e.WheelId).IsUnique().HasDatabaseName("uq_wheel_raffle_configs_wheel");
                 entity.HasOne(e => e.Wheel).WithMany().HasForeignKey(e => e.WheelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Game Overlays — los [Column] ya estan en los modelos; aca solo indices/uniques.
+            modelBuilder.Entity<Decatron.Core.Models.GameOverlays.LinkedGameAccount>(entity =>
+            {
+                entity.HasIndex(e => new { e.AccountId, e.Game });
+            });
+            modelBuilder.Entity<Decatron.Core.Models.GameOverlays.GameOverlayConfig>(entity =>
+            {
+                entity.HasIndex(e => new { e.UserId, e.Slug }).IsUnique();
+            });
+            modelBuilder.Entity<Decatron.Core.Models.GameOverlays.GameCategoryMapping>(entity =>
+            {
+                entity.HasIndex(e => new { e.Platform, e.CategoryId }).IsUnique();
+            });
+            modelBuilder.Entity<Decatron.Core.Models.GameOverlays.GameDataCacheEntry>(entity =>
+            {
+                entity.HasIndex(e => new { e.Provider, e.ExternalId, e.Kind }).IsUnique();
             });
         }
     }

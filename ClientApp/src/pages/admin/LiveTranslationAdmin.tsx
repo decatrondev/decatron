@@ -31,7 +31,8 @@ const LIMIT_LABEL: Record<string, string> = {
     IngestTimeoutSeconds: 'Cerrar sesión sin audio (s)',
     MaxQueuedUtterances: 'Frases en cola por idioma (máx.)',
     SttModel: 'Modelo STT',
-    TranslationModel: 'Modelo de traducción',
+    translationModel: 'Modelo de traducción (OpenRouter, se cambia en Costos de IA)',
+    geminiFallbackModel: 'Modelo de respaldo (Gemini directo)',
 };
 const fmtMin = (m: number) => m >= 60 ? `${Math.floor(m / 60)} h ${Math.round(m % 60)} min` : `${Math.round(m)} min`;
 const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';

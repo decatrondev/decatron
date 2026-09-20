@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Languages } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -55,12 +55,36 @@ export default function AdminHub() {
             ready: true
         },
         {
+            id: 'tcg',
+            name: 'TCG — Upgrades en curso',
+            description: 'Monitorea las cartas en gradeo y las que esperan pago de upgrade',
+            icon: <Sparkles className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/tcg',
+            ready: true
+        },
+        {
+            id: 'tcg-art-queue',
+            name: 'TCG — Cola de arte',
+            description: 'Cartas que llegaron a nivel 3/6/9 y esperan la ilustración nueva',
+            icon: <Palette className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/tcg-art-queue',
+            ready: true
+        },
+        {
             id: 'ranking',
             name: 'Ranking Global',
             description: 'Configura el leaderboard global de la plataforma Decatron',
             icon: <TrendingUp className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/ranking',
             ready: false
+        },
+        {
+            id: 'channels-visibility',
+            name: 'Canales del Carrusel',
+            description: 'Gestiona qué canales de Twitch y Kick aparecen en la página pública',
+            icon: <Users className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/channels',
+            ready: true
         },
         {
             id: 'email',
@@ -95,6 +119,14 @@ export default function AdminHub() {
             ready: true
         },
         {
+            id: 'ai-costs',
+            name: 'Costos de IA',
+            description: 'Gasto en modelos de lenguaje por módulo, modelo y streamer; saldo de OpenRouter y modelos por módulo',
+            icon: <CircleDollarSign className="w-6 h-6 text-[#9146FF]" />,
+            route: '/admin/ai-costs',
+            ready: true
+        },
+        {
             id: 'live-translation',
             name: 'Traducción en vivo',
             description: 'Uso, costo estimado por proveedor, sesiones activas y límites',
@@ -108,6 +140,14 @@ export default function AdminHub() {
             description: 'Saldo, historial y ajustes manuales de créditos por canal',
             icon: <Coins className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/tts-credits',
+            ready: true
+        },
+        {
+            id: 'logo',
+            name: 'Logo de Decatron',
+            description: 'Guía paso a paso para elegir la mascota y generar los 7 prompts derivados (favicon, avatar, hero, etc.)',
+            icon: <Palette className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/logo',
             ready: true
         },
         {

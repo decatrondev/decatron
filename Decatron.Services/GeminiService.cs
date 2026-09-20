@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Decatron.Core.Models;
+using Decatron.Services.AI;
 
 namespace Decatron.Services
 {
@@ -13,15 +15,18 @@ namespace Decatron.Services
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<GeminiService> _logger;
+        private readonly AiUsageRecorder _usage;
         private readonly string _apiKey;
 
         public GeminiService(
             HttpClient httpClient,
             IConfiguration configuration,
+            AiUsageRecorder usage,
             ILogger<GeminiService> logger)
         {
             _httpClient = httpClient;
             _configuration = configuration;
+            _usage = usage;
             _logger = logger;
             _apiKey = configuration["GeminiSettings:ApiKey"] ?? "";
         }
@@ -34,7 +39,8 @@ namespace Decatron.Services
             string systemPrompt,
             string model = "gemini-3.5-flash-lite",
             int maxTokens = 60,
-            bool truncateForTwitch = true)
+            bool truncateForTwitch = true,
+            AiCallContext? ctx = null)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -120,12 +126,13 @@ namespace Decatron.Services
                             }
 
                             // Obtener tokens usados si está disponible
-                            int tokensUsed = 0;
-                            if (geminiResponse.TryGetProperty("usageMetadata", out var usage) &&
-                                usage.TryGetProperty("totalTokenCount", out var tokenCount))
+                            int tokensUsed = 0, promptTokens = 0;
+                            if (geminiResponse.TryGetProperty("usageMetadata", out var usage))
                             {
-                                tokensUsed = tokenCount.GetInt32();
+                                if (usage.TryGetProperty("totalTokenCount", out var tokenCount)) tokensUsed = tokenCount.GetInt32();
+                                if (usage.TryGetProperty("promptTokenCount", out var pc)) promptTokens = pc.GetInt32();
                             }
+                            _usage.Record(ctx, "gemini", model, promptTokens, Math.Max(0, tokensUsed - promptTokens), (int)stopwatch.ElapsedMilliseconds, true);
 
                             _logger.LogInformation($"✅ [GEMINI] Respuesta recibida ({stopwatch.ElapsedMilliseconds}ms, {tokensUsed} tokens)");
 
@@ -152,6 +159,7 @@ namespace Decatron.Services
                 else
                 {
                     _logger.LogError($"❌ [GEMINI] Error API: {response.StatusCode} - {responseBody}");
+                    _usage.Record(ctx, "gemini", model, 0, 0, (int)stopwatch.ElapsedMilliseconds, false, $"Gemini {(int)response.StatusCode}");
                     return new AIResponse
                     {
                         Success = false,
@@ -165,6 +173,7 @@ namespace Decatron.Services
             {
                 stopwatch.Stop();
                 _logger.LogError(ex, "❌ [GEMINI] Excepción al llamar API");
+                _usage.Record(ctx, "gemini", model, 0, 0, (int)stopwatch.ElapsedMilliseconds, false, ex.Message);
                 return new AIResponse
                 {
                     Success = false,

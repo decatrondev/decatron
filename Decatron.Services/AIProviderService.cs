@@ -34,15 +34,16 @@ namespace Decatron.Services
             string prompt,
             string systemPrompt,
             DecatronAIGlobalConfig config,
-            bool truncateForTwitch = true)
+            bool truncateForTwitch = true,
+            AiCallContext? ctx = null)
         {
-            var primaryProvider = config.AIProvider?.ToLower() ?? "gemini";
+            var primaryProvider = config.AIProvider?.ToLower() ?? "openrouter";
             var fallbackEnabled = config.FallbackEnabled;
 
             _logger.LogInformation($"🤖 [AI-PROVIDER] Usando provider: {primaryProvider}, Fallback: {fallbackEnabled}");
 
             // Intentar con el provider principal
-            var response = await CallProviderAsync(primaryProvider, prompt, systemPrompt, config, truncateForTwitch);
+            var response = await CallProviderAsync(primaryProvider, prompt, systemPrompt, config, truncateForTwitch, ctx);
 
             // Si falló o respuesta vacía y fallback está habilitado, intentar con el otro provider
             if ((!response.Success || string.IsNullOrWhiteSpace(response.Text)) && fallbackEnabled)
@@ -50,7 +51,7 @@ namespace Decatron.Services
                 var fallbackProvider = primaryProvider == "gemini" ? "openrouter" : "gemini";
                 _logger.LogWarning($"⚠️ [AI-PROVIDER] Provider {primaryProvider} falló, intentando fallback a {fallbackProvider}");
 
-                response = await CallProviderAsync(fallbackProvider, prompt, systemPrompt, config, truncateForTwitch);
+                response = await CallProviderAsync(fallbackProvider, prompt, systemPrompt, config, truncateForTwitch, ctx);
 
                 if (response.Success)
                 {
@@ -68,15 +69,16 @@ namespace Decatron.Services
             string prompt,
             string systemPrompt,
             DecatronAIGlobalConfig config,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default,
+            AiCallContext? ctx = null)
         {
-            var provider = config.AIProvider?.ToLower() ?? "gemini";
+            var provider = config.AIProvider?.ToLower() ?? "openrouter";
             _logger.LogInformation($"🤖 [AI-PROVIDER-STREAM] Usando provider: {provider}");
 
             if (provider == "openrouter")
             {
                 await foreach (var token in _openRouterService.GenerateStreamingResponseAsync(
-                    prompt, systemPrompt, config.OpenRouterModel, config.MaxTokens, cancellationToken))
+                    prompt, systemPrompt, config.OpenRouterModel, config.MaxTokens, cancellationToken, ctx))
                 {
                     yield return token;
                 }
@@ -84,7 +86,7 @@ namespace Decatron.Services
             else
             {
                 // Fallback: llamar no-streaming y devolver todo de una vez
-                var response = await CallProviderAsync(provider, prompt, systemPrompt, config, false);
+                var response = await CallProviderAsync(provider, prompt, systemPrompt, config, false, ctx);
                 if (response.Success && !string.IsNullOrEmpty(response.Text))
                 {
                     yield return response.Text;
@@ -101,7 +103,8 @@ namespace Decatron.Services
             string prompt,
             string systemPrompt,
             DecatronAIGlobalConfig config,
-            bool truncateForTwitch)
+            bool truncateForTwitch,
+            AiCallContext? ctx)
         {
             try
             {
@@ -113,7 +116,8 @@ namespace Decatron.Services
                             systemPrompt,
                             config.Model,
                             config.MaxTokens,
-                            truncateForTwitch);
+                            truncateForTwitch,
+                            ctx);
 
                     case "openrouter":
                         return await _openRouterService.GenerateResponseAsync(
@@ -121,7 +125,8 @@ namespace Decatron.Services
                             systemPrompt,
                             config.OpenRouterModel,
                             config.MaxTokens,
-                            truncateForTwitch);
+                            truncateForTwitch,
+                            ctx);
 
                     default:
                         _logger.LogError($"❌ [AI-PROVIDER] Provider desconocido: {provider}");

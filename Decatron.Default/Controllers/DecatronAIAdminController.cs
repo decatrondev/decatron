@@ -18,13 +18,16 @@ namespace Decatron.Default.Controllers
     public class DecatronAIAdminController : ControllerBase
     {
         private readonly DecatronDbContext _dbContext;
+        private readonly Decatron.Services.AI.AiSettingsCache _aiSettings;
         private readonly ILogger<DecatronAIAdminController> _logger;
 
         public DecatronAIAdminController(
             DecatronDbContext dbContext,
+            Decatron.Services.AI.AiSettingsCache aiSettings,
             ILogger<DecatronAIAdminController> logger)
         {
             _dbContext = dbContext;
+            _aiSettings = aiSettings;
             _logger = logger;
         }
 
@@ -83,6 +86,7 @@ namespace Decatron.Default.Controllers
 
             config.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
+            _aiSettings.Invalidate();
 
             _logger.LogInformation("✅ [ADMIN] Configuración global de Decatron IA actualizada");
             return Ok(new { success = true, message = "Configuración actualizada" });

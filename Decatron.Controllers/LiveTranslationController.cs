@@ -30,6 +30,7 @@ namespace Decatron.Controllers
         private readonly LiveTranslationSessionManager _mgr;
         private readonly ITtsCreditService _credits;
         private readonly Decatron.Services.Desktop.DesktopConnectionRegistry _desktop;
+        private readonly Decatron.Services.AI.AiSettingsCache _aiSettings;
         private readonly ILogger<LiveTranslationController> _logger;
 
         public LiveTranslationController(
@@ -37,9 +38,10 @@ namespace Decatron.Controllers
             LiveTranslationSessionManager mgr,
             ITtsCreditService credits,
             Decatron.Services.Desktop.DesktopConnectionRegistry desktop,
+            Decatron.Services.AI.AiSettingsCache aiSettings,
             ILogger<LiveTranslationController> logger)
         {
-            _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _logger = logger;
+            _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _aiSettings = aiSettings; _logger = logger;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -302,7 +304,7 @@ namespace Decatron.Controllers
                 limits = new
                 {
                     o.MaxConcurrentChannels, o.MaxLanguagesPerChannel, o.IdleLanguageStopSeconds,
-                    o.IngestTimeoutSeconds, o.MaxQueuedUtterances, o.SttModel, o.TranslationModel,
+                    o.IngestTimeoutSeconds, o.MaxQueuedUtterances, o.SttModel, translationModel = _aiSettings.TranslationModel, geminiFallbackModel = o.GeminiFallbackModel,
                 },
                 tariff = new
                 {
