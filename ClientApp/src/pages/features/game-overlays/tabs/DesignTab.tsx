@@ -31,6 +31,8 @@ function simulateLive(phase: LivePhaseId, account: AccountOverlayState): LivePha
         theirTeam: [5, 6, 7, 8, 9].map(i => ({ cellId: i, champion: i < 8 ? c(i) : null, isMe: false, locked: i < 7 })),
         myBans: [c(4)], theirBans: [c(1), c(2)], timerPhase: 'BAN_PICK', remainingMs: 21000, myPick: c(3), myPosition: 'BOTTOM', myTurn: true,
     };
+    if (phase === 'champselect') base.coach = { kind: 'my_turn', comment: `Con ${c(3).name} vas cómoda contra su bot; cuidado con el ${c(5).name} en early.`, suggestion: c(3).name, tips: [], coachName: 'Coach', at: new Date().toISOString() };
+    if (phase === 'postgame') base.coach = { kind: 'postgame', comment: 'Buen tempo en línea y muy bien las peleas del minuto 20+. Sigue mejorando el CS temprano: 6.1/min vs tu 7.2 habitual.', tips: ['Warda el río antes del min 3', 'Compra pinks al volver'], coachName: 'Coach', at: new Date().toISOString() };
     if (phase === 'ingame') base.game = { champion: c(0), position: 'BOTTOM', startedAt: new Date(Date.now() - 12 * 60000).toISOString(), gameMode: 'CLASSIC' };
     if (phase === 'postgame') base.postGame = {
         win: true, champion: c(0), kills: 11, deaths: 3, assists: 9, cs: 214, damage: 24300, visionScore: 21, durationSeconds: 1832, pointsDelta: 22,
@@ -262,6 +264,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         {selected === 'lpGraph' && <p className="text-[11px] text-[#6b7280]">Curva de LP de la sesión de hoy. Solo aparece en vivo y con al menos dos cambios de LP.</p>}
                         {selected === 'champSelect' && <p className="text-[11px] text-[#6b7280]">Picks de tu equipo (el tuyo resaltado), del rival y bans, en tiempo real mientras dura la selección. Necesita Decatron Desktop abierto con el cliente de LoL. Usa "Desktop: Selección" arriba para verlo.</p>}
                         {selected === 'postGame' && <p className="text-[11px] text-[#6b7280]">Resultado, KDA, CS, daño y ±LP al terminar la partida, hasta que vuelvas al lobby. Necesita Decatron Desktop. Usa "Desktop: Fin de partida" arriba para verlo.</p>}
+                        {selected === 'coachSay' && <p className="text-[11px] text-[#6b7280]">Lo último que dijo el coach (Funciones → Decatron Coach). Aparece en selección de campeón y al terminar; en partida se oculta. Usa "Desktop: Selección" o "Fin de partida" para verlo.</p>}
                         {selected === 'liveCharacter' && <p className="text-[11px] text-[#6b7280]">Sin Desktop: "En partida · campeón" desde la Riot API (1-3 min de retraso). Con Desktop: lobby, buscando, selección, en partida con cronómetro y resultado, al instante.</p>}
                         {selected === 'session' && (
                             <Checkbox checked={el.showDelta !== false} onChange={v => setEl({ showDelta: v })} label="Mostrar delta de puntos (+38 LP)" />

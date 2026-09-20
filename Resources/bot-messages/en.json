@@ -1,5 +1,6 @@
 {
   "game": {
+    "platform_unavailable": "Changing the category isn't available on this platform yet. Coming soon.",
     "error_channel_info": "Error: Could not get channel information.",
     "current_category": "Current category: {0}",
     "error_get_category": "Could not get current stream category.",
@@ -20,6 +21,7 @@
     "permission_denied_level": "@{0}, you don't have the required permission level to use !ia."
   },
   "title": {
+    "platform_unavailable": "Changing the title isn't available on this platform yet. Coming soon.",
     "error_channel_info": "Error: Could not get channel information.",
     "current_title": "Current title: {0}",
     "error_get_title": "Could not get current stream title.",
@@ -60,6 +62,7 @@
     "error_generic": "Error managing timer."
   },
   "so": {
+    "platform_unavailable": "Shoutout isn't available on this platform yet.",
     "usage": "Usage: !so @username or !so username",
     "error_user_not_found": "Could not find user {0}",
     "error_generic": "Error performing shoutout."
@@ -83,6 +86,7 @@
     "greeting": "Hello @{0}! 👋 How are you?"
   },
   "g": {
+    "platform_unavailable": "Changing the category isn't available on this platform yet. Coming soon.",
     "error_channel_info": "Error: Could not get channel information.",
     "current_category": "Current category: {0}",
     "error_get_category": "Could not get current stream category.",
@@ -170,6 +174,7 @@
     "stats": "📊 This session: Subs {0} · Bits {1} · Raids {2} · Total {3}"
   },
   "so_cmd": {
+    "platform_unavailable": "Shoutout isn't available on this platform yet.",
     "usage": "Usage: !so @username or !so username",
     "blacklist_1": "🚫 Sorry, @{0} is blacklisted. No shoutouts here!",
     "blacklist_2": "❌ @{0}? Nah, that name doesn't ring a bell... 🤐",
@@ -183,6 +188,7 @@
     "message_no_game": "Show some love to @{0} at twitch.tv/{1}"
   },
   "followage": {
+    "platform_unavailable": "@{0}, followage isn't available on this platform yet.",
     "error_channel": "@{0}, error: channel not configured.",
     "following_self": "@{0}, you've been following {1} for {2} (since {3} UTC)",
     "following_other": "@{0} has been following {1} for {2} (since {3} UTC)",
@@ -240,7 +246,7 @@
     "no_permission": "You don't have permission to use this command.",
     "no_broadcaster_id": "Broadcaster ID not found.",
     "error_generic": "An error occurred creating the command. Please try again later.",
-    "already_exists": "Command {0} already exists. Use !editar to modify it.",
+    "already_exists": "Command {0} already exists. Use !editcom to modify it.",
     "script_created": "Script command {0} created for channel {1} with restriction: {2} and status: {3}.",
     "script_error": "Script error: {0}",
     "script_error_generic": "Error creating script command.",
@@ -250,10 +256,63 @@
     "active": "active",
     "inactive": "inactive"
   },
+  "editcom": {
+    "usage": "Usage: !editcom <command_name> <new response/script> [restriction] [active/inactive]",
+    "no_permission": "You don't have permission to use this command.",
+    "no_broadcaster_id": "Channel not found.",
+    "not_found": "Command {0} doesn't exist. Use !crear to create it.",
+    "command_updated": "Command {0} updated for channel {1} with restriction: {2} and status: {3}.",
+    "script_updated": "Script command {0} updated for channel {1}, status: {2}.",
+    "error_generic": "An error occurred editing the command. Please try again later.",
+    "active": "active",
+    "inactive": "inactive"
+  },
+  "delcom": {
+    "usage": "Usage: !delcom <command_name>",
+    "no_permission": "You don't have permission to use this command.",
+    "no_broadcaster_id": "Channel not found.",
+    "not_found": "Command {0} doesn't exist.",
+    "deleted": "Command {0} deleted successfully.",
+    "error_generic": "An error occurred deleting the command. Please try again later."
+  },
   "giveaway_bg": {
     "no_more_participants": "❌ No more participants available for re-draw."
   },
   "command_service": {
     "error_generic": "Error executing command."
+  },
+  "gameoverlay": {
+    "mod_only": "@{0}, that command is for moderators only.",
+    "not_configured": "@{0}, this channel doesn't have Game Overlays set up.",
+    "no_game": "@{0}, there's no active game on the overlay right now.",
+    "no_accounts": "@{0}, there are no accounts configured for this game.",
+    "unknown_game": "@{0}, I don't know that game. Try: lol, tft, valorant, rivals, cs2, fortnite, rl, warzone.",
+    "rank": "@{0} · {1} → {2}",
+    "lp": "@{0} · {1} today: {2} ({3}W-{4}L) · now {5}",
+    "offline": "@{0} · {1}: {2} (no session, stream is offline)",
+    "offline_session": "@{0}, there's no active session (stream is offline).",
+    "session": "@{0} · {1} session: {2}W-{3}L{4}{5}",
+    "recent": "@{0} · {1} recent: {2} · last: {3}{4}",
+    "no_matches": "@{0}, {1} has no matches recorded in this session yet.",
+    "accounts": "@{0} · {1} accounts: {2}",
+    "game_status": "@{0} · overlay: {1} (category: {2}){3}",
+    "forced_tag": " · manually forced",
+    "game_auto": "@{0}, the overlay is back to detecting the game from the stream category.",
+    "game_forced": "@{0}, overlay forced to {1}. Use !juego auto to go back to automatic.",
+    "setrank_usage": "@{0}, usage: !setrango <rank> [division] [points]. E.g. !setrango Champion II · !setrango Diamond 1 45",
+    "setrank_ok": "@{0} · {1}'s rank set to {2}.",
+    "rankup_ok": "@{0} · {1} climbs to {2}!",
+    "rankdown_ok": "@{0} · {1} drops to {2}.",
+    "no_ladder": "@{0}, this game has no rank ladder to step through; use !setrango.",
+    "win_ok": "@{0} · win recorded for {1}: {2}W-{3}L today.",
+    "loss_ok": "@{0} · loss recorded for {1}: {2}W-{3}L today."
+  },
+  "lolcoach": {
+    "no_desktop": "@{0}, the coach is off: it needs Decatron Desktop open with the LoL client.",
+    "nothing_yet": "@{0}, the coach hasn't said anything this game yet.",
+    "no_build": "@{0}, the coach hasn't given runes or a build yet (it does once everyone locks in).",
+    "matchup": "@{0} · {1} on {2}: {3}",
+    "build": "@{0} · {1} for {2}: {3}",
+    "say": "@{0} · {1}: {2}"
   }
 }

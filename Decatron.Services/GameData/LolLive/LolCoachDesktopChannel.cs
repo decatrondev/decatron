@@ -40,13 +40,15 @@ namespace Decatron.Services.GameData.LolLive
         private readonly GameDataPollingService _poller;
         private readonly GameDataCache _cache;
         private readonly RiotApiClient _riot;
+        private readonly LolCoachBrain _brain;
+        private readonly GameOverlayStateStore _overlays;
         private readonly IServiceScopeFactory _scopes;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
-            IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
+            LolCoachBrain brain, GameOverlayStateStore overlays, IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
         {
-            _store = store; _poller = poller; _cache = cache; _riot = riot; _scopes = scopes; _logger = logger;
+            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _scopes = scopes; _logger = logger;
         }
 
         public string Name => ChannelName;
@@ -55,12 +57,14 @@ namespace Decatron.Services.GameData.LolLive
         public async Task<object?> DescribeAsync(DesktopConnection conn)
         {
             var linked = await LinkedAsync(conn.UserId);
+            var coach = await CoachSettingsAsync(conn.UserId);
             return new
             {
                 available = true,
                 // Habilitado = tiene al menos una cuenta de LoL vinculada en Game Overlays.
                 enabled = linked.Count > 0,
                 linked,
+                coach = new { enabled = coach.Enabled && _brain.IsAvailable, name = coach.CoachName, tone = coach.Tone },
             };
         }
 
@@ -88,10 +92,18 @@ namespace Decatron.Services.GameData.LolLive
                 .ToListAsync();
         }
 
+        private async Task<LolCoachSettings> CoachSettingsAsync(long userId)
+        {
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            return await db.LolCoachSettings.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId) ?? new LolCoachSettings { UserId = userId };
+        }
+
         public async Task OnMessageAsync(DesktopConnection conn, string type, JsonNode msg)
         {
             var entry = _store.GetOrCreate(conn.UserId, conn.Device.Id);
             var phase = entry.Phase;
+            var prevPhase = phase.Phase;
             switch (type)
             {
                 case "client":
@@ -226,12 +238,94 @@ namespace Decatron.Services.GameData.LolLive
             phase.UpdatedAt = DateTime.UtcNow;
             await _poller.PushLivePhaseAsync(conn.UserId);
             await conn.SendAsync(Name, "ack", new { phase = phase.Phase });
+
+            await CoachAsync(conn, entry, prevPhase, type);
+        }
+
+        // ─── Coach (fase 2): cuándo habla la IA ─────────────────────────────────
+        //  - pick: cambió un pick lockeado o un ban (debounce 2 s, solo si CommentPicks)
+        //  - my_turn: me toca elegir (inmediato)
+        //  - final: todos lockearon / FINALIZATION (inmediato, una vez, con runas/spells/build)
+        //  - postgame: llegó el eog (una vez, si PostGameSummary)
+        // Tope por selección: LolCoachBrain.MaxCallsPerChampSelect. Nunca habla en partida.
+        private async Task CoachAsync(DesktopConnection conn, LolLiveStateStore.Entry entry, string prevPhase, string type)
+        {
+            var phase = entry.Phase;
+            if (phase.Phase == "champselect" && prevPhase != "champselect") entry.ResetChampSelect();
+            if (phase.Phase != "postgame") entry.PostGameSent = false;
+            if (phase.Phase is "none" or "lobby" or "matchmaking" && prevPhase is "ingame" or "postgame") { /* el último comentario se conserva para !matchup hasta la próxima selección */ }
+
+            if (!_brain.IsAvailable) return;
+            var settings = await CoachSettingsAsync(conn.UserId);
+            if (!settings.Enabled) return;
+
+            if (type == "champselect" && phase.ChampSelect is { } cs)
+            {
+                var signature = string.Join("|", cs.MyTeam.Where(p => p.Locked).Select(p => $"m{p.CellId}:{p.Champion?.Id}")
+                    .Concat(cs.TheirTeam.Where(p => p.Locked).Select(p => $"t{p.CellId}:{p.Champion?.Id}"))
+                    .Concat(cs.MyBans.Select(b => "mb" + b.Id)).Concat(cs.TheirBans.Select(b => "tb" + b.Id)));
+                var allLocked = cs.MyTeam.Count > 0 && cs.MyTeam.All(p => p.Locked) && cs.TheirTeam.All(p => p.Locked || p.Champion == null);
+                var isFinal = !entry.FinalSent && (cs.TimerPhase is "FINALIZATION" or "GAME_STARTING" || allLocked) && cs.MyPick != null;
+                var myTurn = cs.MyTurn && !entry.LastMyTurn;
+                entry.LastMyTurn = cs.MyTurn;
+
+                if (isFinal) { entry.FinalSent = true; entry.Debounce?.Cancel(); await SpeakAsync(conn, entry, settings, "final"); return; }
+                if (myTurn) { entry.Debounce?.Cancel(); await SpeakAsync(conn, entry, settings, "my_turn"); entry.LastCommentedSignature = signature; return; }
+                if (settings.CommentPicks && signature != entry.LastCommentedSignature && signature.Length > 0)
+                {
+                    entry.LastCommentedSignature = signature;
+                    entry.Debounce?.Cancel();
+                    var cts = entry.Debounce = new CancellationTokenSource();
+                    _ = Task.Run(async () =>
+                    {
+                        try { await Task.Delay(2000, cts.Token); await SpeakAsync(conn, entry, settings, "pick"); }
+                        catch (OperationCanceledException) { }
+                        catch (Exception ex) { _logger.LogDebug(ex, "[LolCoach] pick debounce"); }
+                    });
+                }
+            }
+            else if (type == "eog" && settings.PostGameSummary && !entry.PostGameSent)
+            {
+                entry.PostGameSent = true;
+                await SpeakAsync(conn, entry, settings, "postgame");
+            }
+        }
+
+        private async Task SpeakAsync(DesktopConnection conn, LolLiveStateStore.Entry entry, LolCoachSettings settings, string kind)
+        {
+            if (kind != "postgame" && entry.CoachCalls >= LolCoachBrain.MaxCallsPerChampSelect) return;
+            if (kind != "postgame") entry.CoachCalls++;
+
+            string lang = "es";
+            using (var scope = _scopes.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                lang = await db.Users.Where(u => u.Id == conn.UserId).Select(u => u.PreferredLanguage).FirstOrDefaultAsync() ?? "es";
+            }
+            var stats = _overlays.AllFor(conn.UserId).SelectMany(s => s.Accounts)
+                .FirstOrDefault(a => string.Equals(a.ExternalId, entry.Puuid, StringComparison.OrdinalIgnoreCase))?.Stats;
+
+            var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.Login, lang, settings, stats, entry.SummonerName), conn.Token);
+            if (info == null) return;
+
+            entry.CoachHistory.Add(info);
+            if (entry.CoachHistory.Count > 20) entry.CoachHistory.RemoveAt(0);
+            if (settings.ShowOnOverlay) entry.Phase.Coach = info;
+            entry.Phase.UpdatedAt = DateTime.UtcNow;
+
+            await conn.SendAsync(Name, "coach", new
+            {
+                kind = info.Kind, comment = info.Comment, suggestion = info.Suggestion, runes = info.Runes, spells = info.Spells,
+                build = info.Build, matchup = info.Matchup, tips = info.Tips, coachName = info.CoachName,
+            });
+            if (settings.ShowOnOverlay) await _poller.PushLivePhaseAsync(conn.UserId);
         }
 
         public Task OnBinaryAsync(DesktopConnection conn, ReadOnlyMemory<byte> payload) => Task.CompletedTask;
 
         public async Task OnDisconnectedAsync(DesktopConnection conn)
         {
+            _store.Get(conn.UserId)?.Debounce?.Cancel();
             _store.Remove(conn.UserId, conn.Device.Id);
             try { await _poller.PushLivePhaseAsync(conn.UserId); }
             catch (Exception ex) { _logger.LogDebug(ex, "[LolCoach] push tras desconexion"); }

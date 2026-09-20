@@ -30,6 +30,7 @@ import BannedWords from './pages/features/moderation/BannedWords';
 import SoundAlerts from './pages/features/SoundAlerts';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import LiveTranslationConfig from './pages/features/LiveTranslationConfig';
+import LolCoachConfig from './pages/features/LolCoachConfig';
 import DecatronChat from './pages/features/DecatronChat';
 import TipsConfig from './pages/features/TipsConfig';
 import AdminHub from './pages/admin/AdminHub';
@@ -271,6 +272,7 @@ function App() {
                     <Route path="features/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
                     <Route path="features/decatron-ai" element={<SafeRoute name="Decatron AI"><DecatronAIConfig /></SafeRoute>} />
                     <Route path="features/live-translation" element={<SafeRoute name="Traducción en vivo"><LiveTranslationConfig /></SafeRoute>} />
+                    <Route path="features/lol-coach" element={<SafeRoute name="Coach de LoL"><LolCoachConfig /></SafeRoute>} />
                     <Route path="features/decatron-chat" element={<SafeRoute name="Decatron Chat"><DecatronChat /></SafeRoute>} />
                     <Route path="features/tips" element={<SafeRoute name="Tips"><TipsConfig /></SafeRoute>} />
                     <Route path="features/speak-chat" element={<SafeRoute name="Speak Chat"><SpeakChat /></SafeRoute>} />

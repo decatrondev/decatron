@@ -134,6 +134,11 @@ export interface LivePostGame {
     myTeam: LivePostGamePlayer[]; theirTeam: LivePostGamePlayer[];
 }
 export type LivePhaseId = 'none' | 'lobby' | 'matchmaking' | 'champselect' | 'ingame' | 'postgame';
+export interface LiveCoachInfo {
+    kind: 'pick' | 'my_turn' | 'final' | 'postgame' | string;
+    comment: string; suggestion?: string | null; runes?: string | null; spells?: string | null; build?: string | null; matchup?: string | null;
+    tips: string[]; coachName: string; at: string;
+}
 export interface LivePhaseInfo {
     phase: LivePhaseId;
     queueId?: number | null;
@@ -142,6 +147,7 @@ export interface LivePhaseInfo {
     champSelect?: LiveChampSelect | null;
     game?: LiveGameDetails | null;
     postGame?: LivePostGame | null;
+    coach?: LiveCoachInfo | null;
     updatedAt: string;
 }
 
@@ -175,7 +181,7 @@ export type ElementId = 'emblem' | 'rank' | 'lp' | 'session' | 'recent' | 'accou
     // Fase "LoL enriquecido": estadísticas de las últimas partidas
     | 'winrate' | 'kdaCs' | 'streak' | 'topChamps' | 'mastery' | 'lpGraph'
     // Fase B: en vivo desde Decatron Desktop (selección de campeón, fin de partida)
-    | 'champSelect' | 'postGame';
+    | 'champSelect' | 'postGame' | 'coachSay';
 
 export interface FontStyle {
     family?: string;
@@ -207,9 +213,9 @@ export type StylePreset = 'minimal' | 'stats' | 'full';
 export const STYLE_PRESET_LABELS: Record<StylePreset, string> = { minimal: 'Minimal', stats: 'Stats (op.gg)', full: 'Completo' };
 /** Qué elementos deja visibles cada preset; el resto de la config no se toca. */
 export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
-    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame'],
-    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame'],
-    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame'],
+    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame', 'coachSay'],
+    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay'],
+    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay'],
 };
 
 /** Vistas por las que rota la tarjeta ("tipo GIF"): la principal, stats, campeones, gráfico. */
@@ -296,6 +302,7 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
             // Solo aparecen con Decatron Desktop conectado: encendidos por defecto.
             champSelect: { visible: true, font: { size: 12, weight: 600, color: '#e6edf3' } },
             postGame: { visible: true, font: { size: 14, weight: 600, color: '#e6edf3' } },
+            coachSay: { visible: true, font: { size: 13, weight: 500, color: '#e6edf3' } },
         },
         background: { type: 'solid', color: '#0f1115', opacity: 85, radius: 12 },
         accent: GAME_ACCENTS[game],
@@ -384,11 +391,11 @@ export const ELEMENT_LABELS: Record<ElementId, string> = {
     emblem: 'Emblema de rango', rank: 'Rango', lp: 'Puntos (LP/RR/ELO)', session: 'Sesión (W-L y delta)',
     recent: 'Últimas partidas', accountName: 'Nombre de cuenta', gameLogo: 'Nombre del juego', liveCharacter: 'En partida',
     winrate: 'Winrate', kdaCs: 'KDA / CS por minuto', streak: 'Racha', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'Gráfico de LP',
-    champSelect: 'Selección de campeón (Desktop)', postGame: 'Fin de partida (Desktop)',
+    champSelect: 'Selección de campeón (Desktop)', postGame: 'Fin de partida (Desktop)', coachSay: 'Coach dice (IA)',
 };
 
 /** Elementos que solo se alimentan del cliente de LoL vía Decatron Desktop. */
-export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame'];
+export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame', 'coachSay'];
 
 /** Elementos que solo tienen sentido si el proveedor da esos datos (hoy: LoL). */
 export const STATS_ELEMENTS: ElementId[] = ['winrate', 'kdaCs', 'streak', 'topChamps', 'mastery', 'lpGraph'];

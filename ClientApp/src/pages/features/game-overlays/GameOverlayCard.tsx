@@ -293,6 +293,23 @@ function PostGameBlock({ live, font, L }: { live: LivePhaseInfo; font: CSSProper
     );
 }
 
+/** Lo último que dijo el coach: nombre + comentario como subtítulo, y la sugerencia/matchup como chip. */
+function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; font: CSSProperties; accent: string; compact?: boolean }) {
+    const c = live.coach;
+    if (!c) return null;
+    const chip = c.kind === 'my_turn' && c.suggestion ? c.suggestion : c.kind === 'final' && c.matchup ? null : null;
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: compact ? 360 : 300 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: accent, fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{c.coachName}</span>
+                {chip && <span style={{ fontSize: 10, fontWeight: 700, color: '#0f1115', background: accent, borderRadius: 4, padding: '1px 6px', fontFamily: 'Inter, sans-serif' }}>→ {chip}</span>}
+            </div>
+            <div style={{ ...font, whiteSpace: 'normal', lineHeight: 1.3 }}>{c.comment}</div>
+            {c.kind === 'final' && (c.runes || c.spells) && <div style={{ ...font, fontSize: '0.8em', color: NEUTRAL, whiteSpace: 'normal' }}>{[c.runes, c.spells].filter(Boolean).join(' · ')}</div>}
+        </div>
+    );
+}
+
 function StatsBlocks({ el, stats, session, rank, L, accent, isVisible }: {
     el: GameVisualConfig['elements']; stats?: AccountStats | null; session?: SessionState | null; rank?: AccountOverlayState['rank'];
     L: CardLabels; accent: string; isVisible: (id: keyof GameVisualConfig['elements']) => boolean;
@@ -502,6 +519,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
         if (isVisible('accountName')) items.push(<span key="name" style={{ ...fontStyle(el.accountName?.font, 13), color: el.accountName?.font?.color ?? NEUTRAL }}>{account.displayName}{accountCount > 1 ? ` ${accountIndex + 1}/${accountCount}` : ''}</span>);
         if (live && isVisible('champSelect') && live.phase === 'champselect') items.push(<span key="cs"><ChampSelectBlock live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} /></span>);
         if (live && isVisible('postGame') && live.phase === 'postgame') items.push(<span key="pg"><PostGameBlock live={live} font={fontStyle(el.postGame?.font, 13)} L={L} /></span>);
+        if (live && isVisible('coachSay') && live.coach && live.phase !== 'ingame') items.push(<span key="coach"><CoachSayBlock live={live} font={fontStyle(el.coachSay?.font, 12)} accent={accent} compact /></span>);
         if (live && isVisible('liveCharacter')) items.push(<span key="live"><LiveStatusLine live={live} font={fontStyle(el.liveCharacter?.font, 13)} L={L} accent={accent} now={now} /></span>);
         else if (isVisible('liveCharacter') && account.live?.inGame) items.push(
             <span key="live" style={{ ...fontStyle(el.liveCharacter?.font, 13), display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -577,6 +595,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
             {/* En vivo desde el Desktop: selección de campeón y fin de partida */}
             {live && isVisible('champSelect') && live.phase === 'champselect' && <ChampSelectBlock live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} />}
             {live && isVisible('postGame') && live.phase === 'postgame' && <PostGameBlock live={live} font={fontStyle(el.postGame?.font, 14)} L={L} />}
+            {live && isVisible('coachSay') && live.coach && live.phase !== 'ingame' && <CoachSayBlock live={live} font={fontStyle(el.coachSay?.font, 13)} accent={accent} />}
 
             {/* Estado en vivo: con Desktop, la fase real; sin Desktop, "En partida" de la Riot API */}
             {isVisible('liveCharacter') && (live

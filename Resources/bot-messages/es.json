@@ -1,5 +1,6 @@
 {
   "game": {
+    "platform_unavailable": "Cambiar la categoría todavía no está disponible en esta plataforma. Próximamente.",
     "error_channel_info": "Error: No se pudo obtener información del canal.",
     "current_category": "Categoría actual: {0}",
     "error_get_category": "No se pudo obtener la categoría actual del stream.",
@@ -20,6 +21,7 @@
     "permission_denied_level": "@{0}, no tienes el nivel de permiso requerido para usar !ia."
   },
   "title": {
+    "platform_unavailable": "Cambiar el título todavía no está disponible en esta plataforma. Próximamente.",
     "error_channel_info": "Error: No se pudo obtener información del canal.",
     "current_title": "Título actual: {0}",
     "error_get_title": "No se pudo obtener el título actual del stream.",
@@ -60,6 +62,7 @@
     "error_generic": "Error al gestionar el timer."
   },
   "so": {
+    "platform_unavailable": "El shoutout todavía no está disponible en esta plataforma.",
     "usage": "Uso: !so @usuario o !so usuario",
     "error_user_not_found": "No se pudo encontrar al usuario {0}",
     "error_generic": "Error al hacer shoutout."
@@ -83,6 +86,7 @@
     "greeting": "¡Hola @{0}! 👋 ¿Cómo estás?"
   },
   "g": {
+    "platform_unavailable": "Cambiar la categoría todavía no está disponible en esta plataforma. Próximamente.",
     "error_channel_info": "Error: No se pudo obtener información del canal.",
     "current_category": "Categoría actual: {0}",
     "error_get_category": "No se pudo obtener la categoría actual del stream.",
@@ -170,6 +174,7 @@
     "stats": "📊 Esta sesión: Subs {0} · Bits {1} · Raids {2} · Total {3}"
   },
   "so_cmd": {
+    "platform_unavailable": "El shoutout todavía no está disponible en esta plataforma.",
     "usage": "Uso: !so @usuario o !so usuario",
     "blacklist_1": "🚫 Lo siento, @{0} está en la lista negra. ¡No hay shoutouts aquí!",
     "blacklist_2": "❌ @{0}? Nah, ese nombre no me suena... 🤐",
@@ -183,6 +188,7 @@
     "message_no_game": "Denle amor a @{0} en twitch.tv/{1}"
   },
   "followage": {
+    "platform_unavailable": "@{0}, el followage todavía no está disponible en esta plataforma.",
     "error_channel": "@{0}, error: canal no configurado.",
     "following_self": "@{0}, llevas siguiendo a {1} por {2} (desde {3} UTC)",
     "following_other": "@{0} lleva siguiendo a {1} por {2} (desde {3} UTC)",
@@ -240,7 +246,7 @@
     "no_permission": "No tienes permiso para usar este comando.",
     "no_broadcaster_id": "No se encontró el broadcaster ID.",
     "error_generic": "Ocurrió un error al crear el comando. Por favor, inténtalo de nuevo más tarde.",
-    "already_exists": "El comando {0} ya existe. Usa !editar para modificarlo.",
+    "already_exists": "El comando {0} ya existe. Usa !editcom para modificarlo.",
     "script_created": "Comando con script {0} creado correctamente para el canal {1} con restricción: {2} y estado: {3}.",
     "script_error": "Error en el script: {0}",
     "script_error_generic": "Error al crear el comando con script.",
@@ -250,10 +256,63 @@
     "active": "activo",
     "inactive": "inactivo"
   },
+  "editcom": {
+    "usage": "Uso: !editcom <nombre_comando> <nueva respuesta/script> [restricción] [activo/inactivo]",
+    "no_permission": "No tienes permiso para usar este comando.",
+    "no_broadcaster_id": "No se encontró el canal.",
+    "not_found": "El comando {0} no existe. Usa !crear para crearlo.",
+    "command_updated": "Comando {0} actualizado para el canal {1} con restricción: {2} y estado: {3}.",
+    "script_updated": "Comando con script {0} actualizado para el canal {1}, estado: {2}.",
+    "error_generic": "Ocurrió un error al editar el comando. Por favor, inténtalo de nuevo más tarde.",
+    "active": "activo",
+    "inactive": "inactivo"
+  },
+  "delcom": {
+    "usage": "Uso: !delcom <nombre_comando>",
+    "no_permission": "No tienes permiso para usar este comando.",
+    "no_broadcaster_id": "No se encontró el canal.",
+    "not_found": "El comando {0} no existe.",
+    "deleted": "Comando {0} borrado correctamente.",
+    "error_generic": "Ocurrió un error al borrar el comando. Por favor, inténtalo de nuevo más tarde."
+  },
   "giveaway_bg": {
     "no_more_participants": "❌ No hay más participantes disponibles para re-sorteo."
   },
   "command_service": {
     "error_generic": "Error ejecutando comando."
+  },
+  "gameoverlay": {
+    "mod_only": "@{0}, ese comando es solo para moderadores.",
+    "not_configured": "@{0}, este canal no tiene Game Overlays configurado.",
+    "no_game": "@{0}, ahora mismo no hay ningún juego activo en el overlay.",
+    "no_accounts": "@{0}, no hay cuentas configuradas para este juego.",
+    "unknown_game": "@{0}, no conozco ese juego. Prueba: lol, tft, valorant, rivals, cs2, fortnite, rl, warzone.",
+    "rank": "@{0} · {1} → {2}",
+    "lp": "@{0} · {1} hoy: {2} ({3}W-{4}L) · ahora {5}",
+    "offline": "@{0} · {1}: {2} (sin sesión, el stream está offline)",
+    "offline_session": "@{0}, no hay sesión activa (el stream está offline).",
+    "session": "@{0} · sesión de {1}: {2}W-{3}L{4}{5}",
+    "recent": "@{0} · {1} últimas: {2} · última: {3}{4}",
+    "no_matches": "@{0}, {1} todavía no tiene partidas registradas en esta sesión.",
+    "accounts": "@{0} · cuentas de {1}: {2}",
+    "game_status": "@{0} · overlay: {1} (categoría: {2}){3}",
+    "forced_tag": " · forzado manualmente",
+    "game_auto": "@{0}, el overlay vuelve a detectar el juego por la categoría del stream.",
+    "game_forced": "@{0}, overlay forzado a {1}. Usa !juego auto para volver a automático.",
+    "setrank_usage": "@{0}, uso: !setrango <rango> [división] [puntos]. Ej: !setrango Champion II · !setrango Diamond 1 45",
+    "setrank_ok": "@{0} · rango de {1} fijado en {2}.",
+    "rankup_ok": "@{0} · ¡{1} sube a {2}!",
+    "rankdown_ok": "@{0} · {1} baja a {2}.",
+    "no_ladder": "@{0}, este juego no tiene escalera de rangos para subir/bajar; usa !setrango.",
+    "win_ok": "@{0} · victoria anotada para {1}: {2}W-{3}L hoy.",
+    "loss_ok": "@{0} · derrota anotada para {1}: {2}W-{3}L hoy."
+  },
+  "lolcoach": {
+    "no_desktop": "@{0}, el coach no está activo: hace falta Decatron Desktop abierto con el cliente de LoL.",
+    "nothing_yet": "@{0}, el coach todavía no ha dicho nada en esta partida.",
+    "no_build": "@{0}, el coach aún no dio runas ni build (las da cuando todos lockean).",
+    "matchup": "@{0} · {1} sobre {2}: {3}",
+    "build": "@{0} · {1} para {2}: {3}",
+    "say": "@{0} · {1}: {2}"
   }
 }

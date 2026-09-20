@@ -1,82 +1,248 @@
 {
   "title": {
     "description": "Cambia o consulta el título del stream",
-    "aliases": ["t"],
-    "usageExamples": ["!title", "!title Nuevo título del stream"]
+    "aliases": [
+      "t"
+    ],
+    "usageExamples": [
+      "!title",
+      "!title Nuevo título del stream"
+    ]
   },
   "t": {
     "description": "Alias de !title - Cambia o consulta el título del stream",
     "aliases": [],
-    "usageExamples": ["!t", "!t Nuevo título"]
+    "usageExamples": [
+      "!t",
+      "!t Nuevo título"
+    ]
   },
   "game": {
     "description": "Cambia o consulta la categoría/juego del stream",
-    "aliases": ["g"],
-    "usageExamples": ["!game", "!game Just Chatting"]
+    "aliases": [
+      "g"
+    ],
+    "usageExamples": [
+      "!game",
+      "!game Just Chatting"
+    ]
   },
   "g": {
     "description": "Comando de gestión de categorías y micro comandos",
     "aliases": [],
-    "usageExamples": ["!g", "!g Just Chatting"]
+    "usageExamples": [
+      "!g",
+      "!g Just Chatting"
+    ]
   },
   "dstart": {
     "description": "Inicia el timer con una duración específica",
     "aliases": [],
-    "usageExamples": ["!dstart 5m", "!dstart 1h30m", "!dstart 300"]
+    "usageExamples": [
+      "!dstart 5m",
+      "!dstart 1h30m",
+      "!dstart 300"
+    ]
   },
   "dpause": {
     "description": "Pausa el timer actual",
     "aliases": [],
-    "usageExamples": ["!dpause"]
+    "usageExamples": [
+      "!dpause"
+    ]
   },
   "dplay": {
     "description": "Resume o inicia el timer pausado",
     "aliases": [],
-    "usageExamples": ["!dplay"]
+    "usageExamples": [
+      "!dplay"
+    ]
   },
   "dreset": {
     "description": "Reinicia el timer al tiempo total configurado",
     "aliases": [],
-    "usageExamples": ["!dreset"]
+    "usageExamples": [
+      "!dreset"
+    ]
   },
   "dstop": {
     "description": "Detiene el timer completamente y lo oculta del overlay",
     "aliases": [],
-    "usageExamples": ["!dstop"]
+    "usageExamples": [
+      "!dstop"
+    ]
   },
   "dtimer": {
     "description": "Gestiona el timer: iniciar, añadir o remover tiempo",
     "aliases": [],
-    "usageExamples": ["!dtimer 5m", "!dtimer add 1h", "!dtimer remove 30s"]
+    "usageExamples": [
+      "!dtimer 5m",
+      "!dtimer add 1h",
+      "!dtimer remove 30s"
+    ]
   },
   "so": {
     "description": "Hace shoutout a un usuario mostrando su último clip y perfil",
     "aliases": [],
-    "usageExamples": ["!so @username", "!so username"]
+    "usageExamples": [
+      "!so @username",
+      "!so username"
+    ]
+  },
+  "ruleta": {
+    "description": "Ruleta rusa: probabilidad configurable de darte (o darle a otro) timeout. Apuntarle a un moderador requiere el rol Lead Moderator de Twitch",
+    "aliases": [],
+    "usageExamples": [
+      "!ruleta",
+      "!ruleta @username"
+    ]
   },
   "raffle": {
     "description": "Sistema de sorteos con participación de chat",
     "aliases": [],
-    "usageExamples": ["!raffle join", "!raffle create Nombre del sorteo", "!raffle close", "!raffle draw"]
+    "usageExamples": [
+      "!raffle join",
+      "!raffle create Nombre del sorteo",
+      "!raffle close",
+      "!raffle draw"
+    ]
   },
   "ia": {
     "description": "Pregunta a Decatron IA (desarrollado por AnthonyDeca)",
     "aliases": [],
-    "usageExamples": ["!ia ¿Cuál es el sentido de la vida?", "!ia dame un dato curioso"]
+    "usageExamples": [
+      "!ia ¿Cuál es el sentido de la vida?",
+      "!ia dame un dato curioso"
+    ]
   },
   "join": {
     "description": "Únete al giveaway activo en el canal",
     "aliases": [],
-    "usageExamples": ["!join"]
-  },
-  "hola": {
-    "description": "Saluda al usuario en el chat",
-    "aliases": [],
-    "usageExamples": ["hola"]
+    "usageExamples": [
+      "!join"
+    ]
   },
   "followage": {
     "description": "Muestra el tiempo que llevas siguiendo el canal",
     "aliases": [],
-    "usageExamples": ["!followage", "!followage @usuario"]
+    "usageExamples": [
+      "!followage",
+      "!followage @usuario"
+    ]
+  },
+  "rango": {
+    "description": "Rango actual del streamer en el juego que está jugando (Game Overlays)",
+    "aliases": [
+      "rank"
+    ],
+    "usageExamples": [
+      "!rango",
+      "!rango valorant"
+    ]
+  },
+  "lp": {
+    "description": "Puntos (LP/RR/ELO) ganados o perdidos en el stream de hoy",
+    "aliases": [
+      "puntos"
+    ],
+    "usageExamples": [
+      "!lp"
+    ]
+  },
+  "sesion": {
+    "description": "Victorias y derrotas del stream de hoy",
+    "aliases": [
+      "session"
+    ],
+    "usageExamples": [
+      "!sesion"
+    ]
+  },
+  "ultimas": {
+    "description": "Últimas partidas del streamer con KDA",
+    "aliases": [
+      "recent"
+    ],
+    "usageExamples": [
+      "!ultimas"
+    ]
+  },
+  "cuentas": {
+    "description": "Cuentas del streamer en el juego actual y su rango",
+    "aliases": [
+      "accounts"
+    ],
+    "usageExamples": [
+      "!cuentas",
+      "!cuentas lol"
+    ]
+  },
+  "juego": {
+    "description": "Fuerza el juego del overlay o vuelve a automático (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!juego",
+      "!juego lol",
+      "!juego auto"
+    ]
+  },
+  "setrango": {
+    "description": "Fija a mano el rango de la cuenta visible, para juegos sin API (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!setrango Champion II",
+      "!setrango Diamond 1 45"
+    ]
+  },
+  "rankup": {
+    "description": "Sube una división el rango manual (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!rankup"
+    ]
+  },
+  "rankdown": {
+    "description": "Baja una división el rango manual (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!rankdown"
+    ]
+  },
+  "win": {
+    "description": "Suma una victoria a la sesión de hoy (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!win"
+    ]
+  },
+  "loss": {
+    "description": "Suma una derrota a la sesión de hoy (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!loss"
+    ]
+  },
+  "matchup": {
+    "description": "Matchup de la partida actual según el Coach de LoL (Decatron Desktop)",
+    "aliases": [],
+    "usageExamples": [
+      "!matchup"
+    ]
+  },
+  "build": {
+    "description": "Runas, hechizos y primeros ítems que sugirió el Coach de LoL",
+    "aliases": [
+      "runas"
+    ],
+    "usageExamples": [
+      "!build"
+    ]
+  },
+  "coach": {
+    "description": "Lo último que dijo el Coach de LoL o el resumen de la partida recién terminada (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!coach"
+    ]
   }
 }

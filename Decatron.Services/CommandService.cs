@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,8 +62,7 @@ namespace Decatron.Services
             {
                 var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
 
-                // Comandos básicos
-                RegisterCommand(new Commands.HolaCommand(_configuration, messagesService));
+                // HolaCommand (comando de prueba) queda desactivado: no se registra para que !hola no exista de cara al usuario
 
                 // Comandos por defecto
                 RegisterCommand(new TitleCommand(_configuration, _loggerFactory.CreateLogger<TitleCommand>(), _commandStateService, messagesService));
@@ -85,6 +84,8 @@ namespace Decatron.Services
 
             // Registrar comando Watchtime
             RegisterWatchtimeCommand();
+            RegisterRuletaCommand();
+            RegisterGameOverlayCommands();
 
             // Registrar comando de link a vista pública de comandos
             RegisterCommandsLinkCommand();
@@ -195,6 +196,53 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error registrando WatchtimeCommand");
+            }
+        }
+
+        /// <summary>Comandos de Game Overlays (plan §3). Cada alias es una instancia con otro Name.</summary>
+        private void RegisterGameOverlayCommands()
+        {
+            try
+            {
+                var log = _loggerFactory.CreateLogger("GameOverlayCommands");
+                foreach (var name in new[] { "rango", "rank" }) RegisterCommand(new Commands.RangoCommand(name, log, _serviceScopeFactory));
+                foreach (var name in new[] { "lp", "puntos" }) RegisterCommand(new Commands.LpCommand(name, log, _serviceScopeFactory));
+                foreach (var name in new[] { "sesion", "session" }) RegisterCommand(new Commands.SesionCommand(name, log, _serviceScopeFactory));
+                foreach (var name in new[] { "ultimas", "recent" }) RegisterCommand(new Commands.UltimasCommand(name, log, _serviceScopeFactory));
+                foreach (var name in new[] { "cuentas", "accounts" }) RegisterCommand(new Commands.CuentasCommand(name, log, _serviceScopeFactory));
+                RegisterCommand(new Commands.JuegoCommand("juego", log, _serviceScopeFactory));
+                // Coach de LoL (leen lo último que dijo el coach; no llaman a la IA desde el chat)
+                RegisterCommand(new Commands.MatchupCommand("matchup", log, _serviceScopeFactory));
+                foreach (var name in new[] { "build", "runas" }) RegisterCommand(new Commands.BuildCommand(name, log, _serviceScopeFactory));
+                RegisterCommand(new Commands.CoachCommand("coach", log, _serviceScopeFactory));
+                RegisterCommand(new Commands.SetRangoCommand("setrango", log, _serviceScopeFactory));
+                RegisterCommand(new Commands.RankStepCommand("rankup", +1, log, _serviceScopeFactory));
+                RegisterCommand(new Commands.RankStepCommand("rankdown", -1, log, _serviceScopeFactory));
+                RegisterCommand(new Commands.WinLossCommand("win", true, log, _serviceScopeFactory));
+                RegisterCommand(new Commands.WinLossCommand("loss", false, log, _serviceScopeFactory));
+                _logger.LogInformation("✅ Comandos de Game Overlays registrados (!rango !lp !sesion !ultimas !cuentas !juego !setrango !rankup !rankdown !win !loss)");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error registrando comandos de Game Overlays");
+            }
+        }
+
+        private void RegisterRuletaCommand()
+        {
+            try
+            {
+                var ruletaCommand = new Commands.RuletaCommand(
+                    _loggerFactory.CreateLogger<Commands.RuletaCommand>(),
+                    _serviceScopeFactory
+                );
+
+                RegisterCommand(ruletaCommand);
+                _logger.LogInformation("✅ RuletaCommand (!ruleta) registrado correctamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error registrando RuletaCommand");
             }
         }
 
@@ -368,6 +416,26 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Error registrando comandos Gacha");
+            }
+
+            // Rueda de la Suerte
+            try
+            {
+                RegisterCommand(new WheelSpinCommand(
+                    _loggerFactory.CreateLogger<WheelSpinCommand>(), _serviceScopeFactory));
+                RegisterCommand(new WheelBalanceCommand(
+                    _loggerFactory.CreateLogger<WheelBalanceCommand>(), _serviceScopeFactory));
+                RegisterCommand(new WheelBuyCommand(
+                    _loggerFactory.CreateLogger<WheelBuyCommand>(), _serviceScopeFactory));
+                RegisterCommand(new WheelJoinCommand(
+                    _loggerFactory.CreateLogger<WheelJoinCommand>(), _serviceScopeFactory));
+                RegisterCommand(new WheelRaffleModCommand(
+                    _loggerFactory.CreateLogger<WheelRaffleModCommand>(), _serviceScopeFactory));
+                _logger.LogInformation("✅ Comandos de la Rueda registrados: !dgirar, !dcreditos, !dcomprar, !djoin, !drueda");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error registrando comandos de la Rueda");
             }
 
             // Fortnite Spirits commands
@@ -562,7 +630,21 @@ namespace Decatron.Services
                 if (commandName == "!crear")
                 {
                     _logger.LogInformation($"Ejecutando comando !crear por {username} en {channel}");
-                    await ProcessCreateCommand(username, channel, chatMessage);
+                    await ProcessCreateCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
+                    return;
+                }
+
+                if (commandName == "!editcom")
+                {
+                    _logger.LogInformation($"Ejecutando comando !editcom por {username} en {channel}");
+                    await ProcessEditCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
+                    return;
+                }
+
+                if (commandName == "!delcom")
+                {
+                    _logger.LogInformation($"Ejecutando comando !delcom por {username} en {channel}");
+                    await ProcessDeleteCommand(username, channel, chatMessage, userId, isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster);
                     return;
                 }
 
@@ -607,7 +689,6 @@ namespace Decatron.Services
                 // Verificar si es un comando con script
                 _logger.LogInformation("[DEBUG] Checking scripted command: channel={Channel}, cmd={Cmd}", channel, commandName);
                 var isScripted = await scriptingService.IsScriptedCommandAsync(channel, commandName);
-                _logger.LogInformation("[DEBUG] IsScripted result: {Result}", isScripted);
                 if (isScripted)
                 {
                     _logger.LogInformation("[DEBUG] Executing scripted command {Cmd}", commandName);
@@ -615,9 +696,26 @@ namespace Decatron.Services
                     return;
                 }
 
+                // Comparar por ChannelName (string) nunca fue confiable entre
+                // plataformas: CustomCommandsController.GetActiveChannelContext
+                // guarda el "Login" crudo de la fila (para Kick eso es el
+                // placeholder "kick_<id>", no el username real), mientras que
+                // "channel" que llega aca es el kick_id numerico (via
+                // KickConnector.ParseChatMessage) y ChannelResolver devuelve el
+                // KickUsername real — tres formas de texto distintas para el mismo
+                // canal, ninguna garantizada a coincidir con las otras. En vez de
+                // perseguir cual convencion de texto es la correcta, se compara por
+                // "user_id": CustomCommand ya tiene esa columna con FK real a
+                // Users, poblada siempre (ver custom_commands.user_id, NOT NULL).
+                // Es el mismo identificador sin importar la plataforma, asi que
+                // tambien queda listo para YouTube sin tocar esta linea.
+                var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(dbContext, channel);
+                if (channelInfo == null)
+                    return;
+
                 // Verificar comando normal en la base de datos
                 var customCommand = await dbContext.CustomCommands
-                    .FirstOrDefaultAsync(c => c.CommandName == commandName && c.ChannelName == channel && c.IsActive);
+                    .FirstOrDefaultAsync(c => c.CommandName == commandName && c.UserId == channelInfo.UserId && c.IsActive);
 
                 if (customCommand != null)
                 {
@@ -828,7 +926,7 @@ namespace Decatron.Services
             }
         }
 
-        private async Task ProcessCreateCommand(string username, string channel, string chatMessage)
+        private async Task ProcessCreateCommand(string username, string channel, string chatMessage, string userId, bool isModerator, bool isLeadModerator, bool isVip, bool isSubscriber, bool isBroadcaster)
         {
             try
             {
@@ -838,7 +936,18 @@ namespace Decatron.Services
 
                 var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
                 var createCommand = new Decatron.Custom.Commands.CreateCommand(dbContext, _configuration, scriptingService, messagesService);
-                var ctx = new CommandContext(username, channel, chatMessage, "");
+                // Antes se armaba con el constructor corto, sin badges — IsBroadcaster/
+                // IsModerator quedaban siempre en false, asi que !crear solo funcionaba
+                // para system admins. Encontrado el 6 ago 2026 al construir !editcom/!delcom
+                // sobre el mismo patron y notar que heredaban el mismo bug.
+                var ctx = new CommandContext(username, channel, chatMessage, userId)
+                {
+                    IsModerator = isModerator,
+                    IsLeadModerator = isLeadModerator,
+                    IsVip = isVip,
+                    IsSubscriber = isSubscriber,
+                    IsBroadcaster = isBroadcaster
+                };
                 await createCommand.ExecuteAsync(ctx, _messageSender);
             }
             catch (Exception ex)
@@ -851,11 +960,69 @@ namespace Decatron.Services
             }
         }
 
+        private async Task ProcessEditCommand(string username, string channel, string chatMessage, string userId, bool isModerator, bool isLeadModerator, bool isVip, bool isSubscriber, bool isBroadcaster)
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var editCommand = new Decatron.Custom.Commands.EditCommand(dbContext, messagesService);
+                var ctx = new CommandContext(username, channel, chatMessage, userId)
+                {
+                    IsModerator = isModerator,
+                    IsLeadModerator = isLeadModerator,
+                    IsVip = isVip,
+                    IsSubscriber = isSubscriber,
+                    IsBroadcaster = isBroadcaster
+                };
+                await editCommand.ExecuteAsync(ctx, _messageSender);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error procesando comando !editcom de {username} en {channel}");
+                using var errScope = _serviceScopeFactory.CreateScope();
+                var messagesService = errScope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var lang = await GetChannelLanguageAsync(channel);
+                await _messageSender.SendMessageAsync(channel, messagesService.GetMessage("command_service", "error_generic", lang));
+            }
+        }
+
+        private async Task ProcessDeleteCommand(string username, string channel, string chatMessage, string userId, bool isModerator, bool isLeadModerator, bool isVip, bool isSubscriber, bool isBroadcaster)
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var messagesService = scope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var deleteCommand = new Decatron.Custom.Commands.DeleteCommand(dbContext, messagesService);
+                var ctx = new CommandContext(username, channel, chatMessage, userId)
+                {
+                    IsModerator = isModerator,
+                    IsLeadModerator = isLeadModerator,
+                    IsVip = isVip,
+                    IsSubscriber = isSubscriber,
+                    IsBroadcaster = isBroadcaster
+                };
+                await deleteCommand.ExecuteAsync(ctx, _messageSender);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error procesando comando !delcom de {username} en {channel}");
+                using var errScope = _serviceScopeFactory.CreateScope();
+                var messagesService = errScope.ServiceProvider.GetRequiredService<ICommandMessagesService>();
+                var lang = await GetChannelLanguageAsync(channel);
+                await _messageSender.SendMessageAsync(channel, messagesService.GetMessage("command_service", "error_generic", lang));
+            }
+        }
+
         public List<string> GetAvailableCommands()
         {
             var commands = _commands.Keys.ToList();
             commands.Add("!g"); // Agregar !g manualmente
             commands.Add("!crear"); // Agregar !crear manualmente
+            commands.Add("!editcom");
+            commands.Add("!delcom");
             return commands;
         }
 

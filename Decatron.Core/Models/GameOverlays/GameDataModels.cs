@@ -318,6 +318,24 @@ public class LivePostGamePlayer
     public bool IsMe { get; set; }
 }
 
+/// <summary>Lo ultimo que dijo el coach (IA), para el overlay, la app y los comandos de chat.</summary>
+public class LiveCoachInfo
+{
+    /// <summary>pick | my_turn | final | postgame</summary>
+    public string Kind { get; set; } = "";
+    /// <summary>Comentario corto (1-2 frases).</summary>
+    public string Comment { get; set; } = "";
+    /// <summary>Sugerencia de pick/ban cuando aplica.</summary>
+    public string? Suggestion { get; set; }
+    public string? Runes { get; set; }
+    public string? Spells { get; set; }
+    public string? Build { get; set; }
+    public string? Matchup { get; set; }
+    public List<string> Tips { get; set; } = new();
+    public string CoachName { get; set; } = "Coach";
+    public DateTime At { get; set; } = DateTime.UtcNow;
+}
+
 /// <summary>Lo que el cliente de LoL esta haciendo ahora, ya traducido a nombres e iconos.</summary>
 public class LivePhaseInfo
 {
@@ -329,5 +347,7 @@ public class LivePhaseInfo
     public LiveChampSelect? ChampSelect { get; set; }
     public LiveGameDetails? Game { get; set; }
     public LivePostGame? PostGame { get; set; }
+    /// <summary>Ultimo comentario del coach (null si esta apagado o aun no hablo).</summary>
+    public LiveCoachInfo? Coach { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

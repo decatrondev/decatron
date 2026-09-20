@@ -1,82 +1,248 @@
 {
   "title": {
     "description": "Change or check the stream title",
-    "aliases": ["t"],
-    "usageExamples": ["!title", "!title New stream title"]
+    "aliases": [
+      "t"
+    ],
+    "usageExamples": [
+      "!title",
+      "!title New stream title"
+    ]
   },
   "t": {
     "description": "Alias for !title - Change or check the stream title",
     "aliases": [],
-    "usageExamples": ["!t", "!t New title"]
+    "usageExamples": [
+      "!t",
+      "!t New title"
+    ]
   },
   "game": {
     "description": "Change or check the stream category/game",
-    "aliases": ["g"],
-    "usageExamples": ["!game", "!game Just Chatting"]
+    "aliases": [
+      "g"
+    ],
+    "usageExamples": [
+      "!game",
+      "!game Just Chatting"
+    ]
   },
   "g": {
     "description": "Category and micro commands management",
     "aliases": [],
-    "usageExamples": ["!g", "!g Just Chatting"]
+    "usageExamples": [
+      "!g",
+      "!g Just Chatting"
+    ]
   },
   "dstart": {
     "description": "Start the timer with a specific duration",
     "aliases": [],
-    "usageExamples": ["!dstart 5m", "!dstart 1h30m", "!dstart 300"]
+    "usageExamples": [
+      "!dstart 5m",
+      "!dstart 1h30m",
+      "!dstart 300"
+    ]
   },
   "dpause": {
     "description": "Pause the current timer",
     "aliases": [],
-    "usageExamples": ["!dpause"]
+    "usageExamples": [
+      "!dpause"
+    ]
   },
   "dplay": {
     "description": "Resume or start the paused timer",
     "aliases": [],
-    "usageExamples": ["!dplay"]
+    "usageExamples": [
+      "!dplay"
+    ]
   },
   "dreset": {
     "description": "Reset the timer to the configured total time",
     "aliases": [],
-    "usageExamples": ["!dreset"]
+    "usageExamples": [
+      "!dreset"
+    ]
   },
   "dstop": {
     "description": "Stop the timer completely and hide it from overlay",
     "aliases": [],
-    "usageExamples": ["!dstop"]
+    "usageExamples": [
+      "!dstop"
+    ]
   },
   "dtimer": {
     "description": "Manage timer: start, add or remove time",
     "aliases": [],
-    "usageExamples": ["!dtimer 5m", "!dtimer add 1h", "!dtimer remove 30s"]
+    "usageExamples": [
+      "!dtimer 5m",
+      "!dtimer add 1h",
+      "!dtimer remove 30s"
+    ]
   },
   "so": {
     "description": "Shoutout a user showing their latest clip and profile",
     "aliases": [],
-    "usageExamples": ["!so @username", "!so username"]
+    "usageExamples": [
+      "!so @username",
+      "!so username"
+    ]
+  },
+  "ruleta": {
+    "description": "Russian roulette: configurable chance of timing out yourself (or another user). Targeting a moderator requires the Twitch Lead Moderator role",
+    "aliases": [],
+    "usageExamples": [
+      "!ruleta",
+      "!ruleta @username"
+    ]
   },
   "raffle": {
     "description": "Raffle system with chat participation",
     "aliases": [],
-    "usageExamples": ["!raffle join", "!raffle create Raffle name", "!raffle close", "!raffle draw"]
+    "usageExamples": [
+      "!raffle join",
+      "!raffle create Raffle name",
+      "!raffle close",
+      "!raffle draw"
+    ]
   },
   "ia": {
     "description": "Ask Decatron AI (developed by AnthonyDeca)",
     "aliases": [],
-    "usageExamples": ["!ia What is the meaning of life?", "!ia give me a fun fact"]
+    "usageExamples": [
+      "!ia What is the meaning of life?",
+      "!ia give me a fun fact"
+    ]
   },
   "join": {
     "description": "Join the active giveaway in the channel",
     "aliases": [],
-    "usageExamples": ["!join"]
-  },
-  "hola": {
-    "description": "Greet the user in chat",
-    "aliases": [],
-    "usageExamples": ["hola"]
+    "usageExamples": [
+      "!join"
+    ]
   },
   "followage": {
     "description": "Shows how long you've been following the channel",
     "aliases": [],
-    "usageExamples": ["!followage", "!followage @user"]
+    "usageExamples": [
+      "!followage",
+      "!followage @user"
+    ]
+  },
+  "rango": {
+    "description": "Streamer's current rank in the game being played (Game Overlays)",
+    "aliases": [
+      "rank"
+    ],
+    "usageExamples": [
+      "!rango",
+      "!rango valorant"
+    ]
+  },
+  "lp": {
+    "description": "Points (LP/RR/ELO) won or lost during today's stream",
+    "aliases": [
+      "puntos"
+    ],
+    "usageExamples": [
+      "!lp"
+    ]
+  },
+  "sesion": {
+    "description": "Wins and losses of today's stream",
+    "aliases": [
+      "session"
+    ],
+    "usageExamples": [
+      "!sesion"
+    ]
+  },
+  "ultimas": {
+    "description": "Streamer's recent matches with KDA",
+    "aliases": [
+      "recent"
+    ],
+    "usageExamples": [
+      "!ultimas"
+    ]
+  },
+  "cuentas": {
+    "description": "Streamer's accounts in the current game and their rank",
+    "aliases": [
+      "accounts"
+    ],
+    "usageExamples": [
+      "!cuentas",
+      "!cuentas lol"
+    ]
+  },
+  "juego": {
+    "description": "Force the overlay game or go back to automatic (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!juego",
+      "!juego lol",
+      "!juego auto"
+    ]
+  },
+  "setrango": {
+    "description": "Manually set the visible account's rank, for games without API (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!setrango Champion II",
+      "!setrango Diamond 1 45"
+    ]
+  },
+  "rankup": {
+    "description": "Step the manual rank up one division (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!rankup"
+    ]
+  },
+  "rankdown": {
+    "description": "Step the manual rank down one division (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!rankdown"
+    ]
+  },
+  "win": {
+    "description": "Add a win to today's session (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!win"
+    ]
+  },
+  "loss": {
+    "description": "Add a loss to today's session (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!loss"
+    ]
+  },
+  "matchup": {
+    "description": "Current lane matchup according to the LoL Coach (Decatron Desktop)",
+    "aliases": [],
+    "usageExamples": [
+      "!matchup"
+    ]
+  },
+  "build": {
+    "description": "Runes, spells and first items suggested by the LoL Coach",
+    "aliases": [
+      "runas"
+    ],
+    "usageExamples": [
+      "!build"
+    ]
+  },
+  "coach": {
+    "description": "Latest thing the LoL Coach said, or the post-game review (mods)",
+    "aliases": [],
+    "usageExamples": [
+      "!coach"
+    ]
   }
 }

@@ -1,4 +1,4 @@
-import { Lock, Zap, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight, Search, Terminal, Clock, Users } from 'lucide-react';
+import { Lock, Zap, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight, Search, Terminal, Clock, Users, Gamepad2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -16,6 +16,33 @@ interface Command {
 
 const ITEMS_PER_PAGE = 8;
 
+function parseJwtClaims(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}
+
+// Comandos que dependen de una API de Twitch sin equivalente todavia armado del
+// lado de Kick — ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md seccion 8.17
+// (6 ago 2026) para el detalle de por que cada uno cae en un grupo distinto.
+//
+// "Proximamente": Kick YA expone la API que hace falta (PATCH /public/v1/channels
+// para titulo y categoria) — es trabajo pendiente nuestro, prometer fecha es razonable.
+const KICK_COMING_SOON = new Set(['title', 'game']);
+// "No disponible en Kick": la API publica de Kick no tiene el dato que estos
+// comandos necesitan (followers/followed_at, clips) — no hay nada que podamos
+// construir hoy del lado nuestro, asi que no se promete fecha.
+//
+// "ia" NO va aca: el modelo de lenguaje (Gemini/OpenRouter) se llama siempre,
+// sin depender de Twitch. Solo el sub-caso de "elegi a alguien del chat" pide
+// la lista de chatters de Twitch — si esa llamada falla, el comando sigue
+// respondiendo igual sin ese contexto (ver DecatronAICommand.cs). El comando
+// completo funciona en Kick, no aplica ninguno de los dos estados.
+const KICK_UNAVAILABLE = new Set(['followage', 'so']);
+
 // Categorías de comandos para mejor organización
 const COMMAND_CATEGORIES: Record<string, { icon: React.ReactNode; color: string; commands: string[] }> = {
     stream: {
@@ -31,7 +58,12 @@ const COMMAND_CATEGORIES: Record<string, { icon: React.ReactNode; color: string;
     community: {
         icon: <Users className="w-4 h-4" />,
         color: 'text-green-500',
-        commands: ['so', 'raffle', 'join', 'hola', 'followage', 'ia']
+        commands: ['so', 'raffle', 'join', 'followage', 'ia']
+    },
+    games: {
+        icon: <Gamepad2 className="w-4 h-4" />,
+        color: 'text-amber-500',
+        commands: ['rango', 'lp', 'sesion', 'ultimas', 'cuentas', 'juego', 'setrango', 'rankup', 'rankdown', 'win', 'loss', 'matchup', 'build', 'coach']
     }
 };
 
@@ -54,6 +86,10 @@ export default function DefaultCommands() {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedCommand, setExpandedCommand] = useState<string | null>(null);
+    const isKickSession = useMemo(() => {
+        const claims = parseJwtClaims(localStorage.getItem('token'));
+        return (claims.AuthProvider || 'twitch') === 'kick';
+    }, []);
 
     useEffect(() => {
         if (!permissionsLoading && hasMinimumLevel('commands')) {
@@ -233,6 +269,15 @@ export default function DefaultCommands() {
                                 onToggleExpand={() => setExpandedCommand(
                                     expandedCommand === cmd.name ? null : cmd.name
                                 )}
+                                kickStatus={
+                                    isKickSession
+                                        ? KICK_COMING_SOON.has(cmd.name)
+                                            ? 'coming-soon'
+                                            : KICK_UNAVAILABLE.has(cmd.name)
+                                                ? 'unavailable'
+                                                : null
+                                        : null
+                                }
                             />
                         ))
                     )}
@@ -286,21 +331,35 @@ export default function DefaultCommands() {
     );
 }
 
+type KickStatus = 'coming-soon' | 'unavailable' | null;
+
 interface CommandRowProps {
     command: Command;
     canToggle: boolean;
     onToggle: (commandName: string, currentStatus: boolean) => void;
     isExpanded: boolean;
     onToggleExpand: () => void;
+    kickStatus: KickStatus;
 }
 
-function CommandRow({ command, canToggle, onToggle, isExpanded, onToggleExpand }: CommandRowProps) {
+function CommandRow({ command, canToggle, onToggle, isExpanded, onToggleExpand, kickStatus }: CommandRowProps) {
     const { t } = useTranslation(['commands']);
     const category = getCommandCategory(command.name);
     const categoryData = COMMAND_CATEGORIES[category];
 
+    const kickStatusLabel = kickStatus === 'coming-soon'
+        ? 'Próximamente en Kick'
+        : kickStatus === 'unavailable'
+            ? 'No disponible en Kick'
+            : null;
+    const kickStatusTooltip = kickStatus === 'coming-soon'
+        ? 'Kick ya soporta esto en su API — todavía no lo conectamos de nuestro lado.'
+        : kickStatus === 'unavailable'
+            ? 'La API pública de Kick no expone este dato todavía.'
+            : undefined;
+
     return (
-        <div className="group">
+        <div className={`group ${kickStatus ? 'opacity-50' : ''}`} title={kickStatusTooltip}>
             {/* Fila principal */}
             <div
                 className="grid grid-cols-1 md:grid-cols-12 gap-4 px-6 py-4 hover:bg-[#f8fafc] dark:hover:bg-[#262626]/50 cursor-pointer transition-colors"
@@ -348,7 +407,13 @@ function CommandRow({ command, canToggle, onToggle, isExpanded, onToggleExpand }
 
                 {/* Estado */}
                 <div className="md:col-span-2 flex items-center justify-between md:justify-center gap-2">
-                    {canToggle ? (
+                    {kickStatusLabel ? (
+                        <span
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                        >
+                            {kickStatusLabel}
+                        </span>
+                    ) : canToggle ? (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
