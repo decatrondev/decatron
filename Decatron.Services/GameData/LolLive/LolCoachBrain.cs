@@ -35,8 +35,8 @@ namespace Decatron.Services.GameData.LolLive
 
         public bool IsAvailable => _ai.IsConfigured;
 
-        /// <summary>Contexto del streamer que no cambia durante la selección.</summary>
-        public sealed record StreamerContext(string Login, string Language, LolCoachSettings Settings, AccountStats? Stats, string? SummonerName);
+        /// <summary>Contexto del streamer que no cambia durante la selección. Extra = datos del historial propio (fase 3a) ya resumidos, por clave.</summary>
+        public sealed record StreamerContext(string Login, string Language, LolCoachSettings Settings, AccountStats? Stats, string? SummonerName, JsonObject? Extra = null);
 
         /// <summary>
         /// kind: pick (cambió un pick/ban), my_turn (me toca), final (todos lockearon), postgame.
@@ -49,9 +49,9 @@ namespace Decatron.Services.GameData.LolLive
             {
                 var system = SystemPrompt(ctx, kind);
                 var user = UserPrompt(kind, phase, ctx);
-                var isFinal = kind is "final" or "postgame";
+                var isFinal = kind is "final" or "postgame" or "briefing";
                 var r = await _ai.ChatAsync(_settings.CoachModel, system, user, new AiCallContext(Module, 0, ctx.Login),
-                    maxTokens: isFinal ? 700 : 220, temperature: 0.7, timeout: TimeSpan.FromSeconds(isFinal ? 25 : 12), reasoning: false, ct: ct);
+                    maxTokens: isFinal ? 700 : 400, temperature: 0.7, timeout: TimeSpan.FromSeconds(isFinal ? 25 : 12), reasoning: false, ct: ct);
                 var info = Parse(r.Text, kind, ctx.Settings.CoachName);
                 if (info == null) _logger.LogWarning("[LolCoach] {Login}: respuesta no parseable: {Text}", ctx.Login, r.Text.Length > 200 ? r.Text[..200] : r.Text);
                 return info;
@@ -93,6 +93,9 @@ namespace Decatron.Services.GameData.LolLive
                 "pick" => en ? "\nEvent: a pick or ban just changed. Give ONLY comment (and suggestion if it changes the plan). Leave the rest null." : "\nEvento: cambió un pick o ban. Da SOLO comment (y suggestion si cambia el plan). El resto null.",
                 "my_turn" => en ? "\nEvent: it is the streamer's turn to pick NOW. comment + a clear suggestion (one champion). Leave runes/spells/build null." : "\nEvento: le toca elegir al streamer AHORA. comment + suggestion clara (un campeón). runes/spells/build en null.",
                 "final" => en ? "\nEvent: everyone locked in. Full plan: comment, runes, spells, build, matchup, tips." : "\nEvento: todos lockearon. Plan completo: comment, runes, spells, build, matchup, tips.",
+                "briefing" => en ? "\nEvent: the streamer just opened the LoL client to start the stream. Give a 2-3 sentence session briefing from the data (rank/LP, yesterday's results, best champion this week, streak, today's goal if any). comment only; tips = up to 2 short focus points. Rest null." : "\nEvento: el streamer acaba de abrir el cliente de LoL para empezar el stream. Da un briefing de 2-3 frases con los datos (rango/LP, cómo le fue ayer, mejor campeón de la semana, racha, objetivo de hoy si hay). Solo comment; tips = hasta 2 focos cortos. El resto null.",
+                "lobby" => en ? "\nEvent: friends joined the lobby. One or two sentences: the record with each of them (if given), who is on a streak, a role suggestion if obvious. comment only. Rest null." : "\nEvento: entraron amigos al lobby. Una o dos frases: el récord con cada uno (si te lo dan), quién viene en racha, sugerencia de roles si es obvia. Solo comment. El resto null.",
+                "tilt" => en ? "\nEvent: the streamer just lost 3+ games in a row this session. One honest, caring sentence asking whether to keep going or stop, no lecture. comment only. Rest null." : "\nEvento: el streamer lleva 3+ derrotas seguidas en la sesión. Una frase honesta y con cariño preguntando si sigue o corta, sin sermón. Solo comment. El resto null.",
                 "postgame" => en ? "\nEvent: the game just ended. comment = honest 2-sentence review of the streamer's game; tips = up to 3 concrete things to improve (compare with their averages when given). Leave the rest null." : "\nEvento: terminó la partida. comment = opinión honesta en 2 frases de cómo jugó el streamer; tips = hasta 3 cosas concretas a mejorar (compara con sus promedios si te los dan). El resto null.",
                 _ => "",
             };
@@ -114,6 +117,8 @@ namespace Decatron.Services.GameData.LolLive
                 };
             }
             if (!string.IsNullOrWhiteSpace(ctx.Settings.ChampPool)) o["declaredPool"] = ctx.Settings.ChampPool;
+            if (ctx.Settings.CurrentGoal is { } goal) o["todayGoal"] = goal;
+            if (ctx.Extra != null) foreach (var (k, v) in ctx.Extra) o[k] = v?.DeepClone();
 
             if (phase.ChampSelect is { } cs)
             {
@@ -147,11 +152,20 @@ namespace Decatron.Services.GameData.LolLive
         {
             var t = text.Trim();
             var a = t.IndexOf('{'); var b = t.LastIndexOf('}');
-            if (a < 0 || b <= a) return null;
+            if (a < 0) return null;
+            JsonObject? j = null;
+            if (b > a) { try { j = JsonNode.Parse(t[a..(b + 1)]) as JsonObject; } catch (JsonException) { j = null; } }
+            if (j == null)
+            {
+                // Respuesta cortada por max_tokens: rescatar al menos el comment (y la sugerencia si llegó).
+                var m = System.Text.RegularExpressions.Regex.Match(t, @"""comment""\s*:\s*""((?:[^""\\]|\\.)*)""");
+                if (!m.Success) return null;
+                j = new JsonObject { ["comment"] = System.Text.RegularExpressions.Regex.Unescape(m.Groups[1].Value) };
+                var sug = System.Text.RegularExpressions.Regex.Match(t, @"""suggestion""\s*:\s*""((?:[^""\\]|\\.)*)""");
+                if (sug.Success) j["suggestion"] = System.Text.RegularExpressions.Regex.Unescape(sug.Groups[1].Value);
+            }
             try
             {
-                var j = JsonNode.Parse(t[a..(b + 1)]) as JsonObject;
-                if (j == null) return null;
                 string? S(string k) => j[k] is JsonValue v && v.TryGetValue<string>(out var s) && !string.IsNullOrWhiteSpace(s) ? s.Trim() : null;
                 var comment = S("comment");
                 if (comment == null) return null;

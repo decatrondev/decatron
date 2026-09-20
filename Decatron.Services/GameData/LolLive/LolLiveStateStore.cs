@@ -28,6 +28,12 @@ namespace Decatron.Services.GameData.LolLive
             public bool LastMyTurn { get; set; }
             public bool FinalSent { get; set; }
             public bool PostGameSent { get; set; }
+            /// <summary>Día (UTC) en que ya se dio el briefing, para darlo una vez por stream.</summary>
+            public DateTime? BriefedOn { get; set; }
+            /// <summary>Firma de los miembros del lobby que ya se comentaron.</summary>
+            public string LastLobbySignature { get; set; } = "";
+            /// <summary>Longitud de la racha de derrotas en la que ya se hizo el tilt check.</summary>
+            public int TiltCheckedAt { get; set; }
             public CancellationTokenSource? Debounce { get; set; }
             /// <summary>Últimos comentarios (los más nuevos al final), para el panel y los comandos.</summary>
             public List<LiveCoachInfo> CoachHistory { get; } = new();

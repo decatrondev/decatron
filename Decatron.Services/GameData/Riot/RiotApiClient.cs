@@ -41,6 +41,14 @@ namespace Decatron.Services.GameData.Riot
     public class RiotParticipantMatchStats
     {
         public string Puuid { get; set; } = "";
+        public string MatchId { get; set; } = "";
+        public int QueueId { get; set; }
+        public int TeamId { get; set; }
+        public int ChampionId { get; set; }
+        /// <summary>teamPosition: TOP | JUNGLE | MIDDLE | BOTTOM | UTILITY ("" en ARAM/Arena).</summary>
+        public string? Position { get; set; }
+        /// <summary>Riot ID (gameName) si viene; si no, summonerName.</summary>
+        public string? Name { get; set; }
         public DateTime OccurredAt { get; set; }
         public bool Win { get; set; }
         public string? Champion { get; set; }
@@ -587,6 +595,7 @@ namespace Decatron.Services.GameData.Riot
                 var durationSeconds = info.GetProperty("gameDuration").GetInt32();
                 var startedAtMs = info.GetProperty("gameStartTimestamp").GetInt64();
                 var occurredAt = DateTimeOffset.FromUnixTimeMilliseconds(startedAtMs).UtcDateTime;
+                var queueId = info.TryGetProperty("queueId", out var q) ? q.GetInt32() : 0;
 
                 var result = new List<RiotParticipantMatchStats>();
                 foreach (var p in info.GetProperty("participants").EnumerateArray())
@@ -598,6 +607,13 @@ namespace Decatron.Services.GameData.Riot
                     result.Add(new RiotParticipantMatchStats
                     {
                         Puuid = p.GetProperty("puuid").GetString() ?? "",
+                        MatchId = matchId,
+                        QueueId = queueId,
+                        TeamId = p.TryGetProperty("teamId", out var t) ? t.GetInt32() : 0,
+                        ChampionId = p.TryGetProperty("championId", out var cid) ? cid.GetInt32() : 0,
+                        Position = p.TryGetProperty("teamPosition", out var pos) ? pos.GetString() : null,
+                        Name = p.TryGetProperty("riotIdGameName", out var rn) && !string.IsNullOrEmpty(rn.GetString()) ? rn.GetString()
+                             : p.TryGetProperty("summonerName", out var sn) ? sn.GetString() : null,
                         OccurredAt = occurredAt,
                         Win = p.GetProperty("win").GetBoolean(),
                         Champion = p.TryGetProperty("championName", out var champ) ? champ.GetString() : null,

@@ -62,6 +62,28 @@ public class LolCoachSettings
     [Column("voice_kinds"), MaxLength(60)]
     public string VoiceKinds { get; set; } = "my_turn,final,postgame";
 
+    /// <summary>Briefing al abrir el cliente (una vez por día): rango, ayer, mejor champ de la semana, racha, objetivo.</summary>
+    [Column("briefing")]
+    public bool Briefing { get; set; } = true;
+
+    /// <summary>A las 3 derrotas seguidas de la sesión pregunta si sigue. Off por defecto: a muchos les molesta.</summary>
+    [Column("tilt_check")]
+    public bool TiltCheck { get; set; }
+
+    /// <summary>Comentar el lobby cuando entra alguien (récord juntos, quién está en racha).</summary>
+    [Column("lobby_comments")]
+    public bool LobbyComments { get; set; } = true;
+
+    /// <summary>Objetivo del día ("subir a Oro I", "3 wins"). Lo fija el streamer con !meta o desde el panel; el coach lo tiene en cuenta.</summary>
+    [Column("daily_goal"), MaxLength(200)]
+    public string DailyGoal { get; set; } = "";
+
+    [Column("goal_set_at")]
+    public DateTime? GoalSetAt { get; set; }
+
+    /// <summary>El objetivo vale el día que se fijó (hasta 18 h después, para streams que cruzan medianoche).</summary>
+    public string? CurrentGoal => !string.IsNullOrWhiteSpace(DailyGoal) && GoalSetAt != null && (DateTime.UtcNow - GoalSetAt.Value) < TimeSpan.FromHours(18) ? DailyGoal : null;
+
     public bool SpeaksOn(string kind) => VoiceEnabled && VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(kind);
 
     [Column("created_at")]

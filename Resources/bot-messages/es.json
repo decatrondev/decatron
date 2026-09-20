@@ -313,6 +313,22 @@
     "no_build": "@{0}, el coach aún no dio runas ni build (las da cuando todos lockean).",
     "matchup": "@{0} · {1} sobre {2}: {3}",
     "build": "@{0} · {1} para {2}: {3}",
-    "say": "@{0} · {1}: {2}"
+    "say": "@{0} · {1}: {2}",
+    "vs_usage": "@{0}, uso: !vs <campeón> (ej. !vs Yasuo)",
+    "no_account": "@{0}, este canal no tiene cuenta de LoL vinculada (Overlays → Game Overlays → Cuentas).",
+    "no_history": "@{0}, no pude leer el historial de partidas ahora mismo.",
+    "vs_none": "@{0}, ningún rival directo jugó {1} en las últimas {2} partidas.",
+    "vs": "@{0} · contra {1}: {2} · jugando {3} · (últimas {4} partidas)",
+    "duo_none": "@{0}, no encuentro partidas con {1} en las últimas 60.",
+    "duo_one": "@{0} · con {1}: {2}",
+    "duo_lobby": "@{0} · en el lobby: {1}",
+    "duo_alone": "@{0}, en las últimas 60 partidas no se repite ningún aliado: puro solo queue.",
+    "duo_frequent": "@{0} · duos más frecuentes: {1}",
+    "pool": "@{0} · pool: {1}",
+    "pool_declared": " · declarado: {0}",
+    "meta_none": "@{0}, hoy no hay objetivo fijado. Mods: !meta <texto>",
+    "meta": "@{0} · objetivo de hoy: {1}",
+    "meta_set": "@{0} · objetivo de hoy fijado: {1}. El coach lo tendrá en cuenta.",
+    "meta_cleared": "@{0} · objetivo borrado."
   }
 }

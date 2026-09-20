@@ -42,12 +42,17 @@ namespace Decatron.Controllers
             [MaxLength(600)] string? Notes,
             bool VoiceEnabled = false,
             string? VoiceId = null,
-            string[]? VoiceKinds = null);
+            string[]? VoiceKinds = null,
+            bool Briefing = true,
+            bool TiltCheck = false,
+            bool LobbyComments = true,
+            [MaxLength(200)] string? DailyGoal = null);
 
         private static object ToDto(LolCoachSettings s) => new
         {
             s.Enabled, s.CoachName, s.Tone, s.CommentPicks, s.PostGameSummary, s.ShowOnOverlay, s.ChampPool, s.Notes,
             s.VoiceEnabled, s.VoiceId, VoiceKinds = s.VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            s.Briefing, s.TiltCheck, s.LobbyComments, DailyGoal = s.CurrentGoal ?? "",
         };
 
         [HttpGet("settings")]
@@ -86,8 +91,13 @@ namespace Decatron.Controllers
             s.Notes = (dto.Notes ?? "").Trim();
             s.VoiceEnabled = dto.VoiceEnabled;
             s.VoiceId = dto.VoiceId != null && _voice.Voices.Any(v => v.Id == dto.VoiceId) ? dto.VoiceId : "";
-            var kinds = (dto.VoiceKinds ?? new[] { "my_turn", "final", "postgame" }).Where(k => k is "pick" or "my_turn" or "final" or "postgame").Distinct().ToArray();
+            var kinds = (dto.VoiceKinds ?? new[] { "my_turn", "final", "postgame" }).Where(k => k is "pick" or "my_turn" or "final" or "postgame" or "briefing" or "lobby" or "tilt").Distinct().ToArray();
             s.VoiceKinds = string.Join(",", kinds.Length == 0 ? new[] { "my_turn", "final", "postgame" } : kinds);
+            s.Briefing = dto.Briefing;
+            s.TiltCheck = dto.TiltCheck;
+            s.LobbyComments = dto.LobbyComments;
+            var goal = (dto.DailyGoal ?? "").Trim();
+            if (goal != (s.CurrentGoal ?? "")) { s.DailyGoal = goal; s.GoalSetAt = goal.Length > 0 ? DateTime.UtcNow : null; }
             s.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             await _desktop.NotifyModuleChangedAsync(userId, LolCoachDesktopChannel.ChannelName);

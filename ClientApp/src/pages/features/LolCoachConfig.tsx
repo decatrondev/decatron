@@ -17,6 +17,7 @@ interface Settings {
     commentPicks: boolean; postGameSummary: boolean; showOnOverlay: boolean;
     champPool: string; notes: string;
     voiceEnabled: boolean; voiceId: string; voiceKinds: string[];
+    briefing: boolean; tiltCheck: boolean; lobbyComments: boolean; dailyGoal: string;
 }
 interface Voice { id: string; name: string; language: string; gender: string }
 interface CoachMsg { kind: string; comment: string; suggestion?: string | null; runes?: string | null; spells?: string | null; build?: string | null; matchup?: string | null; tips: string[]; coachName: string; at: string; }
@@ -28,7 +29,7 @@ const TONES: Record<Settings['tone'], { label: string; desc: string }> = {
     troll: { label: 'Troll', desc: 'Sarcástico, se burla con cariño. Nunca tóxico con otros.' },
 };
 const PHASE_LABEL: Record<string, string> = { none: 'En el cliente', lobby: 'En lobby', matchmaking: 'Buscando partida', champselect: 'Selección de campeón', ingame: 'En partida', postgame: 'Fin de partida' };
-const KIND_LABEL: Record<string, string> = { pick: 'Pick / ban', my_turn: 'Tu turno', final: 'Plan final', postgame: 'Post-partida' };
+const KIND_LABEL: Record<string, string> = { pick: 'Pick / ban', my_turn: 'Tu turno', final: 'Plan final', postgame: 'Post-partida', briefing: 'Briefing', lobby: 'Lobby', tilt: 'Tilt check' };
 
 export default function LolCoachConfig() {
     const navigate = useNavigate();
@@ -129,6 +130,14 @@ export default function LolCoachConfig() {
                             ))}
                         </div>
                     </div>
+                    <Check checked={settings.briefing} onChange={v => update({ briefing: v })} disabled={!canEdit} label="Briefing al abrir el cliente" hint="Una vez por día: rango y LP, cómo te fue ayer, tu mejor campeón de la semana, racha y objetivo de hoy." />
+                    <Check checked={settings.lobbyComments} onChange={v => update({ lobbyComments: v })} disabled={!canEdit} label="Comentar el lobby" hint="Cuando entra alguien: tu récord jugando con esa persona (de tu propio historial) y quién viene en racha." />
+                    <Check checked={settings.tiltCheck} onChange={v => update({ tiltCheck: v })} disabled={!canEdit} label="Tilt check" hint="A las 3 derrotas seguidas de la sesión te pregunta si sigues o cortas. Off por defecto: a muchos les molesta." />
+                    <div>
+                        <div className={label}>Objetivo de hoy <span className="font-normal text-[#94a3b8]">(opcional)</span></div>
+                        <div className={muted}>"Subir a Oro I", "3 wins", "no morir antes del 10". Vale hasta 18 h; también con <code>!meta</code> en el chat. El coach lo recuerda en el briefing y al terminar cada partida.</div>
+                        <input className={`${input} mt-1`} value={settings.dailyGoal} maxLength={200} placeholder="Sin objetivo" onChange={e => update({ dailyGoal: e.target.value })} disabled={!canEdit} />
+                    </div>
                     <Check checked={settings.commentPicks} onChange={v => update({ commentPicks: v })} disabled={!canEdit} label="Comentar cada pick y ban" hint="Hasta 8 comentarios por selección. Si lo apagas, solo habla en tu turno y al final (2 llamadas)." />
                     <Check checked={settings.postGameSummary} onChange={v => update({ postGameSummary: v })} disabled={!canEdit} label="Opinión automática al terminar la partida" hint="Si lo apagas, solo con !coach (mods)." />
                     <Check checked={settings.showOnOverlay} onChange={v => update({ showOnOverlay: v })} disabled={!canEdit} label="Mostrar lo que dice en el overlay" hint='Widget "Coach dice" en Game Overlays → Diseño. Si lo apagas, solo lo ves tú en la app y con los comandos.' />
@@ -156,7 +165,7 @@ export default function LolCoachConfig() {
                                 <div>
                                     <div className={label}>Cuándo habla</div>
                                     <div className="grid grid-cols-2 gap-2 mt-1">
-                                        {[['my_turn', 'En tu turno (sugerencia)'], ['final', 'Plan final (runas y spells)'], ['postgame', 'Opinión al terminar'], ['pick', 'Cada pick/ban (mucho ruido)']].map(([k, l]) => (
+                                        {[['my_turn', 'En tu turno (sugerencia)'], ['final', 'Plan final (runas y spells)'], ['postgame', 'Opinión al terminar'], ['briefing', 'Briefing al abrir el cliente'], ['lobby', 'Comentario del lobby'], ['tilt', 'Tilt check'], ['pick', 'Cada pick/ban (mucho ruido)']].map(([k, l]) => (
                                             <Check key={k} checked={settings.voiceKinds.includes(k)} onChange={() => toggleKind(k)} disabled={!canEdit} label={l} />
                                         ))}
                                     </div>
@@ -164,7 +173,7 @@ export default function LolCoachConfig() {
                             </>
                         )}
                     </div>
-                    <p className="text-xs text-[#94a3b8]">Comandos del chat: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>) para todos; <code>!coach</code> para mods. Se activan en Comandos → Juegos.</p>
+                    <p className="text-xs text-[#94a3b8]">Comandos del chat: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>), <code>!vs &lt;campeón&gt;</code>, <code>!duo</code>, <code>!pool</code>, <code>!meta</code> para todos; <code>!coach</code> y fijar <code>!meta &lt;texto&gt;</code> para mods. Se activan en Comandos → Juegos.</p>
                 </div>
 
                 {/* En vivo */}

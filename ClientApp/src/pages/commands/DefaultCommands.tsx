@@ -63,7 +63,7 @@ const COMMAND_CATEGORIES: Record<string, { icon: React.ReactNode; color: string;
     games: {
         icon: <Gamepad2 className="w-4 h-4" />,
         color: 'text-amber-500',
-        commands: ['rango', 'lp', 'sesion', 'ultimas', 'cuentas', 'juego', 'setrango', 'rankup', 'rankdown', 'win', 'loss', 'matchup', 'build', 'coach']
+        commands: ['rango', 'lp', 'sesion', 'ultimas', 'cuentas', 'juego', 'setrango', 'rankup', 'rankdown', 'win', 'loss', 'matchup', 'build', 'coach', 'vs', 'duo', 'pool', 'meta']
     }
 };
 

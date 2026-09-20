@@ -253,6 +253,9 @@ public class LiveLobbyMember
 {
     public string Name { get; set; } = "";
     public string? Tag { get; set; }
+    /// <summary>Para cruzar con el historial propio; no se manda al overlay.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? Puuid { get; set; }
     public bool IsMe { get; set; }
     public bool IsLeader { get; set; }
     public string? Position1 { get; set; }

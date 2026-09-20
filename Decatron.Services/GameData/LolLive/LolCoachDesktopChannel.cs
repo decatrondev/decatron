@@ -43,13 +43,14 @@ namespace Decatron.Services.GameData.LolLive
         private readonly LolCoachBrain _brain;
         private readonly GameOverlayStateStore _overlays;
         private readonly LolCoachVoice _voice;
+        private readonly LolHistoryService _history;
         private readonly IServiceScopeFactory _scopes;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
-            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
+            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
         {
-            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _scopes = scopes; _logger = logger;
+            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _scopes = scopes; _logger = logger;
         }
 
         public string Name => ChannelName;
@@ -154,7 +155,7 @@ namespace Decatron.Services.GameData.LolLive
                     if (msg["lobby"] is JsonArray lobby)
                         phase.Lobby = lobby.OfType<JsonObject>().Select(m => new LiveLobbyMember
                         {
-                            Name = m["name"]?.GetValue<string>() ?? "", Tag = m["tag"]?.GetValue<string>(),
+                            Name = m["name"]?.GetValue<string>() ?? "", Tag = m["tag"]?.GetValue<string>(), Puuid = m["puuid"]?.GetValue<string>(),
                             IsMe = m["isMe"]?.GetValue<bool>() ?? false, IsLeader = m["isLeader"]?.GetValue<bool>() ?? false,
                             Position1 = m["position1"]?.GetValue<string>(), Position2 = m["position2"]?.GetValue<string>(),
                         }).ToList();
@@ -240,7 +241,13 @@ namespace Decatron.Services.GameData.LolLive
             await _poller.PushLivePhaseAsync(conn.UserId);
             await conn.SendAsync(Name, "ack", new { phase = phase.Phase });
 
-            await CoachAsync(conn, entry, prevPhase, type);
+            // El coach piensa aparte: la IA y el historial de Riot pueden tardar segundos (o
+            // minutos con rate limit) y no pueden frenar los mensajes siguientes del cliente.
+            _ = Task.Run(async () =>
+            {
+                try { await CoachAsync(conn, entry, prevPhase, type); }
+                catch (Exception ex) { _logger.LogWarning(ex, "[LolCoach] {Login}: coach ({Type})", conn.Login, type); }
+            });
         }
 
         // ─── Coach (fase 2): cuándo habla la IA ─────────────────────────────────
@@ -259,6 +266,27 @@ namespace Decatron.Services.GameData.LolLive
             if (!_brain.IsAvailable) return;
             var settings = await CoachSettingsAsync(conn.UserId);
             if (!settings.Enabled) return;
+
+            // Briefing: una vez por día al ver el cliente con una cuenta vinculada.
+            if (type == "client" && entry.Puuid != null && settings.Briefing && entry.BriefedOn?.Date != DateTime.UtcNow.Date)
+            {
+                entry.BriefedOn = DateTime.UtcNow;
+                await SpeakAsync(conn, entry, settings, "briefing");
+                return;
+            }
+
+            // Lobby: cuando entra alguien más (una vez por combinación de miembros).
+            if (type == "phase" && phase.Phase == "lobby" && settings.LobbyComments)
+            {
+                var others = phase.Lobby.Where(m => !m.IsMe).ToList();
+                var sig = string.Join("|", others.Select(m => m.Puuid ?? m.Name).OrderBy(x => x));
+                if (others.Count > 0 && sig != entry.LastLobbySignature)
+                {
+                    entry.LastLobbySignature = sig;
+                    await SpeakAsync(conn, entry, settings, "lobby");
+                }
+                return;
+            }
 
             if (type == "champselect" && phase.ChampSelect is { } cs)
             {
@@ -285,17 +313,102 @@ namespace Decatron.Services.GameData.LolLive
                     });
                 }
             }
-            else if (type == "eog" && settings.PostGameSummary && !entry.PostGameSent)
+            else if (type == "eog" && !entry.PostGameSent)
             {
                 entry.PostGameSent = true;
-                await SpeakAsync(conn, entry, settings, "postgame");
+                if (settings.PostGameSummary) await SpeakAsync(conn, entry, settings, "postgame");
+
+                // Tilt check: 3+ derrotas seguidas en la sesión de hoy (según el overlay), una vez por racha.
+                if (settings.TiltCheck)
+                {
+                    var streak = _overlays.AllFor(conn.UserId).SelectMany(o => o.Accounts)
+                        .FirstOrDefault(a => string.Equals(a.ExternalId, entry.Puuid, StringComparison.OrdinalIgnoreCase))?.Session?.Streak ?? 0;
+                    // El overlay puede no haber visto aún la partida recién terminada: contarla si fue derrota.
+                    if (phase.PostGame is { Win: false } && streak <= 0) streak -= 1;
+                    if (streak <= -3 && entry.TiltCheckedAt != streak) { entry.TiltCheckedAt = streak; await SpeakAsync(conn, entry, settings, "tilt"); }
+                    else if (streak >= 0) entry.TiltCheckedAt = 0;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Datos del historial propio que van al prompt según el momento (fase 3a). Todo
+        /// sale de match-v5 de la cuenta del streamer: récord con los del lobby, contra el
+        /// rival directo, ayer/esta semana. Nunca lanza: si falla, el coach habla sin esto.
+        /// </summary>
+        private async Task<JsonObject?> HistoryContextAsync(long userId, LolLiveStateStore.Entry entry, string kind, CancellationToken ct)
+        {
+            if (!_history.IsAvailable || entry.Puuid == null || kind is "pick" or "my_turn") return null;
+            try
+            {
+                LinkedGameAccount? account;
+                using (var scope = _scopes.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                    account = await db.LinkedGameAccounts.AsNoTracking().FirstOrDefaultAsync(a => a.Game == GameIds.Lol && a.IsActive && a.ExternalId == entry.Puuid, ct);
+                }
+                if (account == null) return null;
+                var history = await _history.GetAsync(account, 40, ct);
+                if (history.Count == 0) return null;
+                var o = new JsonObject();
+                var now = DateTime.UtcNow;
+
+                if (kind == "briefing")
+                {
+                    var yesterday = LolHistoryService.Between(history, now.Date.AddDays(-1), now.Date);
+                    var week = LolHistoryService.Between(history, now.AddDays(-7), now);
+                    o["yesterday"] = new JsonObject { ["games"] = yesterday.Count, ["wins"] = yesterday.Count(m => m.Win), ["losses"] = yesterday.Count(m => !m.Win) };
+                    if (LolHistoryService.BestChampion(week) is { } best)
+                        o["bestChampionThisWeek"] = new JsonObject { ["champion"] = best.Champion, ["games"] = best.Record.Games, ["winRate"] = best.Record.WinRate };
+                    var rank = _overlays.AllFor(userId).SelectMany(s => s.Accounts).FirstOrDefault(a => a.ExternalId == entry.Puuid)?.Rank;
+                    if (rank != null) o["rank"] = new JsonObject { ["tier"] = rank.Tier, ["division"] = rank.Division, ["lp"] = rank.Points, ["wins"] = rank.Wins, ["losses"] = rank.Losses };
+                }
+                if (kind == "lobby")
+                {
+                    var arr = new JsonArray();
+                    foreach (var m in entry.Phase.Lobby.Where(m => !m.IsMe))
+                    {
+                        var (rec, _) = LolHistoryService.WithAlly(history, m.Puuid ?? m.Name);
+                        arr.Add(new JsonObject { ["name"] = m.Name, ["gamesTogether"] = rec.Games, ["winsTogether"] = rec.Wins, ["lossesTogether"] = rec.Losses });
+                    }
+                    o["recordWithLobby"] = arr;
+                }
+                if (kind == "final" && entry.Phase.ChampSelect is { } cs)
+                {
+                    // Contra el rival directo (si ya se sabe quién está en mi rol) y con mi pick.
+                    var enemyChamps = cs.TheirTeam.Where(p => p.Champion != null).Select(p => p.Champion!.Name).ToList();
+                    var vs = new JsonArray();
+                    foreach (var c in enemyChamps)
+                    {
+                        var (rec, _) = LolHistoryService.VersusChampion(history, c);
+                        if (rec.Games > 0) vs.Add(new JsonObject { ["enemyChampion"] = c, ["games"] = rec.Games, ["wins"] = rec.Wins, ["losses"] = rec.Losses });
+                    }
+                    if (vs.Count > 0) o["recordVersusEnemies"] = vs;
+                    if (cs.MyPick != null)
+                    {
+                        var mine = history.Where(m => !m.IsRemake && LolHistoryService.Normalize(m.Me.Champion) == LolHistoryService.Normalize(cs.MyPick.Name)).ToList();
+                        if (mine.Count > 0) o["recordOnMyPick"] = new JsonObject { ["champion"] = cs.MyPick.Name, ["games"] = mine.Count, ["wins"] = mine.Count(m => m.Win) };
+                    }
+                }
+                if (kind == "postgame")
+                {
+                    var today = LolHistoryService.Between(history, now.Date, now.AddDays(1));
+                    o["today"] = new JsonObject { ["games"] = today.Count, ["wins"] = today.Count(m => m.Win), ["losses"] = today.Count(m => !m.Win) };
+                }
+                return o.Count > 0 ? o : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "[LolCoach] historial para {Kind}", kind);
+                return null;
             }
         }
 
         private async Task SpeakAsync(DesktopConnection conn, LolLiveStateStore.Entry entry, LolCoachSettings settings, string kind)
         {
-            if (kind != "postgame" && entry.CoachCalls >= LolCoachBrain.MaxCallsPerChampSelect) return;
-            if (kind != "postgame") entry.CoachCalls++;
+            var inSelect = kind is "pick" or "my_turn" or "final";
+            if (inSelect && entry.CoachCalls >= LolCoachBrain.MaxCallsPerChampSelect) return;
+            if (inSelect) entry.CoachCalls++;
 
             string lang = "es";
             using (var scope = _scopes.CreateScope())
@@ -306,7 +419,8 @@ namespace Decatron.Services.GameData.LolLive
             var stats = _overlays.AllFor(conn.UserId).SelectMany(s => s.Accounts)
                 .FirstOrDefault(a => string.Equals(a.ExternalId, entry.Puuid, StringComparison.OrdinalIgnoreCase))?.Stats;
 
-            var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.Login, lang, settings, stats, entry.SummonerName), conn.Token);
+            var extra = await HistoryContextAsync(conn.UserId, entry, kind, conn.Token);
+            var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.Login, lang, settings, stats, entry.SummonerName, extra), conn.Token);
             if (info == null) return;
 
             entry.CoachHistory.Add(info);

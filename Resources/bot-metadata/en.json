@@ -244,5 +244,35 @@
     "usageExamples": [
       "!coach"
     ]
+  },
+  "vs": {
+    "description": "Streamer's record against a champion (direct opponent, last 60 games)",
+    "aliases": [],
+    "usageExamples": [
+      "!vs Yasuo"
+    ]
+  },
+  "duo": {
+    "description": "Streamer's record with the current lobby duo, someone specific, or most frequent duos",
+    "aliases": [],
+    "usageExamples": [
+      "!duo",
+      "!duo Roba"
+    ]
+  },
+  "pool": {
+    "description": "Streamer's champion pool with win rate",
+    "aliases": [],
+    "usageExamples": [
+      "!pool"
+    ]
+  },
+  "meta": {
+    "description": "Today's goal: view (everyone) or set (mods): !meta <text>, !meta off",
+    "aliases": [],
+    "usageExamples": [
+      "!meta",
+      "!meta subir a Oro I"
+    ]
   }
 }

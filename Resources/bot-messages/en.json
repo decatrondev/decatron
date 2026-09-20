@@ -313,6 +313,22 @@
     "no_build": "@{0}, the coach hasn't given runes or a build yet (it does once everyone locks in).",
     "matchup": "@{0} · {1} on {2}: {3}",
     "build": "@{0} · {1} for {2}: {3}",
-    "say": "@{0} · {1}: {2}"
+    "say": "@{0} · {1}: {2}",
+    "vs_usage": "@{0}, usage: !vs <champion> (e.g. !vs Yasuo)",
+    "no_account": "@{0}, this channel has no linked LoL account (Overlays → Game Overlays → Accounts).",
+    "no_history": "@{0}, I couldn't read the match history right now.",
+    "vs_none": "@{0}, no direct opponent played {1} in the last {2} games.",
+    "vs": "@{0} · vs {1}: {2} · playing {3} · (last {4} games)",
+    "duo_none": "@{0}, no games with {1} in the last 60.",
+    "duo_one": "@{0} · with {1}: {2}",
+    "duo_lobby": "@{0} · in the lobby: {1}",
+    "duo_alone": "@{0}, no repeated ally in the last 60 games: pure solo queue.",
+    "duo_frequent": "@{0} · most frequent duos: {1}",
+    "pool": "@{0} · pool: {1}",
+    "pool_declared": " · declared: {0}",
+    "meta_none": "@{0}, no goal set today. Mods: !meta <text>",
+    "meta": "@{0} · today's goal: {1}",
+    "meta_set": "@{0} · today's goal set: {1}. The coach will keep it in mind.",
+    "meta_cleared": "@{0} · goal cleared."
   }
 }
