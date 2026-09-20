@@ -7,7 +7,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)
+![License](https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge)
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
 
 **A professional, full-featured Twitch Bot Platform with real-time overlays, AI integration, donation system, and extensible timer engine.**
@@ -628,9 +628,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License / Licencia
 
-This project is proprietary software. See [LICENSE](LICENSE) for details.
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE). You are free to use, modify and self-host it; if you run a modified version as a network service, you must publish your changes under the same license.
 
-*Este proyecto es software propietario. Ver [LICENSE](LICENSE) para detalles.*
+*Este proyecto está bajo la [Licencia Pública General Affero de GNU v3.0](LICENSE). Puedes usarlo, modificarlo y auto-alojarlo; si ofreces una versión modificada como servicio en red, debes publicar tus cambios bajo la misma licencia.*
 
 Copyright (c) 2024-2026 Decatron. All rights reserved.
 
