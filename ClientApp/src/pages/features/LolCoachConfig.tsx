@@ -16,7 +16,9 @@ interface Settings {
     enabled: boolean; coachName: string; tone: 'analyst' | 'hype' | 'troll';
     commentPicks: boolean; postGameSummary: boolean; showOnOverlay: boolean;
     champPool: string; notes: string;
+    voiceEnabled: boolean; voiceId: string; voiceKinds: string[];
 }
+interface Voice { id: string; name: string; language: string; gender: string }
 interface CoachMsg { kind: string; comment: string; suggestion?: string | null; runes?: string | null; spells?: string | null; build?: string | null; matchup?: string | null; tips: string[]; coachName: string; at: string; }
 interface State { desktopConnected: boolean; clientConnected: boolean; summoner?: string | null; phase?: LivePhaseInfo | null; history: CoachMsg[]; callsThisSelect: number; maxCallsPerSelect: number; }
 
@@ -35,7 +37,7 @@ export default function LolCoachConfig() {
     const download = useDesktopDownload();
 
     const [settings, setSettings] = useState<Settings | null>(null);
-    const [meta, setMeta] = useState<{ aiAvailable: boolean; linkedAccounts: number } | null>(null);
+    const [meta, setMeta] = useState<{ aiAvailable: boolean; linkedAccounts: number; voiceAvailable: boolean; voices: Voice[] } | null>(null);
     const [state, setState] = useState<State | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -44,7 +46,7 @@ export default function LolCoachConfig() {
     const load = useCallback(async () => {
         try {
             const [s, st] = await Promise.all([api.get('/lol-coach/settings'), api.get('/lol-coach/state')]);
-            setSettings(s.data.settings); setMeta({ aiAvailable: s.data.aiAvailable, linkedAccounts: s.data.linkedAccounts }); setState(st.data);
+            setSettings(s.data.settings); setMeta({ aiAvailable: s.data.aiAvailable, linkedAccounts: s.data.linkedAccounts, voiceAvailable: s.data.voiceAvailable, voices: s.data.voices ?? [] }); setState(st.data);
         } catch { setMessage({ text: 'No se pudo cargar.', error: true }); }
         finally { setLoading(false); }
     }, []);
@@ -55,6 +57,7 @@ export default function LolCoachConfig() {
     }, []);
 
     const update = (patch: Partial<Settings>) => setSettings(p => p ? { ...p, ...patch } : p);
+    const toggleKind = (k: string) => { if (!settings) return; const has = settings.voiceKinds.includes(k); update({ voiceKinds: has ? settings.voiceKinds.filter(x => x !== k) : [...settings.voiceKinds, k] }); };
     const save = async () => {
         if (!settings) return;
         setSaving(true); setMessage(null);
@@ -138,6 +141,28 @@ export default function LolCoachConfig() {
                         <div className={label}>Notas para el coach <span className="font-normal text-[#94a3b8]">(opcional)</span></div>
                         <div className={muted}>Van al prompt tal cual: "odio jugar tanques", "soy support pero me ponen mid", "no me recomiendes Yasuo".</div>
                         <textarea className={`${input} mt-1`} rows={3} value={settings.notes} maxLength={600} onChange={e => update({ notes: e.target.value })} disabled={!canEdit} />
+                    </div>
+                    <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                        <Check checked={settings.voiceEnabled} onChange={v => update({ voiceEnabled: v })} disabled={!canEdit || !meta?.voiceAvailable} label="Voz del coach en Decatron Desktop" hint="Habla por tus altavoces o auriculares (eliges el dispositivo en la app). Cobra créditos TTS del canal, igual que Speak Chat." />
+                        {settings.voiceEnabled && (
+                            <>
+                                <div>
+                                    <div className={label}>Voz</div>
+                                    <select className={`${input} mt-1`} value={settings.voiceId} onChange={e => update({ voiceId: e.target.value })} disabled={!canEdit}>
+                                        <option value="">Por defecto según el idioma del canal</option>
+                                        {(meta?.voices ?? []).map(v => <option key={v.id} value={v.id}>{v.name} · {v.language.toUpperCase()} · {v.gender === 'f' ? 'femenina' : 'masculina'}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <div className={label}>Cuándo habla</div>
+                                    <div className="grid grid-cols-2 gap-2 mt-1">
+                                        {[['my_turn', 'En tu turno (sugerencia)'], ['final', 'Plan final (runas y spells)'], ['postgame', 'Opinión al terminar'], ['pick', 'Cada pick/ban (mucho ruido)']].map(([k, l]) => (
+                                            <Check key={k} checked={settings.voiceKinds.includes(k)} onChange={() => toggleKind(k)} disabled={!canEdit} label={l} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                     <p className="text-xs text-[#94a3b8]">Comandos del chat: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>) para todos; <code>!coach</code> para mods. Se activan en Comandos → Juegos.</p>
                 </div>

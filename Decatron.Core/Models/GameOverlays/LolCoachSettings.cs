@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -48,6 +49,20 @@ public class LolCoachSettings
     /// <summary>Instrucciones extra para el prompt ("odio jugar tanques", "háblame de vos").</summary>
     [Column("notes"), MaxLength(600)]
     public string Notes { get; set; } = "";
+
+    /// <summary>El coach habla por audio en el Desktop (Deepgram Aura, cobra créditos TTS del canal).</summary>
+    [Column("voice_enabled")]
+    public bool VoiceEnabled { get; set; }
+
+    /// <summary>Voz del catálogo de Deepgram. Vacío = la voz por defecto del idioma del canal.</summary>
+    [Column("voice_id"), MaxLength(60)]
+    public string VoiceId { get; set; } = "";
+
+    /// <summary>Qué momentos van con voz, separados por coma: pick, my_turn, final, postgame.</summary>
+    [Column("voice_kinds"), MaxLength(60)]
+    public string VoiceKinds { get; set; } = "my_turn,final,postgame";
+
+    public bool SpeaksOn(string kind) => VoiceEnabled && VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(kind);
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

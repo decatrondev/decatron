@@ -24,10 +24,11 @@ namespace Decatron.Controllers
         private readonly LolLiveStateStore _live;
         private readonly LolCoachBrain _brain;
         private readonly DesktopConnectionRegistry _desktop;
+        private readonly LolCoachVoice _voice;
 
-        public LolCoachController(DecatronDbContext db, LolLiveStateStore live, LolCoachBrain brain, DesktopConnectionRegistry desktop)
+        public LolCoachController(DecatronDbContext db, LolLiveStateStore live, LolCoachBrain brain, DesktopConnectionRegistry desktop, LolCoachVoice voice)
         {
-            _db = db; _live = live; _brain = brain; _desktop = desktop;
+            _db = db; _live = live; _brain = brain; _desktop = desktop; _voice = voice;
         }
 
         public record SettingsDto(
@@ -38,11 +39,15 @@ namespace Decatron.Controllers
             bool PostGameSummary,
             bool ShowOnOverlay,
             [MaxLength(400)] string? ChampPool,
-            [MaxLength(600)] string? Notes);
+            [MaxLength(600)] string? Notes,
+            bool VoiceEnabled = false,
+            string? VoiceId = null,
+            string[]? VoiceKinds = null);
 
         private static object ToDto(LolCoachSettings s) => new
         {
             s.Enabled, s.CoachName, s.Tone, s.CommentPicks, s.PostGameSummary, s.ShowOnOverlay, s.ChampPool, s.Notes,
+            s.VoiceEnabled, s.VoiceId, VoiceKinds = s.VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
         };
 
         [HttpGet("settings")]
@@ -59,6 +64,8 @@ namespace Decatron.Controllers
                 linkedAccounts = linked,
                 desktopConnected = _desktop.CountFor(userId) > 0,
                 tones = new[] { "analyst", "hype", "troll" },
+                voiceAvailable = _voice.IsAvailable,
+                voices = _voice.Voices.Select(v => new { v.Id, v.Name, v.Language, v.Gender }),
             });
         }
 
@@ -77,6 +84,10 @@ namespace Decatron.Controllers
             s.ShowOnOverlay = dto.ShowOnOverlay;
             s.ChampPool = (dto.ChampPool ?? "").Trim();
             s.Notes = (dto.Notes ?? "").Trim();
+            s.VoiceEnabled = dto.VoiceEnabled;
+            s.VoiceId = dto.VoiceId != null && _voice.Voices.Any(v => v.Id == dto.VoiceId) ? dto.VoiceId : "";
+            var kinds = (dto.VoiceKinds ?? new[] { "my_turn", "final", "postgame" }).Where(k => k is "pick" or "my_turn" or "final" or "postgame").Distinct().ToArray();
+            s.VoiceKinds = string.Join(",", kinds.Length == 0 ? new[] { "my_turn", "final", "postgame" } : kinds);
             s.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             await _desktop.NotifyModuleChangedAsync(userId, LolCoachDesktopChannel.ChannelName);

@@ -42,13 +42,14 @@ namespace Decatron.Services.GameData.LolLive
         private readonly RiotApiClient _riot;
         private readonly LolCoachBrain _brain;
         private readonly GameOverlayStateStore _overlays;
+        private readonly LolCoachVoice _voice;
         private readonly IServiceScopeFactory _scopes;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
-            LolCoachBrain brain, GameOverlayStateStore overlays, IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
+            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
         {
-            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _scopes = scopes; _logger = logger;
+            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _scopes = scopes; _logger = logger;
         }
 
         public string Name => ChannelName;
@@ -64,7 +65,7 @@ namespace Decatron.Services.GameData.LolLive
                 // Habilitado = tiene al menos una cuenta de LoL vinculada en Game Overlays.
                 enabled = linked.Count > 0,
                 linked,
-                coach = new { enabled = coach.Enabled && _brain.IsAvailable, name = coach.CoachName, tone = coach.Tone },
+                coach = new { enabled = coach.Enabled && _brain.IsAvailable, name = coach.CoachName, tone = coach.Tone, voice = coach.VoiceEnabled && _voice.IsAvailable },
             };
         }
 
@@ -319,6 +320,17 @@ namespace Decatron.Services.GameData.LolLive
                 build = info.Build, matchup = info.Matchup, tips = info.Tips, coachName = info.CoachName,
             });
             if (settings.ShowOnOverlay) await _poller.PushLivePhaseAsync(conn.UserId);
+
+            // Voz: solo en los momentos elegidos; el audio va como MP3 en base64 por el mismo canal
+            // (son clips de pocos segundos). Si no hay créditos, se manda el motivo y sigue en texto.
+            if (settings.SpeaksOn(info.Kind))
+            {
+                var (mp3, error) = await _voice.SpeakAsync(conn.UserId, settings, info, lang, conn.Token);
+                if (mp3 != null)
+                    await conn.SendAsync(Name, "coach-audio", new { kind = info.Kind, mime = "audio/mpeg", data = Convert.ToBase64String(mp3) });
+                else if (error != null)
+                    await conn.SendAsync(Name, "coach-audio", new { kind = info.Kind, error });
+            }
         }
 
         public Task OnBinaryAsync(DesktopConnection conn, ReadOnlyMemory<byte> payload) => Task.CompletedTask;
