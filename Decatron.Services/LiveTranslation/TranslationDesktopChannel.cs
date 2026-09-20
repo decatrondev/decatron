@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Decatron.Core.Interfaces;
 using Decatron.Data;
 using Decatron.Services.Desktop;
 using Microsoft.EntityFrameworkCore;
@@ -45,8 +46,22 @@ namespace Decatron.Services.LiveTranslation
                 enabled = s?.Enabled ?? false,
                 source = s?.SourceLanguage,
                 languages = s?.TargetLanguageList ?? Array.Empty<string>(),
+                credits = await CreditsAsync(scope, conn.UserId),
                 audio = new { encoding = "pcm_s16le", sampleRate = 16000, channels = 1, binaryChannel = BinaryChannelId },
             };
+        }
+
+        /// <summary>Saldo del canal, para que la app muestre cuánto queda y no solo lo gastado.</summary>
+        private static async Task<object> CreditsAsync(IServiceScope scope, long userId)
+        {
+            var b = await scope.ServiceProvider.GetRequiredService<ITtsCreditService>().GetBalanceAsync(userId);
+            return new { available = b.TotalAvailable, unlimited = b.IsUnlimited };
+        }
+
+        private async Task<object> StatusAsync(long userId)
+        {
+            using var scope = _scopes.CreateScope();
+            return new { session = _mgr.GetStatus(userId), credits = await CreditsAsync(scope, userId) };
         }
 
         public async Task OnMessageAsync(DesktopConnection conn, string type, JsonNode msg)
@@ -61,7 +76,7 @@ namespace Decatron.Services.LiveTranslation
                         var session = await _mgr.StartAsync(conn.UserId, conn.Device.Id, conn.Token);
                         conn.Items[SessionKey] = session;
                         conn.Items[LoopKey] = StatusLoopAsync(conn, session);
-                        await conn.SendAsync(Name, "started", new { session = _mgr.GetStatus(conn.UserId) });
+                        await conn.SendAsync(Name, "started", await StatusAsync(conn.UserId));
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -73,7 +88,7 @@ namespace Decatron.Services.LiveTranslation
                     await StopAsync(conn, "stopped_by_user");
                     return;
                 case "status":
-                    await conn.SendAsync(Name, "status", new { session = _mgr.GetStatus(conn.UserId) });
+                    await conn.SendAsync(Name, "status", await StatusAsync(conn.UserId));
                     return;
             }
         }
@@ -107,7 +122,7 @@ namespace Decatron.Services.LiveTranslation
                         await _mgr.StopAsync(session.UserId, "timeout");
                         break;
                     }
-                    await conn.SendAsync(Name, "status", new { session = _mgr.GetStatus(conn.UserId) });
+                    await conn.SendAsync(Name, "status", await StatusAsync(conn.UserId));
                 }
 
                 // La sesión la cerró el servidor (sin créditos, STT caído, admin, timeout):
