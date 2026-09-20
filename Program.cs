@@ -393,6 +393,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolCoachBrain>();
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolCoachVoice>();
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolHistoryService>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolPredictionService>();
     builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.GameData.LolLive.LolCoachDesktopChannel>();
     builder.Services.AddSingleton<Decatron.Services.Desktop.DesktopConnectionRegistry>();
 

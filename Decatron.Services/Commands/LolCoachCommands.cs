@@ -244,3 +244,66 @@ namespace Decatron.Services.Commands
         }
     }
 }
+
+namespace Decatron.Services.Commands
+{
+    /// <summary>!pred win|loss [puntos] — apuesta de predicción sobre la partida en curso.</summary>
+    public class PredCommand : LolCoachCommandBase
+    {
+        public PredCommand(string name, ILogger logger, IServiceScopeFactory scopeFactory) : base(name, logger, scopeFactory) { }
+        public override string Description => "Predice si el streamer gana o pierde la partida en curso (puntos de predicción del canal)";
+        protected override string StateName => "pred";
+
+        protected override async Task RunAsync(Ctx ctx)
+        {
+            var settings = await ctx.Db.LolCoachSettings.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == ctx.ChannelUserId);
+            if (settings == null || !settings.PredictionsEnabled) { await SayPred(ctx, "disabled", ctx.Context.Username); return; }
+            var parts = ctx.Args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var svc = ctx.Services.GetRequiredService<LolPredictionService>();
+            var viewer = ctx.Context.Username.ToLowerInvariant();
+
+            if (parts.Length == 0)
+            {
+                var pts = await svc.GetOrCreatePointsAsync(ctx.Db, ctx.ChannelUserId, viewer, settings.PredictionStartPoints);
+                var open = await ctx.Db.LolPredictions.AnyAsync(p => p.UserId == ctx.ChannelUserId && p.ResolvedAt == null && p.ClosesAt > DateTime.UtcNow);
+                await SayPred(ctx, open ? "usage_open" : "usage", ctx.Context.Username, pts.Points, pts.Correct, pts.Total);
+                return;
+            }
+            var side = parts[0].ToLowerInvariant() switch
+            {
+                "win" or "gana" or "victoria" or "w" or "si" or "sí" => "win",
+                "loss" or "lose" or "pierde" or "derrota" or "l" or "no" => "loss",
+                _ => "",
+            };
+            var amount = parts.Length > 1 && int.TryParse(parts[1], out var a) ? a : 100;
+            var r = await svc.BetAsync(ctx.Db, ctx.ChannelUserId, viewer, side, amount, settings.PredictionStartPoints);
+            switch (r.Status)
+            {
+                case "ok": await SayPred(ctx, "placed", ctx.Context.Username, side == "win" ? ctx.Messages.GetMessage("lolpred", "side_win", ctx.Lang) : ctx.Messages.GetMessage("lolpred", "side_loss", ctx.Lang), r.Amount, r.Balance, r.PoolWin, r.PoolLoss); break;
+                case "no_prediction": await SayPred(ctx, "none", ctx.Context.Username); break;
+                case "closed": await SayPred(ctx, "closed", ctx.Context.Username); break;
+                case "already": await SayPred(ctx, "already", ctx.Context.Username); break;
+                case "not_enough": await SayPred(ctx, "not_enough", ctx.Context.Username, r.Balance); break;
+                default: await SayPred(ctx, "invalid", ctx.Context.Username, LolPredictionService.MinBet); break;
+            }
+        }
+
+        private Task SayPred(Ctx ctx, string key, params object[] args) => ctx.Sender.SendMessageAsync(ctx.Context.Channel, ctx.Messages.GetMessage("lolpred", key, ctx.Lang, args));
+    }
+
+    /// <summary>!predtop — ranking de puntos de predicción del canal.</summary>
+    public class PredTopCommand : LolCoachCommandBase
+    {
+        public PredTopCommand(string name, ILogger logger, IServiceScopeFactory scopeFactory) : base(name, logger, scopeFactory) { }
+        public override string Description => "Top 5 de puntos de predicción del canal";
+        protected override string StateName => "predtop";
+
+        protected override async Task RunAsync(Ctx ctx)
+        {
+            var top = await ctx.Db.LolPredictionPoints.Where(p => p.UserId == ctx.ChannelUserId && p.Total > 0).OrderByDescending(p => p.Points).Take(5).ToListAsync();
+            if (top.Count == 0) { await ctx.Sender.SendMessageAsync(ctx.Context.Channel, ctx.Messages.GetMessage("lolpred", "top_empty", ctx.Lang, ctx.Context.Username)); return; }
+            var list = string.Join(" · ", top.Select((p, i) => $"{i + 1}. {p.Viewer} {p.Points:N0} ({p.Correct}/{p.Total})"));
+            await ctx.Sender.SendMessageAsync(ctx.Context.Channel, ctx.Messages.GetMessage("lolpred", "top", ctx.Lang, ctx.Context.Username, list));
+        }
+    }
+}

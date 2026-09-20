@@ -219,6 +219,8 @@ namespace Decatron.Services
                 RegisterCommand(new Commands.DuoCommand("duo", log, _serviceScopeFactory));
                 RegisterCommand(new Commands.PoolCommand("pool", log, _serviceScopeFactory));
                 RegisterCommand(new Commands.MetaCommand("meta", log, _serviceScopeFactory));
+                RegisterCommand(new Commands.PredCommand("pred", log, _serviceScopeFactory));
+                RegisterCommand(new Commands.PredTopCommand("predtop", log, _serviceScopeFactory));
                 RegisterCommand(new Commands.SetRangoCommand("setrango", log, _serviceScopeFactory));
                 RegisterCommand(new Commands.RankStepCommand("rankup", +1, log, _serviceScopeFactory));
                 RegisterCommand(new Commands.RankStepCommand("rankdown", -1, log, _serviceScopeFactory));

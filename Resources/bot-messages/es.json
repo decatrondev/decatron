@@ -330,5 +330,23 @@
     "meta": "@{0} · objetivo de hoy: {1}",
     "meta_set": "@{0} · objetivo de hoy fijado: {1}. El coach lo tendrá en cuenta.",
     "meta_cleared": "@{0} · objetivo borrado."
+  },
+  "lolpred": {
+    "disabled": "@{0}, las predicciones no están activas en este canal.",
+    "usage": "@{0} · tienes {1:N0} puntos de predicción ({2}/{3} aciertos). Cuando empiece una partida: !pred win|loss <puntos>",
+    "usage_open": "@{0} · tienes {1:N0} puntos ({2}/{3} aciertos). ¡Hay predicción abierta! !pred win|loss <puntos>",
+    "placed": "@{0} · apostaste {2} a {1}. Te quedan {3:N0}. Pozo: {4:N0} a que gana / {5:N0} a que pierde.",
+    "none": "@{0}, ahora no hay ninguna predicción abierta. Se abre cuando empieza la partida.",
+    "closed": "@{0}, la predicción ya cerró para esta partida (cierra a los pocos minutos de empezar).",
+    "already": "@{0}, ya apostaste en esta partida.",
+    "not_enough": "@{0}, no te alcanza: tienes {1:N0} puntos.",
+    "invalid": "@{0}, uso: !pred win|loss <puntos> (mínimo {1}).",
+    "opened": "🔮 ¡Predicción abierta! ¿{0} gana o pierde? !pred win <puntos> o !pred loss <puntos> — cierra en {1} min. Nuevos empiezan con {2:N0} puntos.",
+    "resolved": "🔮 Resultado: {0}. Acertaron {1} · pozo total {2:N0} puntos{3}",
+    "refunded": "🔮 Resultado: {0}. Nadie apostó al lado contrario: se devolvieron los puntos.",
+    "side_win": "VICTORIA",
+    "side_loss": "DERROTA",
+    "top": "@{0} · top predicción: {1}",
+    "top_empty": "@{0}, todavía nadie tiene predicciones resueltas en este canal."
   }
 }

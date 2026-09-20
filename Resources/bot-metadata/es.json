@@ -274,5 +274,21 @@
       "!meta",
       "!meta subir a Oro I"
     ]
+  },
+  "pred": {
+    "description": "Predice si el streamer gana o pierde la partida de LoL en curso, con puntos de predicción del canal",
+    "aliases": [],
+    "usageExamples": [
+      "!pred",
+      "!pred win 200",
+      "!pred loss"
+    ]
+  },
+  "predtop": {
+    "description": "Top 5 de puntos de predicción del canal",
+    "aliases": [],
+    "usageExamples": [
+      "!predtop"
+    ]
   }
 }

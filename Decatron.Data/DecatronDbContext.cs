@@ -129,6 +129,9 @@ namespace Decatron.Data
         // Traducción en vivo (doblaje por espectador)
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSettings> LiveTranslationSettings { get; set; }
         public DbSet<Core.Models.GameOverlays.LolCoachSettings> LolCoachSettings { get; set; }
+        public DbSet<Core.Models.GameOverlays.LolPrediction> LolPredictions { get; set; }
+        public DbSet<Core.Models.GameOverlays.LolPredictionBet> LolPredictionBets { get; set; }
+        public DbSet<Core.Models.GameOverlays.LolPredictionPoints> LolPredictionPoints { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 

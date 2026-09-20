@@ -46,13 +46,17 @@ namespace Decatron.Controllers
             bool Briefing = true,
             bool TiltCheck = false,
             bool LobbyComments = true,
-            [MaxLength(200)] string? DailyGoal = null);
+            [MaxLength(200)] string? DailyGoal = null,
+            bool PredictionsEnabled = false,
+            int PredictionStartPoints = 1000,
+            int PredictionCloseMinutes = 5);
 
         private static object ToDto(LolCoachSettings s) => new
         {
             s.Enabled, s.CoachName, s.Tone, s.CommentPicks, s.PostGameSummary, s.ShowOnOverlay, s.ChampPool, s.Notes,
             s.VoiceEnabled, s.VoiceId, VoiceKinds = s.VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             s.Briefing, s.TiltCheck, s.LobbyComments, DailyGoal = s.CurrentGoal ?? "",
+            s.PredictionsEnabled, s.PredictionStartPoints, s.PredictionCloseMinutes,
         };
 
         [HttpGet("settings")]
@@ -96,6 +100,9 @@ namespace Decatron.Controllers
             s.Briefing = dto.Briefing;
             s.TiltCheck = dto.TiltCheck;
             s.LobbyComments = dto.LobbyComments;
+            s.PredictionsEnabled = dto.PredictionsEnabled;
+            s.PredictionStartPoints = Math.Clamp(dto.PredictionStartPoints, 100, 100000);
+            s.PredictionCloseMinutes = Math.Clamp(dto.PredictionCloseMinutes, 1, 20);
             var goal = (dto.DailyGoal ?? "").Trim();
             if (goal != (s.CurrentGoal ?? "")) { s.DailyGoal = goal; s.GoalSetAt = goal.Length > 0 ? DateTime.UtcNow : null; }
             s.UpdatedAt = DateTime.UtcNow;

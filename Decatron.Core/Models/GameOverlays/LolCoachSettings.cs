@@ -84,6 +84,18 @@ public class LolCoachSettings
     /// <summary>El objetivo vale el día que se fijó (hasta 18 h después, para streams que cruzan medianoche).</summary>
     public string? CurrentGoal => !string.IsNullOrWhiteSpace(DailyGoal) && GoalSetAt != null && (DateTime.UtcNow - GoalSetAt.Value) < TimeSpan.FromHours(18) ? DailyGoal : null;
 
+    /// <summary>Predicciones del chat (!pred win|loss) con puntos de predicción del canal.</summary>
+    [Column("predictions_enabled")]
+    public bool PredictionsEnabled { get; set; }
+
+    /// <summary>Puntos con los que arranca cada viewer nuevo en este canal.</summary>
+    [Column("prediction_start_points")]
+    public int PredictionStartPoints { get; set; } = 1000;
+
+    /// <summary>Minutos de partida hasta que cierra la predicción.</summary>
+    [Column("prediction_close_minutes")]
+    public int PredictionCloseMinutes { get; set; } = 5;
+
     public bool SpeaksOn(string kind) => VoiceEnabled && VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(kind);
 
     [Column("created_at")]

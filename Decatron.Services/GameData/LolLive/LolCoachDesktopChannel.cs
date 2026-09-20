@@ -44,13 +44,15 @@ namespace Decatron.Services.GameData.LolLive
         private readonly GameOverlayStateStore _overlays;
         private readonly LolCoachVoice _voice;
         private readonly LolHistoryService _history;
+        private readonly LolPredictionService _predictions;
         private readonly IServiceScopeFactory _scopes;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
-            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
+            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, LolPredictionService predictions,
+            IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
         {
-            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _scopes = scopes; _logger = logger;
+            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _predictions = predictions; _scopes = scopes; _logger = logger;
         }
 
         public string Name => ChannelName;
@@ -248,6 +250,33 @@ namespace Decatron.Services.GameData.LolLive
                 try { await CoachAsync(conn, entry, prevPhase, type); }
                 catch (Exception ex) { _logger.LogWarning(ex, "[LolCoach] {Login}: coach ({Type})", conn.Login, type); }
             });
+            _ = Task.Run(async () =>
+            {
+                try { await PredictionsAsync(conn, entry, type); }
+                catch (Exception ex) { _logger.LogWarning(ex, "[LolPred] {Login}: ({Type})", conn.Login, type); }
+            });
+        }
+
+        /// <summary>Predicciones del chat: se abren al entrar en partida y se resuelven con el eog. Independientes del coach IA.</summary>
+        private async Task PredictionsAsync(DesktopConnection conn, LolLiveStateStore.Entry entry, string type)
+        {
+            if (type is not ("ingame" or "eog")) return;
+            var settings = await CoachSettingsAsync(conn.UserId);
+            if (!settings.PredictionsEnabled) return;
+            string lang;
+            using (var scope = _scopes.CreateScope())
+                lang = await scope.ServiceProvider.GetRequiredService<DecatronDbContext>().Users.Where(u => u.Id == conn.UserId).Select(u => u.PreferredLanguage).FirstOrDefaultAsync() ?? "es";
+
+            if (type == "ingame" && entry.Phase.Game is { } g)
+            {
+                var started = g.StartedAt ?? DateTime.UtcNow;
+                var key = $"{entry.Puuid}:{started:yyyyMMddHHmm}";
+                await _predictions.OpenAsync(conn.UserId, conn.Login, lang, settings, key, g.Champion?.Name, started);
+            }
+            else if (type == "eog" && entry.Phase.PostGame is { } pg)
+            {
+                await _predictions.ResolveAsync(conn.UserId, conn.Login, lang, pg.Win);
+            }
         }
 
         // ─── Coach (fase 2): cuándo habla la IA ─────────────────────────────────

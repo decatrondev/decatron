@@ -18,6 +18,7 @@ interface Settings {
     champPool: string; notes: string;
     voiceEnabled: boolean; voiceId: string; voiceKinds: string[];
     briefing: boolean; tiltCheck: boolean; lobbyComments: boolean; dailyGoal: string;
+    predictionsEnabled: boolean; predictionStartPoints: number; predictionCloseMinutes: number;
 }
 interface Voice { id: string; name: string; language: string; gender: string }
 interface CoachMsg { kind: string; comment: string; suggestion?: string | null; runes?: string | null; spells?: string | null; build?: string | null; matchup?: string | null; tips: string[]; coachName: string; at: string; }
@@ -150,6 +151,16 @@ export default function LolCoachConfig() {
                         <div className={label}>Notas para el coach <span className="font-normal text-[#94a3b8]">(opcional)</span></div>
                         <div className={muted}>Van al prompt tal cual: "odio jugar tanques", "soy support pero me ponen mid", "no me recomiendes Yasuo".</div>
                         <textarea className={`${input} mt-1`} rows={3} value={settings.notes} maxLength={600} onChange={e => update({ notes: e.target.value })} disabled={!canEdit} />
+                    </div>
+                    <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                        <Check checked={settings.predictionsEnabled} onChange={v => update({ predictionsEnabled: v })} disabled={!canEdit} label="Predicciones del chat (!pred)" hint="Al empezar cada partida el bot abre una predicción: ¿ganas o pierdes? Los viewers apuestan puntos de predicción del canal (gratis, no son DecaCoins) y los que aciertan se reparten el pozo. Se resuelve sola con el resultado real. No necesita el coach con IA." />
+                        {settings.predictionsEnabled && (
+                            <div className="grid grid-cols-2 gap-3">
+                                <div><div className={label}>Puntos iniciales por viewer</div><input type="number" className={`${input} mt-1`} min={100} max={100000} value={settings.predictionStartPoints} onChange={e => update({ predictionStartPoints: Number(e.target.value) })} disabled={!canEdit} /></div>
+                                <div><div className={label}>Cierra a los (min de partida)</div><input type="number" className={`${input} mt-1`} min={1} max={20} value={settings.predictionCloseMinutes} onChange={e => update({ predictionCloseMinutes: Number(e.target.value) })} disabled={!canEdit} /></div>
+                                <p className="col-span-2 text-xs text-[#94a3b8]">Comandos: <code>!pred win 200</code>, <code>!pred loss</code> (100 por defecto), <code>!pred</code> (tus puntos), <code>!predtop</code>. Mínimo 10 puntos.</p>
+                            </div>
+                        )}
                     </div>
                     <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
                         <Check checked={settings.voiceEnabled} onChange={v => update({ voiceEnabled: v })} disabled={!canEdit || !meta?.voiceAvailable} label="Voz del coach en Decatron Desktop" hint="Habla por tus altavoces o auriculares (eliges el dispositivo en la app). Cobra créditos TTS del canal, igual que Speak Chat." />

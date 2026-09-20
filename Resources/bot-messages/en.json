@@ -330,5 +330,23 @@
     "meta": "@{0} · today's goal: {1}",
     "meta_set": "@{0} · today's goal set: {1}. The coach will keep it in mind.",
     "meta_cleared": "@{0} · goal cleared."
+  },
+  "lolpred": {
+    "disabled": "@{0}, predictions are not enabled on this channel.",
+    "usage": "@{0} · you have {1:N0} prediction points ({2}/{3} correct). When a game starts: !pred win|loss <points>",
+    "usage_open": "@{0} · you have {1:N0} points ({2}/{3} correct). A prediction is open! !pred win|loss <points>",
+    "placed": "@{0} · you bet {2} on {1}. {3:N0} left. Pool: {4:N0} on win / {5:N0} on loss.",
+    "none": "@{0}, no prediction is open right now. It opens when the game starts.",
+    "closed": "@{0}, the prediction is closed for this game (it closes a few minutes in).",
+    "already": "@{0}, you already bet on this game.",
+    "not_enough": "@{0}, not enough points: you have {1:N0}.",
+    "invalid": "@{0}, usage: !pred win|loss <points> (min {1}).",
+    "opened": "🔮 Prediction open! Does {0} win or lose? !pred win <points> or !pred loss <points> — closes in {1} min. Newcomers start with {2:N0} points.",
+    "resolved": "🔮 Result: {0}. {1} got it right · total pool {2:N0} points{3}",
+    "refunded": "🔮 Result: {0}. Nobody bet on the other side: points refunded.",
+    "side_win": "WIN",
+    "side_loss": "LOSS",
+    "top": "@{0} · prediction top: {1}",
+    "top_empty": "@{0}, nobody has resolved predictions on this channel yet."
   }
 }

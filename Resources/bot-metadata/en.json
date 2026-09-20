@@ -274,5 +274,21 @@
       "!meta",
       "!meta subir a Oro I"
     ]
+  },
+  "pred": {
+    "description": "Predict whether the streamer wins or loses the current LoL game, with channel prediction points",
+    "aliases": [],
+    "usageExamples": [
+      "!pred",
+      "!pred win 200",
+      "!pred loss"
+    ]
+  },
+  "predtop": {
+    "description": "Channel prediction points top 5",
+    "aliases": [],
+    "usageExamples": [
+      "!predtop"
+    ]
   }
 }
