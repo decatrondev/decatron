@@ -3,6 +3,7 @@
  * verificar (icono de invocador en Riot), renombrar, rango manual, borrar.
  */
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, ShieldCheck, ShieldAlert, Trash2, Loader2, Pencil, Check, X } from 'lucide-react';
 import { Card, SectionTitle, Label, SubLabel, TextInput, SelectInput, NumberInput } from '../../now-playing-extension/components/ui/SharedUI';
 import { CatalogEntry, LinkedAccount, TierLimits, gameOverlaysApi, errorMessage } from '../api';
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export const AccountsTab: React.FC<Props> = ({ accounts, catalog, limits, onChanged }) => {
+    const { t } = useTranslation('games', { keyPrefix: 'gameOverlays.accounts' });
     const [game, setGame] = useState<GameId>('lol');
     const [name, setName] = useState('');
     const [tag, setTag] = useState('');
@@ -42,9 +44,9 @@ export const AccountsTab: React.FC<Props> = ({ accounts, catalog, limits, onChan
         setBusy(true);
         try {
             const res = await gameOverlaysApi.link({ game, name: name.trim(), tag: isRiot ? tag.trim() : undefined, region: isRiot ? region : undefined, displayName: displayName.trim() || undefined });
-            if (!res.success) { flash('err', res.message || 'No se pudo vincular'); return; }
+            if (!res.success) { flash('err', res.message || t('linkError')); return; }
             setName(''); setTag(''); setDisplayName('');
-            flash('ok', res.account?.verificationPending ? 'Cuenta agregada — falta verificarla (ver abajo)' : 'Cuenta vinculada');
+            flash('ok', res.account?.verificationPending ? t('linkedPending') : t('linked'));
             await onChanged();
         } catch (e) { flash('err', errorMessage(e)); }
         finally { setBusy(false); }
@@ -55,29 +57,29 @@ export const AccountsTab: React.FC<Props> = ({ accounts, catalog, limits, onChan
     return (
         <div className="space-y-6">
             <Card>
-                <SectionTitle>Vincular una cuenta</SectionTitle>
-                <SubLabel>Las cuentas son tuyas (de la persona), no del canal: sirven para Twitch y Kick. Tu plan permite {limits.maxAccountsPerGame} por juego.</SubLabel>
+                <SectionTitle>{t('linkTitle')}</SectionTitle>
+                <SubLabel>{t('linkHint', { count: limits.maxAccountsPerGame })}</SubLabel>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                        <Label>Juego</Label>
-                        <SelectInput value={game} onChange={v => setGame(v as GameId)} options={GAME_IDS.map(g => ({ value: g, label: `${GAME_NAMES[g]}${catalog.find(c => c.game === g)?.hasApi ? '' : ' (rango manual)'}` }))} />
+                        <Label>{t('game')}</Label>
+                        <SelectInput value={game} onChange={v => setGame(v as GameId)} options={GAME_IDS.map(g => ({ value: g, label: `${GAME_NAMES[g]}${catalog.find(c => c.game === g)?.hasApi ? '' : ` (${t('manualRankTag')})`}` }))} />
                     </div>
                     <div>
-                        <Label>Nombre visible (opcional)</Label>
+                        <Label>{t('displayName')}</Label>
                         <TextInput value={displayName} onChange={setDisplayName} placeholder="Main, Smurf, EUW…" />
                     </div>
                     <div>
-                        <Label>{isRiot ? 'Riot ID (nombre)' : 'Nombre en el juego'}</Label>
-                        <TextInput value={name} onChange={setName} placeholder={isRiot ? 'anthonydeca' : 'Tu nick'} />
+                        <Label>{isRiot ? t('riotId') : t('inGameName')}</Label>
+                        <TextInput value={name} onChange={setName} placeholder={isRiot ? 'anthonydeca' : t('nickPlaceholder')} />
                     </div>
                     {isRiot && (
                         <>
                             <div>
-                                <Label>Tag (sin #)</Label>
+                                <Label>{t('tag')}</Label>
                                 <TextInput value={tag} onChange={setTag} placeholder="LAS" />
                             </div>
                             <div>
-                                <Label>Región</Label>
+                                <Label>{t('region')}</Label>
                                 <SelectInput value={region} onChange={setRegion} options={RIOT_REGIONS} />
                             </div>
                         </>
@@ -85,20 +87,20 @@ export const AccountsTab: React.FC<Props> = ({ accounts, catalog, limits, onChan
                 </div>
                 {!entry?.hasApi && (
                     <p className="text-xs text-amber-400/90 mt-3">
-                        {GAME_NAMES[game]} todavía no tiene API conectada: el rango lo fijas a mano en la cuenta (abajo) o con <code>!setrango</code> en el chat.
+                        {t('noApi', { game: GAME_NAMES[game] })} <code>!setrango</code>.
                     </p>
                 )}
                 <div className="flex items-center gap-3 mt-4">
                     <button onClick={link} disabled={busy || atLimit || !name.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold flex items-center gap-2">
-                        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Vincular
+                        {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {t('link')}
                     </button>
-                    {atLimit && <span className="text-xs text-[#94a3b8]">Llegaste al máximo de {limits.maxAccountsPerGame} cuenta(s) para {GAME_NAMES[game]}. <a href="/supporters" className="text-blue-400 underline">Ver planes</a></span>}
+                    {atLimit && <span className="text-xs text-[#94a3b8]">{t('atLimit', { count: limits.maxAccountsPerGame, game: GAME_NAMES[game] })} <a href="/supporters" className="text-blue-400 underline">{t('seePlans')}</a></span>}
                     {msg && <span className={`text-sm ${msg.type === 'ok' ? 'text-green-400' : 'text-red-400'}`}>{msg.text}</span>}
                 </div>
             </Card>
 
             {grouped.length === 0 && (
-                <Card><p className="text-sm text-[#94a3b8]">Todavía no tienes cuentas vinculadas.</p></Card>
+                <Card><p className="text-sm text-[#94a3b8]">{t('none')}</p></Card>
             )}
 
             {grouped.map(({ game: g, list }) => (
@@ -114,6 +116,7 @@ export const AccountsTab: React.FC<Props> = ({ accounts, catalog, limits, onChan
 };
 
 const AccountRow: React.FC<{ account: LinkedAccount; onChanged: () => Promise<void> }> = ({ account: a, onChanged }) => {
+    const { t } = useTranslation('games', { keyPrefix: 'gameOverlays.accounts' });
     const [busy, setBusy] = useState(false);
     const [msg, setMsg] = useState<string | null>(null);
     const [editing, setEditing] = useState(false);
@@ -138,36 +141,36 @@ const AccountRow: React.FC<{ account: LinkedAccount; onChanged: () => Promise<vo
                 <div className="flex-1 min-w-[200px]">
                     {editing ? (
                         <div className="flex items-center gap-2">
-                            <TextInput value={displayName} onChange={setDisplayName} placeholder="Nombre visible" />
-                            <button className="p-1.5 rounded bg-green-700 text-white" onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { displayName }), 'Guardado').then(() => setEditing(false))}><Check className="w-4 h-4" /></button>
+                            <TextInput value={displayName} onChange={setDisplayName} placeholder={t('displayNameShort')} />
+                            <button className="p-1.5 rounded bg-green-700 text-white" onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { displayName }), t('saved')).then(() => setEditing(false))}><Check className="w-4 h-4" /></button>
                             <button className="p-1.5 rounded bg-[#374151] text-white" onClick={() => { setEditing(false); setDisplayName(a.displayName); }}><X className="w-4 h-4" /></button>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
                             <span className="font-semibold text-[#f8fafc]">{a.displayName}</span>
-                            <button className="text-[#6b7280] hover:text-white" onClick={() => setEditing(true)} title="Renombrar"><Pencil className="w-3.5 h-3.5" /></button>
+                            <button className="text-[#6b7280] hover:text-white" onClick={() => setEditing(true)} title={t('rename')}><Pencil className="w-3.5 h-3.5" /></button>
                         </div>
                     )}
                     <div className="text-xs text-[#94a3b8]">{a.fullName}{a.region ? ` · ${a.region.toUpperCase()}` : ''} · {a.provider === 'manual' ? 'manual' : a.provider}</div>
                 </div>
 
                 {a.verified ? (
-                    <span className="text-xs text-green-400 flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> Verificada</span>
+                    <span className="text-xs text-green-400 flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> {t('verified')}</span>
                 ) : (
-                    <span className="text-xs text-amber-400 flex items-center gap-1"><ShieldAlert className="w-4 h-4" /> Sin verificar</span>
+                    <span className="text-xs text-amber-400 flex items-center gap-1"><ShieldAlert className="w-4 h-4" /> {t('unverified')}</span>
                 )}
 
-                <button disabled={busy} onClick={() => { if (confirm(`¿Quitar ${a.fullName}?`)) run(() => gameOverlaysApi.deleteAccount(a.id)); }} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title="Quitar">
+                <button disabled={busy} onClick={() => { if (confirm(t('confirmRemove', { name: a.fullName }))) run(() => gameOverlaysApi.deleteAccount(a.id)); }} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title={t('remove')}>
                     <Trash2 className="w-4 h-4" />
                 </button>
             </div>
 
             {a.verificationPending && (
                 <div className="mt-3 p-3 rounded-lg bg-amber-900/20 border border-amber-500/20 text-sm text-amber-200">
-                    <p>Para verificar que es tu cuenta: en el cliente de League, cambia tu <b>ícono de invocador</b> al ícono <b>#{a.verificationChallengeIconId}</b> (los primeros de la lista, sin costo), guarda, y pulsa verificar.</p>
+                    <p>{t('verifyHint1')} <b>{t('verifyIcon')}</b> {t('verifyHint2')} <b>#{a.verificationChallengeIconId}</b> {t('verifyHint3')}</p>
                     <div className="flex items-center gap-3 mt-2">
-                        <button disabled={busy} onClick={() => run(() => gameOverlaysApi.verify(a.id), 'Cuenta verificada')} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1">
-                            {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />} Verificar ahora
+                        <button disabled={busy} onClick={() => run(() => gameOverlaysApi.verify(a.id), t('verifiedMsg'))} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1">
+                            {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />} {t('verifyNow')}
                         </button>
                         {msg && <span className="text-xs">{msg}</span>}
                     </div>
@@ -177,22 +180,22 @@ const AccountRow: React.FC<{ account: LinkedAccount; onChanged: () => Promise<vo
             {showManual && (
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                     <div>
-                        <Label>Rango manual</Label>
+                        <Label>{t('manualRank')}</Label>
                         <SelectInput value={rankTier} onChange={v => { setRankTier(v); setRankDiv(''); }} options={catalog.map(c => ({ value: c.tier, label: c.label }))} />
                     </div>
                     <div>
-                        <Label>División</Label>
+                        <Label>{t('division')}</Label>
                         <SelectInput value={rankDiv} onChange={setRankDiv} options={[{ value: '', label: '—' }, ...divisions.map(d => ({ value: d, label: d }))]} />
                     </div>
                     <div>
-                        <Label>Puntos</Label>
+                        <Label>{t('points')}</Label>
                         <NumberInput value={rankPts} onChange={setRankPts} min={0} max={99999} />
                     </div>
                     <div className="flex gap-2">
-                        <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { manualRank: { tier: rankTier, division: rankDiv || null, points: rankPts } }), 'Rango guardado')} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold">Guardar rango</button>
-                        {a.manualRank && <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { clearManualRank: true }), 'Rango borrado')} className="px-3 py-2 bg-[#374151] text-white rounded-lg text-xs">Quitar</button>}
+                        <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { manualRank: { tier: rankTier, division: rankDiv || null, points: rankPts } }), t('rankSaved'))} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold">{t('saveRank')}</button>
+                        {a.manualRank && <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { clearManualRank: true }), t('rankCleared'))} className="px-3 py-2 bg-[#374151] text-white rounded-lg text-xs">{t('remove')}</button>}
                     </div>
-                    {a.manualRank && <div className="md:col-span-4 text-xs text-[#94a3b8]">Actual: {formatTier(a.manualRank.tier)} {a.manualRank.division ?? ''} {a.manualRank.points ? `· ${a.manualRank.points} pts` : ''}</div>}
+                    {a.manualRank && <div className="md:col-span-4 text-xs text-[#94a3b8]">{t('current')}: {formatTier(a.manualRank.tier)} {a.manualRank.division ?? ''} {a.manualRank.points ? `· ${a.manualRank.points} pts` : ''}</div>}
                 </div>
             )}
             {msg && !a.verificationPending && <div className="text-xs text-[#94a3b8] mt-2">{msg}</div>}

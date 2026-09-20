@@ -217,7 +217,7 @@ export interface ElementConfig {
 }
 
 export type StylePreset = 'minimal' | 'stats' | 'full';
-export const STYLE_PRESET_LABELS: Record<StylePreset, string> = { minimal: 'Minimal', stats: 'Stats (op.gg)', full: 'Completo' };
+export const STYLE_PRESETS: StylePreset[] = ['minimal', 'stats', 'full'];
 /** Qué elementos deja visibles cada preset; el resto de la config no se toca. */
 export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
     minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
@@ -227,7 +227,7 @@ export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
 
 /** Vistas por las que rota la tarjeta ("tipo GIF"): la principal, stats, campeones, gráfico. */
 export type SlideView = 'main' | 'stats' | 'champs' | 'graph';
-export const SLIDE_VIEW_LABELS: Record<SlideView, string> = { main: 'Principal', stats: 'Estadísticas', champs: 'Campeones', graph: 'Gráfico de LP' };
+export const SLIDE_VIEWS: SlideView[] = ['main', 'stats', 'champs', 'graph'];
 export interface SlidesConfig {
     enabled: boolean;
     /** Segundos que dura cada vista. */
@@ -391,16 +391,9 @@ export const RANK_CATALOG: Record<GameId, RankCatalogEntry[]> = {
     ],
 };
 
-export const LAYOUT_LABELS: Record<LayoutPreset, string> = {
-    card: 'Tarjeta', compact: 'Compacto', bar: 'Barra', 'emblem-only': 'Solo emblema',
-};
+export const LAYOUT_PRESETS: LayoutPreset[] = ['card', 'compact', 'bar', 'emblem-only'];
 
-export const ELEMENT_LABELS: Record<ElementId, string> = {
-    emblem: 'Emblema de rango', rank: 'Rango', lp: 'Puntos (LP/RR/ELO)', session: 'Sesión (W-L y delta)',
-    recent: 'Últimas partidas', accountName: 'Nombre de cuenta', gameLogo: 'Nombre del juego', liveCharacter: 'En partida',
-    winrate: 'Winrate', kdaCs: 'KDA / CS por minuto', streak: 'Racha', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'Gráfico de LP',
-    champSelect: 'Selección de campeón (Desktop)', postGame: 'Fin de partida (Desktop)', coachSay: 'Coach dice (IA)', prediction: 'Predicción del chat (!pred)',
-};
+// Los nombres de cada elemento viven en locales/*/games.json (gameOverlays.design.elementNames).
 
 /** Elementos que solo se alimentan del cliente de LoL vía Decatron Desktop. */
 export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame', 'coachSay', 'prediction'];

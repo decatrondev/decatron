@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Gamepad2, Users, Radar, Palette, Monitor, Save, Loader2, ChevronRight, Copy, Plus, Trash2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { Card, SectionTitle, SubLabel, Label, TextInput, Toggle } from './now-playing-extension/components/ui/SharedUI';
 import { PanelData, gameOverlaysApi, errorMessage } from './game-overlays/api';
@@ -17,12 +18,12 @@ import { DesignTab } from './game-overlays/tabs/DesignTab';
 
 type TabId = 'accounts' | 'games' | 'detection' | 'design' | 'overlay';
 
-const TABS: { id: TabId; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'accounts', label: 'Cuentas', icon: Users },
-    { id: 'games', label: 'Juegos', icon: Gamepad2 },
-    { id: 'detection', label: 'Detección', icon: Radar },
-    { id: 'design', label: 'Diseño', icon: Palette },
-    { id: 'overlay', label: 'Overlay', icon: Monitor },
+const TABS: { id: TabId; icon: React.FC<{ className?: string }> }[] = [
+    { id: 'accounts', icon: Users },
+    { id: 'games', icon: Gamepad2 },
+    { id: 'detection', icon: Radar },
+    { id: 'design', icon: Palette },
+    { id: 'overlay', icon: Monitor },
 ];
 
 function resolveAll(instance: GameOverlayInstance): Record<GameId, GameVisualConfig> {
@@ -33,6 +34,7 @@ function resolveAll(instance: GameOverlayInstance): Record<GameId, GameVisualCon
 
 const GameOverlays: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation('games', { keyPrefix: 'gameOverlays' });
     const [data, setData] = useState<PanelData | null>(null);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<TabId>('accounts');
@@ -86,8 +88,8 @@ const GameOverlays: React.FC = () => {
                 name: draft.name, isEnabled: draft.isEnabled, detectionMode: draft.detectionMode, forcedGame: draft.forcedGame ?? '',
                 idleBehavior: draft.idleBehavior, canvas: draft.canvas, games,
             });
-            if (!res.success) { setSaveMsg({ type: 'err', text: res.message || 'Error al guardar' }); return; }
-            setSaveMsg({ type: 'ok', text: res.adjustments?.length ? `Guardado con ajustes: ${res.adjustments.join(' ')}` : 'Guardado' });
+            if (!res.success) { setSaveMsg({ type: 'err', text: res.message || t('saveError') }); return; }
+            setSaveMsg({ type: 'ok', text: res.adjustments?.length ? `${t('savedWithAdjustments')}: ${res.adjustments.join(' ')}` : t('saved') });
             await load(draft.slug);
         } catch (e) { setSaveMsg({ type: 'err', text: errorMessage(e) }); }
         finally { setSaving(false); setTimeout(() => setSaveMsg(null), 6000); }
@@ -103,13 +105,13 @@ const GameOverlays: React.FC = () => {
     };
 
     const deleteInstance = async (s: string) => {
-        if (!confirm(`¿Eliminar el overlay "${s}"? La URL dejará de funcionar en OBS.`)) return;
+        if (!confirm(t('confirmDelete', { slug: s }))) return;
         await gameOverlaysApi.deleteInstance(s);
         await load(data?.instances.find(i => i.slug !== s)?.slug);
     };
 
     const switchInstance = (s: string) => {
-        if (dirty && !confirm('Tienes cambios sin guardar. ¿Cambiar de overlay igual?')) return;
+        if (dirty && !confirm(t('confirmSwitch'))) return;
         const inst = data?.instances.find(i => i.slug === s);
         if (!inst) return;
         setSlug(s); setDraft(inst); setGames(resolveAll(inst)); setDirty(false);
@@ -124,14 +126,14 @@ const GameOverlays: React.FC = () => {
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
                         <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-3" />
-                        <p className="text-[#94a3b8] font-medium">Cargando Game Overlays...</p>
+                        <p className="text-[#94a3b8] font-medium">{t('loading')}</p>
                     </div>
                 </div>
             </div>
         );
     }
 
-    if (!data) return <div className="text-red-400">No se pudo cargar. {saveMsg?.text}</div>;
+    if (!data) return <div className="text-red-400">{t('loadError')} {saveMsg?.text}</div>;
 
     const tierLabel = data.tier === 'admin' ? 'Admin' : data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
 
@@ -147,7 +149,7 @@ const GameOverlays: React.FC = () => {
                             <Gamepad2 className="w-6 h-6 text-blue-400" /> Game Overlays
                         </h1>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">
-                            Rango, sesión y partidas en pantalla, del juego que estás jugando · canal <b>{data.channel.displayName}</b> ({data.channel.platform}) · plan {tierLabel}
+                            {t('subtitle')} · {t('channel')} <b>{data.channel.displayName}</b> ({data.channel.platform}) · {t('plan')} {tierLabel}
                         </p>
                     </div>
                 </div>
@@ -157,7 +159,7 @@ const GameOverlays: React.FC = () => {
                     )}
                     {draft && (
                         <button onClick={save} disabled={saving || !dirty} className="px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl transition-colors flex items-center gap-2 font-bold">
-                            <Save className="w-4 h-4" /> {saving ? 'Guardando...' : dirty ? 'Guardar' : 'Guardado'}
+                            <Save className="w-4 h-4" /> {saving ? t('saving') : dirty ? t('save') : t('saved')}
                         </button>
                     )}
                 </div>
@@ -166,11 +168,11 @@ const GameOverlays: React.FC = () => {
             <div className="flex gap-6">
                 <div className="w-48 flex-shrink-0">
                     <nav className="bg-[#1B1C1D] rounded-xl border border-[#374151] p-2 space-y-1 sticky top-8">
-                        {TABS.map(t => {
-                            const Icon = t.icon; const active = tab === t.id;
+                        {TABS.map(tb => {
+                            const Icon = tb.icon; const active = tab === tb.id;
                             return (
-                                <button key={t.id} onClick={() => setTab(t.id)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626] hover:text-[#f8fafc]'}`}>
-                                    <Icon className="w-4 h-4 flex-shrink-0" /><span>{t.label}</span>{active && <ChevronRight className="w-3 h-3 ml-auto" />}
+                                <button key={tb.id} onClick={() => setTab(tb.id)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626] hover:text-[#f8fafc]'}`}>
+                                    <Icon className="w-4 h-4 flex-shrink-0" /><span>{t(`tabs.${tb.id}`)}</span>{active && <ChevronRight className="w-3 h-3 ml-auto" />}
                                 </button>
                             );
                         })}
@@ -192,11 +194,11 @@ const GameOverlays: React.FC = () => {
 
                     {tab !== 'accounts' && !draft && (
                         <Card>
-                            <SectionTitle>Crea tu primer overlay</SectionTitle>
-                            <SubLabel>Una instancia = una URL para OBS. Con una alcanza; los planes superiores permiten varias (por ejemplo, una compacta y una grande para la pantalla de espera).</SubLabel>
+                            <SectionTitle>{t('first.title')}</SectionTitle>
+                            <SubLabel>{t('first.hint')}</SubLabel>
                             <div className="flex items-center gap-2 mt-3">
-                                <TextInput value={newName} onChange={setNewName} placeholder="Principal" />
-                                <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> Crear</button>
+                                <TextInput value={newName} onChange={setNewName} placeholder={t('first.placeholder')} />
+                                <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
                             </div>
                         </Card>
                     )}
@@ -213,39 +215,39 @@ const GameOverlays: React.FC = () => {
                     {tab === 'overlay' && draft && (
                         <div className="space-y-5">
                             <Card>
-                                <SectionTitle>URL para OBS</SectionTitle>
-                                <SubLabel>Agrega una fuente de navegador con esta URL y el tamaño del lienzo ({draft.canvas.width}×{draft.canvas.height}). Una sola fuente para todos los juegos.</SubLabel>
+                                <SectionTitle>{t('url.title')}</SectionTitle>
+                                <SubLabel>{t('url.hint', { size: `${draft.canvas.width}×${draft.canvas.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
                                     <input readOnly value={overlayUrl} className="flex-1 bg-[#111214] border border-[#374151] rounded-lg px-3 py-2 text-sm text-[#e6edf3] font-mono" />
-                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title="Copiar"><Copy className="w-4 h-4" /></button>
-                                    <a href={`${overlayUrl}&preview=${enabledGames[0] ?? 'lol'}`} target="_blank" rel="noreferrer" className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title="Abrir con datos de ejemplo"><ExternalLink className="w-4 h-4" /></a>
+                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
+                                    <a href={`${overlayUrl}&preview=${enabledGames[0] ?? 'lol'}`} target="_blank" rel="noreferrer" className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><Label>Nombre</Label><TextInput value={draft.name} onChange={v => updateDraft({ name: v })} /></div>
-                                    <div className="flex items-end"><Toggle checked={draft.isEnabled} onChange={v => updateDraft({ isEnabled: v })} label="Overlay activo" description="Desactivado = nunca se muestra" size="sm" /></div>
+                                    <div><Label>{t('url.name')}</Label><TextInput value={draft.name} onChange={v => updateDraft({ name: v })} /></div>
+                                    <div className="flex items-end"><Toggle checked={draft.isEnabled} onChange={v => updateDraft({ isEnabled: v })} label={t('url.enabled')} description={t('url.enabledHint')} size="sm" /></div>
                                 </div>
                             </Card>
 
                             <Card>
-                                <SectionTitle>Instancias <span className="text-[#6b7280] font-normal text-sm">({data.instances.length}{data.limits.maxInstances ? `/${data.limits.maxInstances}` : ''})</span></SectionTitle>
+                                <SectionTitle>{t('instances.title')} <span className="text-[#6b7280] font-normal text-sm">({data.instances.length}{data.limits.maxInstances ? `/${data.limits.maxInstances}` : ''})</span></SectionTitle>
                                 <div className="space-y-2 mt-3">
                                     {data.instances.map(i => (
                                         <div key={i.slug} className="flex items-center justify-between rounded-lg border border-[#374151] bg-[#111214] px-3 py-2">
                                             <div>
                                                 <div className="text-sm text-[#f8fafc] font-medium">{i.name} <span className="text-[#6b7280] font-mono text-xs">· {i.slug}</span></div>
-                                                <div className="text-[11px] text-[#94a3b8]">{i.isEnabled ? 'activo' : 'desactivado'} · {Object.entries(i.games ?? {}).filter(([, g]) => g?.enabled).length} juego(s)</div>
+                                                <div className="text-[11px] text-[#94a3b8]">{i.isEnabled ? t('instances.enabled') : t('instances.disabled')} · {t('instances.games', { count: Object.entries(i.games ?? {}).filter(([, g]) => g?.enabled).length })}</div>
                                             </div>
-                                            <button onClick={() => deleteInstance(i.slug)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+                                            <button onClick={() => deleteInstance(i.slug)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title={t('instances.delete')}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     ))}
                                 </div>
                                 {(data.limits.maxInstances == null || data.instances.length < data.limits.maxInstances) ? (
                                     <div className="flex items-center gap-2 mt-3">
-                                        <TextInput value={newName} onChange={setNewName} placeholder="Nombre del nuevo overlay" />
-                                        <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> Nuevo</button>
+                                        <TextInput value={newName} onChange={setNewName} placeholder={t('instances.newPlaceholder')} />
+                                        <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-[#94a3b8] mt-3">Tu plan permite {data.limits.maxInstances} overlay(s). <a href="/supporters" className="text-blue-400 underline">Ver planes</a></p>
+                                    <p className="text-xs text-[#94a3b8] mt-3">{t('instances.limit', { count: data.limits.maxInstances })} <a href="/supporters" className="text-blue-400 underline">{t('instances.seePlans')}</a></p>
                                 )}
                             </Card>
                         </div>
