@@ -390,6 +390,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.LiveTranslation.TranslationDesktopChannel>();
     // Coach de LoL (fase 1: el Desktop lee el cliente de LoL y el overlay lo muestra al instante). Plan: .dev/plans/LOL_COACH_PLAN.md
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolLiveStateStore>();
+    builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolStaticNames>();
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolCoachBrain>();
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolCoachVoice>();
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolHistoryService>();

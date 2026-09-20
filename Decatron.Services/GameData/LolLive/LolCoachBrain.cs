@@ -26,11 +26,12 @@ namespace Decatron.Services.GameData.LolLive
 
         private readonly OpenRouterClient _ai;
         private readonly AiSettingsCache _settings;
+        private readonly LolStaticNames _names;
         private readonly ILogger<LolCoachBrain> _logger;
 
-        public LolCoachBrain(OpenRouterClient ai, AiSettingsCache settings, ILogger<LolCoachBrain> logger)
+        public LolCoachBrain(OpenRouterClient ai, AiSettingsCache settings, LolStaticNames names, ILogger<LolCoachBrain> logger)
         {
-            _ai = ai; _settings = settings; _logger = logger;
+            _ai = ai; _settings = settings; _names = names; _logger = logger;
         }
 
         public bool IsAvailable => _ai.IsConfigured;
@@ -53,7 +54,12 @@ namespace Decatron.Services.GameData.LolLive
                 var r = await _ai.ChatAsync(_settings.CoachModel, system, user, new AiCallContext(Module, 0, ctx.Login),
                     maxTokens: isFinal ? 700 : 400, temperature: 0.7, timeout: TimeSpan.FromSeconds(isFinal ? 25 : 12), reasoning: false, ct: ct);
                 var info = Parse(r.Text, kind, ctx.Settings.CoachName);
-                if (info == null) _logger.LogWarning("[LolCoach] {Login}: respuesta no parseable: {Text}", ctx.Login, r.Text.Length > 200 ? r.Text[..200] : r.Text);
+                if (info == null) { _logger.LogWarning("[LolCoach] {Login}: respuesta no parseable: {Text}", ctx.Login, r.Text.Length > 200 ? r.Text[..200] : r.Text); return null; }
+                // La IA escribe ítems/runas/hechizos en inglés (ver SystemPrompt); acá se pasan al idioma
+                // del canal con la tabla oficial de Data Dragon y se tira lo que no exista.
+                info.Runes = await _names.LocalizeAsync(info.Runes, ctx.Language, ct);
+                info.Spells = await _names.LocalizeAsync(info.Spells, ctx.Language, ct);
+                info.Build = await _names.CleanBuildAsync(info.Build, ctx.Language, ct);
                 return info;
             }
             catch (Exception ex)
@@ -81,11 +87,14 @@ namespace Decatron.Services.GameData.LolLive
                 ? $"You are {name}, the League of Legends coach of the streamer {ctx.Login}. You speak on their live stream. {ToneText(ctx.Settings.Tone, "en")}\n" +
                   "Rules: never invent stats; only use what is given. Use current patch knowledge for runes, summoner spells and items. " +
                   "Do not give in-game advice (the game has not started or is already over). " +
+                  "For runes, spells and build use ONLY the official in-game English names (e.g. Infinity Edge, Kraken Slayer, Lethal Tempo, Flash, Heal); only items and runes that exist in the current patch (16.x, season 2026); if unsure of a name, leave it out rather than invent it. " +
                   "Answer ONLY with a JSON object, no markdown, with keys: comment (string, 1-2 sentences max), suggestion (string or null: the pick/ban to make), " +
                   "runes (string or null: primary tree + keystone + secondary, short), spells (string or null), build (string or null: first 2-3 items), matchup (string or null: 1-2 sentences about the lane matchup), tips (array of up to 3 short strings)."
                 : $"Eres {name}, el coach de League of Legends del streamer {ctx.Login}. Hablas en su stream en vivo. {ToneText(ctx.Settings.Tone, "es")}\n" +
                   "Reglas: nunca inventes estadísticas; usa solo lo que te dan. Usa conocimiento del parche actual para runas, hechizos e ítems. " +
                   "No des consejos dentro de la partida (aún no empezó o ya terminó). Español neutro, sin voseo. " +
+                  "IMPORTANTE: en runes, spells y build escribe SIEMPRE los nombres oficiales EN INGLÉS del juego (ej. Infinity Edge, Kraken Slayer, Lethal Tempo, Flash, Heal), aunque el resto vaya en español; el sistema los traduce. " +
+                  "Solo ítems y runas que existan hoy (parche 16.x, temporada 2026); si dudas de un nombre, omítelo antes que inventarlo. " +
                   "Responde SOLO con un objeto JSON, sin markdown, con claves: comment (string, máximo 1-2 frases), suggestion (string o null: el pick/ban a hacer), " +
                   "runes (string o null: árbol principal + keystone + secundario, corto), spells (string o null), build (string o null: primeros 2-3 ítems), matchup (string o null: 1-2 frases del matchup de línea), tips (array de hasta 3 strings cortos).";
             var focus = kind switch
