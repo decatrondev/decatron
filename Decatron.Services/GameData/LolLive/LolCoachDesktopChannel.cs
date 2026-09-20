@@ -64,6 +64,17 @@ namespace Decatron.Services.GameData.LolLive
             };
         }
 
+        private async Task<List<Decatron.Core.Models.GameOverlays.LinkedGameAccount>> LinkedAccountsAsync(long userId)
+        {
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return new();
+            var accountId = user.AccountId ?? user.Id;
+            return await db.LinkedGameAccounts.AsNoTracking()
+                .Where(a => a.AccountId == accountId && a.IsActive && a.Game == GameIds.Lol).ToListAsync();
+        }
+
         private async Task<List<object>> LinkedAsync(long userId)
         {
             using var scope = _scopes.CreateScope();
@@ -87,10 +98,30 @@ namespace Decatron.Services.GameData.LolLive
                 {
                     var connected = msg["connected"]?.GetValue<bool>() ?? false;
                     var s = msg["summoner"] as JsonObject;
-                    entry.Puuid = connected ? s?["puuid"]?.GetValue<string>() : null;
-                    entry.SummonerName = s?["gameName"]?.GetValue<string>() ?? s?["displayName"]?.GetValue<string>();
+                    var puuid = connected ? s?["puuid"]?.GetValue<string>() : null;
+                    var gameName = s?["gameName"]?.GetValue<string>() ?? s?["displayName"]?.GetValue<string>();
+                    var tag = s?["tagLine"]?.GetValue<string>();
+                    entry.SummonerName = gameName;
+
+                    // Cruce con las cuentas vinculadas: por PUUID y, si no coincide (Riot ID
+                    // migrado, cuenta vinculada con otro dato), por nombre#tag. Se guarda el
+                    // PUUID de la cuenta vinculada, que es el que usa el overlay.
+                    var linked = await LinkedAccountsAsync(conn.UserId);
+                    var match = connected ? linked.FirstOrDefault(a => string.Equals(a.ExternalId, puuid, StringComparison.OrdinalIgnoreCase))
+                        ?? linked.FirstOrDefault(a => !string.IsNullOrEmpty(gameName)
+                            && string.Equals(a.ExternalName, gameName, StringComparison.OrdinalIgnoreCase)
+                            && (string.IsNullOrEmpty(tag) || string.IsNullOrEmpty(a.ExternalTag) || string.Equals(a.ExternalTag, tag, StringComparison.OrdinalIgnoreCase)))
+                        : null;
+                    entry.Puuid = match?.ExternalId ?? puuid;
                     if (!connected) entry.Phase = new LivePhaseInfo();
-                    await conn.SendAsync(Name, "accounts", new { linked = await LinkedAsync(conn.UserId) });
+                    if (connected && match == null)
+                        _logger.LogInformation("[LolCoach] {Login}: invocador {Name}#{Tag} ({Puuid}) no coincide con ninguna cuenta vinculada", conn.Login, gameName, tag, puuid);
+                    await conn.SendAsync(Name, "accounts", new
+                    {
+                        linked = await LinkedAsync(conn.UserId),
+                        matched = match == null ? null : new { puuid = match.ExternalId, name = match.FullExternalName, region = match.Region },
+                        summonerPuuid = puuid,
+                    });
                     break;
                 }
                 case "phase":
