@@ -38,6 +38,7 @@ namespace Decatron.Services.GameData
         private readonly GameDataCache _cache;
         private readonly IHubContext<OverlayHub> _hub;
         private readonly TwitchApiService _twitchApi;
+        private readonly LolLive.LolLiveStateStore _live;
 
         private static readonly TimeSpan Tick = TimeSpan.FromSeconds(30);
         private readonly ConcurrentDictionary<long, DateTime> _lastRefresh = new(); // por linked_account_id
@@ -53,8 +54,10 @@ namespace Decatron.Services.GameData
             GameOverlayStateStore store,
             GameDataCache cache,
             IHubContext<OverlayHub> hub,
-            TwitchApiService twitchApi)
+            TwitchApiService twitchApi,
+            LolLive.LolLiveStateStore live)
         {
+            _live = live;
             _services = services;
             _logger = logger;
             _streamStatus = streamStatus;
@@ -145,11 +148,12 @@ namespace Decatron.Services.GameData
                             {
                                 AccountId = account.Id, Game = account.Game,
                                 DisplayName = string.IsNullOrWhiteSpace(account.DisplayName) ? account.ExternalName : account.DisplayName,
-                                ExternalName = account.FullExternalName, Region = account.Region,
+                                ExternalName = account.FullExternalName, ExternalId = account.ExternalId, Region = account.Region,
                                 Rank = rank,
                                 // Sin sesion (offline): el overlay oculta la fila "Hoy" y muestra solo las partidas.
                                 Session = new SessionState { CurrentRank = rank, Matches = matches.ToList(), StreamStartedAt = DateTime.UtcNow, Wins = -1, Losses = -1 },
                                 Stats = await SafeStatsAsync(provider, account, queue, null, ct),
+                                LivePhase = _live.PhaseFor(userId, account.ExternalId),
                                 UpdatedAt = DateTime.UtcNow,
                             });
                         }
@@ -203,9 +207,10 @@ namespace Decatron.Services.GameData
                 {
                     AccountId = account.Id, Game = account.Game,
                     DisplayName = string.IsNullOrWhiteSpace(account.DisplayName) ? account.ExternalName : account.DisplayName,
-                    ExternalName = account.FullExternalName, Region = account.Region, Rank = rank,
+                    ExternalName = account.FullExternalName, ExternalId = account.ExternalId, Region = account.Region, Rank = rank,
                     Session = new SessionState { CurrentRank = rank, Matches = matches.ToList(), StreamStartedAt = DateTime.UtcNow, Wins = -1, Losses = -1 },
                     Stats = await SafeStatsAsync(provider, account, queue, null, ct),
+                    LivePhase = _live.PhaseFor(userId, account.ExternalId),
                     UpdatedAt = DateTime.UtcNow,
                 });
             }
@@ -399,6 +404,7 @@ namespace Decatron.Services.GameData
                 Game = account.Game,
                 DisplayName = string.IsNullOrWhiteSpace(account.DisplayName) ? account.ExternalName : account.DisplayName,
                 ExternalName = account.FullExternalName,
+                ExternalId = account.ExternalId,
                 Region = account.Region,
                 UpdatedAt = DateTime.UtcNow,
             };
@@ -425,9 +431,52 @@ namespace Decatron.Services.GameData
                 state.Live = await provider.GetLiveGameAsync(account, ct) ?? previous?.Live;
 
             state.Stats = await SafeStatsAsync(provider, account, queue, previous?.Stats, ct);
+            state.LivePhase = _live.PhaseFor(userId, account.ExternalId);
 
             return state;
         }
+
+        /// <summary>
+        /// Decatron Desktop mando algo nuevo del cliente de LoL: reemplaza la fase en vivo
+        /// de la cuenta correspondiente en todos los overlays del canal y publica ya, sin
+        /// esperar al tick ni tocar la Riot API. Si no hay estado (canal offline y nadie
+        /// abrio el overlay), lo construye bajo demanda.
+        /// </summary>
+        public async Task PushLivePhaseAsync(long userId)
+        {
+            using var scope = _services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return;
+            var slugs = await db.GameOverlayConfigs.AsNoTracking().Where(c => c.UserId == userId && c.IsEnabled).Select(c => c.Slug).ToListAsync();
+            var live = _live.Get(userId);
+
+            foreach (var slug in slugs)
+            {
+                var state = _store.Get(userId, slug);
+                if (state == null || state.ActiveGame != GameIds.Lol)
+                {
+                    // Sin estado de LoL todavia: construirlo (respeta el throttle offline) y ya sale con la fase.
+                    if (live == null) continue;
+                    InvalidateOffline(userId);
+                    state = await GetOrBuildStateAsync(userId, slug);
+                    if (state == null || state.ActiveGame != GameIds.Lol) continue;
+                }
+
+                var changed = false;
+                foreach (var acc in state.Accounts)
+                {
+                    var phase = _live.PhaseFor(userId, GetPuuid(acc));
+                    if (!ReferenceEquals(acc.LivePhase, phase)) { acc.LivePhase = phase; changed = true; }
+                }
+                // Mientras el streamer esta en partida, la cuenta con el cliente abierto es la que se muestra.
+                var inGame = state.Accounts.FirstOrDefault(a => a.LivePhase != null && a.LivePhase.Phase != "none");
+                if (inGame != null && state.ActiveAccountId != inGame.AccountId) { state.ActiveAccountId = inGame.AccountId; changed = true; }
+                if (changed || live != null) await PublishAsync(userId, user.Login, slug, state);
+            }
+        }
+
+        private static string? GetPuuid(AccountOverlayState acc) => acc.ExternalId;
 
         /// <summary>
         /// Stats agregadas del proveedor. La primera vez para una cuenta cuesta hasta 20

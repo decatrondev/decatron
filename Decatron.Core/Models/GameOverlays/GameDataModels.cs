@@ -205,12 +205,17 @@ public class AccountOverlayState
     public string Game { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string ExternalName { get; set; } = "";
+    /// <summary>Id externo (PUUID en Riot). No se muestra; sirve para cruzar con la fase en vivo del Desktop.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? ExternalId { get; set; }
     public string? Region { get; set; }
     public RankInfo? Rank { get; set; }
     public SessionState? Session { get; set; }
     public LiveGameInfo? Live { get; set; }
     /// <summary>Promedios de las ultimas partidas, top campeones, maestria. Null si el proveedor no lo da.</summary>
     public AccountStats? Stats { get; set; }
+    /// <summary>Fase en vivo desde Decatron Desktop (cliente de LoL). Null si la app no esta conectada o es otra cuenta.</summary>
+    public LivePhaseInfo? LivePhase { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
 
@@ -231,4 +236,98 @@ public class ManualRank
     public string Tier { get; set; } = "UNRANKED";
     public string? Division { get; set; }
     public int? Points { get; set; }
+}
+
+// ─── Fase en vivo (Decatron Desktop leyendo el cliente de LoL) ─────────────────
+// Llega por el canal "lol-coach" del WebSocket de escritorio, no por la Riot API:
+// instantaneo y sin rate limit. Ver LOL_COACH_PLAN.md y GAME_OVERLAYS_PLAN.md (B).
+
+public class LiveChampionRef
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? Icon { get; set; }
+}
+
+public class LiveLobbyMember
+{
+    public string Name { get; set; } = "";
+    public string? Tag { get; set; }
+    public bool IsMe { get; set; }
+    public bool IsLeader { get; set; }
+    public string? Position1 { get; set; }
+    public string? Position2 { get; set; }
+}
+
+public class LivePick
+{
+    public int CellId { get; set; }
+    public LiveChampionRef? Champion { get; set; }
+    public string? Position { get; set; }
+    public bool IsMe { get; set; }
+    /// <summary>true = ya lockeado; false = solo hovereado.</summary>
+    public bool Locked { get; set; }
+}
+
+public class LiveChampSelect
+{
+    public List<LivePick> MyTeam { get; set; } = new();
+    public List<LivePick> TheirTeam { get; set; } = new();
+    public List<LiveChampionRef> MyBans { get; set; } = new();
+    public List<LiveChampionRef> TheirBans { get; set; } = new();
+    /// <summary>PLANNING | BAN_PICK | FINALIZATION | GAME_STARTING</summary>
+    public string? TimerPhase { get; set; }
+    public int? RemainingMs { get; set; }
+    public LiveChampionRef? MyPick { get; set; }
+    public string? MyPosition { get; set; }
+    /// <summary>Es mi turno de elegir ahora mismo.</summary>
+    public bool MyTurn { get; set; }
+}
+
+public class LiveGameDetails
+{
+    public LiveChampionRef? Champion { get; set; }
+    public string? Position { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public string? GameMode { get; set; }
+}
+
+public class LivePostGame
+{
+    public bool Win { get; set; }
+    public LiveChampionRef? Champion { get; set; }
+    public int Kills { get; set; }
+    public int Deaths { get; set; }
+    public int Assists { get; set; }
+    public int? Cs { get; set; }
+    public int? Damage { get; set; }
+    public int? VisionScore { get; set; }
+    public int DurationSeconds { get; set; }
+    public int? PointsDelta { get; set; }
+    public List<LivePostGamePlayer> MyTeam { get; set; } = new();
+    public List<LivePostGamePlayer> TheirTeam { get; set; } = new();
+}
+
+public class LivePostGamePlayer
+{
+    public string Name { get; set; } = "";
+    public LiveChampionRef? Champion { get; set; }
+    public int Kills { get; set; }
+    public int Deaths { get; set; }
+    public int Assists { get; set; }
+    public bool IsMe { get; set; }
+}
+
+/// <summary>Lo que el cliente de LoL esta haciendo ahora, ya traducido a nombres e iconos.</summary>
+public class LivePhaseInfo
+{
+    /// <summary>none | lobby | matchmaking | champselect | ingame | postgame</summary>
+    public string Phase { get; set; } = "none";
+    public int? QueueId { get; set; }
+    public string? QueueName { get; set; }
+    public List<LiveLobbyMember> Lobby { get; set; } = new();
+    public LiveChampSelect? ChampSelect { get; set; }
+    public LiveGameDetails? Game { get; set; }
+    public LivePostGame? PostGame { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

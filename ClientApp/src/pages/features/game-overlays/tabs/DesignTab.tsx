@@ -11,11 +11,33 @@ import { Card, SectionTitle, Label, SubLabel, SelectInput, ColorInput, Slider, T
 import { GameOverlayCard } from '../GameOverlayCard';
 import { CardView, availableViews } from '../slides';
 import { gameOverlaysApi } from '../api';
-import { ELEMENT_LABELS, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_LABELS, OverlayState, SLIDE_VIEW_LABELS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESET_LABELS, SlideView, StylePreset, defaultGameConfig, formatTier } from '../types';
+import { ELEMENT_LABELS, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_LABELS, LIVE_ELEMENTS, LivePhaseId, LivePhaseInfo, OverlayState, SLIDE_VIEW_LABELS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESET_LABELS, SlideView, StylePreset, AccountOverlayState, defaultGameConfig, formatTier } from '../types';
 
 const FONT_FAMILIES = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Oswald', 'Bebas Neue', 'Rajdhani', 'Exo 2', 'Press Start 2P', 'system-ui'];
 const BASE_ELEMENT_ORDER: ElementId[] = ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'recent', 'liveCharacter'];
-const ALL_ELEMENT_ORDER: ElementId[] = [...BASE_ELEMENT_ORDER, ...STATS_ELEMENTS];
+const ALL_ELEMENT_ORDER: ElementId[] = [...BASE_ELEMENT_ORDER, ...STATS_ELEMENTS, ...LIVE_ELEMENTS];
+
+const LIVE_SIM_LABELS: Record<LivePhaseId, string> = { none: 'Sin Desktop', lobby: 'Lobby', matchmaking: 'Buscando', champselect: 'Selección', ingame: 'En partida', postgame: 'Fin de partida' };
+
+/** Fase en vivo simulada para diseñar lo que manda Decatron Desktop, con los íconos del preview. */
+function simulateLive(phase: LivePhaseId, account: AccountOverlayState): LivePhaseInfo | null {
+    if (phase === 'none') return null;
+    const champs = (account.session?.matches ?? []).filter(m => m.character).map(m => ({ id: 0, name: m.character!, icon: m.characterIcon ?? null }));
+    const c = (i: number) => champs[i % Math.max(1, champs.length)] ?? { id: 0, name: '?', icon: null };
+    const base: LivePhaseInfo = { phase, queueId: 420, queueName: 'Ranked Solo/Duo', lobby: [], updatedAt: new Date().toISOString() };
+    if (phase === 'lobby') base.lobby = [{ name: account.displayName, isMe: true, isLeader: true }, { name: 'Roba', isMe: false, isLeader: false }, { name: 'Jesús', isMe: false, isLeader: false }];
+    if (phase === 'champselect') base.champSelect = {
+        myTeam: [0, 1, 2, 3, 4].map(i => ({ cellId: i, champion: i < 4 ? c(i) : null, position: ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'][i], isMe: i === 3, locked: i < 3 })),
+        theirTeam: [5, 6, 7, 8, 9].map(i => ({ cellId: i, champion: i < 8 ? c(i) : null, isMe: false, locked: i < 7 })),
+        myBans: [c(4)], theirBans: [c(1), c(2)], timerPhase: 'BAN_PICK', remainingMs: 21000, myPick: c(3), myPosition: 'BOTTOM', myTurn: true,
+    };
+    if (phase === 'ingame') base.game = { champion: c(0), position: 'BOTTOM', startedAt: new Date(Date.now() - 12 * 60000).toISOString(), gameMode: 'CLASSIC' };
+    if (phase === 'postgame') base.postGame = {
+        win: true, champion: c(0), kills: 11, deaths: 3, assists: 9, cs: 214, damage: 24300, visionScore: 21, durationSeconds: 1832, pointsDelta: 22,
+        myTeam: [], theirTeam: [],
+    };
+    return base;
+}
 
 interface Props {
     slug: string;
@@ -35,6 +57,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
     const [selected, setSelected] = useState<ElementId>('rank');
     // Qué vista se diseña en el canvas (la rotación real corre en el overlay, aquí se elige a mano).
     const [previewView, setPreviewView] = useState<CardView>('main');
+    const [liveSim, setLiveSim] = useState<LivePhaseId>('none');
     const promoForced = !canHidePromo;
     const toggleView = (v: SlideView) => {
         const views = cfg.slides.views.includes(v) ? cfg.slides.views.filter(x => x !== v) : [...cfg.slides.views, v];
@@ -73,7 +96,8 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
         link.href = `https://fonts.googleapis.com/css2?${fontsInUse.map(f => `family=${encodeURIComponent(f).replace(/%20/g, '+')}:wght@400;500;600;700;800`).join('&')}&display=swap`;
     }, [fontsInUse]);
 
-    const account = preview?.accounts?.[0];
+    const previewAccount = preview?.accounts?.[0];
+    const account = previewAccount ? { ...previewAccount, livePhase: simulateLive(liveSim, previewAccount) } : undefined;
     const el = cfg.elements[selected] ?? { visible: true };
     const setEl = (patch: Partial<ElementConfig>) => onChange(game, { elements: { ...cfg.elements, [selected]: { ...el, ...patch } } });
     const setFont = (patch: Partial<NonNullable<ElementConfig['font']>>) => setEl({ font: { ...el.font, ...patch } });
@@ -123,6 +147,14 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         </button>
                     ))}
                 </div>
+                {hasStats && (
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span className="text-[11px] text-[#94a3b8] mr-1" title="Simula lo que manda Decatron Desktop cuando el cliente de LoL está abierto">Desktop:</span>
+                        {(Object.keys(LIVE_SIM_LABELS) as LivePhaseId[]).map(p => (
+                            <button key={p} onClick={() => setLiveSim(p)} className={`px-2.5 py-1 rounded-lg text-xs border ${liveSim === p ? 'bg-emerald-700 border-emerald-600 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>{LIVE_SIM_LABELS[p]}</button>
+                        ))}
+                    </div>
+                )}
                 <div className="flex flex-wrap items-end gap-4 mt-3">
                     <div className="w-40"><Label>Lienzo</Label>
                         <SelectInput value={`${canvas.width}x${canvas.height}`} onChange={v => { const [w, h] = v.split('x').map(Number); onCanvasChange({ width: w, height: h }); }}
@@ -228,6 +260,9 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         {selected === 'topChamps' && <p className="text-[11px] text-[#6b7280]">Campeones más jugados en las últimas 20 partidas de la cola elegida, con winrate y KDA.</p>}
                         {selected === 'mastery' && <p className="text-[11px] text-[#6b7280]">Top de maestría de la cuenta (nivel y puntos). Se actualiza cada hora.</p>}
                         {selected === 'lpGraph' && <p className="text-[11px] text-[#6b7280]">Curva de LP de la sesión de hoy. Solo aparece en vivo y con al menos dos cambios de LP.</p>}
+                        {selected === 'champSelect' && <p className="text-[11px] text-[#6b7280]">Picks de tu equipo (el tuyo resaltado), del rival y bans, en tiempo real mientras dura la selección. Necesita Decatron Desktop abierto con el cliente de LoL. Usa "Desktop: Selección" arriba para verlo.</p>}
+                        {selected === 'postGame' && <p className="text-[11px] text-[#6b7280]">Resultado, KDA, CS, daño y ±LP al terminar la partida, hasta que vuelvas al lobby. Necesita Decatron Desktop. Usa "Desktop: Fin de partida" arriba para verlo.</p>}
+                        {selected === 'liveCharacter' && <p className="text-[11px] text-[#6b7280]">Sin Desktop: "En partida · campeón" desde la Riot API (1-3 min de retraso). Con Desktop: lobby, buscando, selección, en partida con cronómetro y resultado, al instante.</p>}
                         {selected === 'session' && (
                             <Checkbox checked={el.showDelta !== false} onChange={v => setEl({ showDelta: v })} label="Mostrar delta de puntos (+38 LP)" />
                         )}

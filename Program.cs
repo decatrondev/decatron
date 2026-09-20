@@ -388,6 +388,9 @@ try
     builder.Services.AddSingleton<Decatron.Hubs.ITranslationListenerNotifier>(sp =>
         sp.GetRequiredService<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>());
     builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.LiveTranslation.TranslationDesktopChannel>();
+    // Coach de LoL (fase 1: el Desktop lee el cliente de LoL y el overlay lo muestra al instante). Plan: .dev/plans/LOL_COACH_PLAN.md
+    builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolLiveStateStore>();
+    builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.GameData.LolLive.LolCoachDesktopChannel>();
     builder.Services.AddSingleton<Decatron.Services.Desktop.DesktopConnectionRegistry>();
 
     // Decatron Desktop (app de escritorio; la traducción en vivo es su primer módulo)

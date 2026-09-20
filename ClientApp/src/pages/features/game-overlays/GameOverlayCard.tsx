@@ -5,8 +5,8 @@
  * que usa el editor para el preview, asi lo que se ve en el panel es lo que sale
  * en OBS.
  */
-import { CSSProperties } from 'react';
-import { AccountOverlayState, AccountStats, ElementConfig, FontStyle, GameId, GameVisualConfig, MatchSummary, PointsSample, ROLE_LABELS, SessionState } from './types';
+import { CSSProperties, useEffect, useState } from 'react';
+import { AccountOverlayState, AccountStats, ElementConfig, FontStyle, GameId, GameVisualConfig, LivePhaseInfo, MatchSummary, PointsSample, ROLE_LABELS, SessionState } from './types';
 import { CardView, PROMO_MESSAGES } from './slides';
 
 interface Props {
@@ -59,10 +59,13 @@ export function PromoCard({ config, lang = 'es', animation }: { config: GameVisu
 export interface CardLabels {
     today: string; inGame: string; noMatches: string;
     winrate: string; last: string; season: string; streakWin: string; streakLoss: string; topChamps: string; mastery: string; lpGraph: string; games: string;
+    lobby: string; matchmaking: string; champSelect: string; postGame: string; victory: string; defeat: string; yourTurn: string; bans: string; team: string; enemy: string;
 }
 export const CARD_LABELS: Record<'es' | 'en', CardLabels> = {
-    es: { today: 'Hoy', inGame: 'En partida', noMatches: 'Sin partidas en esta sesión', winrate: 'Winrate', last: 'últimas', season: 'temporada', streakWin: 'victorias seguidas', streakLoss: 'derrotas seguidas', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'LP de hoy', games: 'partidas' },
-    en: { today: 'Today', inGame: 'In game', noMatches: 'No matches this session', winrate: 'Winrate', last: 'last', season: 'season', streakWin: 'win streak', streakLoss: 'loss streak', topChamps: 'Top champions', mastery: 'Mastery', lpGraph: "Today's LP", games: 'games' },
+    es: { today: 'Hoy', inGame: 'En partida', noMatches: 'Sin partidas en esta sesión', winrate: 'Winrate', last: 'últimas', season: 'temporada', streakWin: 'victorias seguidas', streakLoss: 'derrotas seguidas', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'LP de hoy', games: 'partidas',
+          lobby: 'En lobby', matchmaking: 'Buscando partida', champSelect: 'Selección de campeón', postGame: 'Fin de partida', victory: 'Victoria', defeat: 'Derrota', yourTurn: '¡Tu turno!', bans: 'Bans', team: 'Equipo', enemy: 'Rival' },
+    en: { today: 'Today', inGame: 'In game', noMatches: 'No matches this session', winrate: 'Winrate', last: 'last', season: 'season', streakWin: 'win streak', streakLoss: 'loss streak', topChamps: 'Top champions', mastery: 'Mastery', lpGraph: "Today's LP", games: 'games',
+          lobby: 'In lobby', matchmaking: 'Finding match', champSelect: 'Champion select', postGame: 'Game over', victory: 'Victory', defeat: 'Defeat', yourTurn: 'Your turn!', bans: 'Bans', team: 'Team', enemy: 'Enemy' },
 };
 
 const WIN = '#4ade80';
@@ -185,6 +188,111 @@ function LpGraph({ history, height, accent, label }: { history: PointsSample[]; 
     );
 }
 
+/** Reloj de 1 s solo mientras hay partida en curso (para el mm:ss). */
+function useTicker(active: boolean): number {
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        if (!active) return;
+        const t = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(t);
+    }, [active]);
+    return now;
+}
+
+function fmtDuration(sec: number): string { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s.toString().padStart(2, '0')}`; }
+
+function ChampIcon({ champ, size = 30, ring, dim }: { champ?: { name: string; icon?: string | null } | null; size?: number; ring?: string; dim?: boolean }) {
+    return (
+        <div title={champ?.name ?? ''} style={{ width: size, height: size, borderRadius: 6, overflow: 'hidden', background: '#1c1f26', flexShrink: 0, border: ring ? `2px solid ${ring}` : '2px solid transparent', opacity: dim ? 0.45 : 1, boxShadow: ring ? `0 0 8px ${ring}` : undefined }}>
+            {champ?.icon && <img src={champ.icon} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
+        </div>
+    );
+}
+
+/** Línea de estado en vivo: lobby / buscando / selección / en partida mm:ss / fin. Reemplaza al "En partida" de la Riot API cuando hay Desktop. */
+function LiveStatusLine({ live, font, L, accent, now }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number }) {
+    const dot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, boxShadow: `0 0 6px ${color}`, flexShrink: 0 }} />;
+    const row = (children: JSX.Element | (JSX.Element | string | null)[]) => <div style={{ ...font, display: 'flex', alignItems: 'center', gap: 6 }}>{children}</div>;
+    switch (live.phase) {
+        case 'lobby': {
+            const others = live.lobby.filter(m => !m.isMe).map(m => m.name);
+            return row([dot(NEUTRAL), <span key="t">{L.lobby}{live.queueName ? ` · ${live.queueName}` : ''}{others.length ? ` · ${others.join(', ')}` : ''}</span>]);
+        }
+        case 'matchmaking':
+            return row([dot(accent), <span key="t">{L.matchmaking}{live.queueName ? ` · ${live.queueName}` : ''}</span>]);
+        case 'champselect': {
+            const cs = live.champSelect;
+            return row([dot(accent), <span key="t">{L.champSelect}{cs?.myPick ? ` · ${cs.myPick.name}` : ''}{cs?.myTurn ? <span style={{ color: accent, marginLeft: 6, fontWeight: 800 }}>{L.yourTurn}</span> : null}</span>]);
+        }
+        case 'ingame': {
+            const g = live.game;
+            const started = g?.startedAt ? new Date(g.startedAt).getTime() : null;
+            const elapsed = started ? Math.max(0, (now - started) / 1000) : null;
+            return row([dot(LOSS), g?.champion && <ChampIcon key="i" champ={g.champion} size={20} />, <span key="t">{L.inGame}{g?.champion ? ` · ${g.champion.name}` : ''}{g?.position ? ` · ${ROLE_LABELS[g.position] ?? g.position}` : ''}{elapsed != null ? ` · ${fmtDuration(elapsed)}` : ''}</span>]);
+        }
+        case 'postgame': {
+            const pg = live.postGame;
+            if (!pg) return row([dot(NEUTRAL), <span key="t">{L.postGame}</span>]);
+            return row([dot(pg.win ? WIN : LOSS), <span key="t" style={{ color: pg.win ? WIN : LOSS, fontWeight: 800 }}>{pg.win ? L.victory : L.defeat}</span>, <span key="k">{pg.kills}/{pg.deaths}/{pg.assists}</span>]);
+        }
+        default:
+            return null;
+    }
+}
+
+/** Selección de campeón en vivo: picks de mi equipo (el mío resaltado) vs. rival, y bans. */
+function ChampSelectBlock({ live, font, L, accent }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string }) {
+    const cs = live.champSelect;
+    if (!cs) return null;
+    const label = (t: string) => <span style={{ color: NEUTRAL, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif', width: 44, flexShrink: 0 }}>{t}</span>;
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...font }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                {label(L.team)}
+                {cs.myTeam.map(p => <ChampIcon key={p.cellId} champ={p.champion} ring={p.isMe ? accent : p.locked ? undefined : undefined} dim={!!p.champion && !p.locked && !p.isMe} />)}
+            </div>
+            {cs.theirTeam.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    {label(L.enemy)}
+                    {cs.theirTeam.map(p => <ChampIcon key={p.cellId} champ={p.champion} dim={!!p.champion && !p.locked} />)}
+                </div>
+            )}
+            {(cs.myBans.length > 0 || cs.theirBans.length > 0) && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {label(L.bans)}
+                    {[...cs.myBans, ...cs.theirBans].map((b, i) => <div key={`${b.id}-${i}`} style={{ position: 'relative' }}><ChampIcon champ={b} size={20} dim /><span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: LOSS, fontWeight: 900, fontSize: 14 }}>✕</span></div>)}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/** Tarjeta de fin de partida: resultado, KDA, CS, daño, duración, ±LP. */
+function PostGameBlock({ live, font, L }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels }) {
+    const pg = live.postGame;
+    if (!pg) return null;
+    const color = pg.win ? WIN : LOSS;
+    const kda = pg.deaths === 0 ? pg.kills + pg.assists : (pg.kills + pg.assists) / pg.deaths;
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 10px', borderRadius: 8, background: pg.win ? 'rgba(74,222,128,.12)' : 'rgba(248,113,113,.12)', borderLeft: `3px solid ${color}` }}>
+            <ChampIcon champ={pg.champion} size={40} ring={color} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, ...font }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ color, fontWeight: 800, fontSize: '1.15em' }}>{pg.win ? L.victory : L.defeat}</span>
+                    {pg.pointsDelta != null && <span style={{ color: pg.pointsDelta >= 0 ? WIN : LOSS, fontWeight: 700 }}>{pg.pointsDelta > 0 ? '+' : ''}{pg.pointsDelta} LP</span>}
+                    <span style={{ color: NEUTRAL, fontSize: '0.8em' }}>{fmtDuration(pg.durationSeconds)}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 10, fontSize: '0.9em' }}>
+                    <span><b>{pg.kills}/{pg.deaths}/{pg.assists}</b> <span style={{ color: NEUTRAL, fontSize: '0.85em' }}>{kda.toFixed(1)} KDA</span></span>
+                    {pg.cs != null && <span>{pg.cs} CS</span>}
+                    {pg.damage != null && <span>{fmtK(pg.damage)} DMG</span>}
+                    {pg.visionScore != null && <span>{pg.visionScore} VS</span>}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function StatsBlocks({ el, stats, session, rank, L, accent, isVisible }: {
     el: GameVisualConfig['elements']; stats?: AccountStats | null; session?: SessionState | null; rank?: AccountOverlayState['rank'];
     L: CardLabels; accent: string; isVisible: (id: keyof GameVisualConfig['elements']) => boolean;
@@ -282,6 +390,8 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
     const delta = aggregate ? aggregate.pointsDelta : session?.pointsDelta ?? null;
     const pointsLabel = rank?.pointsLabel ?? '';
     const isVisible = (id: keyof typeof el) => el[id]?.visible !== false;
+    const live = account.livePhase && account.livePhase.phase !== 'none' ? account.livePhase : null;
+    const now = useTicker(live?.phase === 'ingame');
 
     const bg: CSSProperties = config.background.type === 'transparent'
         ? {}
@@ -390,7 +500,10 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
         if (isVisible('recent') && session) items.push(<span key="recent"><RecentMatches matches={session.matches} cfg={{ ...(el.recent ?? { visible: true }), count: Math.min(el.recent?.count ?? 5, 8) }} noMatches="" /></span>);
         const stats = <StatsBlocks el={{ ...el, topChamps: { ...el.topChamps, visible: false }, mastery: { ...el.mastery, visible: false }, lpGraph: { ...el.lpGraph, visible: false } } as typeof el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={id => el[id]?.visible === true} />;
         if (isVisible('accountName')) items.push(<span key="name" style={{ ...fontStyle(el.accountName?.font, 13), color: el.accountName?.font?.color ?? NEUTRAL }}>{account.displayName}{accountCount > 1 ? ` ${accountIndex + 1}/${accountCount}` : ''}</span>);
-        if (isVisible('liveCharacter') && account.live?.inGame) items.push(
+        if (live && isVisible('champSelect') && live.phase === 'champselect') items.push(<span key="cs"><ChampSelectBlock live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} /></span>);
+        if (live && isVisible('postGame') && live.phase === 'postgame') items.push(<span key="pg"><PostGameBlock live={live} font={fontStyle(el.postGame?.font, 13)} L={L} /></span>);
+        if (live && isVisible('liveCharacter')) items.push(<span key="live"><LiveStatusLine live={live} font={fontStyle(el.liveCharacter?.font, 13)} L={L} accent={accent} now={now} /></span>);
+        else if (isVisible('liveCharacter') && account.live?.inGame) items.push(
             <span key="live" style={{ ...fontStyle(el.liveCharacter?.font, 13), display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: LOSS, boxShadow: `0 0 6px ${LOSS}` }} />
                 {account.live.characterIcon && <img src={account.live.characterIcon} alt="" style={{ width: 18, height: 18, borderRadius: 4 }} />}
@@ -461,14 +574,20 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
                 ? <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderLeft: '1px solid rgba(255,255,255,.12)', paddingLeft: 14 }}><StatsBlocks el={el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={isVisible} /></div>
                 : <StatsBlocks el={el} stats={account.stats} session={session} rank={rank} L={L} accent={accent} isVisible={isVisible} />}
 
-            {/* Partida en vivo */}
-            {isVisible('liveCharacter') && account.live?.inGame && (
-                <div style={{ ...fontStyle(el.liveCharacter?.font, 13), display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: LOSS, boxShadow: `0 0 6px ${LOSS}` }} />
-                    {account.live.characterIcon && <img src={account.live.characterIcon} alt="" style={{ width: 20, height: 20, borderRadius: 4 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
-                    <span>{L.inGame}{account.live.character ? ` · ${account.live.character}` : ''}</span>
-                </div>
-            )}
+            {/* En vivo desde el Desktop: selección de campeón y fin de partida */}
+            {live && isVisible('champSelect') && live.phase === 'champselect' && <ChampSelectBlock live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} />}
+            {live && isVisible('postGame') && live.phase === 'postgame' && <PostGameBlock live={live} font={fontStyle(el.postGame?.font, 14)} L={L} />}
+
+            {/* Estado en vivo: con Desktop, la fase real; sin Desktop, "En partida" de la Riot API */}
+            {isVisible('liveCharacter') && (live
+                ? <LiveStatusLine live={live} font={fontStyle(el.liveCharacter?.font, 13)} L={L} accent={accent} now={now} />
+                : account.live?.inGame && (
+                    <div style={{ ...fontStyle(el.liveCharacter?.font, 13), display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: LOSS, boxShadow: `0 0 6px ${LOSS}` }} />
+                        {account.live.characterIcon && <img src={account.live.characterIcon} alt="" style={{ width: 20, height: 20, borderRadius: 4 }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
+                        <span>{L.inGame}{account.live.character ? ` · ${account.live.character}` : ''}</span>
+                    </div>
+                ))}
         </div>
     );
 }

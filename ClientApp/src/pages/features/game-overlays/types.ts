@@ -118,6 +118,33 @@ export interface SessionState {
     streak?: number;
 }
 
+// ─── Fase en vivo (Decatron Desktop leyendo el cliente de LoL) ────────────────
+export interface LiveChampionRef { id: number; name: string; icon?: string | null; }
+export interface LiveLobbyMember { name: string; tag?: string | null; isMe: boolean; isLeader: boolean; position1?: string | null; position2?: string | null; }
+export interface LivePick { cellId: number; champion?: LiveChampionRef | null; position?: string | null; isMe: boolean; locked: boolean; }
+export interface LiveChampSelect {
+    myTeam: LivePick[]; theirTeam: LivePick[]; myBans: LiveChampionRef[]; theirBans: LiveChampionRef[];
+    timerPhase?: string | null; remainingMs?: number | null; myPick?: LiveChampionRef | null; myPosition?: string | null; myTurn: boolean;
+}
+export interface LiveGameDetails { champion?: LiveChampionRef | null; position?: string | null; startedAt?: string | null; gameMode?: string | null; }
+export interface LivePostGamePlayer { name: string; champion?: LiveChampionRef | null; kills: number; deaths: number; assists: number; isMe: boolean; }
+export interface LivePostGame {
+    win: boolean; champion?: LiveChampionRef | null; kills: number; deaths: number; assists: number;
+    cs?: number | null; damage?: number | null; visionScore?: number | null; durationSeconds: number; pointsDelta?: number | null;
+    myTeam: LivePostGamePlayer[]; theirTeam: LivePostGamePlayer[];
+}
+export type LivePhaseId = 'none' | 'lobby' | 'matchmaking' | 'champselect' | 'ingame' | 'postgame';
+export interface LivePhaseInfo {
+    phase: LivePhaseId;
+    queueId?: number | null;
+    queueName?: string | null;
+    lobby: LiveLobbyMember[];
+    champSelect?: LiveChampSelect | null;
+    game?: LiveGameDetails | null;
+    postGame?: LivePostGame | null;
+    updatedAt: string;
+}
+
 export interface AccountOverlayState {
     accountId: number;
     game: GameId;
@@ -128,6 +155,8 @@ export interface AccountOverlayState {
     session?: SessionState | null;
     live?: LiveGameInfo | null;
     stats?: AccountStats | null;
+    /** Solo con Decatron Desktop conectado y el cliente de LoL abierto en esta cuenta. */
+    livePhase?: LivePhaseInfo | null;
     updatedAt: string;
 }
 
@@ -144,7 +173,9 @@ export interface OverlayState {
 export type LayoutPreset = 'card' | 'compact' | 'bar' | 'emblem-only';
 export type ElementId = 'emblem' | 'rank' | 'lp' | 'session' | 'recent' | 'accountName' | 'gameLogo' | 'liveCharacter'
     // Fase "LoL enriquecido": estadísticas de las últimas partidas
-    | 'winrate' | 'kdaCs' | 'streak' | 'topChamps' | 'mastery' | 'lpGraph';
+    | 'winrate' | 'kdaCs' | 'streak' | 'topChamps' | 'mastery' | 'lpGraph'
+    // Fase B: en vivo desde Decatron Desktop (selección de campeón, fin de partida)
+    | 'champSelect' | 'postGame';
 
 export interface FontStyle {
     family?: string;
@@ -176,9 +207,9 @@ export type StylePreset = 'minimal' | 'stats' | 'full';
 export const STYLE_PRESET_LABELS: Record<StylePreset, string> = { minimal: 'Minimal', stats: 'Stats (op.gg)', full: 'Completo' };
 /** Qué elementos deja visibles cada preset; el resto de la config no se toca. */
 export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
-    minimal: ['emblem', 'rank', 'lp', 'session'],
-    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph'],
-    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter'],
+    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame'],
+    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame'],
+    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame'],
 };
 
 /** Vistas por las que rota la tarjeta ("tipo GIF"): la principal, stats, campeones, gráfico. */
@@ -262,6 +293,9 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
             topChamps: { visible: false, count: 3, font: { size: 12, weight: 500, color: '#c9d1d9' } },
             mastery: { visible: false, count: 3, font: { size: 12, weight: 500, color: '#c9d1d9' } },
             lpGraph: { visible: false, height: 48 },
+            // Solo aparecen con Decatron Desktop conectado: encendidos por defecto.
+            champSelect: { visible: true, font: { size: 12, weight: 600, color: '#e6edf3' } },
+            postGame: { visible: true, font: { size: 14, weight: 600, color: '#e6edf3' } },
         },
         background: { type: 'solid', color: '#0f1115', opacity: 85, radius: 12 },
         accent: GAME_ACCENTS[game],
@@ -350,7 +384,11 @@ export const ELEMENT_LABELS: Record<ElementId, string> = {
     emblem: 'Emblema de rango', rank: 'Rango', lp: 'Puntos (LP/RR/ELO)', session: 'Sesión (W-L y delta)',
     recent: 'Últimas partidas', accountName: 'Nombre de cuenta', gameLogo: 'Nombre del juego', liveCharacter: 'En partida',
     winrate: 'Winrate', kdaCs: 'KDA / CS por minuto', streak: 'Racha', topChamps: 'Top campeones', mastery: 'Maestría', lpGraph: 'Gráfico de LP',
+    champSelect: 'Selección de campeón (Desktop)', postGame: 'Fin de partida (Desktop)',
 };
+
+/** Elementos que solo se alimentan del cliente de LoL vía Decatron Desktop. */
+export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame'];
 
 /** Elementos que solo tienen sentido si el proveedor da esos datos (hoy: LoL). */
 export const STATS_ELEMENTS: ElementId[] = ['winrate', 'kdaCs', 'streak', 'topChamps', 'mastery', 'lpGraph'];
