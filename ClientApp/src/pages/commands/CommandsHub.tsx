@@ -1,4 +1,4 @@
-import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe } from 'lucide-react';
+import { Zap, MessageSquare, Code, Terminal, Settings, Clock, Globe, Crosshair } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CommandCard {
@@ -47,6 +47,13 @@ export default function CommandsHub() {
             description: 'Muestra cuánto tiempo lleva un viewer viendo el stream actual',
             icon: <Clock className="w-6 h-6 text-[#2563eb]" />,
             route: '/commands/watchtime'
+        },
+        {
+            id: 'ruleta',
+            name: 'Ruleta',
+            description: 'Ruleta rusa con timeout — probabilidad, duración y mensajes configurables',
+            icon: <Crosshair className="w-6 h-6 text-[#2563eb]" />,
+            route: '/commands/ruleta'
         },
         {
             id: 'public',
