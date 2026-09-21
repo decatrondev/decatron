@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
     Code2, Plus, ExternalLink, Shield, CheckCircle, XCircle,
     Copy, Eye, EyeOff, Trash2, RefreshCw, Key, AlertTriangle,
-    Loader2, BookOpen, ArrowLeft, Users, Zap, Activity
+    Loader2, BookOpen, ArrowLeft, Users, Zap, Activity, Pencil
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -426,6 +426,13 @@ export default function DeveloperPortal() {
                                         </div>
                                     ) : (
                                         <>
+                                            <button
+                                                onClick={() => navigate(`/developer/apps/${selectedApp.id}/edit`)}
+                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151] hover:bg-[#e2e8f0] dark:hover:bg-[#4b5563] text-gray-900 dark:text-white font-bold rounded-xl transition-colors text-sm"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                                Editar
+                                            </button>
                                             <button
                                                 onClick={() => setConfirmDelete(selectedApp.id)}
                                                 className="px-4 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl transition-colors"

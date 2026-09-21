@@ -59,6 +59,17 @@ namespace Decatron.Core.Models.OAuth
         [MaxLength(255)]
         public string? RevokedReason { get; set; }
 
+        /// <summary>
+        /// Si el authorization_code que originó este token se canjeó con PKCE
+        /// (sin client_secret) — permite que el refresh_token de este mismo
+        /// token también funcione sin client_secret (RFC 8252, clientes
+        /// públicos: apps de escritorio/móvil que no pueden guardar un
+        /// secret de forma segura). Los tokens emitidos con client_secret
+        /// siguen exigiéndolo también para refrescar.
+        /// </summary>
+        [Column("was_pkce_used")]
+        public bool WasPkceUsed { get; set; } = false;
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

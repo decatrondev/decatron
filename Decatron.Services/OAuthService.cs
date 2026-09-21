@@ -305,7 +305,8 @@ namespace Decatron.Services
                 UserId = authCode.UserId,
                 Scopes = authCode.Scopes,
                 ExpiresAt = DateTime.UtcNow.AddHours(AccessTokenExpirationHours),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                WasPkceUsed = usingPKCE
             };
 
             // 8. Crear refresh token
@@ -355,8 +356,13 @@ namespace Decatron.Services
                 return null;
             }
 
-            // 2. Validar client_secret
-            if (!VerifySecret(clientSecret, app.ClientSecretHash))
+            // 2. Validar client_secret — salvo que el token que se está
+            // refrescando se haya emitido originalmente con PKCE, en cuyo
+            // caso es un cliente público (app de escritorio/móvil, no puede
+            // guardar un secret de forma segura) y no corresponde exigírselo
+            // acá tampoco (RFC 8252).
+            var wasPkceUsed = refresh.AccessToken?.WasPkceUsed ?? false;
+            if (!wasPkceUsed && !VerifySecret(clientSecret, app.ClientSecretHash))
             {
                 _logger.LogWarning("Invalid client secret for refresh");
                 return null;
@@ -380,7 +386,8 @@ namespace Decatron.Services
                 UserId = refresh.AccessToken?.UserId ?? 0,
                 Scopes = refresh.AccessToken?.Scopes ?? Array.Empty<string>(),
                 ExpiresAt = DateTime.UtcNow.AddHours(AccessTokenExpirationHours),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                WasPkceUsed = wasPkceUsed
             };
 
             var newRefreshToken = new OAuthRefreshToken

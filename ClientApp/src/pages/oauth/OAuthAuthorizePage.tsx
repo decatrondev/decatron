@@ -120,8 +120,12 @@ export default function OAuthAuthorizePage() {
         const token = localStorage.getItem('token');
         if (!token) {
             // Not logged in - redirect to login with return URL
-            const returnUrl = encodeURIComponent(window.location.href);
-            window.location.href = `/login?returnUrl=${returnUrl}`;
+            // "redirect" (ruta relativa, sin barra inicial) es la convención que
+            // usa todo el resto del login (AuthController.Login, Login.tsx) — un
+            // "returnUrl" con la URL absoluta se perdía en el camino y siempre
+            // terminaba en /dashboard después de loguearse.
+            const redirectPath = encodeURIComponent(window.location.pathname.slice(1) + window.location.search);
+            window.location.href = `/login?redirect=${redirectPath}`;
             return;
         }
 

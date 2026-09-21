@@ -221,6 +221,44 @@ namespace Decatron.Controllers
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
 
+            // Misma validación que POST /apps — antes el PUT no validaba nada
+            // y dejaba pasar redirect URIs sin HTTPS o scopes inexistentes
+            // (UpdateApplicationAsync los filtra en silencio, sin avisar).
+            if (request.RedirectUris != null)
+            {
+                if (request.RedirectUris.Length == 0)
+                {
+                    return BadRequest(new { success = false, error = "At least one redirect URI is required" });
+                }
+
+                foreach (var uri in request.RedirectUris)
+                {
+                    if (!Uri.TryCreate(uri, UriKind.Absolute, out var parsedUri))
+                    {
+                        return BadRequest(new { success = false, error = $"Invalid redirect URI: {uri}" });
+                    }
+
+                    if (parsedUri.Scheme != "https" && parsedUri.Host != "localhost" && parsedUri.Host != "127.0.0.1")
+                    {
+                        return BadRequest(new { success = false, error = $"Redirect URI must use HTTPS: {uri}" });
+                    }
+                }
+            }
+
+            if (request.Scopes != null)
+            {
+                if (request.Scopes.Length == 0)
+                {
+                    return BadRequest(new { success = false, error = "At least one scope is required" });
+                }
+
+                var invalidScopes = request.Scopes.Where(s => !DecatronScopes.IsValid(s)).ToArray();
+                if (invalidScopes.Length > 0)
+                {
+                    return BadRequest(new { success = false, error = $"Invalid scopes: {string.Join(", ", invalidScopes)}" });
+                }
+            }
+
             var app = await _oauthService.UpdateApplicationAsync(
                 id,
                 userId.Value,

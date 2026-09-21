@@ -48,6 +48,12 @@ namespace Decatron.OAuth.Scopes
         /// <summary>Ver configuración de sonidos</summary>
         public const string ReadSounds = "read:sounds";
 
+        /// <summary>Buscar categorías/juegos de Twitch por nombre</summary>
+        public const string ReadGames = "read:games";
+
+        /// <summary>Ver info en vivo del stream: categoría, título, espectadores, último seguidor</summary>
+        public const string ReadStream = "read:stream";
+
         // ═══════════════════════════════════════════════════════════════
         // ESCRITURA (write:*)
         // ═══════════════════════════════════════════════════════════════
@@ -91,6 +97,15 @@ namespace Decatron.OAuth.Scopes
 
         /// <summary>Reproducir sonidos en el overlay</summary>
         public const string ActionSounds = "action:sounds";
+
+        /// <summary>Cambiar la categoría/juego del stream</summary>
+        public const string ActionCategory = "action:category";
+
+        /// <summary>Cambiar el título del stream</summary>
+        public const string ActionTitle = "action:title";
+
+        /// <summary>Crear un marcador en el stream</summary>
+        public const string ActionMarker = "action:marker";
 
         // ═══════════════════════════════════════════════════════════════
         // CATÁLOGO COMPLETO DE SCOPES
@@ -141,6 +156,16 @@ namespace Decatron.OAuth.Scopes
             [ReadSounds] = new(
                 "Sonidos",
                 "Ver configuración de alertas de sonido",
+                "read"
+            ),
+            [ReadGames] = new(
+                "Categorías",
+                "Buscar categorías/juegos de Twitch por nombre",
+                "read"
+            ),
+            [ReadStream] = new(
+                "Stream en vivo",
+                "Ver categoría, título, espectadores y último seguidor en vivo",
                 "read"
             ),
 
@@ -208,6 +233,21 @@ namespace Decatron.OAuth.Scopes
                 "Reproducir sonidos en el overlay",
                 "action"
             ),
+            [ActionCategory] = new(
+                "Categoría",
+                "Cambiar la categoría/juego del stream",
+                "action"
+            ),
+            [ActionTitle] = new(
+                "Título",
+                "Cambiar el título del stream",
+                "action"
+            ),
+            [ActionMarker] = new(
+                "Marcador",
+                "Crear un marcador en el stream",
+                "action"
+            ),
         };
 
         // ═══════════════════════════════════════════════════════════════
@@ -218,7 +258,7 @@ namespace Decatron.OAuth.Scopes
         public static readonly string[] ReadScopes = new[]
         {
             ReadProfile, ReadTimer, ReadCommands, ReadAlerts,
-            ReadGiveaways, ReadGoals, ReadAnalytics, ReadSounds
+            ReadGiveaways, ReadGoals, ReadAnalytics, ReadSounds, ReadGames, ReadStream
         };
 
         /// <summary>Todos los scopes de escritura</summary>
@@ -232,7 +272,8 @@ namespace Decatron.OAuth.Scopes
         public static readonly string[] ActionScopes = new[]
         {
             ActionTimer, ActionAlerts, ActionChat,
-            ActionGiveaway, ActionGoals, ActionSounds
+            ActionGiveaway, ActionGoals, ActionSounds,
+            ActionCategory, ActionTitle, ActionMarker
         };
 
         /// <summary>Scopes que requieren verificación de la app</summary>
