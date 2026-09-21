@@ -19,6 +19,7 @@ public class DiscordBotService : BackgroundService
     private readonly ILogger<DiscordBotService> _logger;
     private readonly DiscordSettings _settings;
     private DecatronSlashCommands? _commandHandler;
+    private TournamentSlashCommands? _tournamentCommandHandler;
 
     private static readonly string CommandsJson = JsonSerializer.Serialize(new object[]
     {
@@ -74,6 +75,18 @@ public class DiscordBotService : BackgroundService
                 }}
             }}
         }},
+        // Modulo de Torneos (Milestone 2) — ver .dev/torneos/08-discord-integracion.md.
+        // Subset: inscribirme, estado, normas. checkin/vincular-riot/lanzar-castigo
+        // quedan para cuando se necesiten, ver TournamentSlashCommands.cs.
+        new { name = "torneo", description = "Torneos del canal", type = 1, options = new object[] {
+            new { name = "inscribirme", description = "Inscribirte al torneo con inscripciones abiertas de este canal", type = 1, options = new object[] {
+                new { name = "riot_id", description = "Tu nombre de invocador (sin el tag)", type = 3, required = true },
+                new { name = "riot_tag", description = "Tu tag de Riot (sin el #)", type = 3, required = true },
+                new { name = "nombre", description = "Nombre publico (por defecto: tu usuario de Discord)", type = 3, required = false },
+            }},
+            new { name = "estado", description = "Ver tu estado en el torneo activo de este canal", type = 1 },
+            new { name = "normas", description = "Ver las normas del torneo activo de este canal", type = 1 },
+        }},
     });
 
     public DiscordBotService(
@@ -96,6 +109,7 @@ public class DiscordBotService : BackgroundService
         {
             // Create command handler
             _commandHandler = ActivatorUtilities.CreateInstance<DecatronSlashCommands>(_serviceProvider);
+            _tournamentCommandHandler = ActivatorUtilities.CreateInstance<TournamentSlashCommands>(_serviceProvider);
 
             // Handle interactions manually (bypass DSharpPlus slash command bugs)
             client.InteractionCreated += OnInteractionCreated;
@@ -302,6 +316,32 @@ public class DiscordBotService : BackgroundService
                                     if (m?.Value != null && bool.TryParse(m.Value.ToString(), out var mv)) showMissing = mv;
                                 }
                                 embed = await _commandHandler!.HandleSpirits(e.Interaction, targetUser, showTop, showMissing);
+                                break;
+                            }
+                        case "torneo":
+                            {
+                                var subCommand = options?.FirstOrDefault();
+                                if (subCommand == null) { webhook.WithContent("Usá un subcomando: inscribirme, estado, normas"); break; }
+
+                                var subOpts = subCommand.Options?.ToList();
+                                switch (subCommand.Name)
+                                {
+                                    case "inscribirme":
+                                        var riotId = subOpts?.FirstOrDefault(o => o.Name == "riot_id")?.Value?.ToString() ?? "";
+                                        var riotTag = subOpts?.FirstOrDefault(o => o.Name == "riot_tag")?.Value?.ToString() ?? "";
+                                        var nombre = subOpts?.FirstOrDefault(o => o.Name == "nombre")?.Value?.ToString();
+                                        embed = await _tournamentCommandHandler!.HandleInscribirme(e.Interaction, riotId, riotTag, nombre);
+                                        break;
+                                    case "estado":
+                                        embed = await _tournamentCommandHandler!.HandleEstado(e.Interaction);
+                                        break;
+                                    case "normas":
+                                        embed = await _tournamentCommandHandler!.HandleNormas(e.Interaction);
+                                        break;
+                                    default:
+                                        webhook.WithContent($"Subcomando desconocido: {subCommand.Name}");
+                                        break;
+                                }
                                 break;
                             }
                         case "spirit":
