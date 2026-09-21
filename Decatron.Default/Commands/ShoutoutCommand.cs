@@ -79,6 +79,16 @@ namespace Decatron.Default.Commands
 
                 lang = await GetChannelLanguageAsync(channel, context);
 
+                // El shoutout usa clips de Twitch (TwitchApiService.GetShoutoutDataAsync)
+                // sin equivalente en Kick — no hay recurso de clips en su API
+                // publica. "No disponible", no "Proximamente". Sin este chequeo el
+                // comando corria igual y terminaba en un error crudo de Twitch.
+                if (Utils.IsNonTwitchChannelIdentifier(channel))
+                {
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("so_cmd", "platform_unavailable", lang));
+                    return;
+                }
+
                 if (args.Length < 2)
                 {
                     await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("so_cmd", "usage", lang));

@@ -41,13 +41,22 @@ export default function Login() {
 
     const handleTwitchLogin = () => {
         setLoggingIn(true);
-        const redirectParam = redirect ? `?redirect=${redirect}` : '';
+        // redirect (de useSearchParams, ya decodificado) puede traer su propia
+        // query string adentro (ej. viene de /oauth/authorize?client_id=...&...)
+        // — sin volver a codificarlo acá, esos & y = sueltos rompen la URL de
+        // /api/auth/login y se pierden todos los parámetros después del primero.
+        const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
         window.location.href = `/api/auth/login${redirectParam}`;
     };
 
     const handleDiscordLogin = () => {
         setLoggingIn(true);
         window.location.href = '/api/auth/discord/login';
+    };
+
+    const handleKickLogin = () => {
+        setLoggingIn(true);
+        window.location.href = '/api/auth/kick/login';
     };
 
     const features = [
@@ -121,6 +130,39 @@ export default function Login() {
                             <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1.5 ml-1">
                                 {t('twitchAccessDescription')}
                             </p>
+                        </div>
+
+                        {/* Kick Login */}
+                        <div>
+                            <button
+                                onClick={handleKickLogin}
+                                disabled={loggingIn || exchanging}
+                                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#53fc18] hover:bg-[#3ecc0a] text-black font-bold rounded-lg transition-all hover:-translate-y-0.5 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            >
+                                {loggingIn || exchanging ? (
+                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                ) : (
+                                    <span className="w-6 h-6 flex items-center justify-center rounded bg-black/10 font-display font-extrabold text-sm">K</span>
+                                )}
+                                <span>{loggingIn ? t('redirecting') || 'Redirigiendo...' : exchanging ? t('authenticating') || 'Autenticando...' : t('continueWithKick')}</span>
+                            </button>
+                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1.5 ml-1">
+                                {t('kickAccessDescription')}
+                            </p>
+                        </div>
+
+                        {/* YouTube — próximamente */}
+                        <div>
+                            <button
+                                disabled
+                                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#f8fafc] dark:bg-[#1e293b] text-[#94a3b8] dark:text-[#64748b] font-bold rounded-lg border border-dashed border-[#e2e8f0] dark:border-[#374151] cursor-not-allowed"
+                            >
+                                <svg className="w-6 h-6 opacity-50" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                </svg>
+                                <span>{t('continueWithYoutube')}</span>
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#e2e8f0] dark:bg-[#374151]">{t('youtubeComingSoon')}</span>
+                            </button>
                         </div>
 
                         {/* Divider */}

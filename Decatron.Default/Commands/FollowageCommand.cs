@@ -61,6 +61,18 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // El followage es un concepto que no existe en la API publica de
+                // Kick (no hay recurso de followers/followed_at) — a diferencia de
+                // !title/!game, esto es "No disponible" sin fecha, no
+                // "Proximamente". Sin este chequeo, el comando corria igual y
+                // terminaba en un error crudo.
+                if (Utils.IsNonTwitchChannelIdentifier(channel))
+                {
+                    var earlyLang = await GetChannelLanguageAsync(channel);
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("followage", "platform_unavailable", earlyLang, username));
+                    return;
+                }
+
                 // Parsear argumentos - si hay un usuario especificado, usarlo
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var args = messageWithoutPrefix.Split(' ', StringSplitOptions.RemoveEmptyEntries);

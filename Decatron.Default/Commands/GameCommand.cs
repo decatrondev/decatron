@@ -54,6 +54,16 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // Igual que !title: sin esto, en Kick el comando corre igual y
+                // termina en un error crudo de Twitch en vez de explicar que es
+                // una feature pendiente ("Proximamente" en el dashboard).
+                if (Utils.IsNonTwitchChannelIdentifier(channel))
+                {
+                    var earlyLang = await GetChannelLanguageAsync(channel);
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("game", "platform_unavailable", earlyLang));
+                    return;
+                }
+
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var newCategory = Utils.ParseCommandArgumentsAsString(messageWithoutPrefix);
                 _logger.LogInformation($"[GameCommand] 3️⃣ Categoría solicitada: '{newCategory}' (vacío={string.IsNullOrEmpty(newCategory)})");

@@ -38,6 +38,7 @@ export default function Dashboard() {
     const jwtClaims = useMemo(() => parseJwt(localStorage.getItem('token')), []);
     const authProvider = jwtClaims.AuthProvider || 'twitch';
     const isDiscordOnly = authProvider === 'discord';
+    const isKickOnly = authProvider === 'kick';
     const displayName = jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || 'User';
 
     useEffect(() => {
@@ -53,10 +54,13 @@ export default function Dashboard() {
     }, []);
 
     useEffect(() => {
-        if (!isLoading) {
+        // isDiscordOnly no tiene bot de Twitch conectado; isKickOnly tampoco tiene
+        // bot de Kick conectado todavia (ver plan de unificacion, seccion 8.5) —
+        // en ninguno de los dos casos existe un estado de bot real que pedir.
+        if (!isLoading && !isDiscordOnly && !isKickOnly) {
             loadBotStatus();
         }
-    }, [isLoading]);
+    }, [isLoading, isDiscordOnly, isKickOnly]);
 
     const loadBotStatus = async () => {
         try {
@@ -162,6 +166,65 @@ export default function Dashboard() {
                                 Marketplace
                             </h3>
                             <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Proximamente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Kick-only dashboard — el login funciona (ver plan de unificacion, seccion
+    // 8.5), pero el motor de comandos todavia no sabe hablarle a un canal de
+    // Kick. Mensaje honesto en vez de un dashboard de Twitch roto a medias.
+    if (isKickOnly) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-[#1B1C1D] p-8">
+                <div className="max-w-7xl mx-auto">
+                    <div className="mb-8">
+                        <h1 className="text-4xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                            Bienvenido, {displayName}
+                        </h1>
+                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                            Tu panel de Decatron
+                        </p>
+                    </div>
+
+                    <div className="mb-6 bg-gradient-to-r from-[#53fc18]/10 to-[#3ecc0a]/10 dark:from-[#53fc18]/20 dark:to-[#3ecc0a]/20 border-2 border-[#53fc18]/30 rounded-2xl p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-[#53fc18] rounded-xl flex-shrink-0">
+                                <Bot className="w-6 h-6 text-black" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">Tu cuenta de Kick ya está lista</h3>
+                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">El bot para Kick todavía está en desarrollo — comandos, moderación y overlays llegan pronto a este panel.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                <Trophy className="w-6 h-6 text-[#f59e0b]" />
+                                Mi Perfil
+                            </h3>
+                            <div className="space-y-3">
+                                <button onClick={() => navigate('/me')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
+                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Overview</p>
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Tu nivel, stats y rank card</p>
+                                </button>
+                                <button onClick={() => navigate('/me/account')} className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left">
+                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">Mi Cuenta</p>
+                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Preferencias de tu cuenta</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                            <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                <Coins className="w-6 h-6 text-[#eab308]" />
+                                DecaCoins
+                            </h3>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] py-8 text-center">Próximamente</p>
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Clock, ChevronLeft, Save, Users, MessageSquare, Timer, Eye, History, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Clock, ChevronLeft, Save, Users, MessageSquare, Timer, Eye, History, AlertCircle, Ban } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+
+function parseJwtClaims(token: string | null): Record<string, string> {
+    if (!token) return {};
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(window.atob(base64));
+    } catch { return {}; }
+}
 
 // Estos strings deben coincidir EXACTO con los niveles del backend (GachaCommand.GetUserLevel/HasPermission)
 type Permission = 'everyone' | 'subscriber' | 'vip' | 'moderator' | 'lead_moderator' | 'broadcaster';
@@ -167,7 +176,24 @@ export default function WatchtimeConfig() {
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Watchtime en Twitch depende, para los "lurkers" (viewers que no escriben,
+    // la mayoria), de consultar la lista de chatters conectados via la API de
+    // Helix cada 90s (WatchtimeLurkerTrackingService.cs). La API publica de
+    // Kick no expone ningun recurso equivalente — se reviso el indice completo
+    // de su documentacion (categories, chat, channels, moderation, etc.) y no
+    // hay forma de saber quien esta conectado sin que escriba. Es "No
+    // disponible" y no "Proximamente": depende de que Kick agregue algo que
+    // hoy no existe, no de trabajo pendiente de nuestro lado.
+    const isKickSession = useMemo(() => {
+        const claims = parseJwtClaims(localStorage.getItem('token'));
+        return (claims.AuthProvider || 'twitch') === 'kick';
+    }, []);
+
     useEffect(() => {
+        if (isKickSession) {
+            setLoading(false);
+            return;
+        }
         (async () => {
             try {
                 const res = await api.get('/watchtime/config');
@@ -181,7 +207,7 @@ export default function WatchtimeConfig() {
                 setLoading(false);
             }
         })();
-    }, []);
+    }, [isKickSession]);
 
     const set = <K extends keyof WatchtimeConfig>(key: K, value: WatchtimeConfig[K]) => {
         setConfig(prev => ({ ...prev, [key]: value }));
@@ -213,6 +239,22 @@ export default function WatchtimeConfig() {
         return (
             <div className="flex items-center justify-center h-64">
                 <p className="text-[#64748b] dark:text-[#94a3b8]">Cargando configuración...</p>
+            </div>
+        );
+    }
+
+    if (isKickSession) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16">
+                <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-8 max-w-md text-center">
+                    <Ban className="w-16 h-16 text-[#94a3b8] mx-auto mb-4" />
+                    <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                        Watchtime — No disponible en Kick
+                    </h2>
+                    <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        Kick no expone ninguna forma de saber quién está viendo el stream sin escribir en el chat. Sin ese dato, el tiempo de visualización quedaría sistemáticamente incompleto — preferimos no ofrecerlo a medias.
+                    </p>
+                </div>
             </div>
         );
     }

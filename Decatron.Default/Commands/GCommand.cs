@@ -56,6 +56,16 @@ namespace Decatron.Default.Commands
                 // Obtener idioma del canal
                 var userLang = await GetChannelLanguageAsync(channel);
 
+                // !g es en el fondo "cambiar categoria con un alias corto" — toda
+                // la funcionalidad depende de la API de Twitch. Sin este chequeo,
+                // en Kick corre igual y termina en un error crudo en vez de
+                // explicar que es "Proximamente" (mismo trato que !game/!title).
+                if (Utils.IsNonTwitchChannelIdentifier(channel))
+                {
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("g", "platform_unavailable", userLang));
+                    return;
+                }
+
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var args = messageWithoutPrefix.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 

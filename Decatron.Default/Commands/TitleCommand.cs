@@ -57,6 +57,18 @@ namespace Decatron.Default.Commands
                     return; // Comando deshabilitado, no responder
                 }
 
+                // El resto de este comando pega directo a la API de Twitch (via
+                // TitleUtils) — sin este chequeo, en Kick el comando corre igual y
+                // termina en un error crudo de "no se pudo obtener info del canal"
+                // en vez de explicar que es una feature pendiente. Ver dashboard,
+                // card de Default Commands, clasificado "Proximamente".
+                if (Utils.IsNonTwitchChannelIdentifier(channel))
+                {
+                    var earlyLang = await GetChannelLanguageAsync(channel);
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("title", "platform_unavailable", earlyLang));
+                    return;
+                }
+
                 // Parsear argumentos del comando (sin el prefijo !)
                 var messageWithoutPrefix = message.StartsWith("!") ? message.Substring(1) : message;
                 var newTitle = Utils.ParseCommandArgumentsAsString(messageWithoutPrefix);

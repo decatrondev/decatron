@@ -38,13 +38,28 @@ namespace Decatron.Services
                         var refreshService = scope.ServiceProvider.GetRequiredService<IUserTokenRefreshService>();
                         await refreshService.RefreshExpiringTokensAsync();
                     }
-
-                    _logger.LogInformation($"Next user token refresh check in {_checkInterval.TotalMinutes} minutes");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while refreshing user tokens");
+                    _logger.LogError(ex, "Error occurred while refreshing Twitch user tokens");
                 }
+
+                try
+                {
+                    // Try/catch propio: un fallo refrescando Kick (o Twitch, arriba) no debe
+                    // frenar al otro — son dos plataformas independientes en el mismo ciclo.
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        var kickRefreshService = scope.ServiceProvider.GetRequiredService<IKickTokenRefreshService>();
+                        await kickRefreshService.RefreshExpiringTokensAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while refreshing Kick user tokens");
+                }
+
+                _logger.LogInformation($"Next user token refresh check in {_checkInterval.TotalMinutes} minutes");
 
                 // Wait for the next interval
                 await Task.Delay(_checkInterval, stoppingToken);

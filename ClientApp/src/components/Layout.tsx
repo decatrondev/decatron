@@ -1,4 +1,5 @@
-﻿import { Bot, Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User } from 'lucide-react';
+﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User } from 'lucide-react';
+import decatronLockup from '../assets/decatron-lockup.png';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -70,9 +71,8 @@ export default function Layout() {
             {/* Sidebar */}
             <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f8fafc] dark:bg-[#1B1C1D] border-r border-[#e2e8f0] dark:border-[#374151] transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
                 <div className="p-6 border-b border-[#e2e8f0] dark:border-[#374151] flex-shrink-0">
-                    <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-black text-[#2563eb]">
-                        <Bot className="w-8 h-8" />
-                        <span>Decatron</span>
+                    <Link to="/dashboard" className="flex items-center">
+                        <img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />
                     </Link>
                 </div>
 
@@ -103,18 +103,40 @@ export default function Layout() {
                     <NavLink to="/dashboard" icon={<Home />} label={t('layout:navigation.dashboard')} active={location.pathname === '/dashboard'} />
                     <NavLink to="/settings" icon={<Settings />} label={t('layout:navigation.settings')} active={location.pathname === '/settings'} />
 
-                    {/* ========== PANEL STREAMER — Solo Twitch/Both ========== */}
-                    {hasTwitchAccess && (
+                    {/* ========== PANEL STREAMER ========== */}
+                    {(hasTwitchAccess || !isDiscordOnly) && (
                         <>
                             <hr className="my-2 border-[#e2e8f0] dark:border-[#374151]" />
                             <p className="px-4 text-xs font-bold text-[#94a3b8] dark:text-[#64748b] uppercase tracking-wider">Panel Streamer</p>
 
+                            {/* Comandos: ya verificado que resuelve el canal de forma
+                                generica (sesion/claim/JWT), sirve para Kick tal cual.
+                                Ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md
+                                seccion 8.16. El resto (overlays, moderacion, discord,
+                                analytics) se habilita para Kick de a uno, verificando
+                                cada uno primero — no se asume que tambien sirven. */}
                             <NavLink to="/commands" icon={<Zap />} label={t('layout:navigation.commands.title')} active={location.pathname.startsWith('/commands')} />
+
+                            {/* Overlays: visible para Kick, pero todavia sin ningun
+                                overlay verificado de ese lado — Overlays.tsx marca
+                                cada card como "Proximamente en Kick" hasta que se
+                                confirme card por card, mismo criterio que Default
+                                Commands (plan seccion 8.17). */}
                             <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />
+
+                            {/* Funciones: visible para Kick — Sound Alerts ya
+                                resuelve rewards contra la API de Kick (plan
+                                seccion 8, item 3), el resto de FeaturesHub se
+                                marca "Proximamente en Kick" hasta verificarse. */}
                             <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
-                            <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />
-                            <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />
-                            <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
+
+                            {hasTwitchAccess && (
+                                <>
+                                    <NavLink to="/moderation" icon={<Shield />} label={t('layout:navigation.moderation.title')} active={location.pathname.startsWith('/moderation')} />
+                                    <NavLink to="/discord" icon={<MessageSquare />} label="Discord" active={location.pathname.startsWith('/discord')} />
+                                    <NavLink to="/analytics" icon={<BarChart3 />} label={t('layout:navigation.analytics', 'Analytics')} active={location.pathname === '/analytics'} />
+                                </>
+                            )}
 
                             {isSystemOwner && (
                                 <NavLink to="/admin" icon={<Cpu />} label={t('layout:navigation.admin.title')} active={location.pathname.startsWith('/admin')} />
@@ -142,7 +164,7 @@ export default function Layout() {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
                 {/* Navbar */}
                 <nav className="bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151] px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -151,7 +173,12 @@ export default function Layout() {
                         </button>
                         <ThemeToggle />
                     </div>
-                    {hasTwitchAccess && <ChannelSwitcher />}
+                    {/* Antes gateado por hasTwitchAccess (con que plataforma entraste vos),
+                        no por si tenes algo que gestionar. Un canal de Kick al que otro
+                        streamer le dio acceso de moderador no tiene por que ver Twitch para
+                        que esto le sirva — mismo criterio que ya usa "Gestion de Accesos"
+                        en Settings (!isDiscordOnly). Ver plan de unificacion, seccion 8.12. */}
+                    {!isDiscordOnly && <ChannelSwitcher />}
                 </nav>
 
                 {/* Token Expiration Warning Banner */}
@@ -176,7 +203,12 @@ export default function Layout() {
                 )}
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-8">
+                {/* `min-w-0` es lo que impide el scroll horizontal en TODO el panel: sin
+                    el, un hijo ancho estira este flex en vez de encogerse, y como el div
+                    raiz es `overflow-hidden` lo que sobra no genera barra — se pierde de
+                    vista sin avisar. El padding baja en pantallas chicas: 64px de aire a
+                    los lados en un portatil son 64px que no tiene la tabla. */}
+                <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 xl:p-8">
                     {permissionsLoading ? (
                         <div className="flex items-center justify-center h-32">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2563eb]"></div>

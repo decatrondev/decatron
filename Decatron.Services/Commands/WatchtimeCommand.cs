@@ -49,6 +49,24 @@ namespace Decatron.Services.Commands
                     return;
                 }
 
+                // StreamWatchTimes se llena solo via TrackUserPresence, enganchado
+                // hoy unicamente al IRC de Twitch (TwitchBotService.cs) y al poll
+                // de chatters de Helix (WatchtimeLurkerTrackingService.cs) — Kick
+                // no tiene ninguna de las dos fuentes. Sin este chequeo, la
+                // consulta de mas abajo (w.ChannelId == channelInfo.TwitchId, que
+                // es null para Kick) nunca encuentra nada y el comando responde
+                // siempre "primera vez, 0 minutos" — una mentira, no un silencio.
+                // Misma card marcada "No disponible en Kick" en el dashboard.
+                if (string.IsNullOrEmpty(channelInfo.TwitchId))
+                {
+                    var lang = channelInfo.PreferredLanguage ?? "es";
+                    var msg = lang == "en"
+                        ? "Watch time isn't available on this platform yet."
+                        : "El tiempo de visualización todavía no está disponible en esta plataforma.";
+                    await messageSender.SendMessageAsync(context.Channel, msg);
+                    return;
+                }
+
                 var config = await db.WatchtimeCommandConfigs
                     .FirstOrDefaultAsync(c => c.UserId == channelInfo.UserId)
                     ?? new WatchtimeCommandConfig();

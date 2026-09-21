@@ -24,6 +24,9 @@ namespace Decatron.Core.Functions
             {
                 string channelToCheck = targetChannelName ?? channelName;
 
+                if (Utils.IsNonTwitchChannelIdentifier(channelName))
+                    return "No disponible en esta plataforma";
+
                 var accessToken = await Utils.GetAccessTokenFromDatabaseAsync(_configuration, channelName);
 
                 if (string.IsNullOrEmpty(accessToken))
