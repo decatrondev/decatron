@@ -1,7 +1,7 @@
 import {
     HelpCircle, Clock, Bell, Gift, Target, Volume2, DollarSign,
     Zap, Shield, Sparkles, Settings, Monitor, ArrowRight, Search,
-    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users, Dice6
+    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users, Dice6, Gamepad2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -27,6 +27,7 @@ export default function DashboardDocsHome() {
         { icon: <Shield />, title: 'Moderacion', description: 'Filtros y acciones automaticas', path: '/dashboard/docs/features/moderation', color: 'red' },
         { icon: <Sparkles />, title: 'Decatron AI', description: 'Inteligencia artificial', path: '/dashboard/docs/features/ai', color: 'purple' },
         { icon: <Music />, title: 'Now Playing', description: 'Musica en el stream', path: '/dashboard/docs/features/now-playing', color: 'green' },
+        { icon: <Gamepad2 />, title: 'Game Overlays', description: 'Rango, sesion y partidas en pantalla', path: '/dashboard/docs/features/game-overlays', color: 'blue' },
         { icon: <MessageSquare />, title: 'Decatron Chat', description: 'Chat privado con IA', path: '/dashboard/docs/features/decatron-chat', color: 'blue' },
         { icon: <BarChart3 />, title: 'Analiticas', description: 'Estadisticas y datos del stream', path: '/dashboard/docs/features/analytics', color: 'blue' },
         { icon: <Users />, title: 'Seguidores', description: 'Lista y gestion de followers', path: '/dashboard/docs/features/followers', color: 'purple' },
