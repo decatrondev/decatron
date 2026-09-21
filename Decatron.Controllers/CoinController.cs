@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -25,19 +24,33 @@ namespace Decatron.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<CoinController> _logger;
         private readonly DecatronDbContext _db;
+        private readonly IBillingProfileService _billing;
+        private readonly ICoinInvoiceService _invoices;
+        private readonly ISupporterInvoiceService _invoiceFiles;
+        private readonly IPaymentModeService _paymentMode;
 
         public CoinController(
             CoinService coinService,
             IConfiguration configuration,
             IHttpClientFactory httpClientFactory,
             ILogger<CoinController> logger,
-            DecatronDbContext db)
+            DecatronDbContext db,
+            IBillingProfileService billing,
+            ICoinInvoiceService invoices,
+            ISupporterInvoiceService invoiceFiles,
+            IPaymentModeService paymentMode)
         {
             _coinService       = coinService;
             _configuration     = configuration;
             _httpClientFactory = httpClientFactory;
             _logger            = logger;
             _db                = db;
+            _billing           = billing;
+            _invoices          = invoices;
+            // Bajar el PDF/XML de un comprobante solo depende del id de documento, no de
+            // qué se vendió: se reusa el de supporters en vez de duplicar el cliente HTTP.
+            _invoiceFiles      = invoiceFiles;
+            _paymentMode       = paymentMode;
         }
 
         // ─── GET /api/coins/packages ─────────────────────────────────────────────
@@ -45,7 +58,7 @@ namespace Decatron.Controllers
         [HttpGet("packages")]
         public async Task<IActionResult> GetPackages()
         {
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
             var packages = await _coinService.GetAvailablePackagesAsync(userId);
             return Ok(packages);
         }
@@ -55,7 +68,7 @@ namespace Decatron.Controllers
         [HttpGet("balance")]
         public async Task<IActionResult> GetBalance()
         {
-            var userId   = GetUserId();
+            var userId   = await GetAccountOwnerIdAsync();
             var balance  = await _coinService.GetBalanceAsync(userId);
             var settings = await _coinService.GetSettingsAsync();
 
@@ -72,7 +85,7 @@ namespace Decatron.Controllers
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory([FromQuery] int page = 1)
         {
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
             var history = await _coinService.GetHistoryAsync(userId, page);
             return Ok(history);
         }
@@ -85,7 +98,7 @@ namespace Decatron.Controllers
             if (string.IsNullOrWhiteSpace(req.Code))
                 return BadRequest(new { error = "Codigo es obligatorio" });
 
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
 
             // If packageId is 0 or not provided, validate generically with price 0
             // The frontend may call this before selecting a package
@@ -104,34 +117,28 @@ namespace Decatron.Controllers
 
         // ─── POST /api/coins/buy ─────────────────────────────────────────────────
 
+        private const decimal PEN_PER_USD = 3.80m; // mismo tipo de cambio fijo que ya usa Culqi en Supporters
+
+        [HttpGet("culqi-public-key")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCulqiPublicKey()
+        {
+            // La publica tiene que salir del MISMO modo con el que se va a cobrar: si el
+            // navegador tokeniza con la de live y el backend cobra con la secreta de test,
+            // Culqi rechaza el cargo con un error que no dice nada.
+            var (publicKey, _, esTest) = await _paymentMode.GetLlavesAsync(HttpContext.RequestAborted);
+            return Ok(new { publicKey, testMode = esTest });
+        }
+
+        // Culqi cobra en un solo paso (token del frontend + cargo directo), no hay
+        // "crear orden" + "capturar" como PayPal — por eso este es el único endpoint
+        // de compra, no hace falta un /capture aparte.
         [HttpPost("buy")]
         public async Task<IActionResult> Buy([FromBody] CoinBuyRequest req)
         {
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
 
-            // 1. Idempotency — check for existing pending order
-            // Expire old pending orders (> 30 min)
-            var oldPending = await _db.CoinPendingOrders
-                .Where(o => o.UserId == userId && o.Status == "pending" && o.CreatedAt < DateTime.UtcNow.AddMinutes(-30))
-                .ToListAsync();
-            foreach (var old in oldPending)
-                old.Status = "expired";
-            if (oldPending.Count > 0)
-                await _db.SaveChangesAsync();
-
-            // Check for recent pending
-            var existingPending = await _db.CoinPendingOrders
-                .FirstOrDefaultAsync(o => o.UserId == userId && o.Status == "pending");
-
-            if (existingPending != null)
-            {
-                // Return existing order so user can retry
-                var (_, _, ppBaseUrl, _, _) = GetPayPalConfig();
-                var ppCheckout = ppBaseUrl.Contains("sandbox") ? "https://www.sandbox.paypal.com" : "https://www.paypal.com";
-                return Ok(new { orderId = existingPending.PaypalOrderId, approvalUrl = $"{ppCheckout}/checkoutnow?token={existingPending.PaypalOrderId}", finalPrice = existingPending.FinalPriceUsd, existing = true });
-            }
-
-            // 2. Handle custom coins purchase
+            // 1. Handle custom coins purchase
             CoinPackage package;
             decimal finalPrice;
 
@@ -165,7 +172,9 @@ namespace Decatron.Controllers
                 finalPrice = package.PriceUsd;
             }
 
-            // 3. Validate discount code if provided
+            var isCustom = req.CustomCoins.HasValue && req.CustomCoins.Value > 0;
+
+            // 2. Validate discount code if provided
             DiscountValidation? discountValidation = null;
             long? discountCodeId = null;
 
@@ -181,16 +190,117 @@ namespace Decatron.Controllers
                 finalPrice = discountValidation.FinalPrice;
             }
 
-            // 4. If price is 0 (free with coupon): skip PayPal, credit directly
+            // 3. If price is 0 (free with coupon): skip Culqi, credit directly
             if (finalPrice <= 0m)
             {
-                var pending = await _coinService.CreatePendingOrderAsync(userId, package.Id == 0 ? null : package.Id, discountCodeId, 0m, req.CustomCoins);
-                var purchase = await _coinService.CompletePurchaseAsync(userId, pending.Id, "FREE", "COMPLETED");
+                var freePending = await _coinService.CreatePendingOrderAsync(userId, isCustom ? null : package.Id, discountCodeId, 0m, req.CustomCoins);
+                var freePurchase = await _coinService.CompletePurchaseAsync(userId, freePending.Id, "FREE", "COMPLETED");
 
-                // Apply discount code usage
                 if (discountCodeId.HasValue && discountValidation != null)
                 {
-                    await _coinService.ApplyDiscountCodeAsync(discountCodeId.Value, userId, purchase.Id, package.PriceUsd);
+                    await _coinService.ApplyDiscountCodeAsync(discountCodeId.Value, userId, freePurchase.Id, package.PriceUsd);
+
+                    if (discountValidation.DiscountType == "bonus_coins" && discountValidation.BonusCoins > 0)
+                    {
+                        freePurchase.BonusCoinsFromCoupon = discountValidation.BonusCoins;
+                        freePurchase.BonusCouponScheduledAt = DateTime.UtcNow;
+                        await _db.SaveChangesAsync();
+                    }
+                }
+
+                var freeBalance = await _coinService.GetBalanceAsync(userId);
+                return Ok(new { free = true, coinsReceived = freePurchase.CoinsReceived, newBalance = freeBalance });
+            }
+
+            // 4. Precio en dolares, pero Culqi cobra en soles — mismo criterio que Supporters
+            if (string.IsNullOrWhiteSpace(req.CulqiToken) || string.IsNullOrWhiteSpace(req.CulqiEmail))
+                return BadRequest(new { error = "Token y email de Culqi son requeridos" });
+
+            var amountPen      = finalPrice * PEN_PER_USD;
+            var amountCentavos = (int)Math.Round(amountPen * 100);
+
+            try
+            {
+                var (_, secretKey, esTest) = await _paymentMode.GetLlavesAsync();
+                var description = $"DecaCoins — {package.Name} ({package.Coins}+{package.BonusCoins})";
+
+                using var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
+
+                var orderNumber = $"COIN-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+                var chargePayload = new
+                {
+                    amount        = amountCentavos,
+                    currency_code = "PEN",
+                    email         = req.CulqiEmail,
+                    source_id     = req.CulqiToken,
+                    description,
+                    order_number  = orderNumber,
+                    antifraud_details = new
+                    {
+                        first_name = string.IsNullOrWhiteSpace(req.FirstName) ? "Cliente" : req.FirstName,
+                        last_name  = string.IsNullOrWhiteSpace(req.LastName)  ? "Decatron" : req.LastName,
+                    },
+                    metadata = new Dictionary<string, string>
+                    {
+                        ["package_id"] = package.Id.ToString(),
+                        ["platform"]   = "decatron-coins",
+                    },
+                };
+
+                var json     = JsonSerializer.Serialize(chargePayload);
+                var content  = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://api.culqi.com/v2/charges", content);
+                var body     = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Culqi charge failed for coins: {Body}", body);
+                    try
+                    {
+                        using var errDoc = JsonDocument.Parse(body);
+                        var userMsg = errDoc.RootElement.TryGetProperty("user_message", out var um) ? um.GetString()
+                            : errDoc.RootElement.TryGetProperty("merchant_message", out var mm) ? mm.GetString()
+                            : "Error al procesar el pago con tarjeta";
+                        return StatusCode(502, new { error = userMsg });
+                    }
+                    catch
+                    {
+                        return StatusCode(502, new { error = "Error al procesar el pago con tarjeta" });
+                    }
+                }
+
+                using var chargeDoc = JsonDocument.Parse(body);
+
+                // Un 2xx sin `id` no deberia pasar, pero si pasa no se puede seguir: sin id
+                // de cargo no hay como acreditar coins ni como reclamarle nada a Culqi.
+                if (!chargeDoc.RootElement.TryGetProperty("id", out var chargeIdEl))
+                {
+                    _logger.LogError(
+                        "Culqi respondio {Code} sin id de cargo en compra de coins. REVISAR A MANO, el cobro puede haberse hecho. Cuerpo: {Body}",
+                        (int)response.StatusCode, body);
+                    return StatusCode(502, new
+                    {
+                        error = "El pago no se pudo confirmar. Si te llegó el cargo, escribe a soporte con tu comprobante y se resuelve — no vuelvas a pagar.",
+                    });
+                }
+
+                var chargeId = chargeIdEl.GetString() ?? "";
+
+                // 5. Cargo confirmado — crear y completar la orden en el mismo paso.
+                // paypal_order_id/paypal_status son nombres heredados de cuando esto era
+                // PayPal; se reusan para guardar el id/estado de Culqi en vez de agregar
+                // una migracion de rename sobre una tabla que ya tiene compras reales.
+                var pending = await _coinService.CreatePendingOrderAsync(userId, isCustom ? null : package.Id, discountCodeId, finalPrice, req.CustomCoins);
+                pending.PaypalOrderId = chargeId;
+                await _db.SaveChangesAsync();
+
+                var purchase = await _coinService.CompletePurchaseAsync(userId, pending.Id, chargeId, "culqi_completed");
+
+                if (discountCodeId.HasValue && discountValidation != null)
+                {
+                    var discountApplied = isCustom ? 0m : package.PriceUsd - finalPrice;
+                    await _coinService.ApplyDiscountCodeAsync(discountCodeId.Value, userId, purchase.Id, discountApplied);
 
                     if (discountValidation.DiscountType == "bonus_coins" && discountValidation.BonusCoins > 0)
                     {
@@ -200,174 +310,48 @@ namespace Decatron.Controllers
                     }
                 }
 
-                var newBalance = await _coinService.GetBalanceAsync(userId);
-                return Ok(new { free = true, coinsReceived = purchase.CoinsReceived, newBalance });
-            }
-
-            // 5. Create PayPal order
-            try
-            {
-                var (clientId, clientSecret, baseUrl, returnUrl, cancelUrl) = GetPayPalConfig();
-                var accessToken = await GetPayPalTokenAsync(clientId, clientSecret, baseUrl);
-
-                var isCustom = req.CustomCoins.HasValue && req.CustomCoins.Value > 0;
-                var customId = $"coins|{(isCustom ? "custom" : package.Id.ToString())}|{userId}";
-
-                var orderPayload = new
+                // Datos para el comprobante. Se guardan CONGELADOS con la compra, no se leen
+                // del perfil al emitir: si mañana cambia su RUC, este comprobante tiene que
+                // seguir reflejando a quién se le vendió hoy.
+                //
+                // El perfil NO se exige: el dinero ya se movió, y perder el registro de un
+                // cobro sería mucho peor que emitir el comprobante tarde. Si falta, queda
+                // PENDING igual y se resuelve cuando complete sus datos.
+                try
                 {
-                    intent = "CAPTURE",
-                    purchase_units = new[]
-                    {
-                        new
-                        {
-                            reference_id = $"coins_{package.Id}",
-                            custom_id    = customId,
-                            description  = $"DecaCoins — {package.Name} ({package.Coins}+{package.BonusCoins})",
-                            amount = new
-                            {
-                                currency_code = "USD",
-                                value         = finalPrice.ToString("F2", CultureInfo.InvariantCulture),
-                            },
-                        }
-                    },
-                    application_context = new
-                    {
-                        brand_name   = "Decatron",
-                        landing_page = "BILLING",
-                        user_action  = "PAY_NOW",
-                        return_url   = $"{returnUrl}?status=return",
-                        cancel_url   = $"{cancelUrl}?status=cancel",
-                    }
-                };
+                    var perfil = await _billing.GetAsync(userId);
 
-                using var client = _httpClientFactory.CreateClient();
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
+                    purchase.CustomerName      = perfil?.LegalName;
+                    purchase.CustomerEmail     = perfil?.Email ?? req.CulqiEmail;
+                    purchase.CustomerCountry   = perfil?.Country;
+                    purchase.CustomerDocType   = perfil?.DocType;
+                    purchase.CustomerDocNumber = perfil?.DocNumber;
+                    purchase.PreferFactura     = perfil?.PuedeFactura == true && req.PrefiereFactura;
+                    purchase.ChargedAmount     = amountPen;
+                    purchase.ChargedCurrency   = "PEN";
+                    purchase.IsTest            = esTest;
 
-                var json     = JsonSerializer.Serialize(orderPayload);
-                var content  = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync($"{baseUrl}/v2/checkout/orders", content);
-                var body     = await response.Content.ReadAsStringAsync();
+                    // Una compra de prueba NO entra a la cola de comprobantes: emitir por
+                    // un cobro que nunca ocurrió sería declarar ante SUNAT una venta
+                    // inexistente, y eso no se arregla borrando una fila.
+                    purchase.InvoiceStatus     = esTest ? null : "PENDING";
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("PayPal create order failed: {Body}", body);
-                    return StatusCode(502, new { error = "Error al crear la orden en PayPal" });
+                    await _db.SaveChangesAsync();
                 }
-
-                using var doc   = JsonDocument.Parse(body);
-                var orderId     = doc.RootElement.GetProperty("id").GetString() ?? "";
-                var approvalUrl = "";
-
-                foreach (var link in doc.RootElement.GetProperty("links").EnumerateArray())
+                catch (Exception ex)
                 {
-                    if (link.GetProperty("rel").GetString() == "approve")
-                    {
-                        approvalUrl = link.GetProperty("href").GetString() ?? "";
-                        break;
-                    }
-                }
-
-                // 6. Save pending order with discount code
-                var pendingOrder = await _coinService.CreatePendingOrderAsync(userId, isCustom ? null : package.Id, discountCodeId, finalPrice, req.CustomCoins);
-                pendingOrder.PaypalOrderId = orderId;
-
-                // Store discount info for capture phase
-                if (discountValidation != null)
-                {
-                    pendingOrder.DiscountCodeId = discountCodeId;
-                }
-
-                await _db.SaveChangesAsync();
-
-                return Ok(new { orderId, approvalUrl, finalPrice });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating PayPal order for coins");
-                return StatusCode(500, new { error = "Error interno al procesar la compra" });
-            }
-        }
-
-        // ─── POST /api/coins/capture ─────────────────────────────────────────────
-
-        [HttpPost("capture")]
-        public async Task<IActionResult> Capture([FromBody] CoinCaptureRequest req)
-        {
-            if (string.IsNullOrWhiteSpace(req.OrderId))
-                return BadRequest(new { error = "orderId es obligatorio" });
-
-            var userId = GetUserId();
-
-            try
-            {
-                var (clientId, clientSecret, baseUrl, _, _) = GetPayPalConfig();
-                var accessToken = await GetPayPalTokenAsync(clientId, clientSecret, baseUrl);
-
-                // 1. Capture PayPal order
-                using var client = _httpClientFactory.CreateClient();
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", accessToken);
-
-                var captureResp = await client.PostAsync(
-                    $"{baseUrl}/v2/checkout/orders/{req.OrderId}/capture",
-                    new StringContent("{}", Encoding.UTF8, "application/json"));
-
-                var captureBody = await captureResp.Content.ReadAsStringAsync();
-
-                if (!captureResp.IsSuccessStatusCode)
-                {
-                    _logger.LogError("PayPal capture failed for coins order {Id}: {Body}", req.OrderId, captureBody);
-                    return StatusCode(502, new { error = "Error al capturar el pago en PayPal" });
-                }
-
-                using var doc = JsonDocument.Parse(captureBody);
-                var status    = doc.RootElement.GetProperty("status").GetString();
-
-                if (status != "COMPLETED")
-                    return BadRequest(new { error = $"El pago no se completó (estado: {status})" });
-
-                // 2. Find pending order by paypal_order_id
-                var pending = await _db.CoinPendingOrders
-                    .FirstOrDefaultAsync(o => o.PaypalOrderId == req.OrderId && o.UserId == userId);
-
-                if (pending == null)
-                    return NotFound(new { error = "No se encontró la orden pendiente" });
-
-                if (pending.Status != "pending")
-                    return Conflict(new { error = "Esta orden ya fue procesada" });
-
-                // 3. Complete purchase
-                var purchase   = await _coinService.CompletePurchaseAsync(userId, pending.Id, req.OrderId, status);
-
-                // 4. Apply discount code if used
-                if (pending.DiscountCodeId.HasValue)
-                {
-                    var originalPrice = pending.FinalPriceUsd; // This is already the discounted price
-                    // Get original package price for discount amount calculation
-                    decimal discountApplied = 0;
-                    if (pending.PackageId.HasValue)
-                    {
-                        var pkg = await _db.CoinPackages.FindAsync(pending.PackageId.Value);
-                        if (pkg != null)
-                            discountApplied = pkg.PriceUsd - pending.FinalPriceUsd;
-                    }
-
-                    await _coinService.ApplyDiscountCodeAsync(
-                        pending.DiscountCodeId.Value, userId, purchase.Id, discountApplied);
-
-                    // Check if bonus_coins type — look up the code
-                    var discCode = await _db.CoinDiscountCodes.FindAsync(pending.DiscountCodeId.Value);
-                    if (discCode != null && discCode.DiscountType == "bonus_coins")
-                    {
-                        purchase.BonusCoinsFromCoupon = (int)discCode.DiscountValue;
-                        purchase.BonusCouponScheduledAt = DateTime.UtcNow;
-                        purchase.DiscountCodeId = discCode.Id;
-                        await _db.SaveChangesAsync();
-                    }
+                    // Que falle el registro fiscal no puede tumbar una compra ya cobrada y
+                    // acreditada. Queda en el log para resolverlo a mano.
+                    _logger.LogError(ex,
+                        "Compra de coins {Id} cobrada y acreditada, pero no se pudieron guardar sus datos de facturación",
+                        purchase.Id);
                 }
 
                 var newBalance = await _coinService.GetBalanceAsync(userId);
+
+                _logger.LogInformation(
+                    "Coin purchase completed via Culqi: User={UserId}, Coins={Coins}, ChargeId={ChargeId}",
+                    userId, purchase.CoinsReceived, chargeId);
 
                 return Ok(new
                 {
@@ -378,8 +362,8 @@ namespace Decatron.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error capturing PayPal order for coins: {OrderId}", req.OrderId);
-                return StatusCode(500, new { error = "Error interno al capturar el pago" });
+                _logger.LogError(ex, "Error processing Culqi charge for coins");
+                return StatusCode(500, new { error = "Error interno al procesar el pago" });
             }
         }
 
@@ -416,7 +400,7 @@ namespace Decatron.Controllers
         [HttpPost("transfer")]
         public async Task<IActionResult> Transfer([FromBody] CoinTransferRequest req)
         {
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
 
             if (string.IsNullOrWhiteSpace(req.Username))
                 return BadRequest(new { error = "Username es obligatorio" });
@@ -428,9 +412,18 @@ namespace Decatron.Controllers
             if (receiverId == null)
                 return NotFound(new { error = "Usuario no encontrado" });
 
+            // El destinatario también se resuelve a su cuenta: si se busca por su login
+            // de Kick pero su saldo vive en la fila de Twitch, los coins irían a una fila
+            // secundaria donde el propio dueño nunca los vería.
+            var receiverAccountId = await Decatron.Services.Helpers.AccountResolver
+                .GetAccountOwnerIdAsync(_db, receiverId.Value);
+
+            if (receiverAccountId == userId)
+                return BadRequest(new { error = "No podés transferirte coins a vos mismo" });
+
             try
             {
-                var transfer = await _coinService.TransferCoinsAsync(userId, receiverId.Value, req.Amount, req.Message);
+                var transfer = await _coinService.TransferCoinsAsync(userId, receiverAccountId, req.Amount, req.Message);
                 var newBalance = await _coinService.GetBalanceAsync(userId);
                 return Ok(new { success = true, newBalance, transfer });
             }
@@ -445,7 +438,7 @@ namespace Decatron.Controllers
         [HttpGet("referral")]
         public async Task<IActionResult> GetReferral()
         {
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
             try
             {
                 var stats = await _coinService.GetReferralStatsAsync(userId);
@@ -466,7 +459,7 @@ namespace Decatron.Controllers
             if (string.IsNullOrWhiteSpace(req.Code))
                 return BadRequest(new { error = "Codigo es obligatorio" });
 
-            var userId = GetUserId();
+            var userId = await GetAccountOwnerIdAsync();
             try
             {
                 await _coinService.CreateReferralAsync(userId, req.Code.Trim().ToUpper());
@@ -487,60 +480,125 @@ namespace Decatron.Controllers
             }
         }
 
-        // ─── PayPal Helpers ──────────────────────────────────────────────────────
+        // ─── POST /api/coins/billing-preview ─────────────────────────────────────
+        // Qué comprobante le va a salir y cómo se desglosa, ANTES de pagar. Mismo
+        // criterio que en supporters: nadie paga sin saber qué documento recibe.
 
-        private (string clientId, string clientSecret, string baseUrl, string returnUrl, string cancelUrl) GetPayPalConfig()
+        [HttpPost("billing-preview")]
+        public async Task<IActionResult> BillingPreview([FromBody] CoinBillingPreviewRequest req)
         {
-            var section = _configuration.GetSection("CoinsPayPal");
-            var mode    = section["Mode"] ?? "sandbox";
+            var userId = await GetAccountOwnerIdAsync();
 
-            string clientId, clientSecret;
-            if (mode == "live")
+            var perfil = await _billing.GetAsync(userId);
+            if (perfil == null)
+                return BadRequest(new { error = "PROFILE_REQUIRED", message = "Completa tus datos de facturación antes de comprar." });
+
+            // Mismo cálculo de precio que /buy, para que lo que se muestra acá sea
+            // exactamente lo que se va a cobrar y a facturar.
+            decimal finalPrice;
+            int coins;
+
+            if (req.CustomCoins is > 0)
             {
-                clientId     = section["LiveClientId"]     ?? section["ClientId"]     ?? "";
-                clientSecret = section["LiveClientSecret"] ?? section["ClientSecret"] ?? "";
+                if (req.CustomCoins < 100 || req.CustomCoins > 5000)
+                    return BadRequest(new { error = "Cantidad de coins fuera de rango" });
+
+                coins      = req.CustomCoins.Value;
+                finalPrice = Math.Round((decimal)coins / 100m, 2);
             }
             else
             {
-                clientId     = section["ClientId"]     ?? "";
-                clientSecret = section["ClientSecret"] ?? "";
+                var packages = await _coinService.GetAvailablePackagesAsync(userId);
+                var package  = packages.FirstOrDefault(p => p.Id == req.PackageId);
+                if (package == null)
+                    return BadRequest(new { error = "Paquete no disponible" });
+
+                coins      = package.Coins + package.BonusCoins;
+                finalPrice = package.PriceUsd;
             }
 
-            var baseUrl   = mode == "live"
-                ? "https://api-m.paypal.com"
-                : "https://api-m.sandbox.paypal.com";
-            var returnUrl = "https://twitch.decatron.net/me/coins";
-            var cancelUrl = "https://twitch.decatron.net/me/coins";
+            if (!string.IsNullOrWhiteSpace(req.DiscountCode))
+            {
+                var validation = await _coinService.ValidateDiscountCodeAsync(
+                    req.DiscountCode, userId, req.PackageId, finalPrice);
+                if (validation.Valid) finalPrice = validation.FinalPrice;
+            }
 
-            return (clientId, clientSecret, baseUrl, returnUrl, cancelUrl);
+            // Culqi cobra en soles, así que el comprobante va en soles por lo cobrado.
+            var totalPen = decimal.Round(finalPrice * PEN_PER_USD, 2);
+            var preview = _billing.Preview(perfil, totalPen, "PEN", req.PrefiereFactura);
+
+            return Ok(new { success = true, preview, priceUsd = finalPrice, coins });
         }
 
-        private async Task<string> GetPayPalTokenAsync(
-            string clientId, string clientSecret, string baseUrl)
+        // ─── GET /api/coins/my-invoices ──────────────────────────────────────────
+        // Los comprobantes de las compras de DecaCoins del usuario.
+
+        [HttpGet("my-invoices")]
+        public async Task<IActionResult> GetMyInvoices()
         {
-            using var client = _httpClientFactory.CreateClient();
-            var credentials  = Convert.ToBase64String(
-                Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
-            client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Basic", credentials);
+            var userId = await GetAccountOwnerIdAsync();
 
-            var content  = new StringContent(
-                "grant_type=client_credentials", Encoding.UTF8, "application/x-www-form-urlencoded");
-            var response = await client.PostAsync($"{baseUrl}/v1/oauth2/token", content);
-            var body     = await response.Content.ReadAsStringAsync();
+            var compras = await _db.CoinPurchases
+                .Where(p => p.UserId == userId && p.InvoiceStatus != null)
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(100)
+                .ToListAsync();
 
-            using var doc = JsonDocument.Parse(body);
-            return doc.RootElement.GetProperty("access_token").GetString() ?? "";
+            return Ok(compras.Select(p => new
+            {
+                purchaseId    = p.Id,
+                coinsReceived = p.CoinsReceived,
+                createdAt     = DateTime.SpecifyKind(p.CreatedAt, DateTimeKind.Utc),
+                amount        = p.ChargedAmount ?? p.AmountPaidUsd,
+                currency      = p.ChargedCurrency ?? "USD",
+                status        = p.InvoiceStatus,
+                type          = p.InvoiceType,
+                // El número ya formateado: es como aparece en el papel y como SUNAT lo
+                // pide en su consulta pública.
+                number        = p.InvoiceSeries == null || p.InvoiceNumber == null
+                    ? null
+                    : $"{p.InvoiceSeries}-{p.InvoiceNumber.Value:D8}",
+                customerName  = p.CustomerName,
+                customerDoc   = p.CustomerDocNumber,
+                canDownload   = p.InvoiceDocumentId != null,
+            }));
+        }
+
+        // ─── GET /api/coins/my-invoices/{id}/download/{formato} ──────────────────
+
+        [HttpGet("my-invoices/{purchaseId:long}/download/{formato}")]
+        public async Task<IActionResult> DownloadMyInvoice(long purchaseId, string formato)
+        {
+            var userId = await GetAccountOwnerIdAsync();
+
+            // La comprobación de dueño va dentro de la consulta, no después: pedir la
+            // compra y luego comparar deja la puerta abierta a devolver la de otro.
+            var documentId = await _invoices.ObtenerDocumentIdAsync(purchaseId, userId, HttpContext.RequestAborted);
+            if (documentId == null)
+                return NotFound(new { message = "Esta compra todavía no tiene comprobante" });
+
+            var archivo = await _invoiceFiles.DescargarAsync(documentId.Value, formato, HttpContext.RequestAborted);
+            if (archivo == null)
+                return NotFound(new { message = "El archivo no está disponible" });
+
+            return File(archivo.Contenido, archivo.ContentType, archivo.NombreArchivo);
         }
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
-        private long GetUserId()
+        /// <summary>
+        /// El dueno de cuenta detras del login del token. El saldo de DecaCoins es de la
+        /// persona, no de la plataforma: entrando por Kick o por Twitch tiene que ser el
+        /// mismo. Ver AccountResolver.
+        /// </summary>
+        private async Task<long> GetAccountOwnerIdAsync()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (long.TryParse(userIdClaim, out var userId))
-                return userId;
-            throw new UnauthorizedAccessException("User ID not found in token");
+            if (!long.TryParse(userIdClaim, out var userId))
+                throw new UnauthorizedAccessException("User ID not found in token");
+
+            return await Decatron.Services.Helpers.AccountResolver.GetAccountOwnerIdAsync(_db, userId);
         }
     }
 
@@ -551,11 +609,24 @@ namespace Decatron.Controllers
         public long PackageId { get; set; }
         public int? CustomCoins { get; set; }
         public string? DiscountCode { get; set; }
+        public string? CulqiToken { get; set; }
+        public string? CulqiEmail { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+
+        /// <summary>
+        /// El comprador con RUC eligió factura en vez de boleta. Tener RUC no obliga:
+        /// un RUC 10 es persona natural con negocio y muchas veces prefiere boleta.
+        /// </summary>
+        public bool PrefiereFactura { get; set; }
     }
 
-    public class CoinCaptureRequest
+    public class CoinBillingPreviewRequest
     {
-        public string OrderId { get; set; } = string.Empty;
+        public long PackageId { get; set; }
+        public int? CustomCoins { get; set; }
+        public string? DiscountCode { get; set; }
+        public bool PrefiereFactura { get; set; }
     }
 
     public class CoinTransferRequest

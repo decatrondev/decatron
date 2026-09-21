@@ -37,6 +37,7 @@ namespace Decatron.Controllers
 
         private readonly IBillingProfileService _billing;
         private readonly ISupporterInvoiceService _invoices;
+        private readonly IPaymentModeService _paymentMode;
 
         public SupportersController(
             ISupportersService service,
@@ -45,9 +46,11 @@ namespace Decatron.Controllers
             IConfiguration configuration,
             IHttpClientFactory httpClientFactory,
             IBillingProfileService billing,
-            ISupporterInvoiceService invoices)
+            ISupporterInvoiceService invoices,
+            IPaymentModeService paymentMode)
         {
             _invoices           = invoices;
+            _paymentMode        = paymentMode;
             _service            = service;
             _db                 = db;
             _logger             = logger;
@@ -943,7 +946,11 @@ namespace Decatron.Controllers
         [HttpGet("billing-profile")]
         public async Task<IActionResult> GetBillingProfile()
         {
-            var userId = await ResolveCurrentUserIdAsync();
+            // El perfil es de la persona, no del login: quien lo carga entrando por Twitch
+            // tiene que verlo igual entrando por Kick. Sin esto, la compra de DecaCoins
+            // (que ya resuelve por cuenta) no encontraria el perfil cargado desde la otra
+            // plataforma y pediria completarlo de nuevo.
+            var userId = await ResolveBillingOwnerIdAsync();
             if (userId == null) return Unauthorized(new { error = "Sesión no válida" });
 
             var perfil = await _billing.GetAsync(userId.Value);
@@ -957,7 +964,7 @@ namespace Decatron.Controllers
         [HttpPut("billing-profile")]
         public async Task<IActionResult> SaveBillingProfile([FromBody] BillingProfileInput input)
         {
-            var userId = await ResolveCurrentUserIdAsync();
+            var userId = await ResolveBillingOwnerIdAsync();
             if (userId == null) return Unauthorized(new { error = "Sesión no válida" });
 
             var error = _billing.Validar(input);
@@ -1093,6 +1100,19 @@ namespace Decatron.Controllers
             var login = User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
             if (string.IsNullOrWhiteSpace(login)) return null;
             return await _service.ResolveUserIdAsync(login);
+        }
+
+        /// <summary>
+        /// Igual que <see cref="ResolveCurrentUserIdAsync"/> pero resuelto a la cuenta.
+        /// Solo se usa para el perfil de facturación, que es de la persona: su documento
+        /// y razón social no cambian según por qué plataforma entró. Los pagos y
+        /// comprobantes siguen atados al login concreto que compró.
+        /// </summary>
+        private async Task<long?> ResolveBillingOwnerIdAsync()
+        {
+            var userId = await ResolveCurrentUserIdAsync();
+            if (userId == null) return null;
+            return await Decatron.Services.Helpers.AccountResolver.GetAccountOwnerIdAsync(_db, userId.Value);
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -1307,15 +1327,52 @@ namespace Decatron.Controllers
             if (!await IsOwnerAsync()) return Forbid();
 
             var estado = await _invoices.ObtenerEstadoAsync(HttpContext.RequestAborted);
+            var modo   = await _paymentMode.GetModoAsync(HttpContext.RequestAborted);
+
+            // Los dos modos van juntos porque hay que mirarlos juntos: lo que define si un
+            // comprobante puede emitirse es la COMBINACIÓN de con qué llave se cobró y con
+            // qué empresa se emite. Las dos combinaciones cruzadas son problemas serios y
+            // se marcan acá para que el panel las pueda gritar.
+            var esBeta = estado.Activa?.EsBeta;
+            string? advertencia = null;
+            if (modo.EsTest && esBeta == false)
+                advertencia = "Estás cobrando con llaves de PRUEBA pero emitiendo con una empresa de PRODUCCIÓN. Las compras de prueba no emiten comprobante, pero revisá que sea lo que querés.";
+            else if (!modo.EsTest && esBeta == true)
+                advertencia = "Estás cobrando DINERO REAL pero la empresa emisora es de BETA: esos cobros no generan comprobante válido ante SUNAT.";
 
             return Ok(new
             {
-                configured = estado.Configurado,
-                companyId  = estado.CompanyId,
-                error      = estado.Error,
-                active     = estado.Activa == null ? null : Empresa(estado.Activa),
-                companies  = estado.Disponibles.Select(Empresa),
+                configured  = estado.Configurado,
+                companyId   = estado.CompanyId,
+                error       = estado.Error,
+                active      = estado.Activa == null ? null : Empresa(estado.Activa),
+                companies   = estado.Disponibles.Select(Empresa),
+                culqiTest   = modo.EsTest,
+                advertencia,
             });
+        }
+
+        /// <summary>
+        /// Cambia entre llaves de Culqi live y test. Afecta a TODA la plataforma: mientras
+        /// esté en test, cualquiera que compre recibe coins o tier sin que entre plata.
+        /// </summary>
+        [Authorize]
+        [HttpPut("admin/culqi-mode")]
+        public async Task<IActionResult> SetCulqiMode([FromBody] SetCulqiModeRequest req)
+        {
+            if (!await IsOwnerAsync()) return Forbid();
+
+            var quien = User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
+            var (ok, error) = await _paymentMode.CambiarModoAsync(req.Test, quien, HttpContext.RequestAborted);
+
+            if (!ok) return BadRequest(new { message = error });
+
+            return Ok(new { message = req.Test ? "Modo PRUEBA activado" : "Modo producción activado" });
+        }
+
+        public class SetCulqiModeRequest
+        {
+            public bool Test { get; set; }
         }
 
         /// <summary>Elige con qué empresa emitir. El modo beta/producción es de la empresa.</summary>
@@ -1368,10 +1425,11 @@ namespace Decatron.Controllers
         private const decimal PEN_PER_USD = 3.80m; // Fixed conversion rate for Culqi (PEN)
 
         [HttpGet("culqi-public-key")]
-        public IActionResult GetCulqiPublicKey()
+        public async Task<IActionResult> GetCulqiPublicKey()
         {
-            var pk = _configuration["CulqiSettings:PublicKey"] ?? "";
-            return Ok(new { publicKey = pk });
+            // Publica y secreta tienen que salir del mismo modo, o Culqi rechaza el cargo.
+            var (publicKey, _, esTest) = await _paymentMode.GetLlavesAsync(HttpContext.RequestAborted);
+            return Ok(new { publicKey, testMode = esTest });
         }
 
         [Authorize]
@@ -1434,7 +1492,7 @@ namespace Decatron.Controllers
 
             try
             {
-                var secretKey = _configuration["CulqiSettings:SecretKey"] ?? "";
+                var (_, secretKey, esTest) = await _paymentMode.GetLlavesAsync();
                 var description = $"Decatron {req.Tier} — {(req.BillingType == "permanent" ? "Permanente" : "1 mes")}";
 
                 using var client = _httpClientFactory.CreateClient();
@@ -1566,7 +1624,10 @@ namespace Decatron.Controllers
                         CustomerCountry = perfil.Country,
                         CustomerDocType = perfil.DocType, CustomerDocNumber = perfil.DocNumber,
                         PreferFactura = perfil.PuedeFactura && req.PrefiereFactura,
-                        InvoiceStatus = "PENDING",
+                        IsTest = esTest,
+                        // Un pago de prueba no entra a la cola de comprobantes: emitir por
+                        // un cobro que nunca ocurrio seria declarar una venta inexistente.
+                        InvoiceStatus = esTest ? null : "PENDING",
                     });
 
                     return Ok(new
@@ -1593,7 +1654,10 @@ namespace Decatron.Controllers
                         CustomerCountry = perfil.Country,
                         CustomerDocType = perfil.DocType, CustomerDocNumber = perfil.DocNumber,
                         PreferFactura = perfil.PuedeFactura && req.PrefiereFactura,
-                        InvoiceStatus = "PENDING",
+                        IsTest = esTest,
+                        // Un pago de prueba no entra a la cola de comprobantes: emitir por
+                        // un cobro que nunca ocurrio seria declarar una venta inexistente.
+                        InvoiceStatus = esTest ? null : "PENDING",
                     });
 
                     return Ok(new
@@ -1626,7 +1690,7 @@ namespace Decatron.Controllers
 
             try
             {
-                var secretKey = _configuration["CulqiSettings:SecretKey"] ?? "";
+                var (_, secretKey, esTest) = await _paymentMode.GetLlavesAsync();
 
                 using var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);

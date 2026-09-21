@@ -1,7 +1,70 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { Coins, ShoppingBag, ArrowUpRight, ArrowDownLeft, Gift, History, Loader2, Tag, Star, Send, Ticket, Check, X, Users, Copy, Link } from 'lucide-react';
 import api from '../../services/api';
+import BillingConfirmModal, { type ComprobantePreview } from './BillingConfirmModal';
+
+// Culqi cobra en un solo paso (token del frontend + cargo directo en el backend) —
+// mismo SDK y patron que ya usa SupportersPublic.tsx, no hay redirect como con PayPal.
+function loadCulqiScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if ((window as any).CulqiCheckout) { resolve(); return; }
+        const existing = document.getElementById('culqi-checkout-js');
+        if (existing) {
+            const check = setInterval(() => { if ((window as any).CulqiCheckout) { clearInterval(check); resolve(); } }, 50);
+            setTimeout(() => { clearInterval(check); reject(new Error('Culqi timeout')); }, 10000);
+            return;
+        }
+        const script = document.createElement('script');
+        script.id = 'culqi-checkout-js';
+        script.src = 'https://js.culqi.com/checkout-js';
+        script.onload = () => {
+            const check = setInterval(() => { if ((window as any).CulqiCheckout) { clearInterval(check); resolve(); } }, 50);
+            setTimeout(() => { clearInterval(check); reject(new Error('Culqi timeout')); }, 10000);
+        };
+        script.onerror = () => reject(new Error('No se pudo cargar Culqi'));
+        document.head.appendChild(script);
+    });
+}
+
+async function openCulqiCheckout(amountUsd: number): Promise<{ token: string; email: string; firstName: string; lastName: string }> {
+    await loadCulqiScript();
+    const { data: keyData } = await api.get('/coins/culqi-public-key');
+    if (!keyData.publicKey) throw new Error('Culqi no configurado');
+
+    const amountPen = Math.round(amountUsd * 3.80 * 100); // centavos PEN
+
+    return new Promise((resolve, reject) => {
+        const config = {
+            settings: { title: 'Decatron — DecaCoins', currency: 'PEN', amount: amountPen },
+            client: { email: '' },
+            options: {
+                lang: 'es',
+                modal: true,
+                installments: false,
+                paymentMethods: { tarjeta: true, yape: true, billetera: false, bancaMovil: false, agente: false, cuotealo: false },
+            },
+        };
+
+        const culqi = new (window as any).CulqiCheckout(keyData.publicKey, config);
+
+        culqi.culqi = () => {
+            if (culqi.token) {
+                const tokenId = culqi.token.id;
+                const email = culqi.token.email || '';
+                const firstName = culqi.token.first_name || '';
+                const lastName = culqi.token.last_name || '';
+                culqi.close();
+                resolve({ token: tokenId, email, firstName, lastName });
+            } else if (culqi.error) {
+                const msg = culqi.error.user_message || culqi.error.merchant_message || 'Error al procesar la tarjeta';
+                culqi.close();
+                reject(new Error(msg));
+            }
+        };
+
+        culqi.open();
+    });
+}
 
 function formatNumber(n: number): string {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -25,7 +88,6 @@ const TYPE_BADGES: Record<string, { label: string; color: string; icon: React.Re
 };
 
 export default function MeCoins() {
-    const [searchParams, setSearchParams] = useSearchParams();
     const [balance, setBalance] = useState<{ balance: number; currencyName: string; currencyIcon: string } | null>(null);
     const [packages, setPackages] = useState<any[]>([]);
     const [history, setHistory] = useState<any[]>([]);
@@ -37,6 +99,16 @@ export default function MeCoins() {
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [customCoins, setCustomCoins] = useState<string>('');
     const [purchasingCustom, setPurchasingCustom] = useState(false);
+
+    // Confirmación de comprobante antes de cobrar. Nadie paga sin ver qué documento
+    // recibe y cuánto IGV lleva (o si va como exportación, sin IGV).
+    const [pendingBuy, setPendingBuy] = useState<{ packageId: number; customCoins?: number } | null>(null);
+    const [preview, setPreview] = useState<ComprobantePreview | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [previewError, setPreviewError] = useState<string | null>(null);
+    const [prefiereFactura, setPrefiereFactura] = useState(false);
+    const [confirming, setConfirming] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     // Coupon state
     const [couponCode, setCouponCode] = useState('');
@@ -59,30 +131,6 @@ export default function MeCoins() {
     const [referralInput, setReferralInput] = useState('');
     const [applyingReferral, setApplyingReferral] = useState(false);
     const [referralMessage, setReferralMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
-
-    // Capture PayPal return
-    useEffect(() => {
-        const status = searchParams.get('status');
-        const orderId = searchParams.get('orderId') || localStorage.getItem('pendingCoinOrderId');
-
-        if (status === 'return' && orderId) {
-            localStorage.removeItem('pendingCoinOrderId');
-            api.post('/coins/capture', { orderId })
-                .then((res) => {
-                    setCaptureMessage({ type: 'success', text: `Compra exitosa! Recibiste ${res.data.coinsAdded ?? ''} monedas.` });
-                    api.get('/coins/balance').then(r => setBalance(r.data));
-                })
-                .catch((err) => {
-                    console.error('Capture error:', err);
-                    setCaptureMessage({ type: 'error', text: 'Error al procesar el pago. Contacta soporte si el problema persiste.' });
-                });
-            setSearchParams({}, { replace: true });
-        } else if (status === 'cancel') {
-            localStorage.removeItem('pendingCoinOrderId');
-            setCaptureMessage({ type: 'error', text: 'Compra cancelada.' });
-            setSearchParams({}, { replace: true });
-        }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Initial data load
     useEffect(() => {
@@ -131,23 +179,114 @@ export default function MeCoins() {
         }
     };
 
+    // Pide el preview del comprobante y abre el modal. El cobro no arranca hasta que
+    // el comprador confirma lo que va a recibir.
+    const pedirPreview = async (packageId: number, coins: number | undefined, factura: boolean) => {
+        setPreviewLoading(true);
+        setPreviewError(null);
+        setPreview(null);
+        try {
+            const res = await api.post('/coins/billing-preview', {
+                packageId,
+                customCoins: coins,
+                discountCode: validatedCoupon?.code || undefined,
+                prefiereFactura: factura,
+            });
+            setPreview(res.data.preview);
+        } catch (err: any) {
+            setPreviewError(err?.response?.data?.error || 'No se pudo calcular el comprobante.');
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
+
     const handleBuyCustom = async () => {
         const coins = parseInt(customCoins);
         if (!coins || coins < 100 || coins > 5000) {
             setCaptureMessage({ type: 'error', text: 'Cantidad invalida. Minimo 100, maximo 5,000 coins.' });
             return;
         }
-        setPurchasingCustom(true);
+        setPrefiereFactura(false);
+        setPendingBuy({ packageId: 0, customCoins: coins });
+        await pedirPreview(0, coins, false);
+    };
+
+    const cambiarFactura = async (value: boolean) => {
+        if (!pendingBuy) return;
+        setPrefiereFactura(value);
+        setSubmitError(null);
+        await pedirPreview(pendingBuy.packageId, pendingBuy.customCoins, value);
+    };
+
+    const cancelarCompra = () => {
+        setPendingBuy(null);
+        setPreview(null);
+        setPreviewError(null);
+        setSubmitError(null);
+        setPurchasing(null);
+        setPurchasingCustom(false);
+    };
+
+    // Confirmado el comprobante: recién acá se abre Culqi y se cobra.
+    const confirmarCompra = async () => {
+        if (!pendingBuy) return;
+        const esCustom = pendingBuy.customCoins != null;
+
+        setConfirming(true);
+        setSubmitError(null);
+        if (esCustom) setPurchasingCustom(true); else setPurchasing(pendingBuy.packageId);
+
         try {
-            const res = await api.post('/coins/buy', { packageId: 0, customCoins: coins });
-            if (res.data.approvalUrl) {
-                localStorage.setItem('pendingCoinOrderId', res.data.orderId);
-                window.location.href = res.data.approvalUrl;
+            const pkg = packages.find((p: any) => p.id === pendingBuy.packageId);
+            const discounted = pkg ? getDiscountedPrice(pkg) : null;
+            const finalPriceUsd = esCustom
+                ? Math.round((pendingBuy.customCoins! / 100) * 100) / 100
+                : (discounted ? discounted.finalPrice : (pkg?.priceUsd ?? 0));
+
+            let culqiFields: { culqiToken?: string; culqiEmail?: string; firstName?: string; lastName?: string } = {};
+
+            // Si el cupon deja el precio en 0, el backend acredita directo sin cobrar —
+            // no hace falta abrir Culqi para nada.
+            if (finalPriceUsd > 0) {
+                const { token, email, firstName, lastName } = await openCulqiCheckout(finalPriceUsd);
+                culqiFields = { culqiToken: token, culqiEmail: email, firstName, lastName };
             }
-        } catch (err) {
-            console.error('Error purchasing custom:', err);
-            setCaptureMessage({ type: 'error', text: 'Error al iniciar la compra.' });
+
+            const res = await api.post('/coins/buy', {
+                packageId: pendingBuy.packageId,
+                customCoins: pendingBuy.customCoins,
+                discountCode: validatedCoupon?.code || undefined,
+                prefiereFactura,
+                ...culqiFields,
+            });
+
+            setCaptureMessage({
+                type: 'success',
+                text: res.data.free
+                    ? `Compra gratuita exitosa! Recibiste ${res.data.coinsReceived} monedas.`
+                    : `Compra exitosa! Recibiste ${res.data.coinsReceived} monedas. Tu comprobante llega en unos minutos.`,
+            });
+            setBalance((prev: any) => prev ? { ...prev, balance: res.data.newBalance } : prev);
+            setPendingBuy(null);
+            setPreview(null);
+            if (esCustom) setCustomCoins(''); else clearCoupon();
+
+            try {
+                const historyRes = await api.get('/coins/history?page=1');
+                const items = historyRes.data.items ?? historyRes.data;
+                setHistory(Array.isArray(items) ? items : []);
+                setHistoryPage(1);
+                setHasMoreHistory(Array.isArray(items) && items.length >= 10);
+            } catch { /* ignore */ }
+        } catch (err: any) {
+            // El error se muestra DENTRO del modal, que es donde está mirando: mandarlo
+            // al toast de la esquina hacía que pasara desapercibido.
+            const msg = err?.response?.data?.error || err?.message || 'Error al procesar la compra.';
+            console.error('Error purchasing:', err);
+            setSubmitError(msg);
         } finally {
+            setConfirming(false);
+            setPurchasing(null);
             setPurchasingCustom(false);
         }
     };
@@ -199,35 +338,9 @@ export default function MeCoins() {
     };
 
     const handleBuy = async (packageId: number) => {
-        setPurchasing(packageId);
-        try {
-            const res = await api.post('/coins/buy', {
-                packageId,
-                discountCode: validatedCoupon?.code || undefined,
-            });
-            if (res.data.free) {
-                setCaptureMessage({ type: 'success', text: `Compra gratuita exitosa! Recibiste ${res.data.coinsReceived} monedas.` });
-                setBalance((prev: any) => prev ? { ...prev, balance: res.data.newBalance } : prev);
-                clearCoupon();
-                // Refresh history
-                try {
-                    const historyRes = await api.get('/coins/history?page=1');
-                    const items = historyRes.data.items ?? historyRes.data;
-                    setHistory(Array.isArray(items) ? items : []);
-                    setHistoryPage(1);
-                    setHasMoreHistory(Array.isArray(items) && items.length >= 10);
-                } catch { /* ignore */ }
-            } else if (res.data.approvalUrl) {
-                localStorage.setItem('pendingCoinOrderId', res.data.orderId);
-                window.location.href = res.data.approvalUrl;
-            }
-        } catch (err: any) {
-            const msg = err?.response?.data?.error || 'Error al iniciar la compra. Intenta de nuevo.';
-            console.error('Error purchasing package:', err);
-            setCaptureMessage({ type: 'error', text: msg });
-        } finally {
-            setPurchasing(null);
-        }
+        setPrefiereFactura(false);
+        setPendingBuy({ packageId });
+        await pedirPreview(packageId, undefined, false);
     };
 
     const handleUsernameChange = (value: string) => {
@@ -331,6 +444,16 @@ export default function MeCoins() {
         }
     };
 
+    // El banner de compra vivia arriba de todo, pero el boton de comprar esta mas
+    // abajo en la grilla de paquetes — si el usuario no estaba scrolleado hasta
+    // arriba, el mensaje quedaba invisible aunque los coins ya se hubieran acreditado.
+    // Toast fijo (mismo patron que MySpiritCollection.tsx) para que se vea siempre.
+    useEffect(() => {
+        if (!captureMessage) return;
+        const timeout = setTimeout(() => setCaptureMessage(null), 5000);
+        return () => clearTimeout(timeout);
+    }, [captureMessage]);
+
     const currencyName = balance?.currencyName || 'DecaCoins';
 
     if (loading) {
@@ -349,10 +472,27 @@ export default function MeCoins() {
                 <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">Tu moneda en la plataforma Decatron</p>
             </div>
 
-            {/* Capture Message */}
+            {/* Confirmación del comprobante antes de cobrar */}
+            {pendingBuy && (
+                <BillingConfirmModal
+                    preview={preview}
+                    loading={previewLoading}
+                    error={previewError}
+                    submitError={submitError}
+                    prefiereFactura={prefiereFactura}
+                    onChangeFactura={cambiarFactura}
+                    onConfirm={confirmarCompra}
+                    onCancel={cancelarCompra}
+                    confirming={confirming}
+                />
+            )}
+
+            {/* Toast fijo, visible sin importar el scroll. Fondo sólido a propósito: con
+                fondo semitransparente y texto claro, en tema claro no se leía. */}
             {captureMessage && (
-                <div className={`rounded-xl p-4 border ${captureMessage.type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
-                    <p className="font-semibold">{captureMessage.text}</p>
+                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-xl shadow-2xl font-semibold text-white ${captureMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                    {captureMessage.type === 'success' ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}
+                    <p>{captureMessage.text}</p>
                 </div>
             )}
 

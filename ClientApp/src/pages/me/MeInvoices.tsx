@@ -5,16 +5,17 @@ import api from '../../services/api';
 import { descargarComprobante, FORMATOS, type FormatoComprobante } from '../../utils/invoiceFiles';
 
 /**
- * Los comprobantes de las compras del usuario.
+ * Los comprobantes de las compras del usuario: tiers y DecaCoins, mezclados por fecha.
  *
- * Solo aparecen las compras de tier: las donaciones son liberalidades y no llevan
- * comprobante, así que no tendría sentido listarlas acá y dejar la fila vacía.
+ * Las donaciones no aparecen: son liberalidades y no llevan comprobante, así que no
+ * tendría sentido listarlas acá y dejar la fila vacía.
  *
  * Un comprobante puede tardar en salir — se emite fuera del cobro, cada dos minutos — y
  * eso hay que decirlo, no dejar un hueco: quien acaba de pagar entra justo a mirar.
  */
 
-interface Comprobante {
+/** Lo que devuelve /supporters/my-invoices. */
+interface ComprobanteTier {
     paymentId: number;
     tier: string | null;
     billingType: string | null;
@@ -27,6 +28,41 @@ interface Comprobante {
     customerName: string | null;
     customerDoc: string | null;
     canDownload: boolean;
+}
+
+/** Lo que devuelve /coins/my-invoices. */
+interface ComprobanteCoins {
+    purchaseId: number;
+    coinsReceived: number;
+    createdAt: string;
+    amount: number;
+    currency: string;
+    status: string | null;
+    type: string | null;
+    number: string | null;
+    customerName: string | null;
+    customerDoc: string | null;
+    canDownload: boolean;
+}
+
+/** Forma común: la tarjeta es la misma, solo cambia qué se compró y de dónde se baja. */
+interface Comprobante {
+    key: string;
+    /** Qué se compró, en una línea. */
+    concepto: string;
+    fechaIso: string;
+    amount: number;
+    currency: string;
+    status: string | null;
+    type: string | null;
+    number: string | null;
+    customerName: string | null;
+    customerDoc: string | null;
+    canDownload: boolean;
+    /** URL base de descarga; el formato se agrega al final. */
+    downloadBase: string;
+    /** Qué se acreditó igual aunque el comprobante falle. */
+    yaAcreditado: string;
 }
 
 const TIER_LABEL: Record<string, string> = {
@@ -88,23 +124,70 @@ export default function MeInvoices() {
 
     useEffect(() => {
         (async () => {
-            try {
-                const { data } = await api.get<Comprobante[]>('/supporters/my-invoices');
-                setItems(data);
-            } catch {
+            // Las dos fuentes en paralelo, y si una falla se muestra la otra: es mejor
+            // ver la mitad de tus comprobantes que una pantalla de error entera.
+            const [tiers, coins] = await Promise.allSettled([
+                api.get<ComprobanteTier[]>('/supporters/my-invoices'),
+                api.get<ComprobanteCoins[]>('/coins/my-invoices'),
+            ]);
+
+            if (tiers.status === 'rejected' && coins.status === 'rejected') {
                 setError('No pudimos cargar tus comprobantes. Intentá de nuevo en un momento.');
-            } finally {
                 setLoading(false);
+                return;
             }
+
+            const deTiers: Comprobante[] = tiers.status === 'fulfilled'
+                ? tiers.value.data.map(c => ({
+                    key: `tier-${c.paymentId}`,
+                    concepto: `${TIER_LABEL[c.tier ?? ''] ?? c.tier ?? 'Tier'}${c.billingType === 'permanent' ? ' — acceso permanente' : ' — 1 mes'}`,
+                    fechaIso: c.capturedAt,
+                    amount: c.amount,
+                    currency: c.currency,
+                    status: c.status,
+                    type: c.type,
+                    number: c.number,
+                    customerName: c.customerName,
+                    customerDoc: c.customerDoc,
+                    canDownload: c.canDownload,
+                    downloadBase: `/supporters/my-invoices/${c.paymentId}/download`,
+                    yaAcreditado: 'Tu tier está acreditado igual',
+                }))
+                : [];
+
+            const deCoins: Comprobante[] = coins.status === 'fulfilled'
+                ? coins.value.data.map(c => ({
+                    key: `coins-${c.purchaseId}`,
+                    concepto: `Compra de ${c.coinsReceived.toLocaleString('es-PE')} DecaCoins`,
+                    fechaIso: c.createdAt,
+                    amount: c.amount,
+                    currency: c.currency,
+                    status: c.status,
+                    type: c.type,
+                    number: c.number,
+                    customerName: c.customerName,
+                    customerDoc: c.customerDoc,
+                    canDownload: c.canDownload,
+                    downloadBase: `/coins/my-invoices/${c.purchaseId}/download`,
+                    yaAcreditado: 'Tus DecaCoins están acreditados igual',
+                }))
+                : [];
+
+            setItems(
+                [...deTiers, ...deCoins].sort(
+                    (a, b) => new Date(b.fechaIso).getTime() - new Date(a.fechaIso).getTime()
+                )
+            );
+            setLoading(false);
         })();
     }, []);
 
-    const bajar = async (paymentId: number, formato: FormatoComprobante) => {
-        const clave = `${paymentId}-${formato}`;
+    const bajar = async (item: Comprobante, formato: FormatoComprobante) => {
+        const clave = `${item.key}-${formato}`;
         setBajando(clave);
         setError(null);
         try {
-            await descargarComprobante(`/supporters/my-invoices/${paymentId}/download`, formato);
+            await descargarComprobante(item.downloadBase, formato);
         } catch {
             setError('No se pudo descargar el archivo. Si acabás de comprar, esperá un par de minutos.');
         } finally {
@@ -157,7 +240,7 @@ export default function MeInvoices() {
                 <div className="space-y-3">
                     {items.map(c => (
                         <div
-                            key={c.paymentId}
+                            key={c.key}
                             className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151]"
                         >
                             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -169,10 +252,7 @@ export default function MeInvoices() {
                                         </h3>
                                     </div>
                                     <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                        {TIER_LABEL[c.tier ?? ''] ?? c.tier ?? 'Tier'}
-                                        {c.billingType === 'permanent' ? ' — acceso permanente' : ' — 1 mes'}
-                                        {' · '}
-                                        {fecha(c.capturedAt)}
+                                        {c.concepto} · {fecha(c.fechaIso)}
                                     </p>
                                     {c.number && (
                                         <p className="text-xs text-[#94a3b8] mt-0.5">{tipoLabel(c.type)}</p>
@@ -199,8 +279,8 @@ export default function MeInvoices() {
                                         {FORMATOS.map(f => (
                                             <button
                                                 key={f.id}
-                                                onClick={() => bajar(c.paymentId, f.id)}
-                                                disabled={bajando === `${c.paymentId}-${f.id}`}
+                                                onClick={() => bajar(c, f.id)}
+                                                disabled={bajando === `${c.key}-${f.id}`}
                                                 title={f.hint}
                                                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 ${
                                                     f.id === 'pdf'
@@ -208,7 +288,7 @@ export default function MeInvoices() {
                                                         : 'border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213]'
                                                 }`}
                                             >
-                                                {bajando === `${c.paymentId}-${f.id}`
+                                                {bajando === `${c.key}-${f.id}`
                                                     ? <Loader2 className="w-4 h-4 animate-spin" />
                                                     : <Download className="w-4 h-4" />}
                                                 {f.label}
@@ -219,7 +299,7 @@ export default function MeInvoices() {
                                     <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
                                         {c.status === 'PENDING' || c.status === null
                                             ? 'Tu comprobante se está emitiendo. Suele tardar un par de minutos; volvé a entrar y ya va a estar acá.'
-                                            : 'Hubo un problema al emitir este comprobante. Tu tier está acreditado igual y ya lo estamos revisando — no tenés que hacer nada.'}
+                                            : `Hubo un problema al emitir este comprobante. ${c.yaAcreditado} y ya lo estamos revisando — no tenés que hacer nada.`}
                                     </p>
                                 )}
                             </div>

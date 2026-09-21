@@ -46,4 +46,65 @@ public class CoinPurchase
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
+
+    // ── Comprobante electrónico (ver Add_Coin_Purchase_Invoicing.sql) ──────────
+    // Datos del comprador congelados al momento de la compra: un comprobante ya
+    // emitido no puede cambiar porque después el cliente edite su perfil.
+
+    [Column("customer_name")]
+    public string? CustomerName { get; set; }
+
+    [Column("customer_email")]
+    public string? CustomerEmail { get; set; }
+
+    [Column("customer_country")]
+    public string? CustomerCountry { get; set; }
+
+    [Column("customer_doc_type")]
+    public string? CustomerDocType { get; set; }
+
+    [Column("customer_doc_number")]
+    public string? CustomerDocNumber { get; set; }
+
+    [Column("prefer_factura")]
+    public bool PreferFactura { get; set; }
+
+    /// <summary>Lo realmente cobrado por Culqi (soles), no el precio de lista en dólares.</summary>
+    [Column("charged_amount")]
+    public decimal? ChargedAmount { get; set; }
+
+    [Column("charged_currency")]
+    public string? ChargedCurrency { get; set; }
+
+    /// <summary>
+    /// Compra hecha con llaves de test de Culqi: se acreditaron los coins pero no entró
+    /// plata. No lleva comprobante y hay que excluirla de cualquier métrica de ingresos.
+    /// </summary>
+    [Column("is_test")]
+    public bool IsTest { get; set; }
+
+    /// <summary>NULL = no corresponde emitir. 'PENDING' es lo que busca el job.</summary>
+    [Column("invoice_status")]
+    public string? InvoiceStatus { get; set; }
+
+    [Column("invoice_document_id")]
+    public int? InvoiceDocumentId { get; set; }
+
+    [Column("invoice_type")]
+    public string? InvoiceType { get; set; }
+
+    [Column("invoice_series")]
+    public string? InvoiceSeries { get; set; }
+
+    [Column("invoice_number")]
+    public int? InvoiceNumber { get; set; }
+
+    [Column("invoice_error")]
+    public string? InvoiceError { get; set; }
+
+    [Column("invoice_attempts")]
+    public int InvoiceAttempts { get; set; }
+
+    [Column("invoice_last_attempt_at")]
+    public DateTime? InvoiceLastAttemptAt { get; set; }
 }

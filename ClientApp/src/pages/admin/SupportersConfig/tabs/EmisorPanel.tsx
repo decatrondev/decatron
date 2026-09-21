@@ -35,6 +35,10 @@ interface EstadoEmisor {
     error: string | null;
     active: Empresa | null;
     companies: Empresa[];
+    /** Cobrando con llaves de prueba de Culqi: no entra plata. */
+    culqiTest: boolean;
+    /** Combinacion peligrosa entre modo de cobro y empresa emisora, si la hay. */
+    advertencia: string | null;
 }
 
 const API_EMPRESAS = 'https://decatronapi.decatron.net/dashboard/facturacion/empresas';
@@ -45,6 +49,7 @@ export function EmisorPanel() {
     const [guardando, setGuardando] = useState(false);
     const [elegida, setElegida]   = useState<number | ''>('');
     const [aviso, setAviso]       = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+    const [cambiandoModo, setCambiandoModo] = useState(false);
 
     const cargar = useCallback(async () => {
         try {
@@ -89,6 +94,29 @@ export function EmisorPanel() {
         }
     };
 
+    const cambiarModoCobro = async (aTest: boolean) => {
+        // Volver a produccion es empezar a cobrar dinero real otra vez; irse a test deja
+        // la tienda entregando producto sin cobrar. Las dos direcciones se preguntan.
+        const confirmacion = aTest
+            ? 'Vas a pasar TODA la plataforma a llaves de PRUEBA.\n\nMientras esté así, cualquiera que compre coins o un tier lo va a recibir SIN que entre plata, y esas compras no generan comprobante. Acordate de volver a producción cuando termines. ¿Seguimos?'
+            : 'Vas a volver a cobrar DINERO REAL con las llaves de producción. ¿Seguimos?';
+
+        if (!confirm(confirmacion)) return;
+
+        setCambiandoModo(true);
+        setAviso(null);
+        try {
+            await api.put('/supporters/admin/culqi-mode', { test: aTest });
+            setAviso({ tipo: 'ok', texto: aTest ? '⚠️ Modo PRUEBA activado' : '✅ Cobrando en producción' });
+            cargar();
+        } catch (e) {
+            const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+            setAviso({ tipo: 'error', texto: msg ?? 'No se pudo cambiar el modo de cobro' });
+        } finally {
+            setCambiandoModo(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 flex items-center justify-center">
@@ -111,7 +139,53 @@ export function EmisorPanel() {
 
     const Icono = sinEmisor ? AlertTriangle : beta ? FlaskConical : ShieldCheck;
 
+    const enTest = estado?.culqiTest === true;
+
     return (
+        <>
+        {/* El modo de cobro va en su propio bloque y arriba de todo: es lo unico que
+            decide si entra plata de verdad. Quedarse en prueba sin darse cuenta es
+            regalar coins y tiers a todo el que compre. */}
+        <div className={`rounded-2xl border-2 p-5 mb-4 ${
+            enTest
+                ? 'border-amber-400 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20'
+                : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D]'
+        }`}>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="flex items-start gap-3">
+                    {enTest
+                        ? <FlaskConical className="w-6 h-6 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                        : <ShieldCheck className="w-6 h-6 shrink-0 mt-0.5 text-green-600 dark:text-green-400" />}
+                    <div>
+                        <h3 className={`font-black text-lg ${enTest ? 'text-amber-700 dark:text-amber-400' : 'text-[#1e293b] dark:text-[#f8fafc]'}`}>
+                            {enTest ? 'COBRANDO EN PRUEBA — no entra plata' : 'Cobrando dinero real'}
+                        </h3>
+                        <p className="text-sm mt-1 text-[#64748b] dark:text-[#94a3b8]">
+                            {enTest
+                                ? 'Cualquiera que compre recibe coins o tier sin pagar, y esas compras no generan comprobante.'
+                                : 'Las compras se cobran con las llaves de producción de Culqi.'}
+                        </p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => cambiarModoCobro(!enTest)}
+                    disabled={cambiandoModo}
+                    className={`px-4 py-2 rounded-xl font-bold text-sm text-white disabled:opacity-50 transition-colors ${
+                        enTest ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'
+                    }`}
+                >
+                    {cambiandoModo ? 'Cambiando…' : enTest ? 'Volver a producción' : 'Pasar a modo prueba'}
+                </button>
+            </div>
+
+            {estado?.advertencia && (
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3">
+                    <AlertTriangle className="w-5 h-5 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
+                    <p className="text-sm font-semibold text-red-700 dark:text-red-400">{estado.advertencia}</p>
+                </div>
+            )}
+        </div>
+
         <div className={`rounded-2xl border-2 ${tono.borde} ${tono.fondo} p-5 space-y-4`}>
             <div className="flex items-start gap-3">
                 <Icono className={`w-6 h-6 shrink-0 mt-0.5 ${tono.texto}`} />
@@ -214,5 +288,6 @@ export function EmisorPanel() {
                 </p>
             </div>
         </div>
+        </>
     );
 }

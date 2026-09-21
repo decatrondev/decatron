@@ -45,6 +45,9 @@ namespace Decatron.Services
         public string? CustomerDocType   { get; set; }
         public string? CustomerDocNumber { get; set; }
 
+        /// <summary>Cobrado con llaves de test: se acredita el tier pero no lleva comprobante.</summary>
+        public bool    IsTest { get; set; }
+
         /// <summary>
         /// Si el comprador con RUC pidió factura. Sin RUC no significa nada: va boleta.
         /// Es decisión de cada compra, no del perfil.
@@ -466,13 +469,13 @@ namespace Decatron.Services
                      discount_code_id, payment_type, captured_at,
                      charged_amount, charged_currency, provider,
                      customer_email, customer_name, customer_country,
-                     customer_doc_type, customer_doc_number, invoice_status, prefer_factura)
+                     customer_doc_type, customer_doc_number, invoice_status, prefer_factura, is_test)
                 VALUES
                     (@userId, @login, @amount, 'USD', @orderId, @tier, @billing,
                      @codeId, @type, NOW(),
                      @chargedAmount, @chargedCurrency, @provider,
                      @email, @name, @country,
-                     @docType, @docNumber, @invoiceStatus, @preferFactura)
+                     @docType, @docNumber, @invoiceStatus, @preferFactura, @isTest)
                 RETURNING id", conn);
 
             cmd.Parameters.AddWithValue("userId",   (object?)input.UserId ?? DBNull.Value);
@@ -495,6 +498,7 @@ namespace Decatron.Services
             cmd.Parameters.AddWithValue("docNumber", (object?)input.CustomerDocNumber ?? DBNull.Value);
             cmd.Parameters.AddWithValue("invoiceStatus", (object?)input.InvoiceStatus ?? DBNull.Value);
             cmd.Parameters.AddWithValue("preferFactura", input.PreferFactura);
+            cmd.Parameters.AddWithValue("isTest", input.IsTest);
 
             var id = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(id);

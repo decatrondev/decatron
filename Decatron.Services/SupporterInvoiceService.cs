@@ -196,6 +196,16 @@ namespace Decatron.Services
                 return false;
             }
 
+            // Segunda barrera: el pago de prueba ya nace sin invoice_status. Se chequea
+            // igual porque deshacer un comprobante emitido de mas es una anulacion ante
+            // SUNAT, no un DELETE.
+            if (pago.IsTest)
+            {
+                _logger.LogWarning("El pago {Id} es de prueba: no se emite comprobante", paymentId);
+                await MarcarAsync(paymentId, null, "Pago de prueba, no se emite", ct);
+                return false;
+            }
+
             if (pago.ChargedAmount is not > 0)
             {
                 await MarcarAsync(paymentId, "ERROR", "El pago no tiene importe cobrado", ct);
@@ -281,83 +291,32 @@ namespace Decatron.Services
         // ── Qué comprobante corresponde ───────────────────────────────────────────
 
         /// <summary>
-        /// Decide el documento a partir de dónde está el comprador y qué documento dio.
-        ///
-        /// <para>Peruano con RUC → factura de venta interna. Peruano sin RUC → boleta.
-        /// Comprador del extranjero → factura de exportación de servicios (catálogo 51,
-        /// <c>0201</c>), sin IGV y con afectación 40.</para>
+        /// Traduce el pago de tier a los datos que necesita el comprobante. La regla fiscal
+        /// (boleta vs factura vs exportación, con o sin IGV) no vive acá sino en
+        /// <see cref="InvoiceDocumentBuilder"/>, compartida con la compra de DecaCoins —
+        /// duplicarla sería garantizar que un día las dos se desincronicen.
         ///
         /// <para>El importe que va al comprobante es el <b>cobrado</b>, no el precio de
-        /// lista: Culqi cobra en soles y el precio está en dólares. Y el precio ya
-        /// incluye IGV, que es lo que espera <c>unitPrice</c> de la API.</para>
+        /// lista: Culqi cobra en soles y el precio está en dólares.</para>
         /// </summary>
-        private (string Endpoint, object Cuerpo) ArmarPeticion(PagoParaFacturar pago, int companyId)
+        private PeticionComprobante ArmarPeticion(PagoParaFacturar pago, int companyId)
         {
-            var pais = string.IsNullOrWhiteSpace(pago.CustomerCountry) ? "PE" : pago.CustomerCountry.ToUpperInvariant();
-            var exportacion = pais != "PE";
-
             var descripcion = pago.BillingType == "permanent"
                 ? $"Suscripción Decatron {pago.Tier} — acceso permanente"
                 : $"Suscripción Decatron {pago.Tier} — 1 mes";
 
-            var comun = new Dictionary<string, object?>
-            {
-                ["companyId"]  = companyId,
-                ["currency"]   = pago.ChargedCurrency ?? "PEN",
-                ["issueDate"]  = pago.CapturedAt.ToString("yyyy-MM-dd"),
-                ["externalId"] = pago.OrderId,
-            };
-
-            var nombre = string.IsNullOrWhiteSpace(pago.CustomerName)
-                ? (pago.TwitchLogin ?? "CLIENTE")
-                : pago.CustomerName;
-
-            if (exportacion)
-            {
-                // El no domiciliado normalmente no tiene documento peruano. Si dio uno de su
-                // país se usa; si no, va sin documento, que en exportación es válido.
-                var docType = string.IsNullOrWhiteSpace(pago.CustomerDocType) ? "SIN_DOC" : pago.CustomerDocType;
-
-                comun["customer"] = new Dictionary<string, object?>
-                {
-                    ["docType"] = docType,
-                    ["docNum"]  = pago.CustomerDocNumber,
-                    ["name"]    = nombre,
-                    ["country"] = pais,
-                };
-                comun["tipoOperacion"] = "0201";
-                comun["items"] = new[] { Item(descripcion, pago.ChargedAmount!.Value, "X") };
-
-                return ("factura", comun);
-            }
-
-            // Tener RUC no obliga a pedir factura: un RUC 10 es persona natural con
-            // negocio y muchas veces prefiere boleta. La eleccion se guardo con la compra.
-            var esFactura = pago.PreferFactura
-                && string.Equals(pago.CustomerDocType, "RUC", StringComparison.OrdinalIgnoreCase)
-                && !string.IsNullOrWhiteSpace(pago.CustomerDocNumber);
-
-            comun["customer"] = new Dictionary<string, object?>
-            {
-                ["docType"] = esFactura ? "RUC" : (pago.CustomerDocType ?? "SIN_DOC"),
-                ["docNum"]  = pago.CustomerDocNumber,
-                ["name"]    = nombre,
-                ["country"] = "PE",
-            };
-            comun["items"] = new[] { Item(descripcion, pago.ChargedAmount!.Value, "S") };
-
-            return (esFactura ? "factura" : "boleta", comun);
+            return InvoiceDocumentBuilder.Armar(new VentaParaComprobante(
+                ExternalId:       pago.OrderId,
+                Descripcion:      descripcion,
+                ImporteCobrado:   pago.ChargedAmount!.Value,
+                MonedaCobrada:    pago.ChargedCurrency,
+                FechaEmision:     pago.CapturedAt,
+                NombreCliente:    string.IsNullOrWhiteSpace(pago.CustomerName) ? pago.TwitchLogin : pago.CustomerName,
+                PaisCliente:      pago.CustomerCountry,
+                TipoDocCliente:   pago.CustomerDocType,
+                NumeroDocCliente: pago.CustomerDocNumber,
+                PrefiereFactura:  pago.PreferFactura), companyId);
         }
-
-        /// <summary>El precio ya incluye IGV, que es justo lo que pide <c>unitPrice</c>.</summary>
-        private static Dictionary<string, object?> Item(string descripcion, decimal total, string igvType) =>
-            new()
-            {
-                ["description"] = descripcion,
-                ["quantity"]    = 1,
-                ["unitPrice"]   = total,
-                ["igvType"]     = igvType,
-            };
 
         // ── Emisor: quién factura y en qué entorno ────────────────────────────────
 
@@ -639,6 +598,7 @@ namespace Decatron.Services
             public string?  CustomerDocType { get; init; }
             public string?  CustomerDocNumber { get; init; }
             public bool     PreferFactura { get; init; }
+            public bool     IsTest { get; init; }
         }
 
         private async Task<PagoParaFacturar?> CargarPagoAsync(int id, CancellationToken ct)
@@ -650,7 +610,7 @@ namespace Decatron.Services
                 SELECT twitch_login, tier, billing_type, payment_type, paypal_order_id, captured_at,
                        charged_amount, charged_currency,
                        customer_name, customer_country, customer_doc_type, customer_doc_number,
-                       prefer_factura
+                       prefer_factura, is_test
                 FROM supporter_payments WHERE id = @id", conn);
             cmd.Parameters.AddWithValue("id", id);
 
@@ -673,6 +633,7 @@ namespace Decatron.Services
                 CustomerDocType   = reader.IsDBNull(10) ? null : reader.GetString(10),
                 CustomerDocNumber = reader.IsDBNull(11) ? null : reader.GetString(11),
                 PreferFactura     = !reader.IsDBNull(12) && reader.GetBoolean(12),
+                IsTest            = !reader.IsDBNull(13) && reader.GetBoolean(13),
             };
         }
 

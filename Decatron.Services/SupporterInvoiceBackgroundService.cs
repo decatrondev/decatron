@@ -8,11 +8,12 @@ using Microsoft.Extensions.Logging;
 namespace Decatron.Services
 {
     /// <summary>
-    /// Emite los comprobantes de las compras de tier que quedaron pendientes.
+    /// Emite los comprobantes pendientes de las dos ventas que los llevan: compras de
+    /// tier y compras de DecaCoins.
     ///
     /// <para>Existe para que la emisión no viva dentro del cobro. Si SUNAT está caída o
-    /// DecatronAPI no responde, el supporter igual recibe su tier y el comprobante sale
-    /// cuando se pueda: el plazo para informar es de días, no de segundos.</para>
+    /// DecatronAPI no responde, el comprador igual recibe lo que pagó y el comprobante
+    /// sale cuando se pueda: el plazo para informar es de días, no de segundos.</para>
     /// </summary>
     public class SupporterInvoiceBackgroundService : BackgroundService
     {
@@ -40,11 +41,29 @@ namespace Decatron.Services
                 try
                 {
                     using var scope = _serviceProvider.CreateScope();
-                    var servicio = scope.ServiceProvider.GetRequiredService<ISupporterInvoiceService>();
 
-                    var emitidos = await servicio.ProcesarPendientesAsync(stoppingToken);
-                    if (emitidos > 0)
-                        _logger.LogInformation("{Count} comprobante(s) de supporters emitido(s)", emitidos);
+                    var tiers = scope.ServiceProvider.GetRequiredService<ISupporterInvoiceService>();
+                    var emitidosTiers = await tiers.ProcesarPendientesAsync(stoppingToken);
+                    if (emitidosTiers > 0)
+                        _logger.LogInformation("{Count} comprobante(s) de supporters emitido(s)", emitidosTiers);
+
+                    // En su propio try: que los comprobantes de coins fallen no puede dejar
+                    // sin procesar los de tiers en la siguiente vuelta, ni al revés.
+                    try
+                    {
+                        var coins = scope.ServiceProvider.GetRequiredService<ICoinInvoiceService>();
+                        var emitidosCoins = await coins.ProcesarPendientesAsync(stoppingToken);
+                        if (emitidosCoins > 0)
+                            _logger.LogInformation("{Count} comprobante(s) de DecaCoins emitido(s)", emitidosCoins);
+                    }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error procesando comprobantes de DecaCoins");
+                    }
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
