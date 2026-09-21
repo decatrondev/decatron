@@ -84,7 +84,7 @@ export default function DocsHome() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Step number={1} title="Conecta tu cuenta" description="Inicia sesion con Twitch" />
                     <Step number={2} title="Configura el bot" description="Prefijo, idioma, permisos" />
-                    <Step number={3} title="Prueba un comando" description="Escribe !hola en el chat" />
+                    <Step number={3} title="Prueba un comando" description="Escribe !title en el chat" />
                     <Step number={4} title="Agrega overlays" description="Timer, alertas y mas" />
                 </div>
             </div>

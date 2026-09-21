@@ -17,6 +17,8 @@
   "usage": "CHAT USAGE:",
   "configureButton": "Configure",
   "comingSoonButton": "Coming Soon",
+  "showDetails": "Show details",
+  "hideDetails": "Hide details",
   "overlays": {
     "shoutout": {
       "name": "Shoutouts (!so)",
@@ -61,6 +63,17 @@
         "Volume and duration control"
       ],
       "usage": "Channel points redemptions"
+    },
+    "wheel": {
+      "name": "Wheel of Luck",
+      "description": "A spinning wheel on your overlay: viewers earn spins by supporting the channel and win whatever the segment holds",
+      "features": [
+        "Segments with configurable prize, weight and color",
+        "Contribution wallet: bits, gift subs and channel points",
+        "Spin by command, automatically, or from the panel",
+        "Cooldown and per-stream spin caps"
+      ],
+      "usage": "/overlay/rueda?channel=your_channel&wheel=your_wheel"
     },
     "gacha": {
       "name": "Gacha",

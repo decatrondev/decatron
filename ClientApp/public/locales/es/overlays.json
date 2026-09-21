@@ -17,6 +17,8 @@
   "usage": "USO EN CHAT:",
   "configureButton": "Configurar",
   "comingSoonButton": "Próximamente",
+  "showDetails": "Ver detalles",
+  "hideDetails": "Ocultar detalles",
   "overlays": {
     "shoutout": {
       "name": "Shoutouts (!so)",
@@ -61,6 +63,17 @@
         "Control de volumen y duración"
       ],
       "usage": "Canjes de puntos del canal"
+    },
+    "wheel": {
+      "name": "Rueda de la Suerte",
+      "description": "Una rueda giratoria en tu overlay: los espectadores ganan giros aportando al canal y se llevan el premio del gajo",
+      "features": [
+        "Gajos con premio, peso y color configurables",
+        "Billetera de aportes: bits, subs de regalo y puntos de canal",
+        "Giro por comando, automatico o desde el panel",
+        "Cooldown y topes de giros por stream"
+      ],
+      "usage": "/overlay/rueda?channel=tu_canal&wheel=tu_rueda"
     },
     "gacha": {
       "name": "Gacha",

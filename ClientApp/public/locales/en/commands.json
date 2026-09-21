@@ -109,12 +109,6 @@
       "description": "Join the active giveaway in the channel",
       "aliases": [],
       "usage": ["!join"]
-    },
-    "hola": {
-      "name": "hola",
-      "description": "Greet the user in chat",
-      "aliases": [],
-      "usage": ["hola"]
     }
   },
   "microCommands": {

@@ -63,6 +63,20 @@
       "permissions": "PERMISSIONS",
       "addedBy": "ADDED BY",
       "actions": "ACTIONS"
+    },
+    "hiddenHint": "Hidden accesses are only visible to you and the user themselves. Aliases replace the real name for the rest of the team.",
+    "hiddenBadge": "Hidden",
+    "youBadge": "You",
+    "aliasLabel": "Alias",
+    "aliasPlaceholder": "E.g.: Dev, Support, Mod X",
+    "aliasHelp": "What other users with access will see instead of the real name. Empty = real name.",
+    "hiddenLabel": "Hide from other users",
+    "hiddenHelp": "They keep the same access, but only you and that person will see them on the list.",
+    "editAccess": "Edit access",
+    "editUserModal": {
+      "title": "Edit Access",
+      "save": "Save",
+      "saving": "Saving..."
     }
   },
   "integrations": {
@@ -90,7 +104,9 @@
     "errorLoadingBotStatus": "Error loading bot status",
     "errorLoadingUsers": "Error loading users",
     "errorLoadingChannel": "Error loading channel info",
-    "errorSavingSettings": "Error saving settings"
+    "errorSavingSettings": "Error saving settings",
+    "accessUpdated": "Access updated successfully",
+    "errorUpdatingAccess": "Error updating access"
   },
   "loading": {
     "verifyingPermissions": "Verifying permissions...",
@@ -100,8 +116,6 @@
     "title": "Access Denied",
     "message": "You don't have sufficient permissions to access settings. \"Full Control\" access level is required.",
     "backToDashboard": "Back to Dashboard"
-  }
-}
   },
   "desktop": {
     "description": "The bot's desktop app: live translation and upcoming modules that need your PC.",
@@ -122,3 +136,5 @@
     "confirmRevoke": "Unlink “{{name}}”? The app will stop connecting until you link it again.",
     "errorCode": "Couldn't generate the code.",
     "errorRevoke": "Couldn't unlink."
+  }
+}

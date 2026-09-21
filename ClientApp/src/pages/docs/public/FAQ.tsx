@@ -83,7 +83,7 @@ export default function FAQ() {
                         <li>Revisa que no haya un cooldown activo</li>
                     </ol>
                     <DocAlert type="tip" title="Consejo">
-                        Prueba el comando !hola en el chat. Si no funciona, hay un problema de conexion.
+                        Prueba el comando !title en el chat. Si no funciona, hay un problema de conexion.
                     </DocAlert>
                 </FAQItem>
                 <FAQItem

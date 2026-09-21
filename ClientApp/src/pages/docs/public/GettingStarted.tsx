@@ -85,11 +85,11 @@ export default function GettingStarted() {
                 {/* Paso 3 */}
                 <Step
                     number={3}
-                    title="Prueba el comando !hola"
+                    title="Prueba el comando !title"
                     description="Ve a tu chat de Twitch y escribe el comando para verificar que el bot esta funcionando."
                 >
                     <div className="mt-4">
-                        <CommandExample command="!hola" response="Hola @TuNombre! Bienvenido/a al stream" />
+                        <CommandExample command="!title" response="Título actual: Mi primer stream con Decatron" />
                         <DocAlert type="success" title="El bot responde!">
                             Si ves la respuesta en el chat, felicidades! Tu bot esta configurado correctamente.
                         </DocAlert>

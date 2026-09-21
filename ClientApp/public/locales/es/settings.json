@@ -63,6 +63,20 @@
       "permissions": "PERMISOS",
       "addedBy": "AGREGADO POR",
       "actions": "ACCIONES"
+    },
+    "hiddenHint": "Los accesos ocultos solo los ves tú y el propio usuario. Los alias reemplazan el nombre real para el resto del equipo.",
+    "hiddenBadge": "Oculto",
+    "youBadge": "Tú",
+    "aliasLabel": "Alias",
+    "aliasPlaceholder": "Ej: Dev, Soporte, Mod X",
+    "aliasHelp": "Lo que verán los demás usuarios con acceso en vez del nombre real. Vacío = nombre real.",
+    "hiddenLabel": "Ocultar de otros usuarios",
+    "hiddenHelp": "Sigue teniendo el mismo acceso, pero solo tú y esa persona verán que está en la lista.",
+    "editAccess": "Editar acceso",
+    "editUserModal": {
+      "title": "Editar Acceso",
+      "save": "Guardar",
+      "saving": "Guardando..."
     }
   },
   "integrations": {
@@ -90,7 +104,9 @@
     "errorLoadingBotStatus": "Error al cargar estado del bot",
     "errorLoadingUsers": "Error al cargar usuarios",
     "errorLoadingChannel": "Error al cargar info del canal",
-    "errorSavingSettings": "Error guardando configuración"
+    "errorSavingSettings": "Error guardando configuración",
+    "accessUpdated": "Acceso actualizado correctamente",
+    "errorUpdatingAccess": "Error al actualizar el acceso"
   },
   "loading": {
     "verifyingPermissions": "Verificando permisos...",
@@ -100,8 +116,6 @@
     "title": "Acceso Denegado",
     "message": "No tienes permisos suficientes para acceder a la configuración. Se requiere nivel de acceso \"Control Total\".",
     "backToDashboard": "Volver al Dashboard"
-  }
-}
   },
   "desktop": {
     "description": "La app de escritorio del bot: traducción en vivo y próximos módulos que necesitan tu PC.",
@@ -122,3 +136,5 @@
     "confirmRevoke": "¿Desvincular «{{name}}»? La app dejará de conectarse hasta que la vincules de nuevo.",
     "errorCode": "No se pudo generar el código.",
     "errorRevoke": "No se pudo desvincular."
+  }
+}
