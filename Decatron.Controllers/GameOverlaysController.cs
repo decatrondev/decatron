@@ -35,10 +35,13 @@ namespace Decatron.Controllers
         private readonly GameDetectionService _detection;
         private readonly GameDataProviderRegistry _providers;
         private readonly GameDataPollingService _poller;
+        private readonly GameOverlayPromoService _promos;
 
         public GameOverlaysController(DecatronDbContext db, GameOverlayConfigService configs, GameAccountService accounts,
-            GameOverlayStateStore store, GameDetectionService detection, GameDataProviderRegistry providers, GameDataPollingService poller)
+            GameOverlayStateStore store, GameDetectionService detection, GameDataProviderRegistry providers, GameDataPollingService poller,
+            GameOverlayPromoService promos)
         {
+            _promos = promos;
             _poller = poller;
             _db = db;
             _configs = configs;
@@ -211,6 +214,12 @@ namespace Decatron.Controllers
             return Ok(new { success = true, state = GameOverlayConfigService.BuildPreviewState(game, new List<(long, string)> { (1, "Main"), (2, "Smurf") }) });
         }
 
+        /// <summary>Anuncios de Decatron activos (catálogo del admin) en un idioma, para el preview del editor.</summary>
+        [HttpGet("promos")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Promos([FromQuery] string lang = "es", [FromQuery] string? game = null)
+            => Ok(new { success = true, promos = await _promos.GetCatalogAsync(lang, game) });
+
         // ─── publico (OBS) ────────────────────────────────────────────────────────
 
         /// <summary>
@@ -248,6 +257,7 @@ namespace Decatron.Controllers
                 channel = new { login = user.Login, platform = Platform(user), displayName = user.KickUsername ?? user.DisplayName ?? user.Login, language = user.PreferredLanguage ?? "es" },
                 config = ToDto(config),
                 limits = new { limits.MaxRecentMatches, limits.PollingIntervalSeconds, limits.CanHidePromo },
+                promos = await _promos.GetCatalogAsync(user.PreferredLanguage ?? "es"),
                 catalog = _providers.All().Select(x => new { game = x.game, hasApi = _providers.HasApi(x.game), capabilities = x.provider.Capabilities }),
                 state,
             });

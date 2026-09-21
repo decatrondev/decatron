@@ -1,13 +1,26 @@
 /**
- * Rotación de vistas ("tipo GIF") y tarjeta de Decatron. Un solo hook que usan el
+ * Rotación de vistas ("tipo GIF") y anuncios de Decatron. Un solo hook que usan el
  * overlay de OBS y el preview del editor, así ambos se comportan igual.
  *
  * - Vistas: si slides.enabled, cada `seconds` pasa a la siguiente vista con datos.
- * - Promo: si promo.enabled (o el tier no permite apagarla), cada `everySeconds`
- *   la tarjeta de Decatron tapa la de la cuenta durante `durationSeconds`.
+ * - Anuncios: si promo.enabled (o el tier no permite apagarlos), cada `everySeconds`
+ *   del catálogo del admin un anuncio (elegido por peso) tapa la tarjeta durante
+ *   su `durationSeconds`. Sin catálogo se usa el mensaje de fábrica (PROMO_MESSAGES).
  */
 import { useEffect, useMemo, useState } from 'react';
-import { AccountOverlayState, GameVisualConfig, SlideView } from './types';
+import { AccountOverlayState, GameVisualConfig, PromoCatalog, PromoItem, SlideView } from './types';
+
+/** Frecuencia y duración de fábrica cuando el admin no configuró nada. */
+export const PROMO_DEFAULTS = { everySeconds: 180, durationSeconds: 8 };
+
+/** Elige un anuncio al azar según su peso. */
+export function pickPromo(items: PromoItem[]): PromoItem | null {
+    const pool = items.filter(i => i.weight > 0);
+    if (pool.length === 0) return null;
+    let r = Math.random() * pool.reduce((s, i) => s + i.weight, 0);
+    for (const i of pool) { r -= i.weight; if (r <= 0) return i; }
+    return pool[pool.length - 1];
+}
 
 export type CardView = SlideView | 'promo';
 
@@ -25,13 +38,15 @@ export function availableViews(cfg: GameVisualConfig, account: AccountOverlaySta
     });
 }
 
-export function useCardCycle(cfg: GameVisualConfig | null | undefined, account: AccountOverlayState | null | undefined, canHidePromo: boolean, paused = false): CardView {
+export function useCardCycle(cfg: GameVisualConfig | null | undefined, account: AccountOverlayState | null | undefined, canHidePromo: boolean, catalog?: PromoCatalog | null, paused = false): { view: CardView; promo: PromoItem | null } {
     const views = useMemo(() => (cfg ? availableViews(cfg, account) : ['main' as SlideView]), [cfg, account]);
     const rotating = !!cfg?.slides.enabled && views.length > 1 && !paused;
     const promoOn = !!cfg && (cfg.promo.enabled || !canHidePromo) && !paused;
+    const everySeconds = catalog?.everySeconds || PROMO_DEFAULTS.everySeconds;
+    const items = catalog?.items ?? [];
 
     const [index, setIndex] = useState(0);
-    const [promo, setPromo] = useState(false);
+    const [promo, setPromo] = useState<PromoItem | null | false>(false);
 
     useEffect(() => {
         setIndex(0);
@@ -44,17 +59,21 @@ export function useCardCycle(cfg: GameVisualConfig | null | undefined, account: 
     useEffect(() => {
         setPromo(false);
         if (!promoOn) return;
-        const every = Math.max(30, cfg!.promo.everySeconds || 180) * 1000;
-        const dur = Math.min(Math.max(3, cfg!.promo.durationSeconds || 8), 30) * 1000;
+        const every = Math.max(30, everySeconds) * 1000;
         let hide: ReturnType<typeof setTimeout> | undefined;
-        const show = () => { setPromo(true); hide = setTimeout(() => setPromo(false), dur); };
+        const show = () => {
+            const item = pickPromo(items);
+            const dur = Math.min(Math.max(3, item?.durationSeconds || PROMO_DEFAULTS.durationSeconds), 30) * 1000;
+            setPromo(item);
+            hide = setTimeout(() => setPromo(false), dur);
+        };
         const t = setInterval(show, every);
         return () => { clearInterval(t); if (hide) clearTimeout(hide); };
-    }, [promoOn, cfg?.promo.everySeconds, cfg?.promo.durationSeconds]);
+    }, [promoOn, everySeconds, items]);
 
-    if (promo) return 'promo';
-    if (!rotating) return views.includes('main') ? 'main' : views[0] ?? 'main';
-    return views[index % views.length];
+    if (promo !== false) return { view: 'promo', promo };
+    if (!rotating) return { view: views.includes('main') ? 'main' : views[0] ?? 'main', promo: null };
+    return { view: views[index % views.length], promo: null };
 }
 
 /** Mensajes de la tarjeta de Decatron. Rotan entre sí en cada aparición. */

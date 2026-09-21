@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -100,6 +100,14 @@ export default function AdminHub() {
             description: 'Gestiona el catalogo de sprites de Fortnite y visualiza estadisticas de coleccion',
             icon: <Gamepad2 className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/fortnite',
+            ready: true
+        },
+        {
+            id: 'game-overlay-promos',
+            name: 'Anuncios de Game Overlays',
+            description: 'Catálogo de anuncios de Decatron que tapan la tarjeta de rango de los streamers: mensajes, imagen, peso, frecuencia y duración',
+            icon: <Megaphone className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/game-overlay-promos',
             ready: true
         },
         {

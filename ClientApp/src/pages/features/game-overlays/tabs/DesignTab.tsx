@@ -4,15 +4,15 @@
  * fondo, acento, elementos (visibilidad, fuente, tamaño), animaciones.
  * Todo esto es free para todos (decision de producto, plan §6).
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Maximize2 } from 'lucide-react';
 import { CanvasEditor } from '../../../../components/overlay-editor/CanvasEditor';
 import { Card, SectionTitle, Label, SubLabel, SelectInput, ColorInput, Slider, Toggle, NumberInput, Checkbox } from '../../now-playing-extension/components/ui/SharedUI';
 import { GameOverlayCard, CARD_LABELS } from '../GameOverlayCard';
-import { CardView, availableViews } from '../slides';
+import { CardView, availableViews, pickPromo } from '../slides';
 import { gameOverlaysApi } from '../api';
-import { ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_PRESETS, LIVE_ELEMENTS, LivePhaseId, LivePhaseInfo, OverlayState, SLIDE_VIEWS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESETS, SlideView, StylePreset, AccountOverlayState, defaultGameConfig, formatTier } from '../types';
+import { CARD_SIZE_LIMITS, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_DEFAULT_SIZE, LAYOUT_PRESETS, LIVE_ELEMENTS, LayoutPreset, LivePhaseId, LivePhaseInfo, OverlayState, PromoCatalog, PromoItem, SLIDE_VIEWS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESETS, SlideView, StylePreset, AccountOverlayState, defaultGameConfig, formatTier } from '../types';
 
 const FONT_FAMILIES = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Oswald', 'Bebas Neue', 'Rajdhani', 'Exo 2', 'Press Start 2P', 'system-ui'];
 const BASE_ELEMENT_ORDER: ElementId[] = ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'recent', 'liveCharacter'];
@@ -66,6 +66,34 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
     const [previewView, setPreviewView] = useState<CardView>('main');
     const [liveSim, setLiveSim] = useState<LivePhaseId>('none');
     const promoForced = !canHidePromo;
+    // Anuncios del catálogo del admin, para verlos en el preview tal como salen en OBS.
+    const [promoCatalog, setPromoCatalog] = useState<PromoCatalog | null>(null);
+    const [previewPromo, setPreviewPromo] = useState<PromoItem | null>(null);
+    useEffect(() => {
+        let alive = true;
+        gameOverlaysApi.promos(lang).then(c => { if (alive) { setPromoCatalog(c); setPreviewPromo(pickPromo(c.items)); } }).catch(() => {});
+        return () => { alive = false; };
+    }, [lang]);
+
+    // "Ajustar al contenido": una copia de la tarjeta sin caja fija, fuera de pantalla, para medirla.
+    const measureRef = useRef<HTMLDivElement>(null);
+    const [fitPending, setFitPending] = useState(false);
+    const fitToContent = useCallback(() => {
+        const node = measureRef.current?.firstElementChild as HTMLElement | null;
+        if (!node) return;
+        const r = node.getBoundingClientRect();
+        const width = Math.min(CARD_SIZE_LIMITS.maxWidth, Math.max(CARD_SIZE_LIMITS.minWidth, Math.ceil(r.width) + 2));
+        const height = Math.min(CARD_SIZE_LIMITS.maxHeight, Math.max(CARD_SIZE_LIMITS.minHeight, Math.ceil(r.height) + 2));
+        onChange(game, { size: { width, height } });
+    }, [game, onChange]);
+    useEffect(() => {
+        if (!fitPending) return;
+        setFitPending(false);
+        // Espera al render con la config nueva antes de medir.
+        const t = setTimeout(fitToContent, 50);
+        return () => clearTimeout(t);
+    }, [fitPending, fitToContent]);
+    const setLayout = (l: LayoutPreset) => { onChange(game, { layout: l, size: { ...LAYOUT_DEFAULT_SIZE[l] } }); setFitPending(true); };
     const toggleView = (v: SlideView) => {
         const views = cfg.slides.views.includes(v) ? cfg.slides.views.filter(x => x !== v) : [...cfg.slides.views, v];
         if (views.length === 0) return;
@@ -81,6 +109,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
         const elements: GameVisualConfig['elements'] = { ...cfg.elements };
         for (const id of ALL_ELEMENT_ORDER) elements[id] = { ...(elements[id] ?? defaultGameConfig(game).elements[id]!), visible: show.has(id) };
         onChange(game, { elements });
+        setFitPending(true);
     };
 
     useEffect(() => {
@@ -140,11 +169,20 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                             id: 'card',
                             position: cfg.position,
                             node: (
-                                <GameOverlayCard game={game} gameName={GAME_NAMES[game]} config={cfg} account={account} view={previewView}
-                                    accountIndex={0} accountCount={preview?.accounts.length ?? 1} switchAnimation="none" formatTier={formatTier} lang={lang} labels={CARD_LABELS[lang]} />
+                                // La caja fija se marca con un borde punteado: lo que no entra en ella no se ve en OBS.
+                                <div style={{ outline: '1px dashed rgba(96,165,250,.6)', outlineOffset: 0 }}>
+                                    <GameOverlayCard game={game} gameName={GAME_NAMES[game]} config={cfg} account={account} view={previewView} promo={previewPromo}
+                                        accountIndex={0} accountCount={preview?.accounts.length ?? 1} switchAnimation="none" formatTier={formatTier} lang={lang} labels={CARD_LABELS[lang]} />
+                                </div>
                             ),
                         }] : []}
                     />
+                    {account && (
+                        <div ref={measureRef} aria-hidden style={{ position: 'fixed', left: -10000, top: 0, visibility: 'hidden', pointerEvents: 'none' }}>
+                            <GameOverlayCard game={game} gameName={GAME_NAMES[game]} config={{ ...cfg, scale: 1 }} account={{ ...account, livePhase: null }} view={previewView} promo={previewPromo} measure
+                                accountIndex={0} accountCount={preview?.accounts.length ?? 1} switchAnimation="none" formatTier={formatTier} lang={lang} labels={CARD_LABELS[lang]} />
+                        </div>
+                    )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-3">
                     <span className="text-[11px] text-[#94a3b8] mr-1">{t('view')}:</span>
@@ -169,7 +207,14 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     </div>
                     <div className="w-28"><Label>{t('posX')}</Label><NumberInput value={cfg.position.x} onChange={x => onChange(game, { position: { ...cfg.position, x } })} min={0} max={canvas.width} /></div>
                     <div className="w-28"><Label>{t('posY')}</Label><NumberInput value={cfg.position.y} onChange={y => onChange(game, { position: { ...cfg.position, y } })} min={0} max={canvas.height} /></div>
+                    <div className="w-28"><Label>{t('boxWidth')}</Label><NumberInput value={cfg.size.width} onChange={w => onChange(game, { size: { ...cfg.size, width: Math.max(CARD_SIZE_LIMITS.minWidth, Math.min(CARD_SIZE_LIMITS.maxWidth, w)) } })} min={CARD_SIZE_LIMITS.minWidth} max={CARD_SIZE_LIMITS.maxWidth} /></div>
+                    <div className="w-28"><Label>{t('boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => onChange(game, { size: { ...cfg.size, height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) } })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} /></div>
+                    <div className="w-40"><Label>{t('scale')}</Label><Slider value={Math.round((cfg.scale ?? 1) * 100)} onChange={v => onChange(game, { scale: Math.max(CARD_SIZE_LIMITS.minScale, Math.min(CARD_SIZE_LIMITS.maxScale, v / 100)) })} min={CARD_SIZE_LIMITS.minScale * 100} max={CARD_SIZE_LIMITS.maxScale * 100} unit="%" /></div>
+                    <button onClick={fitToContent} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-xs flex items-center gap-2 border border-[#374151]" title={t('fitHint')}>
+                        <Maximize2 className="w-3.5 h-3.5" />{t('fit')}
+                    </button>
                 </div>
+                <p className="text-[11px] text-[#6b7280] mt-2">{t('boxHint')}</p>
             </Card>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -180,7 +225,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                             <Label>Layout</Label>
                             <div className="grid grid-cols-4 gap-2 mt-1">
                                 {LAYOUT_PRESETS.map(l => (
-                                    <button key={l} onClick={() => onChange(game, { layout: l })} className={`px-2 py-2 rounded-lg text-xs border ${cfg.layout === l ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>{t(`layouts.${l}`)}</button>
+                                    <button key={l} onClick={() => setLayout(l)} className={`px-2 py-2 rounded-lg text-xs border ${cfg.layout === l ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>{t(`layouts.${l}`)}</button>
                                 ))}
                             </div>
                         </div>
@@ -206,6 +251,16 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                             <div><Label>{t('animIn')}</Label><SelectInput value={cfg.animation.in} onChange={v => onChange(game, { animation: { ...cfg.animation, in: v as any } })} options={[{ value: 'fade', label: t('animFade') }, { value: 'slide', label: t('animSlide') }, { value: 'none', label: t('animNone') }]} /></div>
                             <div><Label>{t('animOut')}</Label><SelectInput value={cfg.animation.out} onChange={v => onChange(game, { animation: { ...cfg.animation, out: v as any } })} options={[{ value: 'fade', label: t('animFade') }, { value: 'slide', label: t('animSlide') }, { value: 'none', label: t('animNone') }]} /></div>
                             <div><Label>{t('animSwitch')}</Label><SelectInput value={cfg.animation.accountSwitch} onChange={v => onChange(game, { animation: { ...cfg.animation, accountSwitch: v as any } })} options={[{ value: 'slide', label: t('animSlide') }, { value: 'fade', label: t('animFade') }, { value: 'none', label: t('animNone') }]} /></div>
+                        </div>
+                        <div>
+                            <Label>{t('chrome')}</Label>
+                            <div className="grid grid-cols-2 gap-2 mt-1">
+                                <Checkbox checked={cfg.chrome.accentLine} onChange={v => onChange(game, { chrome: { ...cfg.chrome, accentLine: v } })} label={t('chromeAccentLine')} />
+                                <Checkbox checked={cfg.chrome.shadow} onChange={v => onChange(game, { chrome: { ...cfg.chrome, shadow: v } })} label={t('chromeShadow')} />
+                                <Checkbox checked={cfg.chrome.queueTag} onChange={v => onChange(game, { chrome: { ...cfg.chrome, queueTag: v } })} label={t('chromeQueueTag')} />
+                                <Checkbox checked={cfg.chrome.accountCounter} onChange={v => onChange(game, { chrome: { ...cfg.chrome, accountCounter: v } })} label={t('chromeAccountCounter')} />
+                            </div>
+                            {cfg.chrome.accentLine && <div className="mt-2"><Label>{t('chromeAccentWidth')}</Label><Slider value={cfg.chrome.accentWidth} onChange={v => onChange(game, { chrome: { ...cfg.chrome, accentWidth: v } })} min={1} max={12} unit="px" /></div>}
                         </div>
                     </div>
                 </Card>
@@ -306,7 +361,10 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         {!hasStats && <p className="text-[11px] text-[#6b7280]">{t('slidesOnlyStats')}</p>}
                         {hasStats && (
                             <>
-                                <div className="w-48"><Label>{t('secondsPerView')}</Label><NumberInput value={cfg.slides.seconds} onChange={v => onChange(game, { slides: { ...cfg.slides, seconds: Math.max(4, v) } })} min={4} max={120} /></div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div><Label>{t('secondsPerView')}</Label><NumberInput value={cfg.slides.seconds} onChange={v => onChange(game, { slides: { ...cfg.slides, seconds: Math.max(4, v) } })} min={4} max={120} /></div>
+                                    <div><Label>{t('slidesAnimation')}</Label><SelectInput value={cfg.slides.animation ?? 'fade'} onChange={v => onChange(game, { slides: { ...cfg.slides, animation: v as any } })} options={[{ value: 'fade', label: t('animFade') }, { value: 'slide', label: t('animSlide') }, { value: 'none', label: t('animNone') }]} /></div>
+                                </div>
                                 <div>
                                     <Label>{t('views')}</Label>
                                     <div className="grid grid-cols-2 gap-2 mt-1">
@@ -326,10 +384,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <div className="space-y-4 mt-3">
                         <Toggle checked={promoForced || cfg.promo.enabled} onChange={v => onChange(game, { promo: { ...cfg.promo, enabled: v } })} label={t('promoToggle')} size="sm" disabled={promoForced} />
                         {promoForced && <p className="text-[11px] text-[#94a3b8]">{t('promoForced')} <a href="/supporters" className="text-blue-400 underline">{t('seePlans')}</a></p>}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div><Label>{t('promoEvery')}</Label><NumberInput value={cfg.promo.everySeconds} onChange={v => onChange(game, { promo: { ...cfg.promo, everySeconds: Math.max(30, v) } })} min={30} max={1800} /></div>
-                            <div><Label>{t('promoDuration')}</Label><NumberInput value={cfg.promo.durationSeconds} onChange={v => onChange(game, { promo: { ...cfg.promo, durationSeconds: Math.min(30, Math.max(3, v)) } })} min={3} max={30} /></div>
-                        </div>
+                        <p className="text-[11px] text-[#6b7280]">{t('promoManaged', { every: promoCatalog?.everySeconds ?? 180, n: promoCatalog?.items.length ?? 0 })}</p>
                         <p className="text-[11px] text-[#6b7280]">{t('promoNote')}</p>
                     </div>
                 </Card>

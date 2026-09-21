@@ -49,6 +49,7 @@ import AiCostsAdmin from './pages/admin/AiCostsAdmin';
 import ProjectAnalysis from './pages/admin/ProjectAnalysis';
 import AdminFortnite from './pages/admin/AdminFortnite';
 import LogoGuide from './pages/admin/LogoGuide';
+import GameOverlayPromosAdmin from './pages/admin/GameOverlayPromosAdmin';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import ChannelsVisibility from './pages/admin/ChannelsVisibility';
 import SupportersPublic from './pages/SupportersPublic';
@@ -295,6 +296,7 @@ function App() {
                     <Route path="admin/project-analysis" element={<SafeRoute name="Project Analysis"><ProjectAnalysis /></SafeRoute>} />
                     <Route path="admin/fortnite" element={<SafeRoute name="Fortnite Sprites"><AdminFortnite /></SafeRoute>} />
                     <Route path="admin/logo" element={<SafeRoute name="Logo Guide"><LogoGuide /></SafeRoute>} />
+                    <Route path="admin/game-overlay-promos" element={<SafeRoute name="Game Overlay Promos"><GameOverlayPromosAdmin /></SafeRoute>} />
 
                     {/* Chat Moderation */}
                     <Route path="features/moderation/banned-words" element={<SafeRoute name="Banned Words"><BannedWords /></SafeRoute>} />

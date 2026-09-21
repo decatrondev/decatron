@@ -234,19 +234,51 @@ export interface SlidesConfig {
     /** Segundos que dura cada vista. */
     seconds: number;
     views: SlideView[];
+    /** Animación al cambiar de vista (por defecto la misma que al cambiar de cuenta). */
+    animation?: 'fade' | 'slide' | 'none';
 }
 /**
- * Tarjeta de Decatron: cada cierto tiempo tapa la tarjeta de la cuenta con el logo
- * completo del bot y un mensaje ("Consigue Decatron gratis en decatron.net"). En el
- * tier gratis no se puede apagar (el backend lo fuerza); en los de pago sí.
+ * Anuncios de Decatron: cada cierto tiempo tapan la tarjeta de la cuenta con el logo
+ * del bot y un mensaje. El catálogo, la frecuencia y la duración los maneja el dueño
+ * de la plataforma desde el admin (ver PromoItem); el streamer solo puede apagarlos
+ * si su tier lo permite (en el tier gratis el backend fuerza enabled=true).
  */
 export interface PromoConfig {
     enabled: boolean;
-    /** Cada cuántos segundos aparece. */
-    everySeconds: number;
-    /** Cuántos segundos se queda. */
+    /** @deprecated lo define el admin; se ignora si viene guardado. */
+    everySeconds?: number;
+    /** @deprecated lo define el admin; se ignora si viene guardado. */
+    durationSeconds?: number;
+}
+
+/** Un anuncio del catálogo del admin, ya en el idioma del canal. */
+export interface PromoItem {
+    id: number;
+    title: string;
+    line: string;
+    imageUrl?: string | null;
+    weight: number;
     durationSeconds: number;
 }
+/** Catálogo activo + frecuencia global, como lo manda el backend al overlay y al editor. */
+export interface PromoCatalog {
+    everySeconds: number;
+    items: PromoItem[];
+}
+
+/** Detalles del marco de la tarjeta: línea de acento, sombra y etiquetas chicas. */
+export interface CardChrome {
+    accentLine: boolean;
+    accentWidth: number;
+    shadow: boolean;
+    /** Etiqueta de cola junto al rango (p. ej. "Flex"). */
+    queueTag: boolean;
+    /** Contador "1/5" junto al nombre cuando rotan varias cuentas. */
+    accountCounter: boolean;
+}
+
+/** Tamaño de la caja de la tarjeta (px del lienzo). Nada la estira: lo que no entra se recorta. */
+export interface CardSize { width: number; height: number; }
 
 export interface GameVisualConfig {
     enabled: boolean;
@@ -264,6 +296,11 @@ export interface GameVisualConfig {
     animation: { in: 'fade' | 'slide' | 'none'; out: 'fade' | 'slide' | 'none'; accountSwitch: 'fade' | 'slide' | 'none' };
     /** Posicion de la tarjeta en el canvas (px). */
     position: { x: number; y: number };
+    /** Caja fija de la tarjeta. Si falta (configs viejas) se usa el default del layout. */
+    size: CardSize;
+    /** Escala de toda la tarjeta (1 = 100 %). Cambia el tamaño en pantalla sin tocar la maqueta. */
+    scale: number;
+    chrome: CardChrome;
     slides: SlidesConfig;
     promo: PromoConfig;
 }
@@ -317,8 +354,11 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
         accent: GAME_ACCENTS[game],
         animation: { in: 'fade', out: 'fade', accountSwitch: 'slide' },
         position: { x: 24, y: 24 },
-        slides: { enabled: false, seconds: 12, views: ['main', 'stats', 'champs', 'graph'] },
-        promo: { enabled: true, everySeconds: 180, durationSeconds: 8 },
+        size: { ...LAYOUT_DEFAULT_SIZE.card },
+        scale: 1,
+        chrome: { accentLine: true, accentWidth: 3, shadow: true, queueTag: true, accountCounter: true },
+        slides: { enabled: false, seconds: 12, views: ['main', 'stats', 'champs', 'graph'], animation: 'fade' },
+        promo: { enabled: true },
     };
 }
 
@@ -337,9 +377,13 @@ export function resolveGameConfig(game: GameId, saved?: Partial<GameVisualConfig
         background: { ...d.background, ...saved.background },
         animation: { ...d.animation, ...saved.animation },
         position: { ...d.position, ...saved.position },
+        // Configs anteriores a la caja fija: el default depende del layout guardado, no del de fábrica.
+        size: saved.size?.width && saved.size?.height ? { ...saved.size } : { ...LAYOUT_DEFAULT_SIZE[(saved.layout ?? d.layout) as LayoutPreset] },
+        scale: typeof saved.scale === 'number' && saved.scale > 0 ? saved.scale : 1,
+        chrome: { ...d.chrome, ...saved.chrome },
         accountQueues: { ...(saved.accountQueues ?? {}) },
         slides: { ...d.slides, ...saved.slides, views: saved.slides?.views?.length ? saved.slides.views : d.slides.views },
-        promo: { ...d.promo, ...saved.promo },
+        promo: { enabled: saved.promo?.enabled ?? d.promo.enabled },
         elements,
     };
 }
@@ -393,6 +437,15 @@ export const RANK_CATALOG: Record<GameId, RankCatalogEntry[]> = {
 };
 
 export const LAYOUT_PRESETS: LayoutPreset[] = ['card', 'compact', 'bar', 'emblem-only'];
+
+/** Caja por defecto de cada layout: lo que ocupa la tarjeta con los elementos por defecto. */
+export const LAYOUT_DEFAULT_SIZE: Record<LayoutPreset, CardSize> = {
+    card: { width: 340, height: 220 },
+    compact: { width: 500, height: 130 },
+    bar: { width: 1872, height: 64 },
+    'emblem-only': { width: 170, height: 170 },
+};
+export const CARD_SIZE_LIMITS = { minWidth: 100, maxWidth: 3840, minHeight: 40, maxHeight: 2160, minScale: 0.5, maxScale: 2 };
 
 // Los nombres de cada elemento viven en locales/*/games.json (gameOverlays.design.elementNames).
 

@@ -386,9 +386,21 @@
       "promoToggle": "Show Decatron card",
       "promoForced": "On the free plan it always shows: it's what keeps Decatron free. It can be hidden from the Supporter plan up.",
       "seePlans": "See plans",
-      "promoEvery": "Every how many seconds",
-      "promoDuration": "Duration (s)",
-      "promoNote": "Uses the card's background and accent. Press \"Decatron card\" above the canvas to see it."
+      "promoNote": "Uses the card background and accent, in the same box. Press \"Decatron card\" above the canvas to see it.",
+      "boxWidth": "Box width",
+      "boxHeight": "Box height",
+      "scale": "Scale",
+      "fit": "Fit to content",
+      "fitHint": "Sizes the box to exactly what is enabled right now",
+      "boxHint": "The card has a fixed box (dashed border): it does not resize when rotating accounts or views. Whatever does not fit is not shown in OBS; enlarge the box or use \"Fit to content\".",
+      "chrome": "Frame",
+      "chromeAccentLine": "Accent line",
+      "chromeShadow": "Shadow",
+      "chromeQueueTag": "Queue tag (Flex)",
+      "chromeAccountCounter": "Account counter (1/5)",
+      "chromeAccentWidth": "Line width",
+      "slidesAnimation": "Animation between views",
+      "promoManaged": "Ads (messages, images, how often and how long) are managed by Decatron. Now: {{n}} ad(s), every {{every}} s."
     }
   }
 }

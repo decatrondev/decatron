@@ -190,15 +190,28 @@ namespace Decatron.Services.GameData
                                 accountQueues[kv.Name] = kv.Value.GetString()!;
                     node["accountQueues"] = JsonSerializer.SerializeToElement(accountQueues);
 
-                    // promo.enabled: en el tier gratis la tarjeta de Decatron no se puede apagar.
-                    if (!limits.CanHidePromo && node.TryGetValue("promo", out var promoEl) && promoEl.ValueKind == JsonValueKind.Object
+                    // promo: el streamer solo elige enabled (y en el tier gratis ni eso). Frecuencia,
+                    // duración y contenido los define el admin (game_overlay_promos), así que se descartan.
+                    var promoEnabled = true;
+                    if (node.TryGetValue("promo", out var promoEl) && promoEl.ValueKind == JsonValueKind.Object
                         && promoEl.TryGetProperty("enabled", out var pen) && pen.ValueKind == JsonValueKind.False)
+                        promoEnabled = false;
+                    if (!promoEnabled && !limits.CanHidePromo)
                     {
-                        var promo = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(promoEl.GetRawText(), Json) ?? new();
-                        promo["enabled"] = JsonSerializer.SerializeToElement(true);
-                        node["promo"] = JsonSerializer.SerializeToElement(promo, Json);
+                        promoEnabled = true;
                         adjustments.Add($"{prop.Name}: la tarjeta de Decatron se puede ocultar a partir del plan Supporter.");
                     }
+                    node["promo"] = JsonSerializer.SerializeToElement(new { enabled = promoEnabled });
+
+                    // size / scale: caja fija de la tarjeta (LIVE_MATCH_OVERLAY_PLAN.md §2.1). Si falta, el front usa el default del layout.
+                    if (node.TryGetValue("size", out var sizeEl) && sizeEl.ValueKind == JsonValueKind.Object
+                        && sizeEl.TryGetProperty("width", out var sw) && sw.TryGetInt32(out var swi)
+                        && sizeEl.TryGetProperty("height", out var sh) && sh.TryGetInt32(out var shi))
+                        node["size"] = JsonSerializer.SerializeToElement(new { width = Math.Clamp(swi, 100, 3840), height = Math.Clamp(shi, 40, 2160) });
+                    else node.Remove("size");
+                    if (node.TryGetValue("scale", out var scEl) && scEl.ValueKind == JsonValueKind.Number && scEl.TryGetDouble(out var scd))
+                        node["scale"] = JsonSerializer.SerializeToElement(Math.Round(Math.Clamp(scd, 0.5, 2.0), 2));
+                    else node.Remove("scale");
 
                     output[prop.Name] = JsonSerializer.SerializeToElement(node, Json);
                 }

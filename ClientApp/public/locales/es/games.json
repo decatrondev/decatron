@@ -386,9 +386,21 @@
       "promoToggle": "Mostrar tarjeta de Decatron",
       "promoForced": "En el plan gratis siempre se muestra: es lo que mantiene a Decatron gratis. Se puede ocultar desde el plan Supporter.",
       "seePlans": "Ver planes",
-      "promoEvery": "Cada cuántos segundos",
-      "promoDuration": "Duración (s)",
-      "promoNote": "Usa el fondo y el acento de la tarjeta. Pulsa \"Tarjeta Decatron\" arriba del lienzo para verla."
+      "promoNote": "Usa el fondo y el acento de la tarjeta, en la misma caja. Pulsa \"Tarjeta Decatron\" arriba del lienzo para verla.",
+      "boxWidth": "Ancho de la caja",
+      "boxHeight": "Alto de la caja",
+      "scale": "Escala",
+      "fit": "Ajustar al contenido",
+      "fitHint": "Pone la caja del tamaño justo para lo que hay encendido ahora",
+      "boxHint": "La tarjeta tiene una caja fija (borde punteado): no cambia de tamaño al rotar cuentas ni vistas. Lo que no entra no se ve en OBS; agranda la caja o usa \"Ajustar al contenido\".",
+      "chrome": "Marco",
+      "chromeAccentLine": "Línea de acento",
+      "chromeShadow": "Sombra",
+      "chromeQueueTag": "Etiqueta de cola (Flex)",
+      "chromeAccountCounter": "Contador de cuentas (1/5)",
+      "chromeAccentWidth": "Grosor de la línea",
+      "slidesAnimation": "Animación entre vistas",
+      "promoManaged": "Los anuncios (mensajes, imágenes, cada cuánto y cuánto duran) los administra Decatron. Ahora: {{n}} anuncio(s), cada {{every}} s."
     }
   }
 }

@@ -11,11 +11,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
 import {
-    AccountOverlayState, GameId, GameOverlayInstance, GameVisualConfig, OverlayState,
-    GAME_NAMES, formatTier, resolveGameConfig,
+    AccountOverlayState, GameId, GameOverlayInstance, GameVisualConfig, LayoutPreset, OverlayState, PromoCatalog, StylePreset,
+    GAME_NAMES, LAYOUT_DEFAULT_SIZE, LAYOUT_PRESETS, STYLE_PRESET_ELEMENTS, formatTier, resolveGameConfig,
 } from './features/game-overlays/types';
 import { GameOverlayCard, CARD_LABELS } from './features/game-overlays/GameOverlayCard';
-import { useCardCycle } from './features/game-overlays/slides';
+import { CardView, useCardCycle } from './features/game-overlays/slides';
 
 const OVERLAY_STYLES = `
     html, body, #root { background: transparent !important; margin: 0; overflow: hidden; }
@@ -33,6 +33,8 @@ interface PublicResponse {
     state?: OverlayState | null;
     channel?: { login: string; platform: string; displayName: string; language?: string };
     limits?: { canHidePromo?: boolean };
+    /** Anuncios de Decatron (catálogo del admin) ya en el idioma del canal. */
+    promos?: PromoCatalog | null;
 }
 
 export default function GameOverlay() {
@@ -41,6 +43,10 @@ export default function GameOverlay() {
     const platform = params.get('platform') || 'twitch';
     const slug = params.get('slug') || 'main';
     const previewGame = params.get('preview') as GameId | null; // ?preview=lol → datos simulados (demo/editor)
+    // Solo en preview sin canal: forzar layout/preset/vista para revisar el diseño (docs, capturas).
+    const previewLayout = params.get('layout') as LayoutPreset | null;
+    const previewPreset = params.get('preset') as StylePreset | null;
+    const previewView = params.get('view') as CardView | null;
 
     const [config, setConfig] = useState<GameOverlayInstance | null>(null);
     const [channelKey, setChannelKey] = useState('');
@@ -49,6 +55,7 @@ export default function GameOverlay() {
     const [visibleAccountId, setVisibleAccountId] = useState<number | null>(null);
     // Tier gratis: la tarjeta de Decatron no se puede apagar. En preview no molesta (true).
     const [canHidePromo, setCanHidePromo] = useState(true);
+    const [promos, setPromos] = useState<PromoCatalog | null>(null);
     const connectionRef = useRef<signalR.HubConnection | null>(null);
 
     const load = useCallback(async () => {
@@ -61,6 +68,7 @@ export default function GameOverlay() {
             if (data.channel?.language) setLang(data.channel.language.toLowerCase().startsWith('en') ? 'en' : 'es');
             setConfig(data.enabled && data.config ? data.config : null);
             setCanHidePromo(data.limits?.canHidePromo !== false);
+            setPromos(data.promos ?? null);
             if (data.state) setState(data.state);
         } catch (e) {
             console.warn('[GameOverlay] load failed', e);
@@ -132,7 +140,15 @@ export default function GameOverlay() {
     const game = (state?.activeGame ?? previewGame ?? null) as GameId | null;
     const gameConfig: GameVisualConfig | null = useMemo(() => {
         if (!game) return null;
-        return resolveGameConfig(game, config?.games?.[game] ?? null);
+        const cfg = resolveGameConfig(game, config?.games?.[game] ?? null);
+        if (channel || !previewGame) return cfg;
+        if (previewLayout && LAYOUT_PRESETS.includes(previewLayout)) { cfg.layout = previewLayout; cfg.size = { ...LAYOUT_DEFAULT_SIZE[previewLayout] }; }
+        if (previewPreset && STYLE_PRESET_ELEMENTS[previewPreset]) {
+            const show = new Set(STYLE_PRESET_ELEMENTS[previewPreset]);
+            for (const id of Object.keys(cfg.elements) as (keyof typeof cfg.elements)[]) cfg.elements[id] = { ...cfg.elements[id]!, visible: show.has(id) };
+        }
+        return cfg;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [game, config]);
 
     // Fuentes de Google usadas por los elementos (el editor hace lo mismo).
@@ -179,7 +195,22 @@ export default function GameOverlay() {
     }, [showing, gameConfig?.rotation.mode, gameConfig?.rotation.seconds, accounts.map(a => `${a.accountId}:${a.live?.inGame ? 1 : 0}`).join(','), state?.activeAccountId]);
 
     const account = accounts.find(a => a.accountId === visibleAccountId) ?? accounts[0] ?? null;
-    const view = useCardCycle(gameConfig, account, canHidePromo);
+    const cycle = useCardCycle(gameConfig, account, canHidePromo, promos);
+    const view: CardView = !channel && previewGame && previewView ? previewView : cycle.view;
+    const promo = cycle.promo;
+
+    // Animación al cambiar: de cuenta usa animation.accountSwitch; de vista (o al volver de un anuncio) usa slides.animation.
+    const prevRef = useRef<{ accountId: number | null; view: string }>({ accountId: null, view: 'main' });
+    const switchAnimation = useMemo(() => {
+        const prev = prevRef.current;
+        const accountChanged = prev.accountId != null && account != null && prev.accountId !== account.accountId;
+        prevRef.current = { accountId: account?.accountId ?? null, view };
+        const anim = gameConfig?.animation.accountSwitch ?? 'slide';
+        if (accountChanged) return anim;
+        if (prev.view !== view) return gameConfig?.slides.animation ?? anim;
+        return anim;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [account?.accountId, view, gameConfig]);
 
     // Sesion sumada de todas las cuentas del juego (sessionScope=all_accounts).
     const aggregateSession = useMemo(() => {
@@ -222,8 +253,9 @@ export default function GameOverlay() {
                 {rendered && game && gameConfig && account && (
                     <div style={{ position: 'absolute', left: gameConfig.position.x, top: gameConfig.position.y, animation }}>
                         <GameOverlayCard
-                            key={`${game}-${account.accountId}-${view}`}
+                            key={`${game}-${account.accountId}-${view}-${promo?.id ?? 0}`}
                             view={view}
+                            promo={promo}
                             lang={lang}
                             game={game}
                             gameName={GAME_NAMES[game]}
@@ -232,7 +264,7 @@ export default function GameOverlay() {
                             aggregate={aggregateSession}
                             accountIndex={accounts.findIndex(a => a.accountId === account.accountId)}
                             accountCount={accounts.length}
-                            switchAnimation={anim.accountSwitch}
+                            switchAnimation={switchAnimation}
                             formatTier={formatTier}
                             labels={CARD_LABELS[lang]}
                         />

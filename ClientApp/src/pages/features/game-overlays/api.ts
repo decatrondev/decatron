@@ -1,5 +1,5 @@
 import api from '../../../services/api';
-import { GameId, GameOverlayInstance, GameVisualConfig, OverlayState } from './types';
+import { GameId, GameOverlayInstance, GameVisualConfig, OverlayState, PromoCatalog } from './types';
 
 export interface ProviderCapabilities {
     hasRank: boolean; hasExactPoints: boolean; hasRecentMatches: boolean; hasKda: boolean;
@@ -44,6 +44,8 @@ export const gameOverlaysApi = {
     deleteInstance: (slug: string) => api.delete(`/game-overlays/${slug}`).then(r => r.data),
     forceGame: (game: string | null) => api.post('/game-overlays/force-game', { game: game ?? 'auto' }).then(r => r.data),
     preview: (slug: string, game: GameId) => api.get<{ success: boolean; state: OverlayState }>(`/game-overlays/${slug}/preview?game=${game}`).then(r => r.data),
+    /** Anuncios de Decatron activos (catálogo del admin), para el preview del editor. */
+    promos: (lang: 'es' | 'en') => api.get<{ success: boolean; promos: PromoCatalog }>(`/game-overlays/promos?lang=${lang}`).then(r => r.data.promos),
 
     accounts: () => api.get<{ success: boolean; accounts: LinkedAccount[]; catalog: CatalogEntry[] }>('/me/game-accounts').then(r => r.data),
     link: (body: { game: GameId; name: string; tag?: string; region?: string; displayName?: string }) =>

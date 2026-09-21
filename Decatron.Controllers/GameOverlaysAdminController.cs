@@ -30,10 +30,12 @@ namespace Decatron.Controllers
         private readonly RiotRateLimitGate _gate;
         private readonly GameDetectionService _detection;
         private readonly GameOverlayStateStore _store;
+        private readonly GameOverlayPromoService _promos;
 
         public GameOverlaysAdminController(DecatronDbContext db, GameDataProviderRegistry providers, RiotApiKeys riotKeys,
-            RiotRateLimitGate gate, GameDetectionService detection, GameOverlayStateStore store)
+            RiotRateLimitGate gate, GameDetectionService detection, GameOverlayStateStore store, GameOverlayPromoService promos)
         {
+            _promos = promos;
             _db = db;
             _providers = providers;
             _riotKeys = riotKeys;
@@ -154,5 +156,37 @@ namespace Decatron.Controllers
                 state = _store.Get(userId, slug),
             });
         }
-    }
+    
+        // ─── Anuncios de Decatron (LIVE_MATCH_OVERLAY_PLAN.md §2.3) ─────────────
+
+        /// <summary>Catálogo completo (incluye apagados) + frecuencia global.</summary>
+        [HttpGet("promos")]
+        public async Task<IActionResult> Promos()
+        {
+            var settings = await _promos.GetSettingsAsync();
+            return Ok(new { success = true, everySeconds = settings.EverySeconds, promos = await _promos.ListAllAsync() });
+        }
+
+        [HttpPut("promos/settings")]
+        public async Task<IActionResult> UpdatePromoSettings([FromBody] PromoSettingsRequest req)
+        {
+            var s = await _promos.UpdateSettingsAsync(req.EverySeconds);
+            return Ok(new { success = true, everySeconds = s.EverySeconds });
+        }
+
+        /// <summary>Crea (id = 0) o edita un anuncio.</summary>
+        [HttpPut("promos")]
+        public async Task<IActionResult> UpsertPromo([FromBody] GameOverlayPromo req)
+        {
+            if (string.IsNullOrWhiteSpace(req.LineEs)) return BadRequest(new { success = false, message = "El mensaje en español es obligatorio" });
+            var p = await _promos.UpsertAsync(req);
+            return Ok(new { success = true, promo = p });
+        }
+
+        [HttpDelete("promos/{id:long}")]
+        public async Task<IActionResult> DeletePromo(long id)
+            => await _promos.DeleteAsync(id) ? Ok(new { success = true }) : NotFound(new { success = false });
+
+        public class PromoSettingsRequest { public int EverySeconds { get; set; } = 180; }
+}
 }
