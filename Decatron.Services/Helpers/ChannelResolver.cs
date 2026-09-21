@@ -21,29 +21,42 @@ namespace Decatron.Core.Helpers
         }
 
         /// <summary>
-        /// Resolves an internal user ID to the current channel login (username).
-        /// </summary>
-        public static async Task<string?> ResolveLoginAsync(DecatronDbContext db, long userId)
-        {
-            return await db.Users
-                .Where(u => u.Id == userId && u.IsActive)
-                .Select(u => u.Login)
-                .FirstOrDefaultAsync();
-        }
-
-        /// <summary>
         /// Resolves a channel login to both userId and TwitchId in a single query.
+        ///
+        /// Tambien resuelve canales de Kick: "channelLogin" puede ser el kick_id
+        /// numerico del canal (asi lo pasa KickWebhookController — ver
+        /// .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md seccion 8.8). Primero se
+        /// prueba por login de Twitch (caso comun); si no matchea, por kick_id.
         /// </summary>
         public static async Task<ChannelInfo?> ResolveChannelInfoAsync(DecatronDbContext db, string channelLogin)
         {
-            return await db.Users
-                .Where(u => u.Login == channelLogin.ToLower() && u.IsActive)
+            var normalized = channelLogin.ToLower();
+
+            var byTwitch = await db.Users
+                .Where(u => u.Login == normalized && u.IsActive)
                 .Select(u => new ChannelInfo
                 {
                     UserId = u.Id,
                     TwitchId = u.TwitchId,
+                    KickId = u.KickId,
                     Login = u.Login,
                     DisplayName = u.DisplayName,
+                    PreferredLanguage = u.PreferredLanguage
+                })
+                .FirstOrDefaultAsync();
+
+            if (byTwitch != null)
+                return byTwitch;
+
+            return await db.Users
+                .Where(u => u.KickId == channelLogin && u.IsActive)
+                .Select(u => new ChannelInfo
+                {
+                    UserId = u.Id,
+                    TwitchId = u.TwitchId,
+                    KickId = u.KickId,
+                    Login = u.KickUsername ?? u.Login,
+                    DisplayName = u.KickUsername ?? u.DisplayName,
                     PreferredLanguage = u.PreferredLanguage
                 })
                 .FirstOrDefaultAsync();
@@ -60,8 +73,9 @@ namespace Decatron.Core.Helpers
                 {
                     UserId = u.Id,
                     TwitchId = u.TwitchId,
-                    Login = u.Login,
-                    DisplayName = u.DisplayName,
+                    KickId = u.KickId,
+                    Login = u.KickId != null ? (u.KickUsername ?? u.Login) : u.Login,
+                    DisplayName = u.KickId != null ? (u.KickUsername ?? u.DisplayName) : u.DisplayName,
                     PreferredLanguage = u.PreferredLanguage
                 })
                 .FirstOrDefaultAsync();
@@ -71,7 +85,8 @@ namespace Decatron.Core.Helpers
     public class ChannelInfo
     {
         public long UserId { get; set; }
-        public string TwitchId { get; set; } = "";
+        public string? TwitchId { get; set; } = "";
+        public string? KickId { get; set; }
         public string Login { get; set; } = "";
         public string DisplayName { get; set; } = "";
         public string? PreferredLanguage { get; set; }

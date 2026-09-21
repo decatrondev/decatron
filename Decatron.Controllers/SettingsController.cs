@@ -183,6 +183,15 @@ namespace Decatron.Controllers
                     .FirstOrDefaultAsync(p => p.ChannelOwnerId == channelOwnerId &&
                                              p.GrantedUserId == authorizedUser.Id);
 
+                // Oculto y alias los decide SOLO el dueño del canal. Si un control_total
+                // manda esos campos se ignoran (no se rechaza la request, solo se omiten).
+                var isOwner = userId == channelOwnerId;
+                var aliasError = ValidateAlias(dto.Alias);
+                if (isOwner && aliasError != null)
+                {
+                    return BadRequest(new { success = false, message = aliasError });
+                }
+
                 if (existingPermission != null)
                 {
                     _logger.LogInformation($"Updating existing permission for user {authorizedUser.Id}");
@@ -190,6 +199,11 @@ namespace Decatron.Controllers
                     existingPermission.IsActive = true;
                     existingPermission.UpdatedAt = DateTime.UtcNow;
                     existingPermission.GrantedBy = userId;
+                    if (isOwner)
+                    {
+                        existingPermission.IsHidden = dto.IsHidden;
+                        existingPermission.Alias = NormalizeAlias(dto.Alias);
+                    }
                 }
                 else
                 {
@@ -201,6 +215,8 @@ namespace Decatron.Controllers
                         AccessLevel = dto.PermissionLevel,
                         GrantedBy = userId,
                         IsActive = true,
+                        IsHidden = isOwner && dto.IsHidden,
+                        Alias = isOwner ? NormalizeAlias(dto.Alias) : null,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -253,7 +269,9 @@ namespace Decatron.Controllers
                 var permission = await _dbContext.UserChannelPermissions
                     .FirstOrDefaultAsync(p => p.Id == accessId && p.ChannelOwnerId == channelOwnerId);
 
-                if (permission == null)
+                // Un acceso oculto no existe para nadie que no sea el dueño o el propio
+                // usuario: se responde 404 igual que si no estuviera, para no delatarlo.
+                if (permission == null || (permission.IsHidden && userId != channelOwnerId && userId != permission.GrantedUserId))
                 {
                     return NotFound(new { success = false, message = "Permiso no encontrado" });
                 }
@@ -271,6 +289,67 @@ namespace Decatron.Controllers
             {
                 _logger.LogError(ex, "Error removing user access");
                 return BadRequest(new { success = false, message = "An internal error occurred. Please try again later." });
+            }
+        }
+
+        /// <summary>
+        /// Edita nivel, oculto y alias de un acceso existente. Solo el dueño del canal:
+        /// oculto/alias son decisiones suyas y un control_total no debe poder
+        /// "desaparecer" a nadie (ni a sí mismo) de la lista.
+        /// </summary>
+        [HttpPut("update-access/{accessId}")]
+        [RequirePermission("user_management", "control_total")]
+        public async Task<IActionResult> UpdateUserAccess(long accessId, [FromBody] UpdateUserAccessDto dto)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var channelOwnerId = GetChannelOwnerId();
+
+                if (userId != channelOwnerId)
+                {
+                    return StatusCode(403, new { success = false, message = "Solo el propietario del canal puede editar accesos" });
+                }
+
+                if (dto == null)
+                {
+                    return BadRequest(new { success = false, message = "No se recibieron datos" });
+                }
+
+                var validLevels = new[] { "commands", "moderation", "control_total" };
+                if (!validLevels.Contains(dto.PermissionLevel))
+                {
+                    return BadRequest(new { success = false, message = $"Nivel de permisos inválido: '{dto.PermissionLevel}'" });
+                }
+
+                var aliasError = ValidateAlias(dto.Alias);
+                if (aliasError != null)
+                {
+                    return BadRequest(new { success = false, message = aliasError });
+                }
+
+                var permission = await _dbContext.UserChannelPermissions
+                    .FirstOrDefaultAsync(p => p.Id == accessId && p.ChannelOwnerId == channelOwnerId && p.IsActive);
+
+                if (permission == null)
+                {
+                    return NotFound(new { success = false, message = "Permiso no encontrado" });
+                }
+
+                permission.AccessLevel = dto.PermissionLevel;
+                permission.IsHidden = dto.IsHidden;
+                permission.Alias = NormalizeAlias(dto.Alias);
+                permission.UpdatedAt = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation($"User access updated: {accessId} by owner {userId} (hidden={permission.IsHidden}, alias={(permission.Alias ?? "-")})");
+                return Ok(new { success = true, message = "Acceso actualizado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user access");
+                return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." });
             }
         }
 
@@ -325,7 +404,9 @@ namespace Decatron.Controllers
                     return StatusCode(403, new { success = false, message = "No tienes permisos para ver la gestión de usuarios" });
                 }
 
-                var users = await _dbContext.UserChannelPermissions
+                var isOwner = userId == channelOwnerId;
+
+                var all = await _dbContext.UserChannelPermissions
                     .Include(p => p.GrantedUser)
                     .Include(p => p.GrantedByUser)
                     .Where(p => p.ChannelOwnerId == channelOwnerId && p.IsActive)
@@ -336,29 +417,62 @@ namespace Decatron.Controllers
                         username = p.GrantedUser.Login,
                         displayName = p.GrantedUser.DisplayName,
                         accessLevel = p.AccessLevel,
+                        grantedById = p.GrantedBy,
                         grantedBy = p.GrantedByUser.Login,
+                        isHidden = p.IsHidden,
+                        alias = p.Alias,
                         createdAt = p.CreatedAt
                         // Removido permissionLabel para evitar el error de EF Core
                     })
                     .ToListAsync();
 
-                // Aplicar el label después de obtener los datos de la base
-                var usersWithLabels = users.Select(u => new
+                // Reglas de visibilidad (ver UserChannelPermissions.IsHidden / Alias):
+                //  - dueño: ve todo tal cual, con las marcas de oculto/alias.
+                //  - el propio usuario: ve su fila aunque esté oculta o con alias.
+                //  - cualquier otro: no ve los ocultos, y de los que tienen alias solo
+                //    ve el alias. Se enmascara aquí en el backend, no en el front, para
+                //    que la respuesta de la API tampoco delate a nadie.
+                // "Agregado por" sigue la misma regla: si quien otorgó está oculto se ve
+                // "Propietario" (actuó como el streamer); si tiene alias, su alias.
+                var byUserId = all.ToDictionary(u => u.userId);
+                string GrantedByLabel(long grantedById, string grantedByLogin)
                 {
-                    u.id,
-                    u.userId,
-                    u.username,
-                    u.displayName,
-                    u.accessLevel,
-                    u.grantedBy,
-                    u.createdAt,
-                    permissionLabel = GetPermissionLabel(u.accessLevel)
-                }).ToList();
+                    if (isOwner || grantedById == channelOwnerId || grantedById == userId) return grantedByLogin;
+                    if (!byUserId.TryGetValue(grantedById, out var granter)) return grantedByLogin;
+                    if (granter.isHidden) return "__owner__";
+                    return granter.alias ?? grantedByLogin;
+                }
+
+                var visible = all
+                    .Where(u => isOwner || u.userId == userId || !u.isHidden)
+                    .Select(u =>
+                    {
+                        var seesReal = isOwner || u.userId == userId;
+                        return new
+                        {
+                            u.id,
+                            u.userId,
+                            username = seesReal ? u.username : (u.alias ?? u.username),
+                            displayName = seesReal ? u.displayName : (u.alias ?? u.displayName),
+                            u.accessLevel,
+                            grantedBy = GrantedByLabel(u.grantedById, u.grantedBy),
+                            u.createdAt,
+                            permissionLabel = GetPermissionLabel(u.accessLevel),
+                            // Solo el dueño y el propio usuario saben que la fila está oculta o con alias
+                            isHidden = seesReal && u.isHidden,
+                            alias = seesReal ? u.alias : null,
+                            // El front oculta el @login cuando lo que llegó es un alias
+                            isAliased = !seesReal && u.alias != null,
+                            isSelf = u.userId == userId
+                        };
+                    })
+                    .ToList();
 
                 return Ok(new
                 {
                     success = true,
-                    users = usersWithLabels
+                    users = visible,
+                    isOwner
                 });
             }
             catch (Exception ex)
@@ -408,6 +522,24 @@ namespace Decatron.Controllers
             }
         }
 
+        private const int AliasMaxLength = 30;
+
+        private static string? NormalizeAlias(string? alias)
+        {
+            var trimmed = alias?.Trim();
+            return string.IsNullOrEmpty(trimmed) ? null : trimmed;
+        }
+
+        private static string? ValidateAlias(string? alias)
+        {
+            var normalized = NormalizeAlias(alias);
+            if (normalized != null && normalized.Length > AliasMaxLength)
+            {
+                return $"El alias no puede superar {AliasMaxLength} caracteres";
+            }
+            return null;
+        }
+
         private static string GetPermissionLabel(string accessLevel)
         {
             return accessLevel switch
@@ -430,5 +562,15 @@ namespace Decatron.Controllers
     {
         public string AuthorizedUserId { get; set; } = "";
         public string PermissionLevel { get; set; } = "";
+        // Solo los toma en cuenta si quien agrega es el dueño del canal
+        public bool IsHidden { get; set; } = false;
+        public string? Alias { get; set; }
+    }
+
+    public class UpdateUserAccessDto
+    {
+        public string PermissionLevel { get; set; } = "";
+        public bool IsHidden { get; set; } = false;
+        public string? Alias { get; set; }
     }
 }

@@ -86,6 +86,24 @@ namespace Decatron.Controllers
         }
 
         /// <summary>
+        /// POST /api/auth/link-account-start — vincula Twitch a la cuenta del usuario
+        /// actual SIN fusionar filas (a diferencia de link-twitch-start, pensado para
+        /// Discord). Para usar desde una sesion de Kick — cada canal conserva su
+        /// propia config. Ver plan de unificacion, seccion 8.6.
+        /// </summary>
+        [Authorize]
+        [HttpPost("link-account-start")]
+        public IActionResult LinkAccountStart()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var loginUrl = _authService.GetLoginUrl($"link-account:{userId}");
+            return Ok(new { url = loginUrl });
+        }
+
+        /// <summary>
         /// GET /api/auth/link-twitch — Legacy redirect (kept for compatibility)
         /// </summary>
         [HttpGet("link-twitch")]
@@ -153,12 +171,22 @@ namespace Decatron.Controllers
 
                 // Check if this is a link-twitch operation BEFORE creating/updating user
                 string? linkUserIdEarly = null;
+                // link-account: mismo espiritu, mecanismo distinto — ver mas abajo.
+                // No fusiona filas (Twitch se queda con la suya), solo comparte
+                // account_id. Necesario para vincular Twitch desde una sesion de
+                // Kick, donde fusionar en la fila actual estaria mal (perderia su
+                // config propia). Ver plan de unificacion, seccion 8.6.
+                string? linkAccountUserId = null;
                 if (!string.IsNullOrEmpty(state))
                 {
                     var (isValidEarly, redirectEarly) = AuthService.ValidateOAuthState(state, _jwtSettings.SecretKey);
                     if (isValidEarly && !string.IsNullOrEmpty(redirectEarly) && redirectEarly.StartsWith("link-twitch:"))
                     {
                         linkUserIdEarly = redirectEarly.Split(':')[1];
+                    }
+                    else if (isValidEarly && !string.IsNullOrEmpty(redirectEarly) && redirectEarly.StartsWith("link-account:"))
+                    {
+                        linkAccountUserId = redirectEarly.Split(':')[1];
                     }
                 }
 
@@ -294,6 +322,48 @@ namespace Decatron.Controllers
                 _logger.LogInformation("Authenticating user: {Login}", twitchUser.Login);
                 var user = await _authService.AuthenticateUserAsync(twitchUser, tokenResponse, acceptLanguage);
 
+                // link-account: colgar este canal de Twitch de la cuenta de quien
+                // ya esta logueado (ej. una sesion de Kick), sin fusionar filas.
+                // No corta el flujo — el bot se conecta y el EventSub se registra
+                // igual que en un login normal, solo cambia el redirect final.
+                if (linkAccountUserId != null && long.TryParse(linkAccountUserId, out var accountLinkUserId))
+                {
+                    var linkingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == accountLinkUserId);
+                    if (linkingUser == null)
+                        return Redirect($"{_twitchSettings.FrontendUrl}/settings?error=link_user_not_found");
+
+                    if (linkingUser.AccountId == null)
+                    {
+                        var newAccountForLinking = new Account { CreatedAt = DateTime.UtcNow };
+                        _dbContext.Accounts.Add(newAccountForLinking);
+                        await _dbContext.SaveChangesAsync();
+                        linkingUser.AccountId = newAccountForLinking.Id;
+                        await _dbContext.SaveChangesAsync();
+                    }
+
+                    if (user.AccountId != linkingUser.AccountId)
+                    {
+                        // Bug real encontrado el 6 ago 2026: comparar solo AccountId
+                        // rechazaba CUALQUIER vinculacion, porque toda fila ya tiene su
+                        // propia cuenta solitaria desde el backfill — eso no es "ya
+                        // vinculada a alguien mas". Solo se rechaza si esa cuenta esta
+                        // realmente compartida con OTRA fila.
+                        var otherMembers = user.AccountId != null
+                            ? await _dbContext.Users.CountAsync(u => u.AccountId == user.AccountId && u.Id != user.Id)
+                            : 0;
+
+                        if (otherMembers > 0)
+                        {
+                            _logger.LogWarning("[Link Account] El Twitch {Login} ya pertenece a otra cuenta", user.Login);
+                            return Redirect($"{_twitchSettings.FrontendUrl}/settings?error=twitch_already_linked");
+                        }
+
+                        user.AccountId = linkingUser.AccountId;
+                        await _dbContext.SaveChangesAsync();
+                        _logger.LogInformation("[Link Account] Twitch {Login} vinculado a la cuenta {AccountId}", user.Login, user.AccountId);
+                    }
+                }
+
                 // Generate JWT
                 var jwt = GenerateJwtToken(user);
 
@@ -353,7 +423,8 @@ namespace Decatron.Controllers
                                 ["Subs"] = eventSubService.EnsureSubscriptionsSubscriptionAsync(twitchId, transportMode, conduitId),
                                 ["Gift Subs"] = eventSubService.EnsureGiftSubsSubscriptionAsync(twitchId, transportMode, conduitId),
                                 ["Raids"] = eventSubService.EnsureRaidSubscriptionAsync(twitchId, transportMode, conduitId),
-                                ["Hype Train"] = eventSubService.EnsureHypeTrainSubscriptionAsync(twitchId, transportMode, conduitId)
+                                ["Hype Train"] = eventSubService.EnsureHypeTrainSubscriptionAsync(twitchId, transportMode, conduitId),
+                                ["Channel Update"] = eventSubService.EnsureChannelUpdateSubscriptionAsync(twitchId, transportMode, conduitId)
                             };
 
                             await Task.WhenAll(tasks.Values);
@@ -380,6 +451,13 @@ namespace Decatron.Controllers
                             logger.LogError(ex, $"❌ Error registrando suscripciones EventSub para {userLogin}");
                         }
                     });
+                }
+
+                // link-account: no se cambia la sesion del navegador (sigue logueado
+                // como estaba, ej. Kick) — el vinculo ya quedo guardado arriba.
+                if (linkAccountUserId != null)
+                {
+                    return Redirect($"{_twitchSettings.FrontendUrl}/settings?linked=twitch-account");
                 }
 
                 // Validate HMAC-signed state and extract redirect
@@ -577,6 +655,149 @@ namespace Decatron.Controllers
             return long.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
 
+        /// <summary>
+        /// Lista los canales vinculados a la misma cuenta que el usuario actual —
+        /// cada fila de "users" (Twitch o Kick) que comparte account_id. El JWT
+        /// solo describe la sesion actual, no el resto de canales vinculados.
+        /// Ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md seccion 8.6.
+        /// </summary>
+        /// <summary>
+        /// Desvincula el canal de Twitch vinculado por cuenta (no fusionado) — le da
+        /// su propia cuenta nueva, mismo patron que KickAuthController.Unlink.
+        /// </summary>
+        [Authorize]
+        [HttpPost("unlink-account")]
+        public async Task<IActionResult> UnlinkAccount()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (currentUser?.AccountId == null)
+                return BadRequest(new { error = "Cuenta no encontrada" });
+
+            var linkedTwitchUser = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.AccountId == currentUser.AccountId && u.TwitchId != null && u.Id != userId);
+
+            if (linkedTwitchUser == null)
+                return BadRequest(new { error = "No hay ningun canal de Twitch vinculado" });
+
+            var freshAccount = new Account { CreatedAt = DateTime.UtcNow };
+            _dbContext.Accounts.Add(freshAccount);
+            await _dbContext.SaveChangesAsync();
+
+            linkedTwitchUser.AccountId = freshAccount.Id;
+            linkedTwitchUser.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
+        [Authorize]
+        [HttpGet("account-channels")]
+        public async Task<IActionResult> AccountChannels()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (currentUser?.AccountId == null)
+                return Ok(new { channels = Array.Empty<object>() });
+
+            var channels = await _dbContext.Users
+                .Where(u => u.AccountId == currentUser.AccountId)
+                .Select(u => new
+                {
+                    id = u.Id,
+                    isCurrent = u.Id == userId,
+                    hasTwitch = u.TwitchId != null,
+                    twitchLogin = u.TwitchId != null ? u.Login : null,
+                    hasKick = u.KickId != null,
+                    kickUsername = u.KickUsername
+                })
+                .ToListAsync();
+
+            return Ok(new { channels });
+        }
+
+        /// <summary>
+        /// Cambia de canal propio DE VERDAD — no una nota invisible en la sesion
+        /// (asi funcionaba antes, via /api/channel/switch, y resultaba en que el
+        /// header/sidebar/dashboard seguian mostrando el canal viejo). Esto genera
+        /// un JWT nuevo, como si te loguearas de cero con el otro canal, y el
+        /// frontend lo reemplaza — todo lo que lee el token cambia junto.
+        ///
+        /// Solo para canales propios vinculados por cuenta (Twitch <-> Kick) — el
+        /// selector de permisos delegados del header sigue con su propio mecanismo,
+        /// sin tocar. Ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md seccion 8.14.
+        /// </summary>
+        [Authorize]
+        [HttpPost("switch-channel")]
+        public async Task<IActionResult> SwitchChannel([FromBody] SwitchChannelRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!long.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (currentUser?.AccountId == null)
+                return BadRequest(new { error = "Cuenta no encontrada" });
+
+            var targetUser = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == request.ChannelId && u.AccountId == currentUser.AccountId);
+
+            if (targetUser == null)
+                return StatusCode(403, new { error = "Ese canal no pertenece a tu cuenta" });
+
+            var jwt = GenerateJwtTokenForChannel(targetUser);
+            return Ok(new { token = jwt });
+        }
+
+        public class SwitchChannelRequest
+        {
+            public long ChannelId { get; set; }
+        }
+
+        /// <summary>
+        /// Igual que GenerateJwtToken, pero elige campos de Twitch o de Kick segun
+        /// de que plataforma sea la fila — GenerateJwtToken (Twitch) siempre usaba
+        /// Login/ProfileImageUrl, que para una fila de Kick estan vacios o son el
+        /// "kick_123456" interno, no el nombre real.
+        /// </summary>
+        private string GenerateJwtTokenForChannel(User user)
+        {
+            var now = DateTime.UtcNow;
+            var expires = now.AddMinutes(_jwtSettings.ExpiryMinutes);
+            var isKick = user.KickId != null;
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, isKick ? (user.KickUsername ?? user.Login) : user.Login),
+                new Claim(ClaimTypes.GivenName, isKick ? (user.KickUsername ?? user.DisplayName) : (user.DisplayName ?? user.Login)),
+                new Claim("AuthProvider", user.AuthProvider ?? "twitch"),
+                new Claim("TwitchId", user.TwitchId ?? ""),
+                new Claim("KickId", user.KickId ?? ""),
+                new Claim("DiscordId", user.DiscordId ?? ""),
+                new Claim("ProfileImage", isKick ? (user.KickProfilePic ?? "") : (user.ProfileImageUrl ?? "")),
+                new Claim("Email", user.Email ?? "")
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                notBefore: now,
+                expires: expires,
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
         [Authorize]
         [HttpGet("account-tier")]
         public async Task<IActionResult> GetAccountTier()
@@ -587,38 +808,20 @@ namespace Decatron.Controllers
                 if (targetUserId == 0)
                     return Unauthorized();
 
-                // Use EF Core's managed connection instead of a separate NpgsqlConnection
-                var connection = _dbContext.Database.GetDbConnection();
-                if (connection.State != System.Data.ConnectionState.Open)
-                    await connection.OpenAsync();
+                // Antes: consulta SQL directa contra este solo user_id, ignoraba
+                // canales vinculados. TierResolver ya resuelve "mejor tier entre
+                // todos los canales de la cuenta" — se delega ahi en vez de repetir
+                // la logica. Ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md
+                // seccion 8.11.
+                var details = await Core.Helpers.TierResolver.GetEffectiveTierDetailsAsync(_dbContext, targetUserId);
 
-                using var cmd = connection.CreateCommand();
-                cmd.CommandText = @"
-                    SELECT tier, tier_started_at, tier_expires_at, source
-                    FROM user_subscription_tiers
-                    WHERE user_id = @userId
-                    AND (tier_expires_at IS NULL OR tier_expires_at > NOW())
-                    LIMIT 1";
-
-                var param = cmd.CreateParameter();
-                param.ParameterName = "@userId";
-                param.Value = targetUserId;
-                cmd.Parameters.Add(param);
-
-                using var reader = await cmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                return Ok(new
                 {
-                    return Ok(new
-                    {
-                        tier = reader.GetString(0),
-                        tierStartedAt = reader.IsDBNull(1) ? null : (DateTime?)reader.GetDateTime(1),
-                        tierExpiresAt = reader.IsDBNull(2) ? null : (DateTime?)reader.GetDateTime(2),
-                        source = reader.IsDBNull(3) ? null : reader.GetString(3)
-                    });
-                }
-
-                // Sin registro = free por defecto
-                return Ok(new { tier = "free", tierStartedAt = (DateTime?)null, tierExpiresAt = (DateTime?)null, source = (string?)null });
+                    tier = details.Tier,
+                    tierStartedAt = details.TierStartedAt?.UtcDateTime,
+                    tierExpiresAt = details.TierExpiresAt?.UtcDateTime,
+                    source = details.Source
+                });
             }
             catch (Exception ex)
             {

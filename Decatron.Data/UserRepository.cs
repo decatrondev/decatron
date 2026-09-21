@@ -123,13 +123,39 @@ namespace Decatron.Data.Repositories
                 var expirationThreshold = DateTime.UtcNow.Add(timeSpan);
                 return await _context.Users
                     .Where(u => u.IsActive &&
-                           u.RefreshToken != null &&
+                           // "" no "": KickAuthController y DiscordAuthController crean filas
+                           // sin Twitch con RefreshToken = "" (no null, porque la columna no es
+                           // nullable) — un "" != null pasaba este filtro igual, asi que el
+                           // refresh de Twitch reintentaba para siempre contra usuarios que
+                           // nunca tuvieron token de Twitch. Encontrado el 6 ago 2026 viendo
+                           // "has no refresh token" repetido cada 30 min para filas de Kick y
+                           // Discord desde su login.
+                           !string.IsNullOrEmpty(u.RefreshToken) &&
                            u.TokenExpiration <= expirationThreshold)
                     .ToListAsync();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting users with tokens expiring soon");
+                throw;
+            }
+        }
+
+        public async Task<List<User>> GetUsersWithKickTokensExpiringWithinAsync(TimeSpan timeSpan)
+        {
+            try
+            {
+                var expirationThreshold = DateTime.UtcNow.Add(timeSpan);
+                return await _context.Users
+                    .Where(u => u.IsActive &&
+                           u.KickRefreshToken != null &&
+                           u.KickTokenExpiration != null &&
+                           u.KickTokenExpiration <= expirationThreshold)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting users with Kick tokens expiring soon");
                 throw;
             }
         }

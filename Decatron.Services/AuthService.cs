@@ -273,9 +273,15 @@ namespace Decatron.Services
                         _logger.LogInformation("Detected language {DetectedLanguage} from header for new user {Login}", detectedLanguage, twitchUser.Login);
                     }
 
+                    // Cuenta nueva para esta persona — ver Add_Accounts_Table.sql.
+                    var account = new Account { CreatedAt = DateTime.UtcNow };
+                    _dbContext.Accounts.Add(account);
+                    await _dbContext.SaveChangesAsync();
+
                     // Create new user
                     user = new User
                     {
+                        AccountId = account.Id,
                         TwitchId = twitchUser.Id,
                         Login = twitchUser.Login,
                         DisplayName = twitchUser.DisplayName,

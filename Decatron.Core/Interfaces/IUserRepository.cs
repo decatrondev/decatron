@@ -12,5 +12,6 @@ namespace Decatron.Core.Interfaces
         Task<bool> ExistsAsync(long id);
         Task<List<User>> GetAllActiveAsync();
         Task<List<User>> GetUsersWithTokensExpiringWithinAsync(TimeSpan timeSpan);
+        Task<List<User>> GetUsersWithKickTokensExpiringWithinAsync(TimeSpan timeSpan);
     }
 }

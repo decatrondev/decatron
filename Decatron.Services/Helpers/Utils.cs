@@ -1,4 +1,5 @@
 using System.Data;
+using System.Linq;
 using Decatron.Core.Functions;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -9,6 +10,24 @@ namespace Decatron.Core.Helpers
 {
     public static class Utils
     {
+        /// <summary>
+        /// Heuristica barata para detectar que un "channelName" NO es un login de
+        /// Twitch antes de gastar una llamada HTTP que sabemos que va a fallar.
+        /// Los canales de Kick llegan aca como su kick_id numerico (ver
+        /// KickConnector.ParseChatMessage) — y un login de Twitch nunca es
+        /// puramente numerico (las reglas de Twitch exigen empezar con letra o
+        /// guion bajo). No colisiona con un futuro canal de YouTube: sus IDs
+        /// (tipo "UCxxxxx") tampoco son puramente numericos. Sirve para dar un
+        /// mensaje honesto ("no disponible en esta plataforma") en vez del error
+        /// crudo de "no se pudo obtener el token" cuando la causa real es que el
+        /// dato pedido (followage, categoria, uptime via Twitch) no aplica a la
+        /// plataforma del canal, no que algo se rompio.
+        /// </summary>
+        public static bool IsNonTwitchChannelIdentifier(string? channelName)
+        {
+            return !string.IsNullOrEmpty(channelName) && channelName.All(char.IsDigit);
+        }
+
         public static async Task<string> GetAccessTokenFromDatabase(IConfiguration configuration, string broadcasterName)
         {
             try

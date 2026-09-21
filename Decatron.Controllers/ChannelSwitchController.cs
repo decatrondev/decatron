@@ -66,7 +66,9 @@ namespace Decatron.Controllers
                     availableChannels.Add(ownChannel);
                 }
 
-                // 2. Canales donde tiene permisos otorgados
+                // 2. Canales donde tiene permisos otorgados. El permiso es especifico
+                // de la plataforma/fila con la que se otorgo — Twitch y Kick se ven
+                // como accesos separados, cada uno con su propio listado.
                 var managedChannels = await _dbContext.UserChannelPermissions
                     .Include(p => p.ChannelOwner)
                     .Where(p => p.GrantedUserId == userId && p.IsActive)
@@ -114,29 +116,27 @@ namespace Decatron.Controllers
                     return BadRequest(new { success = false, message = "ID de canal inválido" });
                 }
 
-                // Verificar que el usuario puede gestionar este canal
+                // Verificar que el usuario puede gestionar este canal. Se delega en
+                // PermissionService, que ya resuelve tanto "es dueño (o cuenta propia
+                // vinculada por otra plataforma)" como "tiene permiso delegado en
+                // cualquiera de sus cuentas vinculadas" — ver seccion 8.13/8.14 del
+                // plan de unificacion multiplataforma.
                 bool canManage = false;
                 string accessLevel = "none";
 
-                // 1. Es su propio canal?
-                if (request.ChannelId == userId)
+                if (await _permissionService.IsChannelOwnerAsync(userId, request.ChannelId))
                 {
                     canManage = true;
-                    accessLevel = "owner";
+                    accessLevel = request.ChannelId == userId ? "owner" : "linked";
                 }
                 else
                 {
-                    // 2. Tiene permisos otorgados?
-                    var permission = await _dbContext.UserChannelPermissions
-                        .Where(p => p.GrantedUserId == userId &&
-                                   p.ChannelOwnerId == request.ChannelId &&
-                                   p.IsActive)
-                        .FirstOrDefaultAsync();
+                    var userAccessLevel = await _permissionService.GetUserAccessLevelAsync(userId, request.ChannelId);
 
-                    if (permission != null)
+                    if (!string.IsNullOrEmpty(userAccessLevel))
                     {
                         canManage = true;
-                        accessLevel = permission.AccessLevel;
+                        accessLevel = userAccessLevel;
                     }
                 }
 
@@ -151,9 +151,9 @@ namespace Decatron.Controllers
                     .Select(u => new
                     {
                         channelId = u.Id,
-                        login = u.Login,
-                        displayName = u.DisplayName,
-                        profileImageUrl = u.ProfileImageUrl,
+                        login = u.KickId != null ? u.KickUsername : u.Login,
+                        displayName = u.KickId != null ? (u.KickUsername ?? u.DisplayName) : u.DisplayName,
+                        profileImageUrl = u.KickId != null ? (u.KickProfilePic ?? "") : u.ProfileImageUrl,
                         accessLevel = accessLevel,
                         isOwner = request.ChannelId == userId
                     })
@@ -201,22 +201,11 @@ namespace Decatron.Controllers
 
                 if (!string.IsNullOrEmpty(sessionChannelId) && long.TryParse(sessionChannelId, out var parsedChannelId))
                 {
-                    // Verificar que aún tiene permisos para este canal
-                    bool stillHasAccess = false;
-
-                    if (parsedChannelId == userId)
-                    {
-                        stillHasAccess = true; // Siempre tiene acceso a su propio canal
-                    }
-                    else
-                    {
-                        var permission = await _dbContext.UserChannelPermissions
-                            .Where(p => p.GrantedUserId == userId &&
-                                       p.ChannelOwnerId == parsedChannelId &&
-                                       p.IsActive)
-                            .FirstOrDefaultAsync();
-                        stillHasAccess = permission != null;
-                    }
+                    // Verificar que aún tiene permisos para este canal. GetUserAccessLevelAsync
+                    // ya resuelve tanto el caso "dueño (o cuenta propia vinculada)" como el
+                    // de "permiso delegado en cualquiera de sus cuentas vinculadas".
+                    bool stillHasAccess = parsedChannelId == userId ||
+                        !string.IsNullOrEmpty(await _permissionService.GetUserAccessLevelAsync(userId, parsedChannelId));
 
                     if (stillHasAccess)
                     {
@@ -255,13 +244,13 @@ namespace Decatron.Controllers
                         activeChannel = new
                         {
                             channelId = activeChannel.Id,
-                            login = activeChannel.Login,
-                            displayName = activeChannel.DisplayName,
-                            profileImageUrl = activeChannel.ProfileImageUrl,
+                            login = activeChannel.KickId != null ? activeChannel.KickUsername : activeChannel.Login,
+                            displayName = activeChannel.KickId != null ? (activeChannel.KickUsername ?? activeChannel.DisplayName) : activeChannel.DisplayName,
+                            profileImageUrl = activeChannel.KickId != null ? (activeChannel.KickProfilePic ?? "") : activeChannel.ProfileImageUrl,
                             uniqueId = activeChannel.UniqueId,
                             createdAt = activeChannel.CreatedAt,
                             updatedAt = activeChannel.UpdatedAt,
-                            accessLevel = accessLevel ?? (isOwner ? "owner" : "none"),
+                            accessLevel = accessLevel ?? (isOwner ? "owner" : (activeChannelId != userId ? "linked" : "none")),
                             isOwner = isOwner
                         }
                     }

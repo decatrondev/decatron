@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useMemo } from 'react';
-import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages, MessageSquare, ExternalLink, Loader2, Unlink, Link2 } from 'lucide-react';
+import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages, MessageSquare, ExternalLink, Loader2, Unlink, Link2, EyeOff, Pencil } from 'lucide-react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +33,20 @@ interface ChannelUser {
     permissionLabel: string;
     grantedBy: string;
     createdAt: string;
+    // Vanish/alias — el backend ya filtra y enmascara segun quien mira (ver
+    // SettingsController.GetChannelUsers). Estos flags solo sirven para pintar.
+    isHidden: boolean;      // true solo si el que mira es el dueño o el propio usuario
+    alias: string | null;   // idem: el alias real, para editarlo / marcar la fila
+    isAliased: boolean;     // el que mira NO es dueño y lo que llego en username es un alias
+    isSelf: boolean;
+}
+
+interface EditAccessForm {
+    id: number;
+    displayName: string;
+    permissionLevel: string;
+    isHidden: boolean;
+    alias: string;
 }
 
 interface UserInfo {
@@ -41,6 +55,12 @@ interface UserInfo {
     displayName: string;
     createdAt: string;
     updatedAt: string;
+    // false cuando el canal activo no es el propio (permisos delegados via el
+    // selector "Gestion de Accesos" del header) — "Vincular Cuentas" y "Tus
+    // Canales" actuan siempre sobre la cuenta de quien esta logueado, nunca
+    // sobre el canal delegado, asi que se ocultan en ese modo para no mezclar
+    // dos identidades en la misma pantalla.
+    isOwner: boolean;
 }
 
 interface AccountTier {
@@ -74,6 +94,12 @@ export default function Settings() {
     const [accountTier, setAccountTier] = useState<AccountTier | null>(null);
     const [newUserId, setNewUserId] = useState('');
     const [newPermission, setNewPermission] = useState('commands');
+    const [newIsHidden, setNewIsHidden] = useState(false);
+    const [newAlias, setNewAlias] = useState('');
+    // Solo el dueño ve/edita oculto y alias. Lo dice el backend en channel-users,
+    // no el contexto del header, para que sea la misma regla que aplica el server.
+    const [isAccessOwner, setIsAccessOwner] = useState(false);
+    const [editAccess, setEditAccess] = useState<EditAccessForm | null>(null);
     const [loading, setLoading] = useState(false); // Para operaciones de C/R/U/D
     const [pageLoading, setPageLoading] = useState(true); // Para la carga inicial
 
@@ -93,11 +119,28 @@ export default function Settings() {
     const discordUsername = jwtClaims.DiscordId ? (jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '') : '';
     const discordAvatar = jwtClaims.ProfileImage || '';
 
-    // Handle link callback (Twitch or Discord linked)
+    // Handle link callback (Twitch, Discord o Kick vinculados)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const linked = params.get('linked');
         const code = params.get('code');
+        const linkError = params.get('error');
+
+        if (linked === 'kick' || linked === 'twitch-account') {
+            // Ninguno de los dos fusiona filas — la sesion actual no cambia, no
+            // hace falta canjear un token nuevo.
+            addToast(`${linked === 'kick' ? 'Kick' : 'Twitch'} vinculado exitosamente`, 'success');
+            window.history.replaceState({}, '', '/settings');
+            loadAccountChannels();
+            return;
+        }
+
+        if (linkError === 'kick_already_linked' || linkError === 'twitch_already_linked') {
+            addToast(`Ese canal de ${linkError.startsWith('kick') ? 'Kick' : 'Twitch'} ya está vinculado a otra cuenta`, 'error');
+            window.history.replaceState({}, '', '/settings');
+            return;
+        }
+
         if (linked && code) {
             api.post(linked === 'discord' ? '/auth/discord/exchange' : '/auth/exchange', { code })
                 .then((res) => {
@@ -112,6 +155,49 @@ export default function Settings() {
                 });
         }
     }, []);
+
+    // Canales vinculados a la misma cuenta (Twitch/Kick) — separado del JWT,
+    // que solo describe la sesion actual.
+    const [linkedKick, setLinkedKick] = useState<{ id: number; kickUsername: string | null } | null>(null);
+    const [linkedTwitch, setLinkedTwitch] = useState<{ id: number; twitchLogin: string | null } | null>(null);
+    const [accountChannels, setAccountChannels] = useState<any[]>([]);
+    const [switchingChannel, setSwitchingChannel] = useState(false);
+    const loadAccountChannels = async () => {
+        try {
+            const res = await api.get('/auth/account-channels');
+            const channels = res.data.channels || [];
+            setAccountChannels(channels);
+            const kickChannel = channels.find((c: any) => c.hasKick && !c.isCurrent) || channels.find((c: any) => c.hasKick && c.isCurrent);
+            setLinkedKick(kickChannel ? { id: kickChannel.id, kickUsername: kickChannel.kickUsername } : null);
+            // Solo relevante para saber "¿ya hay un Twitch vinculado?" desde una
+            // sesion que no es Twitch (ej. Kick) — el caso Discord ya lo resuelve
+            // authProvider === 'both' sin necesitar esto.
+            const twitchChannel = channels.find((c: any) => c.hasTwitch && !c.isCurrent);
+            setLinkedTwitch(twitchChannel ? { id: twitchChannel.id, twitchLogin: twitchChannel.twitchLogin } : null);
+        } catch { /* silencioso, no bloquea el resto de settings */ }
+    };
+    useEffect(() => { loadAccountChannels(); }, []);
+
+    // "Tus Canales" — separado del selector de permisos delegados del header a
+    // proposito (seccion 8.9/8.13/8.14 del plan): esto es SOLO tus propios
+    // canales vinculados por cuenta, no gente a la que le diste acceso.
+    //
+    // No usa /channel/switch (esa es la "nota invisible" en la sesion que
+    // dejaba el header/sidebar/dashboard mostrando el canal viejo). Esto pide
+    // un token nuevo directamente — mismo efecto que loguearte de cero con el
+    // otro canal — y lo reemplaza en localStorage, asi todo lo que lee el
+    // token (header incluido) cambia junto.
+    const switchToChannel = async (channelId: number) => {
+        setSwitchingChannel(true);
+        try {
+            const res = await api.post('/auth/switch-channel', { channelId });
+            localStorage.setItem('token', res.data.token);
+            window.location.href = '/dashboard';
+        } catch {
+            addToast('No se pudo cambiar de canal', 'error');
+            setSwitchingChannel(false);
+        }
+    };
 
     // Efecto para cargar todos los datos iniciales
     useEffect(() => {
@@ -187,6 +273,7 @@ export default function Settings() {
             // Comprobación de tipo
             if (res.data && typeof res.data === 'object' && 'success' in res.data && res.data.success && 'users' in res.data && Array.isArray(res.data.users)) {
                 setChannelUsers(res.data.users as ChannelUser[]);
+                setIsAccessOwner('isOwner' in res.data && res.data.isOwner === true);
             }
         } catch (err) {
             console.error('Error loading channel users:', err);
@@ -208,7 +295,8 @@ export default function Settings() {
                         displayName: string,
                         uniqueId?: string,
                         createdAt?: string,
-                        updatedAt?: string
+                        updatedAt?: string,
+                        isOwner?: boolean
                     }
                 }).activeChannel;
 
@@ -217,7 +305,8 @@ export default function Settings() {
                     login: channel.login,
                     displayName: channel.displayName,
                     createdAt: channel.createdAt ? new Date(channel.createdAt).toLocaleDateString('es-ES') : 'N/A',
-                    updatedAt: channel.updatedAt ? new Date(channel.updatedAt).toLocaleString('es-ES') : new Date().toLocaleString('es-ES')
+                    updatedAt: channel.updatedAt ? new Date(channel.updatedAt).toLocaleString('es-ES') : new Date().toLocaleString('es-ES'),
+                    isOwner: channel.isOwner !== false
                 });
             }
         } catch (err) {
@@ -274,12 +363,16 @@ export default function Settings() {
         try {
             const res = await api.post('/settings/add-access', {
                 authorizedUserId: newUserId.trim(),
-                permissionLevel: newPermission
+                permissionLevel: newPermission,
+                isHidden: isAccessOwner && newIsHidden,
+                alias: isAccessOwner && newAlias.trim() ? newAlias.trim() : null
             });
             // Comprobación de tipo
             if (res.data && typeof res.data === 'object' && 'success' in res.data && res.data.success) {
                 setNewUserId('');
                 setNewPermission('commands');
+                setNewIsHidden(false);
+                setNewAlias('');
                 setShowAddUserModal(false);
                 await loadChannelUsers();
                 const message = 'message' in res.data ? String(res.data.message) : t("settings:messages.userAdded");
@@ -291,6 +384,41 @@ export default function Settings() {
         } catch (err) {
             console.error('Error adding user:', err);
             addToast(t("settings:messages.errorAddingUser"), 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const openEditAccess = (user: ChannelUser) => {
+        setEditAccess({
+            id: user.id,
+            displayName: user.displayName,
+            permissionLevel: user.accessLevel,
+            isHidden: user.isHidden,
+            alias: user.alias ?? ''
+        });
+    };
+
+    const saveEditAccess = async () => {
+        if (!editAccess) return;
+        setLoading(true);
+        try {
+            const res = await api.put(`/settings/update-access/${editAccess.id}`, {
+                permissionLevel: editAccess.permissionLevel,
+                isHidden: editAccess.isHidden,
+                alias: editAccess.alias.trim() || null
+            });
+            if (res.data && typeof res.data === 'object' && 'success' in res.data && res.data.success) {
+                setEditAccess(null);
+                await loadChannelUsers();
+                addToast(t("settings:messages.accessUpdated"), 'success');
+            } else {
+                const message = (res.data && typeof res.data === 'object' && 'message' in res.data) ? String(res.data.message) : t("settings:messages.errorUpdatingAccess");
+                addToast(message, 'error');
+            }
+        } catch (err) {
+            console.error('Error updating access:', err);
+            addToast(t("settings:messages.errorUpdatingAccess"), 'error');
         } finally {
             setLoading(false);
         }
@@ -367,7 +495,66 @@ export default function Settings() {
 
                 {/* Columna Izquierda */}
                 <div className="space-y-6">
-                    {/* Vincular Cuentas — Always visible */}
+                    {/* Tus Canales — cambiar cual canal propio estas configurando.
+                        Distinto del selector de permisos delegados del header: acá
+                        solo aparecen tus propios canales vinculados por cuenta. */}
+                    {userInfo.isOwner && accountChannels.length > 1 && (
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Link2 className="w-6 h-6 text-[#2563eb]" />
+                                <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Tus Canales</h2>
+                            </div>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                                Elegí cuál de tus canales vinculados estás configurando ahora. Cada uno tiene sus propios comandos, timers y overlays — cambiar acá no toca los del otro.
+                            </p>
+                            <div className="space-y-2">
+                                {accountChannels.map((ch: any) => (
+                                    <div
+                                        key={ch.id}
+                                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                                            ch.isCurrent
+                                                ? 'border-[#2563eb] bg-[#2563eb]/5'
+                                                : 'border-[#e2e8f0] dark:border-[#374151] bg-gray-50 dark:bg-[#222324]'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div
+                                                className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold ${
+                                                    ch.hasKick ? 'bg-[#53fc18] text-black' : 'bg-gradient-to-br from-[#9146ff] to-[#772ce8] text-white'
+                                                }`}
+                                            >
+                                                {ch.hasKick ? 'K' : 'T'}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                                    {ch.hasKick ? ch.kickUsername : ch.twitchLogin}
+                                                </div>
+                                                <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                    {ch.hasKick ? 'Kick' : 'Twitch'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {ch.isCurrent ? (
+                                            <span className="text-xs font-bold text-[#2563eb] px-3 py-1.5">Configurando ahora</span>
+                                        ) : (
+                                            <button
+                                                onClick={() => switchToChannel(ch.id)}
+                                                disabled={switchingChannel}
+                                                className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                                            >
+                                                Configurar este
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Vincular Cuentas — oculta en modo delegado (userInfo.isOwner === false):
+                        estos botones actuan siempre sobre la cuenta de quien esta logueado,
+                        nunca sobre el canal delegado que se esta gestionando. */}
+                    {userInfo.isOwner && (
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
                         <div className="flex items-center gap-2 mb-6">
                             <Link2 className="w-6 h-6 text-[#2563eb]" />
@@ -384,9 +571,9 @@ export default function Settings() {
                                     </div>
                                     <div>
                                         <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Twitch</div>
-                                        {(authProvider === 'twitch' || authProvider === 'both') ? (
+                                        {(authProvider === 'twitch' || authProvider === 'both' || (authProvider === 'kick' && linkedTwitch)) ? (
                                             <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-                                                <CheckCircle className="w-3.5 h-3.5" /> Vinculado
+                                                <CheckCircle className="w-3.5 h-3.5" /> Vinculado{linkedTwitch?.twitchLogin ? ` (${linkedTwitch.twitchLogin})` : ''}
                                             </div>
                                         ) : (
                                             <div className="text-sm text-[#94a3b8]">No vinculado</div>
@@ -404,6 +591,36 @@ export default function Settings() {
                                         className="px-4 py-2 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
                                     >
                                         Vincular
+                                    </button>
+                                )}
+                                {authProvider === 'kick' && !linkedTwitch && (
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                // link-account-start, no link-twitch-start: no fusiona
+                                                // filas, Kick conserva su propia config.
+                                                const res = await api.post('/auth/link-account-start');
+                                                if (res.data.url) window.location.href = res.data.url;
+                                            } catch { addToast('Error al iniciar vinculacion', 'error'); }
+                                        }}
+                                        className="px-4 py-2 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
+                                    >
+                                        Vincular
+                                    </button>
+                                )}
+                                {authProvider === 'kick' && linkedTwitch && (
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('¿Desvincular Twitch? El canal sigue existiendo, solo deja de estar agrupado con esta cuenta.')) return;
+                                            try {
+                                                await api.post('/auth/unlink-account');
+                                                addToast('Twitch desvinculado', 'success');
+                                                loadAccountChannels();
+                                            } catch { addToast('Error al desvincular', 'error'); }
+                                        }}
+                                        className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
+                                    >
+                                        Desvincular
                                     </button>
                                 )}
                                 {authProvider === 'both' && jwtClaims.AuthProvider === 'discord' && (
@@ -479,6 +696,54 @@ export default function Settings() {
                                     </button>
                                 )}
                             </div>
+                            {/* Kick — no fusiona filas, cada canal mantiene su propia config */}
+                            {authProvider !== 'kick' && (
+                                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-[#53fc18] flex items-center justify-center font-display font-extrabold text-black">
+                                            K
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Kick</div>
+                                            {linkedKick ? (
+                                                <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                                                    <CheckCircle className="w-3.5 h-3.5" /> Vinculado{linkedKick.kickUsername ? ` (${linkedKick.kickUsername})` : ''}
+                                                </div>
+                                            ) : (
+                                                <div className="text-sm text-[#94a3b8]">No vinculado</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {!linkedKick && (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await api.post('/auth/kick/link-start');
+                                                    if (res.data.url) window.location.href = res.data.url;
+                                                } catch { addToast('Error al iniciar vinculacion', 'error'); }
+                                            }}
+                                            className="px-4 py-2 bg-[#53fc18] hover:bg-[#3ecc0a] text-black text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
+                                        >
+                                            Vincular Kick
+                                        </button>
+                                    )}
+                                    {linkedKick && (
+                                        <button
+                                            onClick={async () => {
+                                                if (!confirm('¿Desvincular Kick? El canal sigue existiendo, solo deja de estar agrupado con esta cuenta.')) return;
+                                                try {
+                                                    await api.post('/auth/kick/unlink');
+                                                    addToast('Kick desvinculado', 'success');
+                                                    loadAccountChannels();
+                                                } catch { addToast('Error al desvincular', 'error'); }
+                                            }}
+                                            className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
+                                        >
+                                            Desvincular
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         {authProvider === 'both' && (
                             <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
@@ -488,6 +753,7 @@ export default function Settings() {
                             </div>
                         )}
                     </div>
+                    )}
 
                     {/* Configuración General — Estado del Bot */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
@@ -598,10 +864,15 @@ export default function Settings() {
 
                         {/* Usuarios con Acceso */}
                         <div>
-                            <div className="flex items-center gap-2 text-[#2563eb] font-bold mb-3">
+                            <div className="flex items-center gap-2 text-[#2563eb] font-bold mb-1">
                                 <Users className="w-5 h-5" />
                                 {t('settings:accessManagement.usersWithAccess')}
                             </div>
+                            {isAccessOwner && (
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3">
+                                    {t('settings:accessManagement.hiddenHint')}
+                                </p>
+                            )}
                             {channelUsers.length === 0 ? (
                                 <div className="text-center text-[#64748b] dark:text-[#94a3b8] py-8 text-sm">
                                     {t('settings:accessManagement.noUsers')}
@@ -620,23 +891,53 @@ export default function Settings() {
                                         </thead>
                                         <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
                                             {channelUsers.map((user) => (
-                                                <tr key={user.id} className="bg-white dark:bg-[#1B1C1D] hover:bg-slate-50 dark:hover:bg-[#222324] transition-colors">
-                                                    <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">{user.displayName}</td>
-                                                    <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">@{user.username}</td>
+                                                <tr key={user.id} className={`bg-white dark:bg-[#1B1C1D] hover:bg-slate-50 dark:hover:bg-[#222324] transition-colors ${user.isHidden ? 'opacity-60' : ''}`}>
+                                                    <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{user.displayName}</span>
+                                                            {user.isHidden && (
+                                                                <span title={t('settings:accessManagement.hiddenBadge')} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                                                    <EyeOff className="w-3 h-3" />
+                                                                    {t('settings:accessManagement.hiddenBadge')}
+                                                                </span>
+                                                            )}
+                                                            {user.isSelf && (
+                                                                <span className="text-[10px] font-bold uppercase text-[#2563eb]">{t('settings:accessManagement.youBadge')}</span>
+                                                            )}
+                                                        </div>
+                                                        {user.alias && (
+                                                            <div className="text-xs text-[#64748b] dark:text-[#94a3b8] font-normal">
+                                                                {t('settings:accessManagement.aliasLabel')}: {user.alias}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{user.isAliased ? '—' : `@${user.username}`}</td>
                                                     <td className="px-4 py-3">
                                                         <span className={`px-2 py-1 rounded text-xs font-bold text-white ${user.accessLevel === 'control_total' ? 'bg-purple-600' : user.accessLevel === 'moderation' ? 'bg-[#2563eb]' : 'bg-gray-500'}`}>
                                                             {user.permissionLabel.toUpperCase()}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{user.grantedBy}</td>
+                                                    <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{user.grantedBy === '__owner__' ? t('settings:accessManagement.owner') : user.grantedBy}</td>
                                                     <td className="px-4 py-3 text-center">
-                                                        <button
-                                                            onClick={() => removeUser(user.id)} // --- CAMBIO (REQUEST 3) ---
-                                                            disabled={loading}
-                                                            className="p-1 hover:bg-red-600 rounded text-red-500 hover:text-white transition-all disabled:opacity-50"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
+                                                        <div className="inline-flex items-center gap-1">
+                                                            {isAccessOwner && (
+                                                                <button
+                                                                    onClick={() => openEditAccess(user)}
+                                                                    disabled={loading}
+                                                                    title={t('settings:accessManagement.editAccess')}
+                                                                    className="p-1 hover:bg-[#2563eb] rounded text-[#2563eb] hover:text-white transition-all disabled:opacity-50"
+                                                                >
+                                                                    <Pencil className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                onClick={() => removeUser(user.id)} // --- CAMBIO (REQUEST 3) ---
+                                                                disabled={loading}
+                                                                className="p-1 hover:bg-red-600 rounded text-red-500 hover:text-white transition-all disabled:opacity-50"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -653,6 +954,8 @@ export default function Settings() {
                         <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">{t('settings:integrations.title')}</h2>
                         <div className="space-y-3">
                             <DiscordIntegration />
+                            <DesktopAppSettings />
+                            <RiotAccountsSettings />
                             <IntegrationCard icon={<Music className="w-6 h-6" />} name={t("settings:integrations.spotify")} status={t("settings:integrations.comingSoon")} color="bg-green-600" />
                             <IntegrationCard icon={<Gamepad2 className="w-6 h-6" />} name={t("settings:integrations.steam")} status={t("settings:integrations.comingSoon")} color="bg-blue-600" />
                             <IntegrationCard icon={<Youtube className="w-6 h-6" />} name={t("settings:integrations.youtube")} status={t("settings:integrations.comingSoon")} color="bg-red-600" />
@@ -696,6 +999,34 @@ export default function Settings() {
                                     <option value="control_total">{t('settings:accessManagement.addUserModal.permissionControlTotal')}</option>
                                 </select>
                             </div>
+                            {isAccessOwner && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('settings:accessManagement.aliasLabel')}</label>
+                                        <input
+                                            type="text"
+                                            maxLength={30}
+                                            value={newAlias}
+                                            onChange={(e) => setNewAlias(e.target.value)}
+                                            placeholder={t("settings:accessManagement.aliasPlaceholder")}
+                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-[#222324] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-[#2563eb] dark:focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                        />
+                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('settings:accessManagement.aliasHelp')}</p>
+                                    </div>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={newIsHidden}
+                                            onChange={(e) => setNewIsHidden(e.target.checked)}
+                                            className="mt-1 w-4 h-4 accent-[#2563eb]"
+                                        />
+                                        <span>
+                                            <span className="block text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('settings:accessManagement.hiddenLabel')}</span>
+                                            <span className="block text-xs text-[#64748b] dark:text-[#94a3b8]">{t('settings:accessManagement.hiddenHelp')}</span>
+                                        </span>
+                                    </label>
+                                </>
+                            )}
                             <div className="flex gap-3 pt-4">
                                 <button
                                     onClick={() => setShowAddUserModal(false)}
@@ -709,6 +1040,80 @@ export default function Settings() {
                                     className="flex-1 px-4 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {loading ? t("settings:accessManagement.addUserModal.adding") : t('settings:accessManagement.addUserModal.add')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Editar Acceso — solo el dueño (nivel, alias, oculto) */}
+            {editAccess && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 max-w-md w-full border border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('settings:accessManagement.editUserModal.title')}</h3>
+                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{editAccess.displayName}</p>
+                            </div>
+                            <button onClick={() => setEditAccess(null)} className="text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('settings:accessManagement.addUserModal.permissionLabel')}</label>
+                                <select
+                                    value={editAccess.permissionLevel}
+                                    onChange={(e) => setEditAccess({ ...editAccess, permissionLevel: e.target.value })}
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#222324] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white focus:border-[#2563eb] dark:focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                >
+                                    <option value="commands">{t('settings:accessManagement.addUserModal.permissionCommands')}</option>
+                                    <option value="moderation">{t('settings:accessManagement.addUserModal.permissionModeration')}</option>
+                                    <option value="control_total">{t('settings:accessManagement.addUserModal.permissionControlTotal')}</option>
+                                </select>
+                            </div>
+                            {isAccessOwner && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('settings:accessManagement.aliasLabel')}</label>
+                                        <input
+                                            type="text"
+                                            maxLength={30}
+                                            value={editAccess.alias}
+                                            onChange={(e) => setEditAccess({ ...editAccess, alias: e.target.value })}
+                                            placeholder={t("settings:accessManagement.aliasPlaceholder")}
+                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-[#222324] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-[#2563eb] dark:focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                        />
+                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{t('settings:accessManagement.aliasHelp')}</p>
+                                    </div>
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={editAccess.isHidden}
+                                            onChange={(e) => setEditAccess({ ...editAccess, isHidden: e.target.checked })}
+                                            className="mt-1 w-4 h-4 accent-[#2563eb]"
+                                        />
+                                        <span>
+                                            <span className="block text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('settings:accessManagement.hiddenLabel')}</span>
+                                            <span className="block text-xs text-[#64748b] dark:text-[#94a3b8]">{t('settings:accessManagement.hiddenHelp')}</span>
+                                        </span>
+                                    </label>
+                                </>
+                            )}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setEditAccess(null)}
+                                    className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-[#1e293b] dark:text-white font-bold rounded-lg transition-all"
+                                >
+                                    {t('settings:accessManagement.addUserModal.cancel')}
+                                </button>
+                                <button
+                                    onClick={saveEditAccess}
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {loading ? t("settings:accessManagement.editUserModal.saving") : t('settings:accessManagement.editUserModal.save')}
                                 </button>
                             </div>
                         </div>
@@ -954,8 +1359,6 @@ function DiscordIntegration() {
                     <MessageSquare className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                            <DesktopAppSettings />
-                            <RiotAccountsSettings />
                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Discord</div>
                     <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
                         {loading ? 'Cargando...' : linkedGuilds.length > 0 ? `${linkedGuilds.length} servidor${linkedGuilds.length > 1 ? 'es' : ''} vinculado${linkedGuilds.length > 1 ? 's' : ''}` : 'No vinculado'}

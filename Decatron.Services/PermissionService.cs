@@ -49,7 +49,8 @@ namespace Decatron.Services
             { "loyalty", "moderation" },
             { "chatfilters", "moderation" },
             { "user_management", "control_total" },
-            { "settings", "control_total" }
+            { "settings", "control_total" },
+            { "spirits", "control_total" }
         };
 
         public PermissionService(DecatronDbContext dbContext, ILogger<PermissionService> logger)
@@ -101,7 +102,9 @@ namespace Decatron.Services
                     return "control_total";
                 }
 
-                // Buscar permisos otorgados
+                // Buscar permisos otorgados. Un permiso es específico de la fila/plataforma
+                // a la que se le otorgó (Twitch y Kick se ven como accesos separados), a
+                // diferencia del caso de dueño arriba, que sí es la misma persona.
                 var permission = await _dbContext.UserChannelPermissions
                     .Where(p => p.GrantedUserId == userId &&
                                p.ChannelOwnerId == channelOwnerId &&
@@ -149,7 +152,24 @@ namespace Decatron.Services
         /// </summary>
         public async Task<bool> IsChannelOwnerAsync(long userId, long channelOwnerId)
         {
-            return userId == channelOwnerId;
+            if (userId == channelOwnerId)
+                return true;
+
+            // Un canal propio vinculado por cuenta (Twitch <-> Kick) da control total,
+            // no un nivel de acceso delegado — es la misma persona, no un moderador.
+            // Bug real encontrado el 6 ago 2026: el switch a "tus canales" en Settings
+            // cambiaba el canal activo pero esto seguia diciendo "no sos el dueño" y
+            // bloqueaba todo con "Acceso Denegado". Ver
+            // .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md seccion 8.13.
+            var accountIds = await _dbContext.Users
+                .Where(u => u.Id == userId || u.Id == channelOwnerId)
+                .Select(u => new { u.Id, u.AccountId })
+                .ToListAsync();
+
+            var myAccount = accountIds.FirstOrDefault(u => u.Id == userId)?.AccountId;
+            var targetAccount = accountIds.FirstOrDefault(u => u.Id == channelOwnerId)?.AccountId;
+
+            return myAccount != null && myAccount == targetAccount;
         }
 
         /// <summary>

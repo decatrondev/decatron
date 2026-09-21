@@ -277,9 +277,16 @@ public class DiscordAuthController : ControllerBase
 
                 if (user == null)
                 {
+                    var newAccount = new Account { CreatedAt = DateTime.UtcNow };
+                    _db.Accounts.Add(newAccount);
+                    await _db.SaveChangesAsync();
+
                     user = new User
                     {
-                        TwitchId = "",
+                        AccountId = newAccount.Id,
+                        // NULL, no "" — ver el mismo fix en KickAuthController.cs (6 ago 2026):
+                        // "" es un valor real y choca con la primera fila que use "", NULL no.
+                        TwitchId = null!,
                         Login = $"discord_{discordId}",
                         DisplayName = globalName ?? username,
                         Email = email ?? "",
