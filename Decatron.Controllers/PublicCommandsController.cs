@@ -60,8 +60,8 @@ namespace Decatron.Controllers
             {
                 var channelOwnerId = GetChannelOwnerId();
                 var items = await BuildCommandListAsync(channelOwnerId, applyHiddenFilter: false);
-                var channelLogin = await ChannelResolver.ResolveLoginAsync(_dbContext, channelOwnerId);
-                return Ok(new { success = true, items, channel = channelLogin });
+                var channelInfo = await ChannelResolver.ResolveChannelInfoByIdAsync(_dbContext, channelOwnerId);
+                return Ok(new { success = true, items, channel = channelInfo?.Login });
             }
             catch (Exception ex)
             {

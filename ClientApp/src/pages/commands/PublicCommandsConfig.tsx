@@ -82,7 +82,7 @@ export default function PublicCommandsConfig() {
         setPages(prev => ({ ...prev, [category]: page }));
     };
 
-    const publicUrl = `twitch.decatron.net/commands/${channelLogin || '...'}`;
+    const publicUrl = `${window.location.host}/commands/${channelLogin || '...'}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(`https://${publicUrl}`);

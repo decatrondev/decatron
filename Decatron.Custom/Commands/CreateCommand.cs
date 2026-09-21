@@ -48,11 +48,11 @@ namespace Decatron.Custom.Commands
         {
             try
             {
-                var lang = await _context.Users
-                    .Where(u => u.Login == channel.ToLower())
-                    .Select(u => u.PreferredLanguage)
-                    .FirstOrDefaultAsync();
-                return lang ?? "es";
+                // Buscar solo por Login (Twitch) hacia que esto siempre cayera al
+                // default "es" para canales de Kick, en vez del idioma real del
+                // streamer. ChannelResolver resuelve por las dos plataformas.
+                var info = await ChannelResolver.ResolveChannelInfoAsync(_context, channel);
+                return info?.PreferredLanguage ?? "es";
             }
             catch { return "es"; }
         }
@@ -125,24 +125,40 @@ namespace Decatron.Custom.Commands
                     return;
                 }
 
-                var broadcasterId = await Utils.GetBroadcasterIdFromDatabaseAsync(_configuration, channel.ToLower());
-                if (broadcasterId == null)
+                // Utils.GetBroadcasterIdFromDatabaseAsync busca "twitch_id" por
+                // "login" via SQL crudo — nunca iba a resolver un canal de Kick
+                // (channel llega como el kick_id numerico, no un login de Twitch).
+                // ResolveUserIdAsync tampoco alcanza (solo matchea por Login de
+                // Twitch); hace falta ResolveChannelInfoAsync, que es el que tiene
+                // el fallback a KickId. De paso: el numero real que espera
+                // ScriptCommand.user_id es el Id interno de Users, no el TwitchId
+                // — usar ChannelResolver ahi tambien corrige eso para Twitch via
+                // chat, no solo habilita Kick (la UI de Scripting ya lo hacia bien;
+                // este camino de "!crear" por chat era el que estaba desalineado).
+                var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(_context, channel);
+                var channelUserId = channelInfo?.UserId;
+                if (channelUserId == null)
                 {
                     await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("crear", "no_broadcaster_id", lang));
                     return;
                 }
 
-
                 // Detectar si es un script o comando normal
                 bool isScript = IsScriptContent(response);
 
+                // Solo para mensajes al chat — el nombre legible, no el kick_id
+                // numerico ni el placeholder "kick_<id>". El resto de la funcion
+                // sigue usando "channel" (el raw) para enrutar y para el campo
+                // ChannelName de la fila, que no es lo que se le muestra al usuario.
+                var displayChannelName = channelInfo?.DisplayName ?? channel;
+
                 if (isScript)
                 {
-                    await CreateScriptedCommand(commandName, response, channel, Convert.ToInt64(broadcasterId), restriction, isActive, username, messageSender, lang);
+                    await CreateScriptedCommand(commandName, response, channel, displayChannelName, channelUserId.Value, restriction, isActive, username, messageSender, lang);
                 }
                 else
                 {
-                    await CreateNormalCommand(commandName, response, channel, broadcasterId, restriction, isActive, username, messageSender, lang);
+                    await CreateNormalCommand(commandName, response, channel, displayChannelName, channelUserId.Value, restriction, isActive, username, messageSender, lang);
                 }
             }
             catch (Exception ex)
@@ -200,11 +216,11 @@ namespace Decatron.Custom.Commands
         }
 
         // Crear comando con script - SOLO en scripted_commands
-        private async Task CreateScriptedCommand(string commandName, string response, string channelName, long broadcasterId, string restriction, bool isActive, string createdBy, IMessageSender messageSender, string lang)
+        private async Task CreateScriptedCommand(string commandName, string response, string channelName, string displayChannelName, long channelUserId, string restriction, bool isActive, string createdBy, IMessageSender messageSender, string lang)
         {
             try
             {
-                if (await CommandExists(commandName, channelName))
+                if (await CommandExists(commandName, channelUserId))
                 {
                     await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "already_exists", lang, commandName));
                     return;
@@ -214,9 +230,9 @@ namespace Decatron.Custom.Commands
 
                 try
                 {
-                    await _scriptingService.CreateScriptedCommandAsync(channelName, commandName, formattedScript, broadcasterId);
+                    await _scriptingService.CreateScriptedCommandAsync(channelName, commandName, formattedScript, channelUserId);
                     var statusText = _messagesService.GetMessage("crear", isActive ? "active" : "inactive", lang);
-                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "script_created", lang, commandName, channelName, restriction, statusText));
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "script_created", lang, commandName, displayChannelName, restriction, statusText));
                 }
                 catch (ScriptParseException ex)
                 {
@@ -230,26 +246,25 @@ namespace Decatron.Custom.Commands
         }
 
         // Crear comando normal - SOLO en custom_commands
-        private async Task CreateNormalCommand(string commandName, string response, string channelName, string broadcasterId, string restriction, bool isActive, string createdBy, IMessageSender messageSender, string lang)
+        private async Task CreateNormalCommand(string commandName, string response, string channelName, string displayChannelName, long channelUserId, string restriction, bool isActive, string createdBy, IMessageSender messageSender, string lang)
         {
             try
             {
-                if (await CommandExists(commandName, channelName))
+                if (await CommandExists(commandName, channelUserId))
                 {
                     await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "already_exists", lang, commandName));
                     return;
                 }
 
-                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channelName);
-                if (channelUserId == null)
-                {
-                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "error", lang, commandName));
-                    return;
-                }
+                // channelUserId ya viene resuelto de ExecuteAsync (via ChannelResolver,
+                // que si sabe encontrar canales de Kick) — antes esta funcion lo volvia
+                // a resolver con ChannelResolver.ResolveUserIdAsync, que SOLO matchea por
+                // Login de Twitch. Esa segunda resolucion redundante era la que fallaba
+                // en Kick y mandaba "[Missing: crear.error.es]" al chat.
                 var customCommand = new CustomCommand
                 {
                     ChannelName = channelName,
-                    UserId = channelUserId.Value,
+                    UserId = channelUserId,
                     CommandName = commandName,
                     Response = response,
                     Restriction = restriction,
@@ -266,7 +281,7 @@ namespace Decatron.Custom.Commands
                 if (success)
                 {
                     var statusText = _messagesService.GetMessage("crear", isActive ? "active" : "inactive", lang);
-                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "command_created", lang, commandName, channelName, restriction, statusText));
+                    await messageSender.SendMessageAsync(channelName, _messagesService.GetMessage("crear", "command_created", lang, commandName, displayChannelName, restriction, statusText));
                 }
                 else
                 {
@@ -280,14 +295,21 @@ namespace Decatron.Custom.Commands
         }
 
         // Verificar si comando existe
-        private async Task<bool> CommandExists(string commandName, string channelName)
+        private async Task<bool> CommandExists(string commandName, long channelUserId)
         {
             try
             {
-                var normalCommand = await UtilsCrear.GetCustomCommand(_context, commandName, channelName.ToLower());
-                if (normalCommand != null) return true;
+                // UtilsCrear.GetCustomCommand compara por ChannelName (string) —
+                // mismo bug que ya se arreglo en el resto del pipeline de Kick.
+                // Se consulta directo por UserId en vez de tocar ese helper
+                // compartido (lo usa tambien CustomCommandsController, sin
+                // relacion con este bug).
+                var normalCommandExists = await _context.CustomCommands
+                    .AnyAsync(c => c.CommandName == commandName.ToLower() && c.UserId == channelUserId);
+                if (normalCommandExists) return true;
 
-                bool scriptExists = await _scriptingService.IsScriptedCommandAsync(channelName, commandName);
+                bool scriptExists = await _context.ScriptedCommands
+                    .AnyAsync(c => c.CommandName == commandName.ToLower() && c.UserId == channelUserId && c.IsActive);
                 return scriptExists;
             }
             catch (Exception ex)

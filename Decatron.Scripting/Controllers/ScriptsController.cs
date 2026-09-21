@@ -109,8 +109,14 @@ namespace Decatron.Scripting.Controllers
 
                 var (channelOwnerId, channelName) = channelContext.Value;
 
+                // channelOwnerId ya es agnostico de plataforma (viene de sesion/JWT/
+                // propio usuario, nunca de un string de canal) — comparar por ahi en
+                // vez de por ChannelName evita el mismo bug que ya aparecio en
+                // Custom Commands y Scripting en tiempo real: para Kick, ChannelName
+                // se guarda como el placeholder "kick_<id>" de Users.Login, que no es
+                // ninguna de las dos formas que usa el motor de chat.
                 var scripts = await _context.ScriptedCommands
-                    .Where(c => c.ChannelName == channelName)
+                    .Where(c => c.UserId == channelOwnerId)
                     .OrderBy(c => c.CommandName)
                     .Select(c => new
                     {
@@ -150,7 +156,7 @@ namespace Decatron.Scripting.Controllers
                 var (channelOwnerId, channelName) = channelContext.Value;
 
                 var script = await _context.ScriptedCommands
-                    .Where(c => c.Id == id && c.ChannelName == channelName)
+                    .Where(c => c.Id == id && c.UserId == channelOwnerId)
                     .FirstOrDefaultAsync();
 
                 if (script == null)
@@ -305,7 +311,7 @@ namespace Decatron.Scripting.Controllers
 
                 // Verificar si el comando ya existe
                 var exists = await _context.ScriptedCommands
-                    .AnyAsync(c => c.ChannelName == channelName && c.CommandName == commandName);
+                    .AnyAsync(c => c.UserId == channelOwnerId && c.CommandName == commandName);
 
                 if (exists)
                 {
@@ -315,19 +321,29 @@ namespace Decatron.Scripting.Controllers
                     });
                 }
 
-                // Crear el script usando el servicio
+                // Crear el script usando el servicio.
+                //
+                // BUG REAL ENCONTRADO EL 6 AGO 2026, no relacionado con Kick: se
+                // pasaba "userId" (quien esta logueado) en vez de "channelOwnerId"
+                // (el canal que se esta gestionando). Coincide la mayoria de las
+                // veces (un streamer gestionando su propio canal), pero no cuando
+                // alguien con permisos delegados o el selector de canal crea un
+                // script para OTRO canal — ahi el script quedaba guardado a nombre
+                // de quien lo creo, no del dueño real. Verificado en produccion:
+                // 10 de 20 filas de scripted_commands tenian el UserId de otro
+                // canal. Corregidas con backup previo (ver .dev, no en el repo).
                 var success = await _scriptingService.CreateScriptedCommandAsync(
                     channelName,
                     commandName,
                     dto.ScriptContent,
-                    userId
+                    channelOwnerId
                 );
 
                 if (success)
                 {
                     // Obtener el script recién creado para devolverlo
                     var createdScript = await _context.ScriptedCommands
-                        .Where(c => c.ChannelName == channelName && c.CommandName == commandName)
+                        .Where(c => c.UserId == channelOwnerId && c.CommandName == commandName)
                         .FirstOrDefaultAsync();
 
                     if (createdScript == null)
@@ -397,7 +413,7 @@ namespace Decatron.Scripting.Controllers
 
                 // Obtener el script existente
                 var existingScript = await _context.ScriptedCommands
-                    .Where(c => c.Id == id && c.ChannelName == channelName)
+                    .Where(c => c.Id == id && c.UserId == channelOwnerId)
                     .FirstOrDefaultAsync();
 
                 if (existingScript == null)
@@ -481,7 +497,7 @@ namespace Decatron.Scripting.Controllers
 
                 // Obtener el script
                 var script = await _context.ScriptedCommands
-                    .Where(c => c.Id == id && c.ChannelName == channelName)
+                    .Where(c => c.Id == id && c.UserId == channelOwnerId)
                     .FirstOrDefaultAsync();
 
                 if (script == null)

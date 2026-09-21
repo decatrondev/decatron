@@ -160,7 +160,7 @@ export default function PublicCommandsPage() {
 
                 <div className="mt-16 pt-6 border-t border-[#27272a] text-xs text-[#3f3f46] flex items-center justify-between flex-wrap gap-2">
                     <span>generado por decatron bot</span>
-                    <span className="text-[#39ff14]/60">twitch.decatron.net</span>
+                    <span className="text-[#39ff14]/60">{window.location.host}</span>
                 </div>
             </div>
 

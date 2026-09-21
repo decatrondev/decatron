@@ -50,8 +50,13 @@ namespace Decatron.Scripting.Services
                 var normalizedChannel = channelName.ToLower();
                 var normalizedCommand = commandName.ToLower();
 
+                // Comparar por ChannelName (string) tiene el mismo problema que ya
+                // se arreglo en el resto del pipeline de Kick: el valor guardado y
+                // el que llega en cada llamada no siempre coinciden entre
+                // plataformas. UserId es estable sin importar de donde vino la
+                // llamada.
                 var existing = await dbContext.ScriptedCommands
-                    .FirstOrDefaultAsync(c => c.ChannelName == normalizedChannel && c.CommandName == normalizedCommand);
+                    .FirstOrDefaultAsync(c => c.UserId == userId && c.CommandName == normalizedCommand);
 
                 if (existing != null)
                 {
@@ -250,8 +255,18 @@ namespace Decatron.Scripting.Services
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
+            // Mismo bug que ya se arreglo en CustomCommands (CommandService.cs,
+            // 6 ago 2026): comparar ChannelName como string crudo nunca matcheaba
+            // para Kick, porque "channelName" llega como kick_id numerico. Se
+            // resuelve el canal real y se compara por UserId (columna que ya
+            // existe en scripted_commands, poblada desde siempre con el Id interno
+            // de Users) en vez de perseguir la convencion de texto correcta.
+            var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(dbContext, channelName);
+            if (channelInfo == null)
+                return null;
+
             return await dbContext.ScriptedCommands
-                .FirstOrDefaultAsync(c => c.ChannelName == channelName.ToLower() && c.CommandName == commandName.ToLower());
+                .FirstOrDefaultAsync(c => c.UserId == channelInfo.UserId && c.CommandName == commandName.ToLower());
         }
 
 
@@ -269,9 +284,25 @@ namespace Decatron.Scripting.Services
                 ExecutingUser = executingUser
             };
 
+            // $(channel) debe mostrar el nombre legible, no el kick_id numerico
+            // crudo que llega para canales de Kick — mismo mecanismo que ya se
+            // uso en CreateCommand.cs para el mensaje de "!crear".
+            string displayChannelName = channelName;
+            try
+            {
+                using var channelScope = _serviceProvider.CreateScope();
+                var channelDb = channelScope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(channelDb, channelName);
+                displayChannelName = channelInfo?.DisplayName ?? channelName;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("No se pudo resolver el nombre del canal para $(channel): {Error}", ex.Message);
+            }
+
             // Variables síncronas — siempre disponibles, instantáneas
             context.BuiltinVariables["user"] = executingUser;
-            context.BuiltinVariables["channel"] = channelName;
+            context.BuiltinVariables["channel"] = displayChannelName;
             context.BuiltinVariables["touser"] = ExtractMentionedUser(commandArgs) ?? executingUser;
 
             // Solo resolver variables dinámicas (API calls) si el script las usa
