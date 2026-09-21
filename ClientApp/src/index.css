@@ -35,6 +35,24 @@
     animation: fade-in-right 0.8s ease-out 0.4s both;
 }
 
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-marquee {
+    animation: marquee-scroll 40s linear infinite;
+}
+
+.animate-marquee:hover {
+    animation-play-state: paused;
+}
+
 /* Dark mode class */
 body.dark-mode {
     @apply bg-gray-900 text-gray-100;
@@ -136,6 +154,198 @@ body.dark-mode {
     to {
         opacity: 1;
         transform: translateX(-50%) rotate(0) scale(1);
+    }
+}
+
+/* ============================================================================
+   TCG — APERTURA DE SOBRES
+   ============================================================================ */
+
+/* ── Sobre en reposo: flota esperando el click ────────────────────────────── */
+
+@keyframes tcg-pack-float {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+.tcg-pack-float {
+    animation: tcg-pack-float 3.5s ease-in-out infinite;
+}
+
+@keyframes tcg-pack-breathe {
+    0%, 100% { opacity: 0.25; transform: scale(0.95); }
+    50% { opacity: 0.45; transform: scale(1.05); }
+}
+
+.tcg-pack-breathe {
+    animation: tcg-pack-breathe 3.5s ease-in-out infinite;
+}
+
+/* ── Apertura: sacudida que acelera, despues estalla ──────────────────────── */
+
+@keyframes tcg-pack-shake {
+    0% { transform: translateX(0) rotate(0); }
+    10% { transform: translateX(-3px) rotate(-1deg); }
+    20% { transform: translateX(3px) rotate(1deg); }
+    30% { transform: translateX(-5px) rotate(-2deg); }
+    40% { transform: translateX(5px) rotate(2deg); }
+    50% { transform: translateX(-8px) rotate(-3deg); }
+    60% { transform: translateX(8px) rotate(3deg); }
+    70% { transform: translateX(-10px) rotate(-4deg); }
+    80% { transform: translateX(10px) rotate(4deg); }
+    90% { transform: translateX(-6px) rotate(-2deg) scale(1.06); }
+    100% { transform: translateX(0) rotate(0) scale(1.12); }
+}
+
+.tcg-pack-shake {
+    animation: tcg-pack-shake 0.85s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+}
+
+/* El glow sube junto con la sacudida — anticipa el estallido en vez de que
+   aparezca de la nada. */
+@keyframes tcg-pack-charge {
+    0% { opacity: 0.2; transform: scale(0.85); }
+    100% { opacity: 0.75; transform: scale(1.25); }
+}
+
+.tcg-pack-charge {
+    animation: tcg-pack-charge 0.85s ease-in forwards;
+}
+
+/* Resplandor del estallido — degrade que se abre y desvanece. Nunca un relleno
+   opaco: eso es lo que se leia como "circulo blanco" y parecia un bug. */
+@keyframes tcg-pack-glow {
+    0% { opacity: 0; transform: scale(0.5); }
+    30% { opacity: 0.85; transform: scale(1.3); }
+    100% { opacity: 0; transform: scale(2.2); }
+}
+
+.tcg-pack-glow {
+    animation: tcg-pack-glow 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Rayos de luz girando detras del sobre. */
+@keyframes tcg-pack-rays {
+    0% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    35% { opacity: 0.5; }
+    100% { opacity: 0; transform: scale(2.1) rotate(80deg); }
+}
+
+.tcg-pack-rays {
+    animation: tcg-pack-rays 1.2s ease-out forwards;
+}
+
+/* Chispas disparadas desde el centro, cada una con su angulo y demora. */
+@keyframes tcg-pack-sparkle {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+    25% { opacity: 1; }
+    100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.2);
+    }
+}
+
+.tcg-pack-sparkle {
+    animation: tcg-pack-sparkle 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tcg-pack-vanish {
+    0% { opacity: 1; transform: scale(1.12); }
+    100% { opacity: 0; transform: scale(1.5); }
+}
+
+.tcg-pack-vanish {
+    animation: tcg-pack-vanish 0.5s ease-out forwards;
+}
+
+/* ── Revelado de carta: gira desde el dorso ───────────────────────────────── */
+
+.tcg-flip-scene {
+    perspective: 1400px;
+}
+
+.tcg-flip-inner {
+    position: relative;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Entra de canto (casi 90°, invisible) y gira hasta quedar de frente: el giro ES
+   el momento de revelar, no un fade. No arranca en 180° a proposito — pasar por
+   el reverso mostraria la cara espejada, con el nombre al reves. */
+@keyframes tcg-card-flip-in {
+    0% { transform: rotateY(-92deg) scale(0.8); opacity: 0; }
+    18% { opacity: 1; }
+    70% { transform: rotateY(6deg) scale(1.05); }
+    100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+}
+
+.tcg-card-flip-in {
+    animation: tcg-card-flip-in 0.7s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+/* Destello que recorre la carta al terminar de girar — el "foil" del holograma. */
+@keyframes tcg-card-shine {
+    0% { opacity: 0; transform: translateX(-120%) skewX(-20deg); }
+    35% { opacity: 0.65; }
+    100% { opacity: 0; transform: translateX(220%) skewX(-20deg); }
+}
+
+.tcg-card-shine {
+    animation: tcg-card-shine 1s ease-out 0.45s both;
+}
+
+/* Halo detras de la carta, mas fuerte cuanto mas rara (se modula con --halo). */
+@keyframes tcg-card-halo {
+    0% { opacity: 0; transform: scale(0.7); }
+    50% { opacity: var(--halo, 0.4); transform: scale(1.1); }
+    100% { opacity: calc(var(--halo, 0.4) * 0.55); transform: scale(1); }
+}
+
+.tcg-card-halo {
+    animation: tcg-card-halo 0.9s ease-out 0.3s both;
+}
+
+/* ── Carrusel coverflow ───────────────────────────────────────────────────── */
+
+.tcg-coverflow {
+    perspective: 1600px;
+}
+
+/* Cada carta se posiciona por transform desde JS (distancia al centro). La
+   transicion se desactiva mientras se arrastra para que siga al dedo 1:1. */
+.tcg-coverflow-item {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.45s ease,
+                filter 0.45s ease;
+    will-change: transform, opacity, filter;
+}
+
+.tcg-coverflow-dragging .tcg-coverflow-item {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tcg-pack-float,
+    .tcg-pack-breathe,
+    .tcg-pack-shake,
+    .tcg-pack-charge,
+    .tcg-pack-glow,
+    .tcg-pack-rays,
+    .tcg-pack-sparkle,
+    .tcg-card-flip-in,
+    .tcg-card-shine,
+    .tcg-card-halo {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .tcg-coverflow-item {
+        transition: none;
     }
 }
 

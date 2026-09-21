@@ -222,7 +222,7 @@ namespace Decatron.Services
                 UserId       = userId,
                 Amount       = amount,
                 BalanceAfter = uc.Balance,
-                Type         = "admin_give",
+                Type         = "admin_gift",
                 Description  = description,
                 RelatedUserId = adminUserId,
                 CreatedAt    = DateTime.UtcNow,
@@ -253,6 +253,58 @@ namespace Decatron.Services
             await _db.SaveChangesAsync();
             _logger.LogInformation("Admin removed {Amount} coins from user {UserId} (by admin {AdminId})",
                 amount, userId, adminUserId);
+        }
+
+        // ─── Spend (consumidores internos: sobres/upgrades del TCG, futuros gastos) ─
+
+        /// <summary>
+        /// Descuenta coins del balance de un usuario para un consumo interno (ej. abrir
+        /// un sobre o pagar un upgrade del TCG). Atomico: valida economia y balance
+        /// suficiente antes de restar, todo dentro de una transaccion — si algo falla
+        /// a mitad de camino no queda un balance descontado sin su transaccion logueada.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Balance insuficiente o economia suspendida.</exception>
+        public async Task<UserCoins> SpendCoinsAsync(long userId, int amount, string type, string description)
+        {
+            if (amount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "El monto a gastar debe ser positivo");
+
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                var uc = await GetOrCreateBalanceAsync(userId);
+
+                if (uc.EconomyStatus == "banned_economy")
+                    throw new InvalidOperationException("Tu cuenta de economia esta suspendida");
+
+                if (uc.Balance < amount)
+                    throw new InvalidOperationException("Balance insuficiente");
+
+                uc.Balance    -= amount;
+                uc.TotalSpent += amount;
+                uc.UpdatedAt   = DateTime.UtcNow;
+
+                _db.CoinTransactions.Add(new CoinTransaction
+                {
+                    UserId       = userId,
+                    Amount       = -amount,
+                    BalanceAfter = uc.Balance,
+                    Type         = type,
+                    Description  = description,
+                    CreatedAt    = DateTime.UtcNow,
+                });
+
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                _logger.LogInformation("Coins spent: User={UserId}, Amount={Amount}, Type={Type}", userId, amount, type);
+                return uc;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
         }
 
         // ─── History ─────────────────────────────────────────────────────────────
