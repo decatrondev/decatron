@@ -31,7 +31,7 @@ const tabs: { id: TabId; label: string; icon: React.ComponentType<any> }[] = [
 ];
 
 const RARITIES = ['Rare', 'Special', 'Epic', 'Legendary', 'Mythic'];
-const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Rift'];
+const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Cube', 'Rift/Cube', 'Cheat', 'Quack', 'Hacker'];
 
 const RARITY_COLORS: Record<string, string> = {
     Rare:      'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -115,10 +115,30 @@ function SpritesTab() {
     const [filterCharacter, setFilterCharacter] = useState('');
     const [filterRarity, setFilterRarity] = useState('');
     const [filterUnreleased, setFilterUnreleased] = useState<'' | 'true' | 'false'>('');
+    const [filterSeason, setFilterSeason] = useState('');
+    const [allSeasons, setAllSeasons] = useState<string[]>([]);
+    const [currentSeason, setCurrentSeason] = useState('');
     const [modal, setModal] = useState<{ mode: 'create' | 'edit'; data: Partial<FortniteSprite> } | null>(null);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+    const [testUsername, setTestUsername] = useState('');
+    const [testingNotify, setTestingNotify] = useState(false);
+    const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+    const handleTestNotify = async (channel: 'twitch' | 'discord') => {
+        if (!testUsername.trim()) return;
+        setTestingNotify(true);
+        setTestResult(null);
+        try {
+            const endpoint = channel === 'twitch' ? 'test-twitch-notify' : 'test-discord-notify';
+            const r = await api.post(`/admin/fortnite/${endpoint}/${testUsername.trim().toLowerCase()}`);
+            setTestResult({ ok: true, msg: r.data.message });
+        } catch (e: any) {
+            setTestResult({ ok: false, msg: e.response?.data?.message || 'Error al probar el aviso' });
+        }
+        setTestingNotify(false);
+    };
 
     const load = useCallback(() => {
         setLoading(true);
@@ -126,13 +146,26 @@ function SpritesTab() {
         if (filterCharacter) params.set('character', filterCharacter);
         if (filterRarity) params.set('rarity', filterRarity);
         if (filterUnreleased) params.set('unreleased', filterUnreleased);
+        if (filterSeason) params.set('season', filterSeason);
 
         api.get(`/admin/fortnite/sprites${params.toString() ? '?' + params.toString() : ''}`)
             .then(r => { setSprites(r.data.sprites ?? []); setLoading(false); })
             .catch(() => setLoading(false));
-    }, [filterCharacter, filterRarity, filterUnreleased]);
+    }, [filterCharacter, filterRarity, filterUnreleased, filterSeason]);
 
     useEffect(() => { load(); }, [load]);
+
+    // Temporada actual + lista de temporadas: fuente unica en el backend
+    useEffect(() => {
+        api.get('/fortnite/current-season')
+            .then(r => {
+                setCurrentSeason(r.data.currentSeason ?? '');
+                const found = [...(r.data.seasons ?? [])] as string[];
+                found.sort((a, b) => a === r.data.currentSeason ? -1 : b === r.data.currentSeason ? 1 : a.localeCompare(b));
+                setAllSeasons(found);
+            })
+            .catch(() => {});
+    }, []);
 
     const characters = [...new Set(sprites.map(s => s.character))].sort();
 
@@ -180,6 +213,38 @@ function SpritesTab() {
 
     return (
         <div className="space-y-4">
+            {/* Probar aviso de Twitch a mano — simula que el stream de ese usuario recien arranco */}
+            <div className="flex flex-wrap items-center gap-2 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
+                <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">Probar aviso</span>
+                <input
+                    type="text"
+                    value={testUsername}
+                    onChange={e => setTestUsername(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleTestNotify('twitch')}
+                    placeholder="username"
+                    className="px-3 py-1.5 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-[#1e293b] dark:text-[#f8fafc] w-40"
+                />
+                <button
+                    onClick={() => handleTestNotify('twitch')}
+                    disabled={testingNotify || !testUsername.trim()}
+                    className="px-3 py-1.5 bg-[#2563eb] hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                >
+                    {testingNotify ? 'Enviando...' : 'Twitch'}
+                </button>
+                <button
+                    onClick={() => handleTestNotify('discord')}
+                    disabled={testingNotify || !testUsername.trim()}
+                    className="px-3 py-1.5 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                >
+                    {testingNotify ? 'Enviando...' : 'Discord'}
+                </button>
+                {testResult && (
+                    <span className={`text-xs font-semibold ${testResult.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {testResult.msg}
+                    </span>
+                )}
+            </div>
+
             {/* Filters + Add button */}
             <div className="flex flex-wrap items-center gap-3">
                 <select
@@ -208,6 +273,17 @@ function SpritesTab() {
                     <option value="">Todos</option>
                     <option value="false">Lanzados</option>
                     <option value="true">No lanzados</option>
+                </select>
+
+                <select
+                    value={filterSeason}
+                    onChange={e => setFilterSeason(e.target.value)}
+                    className="px-3 py-2 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                >
+                    <option value="">Todas las temporadas</option>
+                    {allSeasons.map(s => (
+                        <option key={s} value={s}>{s === currentSeason ? `${s} (actual)` : s}</option>
+                    ))}
                 </select>
 
                 <button
@@ -239,6 +315,7 @@ function SpritesTab() {
                                     <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Personaje</th>
                                     <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Tema</th>
                                     <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Rareza</th>
+                                    <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Temporada</th>
                                     <th className="text-left px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Clave</th>
                                     <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Estado</th>
                                     <th className="text-center px-4 py-3 text-[#64748b] font-bold text-xs uppercase">Acciones</th>
@@ -263,6 +340,19 @@ function SpritesTab() {
                                             <span className={`text-xs font-bold px-2 py-1 rounded-full border ${RARITY_COLORS[sprite.rarity] ?? 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
                                                 {sprite.rarity}
                                             </span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {sprite.season ? (
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full border ${
+                                                    sprite.season === currentSeason
+                                                        ? 'bg-[#7B61FF]/10 text-[#7B61FF] border-[#7B61FF]/30'
+                                                        : 'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                }`}>
+                                                    {sprite.season}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-[#94a3b8]">—</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 font-mono text-xs text-[#64748b]">{sprite.spriteKey}</td>
                                         <td className="px-4 py-3 text-center">
@@ -298,7 +388,7 @@ function SpritesTab() {
                                 ))}
                                 {sprites.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-12 text-center text-[#64748b]">
+                                        <td colSpan={9} className="px-4 py-12 text-center text-[#64748b]">
                                             No hay sprites
                                         </td>
                                     </tr>

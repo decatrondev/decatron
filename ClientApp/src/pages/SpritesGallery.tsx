@@ -7,7 +7,7 @@ import SpiritCard, { type SpriteData, type SpriteCollectionItem } from '../compo
 import '../components/spirits/spirits.css';
 
 const RARITIES = ['Rare', 'Special', 'Epic', 'Legendary', 'Mythic'];
-const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Rift'];
+const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Cube', 'Rift/Cube', 'Cheat', 'Quack', 'Hacker'];
 
 function getJwtUsername(): string {
     try {
@@ -47,6 +47,8 @@ export default function SpritesGallery() {
     const [filterChar, setFilterChar] = useState('');
     const [filterRarity, setFilterRarity] = useState('');
     const [filterTheme, setFilterTheme] = useState('');
+    const [filterSeason, setFilterSeason] = useState('');
+    const [currentSeason, setCurrentSeason] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [showUnreleased, setShowUnreleased] = useState(false);
 
@@ -55,6 +57,17 @@ export default function SpritesGallery() {
         api.get('/fortnite/sprites')
             .then(r => { setSprites(r.data.sprites ?? []); setLoading(false); })
             .catch(() => setLoading(false));
+    }, []);
+
+    // Temporada actual: fuente unica en el backend (appsettings Fortnite:CurrentSeason)
+    useEffect(() => {
+        api.get('/fortnite/current-season')
+            .then(r => {
+                const cs = r.data.currentSeason ?? '';
+                setCurrentSeason(cs);
+                setFilterSeason(cs);
+            })
+            .catch(() => {});
     }, []);
 
     // Load auth user's collection
@@ -110,6 +123,10 @@ export default function SpritesGallery() {
     }, [isLoggedIn, myKeys, pendingKey, showGuestBanner, dismissedBanner]);
 
     const characters = useMemo(() => [...new Set(sprites.map(s => s.character))].sort(), [sprites]);
+    const seasons = useMemo(() => {
+        const found = [...new Set(sprites.map(s => s.season).filter((s): s is string => !!s))];
+        return found.sort((a, b) => a === currentSeason ? -1 : b === currentSeason ? 1 : a.localeCompare(b));
+    }, [sprites]);
     const released   = sprites.filter(s => !s.isUnreleased).length;
 
     const activeKeys = isLoggedIn ? myKeys : localKeys;
@@ -128,12 +145,13 @@ export default function SpritesGallery() {
         if (filterChar   && c.sprite.character !== filterChar) return false;
         if (filterRarity && c.sprite.rarity    !== filterRarity) return false;
         if (filterTheme  && c.sprite.theme     !== filterTheme) return false;
+        if (filterSeason && c.sprite.season    !== filterSeason) return false;
         if (search && !c.sprite.name.toLowerCase().includes(search.toLowerCase()) &&
             !c.sprite.character.toLowerCase().includes(search.toLowerCase())) return false;
         return true;
-    }), [allItems, statusFilter, filterChar, filterRarity, filterTheme, search, showUnreleased]);
+    }), [allItems, statusFilter, filterChar, filterRarity, filterTheme, filterSeason, search, showUnreleased]);
 
-    const hasFilters = !!(filterChar || filterRarity || filterTheme || search || showUnreleased || statusFilter !== 'all');
+    const hasFilters = !!(filterChar || filterRarity || filterTheme || filterSeason !== currentSeason || search || showUnreleased || statusFilter !== 'all');
     const isLoading  = loading || (isLoggedIn && !collectionLoaded);
 
     const obtainedCount = isLoggedIn ? myCount : localCount;
@@ -312,6 +330,16 @@ export default function SpritesGallery() {
                             {THEMES.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
 
+                        <select value={filterSeason} onChange={e => setFilterSeason(e.target.value)}
+                            className="px-3 py-1.5 bg-[#0A0C14] border border-[#1E2A3B] rounded-lg text-xs text-[#9CA3AF] focus:outline-none [&>option]:bg-[#111827]">
+                            <option value="">{t('filters.all_seasons')}</option>
+                            {seasons.map(s => (
+                                <option key={s} value={s}>
+                                    {s === currentSeason ? `${s} (actual)` : s}
+                                </option>
+                            ))}
+                        </select>
+
                         <button
                             onClick={() => setShowUnreleased(v => !v)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -325,7 +353,7 @@ export default function SpritesGallery() {
 
                         {hasFilters && (
                             <button
-                                onClick={() => { setFilterChar(''); setFilterRarity(''); setFilterTheme(''); setSearch(''); setShowUnreleased(false); setStatusFilter('all'); }}
+                                onClick={() => { setFilterChar(''); setFilterRarity(''); setFilterTheme(''); setFilterSeason(currentSeason); setSearch(''); setShowUnreleased(false); setStatusFilter('all'); }}
                                 className="px-3 py-1.5 bg-[#7B61FF]/10 border border-[#7B61FF]/30 text-[#7B61FF] rounded-lg text-xs font-bold hover:bg-[#7B61FF]/20 transition-colors"
                             >
                                 {t('filters.clear')}

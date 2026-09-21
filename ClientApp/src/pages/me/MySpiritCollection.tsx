@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Search, Filter, Trophy, Share2, Check, X, Loader } from 'lucide-react';
+import { Loader2, Search, Filter, Trophy, Share2, Check, X, Loader, Sparkles, MessageCircle } from 'lucide-react';
 import api from '../../services/api';
-import SpiritCard, { type SpriteCollectionItem } from '../../components/spirits/SpiritCard';
+import SpiritCard, { type SpriteData, type SpriteCollectionItem } from '../../components/spirits/SpiritCard';
 import '../../components/spirits/spirits.css';
 
 const RARITIES = ['Rare', 'Special', 'Epic', 'Legendary', 'Mythic'];
-const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Rift'];
+const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Cube', 'Rift/Cube', 'Cheat', 'Quack', 'Hacker'];
 
 type StatusFilter = 'all' | 'obtained' | 'missing';
 
@@ -36,13 +36,26 @@ export default function MySpiritCollection() {
     const [filterChar, setFilterChar] = useState('');
     const [filterRarity, setFilterRarity] = useState('');
     const [filterTheme, setFilterTheme] = useState('');
+    const [filterSeason, setFilterSeason] = useState('');
+    const [currentSeason, setCurrentSeason] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [showUnreleased, setShowUnreleased] = useState(false);
+
+    // Aviso de spirits nuevos
+    const [newSprites, setNewSprites] = useState<SpriteData[]>([]);
+    const [showNewBanner, setShowNewBanner] = useState(false);
+    const [notifyTwitchChat, setNotifyTwitchChat] = useState(false);
+    const [notifyDiscordDm, setNotifyDiscordDm] = useState(false);
+    const [hasDiscordLinked, setHasDiscordLinked] = useState(false);
+    const [prefsLoaded, setPrefsLoaded] = useState(false);
+    const [savingPrefs, setSavingPrefs] = useState(false);
+    const [managingChannel, setManagingChannel] = useState<string | null>(null);
 
     const load = useCallback(() => {
         api.get('/fortnite/my-collection')
             .then(r => {
                 setCollection(r.data.collection ?? []);
+                setManagingChannel(r.data.managingChannel ?? null);
                 setObtained(r.data.obtained ?? 0);
                 setTotal(r.data.total ?? 0);
                 setLoading(false);
@@ -51,6 +64,52 @@ export default function MySpiritCollection() {
     }, []);
 
     useEffect(() => { load(); }, [load]);
+
+    useEffect(() => {
+        api.get('/fortnite/current-season')
+            .then(r => {
+                const cs = r.data.currentSeason ?? '';
+                setCurrentSeason(cs);
+                setFilterSeason(cs);
+            })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        api.get('/fortnite/new-since-last-visit')
+            .then(r => {
+                const sprites: SpriteData[] = r.data.sprites ?? [];
+                if (sprites.length > 0) {
+                    setNewSprites(sprites);
+                    setShowNewBanner(true);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        api.get('/fortnite/notification-prefs')
+            .then(r => {
+                setNotifyTwitchChat(!!r.data.notifyTwitchChat);
+                setNotifyDiscordDm(!!r.data.notifyDiscordDm);
+                setHasDiscordLinked(!!r.data.hasDiscordLinked);
+                setPrefsLoaded(true);
+            })
+            .catch(() => setPrefsLoaded(true));
+    }, []);
+
+    const savePrefs = async (nextTwitch: boolean, nextDiscord: boolean) => {
+        setNotifyTwitchChat(nextTwitch);
+        setNotifyDiscordDm(nextDiscord);
+        setSavingPrefs(true);
+        try {
+            await api.put('/fortnite/notification-prefs', { notifyTwitchChat: nextTwitch, notifyDiscordDm: nextDiscord });
+        } catch {
+            showToast(t('my.error'), 'err');
+        } finally {
+            setSavingPrefs(false);
+        }
+    };
 
     const showToast = (msg: string, type: 'ok' | 'err') => {
         setToast({ msg, type });
@@ -93,8 +152,12 @@ export default function MySpiritCollection() {
     };
 
     const characters = useMemo(() => [...new Set(collection.map(c => c.sprite.character))].sort(), [collection]);
+    const seasons = useMemo(() => {
+        const found = [...new Set(collection.map(c => c.sprite.season).filter((s): s is string => !!s))];
+        return found.sort((a, b) => a === currentSeason ? -1 : b === currentSeason ? 1 : a.localeCompare(b));
+    }, [collection]);
     const percentage = total > 0 ? Math.round(obtained / total * 100) : 0;
-    const hasFilters = !!(filterChar || filterRarity || filterTheme || search || showUnreleased || statusFilter !== 'all');
+    const hasFilters = !!(filterChar || filterRarity || filterTheme || filterSeason !== currentSeason || search || showUnreleased || statusFilter !== 'all');
 
     const filtered = useMemo(() => {
         return collection.filter(c => {
@@ -104,11 +167,12 @@ export default function MySpiritCollection() {
             if (filterChar && c.sprite.character !== filterChar) return false;
             if (filterRarity && c.sprite.rarity !== filterRarity) return false;
             if (filterTheme && c.sprite.theme !== filterTheme) return false;
+            if (filterSeason && c.sprite.season !== filterSeason) return false;
             if (search && !c.sprite.name.toLowerCase().includes(search.toLowerCase()) &&
                 !c.sprite.character.toLowerCase().includes(search.toLowerCase())) return false;
             return true;
         });
-    }, [collection, statusFilter, filterChar, filterRarity, filterTheme, search, showUnreleased]);
+    }, [collection, statusFilter, filterChar, filterRarity, filterTheme, filterSeason, search, showUnreleased]);
 
     if (loading) return (
         <div className="flex items-center justify-center py-20">
@@ -118,6 +182,13 @@ export default function MySpiritCollection() {
 
     return (
         <div className="space-y-6 bg-[#0A0C14] min-h-screen -m-6 p-6">
+
+            {/* Gestionando canal ajeno (control_total delegado) */}
+            {managingChannel && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2.5 text-xs font-bold text-amber-300">
+                    Estás gestionando los spirits de <span className="text-amber-200">@{managingChannel}</span> (control total delegado) — cambiá de canal para volver a los tuyos.
+                </div>
+            )}
 
             {/* Toast */}
             {toast && (
@@ -155,6 +226,61 @@ export default function MySpiritCollection() {
                     </Link>
                 </div>
             </div>
+
+            {/* Banner: spirits nuevos desde tu ultima visita */}
+            {showNewBanner && newSprites.length > 0 && (
+                <div className="bg-gradient-to-r from-[#7B61FF]/20 to-transparent border border-[#7B61FF]/40 rounded-2xl p-4 flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-[#7B61FF] flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                        <p className="font-bold text-white text-sm">
+                            {newSprites.length === 1
+                                ? '1 spirit nuevo desde tu última visita'
+                                : `${newSprites.length} spirits nuevos desde tu última visita`}
+                        </p>
+                        <p className="text-[#A78BFA] text-xs mt-0.5 truncate">
+                            {newSprites.slice(0, 8).map(s => s.name).join(', ')}
+                            {newSprites.length > 8 ? ` (+${newSprites.length - 8} más)` : ''}
+                        </p>
+                    </div>
+                    <button onClick={() => setShowNewBanner(false)} className="text-[#4B5563] hover:text-white transition-colors flex-shrink-0">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {/* Avisos de spirits nuevos */}
+            {prefsLoaded && (
+                <div className="bg-[#111827] rounded-2xl border border-[#1E2A3B] p-4 space-y-2">
+                    <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">Avisarme cuando salgan spirits nuevos</p>
+                    <label className={`flex items-center gap-3 py-1.5 ${savingPrefs ? 'opacity-60' : 'cursor-pointer'}`}>
+                        <input
+                            type="checkbox"
+                            checked={notifyTwitchChat}
+                            disabled={savingPrefs}
+                            onChange={e => savePrefs(e.target.checked, notifyDiscordDm)}
+                            className="w-4 h-4 rounded border-[#1E2A3B] text-[#7B61FF] focus:ring-[#7B61FF] bg-[#0A0C14]"
+                        />
+                        <span className="text-sm text-[#F9FAFB]">En el chat de Twitch cuando prenda stream</span>
+                    </label>
+                    <label className={`flex items-center gap-3 py-1.5 ${savingPrefs || !hasDiscordLinked ? 'opacity-60' : 'cursor-pointer'}`}>
+                        <input
+                            type="checkbox"
+                            checked={notifyDiscordDm}
+                            disabled={savingPrefs || !hasDiscordLinked}
+                            onChange={e => savePrefs(notifyTwitchChat, e.target.checked)}
+                            className="w-4 h-4 rounded border-[#1E2A3B] text-[#7B61FF] focus:ring-[#7B61FF] bg-[#0A0C14]"
+                        />
+                        <span className="text-sm text-[#F9FAFB] flex items-center gap-1.5">
+                            <MessageCircle className="w-3.5 h-3.5 text-[#5865F2]" /> Por Discord (DM)
+                        </span>
+                        {!hasDiscordLinked && (
+                            <Link to="/settings" className="text-xs text-[#7B61FF] hover:text-[#A78BFA] font-semibold">
+                                vincular cuenta →
+                            </Link>
+                        )}
+                    </label>
+                </div>
+            )}
 
             {/* Progress */}
             <div className="bg-[#111827] rounded-2xl border border-[#1E2A3B] p-5 space-y-3">
@@ -240,6 +366,19 @@ export default function MySpiritCollection() {
                         {THEMES.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
 
+                    <select
+                        value={filterSeason}
+                        onChange={e => setFilterSeason(e.target.value)}
+                        className="px-3 py-1.5 bg-[#0A0C14] border border-[#1E2A3B] rounded-lg text-xs text-[#9CA3AF] focus:outline-none [&>option]:bg-[#111827]"
+                    >
+                        <option value="">{t('filters.all_seasons')}</option>
+                        {seasons.map(s => (
+                            <option key={s} value={s}>
+                                {s === currentSeason ? `${s} (actual)` : s}
+                            </option>
+                        ))}
+                    </select>
+
                     <button
                         onClick={() => setShowUnreleased(v => !v)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -253,7 +392,7 @@ export default function MySpiritCollection() {
 
                     {hasFilters && (
                         <button
-                            onClick={() => { setFilterChar(''); setFilterRarity(''); setFilterTheme(''); setSearch(''); setShowUnreleased(false); setStatusFilter('all'); }}
+                            onClick={() => { setFilterChar(''); setFilterRarity(''); setFilterTheme(''); setFilterSeason(currentSeason); setSearch(''); setShowUnreleased(false); setStatusFilter('all'); }}
                             className="px-3 py-1.5 bg-[#7B61FF]/10 border border-[#7B61FF]/30 text-[#7B61FF] rounded-lg text-xs font-bold hover:bg-[#7B61FF]/20 transition-colors"
                         >
                             {t('filters.clear')}

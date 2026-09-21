@@ -1,8 +1,10 @@
 using Decatron.Attributes;
 using Decatron.Core.Models.Fortnite;
+using Decatron.Data;
 using Decatron.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Decatron.Controllers
 {
@@ -13,14 +15,46 @@ namespace Decatron.Controllers
     public class AdminFortniteController : ControllerBase
     {
         private readonly IFortniteService _fortniteService;
+        private readonly ISpiritNotificationDeliveryService _notificationDelivery;
+        private readonly DecatronDbContext _context;
         private readonly ILogger<AdminFortniteController> _logger;
 
         public AdminFortniteController(
             IFortniteService fortniteService,
+            ISpiritNotificationDeliveryService notificationDelivery,
+            DecatronDbContext context,
             ILogger<AdminFortniteController> logger)
         {
             _fortniteService = fortniteService;
+            _notificationDelivery = notificationDelivery;
+            _context = context;
             _logger = logger;
+        }
+
+        /// <summary>Dispara a mano el aviso de Twitch de un usuario, como si su stream recien hubiera arrancado — util para probar sin esperar al evento real</summary>
+        [HttpPost("test-twitch-notify/{username}")]
+        public async Task<IActionResult> TestTwitchNotify(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == username.ToLower());
+            if (user == null)
+                return NotFound(new { success = false, message = $"Usuario '{username}' no encontrado" });
+
+            await _notificationDelivery.NotifyStreamOnlineAsync(user.Id, username.ToLower());
+            return Ok(new { success = true, message = $"Disparado para {username} (si no llego nada, no habia sprites nuevos pendientes)" });
+        }
+
+        /// <summary>Dispara a mano el barrido de DM de Discord (normalmente corre cada 15min solo) — util para probar sin esperar</summary>
+        [HttpPost("test-discord-notify/{username}")]
+        public async Task<IActionResult> TestDiscordNotify(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Login == username.ToLower());
+            if (user == null)
+                return NotFound(new { success = false, message = $"Usuario '{username}' no encontrado" });
+            if (user.DiscordId == null)
+                return BadRequest(new { success = false, message = $"{username} no tiene Discord vinculado" });
+
+            await _notificationDelivery.RunDiscordSweepAsync();
+            return Ok(new { success = true, message = $"Barrido de Discord disparado (si no llego nada, no habia sprites nuevos pendientes para {username})" });
         }
 
         /// <summary>Lista todos los spirits con filtros opcionales</summary>
@@ -28,7 +62,8 @@ namespace Decatron.Controllers
         public async Task<IActionResult> GetAll(
             [FromQuery] string? character = null,
             [FromQuery] string? rarity = null,
-            [FromQuery] bool? unreleased = null)
+            [FromQuery] bool? unreleased = null,
+            [FromQuery] string? season = null)
         {
             try
             {
@@ -42,6 +77,9 @@ namespace Decatron.Controllers
 
                 if (unreleased.HasValue)
                     sprites = sprites.Where(s => s.IsUnreleased == unreleased.Value).ToList();
+
+                if (!string.IsNullOrEmpty(season))
+                    sprites = sprites.Where(s => string.Equals(s.Season, season, StringComparison.OrdinalIgnoreCase)).ToList();
 
                 return Ok(new { success = true, sprites, count = sprites.Count });
             }

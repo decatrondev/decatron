@@ -46,6 +46,10 @@ namespace Decatron.Core.Models.Fortnite
         [MaxLength(50)]
         public string? Season { get; set; }
 
+        /// <summary>Momento real en que paso a released (distinto de CreatedAt, que es cuando se cargo al catalogo, a veces meses antes como unreleased). Null mientras siga unreleased.</summary>
+        [Column("released_at")]
+        public DateTime? ReleasedAt { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
