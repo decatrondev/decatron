@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2 } from 'lucide-react';
+import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -144,6 +144,21 @@ export default function Overlays() {
             kickReady: true,
         },
         {
+            id: 'live',
+            name: 'Partida en vivo',
+            description: 'Lo que pasa en tu partida ahora, leído del cliente de LoL por Decatron Desktop: lobby con tus amigos, selección de campeón con el coach, tiempo de partida con la predicción del chat y resumen al terminar. Una pantalla por fase, en una caja que no cambia de tamaño.',
+            status: 'active',
+            icon: <Radio className="w-6 h-6 text-[#2563eb]" />,
+            features: [
+                'Lobby, selección, en partida y fin en una sola fuente de OBS',
+                'Coach de LoL y predicción del chat integrados',
+                'Transparente cuando no estás jugando',
+                'Editor visual: layout, pantallas, elementos, fuentes',
+            ],
+            usage: '/overlay/live?channel=tu_canal',
+            kickReady: true,
+        },
+        {
             id: 'wheel',
             name: t('overlays:overlays.wheel.name'),
             description: t('overlays:overlays.wheel.description'),
@@ -165,6 +180,7 @@ export default function Overlays() {
     const handleConfigure = (overlayId: string) => {
         const routes: Record<string, string> = {
             'games': '/overlays/games',
+            'live': '/overlays/live',
             'shoutout': '/overlays/shoutout',
             'timer': '/overlays/timer',
             'giveaways': '/features/giveaways',

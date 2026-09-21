@@ -407,5 +407,140 @@
       "sizeOverflow": "Some content does not fit: at least {{w}}×{{h}} is needed. Press \"Fit to content\" or switch back to automatic.",
       "boxHintAuto": "The box (dashed border) sizes itself to what you have enabled, counting every rotation view and the ad, and never resizes in OBS. Switch to manual if you want a fixed size."
     }
+  },
+  "liveOverlay": {
+    "title": "Live Match",
+    "subtitle": "What is happening in your game right now, read from the LoL client by Decatron Desktop. One screen per phase, in a box that never resizes.",
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Could not save",
+    "discard": "You have unsaved changes. Discard them?",
+    "needsDesktop": "This overlay only shows something with Decatron Desktop connected and the LoL client open. You have not linked the app yet:",
+    "needsDesktopLink": "go to LoL Coach",
+    "desktopOnline": "Decatron Desktop connected · {{name}} · {{phase}}",
+    "tabs": {
+      "design": "Design",
+      "overlay": "Overlay"
+    },
+    "first": {
+      "title": "Create your Live Match overlay",
+      "hint": "One browser source in OBS that shows lobby, champion select, game and result. Free for everyone.",
+      "placeholder": "Name (optional)",
+      "create": "Create"
+    },
+    "screens": {
+      "none": "not in game",
+      "lobby": "Lobby",
+      "matchmaking": "Searching",
+      "champselect": "Champ select",
+      "ingame": "In game",
+      "postgame": "Game over"
+    },
+    "screenHelp": {
+      "lobby": "Queue and lobby members. Scouting of your friends (rank, winrate) is off by default.",
+      "matchmaking": "Queue and time spent searching.",
+      "champselect": "Both teams' picks, bans, your turn and what the coach says.",
+      "ingame": "Your champion, role, game time and the chat prediction.",
+      "postgame": "Victory or defeat, KDA, LP, coach summary and prediction result."
+    },
+    "layouts": {
+      "panel": "Panel",
+      "compact": "Compact",
+      "bar": "Bar"
+    },
+    "elements": {
+      "title": "Header (phase and queue)",
+      "lobbyMembers": "Lobby members",
+      "scoutRank": "Each member's rank",
+      "scoutWinRate": "Each member's winrate",
+      "scoutStreak": "Each member's streak",
+      "scoutTopChamps": "Each member's top champions",
+      "searchTime": "Search time",
+      "timer": "Select timer",
+      "yourTurn": "Your turn!",
+      "myTeamPicks": "My team picks",
+      "theirTeamPicks": "Enemy picks",
+      "bans": "Bans",
+      "coachSay": "Coach says",
+      "coachTips": "Coach tips",
+      "champion": "Champion and role",
+      "gameTime": "Game time",
+      "prediction": "Chat prediction",
+      "result": "Victory / defeat",
+      "kda": "KDA",
+      "stats": "CS, damage, vision",
+      "lpDelta": "LP gained/lost"
+    },
+    "elementHelp": {
+      "scout": "Shows public data about your lobby mates on stream. Enable it only if they are fine with it.",
+      "coach": "Only shows when the coach has something to say (uses AI: counts against your plan's daily cap).",
+      "prediction": "The prediction opens by itself when the game starts if you enabled it in LoL Coach."
+    },
+    "design": {
+      "title": "Design",
+      "hint": "What you see here is what shows in OBS, with sample data for each phase.",
+      "confirmReset": "Reset to the default design?",
+      "reset": "Reset design",
+      "screen": "Screen",
+      "canvas": "Canvas",
+      "posX": "Position X",
+      "posY": "Position Y",
+      "sizeMode": "Box size",
+      "sizeAuto": "Automatic (fits content)",
+      "sizeManual": "Manual",
+      "boxWidth": "Box width",
+      "boxHeight": "Box height",
+      "scale": "Scale",
+      "fit": "Fit to content",
+      "sizeOverflow": "Some content does not fit: at least {{w}}×{{h}} is needed. Press \"Fit to content\" or switch back to automatic.",
+      "boxHint": "The box (dashed border) sizes itself to the largest of your enabled screens and never resizes when the phase changes.",
+      "card": "Card",
+      "accent": "Accent color",
+      "background": "Background",
+      "bgSolid": "Solid",
+      "bgTransparent": "Transparent",
+      "bgColor": "Background color",
+      "opacity": "Opacity",
+      "radius": "Rounded corners",
+      "anim": {
+        "in": "In",
+        "out": "Out",
+        "phaseSwitch": "Phase change"
+      },
+      "animFade": "Fade",
+      "animSlide": "Slide",
+      "animNone": "None",
+      "chrome": "Frame",
+      "chromeAccentLine": "Accent line",
+      "chromeShadow": "Shadow",
+      "chromeAccentWidth": "Line width",
+      "screenTitle": "Screen: {{screen}}",
+      "screenEnabled": "Show this screen",
+      "show": "Show",
+      "font": "Font",
+      "weight": "Weight",
+      "size": "Size",
+      "color": "Color",
+      "shadow": "Text shadow"
+    },
+    "url": {
+      "title": "URL for OBS",
+      "hint": "Add a {{size}} browser source with this URL. It stays transparent until Decatron Desktop detects the LoL client.",
+      "copy": "Copy",
+      "openPreview": "Open preview",
+      "name": "Name",
+      "enabled": "Overlay enabled",
+      "enabledHint": "When off, the URL shows nothing."
+    },
+    "instances": {
+      "title": "Instances",
+      "hint": "Each instance has its own URL and design: e.g. a top bar with lobby/select and a side panel with just the prediction.",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "delete": "Delete",
+      "confirmDelete": "Delete this overlay?",
+      "newPlaceholder": "New overlay name",
+      "new": "New"
+    }
   }
 }

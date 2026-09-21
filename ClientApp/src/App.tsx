@@ -50,6 +50,8 @@ import ProjectAnalysis from './pages/admin/ProjectAnalysis';
 import AdminFortnite from './pages/admin/AdminFortnite';
 import LogoGuide from './pages/admin/LogoGuide';
 import GameOverlayPromosAdmin from './pages/admin/GameOverlayPromosAdmin';
+import LiveOverlay from './pages/LiveOverlay';
+import LiveOverlays from './pages/features/LiveOverlays';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import ChannelsVisibility from './pages/admin/ChannelsVisibility';
 import SupportersPublic from './pages/SupportersPublic';
@@ -186,6 +188,7 @@ function App() {
                 <Route path="/overlay/gacha" element={<SafeRoute name="Gacha Overlay"><GachaOverlay /></SafeRoute>} />
                 <Route path="/overlay/rueda" element={<SafeRoute name="Wheel Overlay"><WheelOverlay /></SafeRoute>} />
                 <Route path="/overlay/games" element={<SafeRoute name="Game Overlay"><GameOverlay /></SafeRoute>} />
+                <Route path="/overlay/live" element={<SafeRoute name="Live Match Overlay"><LiveOverlay /></SafeRoute>} />
                 <Route path="/demo/game-overlay" element={<SafeRoute name="Game Overlay Demo"><GameOverlayDemo /></SafeRoute>} />
 
                 {/* Public Gacha Collection - No authentication required */}
@@ -309,6 +312,7 @@ function App() {
                     <Route path="overlays/event-alerts" element={<SafeRoute name="Event Alerts"><EventAlertsConfig /></SafeRoute>} />
                     <Route path="overlays/now-playing" element={<SafeRoute name="Now Playing"><NowPlayingConfig /></SafeRoute>} />
                     <Route path="overlays/games" element={<SafeRoute name="Game Overlays"><GameOverlays /></SafeRoute>} />
+                    <Route path="overlays/live" element={<SafeRoute name="Live Match"><LiveOverlays /></SafeRoute>} />
                     <Route path="overlays/rueda" element={<SafeRoute name="Rueda de la Suerte"><WheelConfig /></SafeRoute>} />
 
                     {/* Gacha System */}

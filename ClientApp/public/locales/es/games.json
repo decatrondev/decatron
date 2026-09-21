@@ -407,5 +407,140 @@
       "sizeOverflow": "Hay contenido que no entra: hace falta al menos {{w}}×{{h}}. Pulsa \"Ajustar al contenido\" o vuelve a automático.",
       "boxHintAuto": "La caja (borde punteado) se ajusta sola a lo que tengas encendido, contando todas las vistas de la rotación y el anuncio, y no cambia de tamaño en OBS. Si quieres un tamaño fijo, cámbiala a manual."
     }
+  },
+  "liveOverlay": {
+    "title": "Partida en vivo",
+    "subtitle": "Lo que pasa en tu partida ahora, leído del cliente de LoL por Decatron Desktop. Una pantalla por fase, en una caja que no cambia de tamaño.",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "saveError": "No se pudo guardar",
+    "discard": "Tienes cambios sin guardar. ¿Descartarlos?",
+    "needsDesktop": "Este overlay solo muestra algo con Decatron Desktop conectado y el cliente de LoL abierto. Todavía no vinculaste la app:",
+    "needsDesktopLink": "ir al Coach de LoL",
+    "desktopOnline": "Decatron Desktop conectado · {{name}} · {{phase}}",
+    "tabs": {
+      "design": "Diseño",
+      "overlay": "Overlay"
+    },
+    "first": {
+      "title": "Crea tu overlay de Partida en vivo",
+      "hint": "Una fuente de navegador en OBS que muestra lobby, selección de campeón, partida y resultado. Gratis para todos.",
+      "placeholder": "Nombre (opcional)",
+      "create": "Crear"
+    },
+    "screens": {
+      "none": "sin partida",
+      "lobby": "Lobby",
+      "matchmaking": "Buscando",
+      "champselect": "Selección",
+      "ingame": "En partida",
+      "postgame": "Fin de partida"
+    },
+    "screenHelp": {
+      "lobby": "Cola y compañeros del lobby. El scouting de tus amigos (rango, winrate) está apagado por defecto.",
+      "matchmaking": "Cola y tiempo buscando partida.",
+      "champselect": "Picks de los dos equipos, bans, tu turno y lo que dice el coach.",
+      "ingame": "Tu campeón, rol, tiempo de partida y la predicción del chat.",
+      "postgame": "Victoria o derrota, KDA, LP, resumen del coach y resultado de la predicción."
+    },
+    "layouts": {
+      "panel": "Panel",
+      "compact": "Compacto",
+      "bar": "Barra"
+    },
+    "elements": {
+      "title": "Cabecera (fase y cola)",
+      "lobbyMembers": "Compañeros",
+      "scoutRank": "Rango de cada uno",
+      "scoutWinRate": "Winrate de cada uno",
+      "scoutStreak": "Racha de cada uno",
+      "scoutTopChamps": "Top campeones de cada uno",
+      "searchTime": "Tiempo buscando",
+      "timer": "Tiempo de selección",
+      "yourTurn": "¡Tu turno!",
+      "myTeamPicks": "Picks de mi equipo",
+      "theirTeamPicks": "Picks rivales",
+      "bans": "Bans",
+      "coachSay": "Coach dice",
+      "coachTips": "Consejos del coach",
+      "champion": "Campeón y rol",
+      "gameTime": "Tiempo de partida",
+      "prediction": "Predicción del chat",
+      "result": "Victoria / derrota",
+      "kda": "KDA",
+      "stats": "CS, daño, visión",
+      "lpDelta": "LP ganados/perdidos"
+    },
+    "elementHelp": {
+      "scout": "Muestra en tu stream datos públicos de tus compañeros de lobby. Actívalo solo si a ellos no les molesta.",
+      "coach": "Solo aparece cuando el coach tiene algo que decir (usa IA: cuenta contra el tope diario de tu plan).",
+      "prediction": "La predicción se abre sola al empezar la partida si la tienes activada en el Coach de LoL."
+    },
+    "design": {
+      "title": "Diseño",
+      "hint": "Lo que ves aquí es lo que sale en OBS, con datos de ejemplo de cada fase.",
+      "confirmReset": "¿Volver al diseño por defecto?",
+      "reset": "Restablecer diseño",
+      "screen": "Pantalla",
+      "canvas": "Lienzo",
+      "posX": "Posición X",
+      "posY": "Posición Y",
+      "sizeMode": "Tamaño de la caja",
+      "sizeAuto": "Automático (según el contenido)",
+      "sizeManual": "Manual",
+      "boxWidth": "Ancho de la caja",
+      "boxHeight": "Alto de la caja",
+      "scale": "Escala",
+      "fit": "Ajustar al contenido",
+      "sizeOverflow": "Hay contenido que no entra: hace falta al menos {{w}}×{{h}}. Pulsa \"Ajustar al contenido\" o vuelve a automático.",
+      "boxHint": "La caja (borde punteado) se ajusta sola a la pantalla más grande de las que tengas activas, y no cambia de tamaño al pasar de una fase a otra.",
+      "card": "Tarjeta",
+      "accent": "Color de acento",
+      "background": "Fondo",
+      "bgSolid": "Sólido",
+      "bgTransparent": "Transparente",
+      "bgColor": "Color de fondo",
+      "opacity": "Opacidad",
+      "radius": "Bordes redondeados",
+      "anim": {
+        "in": "Entrada",
+        "out": "Salida",
+        "phaseSwitch": "Cambio de fase"
+      },
+      "animFade": "Fundido",
+      "animSlide": "Deslizar",
+      "animNone": "Ninguna",
+      "chrome": "Marco",
+      "chromeAccentLine": "Línea de acento",
+      "chromeShadow": "Sombra",
+      "chromeAccentWidth": "Grosor de la línea",
+      "screenTitle": "Pantalla: {{screen}}",
+      "screenEnabled": "Mostrar esta pantalla",
+      "show": "Mostrar",
+      "font": "Fuente",
+      "weight": "Peso",
+      "size": "Tamaño",
+      "color": "Color",
+      "shadow": "Sombra del texto"
+    },
+    "url": {
+      "title": "URL para OBS",
+      "hint": "Agrega una fuente de navegador de {{size}} con esta URL. Se ve transparente hasta que Decatron Desktop detecte el cliente de LoL.",
+      "copy": "Copiar",
+      "openPreview": "Abrir vista previa",
+      "name": "Nombre",
+      "enabled": "Overlay activo",
+      "enabledHint": "Apagado, la URL no muestra nada."
+    },
+    "instances": {
+      "title": "Instancias",
+      "hint": "Cada instancia tiene su URL y su diseño: por ejemplo una barra arriba con lobby/selección y un panel al costado solo con la predicción.",
+      "enabled": "Activo",
+      "disabled": "Apagado",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Eliminar este overlay?",
+      "newPlaceholder": "Nombre del nuevo overlay",
+      "new": "Nuevo"
+    }
   }
 }

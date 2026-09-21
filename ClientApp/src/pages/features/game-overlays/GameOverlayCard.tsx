@@ -134,13 +134,13 @@ export const CARD_LABELS: Record<'es' | 'en', CardLabels> = {
           noPoints: '—', noSession: 'no games', noData: 'no data', noStreak: 'no streak', offGame: 'Not in game', unranked: 'Unranked' },
 };
 
-function formatTierLabel(t: string): string { const x = t.toLowerCase(); return x.charAt(0).toUpperCase() + x.slice(1); }
+export function formatTierLabel(t: string): string { const x = t.toLowerCase(); return x.charAt(0).toUpperCase() + x.slice(1); }
 
-const WIN = '#4ade80';
-const LOSS = '#f87171';
-const NEUTRAL = '#8b949e';
+export const WIN = '#4ade80';
+export const LOSS = '#f87171';
+export const NEUTRAL = '#8b949e';
 
-function fontStyle(f?: FontStyle, fallbackSize = 14): CSSProperties {
+export function fontStyle(f?: FontStyle, fallbackSize = 14): CSSProperties {
     return {
         fontFamily: f?.family ? `"${f.family}", Inter, system-ui, sans-serif` : 'Inter, system-ui, sans-serif',
         fontSize: f?.size ?? fallbackSize,
@@ -155,7 +155,7 @@ function fontStyle(f?: FontStyle, fallbackSize = 14): CSSProperties {
     };
 }
 
-function hexToRgba(hex: string, opacityPct: number): string {
+export function hexToRgba(hex: string, opacityPct: number): string {
     const h = hex.replace('#', '');
     const n = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
     const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16);
@@ -218,7 +218,7 @@ function RecentMatches({ matches, cfg }: { matches: MatchSummary[]; cfg: Element
     );
 }
 
-function fmtK(n: number): string { return n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(Math.round(n)); }
+export function fmtK(n: number): string { return n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(Math.round(n)); }
 
 function ChampRow({ name, icon, right, sub, font }: { name: string; icon?: string | null; right: string; sub?: string; font: CSSProperties }) {
     return (
@@ -268,7 +268,7 @@ function LpGraph({ history, height, accent, label, noData, width = 220 }: { hist
 }
 
 /** Reloj de 1 s solo mientras hay partida en curso (para el mm:ss). */
-function useTicker(active: boolean): number {
+export function useTicker(active: boolean): number {
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
         if (!active) return;
@@ -278,9 +278,9 @@ function useTicker(active: boolean): number {
     return now;
 }
 
-function fmtDuration(sec: number): string { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s.toString().padStart(2, '0')}`; }
+export function fmtDuration(sec: number): string { const m = Math.floor(sec / 60), s = Math.floor(sec % 60); return `${m}:${s.toString().padStart(2, '0')}`; }
 
-function ChampIcon({ champ, size = 30, ring, dim }: { champ?: { name: string; icon?: string | null } | null; size?: number; ring?: string; dim?: boolean }) {
+export function ChampIcon({ champ, size = 30, ring, dim }: { champ?: { name: string; icon?: string | null } | null; size?: number; ring?: string; dim?: boolean }) {
     return (
         <div title={champ?.name ?? ''} style={{ width: size, height: size, borderRadius: 6, overflow: 'hidden', background: '#1c1f26', flexShrink: 0, border: ring ? `2px solid ${ring}` : '2px solid transparent', opacity: dim ? 0.45 : 1, boxShadow: ring ? `0 0 8px ${ring}` : undefined }}>
             {champ?.icon && <img src={champ.icon} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />}
@@ -289,7 +289,7 @@ function ChampIcon({ champ, size = 30, ring, dim }: { champ?: { name: string; ic
 }
 
 /** Línea de estado en vivo: lobby / buscando / selección / en partida mm:ss / fin. Reemplaza al "En partida" de la Riot API cuando hay Desktop. */
-function LiveStatusLine({ live, font, L, accent, now }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number }) {
+export function LiveStatusLine({ live, font, L, accent, now }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number }) {
     const dot = (color: string) => <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, boxShadow: `0 0 6px ${color}`, flexShrink: 0 }} />;
     const row = (children: JSX.Element | (JSX.Element | string | null)[]) => <div style={{ ...font, display: 'flex', alignItems: 'center', gap: 6 }}>{children}</div>;
     switch (live.phase) {
@@ -328,7 +328,7 @@ function LiveStatusLine({ live, font, L, accent, now }: { live: LivePhaseInfo; f
 }
 
 /** Selección de campeón en vivo: picks de mi equipo (el mío resaltado) vs. rival, y bans. */
-function ChampSelectBlock({ live, font, L, accent }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string }) {
+export function ChampSelectBlock({ live, font, L, accent }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string }) {
     const cs = live.champSelect;
     if (!cs) return null;
     const label = (t: string) => <span style={{ color: NEUTRAL, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif', width: 44, flexShrink: 0 }}>{t}</span>;
@@ -355,7 +355,7 @@ function ChampSelectBlock({ live, font, L, accent }: { live: LivePhaseInfo; font
 }
 
 /** Tarjeta de fin de partida: resultado, KDA, CS, daño, duración, ±LP. */
-function PostGameBlock({ live, font, L }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels }) {
+export function PostGameBlock({ live, font, L }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels }) {
     const pg = live.postGame;
     if (!pg) return null;
     const color = pg.win ? WIN : LOSS;
@@ -381,7 +381,7 @@ function PostGameBlock({ live, font, L }: { live: LivePhaseInfo; font: CSSProper
 }
 
 /** Lo último que dijo el coach: nombre + comentario como subtítulo, y la sugerencia/matchup como chip. */
-function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; font: CSSProperties; accent: string; compact?: boolean }) {
+export function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; font: CSSProperties; accent: string; compact?: boolean }) {
     const c = live.coach;
     if (!c) return null;
     const chip = c.kind === 'my_turn' && c.suggestion ? c.suggestion : c.kind === 'final' && c.matchup ? null : null;
@@ -401,7 +401,7 @@ function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; f
  * Predicción del chat: barra con el pozo de cada lado (verde gana / rojo pierde) y la cuenta
  * regresiva hasta el cierre; al terminar la partida, el lado ganador y quiénes acertaron.
  */
-function PredictionBlock({ live, font, L, accent, now, compact }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number; compact?: boolean }) {
+export function PredictionBlock({ live, font, L, accent, now, compact }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number; compact?: boolean }) {
     const p = live.prediction;
     if (!p) return null;
     const total = p.poolWin + p.poolLoss;

@@ -451,6 +451,10 @@ namespace Decatron.Services.GameData
             var slugs = await db.GameOverlayConfigs.AsNoTracking().Where(c => c.UserId == userId && c.IsEnabled).Select(c => c.Slug).ToListAsync();
             var live = _live.Get(userId);
 
+            // Overlay "Partida en vivo": recibe la fase cruda, sin pasar por el estado de Games.
+            try { await _hub.Clients.Group($"overlay_{user.Login.ToLowerInvariant()}").SendAsync("LiveMatchState", new { state = LiveOverlayService.BuildState(live) }); }
+            catch (Exception ex) { _logger.LogDebug(ex, "LiveOverlay: no se pudo notificar a overlay_{Login}", user.Login); }
+
             foreach (var slug in slugs)
             {
                 var state = _store.Get(userId, slug);
