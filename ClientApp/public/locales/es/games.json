@@ -114,7 +114,10 @@
       "aiCalls": "llamadas IA en esta selección",
       "silent": "el coach está en silencio hasta que termine.",
       "victory": "Victoria",
-      "defeat": "Derrota"
+      "defeat": "Derrota",
+      "callsToday": "Llamadas a la IA hoy",
+      "capReached": "Tope diario de tu plan alcanzado; el coach vuelve a hablar mañana.",
+      "seePlans": "Ver planes"
     },
     "history": {
       "title": "Lo último que dijo",

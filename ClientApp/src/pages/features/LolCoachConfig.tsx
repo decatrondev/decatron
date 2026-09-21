@@ -22,7 +22,7 @@ interface Settings {
 }
 interface Voice { id: string; name: string; language: string; gender: string }
 interface CoachMsg { kind: string; comment: string; suggestion?: string | null; runes?: string | null; spells?: string | null; build?: string | null; matchup?: string | null; tips: string[]; coachName: string; at: string; }
-interface State { desktopConnected: boolean; clientConnected: boolean; summoner?: string | null; phase?: LivePhaseInfo | null; history: CoachMsg[]; callsThisSelect: number; maxCallsPerSelect: number; }
+interface State { desktopConnected: boolean; clientConnected: boolean; summoner?: string | null; phase?: LivePhaseInfo | null; history: CoachMsg[]; callsThisSelect: number; maxCallsPerSelect: number; callsToday: number; maxCallsPerDay?: number | null; }
 
 const TONES: Settings['tone'][] = ['analyst', 'hype', 'troll'];
 const VOICE_KINDS = ['my_turn', 'final', 'postgame', 'briefing', 'lobby', 'tilt', 'pick'];
@@ -187,6 +187,12 @@ export default function LolCoachConfig() {
                 <div className="space-y-6">
                     <div className={card}>
                         <div className="flex items-center gap-2 mb-3"><Monitor className="w-4 h-4 text-[#94a3b8]" /><span className={label}>{t('live.title')}</span></div>
+                        {state && (
+                            <p className={`text-xs mb-3 ${state.maxCallsPerDay != null && state.callsToday >= state.maxCallsPerDay ? 'text-amber-500' : 'text-[#94a3b8]'}`}>
+                                {t('live.callsToday')}: {state.callsToday}{state.maxCallsPerDay != null ? `/${state.maxCallsPerDay}` : ''}
+                                {state.maxCallsPerDay != null && state.callsToday >= state.maxCallsPerDay && <> · {t('live.capReached')} <a href="/supporters" className="underline">{t('live.seePlans')}</a></>}
+                            </p>
+                        )}
                         {!state?.clientConnected ? <p className={muted}>{t('live.noClient')}</p> : (
                             <div className="space-y-2 text-sm">
                                 <div className="text-[#1e293b] dark:text-[#f8fafc] font-semibold">{t(`phases.${phase?.phase ?? 'none'}`)}{phase?.queueName ? ` · ${phase.queueName}` : ''}</div>

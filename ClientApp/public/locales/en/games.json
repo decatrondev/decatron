@@ -114,7 +114,10 @@
       "aiCalls": "AI calls this select",
       "silent": "the coach stays quiet until it ends.",
       "victory": "Victory",
-      "defeat": "Defeat"
+      "defeat": "Defeat",
+      "callsToday": "AI calls today",
+      "capReached": "Your plan's daily cap is reached; the coach speaks again tomorrow.",
+      "seePlans": "See plans"
     },
     "history": {
       "title": "Latest from the coach",

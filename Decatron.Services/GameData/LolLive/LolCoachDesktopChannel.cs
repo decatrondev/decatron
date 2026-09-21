@@ -451,7 +451,7 @@ namespace Decatron.Services.GameData.LolLive
                 .FirstOrDefault(a => string.Equals(a.ExternalId, entry.Puuid, StringComparison.OrdinalIgnoreCase))?.Stats;
 
             var extra = await HistoryContextAsync(conn.UserId, entry, kind, conn.Token);
-            var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.Login, lang, settings, stats, entry.SummonerName, extra), conn.Token);
+            var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.UserId, conn.Login, lang, settings, stats, entry.SummonerName, extra), conn.Token);
             if (info == null) return;
 
             entry.CoachHistory.Add(info);

@@ -114,12 +114,14 @@ namespace Decatron.Controllers
         /// <summary>Fase actual del cliente (si el Desktop está conectado) y últimos comentarios del coach.</summary>
         [HttpGet("state")]
         [RequirePermission("settings")]
-        public IActionResult GetState()
+        public async Task<IActionResult> GetState()
         {
             var userId = GetChannelOwnerId();
             var e = _live.Get(userId);
+            var (callsToday, maxCallsPerDay) = await _brain.DailyUsageAsync(userId);
             return Ok(new
             {
+                callsToday, maxCallsPerDay = maxCallsPerDay == int.MaxValue ? (int?)null : maxCallsPerDay,
                 desktopConnected = _desktop.CountFor(userId) > 0,
                 clientConnected = e?.Puuid != null,
                 summoner = e?.SummonerName,

@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using Decatron.Core.Models;
 using Decatron.Core.Models.GameOverlays;
 using Decatron.Services.AI;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Decatron.Data;
+using Decatron.Core.Helpers;
 
 namespace Decatron.Services.GameData.LolLive
 {
@@ -27,17 +31,30 @@ namespace Decatron.Services.GameData.LolLive
         private readonly OpenRouterClient _ai;
         private readonly AiSettingsCache _settings;
         private readonly LolStaticNames _names;
+        private readonly IServiceScopeFactory _scopes;
         private readonly ILogger<LolCoachBrain> _logger;
 
-        public LolCoachBrain(OpenRouterClient ai, AiSettingsCache settings, LolStaticNames names, ILogger<LolCoachBrain> logger)
+        public LolCoachBrain(OpenRouterClient ai, AiSettingsCache settings, LolStaticNames names, IServiceScopeFactory scopes, ILogger<LolCoachBrain> logger)
         {
-            _ai = ai; _settings = settings; _names = names; _logger = logger;
+            _ai = ai; _settings = settings; _names = names; _scopes = scopes; _logger = logger;
+        }
+
+        /// <summary>Llamadas del coach hechas hoy (UTC) por el canal y el tope de su tier.</summary>
+        public async Task<(int used, int max)> DailyUsageAsync(long userId, CancellationToken ct = default)
+        {
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            var tier = await TierResolver.GetEffectiveTierAsync(db, userId);
+            var max = GameOverlayTierLimits.ForTier(tier).MaxCoachCallsPerDay;
+            var since = DateTime.UtcNow.Date;
+            var used = await db.AiUsageLogs.CountAsync(l => l.Module == Module && l.UserId == userId && l.UsedAt >= since, ct);
+            return (used, max);
         }
 
         public bool IsAvailable => _ai.IsConfigured;
 
         /// <summary>Contexto del streamer que no cambia durante la selección. Extra = datos del historial propio (fase 3a) ya resumidos, por clave.</summary>
-        public sealed record StreamerContext(string Login, string Language, LolCoachSettings Settings, AccountStats? Stats, string? SummonerName, JsonObject? Extra = null);
+        public sealed record StreamerContext(long UserId, string Login, string Language, LolCoachSettings Settings, AccountStats? Stats, string? SummonerName, JsonObject? Extra = null);
 
         /// <summary>
         /// kind: pick (cambió un pick/ban), my_turn (me toca), final (todos lockearon), postgame.
@@ -48,10 +65,17 @@ namespace Decatron.Services.GameData.LolLive
             if (!IsAvailable) return null;
             try
             {
-                var system = SystemPrompt(ctx, kind);
+                // Tope diario por tier: el texto del coach es gratis para el canal, pero no ilimitado.
+                var (used, max) = await DailyUsageAsync(ctx.UserId, ct);
+                if (used >= max)
+                {
+                    if (used == max) _logger.LogInformation("[LolCoach] {Login}: tope diario alcanzado ({Max} llamadas)", ctx.Login, max);
+                    return null;
+                }
+                var system = SystemPrompt(ctx, kind, phase);
                 var user = UserPrompt(kind, phase, ctx);
                 var isFinal = kind is "final" or "postgame" or "briefing";
-                var r = await _ai.ChatAsync(_settings.CoachModel, system, user, new AiCallContext(Module, 0, ctx.Login),
+                var r = await _ai.ChatAsync(_settings.CoachModel, system, user, new AiCallContext(Module, ctx.UserId, ctx.Login),
                     maxTokens: isFinal ? 700 : 400, temperature: 0.7, timeout: TimeSpan.FromSeconds(isFinal ? 25 : 12), reasoning: false, ct: ct);
                 var info = Parse(r.Text, kind, ctx.Settings.CoachName);
                 if (info == null) { _logger.LogWarning("[LolCoach] {Login}: respuesta no parseable: {Text}", ctx.Login, r.Text.Length > 200 ? r.Text[..200] : r.Text); return null; }
@@ -79,7 +103,7 @@ namespace Decatron.Services.GameData.LolLive
             _ => "Voz de analista tranquilo, concreto y útil, sin relleno.",
         };
 
-        private static string SystemPrompt(StreamerContext ctx, string kind)
+        private static string SystemPrompt(StreamerContext ctx, string kind, LivePhaseInfo phase)
         {
             var en = ctx.Language.StartsWith("en", StringComparison.OrdinalIgnoreCase);
             var name = string.IsNullOrWhiteSpace(ctx.Settings.CoachName) ? "Coach" : ctx.Settings.CoachName;
@@ -108,13 +132,40 @@ namespace Decatron.Services.GameData.LolLive
                 "postgame" => en ? "\nEvent: the game just ended. comment = honest 2-sentence review of the streamer's game; tips = up to 3 concrete things to improve (compare with their averages when given). Leave the rest null." : "\nEvento: terminó la partida. comment = opinión honesta en 2 frases de cómo jugó el streamer; tips = hasta 3 cosas concretas a mejorar (compara con sus promedios si te los dan). El resto null.",
                 _ => "",
             };
+            var mode = QueueMode(phase.QueueId, phase.Game?.GameMode);
+            var modeNote = (mode, en) switch
+            {
+                ("aram", true) => "\nMode: ARAM (Howling Abyss, one lane, random champions, no bans). No lane matchup or roles: talk about the team fight, poke vs engage, and the ARAM build (Mark/Dash instead of Flash+Heal, no boots rush). Never suggest a pick from the pool: the champion is random.",
+                ("aram", false) => "\nModo: ARAM (Abismo de los Lamentos, una sola línea, campeones al azar, sin bans). No hay matchup de línea ni roles: habla de la pelea de equipo, poke vs engage, y de la build de ARAM (Marca/Dash en vez de Flash+Heal, sin priorizar botas). Nunca sugieras un pick del pool: el campeón es aleatorio.",
+                ("arena", true) => "\nMode: Arena (2v2v2v2 with a duo, augments, no lanes, no bans). Talk about the duo synergy and the enemy pairs; build and runes are Arena-specific. No lane matchup.",
+                ("arena", false) => "\nModo: Arena (2v2v2v2 en dúo, aumentos, sin líneas, sin bans). Habla de la sinergia del dúo y de las parejas rivales; build y runas son las de Arena. Sin matchup de línea.",
+                ("urf", true) => "\nMode: URF/ARURF (no mana, 300 haste, snowball). Fun mode: keep it light, builds are non-standard.",
+                ("urf", false) => "\nModo: URF/ARURF (sin maná, 300 de celeridad, snowball). Modo de diversión: tono ligero, las builds no son las normales.",
+                ("normal", true) => "\nMode: Normal draft (not ranked): nothing at stake, allow experiments, less pressure.",
+                ("normal", false) => "\nModo: Normal (no es ranked): nada en juego, vale experimentar, menos presión.",
+                _ => "",
+            };
             if (!string.IsNullOrWhiteSpace(ctx.Settings.Notes)) rules += (en ? "\nStreamer's notes for you: " : "\nNotas del streamer para ti: ") + ctx.Settings.Notes.Trim();
-            return rules + focus;
+            return rules + focus + modeNote;
         }
+
+        /// <summary>ranked | normal | aram | arena | urf | other, por queueId de Riot (o gameMode del cliente como respaldo).</summary>
+        public static string QueueMode(int? queueId, string? gameMode) => queueId switch
+        {
+            420 or 440 or 700 or 1100 => "ranked",           // solo, flex, clash, TFT ranked no aplica
+            400 or 430 or 490 => "normal",
+            450 or 2400 => "aram",
+            1700 or 1710 or 1720 => "arena",
+            900 or 1010 or 1900 => "urf",
+            _ => (gameMode?.ToUpperInvariant()) switch
+            {
+                "ARAM" => "aram", "CHERRY" => "arena", "URF" or "ARURF" => "urf", "CLASSIC" => "ranked", _ => "other",
+            },
+        };
 
         private static string UserPrompt(string kind, LivePhaseInfo phase, StreamerContext ctx)
         {
-            var o = new JsonObject { ["event"] = kind, ["phase"] = phase.Phase, ["queue"] = phase.QueueName };
+            var o = new JsonObject { ["event"] = kind, ["phase"] = phase.Phase, ["queue"] = phase.QueueName, ["mode"] = QueueMode(phase.QueueId, phase.Game?.GameMode) };
             if (ctx.Stats != null)
             {
                 o["streamer"] = new JsonObject
