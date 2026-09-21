@@ -9,6 +9,16 @@ export default {
     darkMode: 'class',
     theme: {
         extend: {
+            // Breakpoints propios para monitores grandes — Tailwind por default corta
+            // en 1536px (2xl) y no distingue nada mas alla. Sin esto, todo lo que
+            // pusieramos "responsive" para 2K/4K quedaba con el mismo layout que un
+            // notebook de 1440p, que es exactamente el reclamo: contenido chico y
+            // centrado, sin adaptarse a la pantalla real.
+            screens: {
+                '3xl': '1920px', // HD / Full HD
+                '4xl': '2560px', // 2K / QHD
+                '5xl': '3840px', // 4K / UHD
+            },
             colors: {
                 // Azul profesional (accent)
                 accent: {
@@ -57,7 +67,22 @@ export default {
                 twitch: {
                     DEFAULT: '#9146ff',
                     dark: '#772ce8',
+                },
+                // Kick green
+                kick: {
+                    DEFAULT: '#53fc18',
+                    dark: '#3ecc0a',
+                },
+                // YouTube red
+                youtube: {
+                    DEFAULT: '#ff0000',
+                    dark: '#cc0000',
                 }
+            },
+            fontFamily: {
+                // Chakra Petch ya se cargaba en index.html sin usarse en ningun lado.
+                // Es la tipografia de titulos de la landing (ver Index.tsx).
+                display: ['"Chakra Petch"', 'sans-serif'],
             },
         },
     },
