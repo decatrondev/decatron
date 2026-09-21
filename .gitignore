@@ -245,3 +245,4 @@ appsettings.Secrets.json.example
 
 # Logs de screen: aparecen al arrancar servicios en el servidor
 screenlog.*
+__pycache__/
