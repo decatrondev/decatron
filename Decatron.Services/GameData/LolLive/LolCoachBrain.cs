@@ -58,7 +58,7 @@ namespace Decatron.Services.GameData.LolLive
                 // La IA escribe ítems/runas/hechizos en inglés (ver SystemPrompt); acá se pasan al idioma
                 // del canal con la tabla oficial de Data Dragon y se tira lo que no exista.
                 info.Runes = await _names.LocalizeAsync(info.Runes, ctx.Language, ct);
-                info.Spells = await _names.LocalizeAsync(info.Spells, ctx.Language, ct);
+                // Los hechizos se quedan en inglés: en LATAM todo el mundo dice "Flash", nadie "Destello".
                 info.Build = await _names.CleanBuildAsync(info.Build, ctx.Language, ct);
                 return info;
             }
