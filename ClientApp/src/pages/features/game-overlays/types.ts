@@ -298,6 +298,8 @@ export interface GameVisualConfig {
     position: { x: number; y: number };
     /** Caja fija de la tarjeta. Si falta (configs viejas) se usa el default del layout. */
     size: CardSize;
+    /** auto = el editor mide el contenido (todas las vistas) y guarda la caja justa; manual = la fija el streamer. */
+    sizeMode: 'auto' | 'manual';
     /** Escala de toda la tarjeta (1 = 100 %). Cambia el tamaño en pantalla sin tocar la maqueta. */
     scale: number;
     chrome: CardChrome;
@@ -355,6 +357,7 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
         animation: { in: 'fade', out: 'fade', accountSwitch: 'slide' },
         position: { x: 24, y: 24 },
         size: { ...LAYOUT_DEFAULT_SIZE.card },
+        sizeMode: 'auto',
         scale: 1,
         chrome: { accentLine: true, accentWidth: 3, shadow: true, queueTag: true, accountCounter: true },
         slides: { enabled: false, seconds: 12, views: ['main', 'stats', 'champs', 'graph'], animation: 'fade' },
@@ -379,6 +382,7 @@ export function resolveGameConfig(game: GameId, saved?: Partial<GameVisualConfig
         position: { ...d.position, ...saved.position },
         // Configs anteriores a la caja fija: el default depende del layout guardado, no del de fábrica.
         size: saved.size?.width && saved.size?.height ? { ...saved.size } : { ...LAYOUT_DEFAULT_SIZE[(saved.layout ?? d.layout) as LayoutPreset] },
+        sizeMode: saved.sizeMode === 'manual' ? 'manual' : 'auto',
         scale: typeof saved.scale === 'number' && saved.scale > 0 ? saved.scale : 1,
         chrome: { ...d.chrome, ...saved.chrome },
         accountQueues: { ...(saved.accountQueues ?? {}) },

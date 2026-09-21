@@ -400,7 +400,12 @@
       "chromeAccountCounter": "Contador de cuentas (1/5)",
       "chromeAccentWidth": "Grosor de la línea",
       "slidesAnimation": "Animación entre vistas",
-      "promoManaged": "Los anuncios (mensajes, imágenes, cada cuánto y cuánto duran) los administra Decatron. Ahora: {{n}} anuncio(s), cada {{every}} s."
+      "promoManaged": "Los anuncios (mensajes, imágenes, cada cuánto y cuánto duran) los administra Decatron. Ahora: {{n}} anuncio(s), cada {{every}} s.",
+      "sizeMode": "Tamaño de la caja",
+      "sizeAuto": "Automático (según el contenido)",
+      "sizeManual": "Manual",
+      "sizeOverflow": "Hay contenido que no entra: hace falta al menos {{w}}×{{h}}. Pulsa \"Ajustar al contenido\" o vuelve a automático.",
+      "boxHintAuto": "La caja (borde punteado) se ajusta sola a lo que tengas encendido, contando todas las vistas de la rotación y el anuncio, y no cambia de tamaño en OBS. Si quieres un tamaño fijo, cámbiala a manual."
     }
   }
 }

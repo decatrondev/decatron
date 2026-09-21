@@ -70,7 +70,8 @@ export const NumberInput: React.FC<{
     max?: number;
     step?: number;
     className?: string;
-}> = ({ value, onChange, min, max, step = 1, className = '' }) => (
+    disabled?: boolean;
+}> = ({ value, onChange, min, max, step = 1, className = '', disabled = false }) => (
     <input
         type="number"
         value={value}
@@ -78,7 +79,8 @@ export const NumberInput: React.FC<{
         min={min}
         max={max}
         step={step}
-        className={`w-full px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${className}`}
+        disabled={disabled}
+        className={`w-full px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:opacity-50 ${className}`}
     />
 );
 

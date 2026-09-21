@@ -400,7 +400,12 @@
       "chromeAccountCounter": "Account counter (1/5)",
       "chromeAccentWidth": "Line width",
       "slidesAnimation": "Animation between views",
-      "promoManaged": "Ads (messages, images, how often and how long) are managed by Decatron. Now: {{n}} ad(s), every {{every}} s."
+      "promoManaged": "Ads (messages, images, how often and how long) are managed by Decatron. Now: {{n}} ad(s), every {{every}} s.",
+      "sizeMode": "Box size",
+      "sizeAuto": "Automatic (fits content)",
+      "sizeManual": "Manual",
+      "sizeOverflow": "Some content does not fit: at least {{w}}×{{h}} is needed. Press \"Fit to content\" or switch back to automatic.",
+      "boxHintAuto": "The box (dashed border) sizes itself to what you have enabled, counting every rotation view and the ad, and never resizes in OBS. Switch to manual if you want a fixed size."
     }
   }
 }

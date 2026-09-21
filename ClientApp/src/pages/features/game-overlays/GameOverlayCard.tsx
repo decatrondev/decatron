@@ -106,7 +106,7 @@ export function PromoCard({ config, lang = 'es', animation, promo, measure }: { 
         );
     }
     return (
-        <CardBox config={config} animation={animation} measure={measure} style={{ ...forcedBg, ...font, padding: '14px 18px', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center' }}>
+        <CardBox config={config} animation={animation} measure={measure} style={{ ...forcedBg, ...font, padding: '14px 18px', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center', maxWidth: config.layout === 'emblem-only' ? 200 : 380 }}>
             <img src={image} alt="Decatron" style={{ width: '70%', maxWidth: 200, height: 'auto', maxHeight: '40%', objectFit: 'contain' }} />
             <div style={{ fontSize: 12, color: '#c9d1d9', lineHeight: 1.3, whiteSpace: 'normal', overflow: 'hidden' }}>{line}</div>
             <div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1 }}>{title}</div>

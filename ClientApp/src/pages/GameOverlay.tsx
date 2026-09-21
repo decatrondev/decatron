@@ -16,6 +16,7 @@ import {
 } from './features/game-overlays/types';
 import { GameOverlayCard, CARD_LABELS } from './features/game-overlays/GameOverlayCard';
 import { CardView, useCardCycle } from './features/game-overlays/slides';
+import { CardMeasurer, autoSize, viewsToMeasure } from './features/game-overlays/CardMeasurer';
 
 const OVERLAY_STYLES = `
     html, body, #root { background: transparent !important; margin: 0; overflow: hidden; }
@@ -195,6 +196,14 @@ export default function GameOverlay() {
     }, [showing, gameConfig?.rotation.mode, gameConfig?.rotation.seconds, accounts.map(a => `${a.accountId}:${a.live?.inGame ? 1 : 0}`).join(','), state?.activeAccountId]);
 
     const account = accounts.find(a => a.accountId === visibleAccountId) ?? accounts[0] ?? null;
+    // Preview sin canal: la caja se mide sola (igual que el modo automático del editor).
+    const isPublicPreview = !channel && !!previewGame;
+    const [measured, setMeasured] = useState<{ width: number; height: number } | null>(null);
+    const sizedConfig = useMemo(() => {
+        if (!gameConfig || !isPublicPreview || !measured) return gameConfig;
+        return { ...gameConfig, size: autoSize(gameConfig, measured, config?.canvas?.width ?? 1920) };
+    }, [gameConfig, isPublicPreview, measured, config?.canvas?.width]);
+
     const cycle = useCardCycle(gameConfig, account, canHidePromo, promos);
     const view: CardView = !channel && previewGame && previewView ? previewView : cycle.view;
     const promo = cycle.promo;
@@ -250,8 +259,12 @@ export default function GameOverlay() {
         <>
             <style>{OVERLAY_STYLES}</style>
             <div style={{ position: 'relative', width: config?.canvas?.width ?? 1920, height: config?.canvas?.height ?? 1080, overflow: 'hidden' }}>
-                {rendered && game && gameConfig && account && (
-                    <div style={{ position: 'absolute', left: gameConfig.position.x, top: gameConfig.position.y, animation }}>
+                {isPublicPreview && game && gameConfig && account && (
+                    <CardMeasurer game={game} config={gameConfig} account={account} accountCount={accounts.length} lang={lang} promo={promo}
+                        views={viewsToMeasure(gameConfig, true)} onMeasure={setMeasured} />
+                )}
+                {rendered && game && sizedConfig && account && (
+                    <div style={{ position: 'absolute', left: sizedConfig.position.x, top: sizedConfig.position.y, animation }}>
                         <GameOverlayCard
                             key={`${game}-${account.accountId}-${view}-${promo?.id ?? 0}`}
                             view={view}
@@ -259,7 +272,7 @@ export default function GameOverlay() {
                             lang={lang}
                             game={game}
                             gameName={GAME_NAMES[game]}
-                            config={gameConfig}
+                            config={sizedConfig}
                             account={account}
                             aggregate={aggregateSession}
                             accountIndex={accounts.findIndex(a => a.accountId === account.accountId)}

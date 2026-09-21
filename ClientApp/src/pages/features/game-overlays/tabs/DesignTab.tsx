@@ -4,15 +4,16 @@
  * fondo, acento, elementos (visibilidad, fuente, tamaño), animaciones.
  * Todo esto es free para todos (decision de producto, plan §6).
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RotateCcw, Maximize2 } from 'lucide-react';
+import { RotateCcw, Maximize2, AlertTriangle } from 'lucide-react';
 import { CanvasEditor } from '../../../../components/overlay-editor/CanvasEditor';
 import { Card, SectionTitle, Label, SubLabel, SelectInput, ColorInput, Slider, Toggle, NumberInput, Checkbox } from '../../now-playing-extension/components/ui/SharedUI';
 import { GameOverlayCard, CARD_LABELS } from '../GameOverlayCard';
 import { CardView, availableViews, pickPromo } from '../slides';
+import { CardMeasurer, autoSize, viewsToMeasure } from '../CardMeasurer';
 import { gameOverlaysApi } from '../api';
-import { CARD_SIZE_LIMITS, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_DEFAULT_SIZE, LAYOUT_PRESETS, LIVE_ELEMENTS, LayoutPreset, LivePhaseId, LivePhaseInfo, OverlayState, PromoCatalog, PromoItem, SLIDE_VIEWS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESETS, SlideView, StylePreset, AccountOverlayState, defaultGameConfig, formatTier } from '../types';
+import { CARD_SIZE_LIMITS, CardSize, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_DEFAULT_SIZE, LAYOUT_PRESETS, LIVE_ELEMENTS, LayoutPreset, LivePhaseId, LivePhaseInfo, OverlayState, PromoCatalog, PromoItem, SLIDE_VIEWS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESETS, SlideView, StylePreset, AccountOverlayState, defaultGameConfig, formatTier } from '../types';
 
 const FONT_FAMILIES = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Oswald', 'Bebas Neue', 'Rajdhani', 'Exo 2', 'Press Start 2P', 'system-ui'];
 const BASE_ELEMENT_ORDER: ElementId[] = ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'recent', 'liveCharacter'];
@@ -75,25 +76,20 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
         return () => { alive = false; };
     }, [lang]);
 
-    // "Ajustar al contenido": una copia de la tarjeta sin caja fija, fuera de pantalla, para medirla.
-    const measureRef = useRef<HTMLDivElement>(null);
-    const [fitPending, setFitPending] = useState(false);
-    const fitToContent = useCallback(() => {
-        const node = measureRef.current?.firstElementChild as HTMLElement | null;
-        if (!node) return;
-        const r = node.getBoundingClientRect();
-        const width = Math.min(CARD_SIZE_LIMITS.maxWidth, Math.max(CARD_SIZE_LIMITS.minWidth, Math.ceil(r.width) + 2));
-        const height = Math.min(CARD_SIZE_LIMITS.maxHeight, Math.max(CARD_SIZE_LIMITS.minHeight, Math.ceil(r.height) + 2));
-        onChange(game, { size: { width, height } });
-    }, [game, onChange]);
+    // Tamaño de la caja: en automático, lo que mide el contenido de todas las vistas
+    // (CardMeasurer); en manual, lo que puso el streamer, con aviso si algo no entra.
+    const [measured, setMeasured] = useState<CardSize | null>(null);
+    const wanted = measured ? autoSize(cfg, measured, canvas.width) : null;
+    const fits = !wanted || (cfg.size.width >= wanted.width && cfg.size.height >= wanted.height);
     useEffect(() => {
-        if (!fitPending) return;
-        setFitPending(false);
-        // Espera al render con la config nueva antes de medir.
-        const t = setTimeout(fitToContent, 50);
-        return () => clearTimeout(t);
-    }, [fitPending, fitToContent]);
-    const setLayout = (l: LayoutPreset) => { onChange(game, { layout: l, size: { ...LAYOUT_DEFAULT_SIZE[l] } }); setFitPending(true); };
+        if (cfg.sizeMode !== 'auto' || !wanted) return;
+        if (wanted.width !== cfg.size.width || wanted.height !== cfg.size.height) onChange(game, { size: wanted });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cfg.sizeMode, wanted?.width, wanted?.height, cfg.size.width, cfg.size.height]);
+    const fitToContent = () => { if (wanted) onChange(game, { size: wanted }); };
+    const setManualSize = (patch: Partial<CardSize>) => onChange(game, { sizeMode: 'manual', size: { ...cfg.size, ...patch } });
+    const setLayout = (l: LayoutPreset) => onChange(game, { layout: l, size: { ...LAYOUT_DEFAULT_SIZE[l] } });
+
     const toggleView = (v: SlideView) => {
         const views = cfg.slides.views.includes(v) ? cfg.slides.views.filter(x => x !== v) : [...cfg.slides.views, v];
         if (views.length === 0) return;
@@ -109,7 +105,6 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
         const elements: GameVisualConfig['elements'] = { ...cfg.elements };
         for (const id of ALL_ELEMENT_ORDER) elements[id] = { ...(elements[id] ?? defaultGameConfig(game).elements[id]!), visible: show.has(id) };
         onChange(game, { elements });
-        setFitPending(true);
     };
 
     useEffect(() => {
@@ -178,10 +173,8 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         }] : []}
                     />
                     {account && (
-                        <div ref={measureRef} aria-hidden style={{ position: 'fixed', left: -10000, top: 0, visibility: 'hidden', pointerEvents: 'none' }}>
-                            <GameOverlayCard game={game} gameName={GAME_NAMES[game]} config={{ ...cfg, scale: 1 }} account={{ ...account, livePhase: null }} view={previewView} promo={previewPromo} measure
-                                accountIndex={0} accountCount={preview?.accounts.length ?? 1} switchAnimation="none" formatTier={formatTier} lang={lang} labels={CARD_LABELS[lang]} />
-                        </div>
+                        <CardMeasurer game={game} config={cfg} account={account} accountCount={preview?.accounts.length ?? 1} lang={lang} promo={previewPromo}
+                            views={viewsToMeasure(cfg, promoForced || cfg.promo.enabled)} onMeasure={setMeasured} />
                     )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-3">
@@ -207,14 +200,23 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     </div>
                     <div className="w-28"><Label>{t('posX')}</Label><NumberInput value={cfg.position.x} onChange={x => onChange(game, { position: { ...cfg.position, x } })} min={0} max={canvas.width} /></div>
                     <div className="w-28"><Label>{t('posY')}</Label><NumberInput value={cfg.position.y} onChange={y => onChange(game, { position: { ...cfg.position, y } })} min={0} max={canvas.height} /></div>
-                    <div className="w-28"><Label>{t('boxWidth')}</Label><NumberInput value={cfg.size.width} onChange={w => onChange(game, { size: { ...cfg.size, width: Math.max(CARD_SIZE_LIMITS.minWidth, Math.min(CARD_SIZE_LIMITS.maxWidth, w)) } })} min={CARD_SIZE_LIMITS.minWidth} max={CARD_SIZE_LIMITS.maxWidth} /></div>
-                    <div className="w-28"><Label>{t('boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => onChange(game, { size: { ...cfg.size, height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) } })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} /></div>
+                    <div className="w-40"><Label>{t('sizeMode')}</Label>
+                        <SelectInput value={cfg.sizeMode} onChange={v => { if (v === 'auto') onChange(game, { sizeMode: 'auto', ...(wanted ? { size: wanted } : {}) }); else onChange(game, { sizeMode: 'manual' }); }}
+                            options={[{ value: 'auto', label: t('sizeAuto') }, { value: 'manual', label: t('sizeManual') }]} />
+                    </div>
+                    <div className="w-28"><Label>{t('boxWidth')}</Label><NumberInput value={cfg.size.width} onChange={w => setManualSize({ width: Math.max(CARD_SIZE_LIMITS.minWidth, Math.min(CARD_SIZE_LIMITS.maxWidth, w)) })} min={CARD_SIZE_LIMITS.minWidth} max={CARD_SIZE_LIMITS.maxWidth} disabled={cfg.sizeMode === 'auto'} /></div>
+                    <div className="w-28"><Label>{t('boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => setManualSize({ height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} disabled={cfg.sizeMode === 'auto'} /></div>
                     <div className="w-40"><Label>{t('scale')}</Label><Slider value={Math.round((cfg.scale ?? 1) * 100)} onChange={v => onChange(game, { scale: Math.max(CARD_SIZE_LIMITS.minScale, Math.min(CARD_SIZE_LIMITS.maxScale, v / 100)) })} min={CARD_SIZE_LIMITS.minScale * 100} max={CARD_SIZE_LIMITS.maxScale * 100} unit="%" /></div>
-                    <button onClick={fitToContent} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-xs flex items-center gap-2 border border-[#374151]" title={t('fitHint')}>
-                        <Maximize2 className="w-3.5 h-3.5" />{t('fit')}
-                    </button>
+                    {cfg.sizeMode === 'manual' && (
+                        <button onClick={fitToContent} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-xs flex items-center gap-2 border border-[#374151]" title={t('fitHint')}>
+                            <Maximize2 className="w-3.5 h-3.5" />{t('fit')}
+                        </button>
+                    )}
                 </div>
-                <p className="text-[11px] text-[#6b7280] mt-2">{t('boxHint')}</p>
+                {cfg.sizeMode === 'manual' && !fits && wanted && (
+                    <p className="text-[11px] text-amber-400 mt-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />{t('sizeOverflow', { w: wanted.width, h: wanted.height })}</p>
+                )}
+                <p className="text-[11px] text-[#6b7280] mt-2">{cfg.sizeMode === 'auto' ? t('boxHintAuto') : t('boxHint')}</p>
             </Card>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
