@@ -361,7 +361,11 @@ namespace Decatron.Services
                 using var connection = new NpgsqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                const string query = "SELECT access_token FROM bot_tokens WHERE bot_username = @botUsername AND is_active = true LIMIT 1";
+                // chat_token es el User Access Token real (con scopes de moderación,
+                // ej. channel:manage:moderators) — access_token es un App Access Token
+                // sin usuario asociado que se renueva aparte vía client_credentials
+                // (RefreshAppAccessTokenAsync) y no sirve para endpoints de moderación.
+                const string query = "SELECT chat_token FROM bot_tokens WHERE bot_username = @botUsername AND is_active = true LIMIT 1";
 
                 using var command = new NpgsqlCommand(query, connection);
                 command.Parameters.AddWithValue("@botUsername", _twitchSettings.BotUsername);
@@ -583,6 +587,124 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in BanUserAsync: {Username} in {ChannelName}", username, channelName);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Quita el status de moderador a un usuario. Necesario antes de poder aplicar
+        /// timeout a alguien que ya es mod — Twitch rechaza el endpoint de bans/timeouts
+        /// contra un moderador. IMPORTANTE: el endpoint moderation/moderators de Twitch
+        /// SOLO acepta el token del propio broadcaster — a diferencia de bans/timeouts,
+        /// ni el bot ni ningún otro moderador pueden llamarlo aunque tengan el scope
+        /// channel:manage:moderators, ni por API ni con /mod - /unmod en el chat. Por
+        /// eso acá se usa GetUserAccessTokenAsync (token del streamer), no el del bot.
+        /// </summary>
+        public async Task<bool> RemoveModeratorAsync(string channelName, string username)
+        {
+            try
+            {
+                var broadcasterUser = await GetUserByLoginAsync(channelName);
+                if (broadcasterUser == null)
+                {
+                    _logger.LogWarning("Could not get broadcaster for channel: {ChannelName}", channelName);
+                    return false;
+                }
+
+                var targetUser = await GetUserByLoginAsync(username);
+                if (targetUser == null)
+                {
+                    _logger.LogWarning("Could not get user: {Username}", username);
+                    return false;
+                }
+
+                var accessToken = await GetUserAccessTokenAsync(broadcasterUser.id);
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    _logger.LogWarning("Could not get broadcaster access token for channel: {ChannelName}", channelName);
+                    return false;
+                }
+
+                var request = new HttpRequestMessage(HttpMethod.Delete,
+                    $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterUser.id}&user_id={targetUser.id}");
+
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Moderator removed: {Username} in {ChannelName}", username, channelName);
+                    return true;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Error removing moderator in [{ChannelName}] for {Username}: {StatusCode} - {ErrorContent}", channelName, username, response.StatusCode, errorContent);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RemoveModeratorAsync: {Username} in {ChannelName}", username, channelName);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Agrega el status de moderador a un usuario. Usado para restaurar el mod tras
+        /// un timeout de !ruleta contra un moderador. Igual que RemoveModeratorAsync,
+        /// requiere el token del broadcaster — el bot no puede llamar este endpoint.
+        /// </summary>
+        public async Task<bool> AddModeratorAsync(string channelName, string username)
+        {
+            try
+            {
+                var broadcasterUser = await GetUserByLoginAsync(channelName);
+                if (broadcasterUser == null)
+                {
+                    _logger.LogWarning("Could not get broadcaster for channel: {ChannelName}", channelName);
+                    return false;
+                }
+
+                var targetUser = await GetUserByLoginAsync(username);
+                if (targetUser == null)
+                {
+                    _logger.LogWarning("Could not get user: {Username}", username);
+                    return false;
+                }
+
+                var accessToken = await GetUserAccessTokenAsync(broadcasterUser.id);
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    _logger.LogWarning("Could not get broadcaster access token for channel: {ChannelName}", channelName);
+                    return false;
+                }
+
+                var request = new HttpRequestMessage(HttpMethod.Post,
+                    $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterUser.id}&user_id={targetUser.id}");
+
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Moderator restored: {Username} in {ChannelName}", username, channelName);
+                    return true;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Error restoring moderator in [{ChannelName}] for {Username}: {StatusCode} - {ErrorContent}", channelName, username, response.StatusCode, errorContent);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddModeratorAsync: {Username} in {ChannelName}", username, channelName);
                 return false;
             }
         }

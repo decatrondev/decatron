@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +10,7 @@ using Decatron.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Npgsql;
@@ -41,6 +42,7 @@ namespace Decatron.Services
         private readonly ISpeakChatService _speakChatService;
         private readonly GiveawayService _giveawayService;
         private readonly IGachaService _gachaService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         // Cache para evitar procesar el mismo mensaje de chat dos veces
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
@@ -58,7 +60,8 @@ namespace Decatron.Services
             ILiveAlertHandler liveAlertHandler,
             ISpeakChatService speakChatService,
             GiveawayService giveawayService,
-            IGachaService gachaService)
+            IGachaService gachaService,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _configuration = configuration;
             _logger = logger;
@@ -73,6 +76,7 @@ namespace Decatron.Services
             _speakChatService = speakChatService;
             _giveawayService = giveawayService;
             _gachaService = gachaService;
+            _serviceScopeFactory = serviceScopeFactory;
 
             CleanupOldMessages();
         }
@@ -149,9 +153,42 @@ namespace Decatron.Services
             {
                 await ManejarStreamOffline(datosEvento);
             }
+            else if (tipoEvento == "channel.update")
+            {
+                await ManejarChannelUpdate(datosEvento);
+            }
             else
             {
                 _logger.LogWarning($"⚠️ Evento no manejado: {tipoEvento}");
+            }
+        }
+
+        /// <summary>
+        /// channel.update v2: cambio de categoria/titulo. Alimenta la deteccion de
+        /// juego de Game Overlays (GameDetectionService). El overlay reacciona por
+        /// SignalR cuando el poller recalcula el estado.
+        /// </summary>
+        private async Task ManejarChannelUpdate(JObject datosEvento)
+        {
+            try
+            {
+                var broadcasterUserId = datosEvento["broadcaster_user_id"]?.ToString();
+                if (string.IsNullOrEmpty(broadcasterUserId)) return;
+
+                var categoryId = datosEvento["category_id"]?.ToString();
+                var categoryName = datosEvento["category_name"]?.ToString();
+
+                using var scope = _serviceScopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                var userId = await db.Users.Where(u => u.TwitchId == broadcasterUserId).Select(u => (long?)u.Id).FirstOrDefaultAsync();
+                if (userId == null) return;
+
+                var detection = scope.ServiceProvider.GetRequiredService<Decatron.Services.GameData.GameDetectionService>();
+                await detection.SetCategoryAsync(userId.Value, "twitch", categoryId, categoryName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error procesando channel.update");
             }
         }
 
@@ -171,8 +208,50 @@ namespace Decatron.Services
                 _logger.LogInformation("🟢 [stream.online] {Login} inició stream", broadcasterUserLogin);
                 await _streamStatusService.SetStreamOnlineAsync(broadcasterUserId, broadcasterUserLogin.ToLower());
 
+                // Rueda de la Suerte: "giros por stream" solo significa algo si se
+                // reinicia en algún momento verificable, y este es ese momento.
+                try
+                {
+                    using var ruedaScope = _serviceScopeFactory.CreateScope();
+                    var db2 = ruedaScope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                    var wallets = ruedaScope.ServiceProvider.GetRequiredService<WheelWalletService>();
+
+                    var ruedaChannelId = await db2.Users
+                        .Where(u => u.TwitchId == broadcasterUserId)
+                        .Select(u => (long?)u.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (ruedaChannelId != null)
+                        await wallets.ResetStreamCountersAsync(ruedaChannelId.Value);
+                }
+                catch (Exception ruedaEx)
+                {
+                    _logger.LogError(ruedaEx, "🎡 [Rueda] Error reiniciando contadores por stream de {Login}", broadcasterUserLogin);
+                }
+
                 // Discord live alerts (reads from discord_live_alerts table)
                 _ = _liveAlertHandler.SendLiveAlertAsync(broadcasterUserLogin.ToLower(), broadcasterUserId);
+
+                // Fortnite Spirits: si el streamer tiene el aviso de Twitch prendido
+                // y hay sprites nuevos desde la ultima vez, se los anuncia en su chat.
+                var localUserId = await _dbContext.Users
+                    .Where(u => u.TwitchId == broadcasterUserId)
+                    .Select(u => (long?)u.Id)
+                    .FirstOrDefaultAsync();
+                // Scope propio, no el de este handler: es fire-and-forget y el
+                // scope de la request/evento se libera (junto con su DbContext)
+                // antes de que esto termine si se comparte.
+                if (localUserId != null)
+                {
+                    var login = broadcasterUserLogin.ToLower();
+                    var uid = localUserId.Value;
+                    _ = Task.Run(async () =>
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var delivery = scope.ServiceProvider.GetRequiredService<ISpiritNotificationDeliveryService>();
+                        await delivery.NotifyStreamOnlineAsync(uid, login);
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -195,6 +274,46 @@ namespace Decatron.Services
 
                 _logger.LogInformation("🔴 [stream.offline] {Login} terminó stream", broadcasterUserLogin);
                 await _streamStatusService.SetStreamOfflineAsync(broadcasterUserId, broadcasterUserLogin.ToLower());
+
+                // Rueda de la Suerte: caducidad `stream_end`. El histórico
+                // (lifetime_credits) no se toca, solo el saldo gastable.
+                try
+                {
+                    using var ruedaScope = _serviceScopeFactory.CreateScope();
+                    var db2 = ruedaScope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                    var wallets = ruedaScope.ServiceProvider.GetRequiredService<WheelWalletService>();
+                    var raffles = ruedaScope.ServiceProvider.GetRequiredService<WheelRaffleService>();
+
+                    var ruedaChannelId = await db2.Users
+                        .Where(u => u.TwitchId == broadcasterUserId)
+                        .Select(u => (long?)u.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (ruedaChannelId != null)
+                    {
+                        await wallets.ExpireOnStreamEndAsync(ruedaChannelId.Value);
+
+                        // Modo Sorteo: los pools que pidieron `clear_on_stream_end`.
+                        // Es el único momento en que "fin de stream" es verificable.
+                        await raffles.LimpiarPorFinDeStreamAsync(ruedaChannelId.Value);
+                    }
+                }
+                catch (Exception ruedaEx)
+                {
+                    _logger.LogError(ruedaEx, "🎡 [Rueda] Error caducando créditos al cerrar stream de {Login}", broadcasterUserLogin);
+                }
+
+                // Gachapón: tiros bonus con vencimiento `stream_end`.
+                try
+                {
+                    using var gachaScope = _serviceScopeFactory.CreateScope();
+                    var gacha = gachaScope.ServiceProvider.GetRequiredService<IGachaService>();
+                    await gacha.ExpireBonusPullsOnStreamEndAsync(broadcasterUserLogin.ToLower());
+                }
+                catch (Exception gachaEx)
+                {
+                    _logger.LogError(gachaEx, "[GACHA] Error venciendo tiros bonus al cerrar stream de {Login}", broadcasterUserLogin);
+                }
 
                 // Discord offline handler (edit/delete/summary)
                 _ = _liveAlertHandler.HandleStreamOfflineAsync(broadcasterUserLogin.ToLower());
@@ -378,6 +497,11 @@ namespace Decatron.Services
                 LogToFile($"EVENTO CANJE: {redeemerUserName} canjeó '{rewardTitle}' en el canal {broadcasterUserName}");
                 _logger.LogInformation($"Channel Points Redemption - Reward: {rewardTitle}, Redeemer: {redeemerUserName}, Channel: {broadcasterUserName}");
 
+                // Rueda de la Suerte: solo cuenta si es LA recompensa que el streamer
+                // eligió en la config de la rueda; el servicio filtra por rewardId.
+                await AcreditarEnRuedaAsync(broadcasterUserName, redeemerUserName,
+                    Decatron.Core.Models.WheelOfLuck.WheelSources.ChannelPoints, 1, rewardId);
+
                 // Speak Chat TTS por canje (recompensas con texto que no pasan por el chat).
                 // Si el canje ya se procesó por el mensaje de chat, el servicio lo deduplica.
                 try
@@ -396,19 +520,29 @@ namespace Decatron.Services
                     _logger.LogError(speakEx, "❌ [SpeakChat] Error procesando canje en [{Channel}]", broadcasterUserName);
                 }
 
-                // Buscar archivo de sound alert asociado a esta recompensa
+                // Buscar archivo de sound alert asociado a esta recompensa —
+                // desde la unificacion con la galeria compartida (8 ago 2026),
+                // vive en sound_alert_reward_files (el mapeo) + timer_media_files
+                // (el archivo en si, si no es de sistema). Se resuelve por
+                // twitch_id, no por username: mismo criterio de evitar
+                // colisiones de nombre que ya se aplico en Kick.
                 var connectionString = _configuration.GetConnectionString("DefaultConnection");
                 using var conn = new NpgsqlConnection(connectionString);
                 await conn.OpenAsync();
 
                 const string fileQuery = @"
-                    SELECT id, file_type, file_path, file_name, volume, enabled, image_path, image_name, is_system_file
-                    FROM sound_alert_files
-                    WHERE username = @username AND reward_id = @rewardId
+                    SELECT sarf.id, tmf.file_type, tmf.file_path, sarf.system_file_path,
+                           sarf.volume, sarf.enabled, sarf.image_path, sarf.image_name,
+                           sarf.show_image, sarf.image_url, sarf.image_source,
+                           sarf.media_file_id, sarf.user_id
+                    FROM sound_alert_reward_files sarf
+                    JOIN users u ON u.id = sarf.user_id
+                    LEFT JOIN timer_media_files tmf ON tmf.id = sarf.media_file_id
+                    WHERE u.twitch_id = @broadcasterId AND sarf.reward_id = @rewardId
                     LIMIT 1";
 
                 using var fileCmd = new NpgsqlCommand(fileQuery, conn);
-                fileCmd.Parameters.AddWithValue("@username", broadcasterUserName.ToLower());
+                fileCmd.Parameters.AddWithValue("@broadcasterId", broadcasterUserId);
                 fileCmd.Parameters.AddWithValue("@rewardId", rewardId);
 
                 using var reader = await fileCmd.ExecuteReaderAsync();
@@ -423,19 +557,26 @@ namespace Decatron.Services
                     return;
                 }
 
-                var fileId = reader.GetInt64(0);
-                var fileType = reader.GetString(1);
-                var filePath = reader.GetString(2);
-                var fileName = reader.GetString(3);
+                var mappingId = reader.GetInt64(0);
+                var mediaFileType = reader.IsDBNull(1) ? null : reader.GetString(1);
+                var mediaFilePath = reader.IsDBNull(2) ? null : reader.GetString(2);
+                var systemFilePath = reader.IsDBNull(3) ? null : reader.GetString(3);
                 var volume = reader.IsDBNull(4) ? (int?)null : reader.GetInt32(4);
                 var enabled = reader.GetBoolean(5);
                 var imagePath = reader.IsDBNull(6) ? (string?)null : reader.GetString(6);
                 var imageName = reader.IsDBNull(7) ? (string?)null : reader.GetString(7);
-                var isSystemFile = reader.IsDBNull(8) ? false : reader.GetBoolean(8);
+                var showImage = reader.GetBoolean(8);
+                var imageUrlDb = reader.IsDBNull(9) ? (string?)null : reader.GetString(9);
+                var imageSource = reader.GetString(10);
+                var mediaFileId = reader.IsDBNull(11) ? (int?)null : reader.GetInt32(11);
+                var channelUserId = reader.GetInt64(12);
 
                 await reader.CloseAsync();
 
-                _logger.LogInformation($"🎵 [DEBUG] Archivo - ID: {fileId}, Type: {fileType}, FileName: {fileName}, FilePath: {filePath}, IsSystemFile: {isSystemFile}");
+                var filePath = mediaFilePath ?? systemFilePath ?? "";
+                var fileType = mediaFileType ?? InferSystemFileType(systemFilePath ?? "");
+
+                _logger.LogInformation($"🎵 [DEBUG] Mapping - Id: {mappingId}, Type: {fileType}, FilePath: {filePath}, EsSistema: {mediaFileId == null}");
 
                 if (!enabled)
                 {
@@ -451,11 +592,11 @@ namespace Decatron.Services
                            animation_type, animation_speed, text_outline_enabled, text_outline_color,
                            text_outline_width
                     FROM sound_alert_configs
-                    WHERE username = @username
+                    WHERE user_id = @userId
                     LIMIT 1";
 
                 using var configCmd = new NpgsqlCommand(configQuery, conn);
-                configCmd.Parameters.AddWithValue("@username", broadcasterUserName.ToLower());
+                configCmd.Parameters.AddWithValue("@userId", channelUserId);
 
                 using var configReader = await configCmd.ExecuteReaderAsync();
 
@@ -496,51 +637,39 @@ namespace Decatron.Services
                     return;
                 }
 
-                // Incrementar contador de reproducciones
-                const string updatePlayCountQuery = @"
-                    UPDATE sound_alert_files
-                    SET play_count = play_count + 1, updated_at = NOW()
-                    WHERE id = @id";
+                // Incrementar contador de reproducciones — solo si es un
+                // archivo de la galeria compartida (los de sistema no son
+                // filas de BD, no tienen contador que incrementar).
+                if (mediaFileId != null)
+                {
+                    const string updatePlayCountQuery = @"
+                        UPDATE timer_media_files
+                        SET usage_count = usage_count + 1, updated_at = NOW()
+                        WHERE id = @id";
 
-                using var updateCmd = new NpgsqlCommand(updatePlayCountQuery, conn);
-                updateCmd.Parameters.AddWithValue("@id", fileId);
-                await updateCmd.ExecuteNonQueryAsync();
+                    using var updateCmd = new NpgsqlCommand(updatePlayCountQuery, conn);
+                    updateCmd.Parameters.AddWithValue("@id", mediaFileId.Value);
+                    await updateCmd.ExecuteNonQueryAsync();
+                }
 
-                // Construir URLs correctamente dependiendo si es archivo del sistema o de usuario
-                string fileUrl;
+                // Construir URLs — ToPublicPath funciona igual para ambos casos,
+                // FilePath ya viene relativo a ClientApp/public/ en los dos.
+                var fileUrl = ToPublicPath(filePath);
                 string? imageUrl = null;
 
-                if (isSystemFile)
+                if (showImage)
                 {
-                    var relativePath = filePath.Replace("ClientApp/public", "").Replace("\\", "/");
-                    if (!relativePath.StartsWith("/"))
-                        relativePath = "/" + relativePath;
-                    fileUrl = relativePath;
-                    _logger.LogInformation($"🎵 [SoundAlerts] Archivo del sistema - FilePath: {filePath} → URL: {fileUrl}");
-
-                    if (!string.IsNullOrEmpty(imagePath))
+                    if (imageSource == "url" && !string.IsNullOrEmpty(imageUrlDb))
                     {
-                        var relativeImagePath = imagePath.Replace("ClientApp/public", "").Replace("\\", "/");
-                        if (!relativeImagePath.StartsWith("/"))
-                            relativeImagePath = "/" + relativeImagePath;
-                        imageUrl = relativeImagePath;
+                        imageUrl = imageUrlDb;
                     }
-                }
-                else
-                {
-                    // IMPORTANTE: usar el nombre real del archivo físico (con GUID), no el fileName original
-                    var physicalFileName = Path.GetFileName(filePath);
-                    fileUrl = $"/uploads/soundalerts/{broadcasterUserName.ToLower()}/{physicalFileName}";
-                    _logger.LogInformation($"🎵 [SoundAlerts] Archivo de usuario - FilePath: {filePath}, PhysicalFileName: {physicalFileName} → URL: {fileUrl}");
-
-                    if (!string.IsNullOrEmpty(imagePath))
+                    else if (!string.IsNullOrEmpty(imagePath))
                     {
-                        var physicalImageName = Path.GetFileName(imagePath);
-                        imageUrl = $"/uploads/soundalerts/{broadcasterUserName.ToLower()}/{physicalImageName}";
+                        imageUrl = ToPublicPath(imagePath);
                     }
                 }
 
-                _logger.LogInformation($"🎵 [DEBUG] URL Final - FileUrl: {fileUrl}, FileType: {fileType}, IsSystemFile: {isSystemFile}");
+                _logger.LogInformation($"🎵 [DEBUG] URL Final - FileUrl: {fileUrl}, FileType: {fileType}, EsSistema: {mediaFileId == null}");
 
                 // Enviar alerta a través de SignalR
                 var alertData = new
@@ -573,7 +702,7 @@ namespace Decatron.Services
                     .SendAsync("ShowSoundAlert", alertData);
 
                 _logger.LogInformation($"✅ Sound alert enviado por SignalR para {broadcasterUserName} - Reward: {rewardTitle}");
-                LogToFile($"ALERTA ENVIADA: {redeemerUserName} → {rewardTitle} → {fileName}");
+                LogToFile($"ALERTA ENVIADA: {redeemerUserName} → {rewardTitle} → {Path.GetFileName(filePath)}");
 
                 await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
                     filePath, redeemerUserName, redeemerUserId, redeemedAt, true, null, broadcasterUserId);
@@ -629,6 +758,21 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "Error registrando historial de canje");
             }
+        }
+
+        // Una sola implementación en Decatron.Core: las cuatro copias privadas que
+        // había tenían la misma lógica rota, así que arreglar una sola habría dejado
+        // las otras tres generando URLs invalidas.
+        private static string ToPublicPath(string filePath) =>
+            Decatron.Core.Helpers.MediaPathHelpers.ToPublicPath(filePath);
+
+        /// <summary>Los archivos de sistema no tienen fila de BD con FileType — se infiere de la carpeta (sounds/videos/images), igual que SoundAlertTriggerService.</summary>
+        private static string InferSystemFileType(string systemFilePath)
+        {
+            if (systemFilePath.Contains("/sounds/")) return "sound";
+            if (systemFilePath.Contains("/videos/")) return "video";
+            if (systemFilePath.Contains("/images/")) return "image";
+            return "sound";
         }
 
         private async Task ManejarEventoSeguidor(JObject datosEvento)
@@ -721,6 +865,37 @@ namespace Decatron.Services
             }
         }
 
+
+        /// <summary>
+        /// Acredita un aporte en la Billetera de Aportes de la Rueda de la Suerte y,
+        /// si la rueda tiene auto-girar, la hace girar sola.
+        ///
+        /// <para>Los tres aportes (bits, subs de regalo y canjes) hacen exactamente lo
+        /// mismo con la rueda: cambia solo la fuente y la cantidad. La lógica vive en
+        /// <see cref="WheelService.CreditAndMaybeSpinAsync"/> y no acá, porque el
+        /// simulador del panel llama a esa misma función: si tuviera una copia, probaría
+        /// su copia y no lo que pasa en vivo.</para>
+        ///
+        /// <para>Nunca lanza: un fallo de la rueda no puede tumbar el procesamiento del
+        /// evento, del que dependen el timer, las alertas y el gachapón.</para>
+        /// </summary>
+        private async Task AcreditarEnRuedaAsync(
+            string channelLogin, string viewerLogin, string source, long amount,
+            string? rewardId = null, string? subTier = null)
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var wheels = scope.ServiceProvider.GetRequiredService<WheelService>();
+                await wheels.CreditAndMaybeSpinAsync(channelLogin, viewerLogin, source, amount, rewardId, subTier);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🎡 [Rueda] Error acreditando {Source} de {Viewer} en {Channel}",
+                    source, viewerLogin, channelLogin);
+            }
+        }
+
         private async Task ManejarEventoCheer(JObject datosEvento)
         {
             try
@@ -782,6 +957,10 @@ namespace Decatron.Services
                 {
                     _logger.LogError(gachaEx, "[GACHA] Error procesando bits para gacha");
                 }
+
+                // Rueda de la Suerte: convertir bits en créditos
+                await AcreditarEnRuedaAsync(broadcasterUserName, userName,
+                    Decatron.Core.Models.WheelOfLuck.WheelSources.Bits, bits);
             }
             catch (Exception ex)
             {
@@ -846,6 +1025,11 @@ namespace Decatron.Services
                 var broadcasterUserName = datosEvento["broadcaster_user_login"]?.ToString();
                 var userName = datosEvento["user_name"]?.ToString();
                 var total = datosEvento["total"]?.ToObject<int>() ?? 0;
+                // "1000", "2000" o "3000". Este payload es el ÚNICO sitio del sistema
+                // por el que llega el tier: el badge `subscriber` del chat trae los
+                // meses de sub, no el tier. Si un día falta, la Rueda lo trata como
+                // Tier 1 y el multiplicador simplemente no se aplica.
+                var tierRegalo = datosEvento["tier"]?.ToString();
 
                 if (string.IsNullOrEmpty(broadcasterUserName) || string.IsNullOrEmpty(userName) || total <= 0)
                 {
@@ -875,6 +1059,10 @@ namespace Decatron.Services
                 {
                     _logger.LogError(gachaEx, "[GACHA] Error procesando gift sub para gacha");
                 }
+
+                // Rueda de la Suerte: los créditos van a quien REGALA, no a quien recibe.
+                await AcreditarEnRuedaAsync(broadcasterUserName, userName,
+                    Decatron.Core.Models.WheelOfLuck.WheelSources.GiftSub, total, subTier: tierRegalo);
             }
             catch (Exception ex)
             {
@@ -965,6 +1153,14 @@ namespace Decatron.Services
 
                 _logger.LogInformation($"🎉 [RESUB] {userName} renovó en {broadcasterUserName} - Tier: {tier}, Meses: {months}");
 
+                // Una renovación vale lo mismo que una sub nueva para el timer y el gachapón.
+                // Twitch solo manda este evento cuando el viewer comparte su resub en el chat;
+                // las renovaciones automáticas silenciosas no generan ningún evento.
+                if (!string.IsNullOrEmpty(tier))
+                {
+                    await _timerEventService.ProcessSubscribeEventAsync(broadcasterUserName, userName, tier, months: Math.Max(1, months));
+                }
+
                 try
                 {
                     await _eventAlertsService.TriggerAlertAsync(
@@ -974,6 +1170,18 @@ namespace Decatron.Services
                 catch (Exception alertEx)
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering resub alert for {User}", userName);
+                }
+
+                if (!string.IsNullOrEmpty(tier))
+                {
+                    try
+                    {
+                        await _gachaService.ProcessSubEventAsync(broadcasterUserName.ToLower(), userName, tier, isResub: true);
+                    }
+                    catch (Exception gachaEx)
+                    {
+                        _logger.LogError(gachaEx, "[GACHA] Error procesando resub para gacha");
+                    }
                 }
             }
             catch (Exception ex)

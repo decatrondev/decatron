@@ -335,6 +335,22 @@ namespace Decatron.Services
                                 errorCount++;
                             }
 
+                            // Suscribir a channel.update (categoria -> Game Overlays)
+                            var channelUpdateResult = await eventSubService.EnsureChannelUpdateSubscriptionAsync(user.TwitchId, transportMode, conduitId);
+                            if (channelUpdateResult.Success)
+                            {
+                                if (!channelUpdateResult.Message.Contains("ya existe"))
+                                {
+                                    _logger.LogInformation($"🆕 {user.Login}: Nueva suscripción channel.update creada");
+                                    registeredCount++;
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogError($"❌ {user.Login}: Error al registrar channel.update - {channelUpdateResult.Message}");
+                                errorCount++;
+                            }
+
                             // Rate limiting: esperar 500ms entre cada registro
                             await Task.Delay(500, stoppingToken);
                         }

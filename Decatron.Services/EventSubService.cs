@@ -63,11 +63,17 @@ namespace Decatron.Services
                     var accessToken = Decatron.Data.Encryption.TokenEncryption.Decrypt(rawToken, _configuration["JwtSettings:SecretKey"] ?? "");
                     var expiration = reader.IsDBNull(1) ? (DateTime?)null : reader.GetDateTime(1);
 
-                    // Verificar si el token está expirado
+                    // OJO: token_expiration NO es la expiración del App Access Token.
+                    // BotTokenRefreshService la pisa cada vez que renueva el ChatToken
+                    // (user token de ~4h), así que acá refleja ese otro token. El App
+                    // Access Token (client_credentials, ~60 días) se valida contra
+                    // Twitch cada 30 min en RefreshExpiringTokensAsync. Antes esto
+                    // tiraba excepción cuando el ChatToken vencía, y en esa ventana
+                    // ningún shard del conduit podía re-asociarse tras una reconexión
+                    // (incidente 2026-09-11: 20 de 30 shards muertos hasta reiniciar).
                     if (expiration.HasValue && expiration.Value <= DateTime.UtcNow)
                     {
-                        _logger.LogWarning("App Access Token del bot está expirado. Debe refrescarse.");
-                        throw new InvalidOperationException("App Access Token expirado");
+                        _logger.LogDebug("bot_tokens.token_expiration ya pasó ({Expiration:u}); es la del ChatToken, se usa el App Access Token igual", expiration.Value);
                     }
 
                     return accessToken;
@@ -380,42 +386,79 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Lista todas las suscripciones EventSub activas
+        /// Lista todas las suscripciones EventSub activas, recorriendo la paginación de Helix.
+        /// Sin esto solo se ven las primeras 100 (el máximo por página) de las 400+ que ya
+        /// existen — bug detectado el 6 de agosto de 2026, ver roadmap sección 2.1.
         /// </summary>
         public async Task<EventSubSubscriptionListResult> ListSubscriptionsAsync()
         {
+            const int maxPages = 50; // 50 * 100 = 5000 suscripciones, tope de seguridad ante un cursor que no avance
             try
             {
                 var accessToken = await GetBotAppAccessTokenAsync();
                 var clientId = _configuration["TwitchSettings:ClientId"];
 
-                var request = new HttpRequestMessage(HttpMethod.Get, "https://api.twitch.tv/helix/eventsub/subscriptions");
-                request.Headers.Add("Client-ID", clientId);
-                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+                var allData = new List<JsonElement>();
+                string cursor = null;
+                JsonElement? lastPage = null;
+                var page = 0;
 
-                var response = await _httpClient.SendAsync(request);
-                var responseBody = await response.Content.ReadAsStringAsync();
+                do
+                {
+                    var url = "https://api.twitch.tv/helix/eventsub/subscriptions?first=100";
+                    if (!string.IsNullOrEmpty(cursor))
+                        url += $"&after={Uri.EscapeDataString(cursor)}";
 
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("✅ Lista de suscripciones EventSub obtenida exitosamente");
-                    return new EventSubSubscriptionListResult
+                    var request = new HttpRequestMessage(HttpMethod.Get, url);
+                    request.Headers.Add("Client-ID", clientId);
+                    request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                    var response = await _httpClient.SendAsync(request);
+                    var responseBody = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
                     {
-                        Success = true,
-                        Message = "Lista obtenida exitosamente",
-                        ResponseBody = responseBody
-                    };
-                }
-                else
+                        _logger.LogError($"❌ Error al listar suscripciones EventSub: {response.StatusCode} - {responseBody}");
+                        return new EventSubSubscriptionListResult
+                        {
+                            Success = false,
+                            Message = $"Error: {response.StatusCode}",
+                            ResponseBody = responseBody
+                        };
+                    }
+
+                    var parsed = JsonSerializer.Deserialize<JsonElement>(responseBody);
+                    lastPage = parsed;
+
+                    foreach (var item in parsed.GetProperty("data").EnumerateArray())
+                        allData.Add(item);
+
+                    cursor = parsed.TryGetProperty("pagination", out var pagination)
+                        && pagination.TryGetProperty("cursor", out var cursorProp)
+                        ? cursorProp.GetString()
+                        : null;
+
+                    page++;
+                } while (!string.IsNullOrEmpty(cursor) && page < maxPages);
+
+                if (page >= maxPages && !string.IsNullOrEmpty(cursor))
+                    _logger.LogWarning($"⚠️ ListSubscriptionsAsync cortó la paginación en {maxPages} páginas ({allData.Count} suscripciones) sin agotar el cursor");
+
+                var merged = new
                 {
-                    _logger.LogError($"❌ Error al listar suscripciones EventSub: {response.StatusCode} - {responseBody}");
-                    return new EventSubSubscriptionListResult
-                    {
-                        Success = false,
-                        Message = $"Error: {response.StatusCode}",
-                        ResponseBody = responseBody
-                    };
-                }
+                    total = lastPage.Value.TryGetProperty("total", out var totalProp) ? totalProp.GetInt32() : allData.Count,
+                    data = allData,
+                    total_cost = lastPage.Value.TryGetProperty("total_cost", out var costProp) ? costProp.GetInt32() : (int?)null,
+                    max_total_cost = lastPage.Value.TryGetProperty("max_total_cost", out var maxCostProp) ? maxCostProp.GetInt32() : (int?)null
+                };
+
+                _logger.LogInformation($"✅ Lista de suscripciones EventSub obtenida exitosamente ({allData.Count} en {page} página(s))");
+                return new EventSubSubscriptionListResult
+                {
+                    Success = true,
+                    Message = "Lista obtenida exitosamente",
+                    ResponseBody = JsonSerializer.Serialize(merged)
+                };
             }
             catch (Exception ex)
             {
@@ -542,6 +585,54 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, $"Error verificando suscripción para broadcaster {broadcasterUserId}");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Suscripción a conduit.shard.disabled: no es por broadcaster, es por client_id.
+        /// Twitch la manda cuando deshabilita un shard (websocket caído, etc.) — sin esto
+        /// no hay forma de saber cuándo un shard deja de recibir eventos salvo que nuestro
+        /// propio cliente detecte la desconexión primero. Se crea una sola vez por conduit.
+        /// </summary>
+        public async Task<EventSubSubscriptionResult> EnsureConduitShardDisabledSubscriptionAsync(string conduitId)
+        {
+            try
+            {
+                var clientId = _configuration["TwitchSettings:ClientId"];
+                var result = await ListSubscriptionsAsync();
+
+                if (result.Success && !string.IsNullOrEmpty(result.ResponseBody))
+                {
+                    var json = JsonSerializer.Deserialize<JsonElement>(result.ResponseBody);
+                    var data = json.GetProperty("data");
+
+                    foreach (var subscription in data.EnumerateArray())
+                    {
+                        var type = subscription.GetProperty("type").GetString();
+                        var status = subscription.GetProperty("status").GetString();
+                        if (type != "conduit.shard.disabled" || status != "enabled")
+                            continue;
+
+                        var condition = subscription.GetProperty("condition");
+                        if (condition.TryGetProperty("client_id", out var cid) && cid.GetString() == clientId)
+                        {
+                            _logger.LogInformation("✅ Suscripción conduit.shard.disabled ya existe, omitiendo");
+                            return new EventSubSubscriptionResult { Success = true, Message = "Suscripción ya existe", ResponseBody = null };
+                        }
+                    }
+                }
+
+                return await CreateSubscriptionAsync(
+                    "conduit.shard.disabled",
+                    "1",
+                    new { client_id = clientId },
+                    EventSubTransportMode.Conduit,
+                    conduitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error asegurando suscripción conduit.shard.disabled");
+                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
             }
         }
 
@@ -890,6 +981,36 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error asegurando suscripción stream.online para broadcaster {broadcasterUserId}");
+                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        // ── channel.update (categoria/titulo) ─────────────────────────────────────
+        // Game Overlays: detectar que juego esta jugando el canal. Version 2 del
+        // evento, sin scope requerido. Agregado 18-09-2026 (Fase 1 paso 2 de
+        // .dev/plans/GAME_OVERLAYS_PLAN.md).
+
+        public async Task<EventSubSubscriptionResult> EnsureChannelUpdateSubscriptionAsync(
+            string broadcasterUserId,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
+        {
+            try
+            {
+                var hasSubscription = await HasActiveSubscriptionAsync(broadcasterUserId, "channel.update");
+                if (hasSubscription)
+                    return new EventSubSubscriptionResult { Success = true, Message = "Suscripción channel.update ya existe", ResponseBody = null };
+
+                return await CreateSubscriptionAsync(
+                    "channel.update",
+                    "2",
+                    new { broadcaster_user_id = broadcasterUserId },
+                    transportMode,
+                    conduitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error asegurando suscripción channel.update para broadcaster {broadcasterUserId}");
                 return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
             }
         }

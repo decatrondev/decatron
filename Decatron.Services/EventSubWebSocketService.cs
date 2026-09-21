@@ -35,6 +35,7 @@ namespace Decatron.Services
         private readonly List<EventSubWebsocketClient> _shards = new();
 
         private string? _conduitId;
+        private CancellationToken _stoppingToken;
 
         public EventSubWebSocketService(
             ILogger<EventSubWebSocketService> logger,
@@ -50,6 +51,8 @@ namespace Decatron.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _stoppingToken = stoppingToken;
+
             // Mismo warm-up que EventSubBackgroundService: deja terminar el arranque del host.
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
@@ -65,6 +68,12 @@ namespace Decatron.Services
             {
                 _logger.LogError("❌ No se pudo obtener ni crear el conduit de EventSub. El transporte WebSocket no arranca — el webhook sigue siendo el único canal activo.");
                 return;
+            }
+
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var eventSubService = scope.ServiceProvider.GetRequiredService<EventSubService>();
+                await eventSubService.EnsureConduitShardDisabledSubscriptionAsync(_conduitId);
             }
 
             _logger.LogInformation($"🚀 Iniciando {shardCount} shard(s) del conduit {_conduitId}");
@@ -193,23 +202,22 @@ namespace Decatron.Services
             client.WebsocketDisconnected += async (_, __) =>
             {
                 _logger.LogWarning($"⚠️ [Conduit shard {shardId}] Desconectado. Intentando reconectar...");
-                try
-                {
-                    var reconnected = await client.ReconnectAsync();
-                    if (!reconnected)
-                    {
-                        _logger.LogError($"❌ [Conduit shard {shardId}] ReconnectAsync devolvió false — el shard queda sin sesión hasta el próximo reinicio del bot");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, $"Error reconectando el shard {shardId}");
-                }
+                await ReconnectWithBackoffAsync(client, shardId);
             };
 
             client.ErrorOccurred += (_, e) =>
             {
                 _logger.LogError(e.Exception, $"❌ [Conduit shard {shardId}] {e.Message}");
+                return Task.CompletedTask;
+            };
+
+            // Notificación server-side de Twitch, independiente de si este cliente detectó
+            // su propia desconexión. Da visibilidad real: sin esto no hay forma de saber
+            // cuándo Twitch deshabilitó un shard salvo que el propio cliente lo note primero.
+            client.ConduitShardDisabled += (_, e) =>
+            {
+                var payload = e.Payload.Event;
+                _logger.LogError($"🚨 [Conduit] Twitch reportó el shard {payload.ShardId} como deshabilitado (status={payload.Status}). Eventos de ese shard pueden perderse hasta que se reasocie.");
                 return Task.CompletedTask;
             };
 
@@ -235,8 +243,51 @@ namespace Decatron.Services
                 DespacharEvento(shardId, "stream.online", BuildStreamOnlineJObject(e.Payload.Event));
             client.StreamOffline += (_, e) =>
                 DespacharEvento(shardId, "stream.offline", BuildStreamOfflineJObject(e.Payload.Event));
+            // channel.update v2 (categoria/titulo) -> Game Overlays. Ojo: TwitchLib
+            // solo entrega los tipos que se cablean aca; una suscripcion sin handler
+            // se pierde en silencio (paso asi el 18-09-2026 al agregar este evento).
+            client.ChannelUpdate += (_, e) =>
+                DespacharEvento(shardId, "channel.update", BuildChannelUpdateJObject(e.Payload.Event));
 
             return client;
+        }
+
+        /// <summary>
+        /// Reintenta la reconexión del shard indefinidamente con backoff (5s → 60s).
+        /// Antes, si ReconnectAsync devolvía false una sola vez, el shard quedaba
+        /// muerto hasta reiniciar el bot y todos los canales que caían en él
+        /// dejaban de recibir eventos en silencio (incidente 2026-09-11).
+        /// </summary>
+        private async Task ReconnectWithBackoffAsync(EventSubWebsocketClient client, string shardId)
+        {
+            var delay = TimeSpan.FromSeconds(5);
+            var maxDelay = TimeSpan.FromSeconds(60);
+
+            for (var attempt = 1; !_stoppingToken.IsCancellationRequested; attempt++)
+            {
+                try
+                {
+                    if (await client.ReconnectAsync())
+                        return;
+
+                    _logger.LogError($"❌ [Conduit shard {shardId}] ReconnectAsync devolvió false (intento {attempt}). Reintento en {delay.TotalSeconds:0}s");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error reconectando el shard {shardId} (intento {attempt}). Reintento en {delay.TotalSeconds:0}s");
+                }
+
+                try
+                {
+                    await Task.Delay(delay, _stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+
+                delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, maxDelay.TotalSeconds));
+            }
         }
 
         private async Task AssociateShardAsync(string shardId, string? sessionId)
@@ -397,6 +448,15 @@ namespace Decatron.Services
         {
             ["broadcaster_user_id"] = e.BroadcasterUserId,
             ["broadcaster_user_login"] = e.BroadcasterUserLogin
+        };
+
+        private static JObject BuildChannelUpdateJObject(ChannelUpdate e) => new()
+        {
+            ["broadcaster_user_id"] = e.BroadcasterUserId,
+            ["broadcaster_user_login"] = e.BroadcasterUserLogin,
+            ["title"] = e.Title,
+            ["category_id"] = e.CategoryId,
+            ["category_name"] = e.CategoryName
         };
 
         private static JObject BuildStreamOfflineJObject(StreamOffline e) => new()
