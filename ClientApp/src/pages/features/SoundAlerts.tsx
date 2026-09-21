@@ -5,7 +5,7 @@ import {
     ArrowLeft, Save, Volume2, AlertCircle, CheckCircle, Gift,
     Type, Palette, LayoutIcon as Layout, Zap, Clock, Plus, Eye, EyeOff,
     Trash2, Upload, Monitor, Copy, ExternalLink, Play, RotateCcw,
-    Music, Video, Image as ImageIcon
+    Music, Video, Image as ImageIcon, FolderOpen
 } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
@@ -20,6 +20,7 @@ import {
     LayoutTab,
     AnimationsTab,
     RewardsTab,
+    MediaTab,
     PreviewPanel,
     FileSelectionModal,
 } from './sound-alerts-extension/components/tabs';
@@ -387,6 +388,31 @@ export default function SoundAlerts() {
         }
     };
 
+    const handleAssignMediaFile = async (mediaFileId: number) => {
+        if (!selectedRewardForFile) return;
+
+        try {
+            setUploading({ ...uploading, [selectedRewardForFile.id]: true });
+
+            await api.post('/soundalerts/assign-media-file', {
+                rewardId: selectedRewardForFile.id,
+                rewardTitle: selectedRewardForFile.title,
+                mediaFileId
+            });
+
+            setSaveMessage({ type: 'success', text: t('soundAlerts.fileUploaded', { name: selectedRewardForFile.title }) });
+            setTimeout(() => setSaveMessage(null), 3000);
+            await loadFiles();
+            setShowFileDialog(false);
+            setSelectedRewardForFile(null);
+        } catch (error: any) {
+            const message = error.response?.data?.message || t('soundAlerts.systemFileError');
+            setSaveMessage({ type: 'error', text: message });
+        } finally {
+            setUploading({ ...uploading, [selectedRewardForFile.id]: false });
+        }
+    };
+
     const handleCopyUrl = async () => {
         try {
             await navigator.clipboard.writeText(overlayUrl);
@@ -644,7 +670,7 @@ export default function SoundAlerts() {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Tabs Navigation */}
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-2 shadow-lg">
-                        <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+                        <div className="grid grid-cols-4 lg:grid-cols-7 gap-2">
                             <button
                                 onClick={() => setActiveTab('basic')}
                                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
@@ -710,6 +736,17 @@ export default function SoundAlerts() {
                             >
                                 <Gift className="w-4 h-4" />
                                 <span className="hidden lg:inline">{t('soundAlerts.tabs.files')}</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('media')}
+                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
+                                    activeTab === 'media'
+                                        ? 'bg-[#2563eb] text-white shadow-md'
+                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
+                                }`}
+                            >
+                                <FolderOpen className="w-4 h-4" />
+                                <span className="hidden lg:inline">Media</span>
                             </button>
                         </div>
                     </div>
@@ -804,6 +841,8 @@ export default function SoundAlerts() {
                             }}
                         />
                     )}
+
+                    {activeTab === 'media' && <MediaTab />}
                 </div>
 
                 {/* Right Column: Preview & URL */}
@@ -832,6 +871,7 @@ export default function SoundAlerts() {
                 systemFiles={systemFiles}
                 uploading={uploading}
                 handleAssignSystemFile={handleAssignSystemFile}
+                handleAssignMediaFile={handleAssignMediaFile}
                 showAudioImageModal={showAudioImageModal}
                 pendingAudioUpload={pendingAudioUpload}
                 selectedImageFile={selectedImageFile}

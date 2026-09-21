@@ -1,5 +1,7 @@
+using System.IO.Compression;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Decatron.Core.Helpers;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +20,6 @@ namespace Decatron.Default.Controllers
         private readonly ILogger<TimerMediaController> _logger;
         private readonly IWebHostEnvironment _environment;
         private const long MaxFileSize = 50 * 1024 * 1024; // 50MB
-        private const long MaxTotalStoragePerUser = 500 * 1024 * 1024; // 500MB por usuario
 
         // Carpetas/categorías predefinidas profesionales
         private static readonly string[] PredefinedCategories = new[]
@@ -28,7 +29,8 @@ namespace Decatron.Default.Controllers
             "indicators",       // Indicadores (bolitas, imágenes)
             "alerts/sounds",    // Sonidos para alertas
             "alerts/icons",     // Iconos para alertas
-            "general"           // Archivos misceláneos
+            "general",          // Archivos misceláneos
+            "sound-alerts"      // Archivos de Sound Alerts (canjes de puntos/recompensas)
         };
 
         public TimerMediaController(
@@ -68,11 +70,56 @@ namespace Decatron.Default.Controllers
             return GetUserId();
         }
 
+        /// <summary>
+        /// Resuelve el nombre de canal bajo el que se guarda/busca la media. Es UN
+        /// SOLO nombre por persona (AccountId), sin importar con qué plataforma
+        /// vinculada esté activa la sesión ahora — si no, la media queda "invisible"
+        /// al entrar con Kick porque se guardó bajo el nombre de Twitch (o viceversa).
+        /// Se prioriza el Login real de Twitch; el Login de una fila Kick-only es un
+        /// placeholder ("kick_{id}"), no un nombre real, por eso se usa KickUsername.
+        /// </summary>
         private async Task<string?> GetChannelUsernameAsync(long channelOwnerId)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == channelOwnerId);
-            return user?.Login?.ToLower();
+            if (user == null)
+                return null;
+
+            var linkedUsers = user.AccountId != null
+                ? await _dbContext.Users.Where(u => u.AccountId == user.AccountId).ToListAsync()
+                : new List<Decatron.Core.Models.User> { user };
+
+            var twitchRow = linkedUsers.FirstOrDefault(u => u.TwitchId != null);
+            if (twitchRow != null)
+                return twitchRow.Login?.ToLower();
+
+            var kickRow = linkedUsers.FirstOrDefault(u => u.KickUsername != null);
+            if (kickRow != null)
+                return kickRow.KickUsername?.ToLower();
+
+            return user.Login?.ToLower();
         }
+
+        /// <summary>
+        /// Cuota de storage según el tier efectivo de la cuenta (no del canal
+        /// aislado — TierResolver ya considera canales vinculados). Antes era
+        /// una constante fija de 500MB para todos.
+        /// </summary>
+        private async Task<long> GetStorageLimitAsync(long channelOwnerId)
+        {
+            var tier = await TierResolver.GetEffectiveTierAsync(_dbContext, channelOwnerId);
+            return await TierResolver.GetStorageBytesLimitAsync(_dbContext, tier);
+        }
+
+        /// <summary>
+        /// Convierte un FilePath relativo a ContentRoot (ej.
+        /// "ClientApp/public/uploads/soundalerts/x/y.mp4") a la URL publica que
+        /// Nginx/estaticos ya sirven ("/uploads/soundalerts/x/y.mp4").
+        /// </summary>
+        // Una sola implementación en Decatron.Core: las cuatro copias privadas que
+        // había tenían la misma lógica rota, así que arreglar una sola habría dejado
+        // las otras tres generando URLs invalidas.
+        private static string ToPublicPath(string filePath) =>
+            Decatron.Core.Helpers.MediaPathHelpers.ToPublicPath(filePath);
 
         /// <summary>
         /// Obtiene la ruta base para los archivos del usuario
@@ -194,10 +241,17 @@ namespace Decatron.Default.Controllers
                     query = query.Where(f => f.Category == category);
                 }
 
-                // Filtrar por tipo si se proporciona
+                // Filtrar por tipo si se proporciona. Admite varios separados por coma
+                // ("image,gif") porque hay campos que aceptan mas de un formato: el
+                // centro de la Rueda vale igual con un PNG que con un GIF, y filtrar
+                // solo por el primero dejaba fuera la mitad de la biblioteca.
                 if (!string.IsNullOrEmpty(fileType))
                 {
-                    query = query.Where(f => f.FileType == fileType);
+                    var tipos = fileType.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (tipos.Length == 1)
+                        query = query.Where(f => f.FileType == tipos[0]);
+                    else if (tipos.Length > 1)
+                        query = query.Where(f => tipos.Contains(f.FileType));
                 }
 
                 var files = await query
@@ -211,8 +265,12 @@ namespace Decatron.Default.Controllers
                     fileName = f.FileName,
                     fileType = f.FileType,
                     category = f.Category,
-                    fileUrl = $"/timerextensible/{username}/{f.Category}/{f.FileName}",
-                    thumbnailUrl = !string.IsNullOrEmpty(f.ThumbnailPath) ? $"/timerextensible/{username}/{f.ThumbnailPath}" : null,
+                    // Derivado de FilePath (no reconstruido por convencion de
+                    // categoria+nombre) — los archivos migrados de Sound Alerts
+                    // siguen fisicamente en uploads/soundalerts/, no en
+                    // timerextensible/, y esto funciona para ambos casos.
+                    fileUrl = ToPublicPath(f.FilePath),
+                    thumbnailUrl = !string.IsNullOrEmpty(f.ThumbnailPath) ? ToPublicPath(f.ThumbnailPath) : null,
                     fileSize = f.FileSize,
                     uploadedAt = f.UploadedAt,
                     duration = f.DurationSeconds,
@@ -221,6 +279,7 @@ namespace Decatron.Default.Controllers
 
                 // Calcular uso total de almacenamiento
                 var totalStorage = files.Sum(f => f.FileSize);
+                var storageLimit = await GetStorageLimitAsync(channelOwnerId);
 
                 return Ok(new
                 {
@@ -228,8 +287,10 @@ namespace Decatron.Default.Controllers
                     files = filesDto,
                     totalFiles = files.Count,
                     totalStorageUsed = totalStorage,
-                    maxStorageAllowed = MaxTotalStoragePerUser,
-                    storageUsagePercentage = (double)totalStorage / MaxTotalStoragePerUser * 100
+                    maxStorageAllowed = storageLimit,
+                    storageUsagePercentage = storageLimit == TierResolver.Unlimited
+                        ? 0
+                        : (double)totalStorage / storageLimit * 100
                 });
             }
             catch (Exception ex)
@@ -318,14 +379,15 @@ namespace Decatron.Default.Controllers
                     return BadRequest(new { success = false, message = $"El archivo excede el tamaño máximo permitido ({MaxFileSize / 1024 / 1024}MB)" });
                 }
 
-                // Verificar cuota de almacenamiento
+                // Verificar cuota de almacenamiento (según tier de la cuenta)
                 var currentUsage = await GetUserTotalStorageUsageAsync(username);
-                if (currentUsage + file.Length > MaxTotalStoragePerUser)
+                var storageLimit = await GetStorageLimitAsync(channelOwnerId);
+                if (storageLimit != TierResolver.Unlimited && currentUsage + file.Length > storageLimit)
                 {
                     return BadRequest(new
                     {
                         success = false,
-                        message = $"Cuota de almacenamiento excedida. Usado: {currentUsage / 1024 / 1024}MB / {MaxTotalStoragePerUser / 1024 / 1024}MB"
+                        message = $"Cuota de almacenamiento excedida. Usado: {currentUsage / 1024 / 1024}MB / {storageLimit / 1024 / 1024}MB"
                     });
                 }
 
@@ -572,7 +634,7 @@ namespace Decatron.Default.Controllers
                         id = file.Id,
                         fileName = file.FileName,
                         category = file.Category,
-                        fileUrl = $"/timerextensible/{username}/{file.Category}/{file.FileName}"
+                        fileUrl = ToPublicPath(file.FilePath)
                     }
                 });
             }
@@ -580,6 +642,81 @@ namespace Decatron.Default.Controllers
             {
                 _logger.LogError(ex, "Error al mover archivo");
                 return StatusCode(500, new { success = false, message = "Error al mover archivo" });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/timer/media/download-zip?ids=1,2,3 - Descarga varios
+        /// archivos como un solo ZIP. Sin ids, descarga todos los archivos del
+        /// canal (filtrados por categoria/tipo si se pasan).
+        /// </summary>
+        [HttpGet("download-zip")]
+        public async Task<IActionResult> DownloadZip(
+            [FromQuery] string? ids = null,
+            [FromQuery] string? category = null,
+            [FromQuery] string? fileType = null)
+        {
+            try
+            {
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var query = _dbContext.TimerMediaFiles.Where(f => f.ChannelName == username);
+
+                if (!string.IsNullOrEmpty(ids))
+                {
+                    var idList = ids.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Select(s => int.TryParse(s, out var n) ? n : (int?)null)
+                        .Where(n => n.HasValue)
+                        .Select(n => n!.Value)
+                        .ToList();
+                    query = query.Where(f => idList.Contains(f.Id));
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(category))
+                        query = query.Where(f => f.Category == category);
+                    if (!string.IsNullOrEmpty(fileType))
+                        query = query.Where(f => f.FileType == fileType);
+                }
+
+                var files = await query.ToListAsync();
+
+                if (files.Count == 0)
+                    return NotFound(new { success = false, message = "No hay archivos para descargar" });
+
+                using var zipStream = new MemoryStream();
+                using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    var usedNames = new HashSet<string>();
+                    foreach (var file in files)
+                    {
+                        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), file.FilePath);
+                        if (!System.IO.File.Exists(fullPath))
+                            continue;
+
+                        var entryName = file.OriginalFileName;
+                        var suffix = 1;
+                        while (!usedNames.Add(entryName))
+                        {
+                            entryName = $"{Path.GetFileNameWithoutExtension(file.OriginalFileName)}-{suffix}{Path.GetExtension(file.OriginalFileName)}";
+                            suffix++;
+                        }
+
+                        archive.CreateEntryFromFile(fullPath, entryName);
+                    }
+                }
+
+                zipStream.Position = 0;
+                return File(zipStream.ToArray(), "application/zip", $"medios-{username}.zip");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar ZIP de descarga");
+                return StatusCode(500, new { success = false, message = "Error al generar el archivo ZIP" });
             }
         }
 

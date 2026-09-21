@@ -16,6 +16,7 @@ export interface SoundFile {
     rewardTitle: string;
     fileType: string;
     fileName: string;
+    fileUrl: string;
     fileSize: number;
     durationSeconds: number;
     volume: number | null;
@@ -52,6 +53,6 @@ export interface Layout {
     text: { x: number; y: number; width: number; height: number; align: string };
 }
 
-export type TabType = 'basic' | 'typography' | 'background' | 'layout' | 'animations' | 'rewards';
+export type TabType = 'basic' | 'typography' | 'background' | 'layout' | 'animations' | 'rewards' | 'media';
 export type DragElement = 'media' | 'text' | null;
 export type SelectedElement = { type: 'media' | 'text'; } | null;

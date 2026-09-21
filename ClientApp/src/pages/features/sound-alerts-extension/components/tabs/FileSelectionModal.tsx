@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
-    Upload, Music, Video, Image as ImageIcon, Link
+    Upload, Music, Video, Image as ImageIcon, Link, FolderOpen, ChevronLeft
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ChannelPointsReward } from '../../types';
+import MediaGallery from '../../../../../components/timer/MediaGallery';
 
 interface FileSelectionModalProps {
     showFileDialog: boolean;
@@ -13,6 +14,7 @@ interface FileSelectionModalProps {
     systemFiles: any[];
     uploading: { [key: string]: boolean };
     handleAssignSystemFile: (systemFile: any) => Promise<void>;
+    handleAssignMediaFile: (mediaFileId: number) => Promise<void>;
     // Audio Image Modal
     showAudioImageModal: boolean;
     pendingAudioUpload: { rewardId: string; rewardTitle: string; audioFile: File } | null;
@@ -31,6 +33,7 @@ export function FileSelectionModal({
     systemFiles,
     uploading,
     handleAssignSystemFile,
+    handleAssignMediaFile,
     showAudioImageModal,
     pendingAudioUpload,
     selectedImageFile,
@@ -43,6 +46,22 @@ export function FileSelectionModal({
     const [showImage, setShowImage] = useState(true);
     const [imageSource, setImageSource] = useState<'upload' | 'url'>('upload');
     const [imageUrlInput, setImageUrlInput] = useState('');
+    const [showGallery, setShowGallery] = useState(false);
+    const uploadInputRef = useRef<HTMLInputElement>(null);
+
+    const detectType = (file: File): string => {
+        const ext = file.name.split('.').pop()?.toLowerCase() || '';
+        if (['mp4', 'webm'].includes(ext)) return 'video';
+        if (['png', 'jpg', 'jpeg'].includes(ext)) return 'image';
+        return 'sound';
+    };
+
+    const closeDialog = () => {
+        setShowFileDialog(false);
+        setSelectedRewardForFile(null);
+        setShowGallery(false);
+    };
+
     return (
         <>
             {/* File Selection Dialog */}
@@ -50,37 +69,83 @@ export function FileSelectionModal({
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <h3 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                {showGallery && (
+                                    <button onClick={() => setShowGallery(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                                        <ChevronLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                                    </button>
+                                )}
                                 {t('soundAlertsTabs.selectFileFor', { title: selectedRewardForFile.title })}
                             </h3>
                             <button
-                                onClick={() => {
-                                    setShowFileDialog(false);
-                                    setSelectedRewardForFile(null);
-                                }}
+                                onClick={closeDialog}
                                 className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                             >
                                 ✕
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        {showGallery ? (
+                            <MediaGallery
+                                selectedCategory="sound-alerts"
+                                onFileSelect={(file) => {
+                                    handleAssignMediaFile(file.id);
+                                    closeDialog();
+                                }}
+                            />
+                        ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                             {/* Upload Custom File */}
                             <div
                                 className="p-6 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:border-[#2563eb] dark:hover:border-[#3b82f6] cursor-pointer transition-all text-center"
-                                onClick={() => {
-                                    const inputEl = document.getElementById(`file-upload-${selectedRewardForFile.id}`) as HTMLInputElement;
-                                    inputEl?.click();
-                                    setShowFileDialog(false);
-                                    setSelectedRewardForFile(null);
-                                }}
+                                onClick={() => uploadInputRef.current?.click()}
                             >
+                                <input
+                                    ref={uploadInputRef}
+                                    type="file"
+                                    accept=".mp3,.wav,.ogg,.mp4,.webm,.png,.jpg,.jpeg"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        e.target.value = '';
+                                        if (!file || !selectedRewardForFile) return;
+
+                                        const fileType = detectType(file);
+                                        if (fileType === 'sound') {
+                                            setPendingAudioUpload({
+                                                rewardId: selectedRewardForFile.id,
+                                                rewardTitle: selectedRewardForFile.title,
+                                                audioFile: file
+                                            });
+                                            setSelectedImageFile(null);
+                                            setShowAudioImageModal(true);
+                                            closeDialog();
+                                        } else {
+                                            handleFileUpload(selectedRewardForFile.id, selectedRewardForFile.title, file, fileType);
+                                            closeDialog();
+                                        }
+                                    }}
+                                />
                                 <Upload className="w-12 h-12 mx-auto mb-3 text-[#2563eb]" />
                                 <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
                                     {t('soundAlertsTabs.uploadOwnFile')}
                                 </h4>
                                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
                                     {t('soundAlertsTabs.uploadOwnFileDesc')}
+                                </p>
+                            </div>
+
+                            {/* Choose from shared gallery */}
+                            <div
+                                className="p-6 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:border-[#2563eb] dark:hover:border-[#3b82f6] cursor-pointer transition-all text-center"
+                                onClick={() => setShowGallery(true)}
+                            >
+                                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-[#2563eb]" />
+                                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                    Elegir de tu galería
+                                </h4>
+                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    Reusa un archivo que ya subiste (para Sound Alerts, Timer, Event Alerts, Goals o Discord)
                                 </p>
                             </div>
 
@@ -122,13 +187,11 @@ export function FileSelectionModal({
                                 )}
                             </div>
                         </div>
+                        )}
 
                         <div className="flex justify-end gap-3">
                             <button
-                                onClick={() => {
-                                    setShowFileDialog(false);
-                                    setSelectedRewardForFile(null);
-                                }}
+                                onClick={closeDialog}
                                 className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
                             >
                                 {t('soundAlertsTabs.cancel')}
@@ -175,9 +238,9 @@ export function FileSelectionModal({
                                 </div>
                                 <button
                                     onClick={() => setShowImage(!showImage)}
-                                    className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${showImage ? 'bg-purple-500' : 'bg-gray-400'}`}
+                                    className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${showImage ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
                                 >
-                                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${showImage ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${showImage ? 'translate-x-5' : 'translate-x-0'}`} />
                                 </button>
                             </div>
 

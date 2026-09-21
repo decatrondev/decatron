@@ -107,7 +107,10 @@ export default function MediaSelector({
                     {activeTab === 'gallery' ? (
                         <MediaGallery
                             onFileSelect={handleFileSelect}
-                            selectedFileType={allowedTypes?.[0]}
+                            // La lista entera, no solo el primero: un campo que acepta
+                            // imagen y gif filtraba antes solo por imagen y escondia
+                            // todos los gifs de la biblioteca.
+                            selectedFileType={allowedTypes?.join(',')}
                         />
                     ) : (
                         <div className="max-w-2xl mx-auto space-y-4">

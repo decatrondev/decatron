@@ -2,6 +2,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
 using Decatron.Core.Helpers;
+using Decatron.Core.Interfaces;
 using Decatron.Core.Settings;
 using Decatron.Data;
 using Decatron.Hubs;
@@ -24,6 +25,7 @@ namespace Decatron.Default.Controllers
         private readonly TwitchSettings _twitchSettings;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHubContext<OverlayHub> _hubContext;
+        private readonly IKickApiService _kickApiService;
         private const string TwitchApiBaseUrl = "https://api.twitch.tv/helix";
 
         public SoundAlertsController(
@@ -31,13 +33,60 @@ namespace Decatron.Default.Controllers
             ILogger<SoundAlertsController> logger,
             IOptions<TwitchSettings> twitchSettings,
             IHttpClientFactory httpClientFactory,
-            IHubContext<OverlayHub> hubContext)
+            IHubContext<OverlayHub> hubContext,
+            IKickApiService kickApiService)
         {
             _dbContext = dbContext;
             _logger = logger;
             _twitchSettings = twitchSettings.Value;
             _httpClientFactory = httpClientFactory;
             _hubContext = hubContext;
+            _kickApiService = kickApiService;
+        }
+
+        /// <summary>
+        /// Kick no expone is_enabled/is_paused/is_in_stock/background_color en
+        /// channel rewards — se completan con los defaults que el frontend ya
+        /// entiende (mismo shape que ChannelPointsReward de Twitch, para no
+        /// tocar el picker de rewards del lado del cliente).
+        /// </summary>
+        private async Task<IActionResult> GetKickChannelRewardsAsync(Decatron.Core.Models.User user)
+        {
+            if (string.IsNullOrEmpty(user.KickAccessToken))
+            {
+                _logger.LogWarning($"🎵 [SoundAlerts] Access token de Kick no disponible para: {user.KickUsername}");
+                return BadRequest(new { success = false, message = "Token de acceso de Kick no disponible. Por favor, vuelve a autenticarte." });
+            }
+
+            var kickRewards = await _kickApiService.GetChannelRewardsAsync(user.KickAccessToken);
+            _logger.LogInformation($"🎵 [SoundAlerts] ✅ Recompensas de Kick obtenidas para {user.KickUsername}: {kickRewards.Count} recompensas");
+
+            var rewards = kickRewards.Select(r => new ChannelPointsReward
+            {
+                id = r.Id,
+                title = r.Title,
+                cost = r.Cost,
+                prompt = r.Description,
+                is_enabled = true,
+                background_color = "",
+                is_paused = false,
+                is_in_stock = true,
+            });
+
+            return Ok(new
+            {
+                success = true,
+                rewards,
+                // El nombre visible de Kick puede coincidir con un login de
+                // Twitch de otra cuenta (o de la propia, si vinculaste ambas) —
+                // channelName es lo que arma la URL del overlay en OBS, tiene
+                // que ser el kick_id numerico para no pisar esa config. Ver
+                // GetOverlayConfiguration, que ya resuelve por ese mismo campo.
+                // La config de overlay (posicion/tamaño) es independiente por
+                // plataforma a proposito — solo los archivos de media se comparten.
+                channelName = user.KickId,
+                channelDisplayName = user.KickUsername
+            });
         }
 
         /// <summary>
@@ -79,7 +128,8 @@ namespace Decatron.Default.Controllers
         }
 
         /// <summary>
-        /// Obtiene las recompensas de puntos de canal desde Twitch
+        /// Obtiene las recompensas de puntos de canal desde Twitch, o desde Kick
+        /// si el canal activo es de Kick (channel rewards — plan seccion 8, item 3).
         /// </summary>
         [HttpGet("channel-points-rewards")]
         public async Task<IActionResult> GetChannelPointsRewards()
@@ -87,13 +137,6 @@ namespace Decatron.Default.Controllers
             try
             {
                 _logger.LogInformation("🎵 [SoundAlerts] Iniciando obtención de recompensas de puntos de canal");
-
-                // Validar configuración
-                if (string.IsNullOrEmpty(_twitchSettings?.ClientId))
-                {
-                    _logger.LogError("🎵 [SoundAlerts] ClientId de Twitch no configurado");
-                    return StatusCode(500, new { success = false, message = "Configuración de Twitch no disponible" });
-                }
 
                 var channelOwnerId = GetChannelOwnerId();
                 _logger.LogInformation($"🎵 [SoundAlerts] Canal activo: {channelOwnerId}");
@@ -106,6 +149,16 @@ namespace Decatron.Default.Controllers
                 {
                     _logger.LogWarning($"🎵 [SoundAlerts] Usuario no encontrado: {channelOwnerId}");
                     return NotFound(new { success = false, message = "Canal no encontrado" });
+                }
+
+                if (user.KickId != null)
+                    return await GetKickChannelRewardsAsync(user);
+
+                // Validar configuración
+                if (string.IsNullOrEmpty(_twitchSettings?.ClientId))
+                {
+                    _logger.LogError("🎵 [SoundAlerts] ClientId de Twitch no configurado");
+                    return StatusCode(500, new { success = false, message = "Configuración de Twitch no disponible" });
                 }
 
                 _logger.LogInformation($"🎵 [SoundAlerts] Usuario encontrado: {user.Login} (TwitchId: {user.TwitchId})");
@@ -186,10 +239,17 @@ namespace Decatron.Default.Controllers
                     return BadRequest(new { success = false, message = "Canal no especificado" });
                 }
 
+                // ResolveChannelInfoAsync prueba login de Twitch primero y, si no
+                // matchea, kick_id numerico — a diferencia de ResolveUserIdAsync
+                // (solo Twitch), esto evita que un canal de Kick con el mismo
+                // nombre visible que un login de Twitch pise su configuracion. La
+                // config de overlay es independiente por plataforma (fila) a
+                // propósito — solo la galería de media es compartida entre Twitch
+                // y Kick de la misma persona.
                 var username = channel.ToLower();
-                var channelUserId = await ChannelResolver.ResolveUserIdAsync(_dbContext, channel);
+                var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(_dbContext, channel);
                 var config = await _dbContext.SoundAlertConfigs
-                    .FirstOrDefaultAsync(c => channelUserId != null ? c.UserId == channelUserId : c.Username == username);
+                    .FirstOrDefaultAsync(c => channelInfo != null ? c.UserId == channelInfo.UserId : c.Username == username);
 
                 if (config == null)
                 {
@@ -273,7 +333,7 @@ namespace Decatron.Default.Controllers
             try
             {
                 var channelOwnerId = GetChannelOwnerId();
-                var username = await GetChannelUsernameAsync(channelOwnerId);
+                var username = await GetPlatformUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(username))
                 {
@@ -366,7 +426,7 @@ namespace Decatron.Default.Controllers
             try
             {
                 var channelOwnerId = GetChannelOwnerId();
-                var username = await GetChannelUsernameAsync(channelOwnerId);
+                var username = await GetPlatformUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(username))
                 {
@@ -404,6 +464,7 @@ namespace Decatron.Default.Controllers
                     config = new Core.Models.SoundAlertConfig
                     {
                         Username = username,
+                        UserId = channelOwnerId,
                         GlobalVolume = request.GlobalVolume,
                         GlobalEnabled = request.GlobalEnabled,
                         Duration = request.Duration,
@@ -480,31 +541,33 @@ namespace Decatron.Default.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var files = await _dbContext.SoundAlertFiles
-                    .Where(f => f.Username == username)
-                    .OrderByDescending(f => f.CreatedAt)
+                var mappings = await _dbContext.SoundAlertRewardFiles
+                    .Include(m => m.MediaFile)
+                    .Where(m => m.UserId == channelOwnerId)
+                    .OrderByDescending(m => m.CreatedAt)
                     .ToListAsync();
 
                 return Ok(new
                 {
                     success = true,
-                    files = files.Select(f => new
+                    files = mappings.Select(m => new
                     {
-                        id = f.Id,
-                        rewardId = f.RewardId,
-                        rewardTitle = f.RewardTitle,
-                        fileType = f.FileType,
-                        fileName = f.FileName,
-                        fileSize = f.FileSize,
-                        durationSeconds = f.DurationSeconds,
-                        volume = f.Volume,
-                        enabled = f.Enabled,
-                        playCount = f.PlayCount,
-                        createdAt = f.CreatedAt,
-                        showImage = f.ShowImage,
-                        imageUrl = f.ImageUrl,
-                        imageSource = f.ImageSource,
-                        imagePath = f.ImagePath
+                        id = m.Id,
+                        rewardId = m.RewardId,
+                        rewardTitle = m.RewardTitle,
+                        fileType = m.MediaFile?.FileType ?? InferSystemFileType(m.SystemFilePath ?? ""),
+                        fileName = m.MediaFile?.FileName ?? Path.GetFileName(m.SystemFilePath ?? ""),
+                        fileUrl = ToPublicPath(m.MediaFile?.FilePath ?? m.SystemFilePath ?? ""),
+                        fileSize = m.MediaFile?.FileSize ?? 0,
+                        durationSeconds = m.MediaFile?.DurationSeconds ?? 0,
+                        volume = m.Volume,
+                        enabled = m.Enabled,
+                        playCount = m.MediaFile?.UsageCount ?? 0,
+                        createdAt = m.CreatedAt,
+                        showImage = m.ShowImage,
+                        imageUrl = m.ImageUrl,
+                        imageSource = m.ImageSource,
+                        imagePath = m.ImagePath
                     })
                 });
             }
@@ -640,52 +703,71 @@ namespace Decatron.Default.Controllers
                     _logger.LogInformation($"🎵 [SoundAlerts] Imagen asociada guardada: {imageName}");
                 }
 
-                // Verificar si ya existe un archivo para esta recompensa
-                var existingFile = await _dbContext.SoundAlertFiles
-                    .FirstOrDefaultAsync(f => f.Username == username && f.RewardId == request.RewardId);
+                // Verificar si ya existe un mapeo para esta recompensa
+                var existingMapping = await _dbContext.SoundAlertRewardFiles
+                    .Include(m => m.MediaFile)
+                    .FirstOrDefaultAsync(m => m.UserId == channelOwnerId && m.RewardId == request.RewardId);
 
-                if (existingFile != null)
+                // Si el mapeo anterior era un archivo de la galeria (no de
+                // sistema) y nadie mas lo referencia, se borra junto con el
+                // fisico — mismo criterio que antes, aplicado al nuevo esquema.
+                if (existingMapping?.MediaFile != null)
                 {
-                    // Eliminar archivo anterior
-                    if (System.IO.File.Exists(existingFile.FilePath))
-                    {
-                        System.IO.File.Delete(existingFile.FilePath);
-                    }
+                    var oldMediaFile = existingMapping.MediaFile;
+                    var stillReferenced = await _dbContext.SoundAlertRewardFiles
+                        .AnyAsync(m => m.MediaFileId == oldMediaFile.Id && m.Id != existingMapping.Id);
 
-                    // Eliminar imagen anterior si existe
-                    if (!string.IsNullOrEmpty(existingFile.ImagePath) && System.IO.File.Exists(existingFile.ImagePath))
+                    if (!stillReferenced)
                     {
-                        System.IO.File.Delete(existingFile.ImagePath);
+                        var oldFullPath = Path.Combine(Directory.GetCurrentDirectory(), oldMediaFile.FilePath);
+                        if (System.IO.File.Exists(oldFullPath))
+                            System.IO.File.Delete(oldFullPath);
+                        _dbContext.TimerMediaFiles.Remove(oldMediaFile);
                     }
+                }
 
-                    // Actualizar registro
-                    existingFile.FileType = fileType;
-                    existingFile.FilePath = filePath;
-                    existingFile.FileName = request.File.FileName;
-                    existingFile.FileSize = request.File.Length;
-                    existingFile.DurationSeconds = request.DurationSeconds;
-                    existingFile.RewardTitle = request.RewardTitle;
-                    existingFile.ImagePath = imagePath;
-                    existingFile.ImageName = imageName;
-                    existingFile.ShowImage = request.ShowImage;
-                    existingFile.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
-                    existingFile.ImageSource = request.ImageSource ?? "upload";
-                    existingFile.UpdatedAt = DateTime.UtcNow;
+                if (!string.IsNullOrEmpty(existingMapping?.ImagePath) && System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), existingMapping.ImagePath.TrimStart('/'))))
+                {
+                    System.IO.File.Delete(Path.Combine(Directory.GetCurrentDirectory(), existingMapping.ImagePath.TrimStart('/')));
+                }
+
+                var newMediaFile = new Core.Models.TimerMediaFile
+                {
+                    ChannelName = username,
+                    UserId = channelOwnerId,
+                    FileType = fileType,
+                    FilePath = filePath,
+                    OriginalFileName = request.File.FileName,
+                    FileName = Path.GetFileName(filePath),
+                    Category = "sound-alerts",
+                    FileSize = request.File.Length,
+                    DurationSeconds = (double)request.DurationSeconds,
+                    UsageCount = 1,
+                    UploadedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _dbContext.TimerMediaFiles.Add(newMediaFile);
+
+                if (existingMapping != null)
+                {
+                    existingMapping.RewardTitle = request.RewardTitle;
+                    existingMapping.MediaFile = newMediaFile;
+                    existingMapping.SystemFilePath = null;
+                    existingMapping.ImagePath = imagePath;
+                    existingMapping.ImageName = imageName;
+                    existingMapping.ShowImage = request.ShowImage;
+                    existingMapping.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
+                    existingMapping.ImageSource = request.ImageSource ?? "upload";
+                    existingMapping.UpdatedAt = DateTime.UtcNow;
                 }
                 else
                 {
-                    // Crear nuevo registro
-                    var soundAlertFile = new Core.Models.SoundAlertFile
+                    _dbContext.SoundAlertRewardFiles.Add(new Core.Models.SoundAlertRewardFile
                     {
                         UserId = channelOwnerId,
-                        Username = username,
                         RewardId = request.RewardId,
                         RewardTitle = request.RewardTitle,
-                        FileType = fileType,
-                        FilePath = filePath,
-                        FileName = request.File.FileName,
-                        FileSize = request.File.Length,
-                        DurationSeconds = request.DurationSeconds,
+                        MediaFile = newMediaFile,
                         ImagePath = imagePath,
                         ImageName = imageName,
                         ShowImage = request.ShowImage,
@@ -694,9 +776,7 @@ namespace Decatron.Default.Controllers
                         Enabled = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
-                    };
-
-                    _dbContext.SoundAlertFiles.Add(soundAlertFile);
+                    });
                 }
 
                 await _dbContext.SaveChangesAsync();
@@ -740,30 +820,43 @@ namespace Decatron.Default.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var file = await _dbContext.SoundAlertFiles
-                    .FirstOrDefaultAsync(f => f.Username == username && f.RewardId == rewardId);
+                var mapping = await _dbContext.SoundAlertRewardFiles
+                    .Include(m => m.MediaFile)
+                    .FirstOrDefaultAsync(m => m.UserId == channelOwnerId && m.RewardId == rewardId);
 
-                if (file == null)
+                if (mapping == null)
                 {
                     return NotFound(new { success = false, message = "Archivo no encontrado" });
                 }
 
-                // Eliminar archivo físico SOLO si NO es un archivo del sistema
-                if (!file.IsSystemFile && System.IO.File.Exists(file.FilePath))
+                // Eliminar archivo físico SOLO si es de la galería (no de
+                // sistema) y ningún otro mapeo lo sigue usando.
+                if (mapping.MediaFile != null)
                 {
-                    System.IO.File.Delete(file.FilePath);
-                    _logger.LogInformation($"🎵 [SoundAlerts] Archivo físico eliminado: {file.FilePath}");
+                    var stillReferenced = await _dbContext.SoundAlertRewardFiles
+                        .AnyAsync(m => m.MediaFileId == mapping.MediaFileId && m.Id != mapping.Id);
+
+                    if (!stillReferenced)
+                    {
+                        var fullPath = Path.Combine(Directory.GetCurrentDirectory(), mapping.MediaFile.FilePath);
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            System.IO.File.Delete(fullPath);
+                            _logger.LogInformation($"🎵 [SoundAlerts] Archivo físico eliminado: {fullPath}");
+                        }
+                        _dbContext.TimerMediaFiles.Remove(mapping.MediaFile);
+                    }
                 }
-                else if (file.IsSystemFile)
+                else
                 {
-                    _logger.LogInformation($"🎵 [SoundAlerts] Archivo del sistema no se elimina físicamente: {file.FileName}");
+                    _logger.LogInformation($"🎵 [SoundAlerts] Archivo del sistema no se elimina físicamente: {mapping.SystemFilePath}");
                 }
 
                 // Eliminar registro de la BD
-                _dbContext.SoundAlertFiles.Remove(file);
+                _dbContext.SoundAlertRewardFiles.Remove(mapping);
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation($"🎵 [SoundAlerts] Registro eliminado de BD para {username}: {file.FileName}");
+                _logger.LogInformation($"🎵 [SoundAlerts] Registro eliminado de BD para {username}: reward {rewardId}");
 
                 return Ok(new { success = true, message = "Archivo eliminado exitosamente" });
             }
@@ -795,16 +888,16 @@ namespace Decatron.Default.Controllers
                     return BadRequest(new { success = false, message = "El volumen debe estar entre 0 y 100" });
                 }
 
-                var file = await _dbContext.SoundAlertFiles
-                    .FirstOrDefaultAsync(f => f.Username == username && f.RewardId == rewardId);
+                var mapping = await _dbContext.SoundAlertRewardFiles
+                    .FirstOrDefaultAsync(m => m.UserId == channelOwnerId && m.RewardId == rewardId);
 
-                if (file == null)
+                if (mapping == null)
                 {
                     return NotFound(new { success = false, message = "Archivo no encontrado" });
                 }
 
-                file.Volume = request.Volume;
-                file.UpdatedAt = DateTime.UtcNow;
+                mapping.Volume = request.Volume;
+                mapping.UpdatedAt = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
 
                 return Ok(new { success = true, message = "Volumen actualizado" });
@@ -832,19 +925,19 @@ namespace Decatron.Default.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var file = await _dbContext.SoundAlertFiles
-                    .FirstOrDefaultAsync(f => f.Username == username && f.RewardId == rewardId);
+                var mapping = await _dbContext.SoundAlertRewardFiles
+                    .FirstOrDefaultAsync(m => m.UserId == channelOwnerId && m.RewardId == rewardId);
 
-                if (file == null)
+                if (mapping == null)
                 {
                     return NotFound(new { success = false, message = "Archivo no encontrado" });
                 }
 
-                file.Enabled = !file.Enabled;
-                file.UpdatedAt = DateTime.UtcNow;
+                mapping.Enabled = !mapping.Enabled;
+                mapping.UpdatedAt = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(new { success = true, enabled = file.Enabled });
+                return Ok(new { success = true, enabled = mapping.Enabled });
             }
             catch (Exception ex)
             {
@@ -959,60 +1052,55 @@ namespace Decatron.Default.Controllers
                     return BadRequest(new { success = false, message = $"Archivo del sistema no encontrado: {fullPath}" });
                 }
 
-                // Verificar si ya existe un archivo para esta recompensa
-                var existingFile = await _dbContext.SoundAlertFiles
-                    .FirstOrDefaultAsync(f => f.Username == username && f.RewardId == request.RewardId);
+                // Verificar si ya existe un mapeo para esta recompensa
+                var existingMapping = await _dbContext.SoundAlertRewardFiles
+                    .Include(m => m.MediaFile)
+                    .FirstOrDefaultAsync(m => m.UserId == channelOwnerId && m.RewardId == request.RewardId);
 
-                if (existingFile != null)
+                if (existingMapping != null)
                 {
-                    // Eliminar archivo anterior solo si no es del sistema
-                    if (!existingFile.IsSystemFile)
+                    // Si tenia un archivo de la galeria (no de sistema) y nadie
+                    // mas lo referencia, se borra junto con el fisico.
+                    if (existingMapping.MediaFile != null)
                     {
-                        if (!string.IsNullOrEmpty(existingFile.FilePath) && System.IO.File.Exists(existingFile.FilePath))
+                        var stillReferenced = await _dbContext.SoundAlertRewardFiles
+                            .AnyAsync(m => m.MediaFileId == existingMapping.MediaFileId && m.Id != existingMapping.Id);
+
+                        if (!stillReferenced)
                         {
-                            System.IO.File.Delete(existingFile.FilePath);
-                        }
-                        if (!string.IsNullOrEmpty(existingFile.ImagePath) && System.IO.File.Exists(existingFile.ImagePath))
-                        {
-                            System.IO.File.Delete(existingFile.ImagePath);
+                            var oldFullPath = Path.Combine(Directory.GetCurrentDirectory(), existingMapping.MediaFile.FilePath);
+                            if (System.IO.File.Exists(oldFullPath))
+                                System.IO.File.Delete(oldFullPath);
+                            _dbContext.TimerMediaFiles.Remove(existingMapping.MediaFile);
                         }
                     }
+                    if (!string.IsNullOrEmpty(existingMapping.ImagePath) && System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), existingMapping.ImagePath.TrimStart('/'))))
+                    {
+                        System.IO.File.Delete(Path.Combine(Directory.GetCurrentDirectory(), existingMapping.ImagePath.TrimStart('/')));
+                    }
 
-                    // Actualizar a archivo del sistema
-                    _logger.LogInformation($"🎵 [DEBUG] Actualizando archivo existente ID: {existingFile.Id} - Old IsSystemFile: {existingFile.IsSystemFile}, Old FilePath: {existingFile.FilePath}");
-                    existingFile.IsSystemFile = true;
-                    existingFile.FileType = request.FileType;
-                    existingFile.FilePath = fullPath;
-                    existingFile.FileName = request.SystemFileName;
-                    existingFile.FileSize = new FileInfo(fullPath).Length;
-                    existingFile.DurationSeconds = 0; // El frontend debería enviar la duración si la conoce
-                    existingFile.RewardTitle = request.RewardTitle;
-                    existingFile.ImagePath = null;
-                    existingFile.ImageName = null;
-                    existingFile.UpdatedAt = DateTime.UtcNow;
-                    _logger.LogInformation($"🎵 [DEBUG] Archivo actualizado - New IsSystemFile: {existingFile.IsSystemFile}, New FilePath: {existingFile.FilePath}");
+                    _logger.LogInformation($"🎵 [DEBUG] Actualizando mapeo existente ID: {existingMapping.Id} a archivo de sistema: {fullPath}");
+                    existingMapping.MediaFile = null;
+                    existingMapping.MediaFileId = null;
+                    existingMapping.SystemFilePath = fullPath;
+                    existingMapping.RewardTitle = request.RewardTitle;
+                    existingMapping.ImagePath = null;
+                    existingMapping.ImageName = null;
+                    existingMapping.UpdatedAt = DateTime.UtcNow;
                 }
                 else
                 {
-                    // Crear nuevo registro con archivo del sistema
-                    var soundAlertFile = new Core.Models.SoundAlertFile
+                    // Crear nuevo mapeo apuntando al archivo de sistema
+                    _dbContext.SoundAlertRewardFiles.Add(new Core.Models.SoundAlertRewardFile
                     {
                         UserId = channelOwnerId,
-                        Username = username,
                         RewardId = request.RewardId,
                         RewardTitle = request.RewardTitle,
-                        FileType = request.FileType,
-                        FilePath = fullPath,
-                        FileName = request.SystemFileName,
-                        FileSize = new FileInfo(fullPath).Length,
-                        DurationSeconds = 0,
-                        IsSystemFile = true,
+                        SystemFilePath = fullPath,
                         Enabled = true,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
-                    };
-
-                    _dbContext.SoundAlertFiles.Add(soundAlertFile);
+                    });
                 }
 
                 await _dbContext.SaveChangesAsync();
@@ -1033,6 +1121,88 @@ namespace Decatron.Default.Controllers
         }
 
         /// <summary>
+        /// Asigna a una recompensa un archivo que ya existe en la galería
+        /// compartida (subido antes para Sound Alerts, o para Timer/Event
+        /// Alerts/Goals/Discord) — en vez de subir uno nuevo. Ver plan de
+        /// unificación de galería de medios (8 ago 2026).
+        /// </summary>
+        [HttpPost("assign-media-file")]
+        public async Task<IActionResult> AssignMediaFile([FromBody] AssignMediaFileRequest request)
+        {
+            try
+            {
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                // Igual que GetMediaFiles: se busca por ChannelName (nombre canónico
+                // de la persona), no por UserId numérico — el archivo pudo haberse
+                // subido con otra fila/plataforma vinculada del mismo canal.
+                var mediaFile = await _dbContext.TimerMediaFiles
+                    .FirstOrDefaultAsync(f => f.Id == request.MediaFileId && f.ChannelName == username);
+
+                if (mediaFile == null)
+                    return NotFound(new { success = false, message = "Archivo no encontrado en tu galería" });
+
+                var existingMapping = await _dbContext.SoundAlertRewardFiles
+                    .Include(m => m.MediaFile)
+                    .FirstOrDefaultAsync(m => m.UserId == channelOwnerId && m.RewardId == request.RewardId);
+
+                if (existingMapping != null)
+                {
+                    // Si tenia otro archivo de la galeria y nadie mas lo
+                    // referencia, se borra junto con el fisico (mismo criterio
+                    // que UploadFile/AssignSystemFile).
+                    if (existingMapping.MediaFile != null && existingMapping.MediaFileId != mediaFile.Id)
+                    {
+                        var stillReferenced = await _dbContext.SoundAlertRewardFiles
+                            .AnyAsync(m => m.MediaFileId == existingMapping.MediaFileId && m.Id != existingMapping.Id);
+
+                        if (!stillReferenced)
+                        {
+                            var oldFullPath = Path.Combine(Directory.GetCurrentDirectory(), existingMapping.MediaFile.FilePath);
+                            if (System.IO.File.Exists(oldFullPath))
+                                System.IO.File.Delete(oldFullPath);
+                            _dbContext.TimerMediaFiles.Remove(existingMapping.MediaFile);
+                        }
+                    }
+
+                    existingMapping.MediaFile = mediaFile;
+                    existingMapping.SystemFilePath = null;
+                    existingMapping.RewardTitle = request.RewardTitle;
+                    existingMapping.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    _dbContext.SoundAlertRewardFiles.Add(new Core.Models.SoundAlertRewardFile
+                    {
+                        UserId = channelOwnerId,
+                        RewardId = request.RewardId,
+                        RewardTitle = request.RewardTitle,
+                        MediaFile = mediaFile,
+                        Enabled = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+
+                mediaFile.UsageCount += 1;
+                await _dbContext.SaveChangesAsync();
+
+                _logger.LogInformation($"🎵 [SoundAlerts] Archivo de galería {mediaFile.Id} asignado para {username} (Reward: {request.RewardTitle})");
+
+                return Ok(new { success = true, message = "Archivo asignado exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🎵 [SoundAlerts] ❌ Error asignando archivo de galería");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
         /// Envía una alerta de prueba a través de SignalR
         /// </summary>
         [HttpPost("test")]
@@ -1041,7 +1211,7 @@ namespace Decatron.Default.Controllers
             try
             {
                 var channelOwnerId = GetChannelOwnerId();
-                var username = await GetChannelUsernameAsync(channelOwnerId);
+                var username = await GetPlatformUsernameAsync(channelOwnerId);
 
                 if (string.IsNullOrEmpty(username))
                 {
@@ -1050,7 +1220,7 @@ namespace Decatron.Default.Controllers
 
                 // Obtener configuración del canal
                 var config = await _dbContext.SoundAlertConfigs
-                    .FirstOrDefaultAsync(c => c.Username == username);
+                    .FirstOrDefaultAsync(c => c.UserId == channelOwnerId);
 
                 // Valores por defecto si no hay configuración
                 int globalVolume = config?.GlobalVolume ?? 70;
@@ -1064,64 +1234,39 @@ namespace Decatron.Default.Controllers
                 string textOutlineColor = config?.TextOutlineColor ?? "#000000";
                 int textOutlineWidth = config?.TextOutlineWidth ?? 2;
 
-                // Obtener el primer archivo disponible para testing, o null si no hay
-                var file = await _dbContext.SoundAlertFiles
-                    .Where(f => f.Username == username && f.Enabled)
-                    .OrderByDescending(f => f.UpdatedAt)
+                // Obtener el primer mapeo disponible para testing, o null si no hay
+                var mapping = await _dbContext.SoundAlertRewardFiles
+                    .Include(m => m.MediaFile)
+                    .Where(m => m.UserId == channelOwnerId && m.Enabled)
+                    .OrderByDescending(m => m.UpdatedAt)
                     .FirstOrDefaultAsync();
 
                 string? fileUrl = null;
                 string? imageUrl = null;
                 string fileType = "sound";
 
-                if (file != null)
+                if (mapping != null)
                 {
-                    // Determinar la URL correcta según si es archivo del sistema o de usuario
-                    if (file.IsSystemFile)
-                    {
-                        // Archivo del sistema: usar la ruta almacenada directamente
-                        // FilePath es algo como "ClientApp/public/system-files/videos/fbi.mp4"
-                        // Convertir a URL: "/system-files/videos/fbi.mp4"
-                        var relativePath = file.FilePath.Replace("ClientApp/public", "").Replace("\\", "/");
-                        if (!relativePath.StartsWith("/"))
-                            relativePath = "/" + relativePath;
-                        fileUrl = relativePath;
+                    fileUrl = mapping.MediaFile != null
+                        ? ToPublicPath(mapping.MediaFile.FilePath)
+                        : ToPublicPath(mapping.SystemFilePath!);
 
-                        // Para archivos del sistema, respetar ShowImage / ImageSource
-                        if (file.ShowImage)
+                    fileType = mapping.MediaFile?.FileType ?? InferSystemFileType(mapping.SystemFilePath ?? "");
+
+                    if (mapping.ShowImage)
+                    {
+                        if (mapping.ImageSource == "url" && !string.IsNullOrEmpty(mapping.ImageUrl))
                         {
-                            if (file.ImageSource == "url" && !string.IsNullOrEmpty(file.ImageUrl))
-                            {
-                                imageUrl = file.ImageUrl;
-                            }
-                            else if (!string.IsNullOrEmpty(file.ImagePath))
-                            {
-                                var relativeImagePath = file.ImagePath.Replace("ClientApp/public", "").Replace("\\", "/");
-                                if (!relativeImagePath.StartsWith("/"))
-                                    relativeImagePath = "/" + relativeImagePath;
-                                imageUrl = relativeImagePath;
-                            }
+                            imageUrl = mapping.ImageUrl;
+                        }
+                        else if (!string.IsNullOrEmpty(mapping.ImagePath))
+                        {
+                            imageUrl = ToPublicPath(mapping.ImagePath);
                         }
                     }
-                    else
-                    {
-                        // Archivo de usuario: construir URL con username
-                        var fileName = Path.GetFileName(file.FilePath);
-                        fileUrl = $"/uploads/soundalerts/{username}/{fileName}";
-
-                        // Respetar ShowImage / ImageSource / ImageUrl
-                        imageUrl = !file.ShowImage ? null :
-                                   file.ImageSource == "url" && !string.IsNullOrEmpty(file.ImageUrl)
-                                       ? file.ImageUrl
-                                       : (!string.IsNullOrEmpty(file.ImagePath)
-                                           ? $"/uploads/soundalerts/{username}/{Path.GetFileName(file.ImagePath)}"
-                                           : null);
-                    }
-
-                    fileType = file.FileType;
                 }
 
-                bool showImageFlag = file?.ShowImage ?? true;
+                bool showImageFlag = mapping?.ShowImage ?? true;
 
                 // Crear datos de la alerta de prueba
                 var alertData = new
@@ -1161,7 +1306,7 @@ namespace Decatron.Default.Controllers
                 {
                     success = true,
                     message = "Alerta de prueba enviada exitosamente",
-                    hasFile = file != null
+                    hasFile = mapping != null
                 });
             }
             catch (Exception ex)
@@ -1183,10 +1328,10 @@ namespace Decatron.Default.Controllers
             if (string.IsNullOrEmpty(username))
                 return Unauthorized();
 
-            var file = await _dbContext.SoundAlertFiles
-                .FirstOrDefaultAsync(f => f.RewardId == rewardId && f.UserId == channelOwnerId);
+            var mapping = await _dbContext.SoundAlertRewardFiles
+                .FirstOrDefaultAsync(m => m.RewardId == rewardId && m.UserId == channelOwnerId);
 
-            if (file == null)
+            if (mapping == null)
                 return NotFound(new { error = "Archivo no encontrado" });
 
             if (request.ImageFile != null && request.ImageFile.Length > 0)
@@ -1199,9 +1344,9 @@ namespace Decatron.Default.Controllers
                 if (request.ImageFile.Length > 10 * 1024 * 1024)
                     return BadRequest(new { error = "La imagen no puede superar los 10MB." });
 
-                if (!string.IsNullOrEmpty(file.ImagePath) && !file.IsSystemFile)
+                if (!string.IsNullOrEmpty(mapping.ImagePath))
                 {
-                    var oldImageFullPath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "public", file.ImagePath.TrimStart('/'));
+                    var oldImageFullPath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "public", mapping.ImagePath.TrimStart('/'));
                     if (System.IO.File.Exists(oldImageFullPath))
                         System.IO.File.Delete(oldImageFullPath);
                 }
@@ -1215,25 +1360,67 @@ namespace Decatron.Default.Controllers
                 using (var stream = new FileStream(imageFilePath, FileMode.Create))
                     await request.ImageFile.CopyToAsync(stream);
 
-                file.ImagePath = $"/uploads/soundalerts/{sanitizedUsername}/{imageFileName}";
-                file.ImageName = request.ImageFile.FileName;
+                mapping.ImagePath = $"/uploads/soundalerts/{sanitizedUsername}/{imageFileName}";
+                mapping.ImageName = request.ImageFile.FileName;
             }
 
-            file.ShowImage = request.ShowImage;
-            file.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
-            file.ImageSource = request.ImageSource ?? "upload";
+            mapping.ShowImage = request.ShowImage;
+            mapping.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
+            mapping.ImageSource = request.ImageSource ?? "upload";
             if (request.Volume.HasValue)
-                file.Volume = Math.Clamp(request.Volume.Value, 0, 100);
-            file.UpdatedAt = DateTime.UtcNow;
+                mapping.Volume = Math.Clamp(request.Volume.Value, 0, 100);
+            mapping.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
             return Ok(new { success = true });
         }
 
+        // Delegan al helper compartido (Decatron.Core.Helpers.MediaPathHelpers)
+        // que también usa la API pública de Decatron — antes esta lógica
+        // estaba duplicada ahí.
+        private static string ToPublicPath(string filePath) => MediaPathHelpers.ToPublicPath(filePath);
+
+        private static string InferSystemFileType(string systemFilePath) => MediaPathHelpers.InferSystemFileType(systemFilePath);
+
         /// <summary>
         /// Obtiene el username del propietario del canal
         /// </summary>
+        /// <summary>
+        /// Resuelve el nombre de canal bajo el que se guarda/busca la media. Es UN
+        /// SOLO nombre por persona (AccountId), sin importar con qué plataforma
+        /// vinculada esté activa la sesión ahora — si no, la media queda "invisible"
+        /// al entrar con Kick porque se guardó bajo el nombre de Twitch (o viceversa).
+        /// Se prioriza el Login real de Twitch; el Login de una fila Kick-only es un
+        /// placeholder ("kick_{id}"), no un nombre real, por eso se usa KickUsername.
+        /// </summary>
         private async Task<string?> GetChannelUsernameAsync(long channelOwnerId)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == channelOwnerId);
+            if (user == null)
+                return null;
+
+            var linkedUsers = user.AccountId != null
+                ? await _dbContext.Users.Where(u => u.AccountId == user.AccountId).ToListAsync()
+                : new List<Decatron.Core.Models.User> { user };
+
+            var twitchRow = linkedUsers.FirstOrDefault(u => u.TwitchId != null);
+            if (twitchRow != null)
+                return twitchRow.Login?.ToLower();
+
+            var kickRow = linkedUsers.FirstOrDefault(u => u.KickUsername != null);
+            if (kickRow != null)
+                return kickRow.KickUsername?.ToLower();
+
+            return user.Login?.ToLower();
+        }
+
+        /// <summary>
+        /// Clave de la fila/plataforma ACTIVA (no unificada por AccountId) — a
+        /// propósito distinto de GetChannelUsernameAsync. La config de overlay
+        /// (posición, tamaño, colores) es independiente entre Twitch y Kick; solo
+        /// la galería de archivos de media se comparte entre plataformas.
+        /// </summary>
+        private async Task<string?> GetPlatformUsernameAsync(long channelOwnerId)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == channelOwnerId);
             return user?.Login?.ToLower();
@@ -1326,6 +1513,13 @@ namespace Decatron.Default.Controllers
             public string SystemFilePath { get; set; } = ""; // e.g. "/system-files/sounds/fbi.mp3"
             public string SystemFileName { get; set; } = ""; // e.g. "fbi.mp3"
             public string FileType { get; set; } = ""; // sound, video, image
+        }
+
+        public class AssignMediaFileRequest
+        {
+            public string RewardId { get; set; } = "";
+            public string RewardTitle { get; set; } = "";
+            public int MediaFileId { get; set; }
         }
 
         public class EditFileRequest
