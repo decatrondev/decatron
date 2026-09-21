@@ -38,7 +38,7 @@
     "briefing": "Briefing when the client opens",
     "briefingHint": "Once a day: rank and LP, how yesterday went, your best champion of the week, streak and today's goal.",
     "lobby": "Comment on the lobby",
-    "lobbyHint": "When someone joins: your record playing with that person (from your own history) and who's on a streak.",
+    "lobbyHint": "When someone joins: your record playing with that person, their public rank, their form over the last 20 games and their top champions. Shown on the overlay (status line) and here.",
     "tilt": "Tilt check",
     "tiltHint": "After 3 losses in a row this session it asks whether you keep going or stop. Off by default: many find it annoying.",
     "dailyGoal": "Today's goal",
@@ -117,7 +117,9 @@
       "defeat": "Defeat",
       "callsToday": "AI calls today",
       "capReached": "Your plan's daily cap is reached; the coach speaks again tomorrow.",
-      "seePlans": "See plans"
+      "seePlans": "See plans",
+      "unranked": "unranked",
+      "last20": "last 20"
     },
     "history": {
       "title": "Latest from the coach",

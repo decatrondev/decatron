@@ -38,7 +38,7 @@
     "briefing": "Briefing al abrir el cliente",
     "briefingHint": "Una vez por día: rango y LP, cómo te fue ayer, tu mejor campeón de la semana, racha y objetivo de hoy.",
     "lobby": "Comentar el lobby",
-    "lobbyHint": "Cuando entra alguien: tu récord jugando con esa persona (de tu propio historial) y quién viene en racha.",
+    "lobbyHint": "Cuando entra alguien: tu récord jugando con esa persona, su rango público, su forma en las últimas 20 partidas y sus top campeones. Se ve en el overlay (línea de estado) y aquí.",
     "tilt": "Tilt check",
     "tiltHint": "A las 3 derrotas seguidas de la sesión te pregunta si sigues o cortas. Off por defecto: a muchos les molesta.",
     "dailyGoal": "Objetivo de hoy",
@@ -117,7 +117,9 @@
       "defeat": "Derrota",
       "callsToday": "Llamadas a la IA hoy",
       "capReached": "Tope diario de tu plan alcanzado; el coach vuelve a hablar mañana.",
-      "seePlans": "Ver planes"
+      "seePlans": "Ver planes",
+      "unranked": "sin rango",
+      "last20": "últimas 20"
     },
     "history": {
       "title": "Lo último que dijo",

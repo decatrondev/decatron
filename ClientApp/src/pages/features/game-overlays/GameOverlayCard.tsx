@@ -71,6 +71,8 @@ export const CARD_LABELS: Record<'es' | 'en', CardLabels> = {
           prediction: 'Chat prediction', predWin: 'Win', predLoss: 'Loss', predClosesIn: 'closes in', predClosed: 'closed', predRefund: 'No bets against: points refunded', predWinners: 'got it right', predHint: '!pred win|loss [points]', predNoBets: 'No bets yet' },
 };
 
+function formatTierLabel(t: string): string { const x = t.toLowerCase(); return x.charAt(0).toUpperCase() + x.slice(1); }
+
 const WIN = '#4ade80';
 const LOSS = '#f87171';
 const NEUTRAL = '#8b949e';
@@ -218,8 +220,16 @@ function LiveStatusLine({ live, font, L, accent, now }: { live: LivePhaseInfo; f
     const row = (children: JSX.Element | (JSX.Element | string | null)[]) => <div style={{ ...font, display: 'flex', alignItems: 'center', gap: 6 }}>{children}</div>;
     switch (live.phase) {
         case 'lobby': {
-            const others = live.lobby.filter(m => !m.isMe).map(m => m.name);
-            return row([dot(NEUTRAL), <span key="t">{L.lobby}{live.queueName ? ` · ${live.queueName}` : ''}{others.length ? ` · ${others.join(', ')}` : ''}</span>]);
+            // Con scouting (3b): "Roba · Oro II · 55%" por miembro; sin él, solo el nombre.
+            const others = live.lobby.filter(m => !m.isMe).map(m => {
+                const sc = m.scout;
+                if (!sc) return m.name;
+                const parts = [m.name];
+                if (sc.tier) parts.push(`${formatTierLabel(sc.tier)}${sc.division ? ' ' + sc.division : ''}`);
+                if (sc.winRate != null && sc.games >= 5) parts.push(`${sc.winRate}%`);
+                return parts.join(' · ');
+            });
+            return row([dot(NEUTRAL), <span key="t">{L.lobby}{live.queueName ? ` · ${live.queueName}` : ''}{others.length ? ` · ${others.join(' | ')}` : ''}</span>]);
         }
         case 'matchmaking':
             return row([dot(accent), <span key="t">{L.matchmaking}{live.queueName ? ` · ${live.queueName}` : ''}</span>]);

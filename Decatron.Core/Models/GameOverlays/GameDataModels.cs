@@ -260,6 +260,24 @@ public class LiveLobbyMember
     public bool IsLeader { get; set; }
     public string? Position1 { get; set; }
     public string? Position2 { get; set; }
+    /// <summary>Fase 3b: datos públicos del miembro (Riot API), para el overlay y el coach. Null si no se pudieron traer.</summary>
+    public LiveLobbyScout? Scout { get; set; }
+}
+
+/// <summary>Resumen público de un miembro del lobby: rango solo/duo y sus últimas 20 partidas.</summary>
+public class LiveLobbyScout
+{
+    /// <summary>"GOLD" etc. (null si no tiene rango).</summary>
+    public string? Tier { get; set; }
+    public string? Division { get; set; }
+    public int? Lp { get; set; }
+    public int? RankWins { get; set; }
+    public int? RankLosses { get; set; }
+    public int Games { get; set; }
+    public double? WinRate { get; set; }
+    /// <summary>+N victorias seguidas / -N derrotas seguidas.</summary>
+    public int Streak { get; set; }
+    public List<string> TopChampions { get; set; } = new();
 }
 
 public class LivePick

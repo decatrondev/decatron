@@ -46,16 +46,21 @@ namespace Decatron.Services.GameData.LolLive
         public bool IsAvailable => _keys.HasKeyFor(GameIds.Lol);
 
         /// <summary>Últimas partidas (todas las colas ranked/normal), más reciente primero. Vacío si falla.</summary>
-        public async Task<List<HistoryMatch>> GetAsync(LinkedGameAccount account, int count = DefaultCount, CancellationToken ct = default)
+        public Task<List<HistoryMatch>> GetAsync(LinkedGameAccount account, int count = DefaultCount, CancellationToken ct = default) =>
+            string.IsNullOrEmpty(account.Region) || string.IsNullOrEmpty(account.ExternalId) ? Task.FromResult(new List<HistoryMatch>()) : GetAsync(account.Region, account.ExternalId, count, ct);
+
+        /// <summary>Lo mismo para cualquier PUUID (fase 3b: los amigos del lobby). Las partidas en común ya están en cache.</summary>
+        public async Task<List<HistoryMatch>> GetAsync(string region, string puuid, int count = DefaultCount, CancellationToken ct = default)
         {
-            if (!IsAvailable || string.IsNullOrEmpty(account.Region) || string.IsNullOrEmpty(account.ExternalId)) return new();
+            if (!IsAvailable || string.IsNullOrEmpty(region) || string.IsNullOrEmpty(puuid)) return new();
             var key = _keys.ForGame(GameIds.Lol)!;
             count = Math.Clamp(count, 1, 100);
+            var account = new LinkedGameAccount { Region = region, ExternalId = puuid };
 
-            var ids = await _cache.GetOrFetchAsync<List<string>>(GameProviders.Riot, account.ExternalId, $"history-ids:{count}", TimeSpan.FromMinutes(10), async () =>
+            var ids = await _cache.GetOrFetchAsync<List<string>>(GameProviders.Riot, puuid, $"history-ids:{count}", TimeSpan.FromMinutes(10), async () =>
             {
-                var (ok, list, error) = await _riot.GetMatchIdsAsync(account.Region, account.ExternalId, key, count, null, null);
-                if (!ok) { _logger.LogDebug("LoL history ids {Name}: {Error}", account.FullExternalName, error); return null; }
+                var (ok, list, error) = await _riot.GetMatchIdsAsync(region, puuid, key, count, null, null);
+                if (!ok) { _logger.LogDebug("LoL history ids {Puuid}: {Error}", puuid, error); return null; }
                 return list;
             }, ct) ?? new List<string>();
 
@@ -118,6 +123,22 @@ namespace Decatron.Services.GameData.LolLive
                 .Where(x => x.Item2.Games >= minGames)
                 .OrderByDescending(x => x.Item2.WinRate).ThenByDescending(x => x.Item2.Games)
                 .Select(x => ((string, Record)?)x).FirstOrDefault();
+
+        /// <summary>Racha actual: +N victorias seguidas, -N derrotas seguidas (más reciente primero).</summary>
+        public static int Streak(IEnumerable<HistoryMatch> history)
+        {
+            var list = history.Where(m => !m.IsRemake).OrderByDescending(m => m.At).ToList();
+            if (list.Count == 0) return 0;
+            var win = list[0].Win; var n = 0;
+            foreach (var m in list) { if (m.Win != win) break; n++; }
+            return win ? n : -n;
+        }
+
+        /// <summary>Campeones más jugados en el rango, con su récord.</summary>
+        public static List<(string Champion, Record Record)> TopChampions(IEnumerable<HistoryMatch> history, int count = 3) =>
+            history.Where(m => !m.IsRemake).GroupBy(m => m.Me.Champion)
+                .Select(g => (g.Key, new Record(g.Count(), g.Count(m => m.Win), g.Count(m => !m.Win))))
+                .OrderByDescending(x => x.Item2.Games).ThenByDescending(x => x.Item2.WinRate).Take(count).ToList();
 
         private static bool Eq(string a, string b) => Normalize(a) == Normalize(b);
         /// <summary>"Kai'Sa" == "kaisa" == "KAISA".</summary>

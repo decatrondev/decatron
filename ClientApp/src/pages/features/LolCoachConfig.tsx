@@ -196,7 +196,21 @@ export default function LolCoachConfig() {
                         {!state?.clientConnected ? <p className={muted}>{t('live.noClient')}</p> : (
                             <div className="space-y-2 text-sm">
                                 <div className="text-[#1e293b] dark:text-[#f8fafc] font-semibold">{t(`phases.${phase?.phase ?? 'none'}`)}{phase?.queueName ? ` · ${phase.queueName}` : ''}</div>
-                                {phase?.lobby?.length ? <div className={muted}>{t('live.lobby')}: {phase.lobby.map(m => m.name + (m.isMe ? ` (${t('live.you')})` : '')).join(', ')}</div> : null}
+                                {phase?.lobby?.length ? (
+                                    <div className={muted}>
+                                        <div>{t('live.lobby')}:</div>
+                                        <ul className="ml-4 list-disc">
+                                            {phase.lobby.map((m, i) => (
+                                                <li key={i}>
+                                                    <span className="text-[#1e293b] dark:text-[#f8fafc]">{m.name}</span>{m.isMe ? ` (${t('live.you')})` : ''}
+                                                    {m.scout && <> · {m.scout.tier ? `${m.scout.tier.charAt(0)}${m.scout.tier.slice(1).toLowerCase()} ${m.scout.division ?? ''} ${m.scout.lp ?? 0} LP` : t('live.unranked')}
+                                                        {m.scout.games > 0 && <> · {t('live.last20')}: {m.scout.winRate}% {m.scout.streak !== 0 && <span className={m.scout.streak > 0 ? 'text-green-500' : 'text-red-500'}>({m.scout.streak > 0 ? '+' : ''}{m.scout.streak})</span>}</>}
+                                                        {m.scout.topChampions.length > 0 && <> · {m.scout.topChampions.join(', ')}</>}</>}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ) : null}
                                 {cs && (
                                     <div className="space-y-1">
                                         <Team label={t('live.myTeam')} picks={cs.myTeam} />

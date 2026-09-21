@@ -26,7 +26,7 @@ function simulateLive(phase: LivePhaseId, account: AccountOverlayState): LivePha
     const champs = (account.session?.matches ?? []).filter(m => m.character).map(m => ({ id: 0, name: m.character!, icon: m.characterIcon ?? null }));
     const c = (i: number) => champs[i % Math.max(1, champs.length)] ?? { id: 0, name: '?', icon: null };
     const base: LivePhaseInfo = { phase, queueId: 420, queueName: 'Ranked Solo/Duo', lobby: [], updatedAt: new Date().toISOString() };
-    if (phase === 'lobby') base.lobby = [{ name: account.displayName, isMe: true, isLeader: true }, { name: 'Roba', isMe: false, isLeader: false }, { name: 'Jesús', isMe: false, isLeader: false }];
+    if (phase === 'lobby') base.lobby = [{ name: account.displayName, isMe: true, isLeader: true }, { name: 'Roba', isMe: false, isLeader: false, scout: { tier: 'GOLD', division: 'II', lp: 45, games: 20, winRate: 60, streak: 3, topChampions: ['Lee Sin 6-2', 'Vi 4-3'] } }, { name: 'Jesús', isMe: false, isLeader: false, scout: { tier: 'SILVER', division: 'I', lp: 80, games: 20, winRate: 45, streak: -2, topChampions: ['Lux 5-5'] } }];
     if (phase === 'champselect') base.champSelect = {
         myTeam: [0, 1, 2, 3, 4].map(i => ({ cellId: i, champion: i < 4 ? c(i) : null, position: ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'][i], isMe: i === 3, locked: i < 3 })),
         theirTeam: [5, 6, 7, 8, 9].map(i => ({ cellId: i, champion: i < 8 ? c(i) : null, isMe: false, locked: i < 7 })),

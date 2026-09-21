@@ -45,14 +45,15 @@ namespace Decatron.Services.GameData.LolLive
         private readonly LolCoachVoice _voice;
         private readonly LolHistoryService _history;
         private readonly LolPredictionService _predictions;
+        private readonly LolLobbyScoutService _scout;
         private readonly IServiceScopeFactory _scopes;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
-            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, LolPredictionService predictions,
+            LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, LolPredictionService predictions, LolLobbyScoutService scout,
             IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
         {
-            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _predictions = predictions; _scopes = scopes; _logger = logger;
+            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _predictions = predictions; _scout = scout; _scopes = scopes; _logger = logger;
         }
 
         public string Name => ChannelName;
@@ -155,12 +156,17 @@ namespace Decatron.Services.GameData.LolLive
                     phase.QueueId = msg["queueId"]?.GetValue<int?>();
                     phase.QueueName = msg["queueName"]?.GetValue<string>();
                     if (msg["lobby"] is JsonArray lobby)
+                    {
+                        // El scouting (3b) se conserva entre mensajes: el LCU reenvía el lobby entero por cada cambio.
+                        var previous = phase.Lobby.Where(m => m.Scout != null && m.Puuid != null).ToDictionary(m => m.Puuid!, m => m.Scout!);
                         phase.Lobby = lobby.OfType<JsonObject>().Select(m => new LiveLobbyMember
                         {
                             Name = m["name"]?.GetValue<string>() ?? "", Tag = m["tag"]?.GetValue<string>(), Puuid = m["puuid"]?.GetValue<string>(),
                             IsMe = m["isMe"]?.GetValue<bool>() ?? false, IsLeader = m["isLeader"]?.GetValue<bool>() ?? false,
                             Position1 = m["position1"]?.GetValue<string>(), Position2 = m["position2"]?.GetValue<string>(),
                         }).ToList();
+                        foreach (var m in phase.Lobby) if (m.Puuid != null && previous.TryGetValue(m.Puuid, out var sc)) m.Scout = sc;
+                    }
                     break;
                 }
                 case "champselect":
@@ -314,6 +320,14 @@ namespace Decatron.Services.GameData.LolLive
                 if (others.Count > 0 && sig != entry.LastLobbySignature)
                 {
                     entry.LastLobbySignature = sig;
+                    // 3b: rango/winrate/top champs públicos de los que entraron, para el overlay, el panel y el prompt.
+                    var region = await RegionAsync(conn.UserId, entry);
+                    if (region != null)
+                    {
+                        await _scout.ScoutAsync(region, others, conn.Token);
+                        entry.Phase.UpdatedAt = DateTime.UtcNow;
+                        await _poller.PushLivePhaseAsync(conn.UserId);
+                    }
                     await SpeakAsync(conn, entry, settings, "lobby");
                 }
                 return;
@@ -400,9 +414,16 @@ namespace Decatron.Services.GameData.LolLive
                     foreach (var m in entry.Phase.Lobby.Where(m => !m.IsMe))
                     {
                         var (rec, _) = LolHistoryService.WithAlly(history, m.Puuid ?? m.Name);
-                        arr.Add(new JsonObject { ["name"] = m.Name, ["gamesTogether"] = rec.Games, ["winsTogether"] = rec.Wins, ["lossesTogether"] = rec.Losses });
+                        var member = new JsonObject { ["name"] = m.Name, ["gamesTogether"] = rec.Games, ["winsTogether"] = rec.Wins, ["lossesTogether"] = rec.Losses };
+                        if (m.Scout is { } sc)
+                        {
+                            if (sc.Tier != null) member["rank"] = $"{sc.Tier} {sc.Division} {sc.Lp} LP ({sc.RankWins}W {sc.RankLosses}L)";
+                            member["last20"] = new JsonObject { ["games"] = sc.Games, ["winRate"] = sc.WinRate, ["streak"] = sc.Streak };
+                            member["topChampions"] = new JsonArray(sc.TopChampions.Select(c => (JsonNode)c).ToArray());
+                        }
+                        arr.Add(member);
                     }
-                    o["recordWithLobby"] = arr;
+                    o["lobbyMembers"] = arr;
                 }
                 if (kind == "final" && entry.Phase.ChampSelect is { } cs)
                 {
@@ -486,6 +507,15 @@ namespace Decatron.Services.GameData.LolLive
             _store.Remove(conn.UserId, conn.Device.Id);
             try { await _poller.PushLivePhaseAsync(conn.UserId); }
             catch (Exception ex) { _logger.LogDebug(ex, "[LolCoach] push tras desconexion"); }
+        }
+
+        /// <summary>Región de la cuenta vinculada del streamer (los amigos del lobby están en la misma).</summary>
+        private async Task<string?> RegionAsync(long userId, LolLiveStateStore.Entry entry)
+        {
+            if (entry.Puuid == null) return null;
+            using var scope = _scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+            return await db.LinkedGameAccounts.AsNoTracking().Where(a => a.Game == GameIds.Lol && a.IsActive && a.ExternalId == entry.Puuid).Select(a => a.Region).FirstOrDefaultAsync();
         }
 
         /// <summary>none | lobby | matchmaking | champselect | ingame | postgame, desde los nombres del LCU.</summary>

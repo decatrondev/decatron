@@ -120,7 +120,8 @@ export interface SessionState {
 
 // ─── Fase en vivo (Decatron Desktop leyendo el cliente de LoL) ────────────────
 export interface LiveChampionRef { id: number; name: string; icon?: string | null; }
-export interface LiveLobbyMember { name: string; tag?: string | null; isMe: boolean; isLeader: boolean; position1?: string | null; position2?: string | null; }
+export interface LiveLobbyScout { tier?: string | null; division?: string | null; lp?: number | null; rankWins?: number | null; rankLosses?: number | null; games: number; winRate?: number | null; streak: number; topChampions: string[]; }
+export interface LiveLobbyMember { name: string; tag?: string | null; isMe: boolean; isLeader: boolean; position1?: string | null; position2?: string | null; scout?: LiveLobbyScout | null; }
 export interface LivePick { cellId: number; champion?: LiveChampionRef | null; position?: string | null; isMe: boolean; locked: boolean; }
 export interface LiveChampSelect {
     myTeam: LivePick[]; theirTeam: LivePick[]; myBans: LiveChampionRef[]; theirBans: LiveChampionRef[];
