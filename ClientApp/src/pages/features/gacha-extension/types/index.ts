@@ -9,8 +9,38 @@ export interface GachaItem {
     rarity: RarityType;
     image?: string;
     available: boolean;
+    effectType: GachaItemEffectType;
+    effectValue: number;
+    consumable: boolean;
     createdAt: string;
     updatedAt: string;
+}
+
+export type GachaItemEffectType = 'none' | 'roll_again' | 'extra_pulls' | 'timer_time';
+
+export const ITEM_EFFECTS: { id: GachaItemEffectType; label: string; desc: string }[] = [
+    { id: 'none',        label: 'Ninguno',            desc: 'Item coleccionable normal' },
+    { id: 'roll_again',  label: 'Tirar de nuevo',     desc: 'El bot encadena otro tiro al instante' },
+    { id: 'extra_pulls', label: 'Tiros extra',        desc: 'Suma X tiros bonus a la billetera del viewer' },
+    { id: 'timer_time',  label: 'Tiempo al timer',    desc: 'Suma (o resta) tiempo al timer extensible' },
+];
+
+/** Etiqueta corta para mostrar el efecto en tarjetas: "🔁 Tiro extra", "🎁 +3 tiros", "⏱️ +10m" */
+export function describeItemEffect(item: Pick<GachaItem, 'effectType' | 'effectValue'>): string | null {
+    switch (item.effectType) {
+        case 'roll_again': return '🔁 Tiro extra';
+        case 'extra_pulls': return `🎁 +${item.effectValue} tiros`;
+        case 'timer_time': {
+            const v = item.effectValue;
+            const abs = Math.abs(v);
+            const t = abs >= 86400 && abs % 86400 === 0 ? `${abs / 86400}d`
+                : abs >= 3600 && abs % 3600 === 0 ? `${abs / 3600}h`
+                : abs >= 60 && abs % 60 === 0 ? `${abs / 60}m`
+                : `${abs}s`;
+            return `⏱️ ${v < 0 ? '-' : '+'}${t}`;
+        }
+        default: return null;
+    }
 }
 
 export interface GachaParticipant {
@@ -22,6 +52,8 @@ export interface GachaParticipant {
     effectiveDonation: number;
     pulls: number;
     coinPullsAvailable: number;
+    bonusPullsAvailable: number;
+    forcedItemId?: number | null;
     coinsSpentTotal: number;
     cumulativeDonationProgress: number;
     cumulativeCoinsProgress: number;

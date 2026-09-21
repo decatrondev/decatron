@@ -45,6 +45,18 @@ namespace Decatron.Core.Models.Gacha
         [Column("coins_spent_total")]
         public int CoinsSpentTotal { get; set; } = 0;
 
+        /// <summary>
+        /// Tiros que no son dinero ni coins: rueda, efectos de items, regalos del
+        /// streamer. No cuentan como donación ni avanzan hitos, y pueden vencer al
+        /// terminar el stream.
+        /// </summary>
+        [Column("bonus_pulls_available")]
+        public int BonusPullsAvailable { get; set; } = 0;
+
+        /// <summary>Item que sale sí o sí en el próximo tiro. Se limpia al usarse.</summary>
+        [Column("forced_item_id")]
+        public int? ForcedItemId { get; set; }
+
         [Column("cumulative_donation_progress")]
         public decimal CumulativeDonationProgress { get; set; } = 0;
 

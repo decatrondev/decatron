@@ -69,6 +69,14 @@ namespace Decatron.Core.Models.Gacha
         [Column("coins_daily_limit")]
         public int CoinsDailyLimit { get; set; } = 0;
 
+        /// <summary>Avisar en el chat cuando un viewer gana tiros por sub/resub/bits/gift.</summary>
+        [Column("chat_notify_enabled")]
+        public bool ChatNotifyEnabled { get; set; } = true;
+
+        /// <summary>Los tiros bonus se pierden al terminar el stream.</summary>
+        [Column("bonus_expire_on_stream_end")]
+        public bool BonusExpireOnStreamEnd { get; set; } = false;
+
         // Multi-pull
         [Column("multi_pull_enabled")]
         public bool MultiPullEnabled { get; set; } = true;

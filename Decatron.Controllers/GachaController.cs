@@ -90,7 +90,10 @@ namespace Decatron.Controllers
                 Name = dto.Name,
                 Rarity = dto.Rarity,
                 Image = dto.Image,
-                Available = dto.Available
+                Available = dto.Available,
+                EffectType = GachaItemEffects.EsValido(dto.EffectType) ? dto.EffectType : GachaItemEffects.None,
+                EffectValue = dto.EffectValue,
+                Consumable = dto.Consumable
             };
 
             var created = await _gachaService.CreateItemAsync(item);
@@ -114,7 +117,10 @@ namespace Decatron.Controllers
                     Name = dto.Name,
                     Rarity = dto.Rarity,
                     Image = dto.Image,
-                    Available = dto.Available
+                    Available = dto.Available,
+                    EffectType = GachaItemEffects.EsValido(dto.EffectType) ? dto.EffectType : GachaItemEffects.None,
+                    EffectValue = dto.EffectValue,
+                    Consumable = dto.Consumable
                 };
                 var updated = await _gachaService.UpdateItemAsync(item);
                 return Ok(new { success = true, item = updated });
@@ -566,6 +572,24 @@ namespace Decatron.Controllers
             catch (ArgumentException ex) { return BadRequest(new { success = false, message = ex.Message }); }
         }
 
+        /// <summary>Regala tiros bonus a un viewer. No cuentan como donación.</summary>
+        [HttpPost("bonus-pulls")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> AddBonusPulls([FromBody] GachaBonusPullsDto dto)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+            if (string.IsNullOrWhiteSpace(dto.ParticipantName))
+                return BadRequest(new { success = false, message = "Falta el nombre del participante" });
+
+            try
+            {
+                var participant = await _gachaService.AddBonusPullsAsync(ctx.Value.channelName, dto.ParticipantName, dto.Pulls, "manual");
+                return Ok(new { success = true, participant });
+            }
+            catch (ArgumentException ex) { return BadRequest(new { success = false, message = ex.Message }); }
+        }
+
         // ========================================================================
         // DISPLAY NAME
         // ========================================================================
@@ -580,6 +604,22 @@ namespace Decatron.Controllers
             try
             {
                 await _gachaService.UpdateDisplayNameAsync(participantId, ctx.Value.channelName, dto.DisplayName);
+                return Ok(new { success = true });
+            }
+            catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
+        }
+
+        /// <summary>Fuerza la carta del próximo tiro del participante (null = quitar).</summary>
+        [HttpPut("participants/{participantId:int}/forced-item")]
+        [RequirePermission("raffles")]
+        public async Task<IActionResult> SetForcedItem(int participantId, [FromBody] GachaForcedItemDto dto)
+        {
+            var ctx = await GetActiveChannelContext();
+            if (!ctx.HasValue) return BadRequest(new { success = false, message = "Canal no encontrado" });
+
+            try
+            {
+                await _gachaService.SetForcedItemAsync(participantId, ctx.Value.channelName, dto.ItemId);
                 return Ok(new { success = true });
             }
             catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
@@ -695,7 +735,7 @@ namespace Decatron.Controllers
 
             try
             {
-                var pullType = dto.PullType == "coins" ? "coins" : "donation";
+                var pullType = dto.PullType is "coins" or "bonus" ? dto.PullType : "donation";
                 var result = await _gachaService.PerformPullAsync(ctx.Value.channelName, dto.ParticipantId, pullType);
                 return Ok(new
                 {
@@ -715,11 +755,15 @@ namespace Decatron.Controllers
                         result.Participant.Pulls,
                         result.Participant.EffectiveDonation,
                         result.Participant.CoinPullsAvailable,
+                        result.Participant.BonusPullsAvailable,
                         result.Participant.CoinsSpentTotal,
                         result.Participant.DisplayName
                     },
                     pullsRemaining = result.PullsRemaining,
-                    pullType = result.PullType
+                    pullType = result.PullType,
+                    effectType = result.EffectType,
+                    effectValue = result.EffectValue,
+                    effectApplied = result.EffectApplied
                 });
             }
             catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
@@ -824,7 +868,9 @@ namespace Decatron.Controllers
                 CoinsPerPull = dto.CoinsPerPull,
                 MultiPullEnabled = dto.MultiPullEnabled,
                 MultiPullMax = dto.MultiPullMax,
-                MultiPullDelay = dto.MultiPullDelay
+                MultiPullDelay = dto.MultiPullDelay,
+                ChatNotifyEnabled = dto.ChatNotifyEnabled,
+                BonusExpireOnStreamEnd = dto.BonusExpireOnStreamEnd
             };
             var saved = await _gachaService.SaveIntegrationConfigAsync(config);
             return Ok(new { success = true, config = saved });
@@ -873,6 +919,9 @@ namespace Decatron.Controllers
         public string Rarity { get; set; } = "common";
         public string? Image { get; set; }
         public bool Available { get; set; } = true;
+        public string EffectType { get; set; } = "none";
+        public int EffectValue { get; set; } = 0;
+        public bool Consumable { get; set; } = false;
     }
 
     public class GachaRestrictionDto
@@ -955,6 +1004,19 @@ namespace Decatron.Controllers
         public bool MultiPullEnabled { get; set; } = true;
         public int MultiPullMax { get; set; } = 10;
         public int MultiPullDelay { get; set; } = 10;
+        public bool ChatNotifyEnabled { get; set; } = true;
+        public bool BonusExpireOnStreamEnd { get; set; } = false;
+    }
+
+    public class GachaForcedItemDto
+    {
+        public int? ItemId { get; set; }
+    }
+
+    public class GachaBonusPullsDto
+    {
+        public string ParticipantName { get; set; } = "";
+        public int Pulls { get; set; }
     }
 
     public class GachaDonationDto

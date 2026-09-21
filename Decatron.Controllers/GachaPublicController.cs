@@ -52,6 +52,25 @@ namespace Decatron.Controllers
         /// <summary>
         /// Public collection data for a viewer on a channel
         /// </summary>
+        /// <summary>Ranking público del canal (coleccionistas, cazadores, más tiros).</summary>
+        [HttpGet("ranking")]
+        public async Task<IActionResult> GetRanking([FromQuery] string channel, [FromServices] Decatron.Services.IGachaService gachaService)
+        {
+            if (string.IsNullOrWhiteSpace(channel))
+                return BadRequest(new { success = false, message = "channel is required" });
+
+            var channelName = channel.ToLower().Trim();
+            var channelUserId = await ChannelResolver.ResolveUserIdAsync(_context, channel);
+
+            var banner = await _context.GachaBanners
+                .Where(b => (channelUserId != null ? b.UserId == channelUserId : b.ChannelName == channelName) && b.IsActive)
+                .Select(b => b.BannerUrl)
+                .FirstOrDefaultAsync();
+
+            var ranking = await gachaService.GetRankingAsync(channelName);
+            return Ok(new { success = true, channelName, banner, ranking });
+        }
+
         [HttpGet("collection")]
         public async Task<IActionResult> GetCollection([FromQuery] string channel, [FromQuery] string user)
         {
@@ -243,7 +262,7 @@ namespace Decatron.Controllers
                 channelName,
                 userName = participant.DisplayName ?? userName,
                 banner,
-                participant = new { participant.Name, participant.DisplayName, participant.DonationAmount, participant.Pulls, participant.EffectiveDonation, participant.CoinPullsAvailable, participant.CoinsSpentTotal },
+                participant = new { participant.Name, participant.DisplayName, participant.DonationAmount, participant.Pulls, participant.EffectiveDonation, participant.CoinPullsAvailable, participant.BonusPullsAvailable, participant.CoinsSpentTotal },
                 stats,
                 inventory = cards,
                 history,

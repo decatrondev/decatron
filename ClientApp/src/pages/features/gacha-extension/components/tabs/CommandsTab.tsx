@@ -17,6 +17,7 @@ const CMD_DESCRIPTIONS: Record<string, { label: string; desc: string; aliases: s
     pull: { label: 'Pull', desc: 'Tirar cartas', aliases: '!gcpull, !gacha pull' },
     pulls: { label: 'Pulls', desc: 'Ver tiros disponibles', aliases: '!gcpulls, !gacha pulls' },
     col: { label: 'Coleccion', desc: 'Ver coleccion', aliases: '!gccol, !gacha col' },
+    top: { label: 'Ranking', desc: 'Top 3 coleccionistas + link al ranking', aliases: '!gctop, !gacha top' },
     buy: { label: 'Comprar', desc: 'Comprar tiros con coins', aliases: '!gcbuy, !gacha buy' },
     price: { label: 'Precio', desc: 'Ver precio de tiros', aliases: '!gcprice, !gacha price' },
     donate: { label: 'Donar', desc: 'Registrar donacion (mod)', aliases: '!gacha donate' },
@@ -24,7 +25,7 @@ const CMD_DESCRIPTIONS: Record<string, { label: string; desc: string; aliases: s
     resume: { label: 'Reanudar', desc: 'Reanudar multi-pull', aliases: '!gcresume, !gacha resume' },
 };
 
-const COMMANDS = ['pull', 'pulls', 'col', 'buy', 'price', 'donate', 'pause', 'resume'];
+const COMMANDS = ['pull', 'pulls', 'col', 'top', 'buy', 'price', 'donate', 'pause', 'resume'];
 
 interface CmdConfig {
     id: number;

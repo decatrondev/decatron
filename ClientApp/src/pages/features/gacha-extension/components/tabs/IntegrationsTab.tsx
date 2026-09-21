@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link2, DollarSign, Coins, Save, Zap, Star, Gift, Diamond, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Link2, DollarSign, Coins, Save, Zap, Star, Gift, Diamond, HelpCircle, ChevronDown, ChevronUp, MessageSquare, Sparkles } from 'lucide-react';
 import api from '../../../../../services/api';
 
 interface IntegrationConfig {
@@ -17,6 +17,8 @@ interface IntegrationConfig {
     coinsEnabled: boolean;
     coinsPerPull: number;
     coinsDailyLimit: number;
+    chatNotifyEnabled: boolean;
+    bonusExpireOnStreamEnd: boolean;
 }
 
 const defaultConfig: IntegrationConfig = {
@@ -25,6 +27,7 @@ const defaultConfig: IntegrationConfig = {
     subsEnabled: false, pullsSubPrime: 1, pullsSubTier1: 2, pullsSubTier2: 3, pullsSubTier3: 5,
     giftSubsEnabled: false, pullsPerGift: 1,
     coinsEnabled: false, coinsPerPull: 500, coinsDailyLimit: 0,
+    chatNotifyEnabled: true, bonusExpireOnStreamEnd: false,
 };
 
 const inputClass = 'w-20 px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-center text-[#1e293b] dark:text-[#f8fafc]';
@@ -113,8 +116,15 @@ export const IntegrationsTab: React.FC = () => {
                             <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">6</span>
                             <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">DecaCoins</strong> — los viewers compran tiros con la moneda del bot</span>
                         </div>
+                        <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-[#64748b] dark:bg-[#94a3b8] text-white dark:text-[#1B1C1D] text-xs font-bold flex items-center justify-center flex-shrink-0">7</span>
+                            <span><strong className="text-[#1e293b] dark:text-[#f8fafc]">Tiros bonus</strong> — los que vienen de la Rueda de la Suerte o que regalas a mano. No cuentan como donacion</span>
+                        </div>
                         <div className="mt-2 p-3 rounded-lg bg-[#e2e8f0] dark:bg-[#374151] text-xs">
                             <strong className="text-[#1e293b] dark:text-[#f8fafc]">Tip:</strong> Puedes activar o desactivar cada integracion individualmente. Los tiros se dan automaticamente cuando ocurre el evento.
+                        </div>
+                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 text-xs text-amber-700 dark:text-amber-300">
+                            <strong>Renovaciones:</strong> Twitch solo avisa de una resub cuando el viewer la <strong>comparte en el chat</strong>. Las renovaciones automaticas que no se comparten no generan ningun evento, ni para este bot ni para ningun otro.
                         </div>
                     </div>
                 )}
@@ -176,6 +186,19 @@ export const IntegrationsTab: React.FC = () => {
                 <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl">
                     <Coins className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-700 dark:text-amber-300">Los viewers pueden comprar tiros con <strong>!gcbuy</strong> o desde su perfil</p>
+                </div>
+            </Section>
+
+            {/* Chat notify */}
+            <Section icon={<MessageSquare className="w-5 h-5 text-sky-500" />} title="Aviso en chat" desc="El bot avisa en el chat cuando un viewer gana tiros por sub, resub, bits o gift subs" enabled={config.chatNotifyEnabled} onToggle={v => setConfig({ ...config, chatNotifyEnabled: v })}>
+                <Example text="🎰 @viewer ganaste 1 tiro(s) del gacha por tu resub! Tienes 3 disponibles, usa !gcpull" />
+            </Section>
+
+            {/* Bonus pulls */}
+            <Section icon={<Sparkles className="w-5 h-5 text-amber-500" />} title="Tiros bonus vencen al terminar el stream" desc="Los tiros bonus (rueda, regalos) se pierden cuando el stream termina. Los de donacion y coins nunca vencen" enabled={config.bonusExpireOnStreamEnd} onToggle={v => setConfig({ ...config, bonusExpireOnStreamEnd: v })}>
+                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl">
+                    <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 dark:text-amber-300">Sirve para que los viewers usen sus bonus en vivo. El bot los gasta primero al tirar con <strong>!gcpull</strong>, antes que los de donacion o coins.</p>
                 </div>
             </Section>
 

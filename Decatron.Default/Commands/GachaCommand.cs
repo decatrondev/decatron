@@ -78,6 +78,7 @@ namespace Decatron.Default.Commands
                     "pull" or "tirar" or "p" => "pull",
                     "pulls" or "tiros" or "ps" => "pulls",
                     "col" or "collection" or "coleccion" or "c" => "col",
+                    "top" or "ranking" or "rank" => "top",
                     "pause" or "pausa" => "pause",
                     "resume" or "reanudar" => "resume",
                     "buy" or "comprar" => "buy",
@@ -87,7 +88,7 @@ namespace Decatron.Default.Commands
                 };
 
                 // Resolve custom aliases if not a built-in command
-                if (string.IsNullOrEmpty(canonicalCommand) || !new[] { "pull", "pulls", "col", "pause", "resume", "buy", "price", "donate" }.Contains(canonicalCommand))
+                if (string.IsNullOrEmpty(canonicalCommand) || !new[] { "pull", "pulls", "col", "top", "pause", "resume", "buy", "price", "donate" }.Contains(canonicalCommand))
                 {
                     if (!string.IsNullOrEmpty(subcommand))
                     {
@@ -152,6 +153,10 @@ namespace Decatron.Default.Commands
                         await HandleCollection(username, channel, args, lang, messageSender);
                         break;
 
+                    case "top":
+                        await HandleTop(channel, lang, messageSender);
+                        break;
+
                     case "pause":
                         await HandlePause(username, channel, lang, messageSender);
                         break;
@@ -204,6 +209,7 @@ namespace Decatron.Default.Commands
                     ["pull"] = ("!gcpull [n] — Tirar", "!gcpull [n] — Pull", "!gcpull [n] — Puxar"),
                     ["pulls"] = ("!gcpulls — Disponibles", "!gcpulls — Available", "!gcpulls — Disponiveis"),
                     ["col"] = ("!gccol — Coleccion", "!gccol — Collection", "!gccol — Colecao"),
+                    ["top"] = ("!gctop — Ranking", "!gctop — Ranking", "!gctop — Ranking"),
                     ["buy"] = ("!gcbuy [n] — Comprar con coins", "!gcbuy [n] — Buy with coins", "!gcbuy [n] — Comprar com coins"),
                     ["price"] = ("!gcprice — Precio", "!gcprice — Price", "!gcprice — Preco"),
                     ["donate"] = ("!gacha donate <user> <$> — Donacion (mod)", "!gacha donate <user> <$> — Donation (mod)", "!gacha donate <user> <$> — Doacao (mod)"),
@@ -267,7 +273,7 @@ namespace Decatron.Default.Commands
             string? requestedType = null;
             foreach (var arg in args)
             {
-                if (arg == "coins" || arg == "donation")
+                if (arg == "coins" || arg == "donation" || arg == "bonus")
                     requestedType = arg;
                 else if (int.TryParse(arg, out var q))
                     quantity = Math.Clamp(q, 1, maxPulls);
@@ -281,14 +287,21 @@ namespace Decatron.Default.Commands
             var participant = await gachaService.GetParticipantByNameAsync(channelName, username);
             var donationAvailable = participant != null ? (int)participant.EffectiveDonation : 0;
             var coinAvailable = participant != null ? participant.CoinPullsAvailable : 0;
+            var bonusAvailable = participant != null ? participant.BonusPullsAvailable : 0;
 
-            // Determine pull type: explicit > auto-detect (prioritize donation)
+            // Determine pull type: explicit > auto-detect. Los bonus van primero
+            // porque pueden vencer al terminar el stream; los pagados no.
             string pullType;
             int available;
             if (requestedType != null)
             {
                 pullType = requestedType;
-                available = pullType == "coins" ? coinAvailable : donationAvailable;
+                available = pullType switch { "coins" => coinAvailable, "bonus" => bonusAvailable, _ => donationAvailable };
+            }
+            else if (bonusAvailable >= quantity)
+            {
+                pullType = "bonus";
+                available = bonusAvailable;
             }
             else if (donationAvailable >= quantity)
             {
@@ -302,24 +315,24 @@ namespace Decatron.Default.Commands
             }
             else
             {
-                available = donationAvailable + coinAvailable;
+                available = donationAvailable + coinAvailable + bonusAvailable;
                 pullType = "donation"; // fallback
             }
 
             if (available < quantity)
             {
-                var totalAvailable = donationAvailable + coinAvailable;
+                var totalAvailable = donationAvailable + coinAvailable + bonusAvailable;
                 var msg = lang switch
                 {
                     "en" => totalAvailable == 0
                         ? $"@{username}, you have no pulls available. Donate or buy with coins!"
-                        : $"@{username}, you have {donationAvailable} donation + {coinAvailable} coin pull(s). Need {quantity}.",
+                        : $"@{username}, you have {donationAvailable} donation + {coinAvailable} coin + {bonusAvailable} bonus pull(s). Need {quantity}.",
                     "pt" => totalAvailable == 0
                         ? $"@{username}, voce nao tem puxadas. Doe ou compre com coins!"
-                        : $"@{username}, voce tem {donationAvailable} doacao + {coinAvailable} coin puxada(s). Precisa {quantity}.",
+                        : $"@{username}, voce tem {donationAvailable} doacao + {coinAvailable} coin + {bonusAvailable} bonus puxada(s). Precisa {quantity}.",
                     _ => totalAvailable == 0
                         ? $"@{username}, no tienes tiros disponibles. Dona o compra con coins!"
-                        : $"@{username}, tienes {donationAvailable} donacion + {coinAvailable} coin tiro(s). Necesitas {quantity}."
+                        : $"@{username}, tienes {donationAvailable} donacion + {coinAvailable} coin + {bonusAvailable} bonus tiro(s). Necesitas {quantity}."
                 };
                 await messageSender.SendMessageAsync(channel, msg);
                 return;
@@ -367,7 +380,10 @@ namespace Decatron.Default.Commands
             }
         }
 
-        private async Task<string?> ExecuteSinglePull(IGachaService gachaService, string channelName, GachaParticipant participant, string username, string channel, string lang, IMessageSender messageSender, string pullType = "donation")
+        /// <summary>Tope de tiros encadenados por "tirar de nuevo" en una sola ejecución.</summary>
+        private const int MaxChainedPulls = 5;
+
+        private async Task<string?> ExecuteSinglePull(IGachaService gachaService, string channelName, GachaParticipant participant, string username, string channel, string lang, IMessageSender messageSender, string pullType = "donation", int chainDepth = 0)
         {
             try
             {
@@ -392,21 +408,61 @@ namespace Decatron.Default.Commands
                 };
                 await Task.Delay(overlayDelay);
 
+                var effectText = DescribeEffect(result, lang);
                 var msg = lang switch
                 {
-                    "en" => $"@{username} pulled {stars} {result.Item.Name} ({rc})! Pulls left: {result.PullsRemaining}",
-                    "pt" => $"@{username} puxou {stars} {result.Item.Name} ({rc})! Puxadas restantes: {result.PullsRemaining}",
-                    _ => $"@{username} obtuvo {stars} {result.Item.Name} ({rc})! Tiros restantes: {result.PullsRemaining}"
+                    "en" => $"@{username} pulled {stars} {result.Item.Name} ({rc})!{effectText} Pulls left: {result.PullsRemaining}",
+                    "pt" => $"@{username} puxou {stars} {result.Item.Name} ({rc})!{effectText} Puxadas restantes: {result.PullsRemaining}",
+                    _ => $"@{username} obtuvo {stars} {result.Item.Name} ({rc})!{effectText} Tiros restantes: {result.PullsRemaining}"
                 };
                 await messageSender.SendMessageAsync(channel, msg);
 
-                // TODO: Emit SignalR event for overlay animation
+                // "Tirar de nuevo": el efecto dejó 1 tiro bonus, se gasta al instante.
+                if (result.EffectType == GachaItemEffects.RollAgain && result.EffectApplied && chainDepth < MaxChainedPulls)
+                {
+                    await Task.Delay(1500);
+                    await ExecuteSinglePull(gachaService, channelName, participant, username, channel, lang, messageSender, "bonus", chainDepth + 1);
+                }
+
                 return $"{stars} {result.Item.Name}";
             }
             catch (InvalidOperationException ex)
             {
                 await messageSender.SendMessageAsync(channel, $"@{username}, {ex.Message}");
                 return null;
+            }
+        }
+
+        private static string DescribeEffect(GachaPullResult result, string lang)
+        {
+            switch (result.EffectType)
+            {
+                case GachaItemEffects.RollAgain:
+                    return lang switch { "en" => " 🔁 Roll again!", "pt" => " 🔁 Puxa de novo!", _ => " 🔁 ¡Tiro extra!" };
+
+                case GachaItemEffects.ExtraPulls:
+                    return lang switch
+                    {
+                        "en" => $" 🎁 +{result.EffectValue} bonus pull(s)!",
+                        "pt" => $" 🎁 +{result.EffectValue} puxada(s) bonus!",
+                        _ => $" 🎁 +{result.EffectValue} tiro(s) bonus!"
+                    };
+
+                case GachaItemEffects.TimerTime:
+                {
+                    var abs = Math.Abs(result.EffectValue);
+                    var t = abs >= 86400 && abs % 86400 == 0 ? $"{abs / 86400}d"
+                          : abs >= 3600 && abs % 3600 == 0 ? $"{abs / 3600}h"
+                          : abs >= 60 && abs % 60 == 0 ? $"{abs / 60}m"
+                          : $"{abs}s";
+                    var sign = result.EffectValue < 0 ? "-" : "+";
+                    if (!result.EffectApplied)
+                        return lang switch { "en" => $" ⏱️ {sign}{t} (timer not active)", "pt" => $" ⏱️ {sign}{t} (timer inativo)", _ => $" ⏱️ {sign}{t} (timer inactivo)" };
+                    return lang switch { "en" => $" ⏱️ {sign}{t} to the timer!", "pt" => $" ⏱️ {sign}{t} no timer!", _ => $" ⏱️ {sign}{t} al timer!" };
+                }
+
+                default:
+                    return "";
             }
         }
 
@@ -440,9 +496,12 @@ namespace Decatron.Default.Commands
                     var participant = await gachaService.GetParticipantByNameAsync(channelName, username);
 
                     var currentPullType = state.PullType;
-                    var pullsLeft = currentPullType == "coins"
-                        ? participant?.CoinPullsAvailable ?? 0
-                        : (int)(participant?.EffectiveDonation ?? 0);
+                    var pullsLeft = currentPullType switch
+                    {
+                        "coins" => participant?.CoinPullsAvailable ?? 0,
+                        "bonus" => participant?.BonusPullsAvailable ?? 0,
+                        _ => (int)(participant?.EffectiveDonation ?? 0)
+                    };
 
                     if (participant == null || pullsLeft < 1)
                     {
@@ -499,15 +558,52 @@ namespace Decatron.Default.Commands
             var participant = await gachaService.GetParticipantByNameAsync(channel.ToLower(), targetUser);
             var donationPulls = participant != null ? (int)participant.EffectiveDonation : 0;
             var coinPulls = participant?.CoinPullsAvailable ?? 0;
+            var bonusPulls = participant?.BonusPullsAvailable ?? 0;
             var total = participant?.DonationAmount ?? 0;
             var used = participant?.Pulls ?? 0;
             var coinsSpent = participant?.CoinsSpentTotal ?? 0;
 
             var msg = lang switch
             {
-                "en" => $"@{targetUser} — Donation: {donationPulls} | Coins: {coinPulls} | Donated: ${total:F2} | Coins spent: {coinsSpent} | Used: {used}",
-                "pt" => $"@{targetUser} — Doacao: {donationPulls} | Coins: {coinPulls} | Doado: ${total:F2} | Coins gastos: {coinsSpent} | Usadas: {used}",
-                _ => $"@{targetUser} — Donacion: {donationPulls} | Coins: {coinPulls} | Donado: ${total:F2} | Coins gastados: {coinsSpent} | Usados: {used}"
+                "en" => $"@{targetUser} — Donation: {donationPulls} | Coins: {coinPulls} | Bonus: {bonusPulls} | Donated: ${total:F2} | Coins spent: {coinsSpent} | Used: {used}",
+                "pt" => $"@{targetUser} — Doacao: {donationPulls} | Coins: {coinPulls} | Bonus: {bonusPulls} | Doado: ${total:F2} | Coins gastos: {coinsSpent} | Usadas: {used}",
+                _ => $"@{targetUser} — Donacion: {donationPulls} | Coins: {coinPulls} | Bonus: {bonusPulls} | Donado: ${total:F2} | Coins gastados: {coinsSpent} | Usados: {used}"
+            };
+            await messageSender.SendMessageAsync(channel, msg);
+        }
+
+        // ========================================================================
+        // TOP / RANKING
+        // ========================================================================
+
+        private async Task HandleTop(string channel, string lang, IMessageSender messageSender)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var gachaService = scope.ServiceProvider.GetRequiredService<IGachaService>();
+
+            var channelName = channel.ToLower();
+            var ranking = await gachaService.GetRankingAsync(channelName, 3);
+            var url = $"https://decatron.net/gacha/ranking?channel={channelName}";
+
+            if (ranking.Collectors.Count == 0)
+            {
+                var empty = lang switch
+                {
+                    "en" => "Nobody has cards yet. Be the first with !gcpull",
+                    "pt" => "Ninguem tem cartas ainda. Seja o primeiro com !gcpull",
+                    _ => "Nadie tiene cartas todavia. Se el primero con !gcpull"
+                };
+                await messageSender.SendMessageAsync(channel, empty);
+                return;
+            }
+
+            var medals = new[] { "🥇", "🥈", "🥉" };
+            var top = string.Join(" | ", ranking.Collectors.Select((e, i) => $"{medals[i]} {e.Name} {e.Value}/{ranking.TotalAvailable}"));
+            var msg = lang switch
+            {
+                "en" => $"🏆 Top collectors: {top} — Full ranking: {url}",
+                "pt" => $"🏆 Top colecionadores: {top} — Ranking completo: {url}",
+                _ => $"🏆 Top coleccionistas: {top} — Ranking completo: {url}"
             };
             await messageSender.SendMessageAsync(channel, msg);
         }

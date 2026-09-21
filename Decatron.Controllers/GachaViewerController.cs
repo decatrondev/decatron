@@ -161,6 +161,7 @@ namespace Decatron.Controllers
                     pullsUsed = p.Pulls,
                     pullsAvailable = (int)p.EffectiveDonation,
                     coinPullsAvailable = p.CoinPullsAvailable,
+                    bonusPullsAvailable = p.BonusPullsAvailable,
                     totalDonated = p.DonationAmount,
                     coinsSpentTotal = p.CoinsSpentTotal,
                     isPrivate

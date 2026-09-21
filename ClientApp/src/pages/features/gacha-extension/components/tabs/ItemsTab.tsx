@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Package, X, ImagePlus, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, X, ImagePlus, HelpCircle, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import api from '../../../../../services/api';
-import type { GachaItem, RarityType } from '../../types';
-import { RARITY_CONFIG, getRarityStars } from '../../types';
+import type { GachaItem, RarityType, GachaItemEffectType } from '../../types';
+import { RARITY_CONFIG, getRarityStars, ITEM_EFFECTS, describeItemEffect } from '../../types';
 import MediaSelector from '../../../../../components/timer/MediaSelector';
 
 const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
@@ -16,9 +16,25 @@ interface ItemForm {
     rarity: RarityType;
     image: string;
     available: boolean;
+    effectType: GachaItemEffectType;
+    effectValue: number;
+    consumable: boolean;
 }
 
-const emptyForm: ItemForm = { name: '', rarity: 'common', image: '', available: true };
+const emptyForm: ItemForm = { name: '', rarity: 'common', image: '', available: true, effectType: 'none', effectValue: 0, consumable: false };
+
+type TimeUnit = 's' | 'm' | 'h' | 'd';
+const UNIT_SECONDS: Record<TimeUnit, number> = { s: 1, m: 60, h: 3600, d: 86400 };
+const UNIT_LABEL: Record<TimeUnit, string> = { s: 'segundos', m: 'minutos', h: 'horas', d: 'dias' };
+
+/** Elige la unidad mas grande que divide exacto, para mostrar 600s como 10m. */
+function unitFor(seconds: number): TimeUnit {
+    const abs = Math.abs(seconds);
+    if (abs >= 86400 && abs % 86400 === 0) return 'd';
+    if (abs >= 3600 && abs % 3600 === 0) return 'h';
+    if (abs >= 60 && abs % 60 === 0) return 'm';
+    return 's';
+}
 
 export const ItemsTab: React.FC = () => {
     const [items, setItems] = useState<GachaItem[]>([]);
@@ -29,6 +45,7 @@ export const ItemsTab: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+    const [timeUnit, setTimeUnit] = useState<TimeUnit>('m');
 
     const loadItems = async () => {
         try {
@@ -51,7 +68,11 @@ export const ItemsTab: React.FC = () => {
 
     const openEdit = (item: GachaItem) => {
         setEditingId(item.id);
-        setForm({ name: item.name, rarity: item.rarity, image: item.image || '', available: item.available });
+        setForm({
+            name: item.name, rarity: item.rarity, image: item.image || '', available: item.available,
+            effectType: item.effectType ?? 'none', effectValue: item.effectValue ?? 0, consumable: item.consumable ?? false,
+        });
+        setTimeUnit(item.effectType === 'timer_time' ? unitFor(item.effectValue ?? 0) : 'm');
         setShowModal(true);
     };
 
@@ -157,6 +178,12 @@ export const ItemsTab: React.FC = () => {
                                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg text-[10px] font-bold" style={{ backgroundColor: rc.color, color: '#fff' }}>
                                         {getRarityStars(item.rarity)}
                                     </div>
+                                    {/* Effect badge */}
+                                    {describeItemEffect(item) && (
+                                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500 text-white" title={item.consumable ? 'Consumible: no queda en la coleccion' : undefined}>
+                                            {describeItemEffect(item)}{item.consumable ? ' ·1x' : ''}
+                                        </div>
+                                    )}
                                     {/* Available badge */}
                                     {!item.available && (
                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -247,6 +274,71 @@ export const ItemsTab: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+                            {/* Effect */}
+                            <div className="p-3 rounded-xl border border-amber-200 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-900/10 space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-amber-500" />
+                                    <label className={labelClass}>Efecto al salir</label>
+                                </div>
+                                <select
+                                    className={`${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`}
+                                    value={form.effectType}
+                                    onChange={e => {
+                                        const effectType = e.target.value as GachaItemEffectType;
+                                        // Los que tienen efecto son consumibles por defecto; el streamer puede cambiarlo.
+                                        setForm({ ...form, effectType, effectValue: effectType === 'extra_pulls' ? Math.max(1, form.effectValue) : effectType === 'timer_time' ? form.effectValue : 0, consumable: effectType !== 'none' });
+                                    }}
+                                >
+                                    {ITEM_EFFECTS.map(ef => <option key={ef.id} value={ef.id}>{ef.label}</option>)}
+                                </select>
+                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{ITEM_EFFECTS.find(ef => ef.id === form.effectType)?.desc}</p>
+
+                                {form.effectType === 'extra_pulls' && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-[#64748b]">Cantidad</span>
+                                        <input type="number" min={1} className={`${inputClass} w-24`} value={form.effectValue} onChange={e => setForm({ ...form, effectValue: Math.max(1, parseInt(e.target.value) || 1) })} />
+                                        <span className="text-sm text-[#64748b]">tiros bonus</span>
+                                    </div>
+                                )}
+
+                                {form.effectType === 'timer_time' && (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <input
+                                            type="number"
+                                            className={`${inputClass} w-24`}
+                                            value={form.effectValue / UNIT_SECONDS[timeUnit]}
+                                            onChange={e => setForm({ ...form, effectValue: Math.round((parseFloat(e.target.value) || 0) * UNIT_SECONDS[timeUnit]) })}
+                                        />
+                                        <select
+                                            className={`${inputClass} w-32 [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`}
+                                            value={timeUnit}
+                                            onChange={e => {
+                                                // Cambiar de unidad conserva el numero visible, no los segundos
+                                                const next = e.target.value as TimeUnit;
+                                                const visible = form.effectValue / UNIT_SECONDS[timeUnit];
+                                                setTimeUnit(next);
+                                                setForm({ ...form, effectValue: Math.round(visible * UNIT_SECONDS[next]) });
+                                            }}
+                                        >
+                                            {(Object.keys(UNIT_LABEL) as TimeUnit[]).map(u => <option key={u} value={u}>{UNIT_LABEL[u]}</option>)}
+                                        </select>
+                                        <span className="text-xs text-[#64748b] w-full">Negativo = resta tiempo (item "maldito"). Solo aplica si el timer esta corriendo o en pausa.</span>
+                                    </div>
+                                )}
+
+                                {form.effectType !== 'none' && (
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => setForm({ ...form, consumable: !form.consumable })} className={`w-12 h-6 rounded-full transition-colors ${form.consumable ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                                            <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${form.consumable ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                        </button>
+                                        <div>
+                                            <span className={labelClass}>Consumible</span>
+                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Se usa al salir y no queda en la coleccion</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="flex items-center gap-3">
                                 <label className={labelClass}>Disponible</label>
                                 <button onClick={() => setForm({ ...form, available: !form.available })} className={`w-12 h-6 rounded-full transition-colors ${form.available ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}>

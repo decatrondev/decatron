@@ -123,6 +123,12 @@ export default function GachaCollection() {
         <div className="min-h-screen bg-[#1B1C1D] text-white font-sans">
             {/* Top bar with login / profile link */}
             <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+                <Link
+                    to={`/gacha/ranking?channel=${encodeURIComponent(channel)}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#262626] border border-[#374151] text-amber-300 hover:text-amber-200 text-xs font-bold rounded-lg transition"
+                >
+                    <Trophy className="w-3.5 h-3.5" /> Ranking del canal
+                </Link>
                 {isLoggedIn && (
                     <Link
                         to="/me/gacha"

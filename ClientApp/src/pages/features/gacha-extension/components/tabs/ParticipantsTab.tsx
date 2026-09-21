@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, ChevronDown, ChevronUp, Package, History, DollarSign, Gift, Filter, X, Heart, Pencil, Eye, EyeOff, Coins, HelpCircle } from 'lucide-react';
+import { Users, Search, ChevronDown, ChevronUp, Package, History, DollarSign, Gift, Filter, X, Heart, Pencil, Eye, EyeOff, Coins, HelpCircle, Target } from 'lucide-react';
 import api from '../../../../../services/api';
-import type { GachaParticipant, GachaInventory, GachaPullLog, GachaCollectionStats, RarityType } from '../../types';
+import type { GachaParticipant, GachaInventory, GachaPullLog, GachaCollectionStats, RarityType, GachaItem } from '../../types';
 import { RARITY_CONFIG, RARITY_ORDER, getRarityStars } from '../../types';
 
 interface WishedItem {
@@ -15,6 +15,8 @@ interface WishedItem {
 
 export const ParticipantsTab: React.FC = () => {
     const [participants, setParticipants] = useState<GachaParticipant[]>([]);
+    const [allItems, setAllItems] = useState<GachaItem[]>([]);
+    const [forcedSaving, setForcedSaving] = useState(false);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -25,11 +27,33 @@ export const ParticipantsTab: React.FC = () => {
     const [donationName, setDonationName] = useState('');
     const [donationAmount, setDonationAmount] = useState('');
     const [donationMsg, setDonationMsg] = useState('');
+    const [bonusName, setBonusName] = useState('');
+    const [bonusPulls, setBonusPulls] = useState('');
+    const [bonusMsg, setBonusMsg] = useState('');
     const [invFilter, setInvFilter] = useState<RarityType | 'all' | 'redeemed'>('all');
     const [invSearch, setInvSearch] = useState('');
     const [showHelp, setShowHelp] = useState(false);
     const [mostWished, setMostWished] = useState<WishedItem[]>([]);
     const [milestones, setMilestones] = useState<{ itemName: string; rarity: string; donationThreshold?: number; coinsThreshold?: number; guarantee: boolean; probability?: number }[]>([]);
+
+    const loadItems = async () => {
+        try {
+            const { data } = await api.get('/gacha/items');
+            setAllItems(data.items || []);
+        } catch { /* sin items */ }
+    };
+
+    const setForcedItem = async (participantId: number, itemId: number | null) => {
+        setForcedSaving(true);
+        try {
+            await api.put(`/gacha/participants/${participantId}/forced-item`, { itemId });
+            setParticipants(prev => prev.map(x => x.id === participantId ? { ...x, forcedItemId: itemId } : x));
+        } catch (err) {
+            console.error('Error al forzar item:', err);
+        } finally {
+            setForcedSaving(false);
+        }
+    };
 
     const loadParticipants = async () => {
         setLoading(true);
@@ -43,7 +67,7 @@ export const ParticipantsTab: React.FC = () => {
         }
     };
 
-    useEffect(() => { loadParticipants(); loadMostWished(); }, []);
+    useEffect(() => { loadParticipants(); loadMostWished(); loadItems(); }, []);
 
     const loadMostWished = async () => {
         try {
@@ -122,6 +146,21 @@ export const ParticipantsTab: React.FC = () => {
         }
     };
 
+    const handleBonus = async () => {
+        const pulls = parseInt(bonusPulls);
+        if (!bonusName.trim() || !pulls || pulls <= 0) return;
+        try {
+            await api.post('/gacha/bonus-pulls', { participantName: bonusName.trim(), pulls });
+            setBonusMsg(`${pulls} tiro(s) bonus regalados a ${bonusName.trim().toLowerCase()}`);
+            setBonusName('');
+            setBonusPulls('');
+            loadParticipants();
+            setTimeout(() => setBonusMsg(''), 3000);
+        } catch (err: any) {
+            setBonusMsg(err.response?.data?.message || 'Error al regalar tiros bonus');
+        }
+    };
+
     const filtered = participants.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
     const filteredInventory = inventory.filter(inv => {
@@ -194,6 +233,33 @@ export const ParticipantsTab: React.FC = () => {
                 {donationMsg && <p className={`text-sm font-bold ${donationMsg.includes('Error') ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>{donationMsg}</p>}
             </div>
 
+            {/* Bonus Pulls Form */}
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-4">
+                <div className="flex items-center gap-3 pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl">
+                        <Gift className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Regalar Tiros Bonus</h2>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">No cuentan como donacion ni avanzan hitos. Ideal para compensar o premiar</p>
+                    </div>
+                </div>
+                <div className="flex gap-3 items-end flex-wrap">
+                    <div className="flex-1 min-w-[180px]">
+                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Nombre del participante</label>
+                        <input type="text" value={bonusName} onChange={e => setBonusName(e.target.value)} placeholder="usuario de twitch" className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                    </div>
+                    <div className="w-32">
+                        <label className="block text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">Tiros</label>
+                        <input type="number" min={1} step={1} value={bonusPulls} onChange={e => setBonusPulls(e.target.value)} placeholder="1" className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-[#1e293b] dark:text-[#f8fafc]" />
+                    </div>
+                    <button onClick={handleBonus} disabled={!bonusName.trim() || !(parseInt(bonusPulls) > 0)} className="px-6 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 text-white rounded-xl font-bold transition-all">
+                        Regalar
+                    </button>
+                </div>
+                {bonusMsg && <p className={`text-sm font-bold ${bonusMsg.includes('Error') ? 'text-red-500' : 'text-amber-600 dark:text-amber-400'}`}>{bonusMsg}</p>}
+            </div>
+
             {/* Most Wished Cards */}
             {mostWished.length > 0 && (
                 <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg space-y-4">
@@ -264,13 +330,13 @@ export const ParticipantsTab: React.FC = () => {
                 ) : (
                     <div className="space-y-2">
                         {/* Header */}
-                        <div className="grid grid-cols-7 gap-3 px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">
-                            <span>Nombre</span><span>Donado</span><span>Usados</span><span>Donacion</span><span>Coins</span><span>Coins $</span><span></span>
+                        <div className="grid grid-cols-8 gap-3 px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">
+                            <span>Nombre</span><span>Donado</span><span>Usados</span><span>Donacion</span><span>Coins</span><span>Bonus</span><span>Coins $</span><span></span>
                         </div>
                         {filtered.map(p => (
                             <div key={p.id}>
                                 <div
-                                    className={`grid grid-cols-7 gap-3 items-center px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                                    className={`grid grid-cols-8 gap-3 items-center px-4 py-3 rounded-xl border cursor-pointer transition-all ${
                                         expandedId === p.id
                                             ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
                                             : 'bg-[#f8fafc] dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-300 dark:hover:border-blue-700'
@@ -285,6 +351,7 @@ export const ParticipantsTab: React.FC = () => {
                                     <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">{p.pulls}</span>
                                     <span className="text-sm font-bold text-blue-600">{Math.floor(p.effectiveDonation)}</span>
                                     <span className="text-sm font-bold text-purple-600">{p.coinPullsAvailable}</span>
+                                    <span className="text-sm font-bold text-amber-600">{p.bonusPullsAvailable ?? 0}</span>
                                     <span className="text-xs text-[#94a3b8]">{p.coinsSpentTotal}</span>
                                     <span className="text-right">{expandedId === p.id ? <ChevronUp className="w-4 h-4 text-[#64748b] inline" /> : <ChevronDown className="w-4 h-4 text-[#64748b] inline" />}</span>
                                 </div>
@@ -342,6 +409,30 @@ export const ParticipantsTab: React.FC = () => {
                                                             <Eye className="w-3 h-3" /> Restaurar Nombre
                                                         </button>
                                                     )}
+                                                    {/* Forzar próximo tiro */}
+                                                    <div className="w-full mt-2 p-3 rounded-xl border border-amber-200 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-900/10 flex flex-wrap items-center gap-3" onClick={e => e.stopPropagation()}>
+                                                        <div className="flex items-center gap-2 min-w-[160px]">
+                                                            <Target className="w-4 h-4 text-amber-500" />
+                                                            <div>
+                                                                <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Forzar proximo tiro</span>
+                                                                <p className="text-[11px] text-[#64748b] dark:text-[#94a3b8]">Sale esa carta si o si en su siguiente tiro, un solo uso</p>
+                                                            </div>
+                                                        </div>
+                                                        <select
+                                                            disabled={forcedSaving}
+                                                            value={p.forcedItemId ?? ''}
+                                                            onChange={e => setForcedItem(p.id, e.target.value ? parseInt(e.target.value) : null)}
+                                                            className="flex-1 min-w-[200px] px-3 py-2 bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                                                        >
+                                                            <option value="">— Sin forzar (aleatorio) —</option>
+                                                            {allItems.filter(i => i.available).map(i => (
+                                                                <option key={i.id} value={i.id}>{getRarityStars(i.rarity)} {i.name}</option>
+                                                            ))}
+                                                        </select>
+                                                        {p.forcedItemId && (
+                                                            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-500 text-white">ARMADO</span>
+                                                        )}
+                                                    </div>
                                                     {milestones.length > 0 && (
                                                         <div className="flex flex-col gap-1.5 ml-auto text-xs w-full mt-2">
                                                             {milestones.map((m, idx) => {

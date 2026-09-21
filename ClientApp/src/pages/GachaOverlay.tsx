@@ -9,7 +9,24 @@ interface GachaPullEvent {
     image?: string;
     participantName: string;
     pullsRemaining: number;
+    effectType?: 'none' | 'roll_again' | 'extra_pulls' | 'timer_time';
+    effectValue?: number;
+    effectApplied?: boolean;
     timestamp: string;
+}
+
+function effectLabel(ev: GachaPullEvent): string | null {
+    switch (ev.effectType) {
+        case 'roll_again': return '🔁 ¡TIRO EXTRA!';
+        case 'extra_pulls': return `🎁 +${ev.effectValue ?? 0} TIROS`;
+        case 'timer_time': {
+            const v = ev.effectValue ?? 0;
+            const abs = Math.abs(v);
+            const t = abs >= 3600 && abs % 3600 === 0 ? `${abs / 3600}h` : abs >= 60 && abs % 60 === 0 ? `${abs / 60}m` : `${abs}s`;
+            return ev.effectApplied === false ? `⏱️ ${v < 0 ? '-' : '+'}${t} (timer inactivo)` : `⏱️ ${v < 0 ? '-' : '+'}${t} AL TIMER`;
+        }
+        default: return null;
+    }
 }
 
 interface SoundEventConfig {
@@ -411,12 +428,34 @@ export default function GachaOverlay() {
                         <div style={{ color: '#94a3b8', fontSize: 'clamp(8px, 2.5vw, 12px)', marginTop: 'min(0.8vw, 4px)' }}>
                             {currentEvent.participantName}
                         </div>
+
+                        {/* Effect */}
+                        {effectLabel(currentEvent) && (
+                            <div style={{
+                                marginTop: 'min(1.6vw, 8px)',
+                                padding: 'min(1vw, 5px) min(3.3vw, 16px)',
+                                borderRadius: 'min(4vw, 20px)',
+                                background: 'linear-gradient(90deg, #f59e0b, #f97316)',
+                                color: '#fff',
+                                fontSize: 'clamp(9px, 2.8vw, 14px)', fontWeight: 900,
+                                letterSpacing: 1,
+                                boxShadow: '0 0 18px rgba(245, 158, 11, 0.6)',
+                                animation: 'effectPop 0.5s ease-out',
+                            }}>
+                                {effectLabel(currentEvent)}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* CSS Animations */}
             <style>{`
+                @keyframes effectPop {
+                    0% { transform: scale(0.4); opacity: 0; }
+                    70% { transform: scale(1.15); opacity: 1; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
                 @keyframes flashPulse {
                     0%, 100% { opacity: 0.3; }
                     50% { opacity: 0.8; }

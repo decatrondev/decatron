@@ -33,6 +33,7 @@ interface Collection {
     pullsUsed: number;
     pullsAvailable: number;
     coinPullsAvailable: number;
+    bonusPullsAvailable: number;
     totalDonated: number;
     coinsSpentTotal: number;
     isPrivate: boolean;
@@ -280,6 +281,7 @@ export default function MeGacha() {
                                                     <span><strong className="text-green-500">{col.pullsUsed}</strong> tiros</span>
                                                     <span>Donacion: <strong className="text-blue-500">{col.pullsAvailable}</strong></span>
                                                     <span>Coins: <strong className="text-purple-500">{col.coinPullsAvailable ?? 0}</strong></span>
+                                                    <span>Bonus: <strong className="text-amber-500">{col.bonusPullsAvailable ?? 0}</strong></span>
                                                     <span>{completion}% completado</span>
                                                 </div>
                                             </div>
