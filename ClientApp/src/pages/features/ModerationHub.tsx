@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
-import { ShieldBan, Settings, Link2 } from 'lucide-react';
+import { ShieldBan, Settings, Link2, Terminal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FilterSwitch, fetchModerationFilters, saveModerationFilter, type ModerationFilterState } from './moderation/filterSwitch';
 
 interface ModerationCard {
     key: string;
+    /** Clave del filtro en el backend; sin filtro, la tarjeta no lleva interruptor */
+    filter?: string;
     name: string;
     description: string;
     icon: React.ReactNode;
     route: string;
 }
 
-// Solo se muestran los filtros que el backend conoce
+// Los filtros solo se muestran si el backend los conoce
 const CARDS: ModerationCard[] = [
     {
         key: 'banned_words',
+        filter: 'banned_words',
         name: 'Palabras prohibidas',
         description: 'Palabras y frases que no se pueden usar en el chat, cada una con su severidad',
         icon: <ShieldBan className="w-6 h-6 shrink-0 text-[#2563eb]" />,
@@ -22,10 +25,18 @@ const CARDS: ModerationCard[] = [
     },
     {
         key: 'links',
+        filter: 'links',
         name: 'Links',
         description: 'Bloquea los links del chat, también los disfrazados, salvo los dominios que permitas o con !permit',
         icon: <Link2 className="w-6 h-6 shrink-0 text-[#2563eb]" />,
         route: '/features/moderation/links'
+    },
+    {
+        key: 'commands',
+        name: 'Comandos de mods',
+        description: '!permit, !strikes, !resetstrikes, !addword, !addlink y !nuke: quién puede usar cada uno',
+        icon: <Terminal className="w-6 h-6 shrink-0 text-[#2563eb]" />,
+        route: '/features/moderation/commands'
     }
 ];
 
@@ -52,7 +63,7 @@ export default function ModerationHub() {
         }
     };
 
-    const cards = CARDS.filter(card => !filters || filters.some(f => f.key === card.key));
+    const cards = CARDS.filter(card => !card.filter || !filters || filters.some(f => f.key === card.filter));
 
     return (
         <div className="space-y-6">
@@ -69,7 +80,7 @@ export default function ModerationHub() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
                 {cards.map((card) => {
-                    const state = filters?.find(f => f.key === card.key);
+                    const state = card.filter ? filters?.find(f => f.key === card.filter) : undefined;
                     return (
                         <div
                             key={card.key}
@@ -85,7 +96,7 @@ export default function ModerationHub() {
                                 {state && (
                                     <FilterSwitch
                                         on={state.enabled}
-                                        onChange={(next) => toggle(card.key, next)}
+                                        onChange={(next) => toggle(card.filter!, next)}
                                         label={`Activar ${card.name}`}
                                     />
                                 )}

@@ -88,7 +88,7 @@ namespace Decatron.Services
             // Registrar comando Watchtime
             RegisterWatchtimeCommand();
             RegisterRuletaCommand();
-            RegisterCommand(new Commands.PermitCommand(_loggerFactory.CreateLogger<Commands.PermitCommand>(), _serviceScopeFactory));
+            RegisterModerationCommands();
             RegisterGameOverlayCommands();
 
             // Registrar comando de link a vista pública de comandos
@@ -236,6 +236,18 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "Error registrando comandos de Game Overlays");
             }
+        }
+
+        private void RegisterModerationCommands()
+        {
+            RegisterCommand(new Commands.PermitCommand(_loggerFactory.CreateLogger<Commands.PermitCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.StrikesCommand(_loggerFactory.CreateLogger<Commands.StrikesCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.ResetStrikesCommand(_loggerFactory.CreateLogger<Commands.ResetStrikesCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.AddWordCommand(_loggerFactory.CreateLogger<Commands.AddWordCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.DelWordCommand(_loggerFactory.CreateLogger<Commands.DelWordCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.LinkDomainCommand(true, _loggerFactory.CreateLogger<Commands.LinkDomainCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.LinkDomainCommand(false, _loggerFactory.CreateLogger<Commands.LinkDomainCommand>(), _serviceScopeFactory));
+            RegisterCommand(new Commands.NukeCommand(_loggerFactory.CreateLogger<Commands.NukeCommand>(), _serviceScopeFactory));
         }
 
         private void RegisterRuletaCommand()
@@ -1071,6 +1083,10 @@ namespace Decatron.Services
                 // Kick todavía no tiene acciones de moderación (fase K del plan de moderación)
                 if (metadata != null && metadata.TryGetValue("platform", out var platform) && platform?.ToString() == "kick")
                     return false;
+
+                // Búfer para !nuke: solo quien puede ser sancionado
+                if (!isBroadcaster && !isLeadModerator && !isModerator)
+                    Decatron.Core.Services.Moderation.RecentChatBuffer.Add(channel, username, message);
 
                 using var scope = _serviceScopeFactory.CreateScope();
                 var moderationService = scope.ServiceProvider.GetRequiredService<Decatron.Core.Services.ModerationService>();

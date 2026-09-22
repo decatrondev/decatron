@@ -571,6 +571,61 @@ namespace Decatron.Controllers
         }
 
         /// <summary>
+        /// GET /api/moderation/commands - Interruptor, rol mínimo y parámetros de los comandos de moderación
+        /// </summary>
+        [HttpGet("commands")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> GetCommands()
+        {
+            try
+            {
+                var username = await GetChannelUsernameAsync(GetChannelOwnerId());
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var commands = await _moderationService.GetCommandConfigAsync(username);
+                return Ok(new { success = true, commands, limits = new { nukeMaxWindowSeconds = ModerationCommandsConfig.NukeMaxWindowSeconds } });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo comandos de moderación");
+                return StatusCode(500, new { success = false, message = "Error al obtener los comandos" });
+            }
+        }
+
+        /// <summary>
+        /// PUT /api/moderation/commands - Guarda la configuración de los comandos (lo inválido se corrige a los valores por defecto)
+        /// </summary>
+        [HttpPut("commands")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> UpdateCommands([FromBody] JsonElement body)
+        {
+            try
+            {
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var commands = ModerationCommandsConfig.Parse(body.GetRawText());
+                var json = ModerationCommandsConfig.Serialize(commands);
+
+                await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                    INSERT INTO moderation_command_configs (user_id, channel_name, settings, updated_at)
+                    VALUES ({channelOwnerId}, {username}, CAST({json} AS jsonb), NOW())
+                    ON CONFLICT (channel_name) DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()");
+                ModerationCache.Invalidate(username);
+
+                return Ok(new { success = true, commands });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando comandos de moderación");
+                return StatusCode(500, new { success = false, message = "Error al guardar los comandos" });
+            }
+        }
+
+        /// <summary>
         /// GET /api/moderation/stats - Obtiene estadísticas de moderación
         /// </summary>
         [HttpGet("stats")]
@@ -592,11 +647,12 @@ namespace Decatron.Controllers
                 var totalWords = await _dbContext.BannedWords
                     .CountAsync(w => w.ChannelName == username);
 
+                // Las acciones de comandos (quitar strikes, agregar palabras...) no son detecciones
                 var detectionsToday = await _dbContext.ModerationLogs
-                    .CountAsync(l => l.ChannelName == username && l.CreatedAt >= today);
+                    .CountAsync(l => l.ChannelName == username && l.CreatedAt >= today && l.Severity != "comando");
 
                 var usersSanctionedToday = await _dbContext.ModerationLogs
-                    .Where(l => l.ChannelName == username && l.CreatedAt >= today)
+                    .Where(l => l.ChannelName == username && l.CreatedAt >= today && l.Severity != "comando")
                     .Select(l => l.Username)
                     .Distinct()
                     .CountAsync();

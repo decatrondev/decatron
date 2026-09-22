@@ -29,6 +29,7 @@ import GoalsConfig from './pages/features/GoalsConfig';
 import EventAlertsConfig from './pages/features/EventAlertsConfig';
 import BannedWords from './pages/features/moderation/BannedWords';
 import LinksFilter from './pages/features/moderation/LinksFilter';
+import ModerationCommands from './pages/features/moderation/ModerationCommands';
 import SoundAlerts from './pages/features/SoundAlerts';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import LiveTranslationConfig from './pages/features/LiveTranslationConfig';
@@ -318,6 +319,7 @@ function App() {
                     {/* Chat Moderation */}
                     <Route path="features/moderation/banned-words" element={<SafeRoute name="Banned Words"><BannedWords /></SafeRoute>} />
                     <Route path="features/moderation/links" element={<SafeRoute name="Links Filter"><LinksFilter /></SafeRoute>} />
+                    <Route path="features/moderation/commands" element={<SafeRoute name="Moderation Commands"><ModerationCommands /></SafeRoute>} />
 
                     {/* Overlays */}
                     <Route path="overlays" element={<SafeRoute name="Overlays"><Overlays /></SafeRoute>} />

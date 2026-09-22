@@ -273,11 +273,7 @@ namespace Decatron.Core.Services
         /// </summary>
         private static (bool immune, bool escalamiento, string reason) ResolveImmunity(ModerationConfig config, ModerationMessage message)
         {
-            List<string> whitelist;
-            try { whitelist = JsonSerializer.Deserialize<List<string>>(config.WhitelistUsers) ?? new(); }
-            catch { whitelist = new(); }
-
-            if (whitelist.Any(u => string.Equals(u, message.Username, StringComparison.OrdinalIgnoreCase)))
+            if (IsWhitelisted(config, message.Username))
                 return (true, false, "whitelist");
 
             if (message.IsVip)
@@ -346,8 +342,19 @@ namespace Decatron.Core.Services
             }
         }
 
-        private async Task LogModerationActionAsync(
-            long channelUserId, ModerationMessage message, FilterHit hit, string severity, string action, int strikeLevel)
+        private Task LogModerationActionAsync(
+            long channelUserId, ModerationMessage message, FilterHit hit, string severity, string action, int strikeLevel) =>
+            InsertLogAsync(message.Channel, channelUserId, message.Username, hit.Detail, severity, action, strikeLevel, message.Text, hit.FilterKey, null);
+
+        /// <summary>
+        /// Registra una acción hecha por un mod con un comando (nuke, quitar strikes...)
+        /// </summary>
+        public Task LogCommandActionAsync(string channel, long channelUserId, string targetUsername, string detail,
+            string severity, string action, string filterKey, string executedBy, string? fullMessage = null) =>
+            InsertLogAsync(channel, channelUserId, targetUsername, detail, severity, action, 0, fullMessage, filterKey, executedBy);
+
+        private async Task InsertLogAsync(string channel, long channelUserId, string username, string detail, string severity,
+            string action, int strikeLevel, string? fullMessage, string filterKey, string? executedBy)
         {
             try
             {
@@ -356,25 +363,110 @@ namespace Decatron.Core.Services
 
                 await using var cmd = new NpgsqlCommand(@"
                     INSERT INTO moderation_logs
-                    (channel_name, user_id, username, detected_word, severity, action_taken, strike_level, full_message, filter_key, created_at)
-                    VALUES (@channelName, @userId, @username, @detectedWord, @severity, @actionTaken, @strikeLevel, @fullMessage, @filterKey, @createdAt)", conn);
-                cmd.Parameters.AddWithValue("channelName", message.Channel.ToLower());
+                    (channel_name, user_id, username, detected_word, severity, action_taken, strike_level, full_message, filter_key, executed_by, created_at)
+                    VALUES (@channelName, @userId, @username, @detectedWord, @severity, @actionTaken, @strikeLevel, @fullMessage, @filterKey, @executedBy, @createdAt)", conn);
+                cmd.Parameters.AddWithValue("channelName", channel.ToLower());
                 cmd.Parameters.AddWithValue("userId", channelUserId);
-                cmd.Parameters.AddWithValue("username", message.Username.ToLower());
-                cmd.Parameters.AddWithValue("detectedWord", Truncate(hit.Detail, 500));
+                cmd.Parameters.AddWithValue("username", username.ToLower());
+                cmd.Parameters.AddWithValue("detectedWord", Truncate(detail, 500));
                 cmd.Parameters.AddWithValue("severity", severity);
-                cmd.Parameters.AddWithValue("actionTaken", action);
+                cmd.Parameters.AddWithValue("actionTaken", Truncate(action, 50));
                 cmd.Parameters.AddWithValue("strikeLevel", strikeLevel);
-                cmd.Parameters.AddWithValue("fullMessage", (object?)message.Text ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("filterKey", hit.FilterKey);
+                cmd.Parameters.AddWithValue("fullMessage", (object?)fullMessage ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("filterKey", filterKey);
+                cmd.Parameters.AddWithValue("executedBy", (object?)executedBy?.ToLower() ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("createdAt", DateTime.Now);
 
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error registrando log de moderación de {User} en {Channel}", message.Username, message.Channel);
+                _logger.LogError(ex, "Error registrando log de moderación de {User} en {Channel}", username, channel);
             }
+        }
+
+        /// <summary>
+        /// Strike vigente de un usuario (ya descontado lo que bajó con el tiempo) y cuándo baja el próximo.
+        /// </summary>
+        public async Task<(int level, DateTime? nextDecay)> GetStrikeStatusAsync(string channel, string username)
+        {
+            var config = await GetModerationConfigAsync(channel) ?? new ModerationConfig();
+            await using var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            await using var cmd = new NpgsqlCommand(@"
+                SELECT strike_level, last_infraction_at FROM user_strikes
+                WHERE channel_name = @channel AND username = @username
+                ORDER BY updated_at DESC LIMIT 1", conn);
+            cmd.Parameters.AddWithValue("channel", channel.ToLower());
+            cmd.Parameters.AddWithValue("username", username.ToLower());
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+                return (0, null);
+
+            var level = reader.GetInt32(0);
+            var last = reader.GetDateTime(1);
+            var period = GetExpirationTimeSpan(config.StrikeExpiration);
+            if (level == 0 || period == null)
+                return (level, null);
+
+            var periods = (int)((DateTime.Now - last).TotalMinutes / period.Value.TotalMinutes);
+            var effective = Math.Max(0, level - periods);
+            return (effective, effective > 0 ? last.Add(period.Value * (periods + 1)) : null);
+        }
+
+        /// <summary>
+        /// Deja los strikes de un usuario en 0. Devuelve el nivel vigente que tenía.
+        /// </summary>
+        public async Task<int> ResetStrikesAsync(string channel, string username)
+        {
+            var (level, _) = await GetStrikeStatusAsync(channel, username);
+
+            await using var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand(@"
+                UPDATE user_strikes SET strike_level = 0, expires_at = NULL, updated_at = @now
+                WHERE channel_name = @channel AND username = @username", conn);
+            cmd.Parameters.AddWithValue("channel", channel.ToLower());
+            cmd.Parameters.AddWithValue("username", username.ToLower());
+            cmd.Parameters.AddWithValue("now", DateTime.Now);
+            await cmd.ExecuteNonQueryAsync();
+
+            return level;
+        }
+
+        /// <summary>
+        /// Configuración de los comandos de moderación del canal (con los valores por defecto)
+        /// </summary>
+        public async Task<Dictionary<string, ModerationCommandSetting>> GetCommandConfigAsync(string channel)
+        {
+            if (ModerationCache.TryGet<Dictionary<string, ModerationCommandSetting>>("commands", channel, out var cached) && cached != null)
+                return cached;
+
+            await using var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand(
+                "SELECT settings::text FROM moderation_command_configs WHERE channel_name = @channel", conn);
+            cmd.Parameters.AddWithValue("channel", channel.ToLower());
+            var json = await cmd.ExecuteScalarAsync() as string;
+
+            var config = ModerationCommandsConfig.Parse(json);
+            ModerationCache.Set("commands", channel, config);
+            return config;
+        }
+
+        /// <summary>
+        /// Si el usuario está en la whitelist manual del canal
+        /// </summary>
+        public static bool IsWhitelisted(ModerationConfig config, string username)
+        {
+            try
+            {
+                var list = JsonSerializer.Deserialize<List<string>>(config.WhitelistUsers) ?? new();
+                return list.Any(u => string.Equals(u, username, StringComparison.OrdinalIgnoreCase));
+            }
+            catch (JsonException) { return false; }
         }
 
         private static async Task<UserStrike> GetOrCreateUserStrikeAsync(NpgsqlConnection conn, long channelUserId, string channelName, string username)
