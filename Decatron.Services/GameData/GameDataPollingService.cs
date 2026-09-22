@@ -153,7 +153,7 @@ namespace Decatron.Services.GameData
                                 // Sin sesion (offline): el overlay oculta la fila "Hoy" y muestra solo las partidas.
                                 Session = new SessionState { CurrentRank = rank, Matches = matches.ToList(), StreamStartedAt = DateTime.UtcNow, Wins = -1, Losses = -1 },
                                 Stats = await SafeStatsAsync(provider, account, queue, null, ct),
-                                LivePhase = _live.PhaseFor(userId, account.ExternalId),
+                                LivePhase = _live.StatusLineFor(userId, account.ExternalId),
                                 UpdatedAt = DateTime.UtcNow,
                             });
                         }
@@ -210,7 +210,7 @@ namespace Decatron.Services.GameData
                     ExternalName = account.FullExternalName, ExternalId = account.ExternalId, Region = account.Region, Rank = rank,
                     Session = new SessionState { CurrentRank = rank, Matches = matches.ToList(), StreamStartedAt = DateTime.UtcNow, Wins = -1, Losses = -1 },
                     Stats = await SafeStatsAsync(provider, account, queue, null, ct),
-                    LivePhase = _live.PhaseFor(userId, account.ExternalId),
+                    LivePhase = _live.StatusLineFor(userId, account.ExternalId),
                     UpdatedAt = DateTime.UtcNow,
                 });
             }
@@ -431,7 +431,7 @@ namespace Decatron.Services.GameData
                 state.Live = await provider.GetLiveGameAsync(account, ct) ?? previous?.Live;
 
             state.Stats = await SafeStatsAsync(provider, account, queue, previous?.Stats, ct);
-            state.LivePhase = _live.PhaseFor(userId, account.ExternalId);
+            state.LivePhase = _live.StatusLineFor(userId, account.ExternalId);
 
             return state;
         }
@@ -470,8 +470,8 @@ namespace Decatron.Services.GameData
                 var changed = false;
                 foreach (var acc in state.Accounts)
                 {
-                    var phase = _live.PhaseFor(userId, GetPuuid(acc));
-                    if (!ReferenceEquals(acc.LivePhase, phase)) { acc.LivePhase = phase; changed = true; }
+                    var phase = _live.StatusLineFor(userId, GetPuuid(acc));
+                    if (acc.LivePhase?.UpdatedAt != phase?.UpdatedAt || acc.LivePhase?.Phase != phase?.Phase) { acc.LivePhase = phase; changed = true; }
                 }
                 // Mientras el streamer esta en partida, la cuenta con el cliente abierto es la que se muestra.
                 var inGame = state.Accounts.FirstOrDefault(a => a.LivePhase != null && a.LivePhase.Phase != "none");

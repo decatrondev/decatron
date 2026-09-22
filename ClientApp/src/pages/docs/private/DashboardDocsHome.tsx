@@ -1,7 +1,7 @@
 import {
     HelpCircle, Clock, Bell, Gift, Target, Volume2, DollarSign,
     Zap, Shield, Sparkles, Settings, Monitor, ArrowRight, Search,
-    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users, Dice6, Gamepad2, Cat
+    BookOpen, Video, MessageSquare, Music, Heart, Code2, BarChart3, Users, Dice6, Gamepad2, Cat, Radio
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
@@ -28,6 +28,7 @@ export default function DashboardDocsHome() {
         { icon: <Sparkles />, title: 'Decatron AI', description: 'Inteligencia artificial', path: '/dashboard/docs/features/ai', color: 'purple' },
         { icon: <Music />, title: 'Now Playing', description: 'Musica en el stream', path: '/dashboard/docs/features/now-playing', color: 'green' },
         { icon: <Gamepad2 />, title: 'Game Overlays', description: 'Rango, sesion y partidas en pantalla', path: '/dashboard/docs/features/game-overlays', color: 'blue' },
+        { icon: <Radio />, title: 'Partida en vivo', description: 'Seleccion, coach y prediccion desde Decatron Desktop', path: '/dashboard/docs/features/live-overlay', color: 'green' },
         { icon: <Cat />, title: 'Mascota', description: 'Un gato 3D que vive en tu stream', path: '/dashboard/docs/features/pets', color: 'orange' },
         { icon: <MessageSquare />, title: 'Decatron Chat', description: 'Chat privado con IA', path: '/dashboard/docs/features/decatron-chat', color: 'blue' },
         { icon: <BarChart3 />, title: 'Analiticas', description: 'Estadisticas y datos del stream', path: '/dashboard/docs/features/analytics', color: 'blue' },

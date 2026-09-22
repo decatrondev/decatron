@@ -66,5 +66,30 @@ namespace Decatron.Services.GameData.LolLive
             if (string.IsNullOrEmpty(puuid) || !string.Equals(e.Puuid, puuid, StringComparison.OrdinalIgnoreCase)) return null;
             return e.Phase;
         }
+
+        /// <summary>
+        /// Lo que la tarjeta de Game Overlays necesita para su linea de estado ("Seleccion ·
+        /// Jinx", "En partida · 12:30", "Victoria 7/2/9"): la fase y lo justo de cada una.
+        /// Sin coach, prediccion, picks completos ni scouting de los amigos: todo eso vive en
+        /// el overlay Partida en vivo.
+        /// </summary>
+        public LivePhaseInfo? StatusLineFor(long userId, string? puuid)
+        {
+            var full = PhaseFor(userId, puuid);
+            if (full == null) return null;
+            var cs = full.ChampSelect;
+            var pg = full.PostGame;
+            return new LivePhaseInfo
+            {
+                Phase = full.Phase,
+                QueueId = full.QueueId,
+                QueueName = full.QueueName,
+                Lobby = full.Lobby.ConvertAll(m => new LiveLobbyMember { Name = m.Name, Tag = m.Tag, IsMe = m.IsMe, IsLeader = m.IsLeader }),
+                ChampSelect = cs == null ? null : new LiveChampSelect { MyPick = cs.MyPick, MyPosition = cs.MyPosition, MyTurn = cs.MyTurn, TimerPhase = cs.TimerPhase },
+                Game = full.Game,
+                PostGame = pg == null ? null : new LivePostGame { Win = pg.Win, Champion = pg.Champion, Kills = pg.Kills, Deaths = pg.Deaths, Assists = pg.Assists, PointsDelta = pg.PointsDelta, DurationSeconds = pg.DurationSeconds },
+                UpdatedAt = full.UpdatedAt,
+            };
+        }
     }
 }

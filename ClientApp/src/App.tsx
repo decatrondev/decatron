@@ -123,6 +123,7 @@ import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
 import NowPlayingDoc from './pages/docs/private/features/NowPlayingDoc';
 import GameOverlaysDoc from './pages/docs/private/features/GameOverlaysDoc';
+import LiveOverlayDoc from './pages/docs/private/features/LiveOverlayDoc';
 import PetsDoc from './pages/docs/private/features/PetsDoc';
 import DecatronChatDoc from './pages/docs/private/features/DecatronChatDoc';
 import DeveloperPortalDoc from './pages/docs/private/features/DeveloperPortalDoc';
@@ -393,6 +394,7 @@ function App() {
                     <Route path="dashboard/docs/features/ai" element={<AIDoc />} />
                     <Route path="dashboard/docs/features/now-playing" element={<NowPlayingDoc />} />
                     <Route path="dashboard/docs/features/game-overlays" element={<GameOverlaysDoc />} />
+                    <Route path="dashboard/docs/features/live-overlay" element={<LiveOverlayDoc />} />
                     <Route path="dashboard/docs/features/pets" element={<PetsDoc />} />
                     <Route path="dashboard/docs/features/decatron-chat" element={<DecatronChatDoc />} />
                     <Route path="dashboard/docs/features/developer" element={<DeveloperPortalDoc />} />

@@ -40,10 +40,8 @@ interface Props {
  * envoltorio exterior ocupa lo que la caja mide en pantalla (size × scale) para que
  * el editor y OBS la ubiquen igual; el interior va en px reales y se escala.
  */
-export function CardBox({ config, animation, measure, children, style, attached }: {
+export function CardBox({ config, animation, measure, children, style }: {
     config: GameVisualConfig; animation?: string; measure?: boolean; children: ReactNode; style?: CSSProperties;
-    /** Contenido pegado debajo de la caja (bloques del Desktop hasta que se muden a Partida en vivo). */
-    attached?: ReactNode;
 }) {
     const accent = config.accent ?? '#c8aa6e';
     const chrome = config.chrome;
@@ -72,11 +70,6 @@ export function CardBox({ config, animation, measure, children, style, attached 
             <style>{'.go-box>*{flex-shrink:0}'}</style>
             <div style={{ transform: scale === 1 ? undefined : `scale(${scale})`, transformOrigin: 'top left', width: measure ? undefined : config.size.width }}>
                 <div className="go-box" style={box}>{children}</div>
-                {attached && (
-                    <div style={{ ...bg, ...accentLine, boxSizing: 'border-box', width: config.size.width, marginTop: 6, padding: isBar ? '6px 18px' : '10px 14px', display: 'flex', flexDirection: isBar ? 'row' : 'column', alignItems: isBar ? 'center' : 'stretch', gap: 10, boxShadow: chrome.shadow ? '0 4px 16px rgba(0,0,0,.35)' : undefined, animation }}>
-                        {attached}
-                    </div>
-                )}
             </div>
         </div>
     );
@@ -326,116 +319,6 @@ export function LiveStatusLine({ live, font, L, accent, now }: { live: LivePhase
             return null;
     }
 }
-
-/** Selección de campeón en vivo: picks de mi equipo (el mío resaltado) vs. rival, y bans. */
-export function ChampSelectBlock({ live, font, L, accent }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string }) {
-    const cs = live.champSelect;
-    if (!cs) return null;
-    const label = (t: string) => <span style={{ color: NEUTRAL, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif', width: 44, flexShrink: 0 }}>{t}</span>;
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...font }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                {label(L.team)}
-                {cs.myTeam.map(p => <ChampIcon key={p.cellId} champ={p.champion} ring={p.isMe ? accent : p.locked ? undefined : undefined} dim={!!p.champion && !p.locked && !p.isMe} />)}
-            </div>
-            {cs.theirTeam.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    {label(L.enemy)}
-                    {cs.theirTeam.map(p => <ChampIcon key={p.cellId} champ={p.champion} dim={!!p.champion && !p.locked} />)}
-                </div>
-            )}
-            {(cs.myBans.length > 0 || cs.theirBans.length > 0) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {label(L.bans)}
-                    {[...cs.myBans, ...cs.theirBans].map((b, i) => <div key={`${b.id}-${i}`} style={{ position: 'relative' }}><ChampIcon champ={b} size={20} dim /><span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: LOSS, fontWeight: 900, fontSize: 14 }}>✕</span></div>)}
-                </div>
-            )}
-        </div>
-    );
-}
-
-/** Tarjeta de fin de partida: resultado, KDA, CS, daño, duración, ±LP. */
-export function PostGameBlock({ live, font, L }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels }) {
-    const pg = live.postGame;
-    if (!pg) return null;
-    const color = pg.win ? WIN : LOSS;
-    const kda = pg.deaths === 0 ? pg.kills + pg.assists : (pg.kills + pg.assists) / pg.deaths;
-    return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 10px', borderRadius: 8, background: pg.win ? 'rgba(74,222,128,.12)' : 'rgba(248,113,113,.12)', borderLeft: `3px solid ${color}` }}>
-            <ChampIcon champ={pg.champion} size={40} ring={color} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, ...font }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ color, fontWeight: 800, fontSize: '1.15em' }}>{pg.win ? L.victory : L.defeat}</span>
-                    {pg.pointsDelta != null && <span style={{ color: pg.pointsDelta >= 0 ? WIN : LOSS, fontWeight: 700 }}>{pg.pointsDelta > 0 ? '+' : ''}{pg.pointsDelta} LP</span>}
-                    <span style={{ color: NEUTRAL, fontSize: '0.8em' }}>{fmtDuration(pg.durationSeconds)}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 10, fontSize: '0.9em' }}>
-                    <span><b>{pg.kills}/{pg.deaths}/{pg.assists}</b> <span style={{ color: NEUTRAL, fontSize: '0.85em' }}>{kda.toFixed(1)} KDA</span></span>
-                    {pg.cs != null && <span>{pg.cs} CS</span>}
-                    {pg.damage != null && <span>{fmtK(pg.damage)} DMG</span>}
-                    {pg.visionScore != null && <span>{pg.visionScore} VS</span>}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/** Lo último que dijo el coach: nombre + comentario como subtítulo, y la sugerencia/matchup como chip. */
-export function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; font: CSSProperties; accent: string; compact?: boolean }) {
-    const c = live.coach;
-    if (!c) return null;
-    const chip = c.kind === 'my_turn' && c.suggestion ? c.suggestion : c.kind === 'final' && c.matchup ? null : null;
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: compact ? 360 : 300 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: accent, fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{c.coachName}</span>
-                {chip && <span style={{ fontSize: 10, fontWeight: 700, color: '#0f1115', background: accent, borderRadius: 4, padding: '1px 6px', fontFamily: 'Inter, sans-serif' }}>→ {chip}</span>}
-            </div>
-            <div style={{ ...font, whiteSpace: 'normal', lineHeight: 1.3 }}>{c.comment}</div>
-            {c.kind === 'final' && (c.runes || c.spells) && <div style={{ ...font, fontSize: '0.8em', color: NEUTRAL, whiteSpace: 'normal' }}>{[c.runes, c.spells].filter(Boolean).join(' · ')}</div>}
-        </div>
-    );
-}
-
-/**
- * Predicción del chat: barra con el pozo de cada lado (verde gana / rojo pierde) y la cuenta
- * regresiva hasta el cierre; al terminar la partida, el lado ganador y quiénes acertaron.
- */
-export function PredictionBlock({ live, font, L, accent, now, compact }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number; compact?: boolean }) {
-    const p = live.prediction;
-    if (!p) return null;
-    const total = p.poolWin + p.poolLoss;
-    const pctWin = total > 0 ? Math.round(p.poolWin * 100 / total) : 50;
-    const secsLeft = Math.max(0, Math.floor((new Date(p.closesAt).getTime() - now) / 1000));
-    const resolved = !!p.result;
-    const label = { fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' as const, fontFamily: 'Inter, sans-serif', fontWeight: 700 };
-    const width = compact ? 220 : 280;
-
-    let status: JSX.Element;
-    if (resolved && p.result === 'refund') status = <span style={{ color: NEUTRAL }}>{L.predRefund}</span>;
-    else if (resolved) status = <span style={{ color: p.result === 'win' ? WIN : LOSS, fontWeight: 700 }}>{p.result === 'win' ? L.predWin : L.predLoss} · {p.winners} {L.predWinners}</span>;
-    else if (secsLeft > 0) status = <span style={{ color: NEUTRAL }}>{L.predClosesIn} <span style={{ color: '#e6edf3', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(secsLeft)}</span> · <span style={{ color: accent }}>{L.predHint}</span></span>;
-    else status = <span style={{ color: NEUTRAL }}>{L.predClosed}</span>;
-
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width }}>
-            <span style={{ ...label, color: accent }}>{L.prediction}{p.champion ? <span style={{ color: NEUTRAL, fontWeight: 500 }}> · {p.champion}</span> : null}</span>
-            <div style={{ ...font, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ color: WIN }}>{L.predWin} {fmtK(p.poolWin)} <span style={{ fontSize: '0.75em', color: NEUTRAL }}>({p.betsWin})</span></span>
-                <span style={{ color: LOSS }}><span style={{ fontSize: '0.75em', color: NEUTRAL }}>({p.betsLoss})</span> {fmtK(p.poolLoss)} {L.predLoss}</span>
-            </div>
-            <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', background: 'rgba(255,255,255,.1)' }}>
-                {total > 0 && <>
-                    <span style={{ width: `${pctWin}%`, background: WIN, opacity: resolved && p.result !== 'win' ? 0.35 : 1, transition: 'width .4s ease' }} />
-                    <span style={{ flex: 1, background: LOSS, opacity: resolved && p.result !== 'loss' ? 0.35 : 1 }} />
-                </>}
-            </div>
-            <div style={{ ...font, fontSize: '0.8em', whiteSpace: 'normal' }}>{total === 0 && !resolved ? <span style={{ color: NEUTRAL }}>{L.predNoBets} · <span style={{ color: accent }}>{L.predHint}</span></span> : status}</div>
-            {resolved && p.top.length > 0 && <div style={{ ...font, fontSize: '0.75em', color: NEUTRAL, whiteSpace: 'normal' }}>{p.top.join(' · ')}</div>}
-        </div>
-    );
-}
-
 function StatsBlocks({ el, stats, session, rank, L, accent, isVisible, graphWidth }: {
     el: GameVisualConfig['elements']; stats?: AccountStats | null; session?: SessionState | null; rank?: AccountOverlayState['rank'];
     L: CardLabels; accent: string; isVisible: (id: keyof GameVisualConfig['elements']) => boolean; graphWidth?: number;
@@ -548,7 +431,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
     const pointsLabel = rank?.pointsLabel ?? '';
     const isVisible = (id: keyof typeof el) => el[id]?.visible !== false;
     const live = account.livePhase && account.livePhase.phase !== 'none' ? account.livePhase : null;
-    const now = useTicker(live?.phase === 'ingame' || (!!live?.prediction && !live.prediction.result));
+    const now = useTicker(live?.phase === 'ingame');
 
     const switchAnim = switchAnimation === 'none' ? undefined : `go-${switchAnimation}-in 0.35s ease`;
     const emblemSize = el.emblem?.size ?? 96;
@@ -604,15 +487,7 @@ export function GameOverlayCard({ game, gameName, config, account, aggregate, ac
         );
     };
 
-    // Bloques del Desktop: van PEGADOS debajo de la caja (no la agrandan) hasta que se muden al overlay Partida en vivo.
-    const liveBlocks: JSX.Element[] = [];
-    if (live && isVisible('champSelect') && live.phase === 'champselect') liveBlocks.push(<ChampSelectBlock key="cs" live={live} font={fontStyle(el.champSelect?.font, 12)} L={L} accent={accent} />);
-    if (live && isVisible('postGame') && live.phase === 'postgame') liveBlocks.push(<PostGameBlock key="pg" live={live} font={fontStyle(el.postGame?.font, isBar ? 13 : 14)} L={L} />);
-    if (live && isVisible('coachSay') && live.coach && live.phase !== 'ingame') liveBlocks.push(<CoachSayBlock key="coach" live={live} font={fontStyle(el.coachSay?.font, isBar ? 12 : 13)} accent={accent} compact={isBar} />);
-    if (live && isVisible('prediction') && live.prediction && (live.phase === 'ingame' || live.phase === 'postgame')) liveBlocks.push(<PredictionBlock key="pred" live={live} font={fontStyle(el.prediction?.font, isBar ? 12 : 13)} L={L} accent={accent} now={now} compact={isBar} />);
-    const attached = liveBlocks.length ? liveBlocks : undefined;
-
-    const boxProps = { config, animation: switchAnim, measure, attached };
+    const boxProps = { config, animation: switchAnim, measure };
 
     if (layout === 'emblem-only') {
         return (

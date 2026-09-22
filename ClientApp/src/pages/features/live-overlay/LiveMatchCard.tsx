@@ -4,7 +4,7 @@
  * el editor y en OBS. Sin fase (o pantalla apagada) no dibuja nada: transparente.
  */
 import { CSSProperties, ReactNode } from 'react';
-import { CARD_LABELS, CardLabels, ChampIcon, CoachSayBlock, LOSS, NEUTRAL, PredictionBlock, WIN, fmtDuration, fmtK, fontStyle, formatTierLabel, hexToRgba, useTicker } from '../game-overlays/GameOverlayCard';
+import { CARD_LABELS, CardLabels, ChampIcon, LOSS, NEUTRAL, WIN, fmtDuration, fmtK, fontStyle, formatTierLabel, hexToRgba, useTicker } from '../game-overlays/GameOverlayCard';
 import { LivePhaseInfo, ROLE_LABELS } from '../game-overlays/types';
 import { LiveElementId, LiveOverlayConfig, LiveScreenId } from './types';
 
@@ -13,6 +13,62 @@ export const LIVE_LABELS: Record<'es' | 'en', LiveLabels> = {
     es: { ...CARD_LABELS.es, searching: 'buscando', me: 'tú', noCoach: 'El coach no tiene nada que decir todavía' },
     en: { ...CARD_LABELS.en, searching: 'searching', me: 'you', noCoach: 'The coach has nothing to say yet' },
 };
+
+/** Lo último que dijo el coach: nombre + comentario como subtítulo, y la sugerencia/matchup como chip. */
+export function CoachSayBlock({ live, font, accent, compact }: { live: LivePhaseInfo; font: CSSProperties; accent: string; compact?: boolean }) {
+    const c = live.coach;
+    if (!c) return null;
+    const chip = c.kind === 'my_turn' && c.suggestion ? c.suggestion : c.kind === 'final' && c.matchup ? null : null;
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: compact ? 360 : 300 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: accent, fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>{c.coachName}</span>
+                {chip && <span style={{ fontSize: 10, fontWeight: 700, color: '#0f1115', background: accent, borderRadius: 4, padding: '1px 6px', fontFamily: 'Inter, sans-serif' }}>→ {chip}</span>}
+            </div>
+            <div style={{ ...font, whiteSpace: 'normal', lineHeight: 1.3 }}>{c.comment}</div>
+            {c.kind === 'final' && (c.runes || c.spells) && <div style={{ ...font, fontSize: '0.8em', color: NEUTRAL, whiteSpace: 'normal' }}>{[c.runes, c.spells].filter(Boolean).join(' · ')}</div>}
+        </div>
+    );
+}
+
+/**
+ * Predicción del chat: barra con el pozo de cada lado (verde gana / rojo pierde) y la cuenta
+ * regresiva hasta el cierre; al terminar la partida, el lado ganador y quiénes acertaron.
+ */
+export function PredictionBlock({ live, font, L, accent, now, compact }: { live: LivePhaseInfo; font: CSSProperties; L: CardLabels; accent: string; now: number; compact?: boolean }) {
+    const p = live.prediction;
+    if (!p) return null;
+    const total = p.poolWin + p.poolLoss;
+    const pctWin = total > 0 ? Math.round(p.poolWin * 100 / total) : 50;
+    const secsLeft = Math.max(0, Math.floor((new Date(p.closesAt).getTime() - now) / 1000));
+    const resolved = !!p.result;
+    const label = { fontSize: 10, letterSpacing: 1, textTransform: 'uppercase' as const, fontFamily: 'Inter, sans-serif', fontWeight: 700 };
+    const width = compact ? 220 : 280;
+
+    let status: JSX.Element;
+    if (resolved && p.result === 'refund') status = <span style={{ color: NEUTRAL }}>{L.predRefund}</span>;
+    else if (resolved) status = <span style={{ color: p.result === 'win' ? WIN : LOSS, fontWeight: 700 }}>{p.result === 'win' ? L.predWin : L.predLoss} · {p.winners} {L.predWinners}</span>;
+    else if (secsLeft > 0) status = <span style={{ color: NEUTRAL }}>{L.predClosesIn} <span style={{ color: '#e6edf3', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(secsLeft)}</span> · <span style={{ color: accent }}>{L.predHint}</span></span>;
+    else status = <span style={{ color: NEUTRAL }}>{L.predClosed}</span>;
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width }}>
+            <span style={{ ...label, color: accent }}>{L.prediction}{p.champion ? <span style={{ color: NEUTRAL, fontWeight: 500 }}> · {p.champion}</span> : null}</span>
+            <div style={{ ...font, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ color: WIN }}>{L.predWin} {fmtK(p.poolWin)} <span style={{ fontSize: '0.75em', color: NEUTRAL }}>({p.betsWin})</span></span>
+                <span style={{ color: LOSS }}><span style={{ fontSize: '0.75em', color: NEUTRAL }}>({p.betsLoss})</span> {fmtK(p.poolLoss)} {L.predLoss}</span>
+            </div>
+            <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', background: 'rgba(255,255,255,.1)' }}>
+                {total > 0 && <>
+                    <span style={{ width: `${pctWin}%`, background: WIN, opacity: resolved && p.result !== 'win' ? 0.35 : 1, transition: 'width .4s ease' }} />
+                    <span style={{ flex: 1, background: LOSS, opacity: resolved && p.result !== 'loss' ? 0.35 : 1 }} />
+                </>}
+            </div>
+            <div style={{ ...font, fontSize: '0.8em', whiteSpace: 'normal' }}>{total === 0 && !resolved ? <span style={{ color: NEUTRAL }}>{L.predNoBets} · <span style={{ color: accent }}>{L.predHint}</span></span> : status}</div>
+            {resolved && p.top.length > 0 && <div style={{ ...font, fontSize: '0.75em', color: NEUTRAL, whiteSpace: 'normal' }}>{p.top.join(' · ')}</div>}
+        </div>
+    );
+}
 
 interface Props {
     config: LiveOverlayConfig;

@@ -12,15 +12,12 @@ import { Card, SectionTitle, Label, SubLabel, SelectInput, ColorInput, Slider, T
 import { GameOverlayCard, CARD_LABELS } from '../GameOverlayCard';
 import { CardView, availableViews, pickPromo } from '../slides';
 import { CardMeasurer, autoSize, viewsToMeasure } from '../CardMeasurer';
-import { simulateLive } from '../liveSim';
 import { gameOverlaysApi } from '../api';
-import { CARD_SIZE_LIMITS, CardSize, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_DEFAULT_SIZE, LAYOUT_PRESETS, LIVE_ELEMENTS, LayoutPreset, LivePhaseId, LivePhaseInfo, OverlayState, PromoCatalog, PromoItem, SLIDE_VIEWS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESETS, SlideView, StylePreset, AccountOverlayState, defaultGameConfig, formatTier } from '../types';
+import { CARD_SIZE_LIMITS, CardSize, ElementConfig, ElementId, GAME_ACCENTS, GAME_IDS, GAME_NAMES, GAMES_WITH_STATS, GameId, GameVisualConfig, LAYOUT_DEFAULT_SIZE, LAYOUT_PRESETS, LayoutPreset, OverlayState, PromoCatalog, PromoItem, SLIDE_VIEWS, STATS_ELEMENTS, STYLE_PRESET_ELEMENTS, STYLE_PRESETS, SlideView, StylePreset, defaultGameConfig, formatTier } from '../types';
 
 const FONT_FAMILIES = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Oswald', 'Bebas Neue', 'Rajdhani', 'Exo 2', 'Press Start 2P', 'system-ui'];
 const BASE_ELEMENT_ORDER: ElementId[] = ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'recent', 'liveCharacter'];
-const ALL_ELEMENT_ORDER: ElementId[] = [...BASE_ELEMENT_ORDER, ...STATS_ELEMENTS, ...LIVE_ELEMENTS];
-
-const LIVE_SIM_PHASES: LivePhaseId[] = ['none', 'lobby', 'matchmaking', 'champselect', 'ingame', 'postgame'];
+const ALL_ELEMENT_ORDER: ElementId[] = [...BASE_ELEMENT_ORDER, ...STATS_ELEMENTS];
 
 interface Props {
     slug: string;
@@ -42,7 +39,6 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
     const [selected, setSelected] = useState<ElementId>('rank');
     // Qué vista se diseña en el canvas (la rotación real corre en el overlay, aquí se elige a mano).
     const [previewView, setPreviewView] = useState<CardView>('main');
-    const [liveSim, setLiveSim] = useState<LivePhaseId>('none');
     const promoForced = !canHidePromo;
     // Anuncios del catálogo del admin, para verlos en el preview tal como salen en OBS.
     const [promoCatalog, setPromoCatalog] = useState<PromoCatalog | null>(null);
@@ -105,7 +101,8 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
     }, [fontsInUse]);
 
     const previewAccount = preview?.accounts?.[0];
-    const account = previewAccount ? { ...previewAccount, livePhase: simulateLive(liveSim, previewAccount) } : undefined;
+    // La tarjeta de rango no muestra fase del Desktop en el editor (eso vive en Partida en vivo).
+    const account = previewAccount ? { ...previewAccount, livePhase: null } : undefined;
     const el = cfg.elements[selected] ?? { visible: true };
     const setEl = (patch: Partial<ElementConfig>) => onChange(game, { elements: { ...cfg.elements, [selected]: { ...el, ...patch } } });
     const setFont = (patch: Partial<NonNullable<ElementConfig['font']>>) => setEl({ font: { ...el.font, ...patch } });
@@ -162,14 +159,6 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         </button>
                     ))}
                 </div>
-                {hasStats && (
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                        <span className="text-[11px] text-[#94a3b8] mr-1" title={t('desktopSimHint')}>Desktop:</span>
-                        {LIVE_SIM_PHASES.map(p => (
-                            <button key={p} onClick={() => setLiveSim(p)} className={`px-2.5 py-1 rounded-lg text-xs border ${liveSim === p ? 'bg-emerald-700 border-emerald-600 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>{t(`liveSim.${p}`)}</button>
-                        ))}
-                    </div>
-                )}
                 <div className="flex flex-wrap items-end gap-4 mt-3">
                     <div className="w-40"><Label>{t('canvas')}</Label>
                         <SelectInput value={`${canvas.width}x${canvas.height}`} onChange={v => { const [w, h] = v.split('x').map(Number); onCanvasChange({ width: w, height: h }); }}
@@ -301,10 +290,6 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         {selected === 'topChamps' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.topChamps')}</p>}
                         {selected === 'mastery' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.mastery')}</p>}
                         {selected === 'lpGraph' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.lpGraph')}</p>}
-                        {selected === 'champSelect' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.champSelect')}</p>}
-                        {selected === 'postGame' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.postGame')}</p>}
-                        {selected === 'prediction' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.prediction')}</p>}
-                        {selected === 'coachSay' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.coachSay')}</p>}
                         {selected === 'liveCharacter' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.liveCharacter')}</p>}
                         {selected === 'session' && (
                             <Checkbox checked={el.showDelta !== false} onChange={v => setEl({ showDelta: v })} label={t('showDelta')} />

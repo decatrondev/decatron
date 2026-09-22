@@ -49,7 +49,7 @@
     "postGame": "Automatic opinion when the game ends",
     "postGameHint": "If off, only via !coach (mods).",
     "showOnOverlay": "Show what it says on the overlay",
-    "showOnOverlayHint": "\"Coach says\" widget in Game Overlays → Design. If off, only you see it in the app and via commands.",
+    "showOnOverlayHint": "\"Coach says\" blocks in the Live Match overlay (Overlays → Live Match). If off, only you see it in the app and via commands.",
     "champPool": "Your champ pool",
     "champPoolHint": "Comma-separated. If empty, it uses your most played champions from the last 20 games.",
     "notes": "Notes for the coach",
@@ -275,15 +275,6 @@
       "reset": "Reset design",
       "view": "View",
       "promoView": "Decatron card",
-      "desktopSimHint": "Simulates what Decatron Desktop sends when the LoL client is open",
-      "liveSim": {
-        "none": "No Desktop",
-        "lobby": "Lobby",
-        "matchmaking": "Searching",
-        "champselect": "Select",
-        "ingame": "In game",
-        "postgame": "Game over"
-      },
       "canvas": "Canvas",
       "posX": "Position X",
       "posY": "Position Y",
@@ -330,11 +321,7 @@
         "streak": "Streak",
         "topChamps": "Top champions",
         "mastery": "Mastery",
-        "lpGraph": "LP graph",
-        "champSelect": "Champion select (Desktop)",
-        "postGame": "Game over (Desktop)",
-        "coachSay": "Coach says (AI)",
-        "prediction": "Chat prediction (!pred)"
+        "lpGraph": "LP graph"
       },
       "show": "Show",
       "size": "Size",
@@ -357,10 +344,6 @@
         "topChamps": "Most played champions in the last 20 games of the chosen queue, with winrate and KDA.",
         "mastery": "Account's top mastery (level and points). Updates hourly.",
         "lpGraph": "Today's session LP curve. Only shows live and with at least two LP changes.",
-        "champSelect": "Your team's picks (yours highlighted), the enemy's and bans, in real time during select. Needs Decatron Desktop open with the LoL client. Use \"Desktop: Select\" above to see it.",
-        "postGame": "Result, KDA, CS, damage and ±LP when the game ends, until you're back in the lobby. Needs Decatron Desktop. Use \"Desktop: Game over\" above to see it.",
-        "prediction": "Live pot of the chat prediction (!pred win|loss): how much on each side, how many bet and when it closes; at the end, the winning side and who got it right. Enable it in Features → Decatron Coach → Predictions. Use \"Desktop: In game\" or \"Game over\" to see it.",
-        "coachSay": "The coach's latest comment (Features → Decatron Coach). Shows in champion select and at the end; hidden in game. Use \"Desktop: Select\" or \"Game over\" to see it.",
         "liveCharacter": "Without Desktop: \"In game · champion\" from the Riot API (1-3 min delay). With Desktop: lobby, searching, select, in game with a timer and result, instantly.",
         "gameLogo": "Shows the game name in the accent color, above the rank."
       },
@@ -406,6 +389,11 @@
       "sizeManual": "Manual",
       "sizeOverflow": "Some content does not fit: at least {{w}}×{{h}} is needed. Press \"Fit to content\" or switch back to automatic.",
       "boxHintAuto": "The box (dashed border) sizes itself to what you have enabled, counting every rotation view and the ad, and never resizes in OBS. Switch to manual if you want a fixed size."
+    },
+    "movedToLive": {
+      "title": "Champion select, the coach and the prediction now live in Live Match",
+      "body": "Desktop blocks are no longer drawn on the rank card: they have their own overlay with one screen per match phase. The status line (\"In game · Jinx · 12:30\") stays here.",
+      "cta": "Go to Live Match"
     }
   },
   "liveOverlay": {

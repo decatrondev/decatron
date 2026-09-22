@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { MovedToLiveNotice } from './live-overlay/MovedToLiveNotice';
 import { ArrowLeft, Gamepad2, Loader2, Save, Monitor, Download, MessageSquareText } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useDesktopDownload } from '../../hooks/useDesktopDownload';
@@ -93,6 +94,8 @@ export default function LolCoachConfig() {
             </div>
 
             {message && <div className={`p-3 rounded-lg text-sm ${message.error ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300' : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'}`}>{message.text}</div>}
+
+            <MovedToLiveNotice />
 
             {/* Requisitos */}
             <div className={card}>

@@ -49,7 +49,7 @@
     "postGame": "Opinión automática al terminar la partida",
     "postGameHint": "Si lo apagas, solo con !coach (mods).",
     "showOnOverlay": "Mostrar lo que dice en el overlay",
-    "showOnOverlayHint": "Widget \"Coach dice\" en Game Overlays → Diseño. Si lo apagas, solo lo ves tú en la app y con los comandos.",
+    "showOnOverlayHint": "Bloques \"Coach dice\" del overlay Partida en vivo (Overlays → Partida en vivo). Si lo apagas, solo lo ves tú en la app y con los comandos.",
     "champPool": "Tu champ pool",
     "champPoolHint": "Separado por comas. Si lo dejas vacío, usa tus campeones más jugados de las últimas 20.",
     "notes": "Notas para el coach",
@@ -275,15 +275,6 @@
       "reset": "Restablecer diseño",
       "view": "Ver",
       "promoView": "Tarjeta Decatron",
-      "desktopSimHint": "Simula lo que manda Decatron Desktop cuando el cliente de LoL está abierto",
-      "liveSim": {
-        "none": "Sin Desktop",
-        "lobby": "Lobby",
-        "matchmaking": "Buscando",
-        "champselect": "Selección",
-        "ingame": "En partida",
-        "postgame": "Fin de partida"
-      },
       "canvas": "Lienzo",
       "posX": "Posición X",
       "posY": "Posición Y",
@@ -330,11 +321,7 @@
         "streak": "Racha",
         "topChamps": "Top campeones",
         "mastery": "Maestría",
-        "lpGraph": "Gráfico de LP",
-        "champSelect": "Selección de campeón (Desktop)",
-        "postGame": "Fin de partida (Desktop)",
-        "coachSay": "Coach dice (IA)",
-        "prediction": "Predicción del chat (!pred)"
+        "lpGraph": "Gráfico de LP"
       },
       "show": "Mostrar",
       "size": "Tamaño",
@@ -357,10 +344,6 @@
         "topChamps": "Campeones más jugados en las últimas 20 partidas de la cola elegida, con winrate y KDA.",
         "mastery": "Top de maestría de la cuenta (nivel y puntos). Se actualiza cada hora.",
         "lpGraph": "Curva de LP de la sesión de hoy. Solo aparece en vivo y con al menos dos cambios de LP.",
-        "champSelect": "Picks de tu equipo (el tuyo resaltado), del rival y bans, en tiempo real mientras dura la selección. Necesita Decatron Desktop abierto con el cliente de LoL. Usa \"Desktop: Selección\" arriba para verlo.",
-        "postGame": "Resultado, KDA, CS, daño y ±LP al terminar la partida, hasta que vuelvas al lobby. Necesita Decatron Desktop. Usa \"Desktop: Fin de partida\" arriba para verlo.",
-        "prediction": "Pozo en vivo de la predicción del chat (!pred win|loss): cuánto hay a cada lado, cuántos apostaron y cuándo cierra; al terminar, el lado ganador y quiénes acertaron. Se activa en Funciones → Decatron Coach → Predicciones. Usa \"Desktop: En partida\" o \"Fin de partida\" para verlo.",
-        "coachSay": "Lo último que dijo el coach (Funciones → Decatron Coach). Aparece en selección de campeón y al terminar; en partida se oculta. Usa \"Desktop: Selección\" o \"Fin de partida\" para verlo.",
         "liveCharacter": "Sin Desktop: \"En partida · campeón\" desde la Riot API (1-3 min de retraso). Con Desktop: lobby, buscando, selección, en partida con cronómetro y resultado, al instante.",
         "gameLogo": "Muestra el nombre del juego en el color de acento, arriba del rango."
       },
@@ -406,6 +389,11 @@
       "sizeManual": "Manual",
       "sizeOverflow": "Hay contenido que no entra: hace falta al menos {{w}}×{{h}}. Pulsa \"Ajustar al contenido\" o vuelve a automático.",
       "boxHintAuto": "La caja (borde punteado) se ajusta sola a lo que tengas encendido, contando todas las vistas de la rotación y el anuncio, y no cambia de tamaño en OBS. Si quieres un tamaño fijo, cámbiala a manual."
+    },
+    "movedToLive": {
+      "title": "La selección de campeón, el coach y la predicción ahora viven en Partida en vivo",
+      "body": "Los bloques del Desktop ya no se dibujan en la tarjeta de rango: tienen su propio overlay con una pantalla por fase de la partida. La línea de estado (\"En partida · Jinx · 12:30\") sigue aquí.",
+      "cta": "Ir a Partida en vivo"
     }
   },
   "liveOverlay": {

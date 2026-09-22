@@ -187,9 +187,10 @@ export interface OverlayState {
 export type LayoutPreset = 'card' | 'compact' | 'bar' | 'emblem-only';
 export type ElementId = 'emblem' | 'rank' | 'lp' | 'session' | 'recent' | 'accountName' | 'gameLogo' | 'liveCharacter'
     // Fase "LoL enriquecido": estadísticas de las últimas partidas
-    | 'winrate' | 'kdaCs' | 'streak' | 'topChamps' | 'mastery' | 'lpGraph'
-    // Fase B: en vivo desde Decatron Desktop (selección de campeón, fin de partida)
-    | 'champSelect' | 'postGame' | 'coachSay' | 'prediction';
+    | 'winrate' | 'kdaCs' | 'streak' | 'topChamps' | 'mastery' | 'lpGraph';
+// Los bloques del Desktop (selección, fin de partida, coach, predicción) se mudaron al
+// overlay "Partida en vivo" (live-overlay/types.ts). Si vienen en una config vieja se ignoran.
+export const REMOVED_ELEMENTS = ['champSelect', 'postGame', 'coachSay', 'prediction'] as const;
 
 export interface FontStyle {
     family?: string;
@@ -221,9 +222,9 @@ export type StylePreset = 'minimal' | 'stats' | 'full';
 export const STYLE_PRESETS: StylePreset[] = ['minimal', 'stats', 'full'];
 /** Qué elementos deja visibles cada preset; el resto de la config no se toca. */
 export const STYLE_PRESET_ELEMENTS: Record<StylePreset, ElementId[]> = {
-    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
-    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
-    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter', 'champSelect', 'postGame', 'coachSay', 'prediction'],
+    minimal: ['emblem', 'rank', 'lp', 'session', 'liveCharacter'],
+    stats: ['emblem', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'lpGraph', 'liveCharacter'],
+    full: ['emblem', 'gameLogo', 'rank', 'lp', 'accountName', 'session', 'winrate', 'kdaCs', 'streak', 'recent', 'topChamps', 'mastery', 'lpGraph', 'liveCharacter'],
 };
 
 /** Vistas por las que rota la tarjeta ("tipo GIF"): la principal, stats, campeones, gráfico. */
@@ -346,11 +347,6 @@ export function defaultGameConfig(game: GameId): GameVisualConfig {
             topChamps: { visible: false, count: 3, font: { size: 12, weight: 500, color: '#c9d1d9' } },
             mastery: { visible: false, count: 3, font: { size: 12, weight: 500, color: '#c9d1d9' } },
             lpGraph: { visible: false, height: 48 },
-            // Solo aparecen con Decatron Desktop conectado: encendidos por defecto.
-            champSelect: { visible: true, font: { size: 12, weight: 600, color: '#e6edf3' } },
-            postGame: { visible: true, font: { size: 14, weight: 600, color: '#e6edf3' } },
-            coachSay: { visible: true, font: { size: 13, weight: 500, color: '#e6edf3' } },
-            prediction: { visible: true, font: { size: 13, weight: 600, color: '#e6edf3' } },
         },
         background: { type: 'solid', color: '#0f1115', opacity: 85, radius: 12 },
         accent: GAME_ACCENTS[game],
@@ -371,6 +367,7 @@ export function resolveGameConfig(game: GameId, saved?: Partial<GameVisualConfig
     if (!saved) return d;
     const elements: GameVisualConfig['elements'] = { ...d.elements };
     for (const key of Object.keys(saved.elements ?? {}) as ElementId[]) {
+        if ((REMOVED_ELEMENTS as readonly string[]).includes(key)) continue;
         elements[key] = { ...d.elements[key], ...saved.elements![key], font: { ...d.elements[key]?.font, ...saved.elements![key]?.font } } as ElementConfig;
     }
     return {
@@ -452,9 +449,6 @@ export const LAYOUT_DEFAULT_SIZE: Record<LayoutPreset, CardSize> = {
 export const CARD_SIZE_LIMITS = { minWidth: 100, maxWidth: 3840, minHeight: 40, maxHeight: 2160, minScale: 0.5, maxScale: 2 };
 
 // Los nombres de cada elemento viven en locales/*/games.json (gameOverlays.design.elementNames).
-
-/** Elementos que solo se alimentan del cliente de LoL vía Decatron Desktop. */
-export const LIVE_ELEMENTS: ElementId[] = ['champSelect', 'postGame', 'coachSay', 'prediction'];
 
 /** Elementos que solo tienen sentido si el proveedor da esos datos (hoy: LoL). */
 export const STATS_ELEMENTS: ElementId[] = ['winrate', 'kdaCs', 'streak', 'topChamps', 'mastery', 'lpGraph'];

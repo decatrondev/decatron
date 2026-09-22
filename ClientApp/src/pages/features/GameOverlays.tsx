@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Gamepad2, Users, Radar, Palette, Monitor, Save, Loader2, ChevronRight, Copy, Plus, Trash2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { MovedToLiveNotice } from './live-overlay/MovedToLiveNotice';
 import api from '../../services/api';
 import { Card, SectionTitle, SubLabel, Label, TextInput, Toggle } from './now-playing-extension/components/ui/SharedUI';
 import { PanelData, gameOverlaysApi, errorMessage } from './game-overlays/api';
@@ -164,6 +165,8 @@ const GameOverlays: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            <MovedToLiveNotice />
 
             <div className="flex gap-6">
                 <div className="w-48 flex-shrink-0">

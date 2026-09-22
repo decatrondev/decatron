@@ -52,9 +52,18 @@ export default function GameOverlaysDoc() {
                     <li><b>Diseño</b>: arrastra la tarjeta a donde la quieras y ajusta layout, fuentes y colores. Lo que ves es lo que sale en OBS. En LoL hay además widgets de estadísticas (winrate, KDA y CS por minuto, racha, top campeones, maestría, gráfico de LP de la sesión e íconos de campeón en las últimas partidas) y presets <i>Minimal</i> / <i>Stats</i> / <i>Completo</i> para activarlos de un clic. Vienen apagados por defecto para no cambiar overlays que ya tengas en OBS.</li>
                     <li><b>Overlay</b>: copia la URL y agrégala en OBS como fuente de navegador con el tamaño del lienzo (por defecto 1920×1080).</li>
                 </ol>
+                <p className="text-sm mt-3">La tarjeta tiene un <b>tamaño fijo</b>: la caja no cambia al rotar cuentas ni vistas. En automático se dimensiona con la vista más grande;
+                    en manual eliges ancho y alto y el editor avisa si algo no entra. Si falta un dato (sin LP, sin partidas hoy) se muestra un marcador en su lugar.</p>
                 <DocAlert type="tip" title="Solo una fuente en OBS">
                     No necesitas una fuente por juego: la misma URL cambia sola según lo que estés jugando.
                 </DocAlert>
+            </DocSection>
+
+            <DocSection title="Partida en vivo (Desktop)">
+                <p>La selección de campeón, el "Coach dice" y la predicción del chat <b>no van en esta tarjeta</b>: tienen su propio overlay,
+                    <Link to="/dashboard/docs/features/live-overlay" className="underline font-semibold"> Partida en vivo</Link>, con una pantalla por fase de la partida.
+                    Aquí solo queda la línea de estado ("En partida · Jinx · 12:30"), que con Decatron Desktop conectado muestra la fase real y sin él usa la Riot API.</p>
+                <p className="text-sm mt-2">Los anuncios de Decatron que aparecen de vez en cuando los administra la plataforma; según tu plan puedes apagarlos en Diseño.</p>
             </DocSection>
 
             <DocSection title="Comandos de chat">
