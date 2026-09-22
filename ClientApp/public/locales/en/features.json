@@ -1293,7 +1293,7 @@
       "targets": "Languages you offer",
       "targetsHint": "A language is only translated while someone is listening; no listeners, no voice credits spent.",
       "voices": "Voices",
-      "voicesHint": "One voice per language. Fish Audio (a clone of your voice) will arrive as an optional engine.",
+      "voicesHint": "One voice per language. With the standard voice you pick among the installed Piper voices.",
       "engine": "Voice engine",
       "soon": "coming soon",
       "defaultVoice": "Default voice",
@@ -1302,7 +1302,10 @@
       "announceHint": "The bot tells chat the stream can be heard in other languages. Use {languages} for the list.",
       "announcePlaceholder": "🌐 This stream can be heard in {languages} with the Decatron Translate extension: https://decatron.net/translate",
       "background": "Original voice in the background",
-      "backgroundHint": "Suggested volume of your voice while the translation plays. Each viewer can change it."
+      "backgroundHint": "Suggested volume of your voice while the translation plays. Each viewer can change it.",
+      "enginePiper": "Standard voice (Piper, free)",
+      "enginePremium": "premium, uses credits",
+      "engineHint": "The standard voice runs on our server and costs no credits; it takes a bit longer to start speaking. Premium voices sound better and respond sooner, but charge credits per character. If you run out of credits mid-stream, the voice falls back to standard on its own and nothing stops."
     },
     "history": {
       "title": "Past sessions",

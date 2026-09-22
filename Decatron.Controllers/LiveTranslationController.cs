@@ -138,6 +138,9 @@ namespace Decatron.Controllers
                 return BadRequest(new { success = false, message = "Elige al menos un idioma destino" });
 
             var engineName = _mgr.Engines.Any(e => e.Name == dto.VoiceEngine) ? dto.VoiceEngine : "deepgram";
+            // Sin plan no hay créditos premium: la única voz posible es la estándar (Piper). Plan CREDITOS_UNIFICADOS.
+            var tier = await Decatron.Core.Helpers.TierResolver.GetEffectiveTierAsync(_db, userId);
+            if (string.Equals(tier, "free", StringComparison.OrdinalIgnoreCase) && _mgr.StandardEngine != null) engineName = "piper";
             var engine = _mgr.ResolveEngine(engineName);
             var voices = new Dictionary<string, string>();
             foreach (var lang in targets)

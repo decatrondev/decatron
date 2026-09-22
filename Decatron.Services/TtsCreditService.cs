@@ -191,7 +191,7 @@ namespace Decatron.Services
         /// bolsa, sin multiplicadores de motor y sin nada comprado detrás, porque los
         /// créditos estándar no se venden.
         /// </summary>
-        private async Task<CreditConsumeResult> TryConsumeStandardAsync(
+        public async Task<CreditConsumeResult> TryConsumeStandardAsync(
             long userId, int chars, string feature, string? voice = null, string? language = null,
             string? note = null)
         {

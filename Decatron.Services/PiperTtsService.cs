@@ -27,8 +27,8 @@ namespace Decatron.Services
         private readonly ILogger<PiperTtsService> _logger;
         private readonly string _cachePath;
 
-        private const string PiperBinary = "/opt/piper/piper";
-        private const string VoicesDir = "/opt/piper/voices";
+        public const string PiperBinary = "/opt/piper/piper";
+        public const string VoicesDir = "/opt/piper/voices";
         private const string PublicUrlBase = "/tts-audio";
 
         /// <summary>Tope defensivo: una alerta no debería tardar tanto ni de lejos.</summary>

@@ -26,7 +26,8 @@ namespace Decatron.Services.LiveTranslation
     public record ChannelStatus(
         bool Active, string Login, string SourceLanguage, IReadOnlyList<string> Languages,
         IReadOnlyDictionary<string, int> Listeners, IReadOnlyList<string> ActivePipelines,
-        double SpeechSeconds, int Segments, long CreditsUsed, DateTime? StartedAt, string? LastError);
+        double SpeechSeconds, int Segments, long CreditsUsed, DateTime? StartedAt, string? LastError,
+        string? Notice = null);
 
     /// <summary>
     /// Dueño de todas las sesiones de traducción en vivo del servidor. Singleton.
@@ -80,6 +81,9 @@ namespace Decatron.Services.LiveTranslation
             if (name != null && _engines.TryGetValue(name, out var e) && e.IsConfigured) return e;
             return _engines["deepgram"];
         }
+
+        /// <summary>Voz estándar (Piper): gratis, y a donde cae un pipeline premium sin créditos. Null si no está instalada.</summary>
+        public ITranslationTtsEngine? StandardEngine => _engines.TryGetValue("piper", out var p) && p.IsConfigured ? p : null;
 
         // ─────────────────────────────────────────────────────────────────────
         // Ciclo de vida de la sesión (lo llama el WebSocket de ingesta)
@@ -203,12 +207,14 @@ namespace Decatron.Services.LiveTranslation
         internal string DeepgramKey => _deepgramKey;
         internal ILogger Logger => _logger;
 
-        /// <summary>Cobra créditos. Devuelve false si no alcanzó (no descuenta nada).</summary>
+        /// <summary>Cobra créditos. Devuelve false si no alcanzó (no descuenta nada). El motor "standard" (Piper) va a la bolsa estándar.</summary>
         internal async Task<(bool ok, long charged)> ChargeAsync(long userId, int units, string engine, string? voice, string? language)
         {
             using var scope = _scopes.CreateScope();
             var credits = scope.ServiceProvider.GetRequiredService<ITtsCreditService>();
-            var r = await credits.TryConsumeAsync(userId, units, engine, LiveTranslationCredits.Feature, voice, language);
+            var r = engine == "standard"
+                ? await credits.TryConsumeStandardAsync(userId, units, LiveTranslationCredits.Feature, voice, language)
+                : await credits.TryConsumeAsync(userId, units, engine, LiveTranslationCredits.Feature, voice, language);
             return (r.Allowed, r.Allowed ? r.CreditsCharged : 0);
         }
 
@@ -411,6 +417,9 @@ namespace Decatron.Services.LiveTranslation
         }
 
         internal void SetError(string msg) => _lastError = msg;
+        private string? _notice;
+        /// <summary>Aviso no fatal para la app y el dashboard (p. ej. voz premium caída a estándar por falta de créditos).</summary>
+        internal void SetNotice(string msg) => _notice = msg;
 
         internal async Task CloseAsync()
         {
@@ -443,7 +452,7 @@ namespace Decatron.Services.LiveTranslation
         public ChannelStatus Snapshot() => new(
             true, Login, Settings.SourceLanguage, Settings.TargetLanguageList,
             TranslationHub.ListenersByLanguage(Login), _pipelines.Keys.ToList(),
-            _speechSeconds, _segments, CreditsUsed, StartedAt, _lastError);
+            _speechSeconds, _segments, CreditsUsed, StartedAt, _lastError, _notice);
 
         /// <summary>Lo que ve la extensión: sin créditos ni errores internos.</summary>
         public object PublicStatus() => new
@@ -473,8 +482,9 @@ namespace Decatron.Services.LiveTranslation
         private readonly ChannelSession _session;
         private readonly LiveTranslationSessionManager _mgr;
         private readonly string _lang;
-        private readonly ITranslationTtsEngine _engine;
-        private readonly string _voice;
+        // Mutables: si se acaban los créditos premium, el pipeline cae a Piper y sigue.
+        private ITranslationTtsEngine _engine;
+        private string _voice;
         private readonly Channel<QueuedUtterance> _queue;
         private readonly CancellationTokenSource _cts;
         private readonly string _group;
@@ -527,6 +537,16 @@ namespace Decatron.Services.LiveTranslation
             var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct);
 
             var (ok, charged) = await _mgr.ChargeAsync(_session.UserId, translated.Length, _engine.CreditEngine, _voice, _lang);
+            if (!ok && _engine.CreditEngine != "standard" && _mgr.StandardEngine is { } standard)
+            {
+                // Sin créditos premium: no se corta la sesión, la voz pasa a Piper (gratis) y se avisa.
+                _engine = standard;
+                _voice = standard.DefaultVoiceFor(_lang);
+                _session.SetNotice("Sin créditos premium: la voz pasó a estándar (Piper). Compra créditos para volver a la voz premium.");
+                _mgr.Logger.LogInformation("[LiveTranslation] {Login}/{Lang}: sin créditos premium, voz caída a Piper/{Voice}", _session.Login, _lang, _voice);
+                await Notify("EngineFallback", new { lang = _lang, engine = standard.Name, voice = _voice });
+                (ok, charged) = await _mgr.ChargeAsync(_session.UserId, translated.Length, _engine.CreditEngine, _voice, _lang);
+            }
             if (!ok)
             {
                 _session.SetError("Sin créditos");

@@ -25,7 +25,7 @@ interface LiveStatus {
     session: null | {
         active: boolean; login: string; languages: string[]; listeners: Record<string, number>;
         activePipelines: string[]; speechSeconds: number; segments: number; creditsUsed: number;
-        startedAt: string; lastError: string | null;
+        startedAt: string; lastError: string | null; notice?: string | null;
     };
     credits: { totalAvailable: number; isUnlimited: boolean; tier: string };
 }
@@ -190,6 +190,7 @@ export default function LiveTranslationConfig() {
                                 </span>
                             ))}
                         </div>
+                        {session.notice && <p className="col-span-2 md:col-span-4 text-sm text-amber-500">{session.notice}</p>}
                         {session.lastError && <p className="col-span-2 md:col-span-4 text-sm text-red-500">{session.lastError}</p>}
                     </div>
                 ) : (
@@ -278,10 +279,11 @@ export default function LiveTranslationConfig() {
                             <select className={input} value={settings.voiceEngine} disabled={!canEdit} onChange={e => update({ voiceEngine: e.target.value, voices: {} })}>
                                 {engines.map(e => (
                                     <option key={e.name} value={e.name} disabled={!e.configured}>
-                                        {e.name === 'deepgram' ? 'Deepgram Aura' : e.name === 'fish' ? 'Fish Audio' : e.name}{!e.configured ? ` (${t('liveTranslation.config.soon')})` : ''}
+                                        {e.name === 'deepgram' ? 'Deepgram Aura' : e.name === 'fish' ? 'Fish Audio' : e.name === 'piper' ? t('liveTranslation.config.enginePiper') : e.name}{e.name !== 'piper' && e.configured ? ` (${t('liveTranslation.config.enginePremium')})` : ''}{!e.configured ? ` (${t('liveTranslation.config.soon')})` : ''}
                                     </option>
                                 ))}
                             </select>
+                            <p className={`${muted} mt-1`}>{t('liveTranslation.config.engineHint')}</p>
                         </div>
                         {settings.targetLanguages.map(lang => {
                             const options = (engine?.voices ?? []).filter(v => v.language === lang);

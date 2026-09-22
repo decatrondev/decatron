@@ -56,6 +56,14 @@ namespace Decatron.Core.Interfaces
             long userId, int chars, string engine, string feature,
             string? voice = null, string? language = null, bool allowPartial = false);
 
+        /// <summary>
+        /// Descuenta de la bolsa de voz estándar (Piper, CPU propia). Sin multiplicadores y
+        /// sin bolsa comprada detrás: es lo que no cuesta dinero real.
+        /// </summary>
+        Task<CreditConsumeResult> TryConsumeStandardAsync(
+            long userId, int chars, string feature, string? voice = null, string? language = null,
+            string? note = null);
+
         /// <summary>Devuelve créditos ya descontados (la síntesis falló después del cobro).</summary>
         Task RefundAsync(long userId, long credits, string feature, string note);
 

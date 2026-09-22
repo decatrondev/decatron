@@ -385,6 +385,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.LiveTranslator>();
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.ITranslationTtsEngine, Decatron.Services.LiveTranslation.DeepgramAuraTtsEngine>();
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.ITranslationTtsEngine, Decatron.Services.LiveTranslation.FishAudioTtsEngine>();
+    builder.Services.AddSingleton<Decatron.Services.LiveTranslation.ITranslationTtsEngine, Decatron.Services.LiveTranslation.PiperTranslationTtsEngine>();
     builder.Services.AddSingleton<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>();
     builder.Services.AddSingleton<Decatron.Hubs.ITranslationListenerNotifier>(sp =>
         sp.GetRequiredService<Decatron.Services.LiveTranslation.LiveTranslationSessionManager>());

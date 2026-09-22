@@ -1293,7 +1293,7 @@
       "targets": "Idiomas que ofreces",
       "targetsHint": "Solo se traduce a un idioma mientras alguien lo escuche; sin oyentes no se gastan créditos de voz.",
       "voices": "Voces",
-      "voicesHint": "Una voz por idioma. Fish Audio (clon de tu voz) llegará como motor opcional.",
+      "voicesHint": "Una voz por idioma. Con la voz estándar eliges entre las voces de Piper instaladas.",
       "engine": "Motor de voz",
       "soon": "próximamente",
       "defaultVoice": "Voz por defecto",
@@ -1302,7 +1302,10 @@
       "announceHint": "El bot avisa que el stream se puede escuchar en otros idiomas. Usa {languages} para la lista.",
       "announcePlaceholder": "🌐 Este stream se puede escuchar en {languages} con la extensión Decatron Translate: https://decatron.net/translate",
       "background": "Voz original de fondo",
-      "backgroundHint": "Volumen sugerido de tu voz mientras suena la traducción. Cada viewer puede cambiarlo."
+      "backgroundHint": "Volumen sugerido de tu voz mientras suena la traducción. Cada viewer puede cambiarlo.",
+      "enginePiper": "Voz estándar (Piper, gratis)",
+      "enginePremium": "premium, usa créditos",
+      "engineHint": "La voz estándar corre en nuestro servidor y no gasta créditos; tarda un poco más en empezar a hablar. Las premium suenan mejor y responden antes, pero descuentan créditos por carácter. Si se te acaban los créditos en medio del stream, la voz pasa sola a estándar y no se corta."
     },
     "history": {
       "title": "Sesiones anteriores",
