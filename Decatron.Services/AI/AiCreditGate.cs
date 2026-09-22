@@ -16,20 +16,39 @@ namespace Decatron.Services.AI
     /// </summary>
     public class AiCreditGate
     {
-        /// <summary>Dólares que vale un crédito: $4 por millón de caracteres de Polly estándar.</summary>
+        /// <summary>
+        /// Valor del crédito si la configuración no se pudo leer. El real sale de
+        /// finance_settings y lo edita el dueño; esto es solo el piso.
+        /// </summary>
         public const decimal CreditUsd = 0.000004m;
         public const string Engine = "ai";
 
         private readonly IServiceScopeFactory _scopes;
+        private readonly Decatron.Services.Finance.CreditRates _rates;
         private readonly ILogger<AiCreditGate> _logger;
 
-        public AiCreditGate(IServiceScopeFactory scopes, ILogger<AiCreditGate> logger)
+        public AiCreditGate(IServiceScopeFactory scopes, Decatron.Services.Finance.CreditRates rates, ILogger<AiCreditGate> logger)
         {
             _scopes = scopes;
+            _rates = rates;
             _logger = logger;
         }
 
         public static long CreditsFor(decimal usd) => usd <= 0 ? 0 : (long)Math.Ceiling(usd / CreditUsd);
+
+        /// <summary>
+        /// Créditos que cuesta una llamada: su costo real por el multiplicador del motor
+        /// "ai" (1.3 = 30 % de margen), sobre el valor de crédito configurado. Todo
+        /// editable desde Finanzas → Tarifas.
+        /// </summary>
+        public async Task<long> CreditsForAsync(decimal usd)
+        {
+            if (usd <= 0) return 0;
+            var creditUsd = await _rates.CreditUsdAsync();
+            var multiplier = await _rates.PerUnitAsync(Engine);
+            if (multiplier <= 0) multiplier = 1m;
+            return (long)Math.Ceiling(usd * multiplier / creditUsd);
+        }
 
         /// <summary>Nombre con el que queda en el historial de créditos del canal.</summary>
         public static string FeatureFor(string module) => module switch
@@ -63,7 +82,7 @@ namespace Decatron.Services.AI
         /// <summary>Descuenta el costo de una llamada ya hecha. Devuelve los créditos cobrados.</summary>
         public async Task<long> ChargeAsync(long userId, string module, string model, decimal costUsd)
         {
-            var credits = CreditsFor(costUsd);
+            var credits = await CreditsForAsync(costUsd);
             if (userId <= 0 || credits == 0) return 0;
             try
             {

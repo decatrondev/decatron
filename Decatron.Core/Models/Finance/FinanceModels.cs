@@ -17,6 +17,10 @@ public class FinanceSettings
     [Column("igv_percent")] public decimal IgvPercent { get; set; } = 18m;
     [Column("pen_per_usd")] public decimal PenPerUsd { get; set; } = 3.80m;
     [Column("primary_currency")] public string PrimaryCurrency { get; set; } = "PEN";
+    /// <summary>Dólares que vale un crédito. Es el ancla de toda la economía interna.</summary>
+    [Column("credit_usd")] public decimal CreditUsd { get; set; } = 0.000004m;
+    /// <summary>Margen objetivo sobre el costo del proveedor, para calcular tarifas sugeridas.</summary>
+    [Column("target_margin_percent")] public decimal TargetMarginPercent { get; set; } = 30m;
     [Column("updated_at")] public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 

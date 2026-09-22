@@ -42,8 +42,8 @@ namespace Decatron.Core.Interfaces
     /// </summary>
     public interface ITtsCreditService
     {
-        /// <summary>Créditos que cuesta un texto según el motor. Neural = 4x, etc.</summary>
-        long CalculateCost(int chars, string engine);
+        /// <summary>Créditos que cuesta un consumo según la tarifa vigente del motor (credit_rates).</summary>
+        Task<long> CalculateCostAsync(int units, string engine);
 
         /// <summary>
         /// Intenta descontar créditos. Devuelve Allowed=false sin descontar nada si no

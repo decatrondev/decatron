@@ -24,24 +24,12 @@ namespace Decatron.Services
         private readonly DecatronDbContext _context;
         private readonly ILogger<TtsCreditService> _logger;
         private readonly IConfiguration _config;
+        private readonly Decatron.Services.Finance.CreditRates _rates;
         private readonly ITtsService _ttsService;
         private readonly PiperTtsService _piperService;
 
-        /// <summary>Créditos por carácter según el motor (precio AWS / precio standard).</summary>
-        private static readonly Dictionary<string, long> _engineMultipliers = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["standard"]   = 1,
-            ["neural"]     = 4,
-            ["generative"] = 8,   // 7.5 real, redondeado hacia arriba
-            ["longform"]   = 25,
-            ["long-form"]  = 25,
-            // Traducción en vivo (.dev/plans/REALTIME_TRANSLATION_PLAN.md)
-            ["live_stt"]      = 1,   // unidades ya vienen en créditos (segundos × SttCreditsPerSecond)
-            ["deepgram_aura"] = 8,   // Aura-2 ≈ $30/M chars, el doble de Polly neural
-            ["fish"]          = 4,   // Fish ≈ $15/M chars
-            // IA (OpenRouter/Gemini): las unidades ya vienen en créditos (costo real ÷ AiCreditGate.CreditUsd)
-            ["ai"]            = 1,
-        };
+        // Las tarifas por motor ya no viven acá: salen de credit_rates y las edita el
+        // dueño desde Finanzas → Tarifas (plan FINANZAS_PLAN.md). Ver CreditRates.
 
         // Cuotas mensuales por tier (créditos)
         private static readonly Dictionary<string, long> _tierMonthlyCredits = new(StringComparer.OrdinalIgnoreCase)
@@ -80,11 +68,13 @@ namespace Decatron.Services
             ILogger<TtsCreditService> logger,
             IConfiguration config,
             ITtsService ttsService,
-            PiperTtsService piperService)
+            PiperTtsService piperService,
+            Decatron.Services.Finance.CreditRates rates)
         {
             _context = context;
             _logger = logger;
             _config = config;
+            _rates = rates;
             _ttsService = ttsService;
             _piperService = piperService;
         }
@@ -93,11 +83,12 @@ namespace Decatron.Services
         // Costo
         // ─────────────────────────────────────────────────────────────────────
 
-        public long CalculateCost(int chars, string engine)
+        /// <summary>Créditos que cuesta un consumo según la tarifa vigente del motor.</summary>
+        public async Task<long> CalculateCostAsync(int units, string engine)
         {
-            if (chars <= 0) return 0;
-            var multiplier = _engineMultipliers.TryGetValue(engine ?? "standard", out var m) ? m : 1;
-            return (long)chars * multiplier;
+            if (units <= 0) return 0;
+            var perUnit = await _rates.PerUnitAsync(engine);
+            return (long)Math.Ceiling(units * perUnit);
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -111,7 +102,7 @@ namespace Decatron.Services
             if (chars <= 0)
                 return new CreditConsumeResult(true, 0, 0);
 
-            var cost = CalculateCost(chars, engine);
+            var cost = await CalculateCostAsync(chars, engine);
 
             // Los tiers ilimitados (admin) no consumen ni bloquean
             var tier = await TierResolver.GetEffectiveTierAsync(_context, userId);

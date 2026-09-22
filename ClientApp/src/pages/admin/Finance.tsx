@@ -13,7 +13,7 @@ import { CallsTable } from '../../components/admin/AiCallsTable';
 interface Line { key: string; pen: number; usd: number; count: number }
 interface Summary {
     from: string; to: string;
-    settings: { gatewayPercent: number; gatewayFixedPen: number; gatewayFeeHasIgv: boolean; igvPercent: number; penPerUsd: number; primaryCurrency: string };
+    settings: { gatewayPercent: number; gatewayFixedPen: number; gatewayFeeHasIgv: boolean; igvPercent: number; penPerUsd: number; primaryCurrency: string; creditUsd: number; targetMarginPercent: number };
     income: { grossPen: number; grossUsd: number; count: number; bySource: { source: string; pen: number; usd: number; count: number }[]; byMonth: { month: string; pen: number; count: number }[] };
     deductions: { gatewayFeesPen: number; gatewayFeesUsd: number; igvPen: number; igvUsd: number; taxedPen: number };
     netSalesPen: number; netSalesUsd: number;
@@ -38,7 +38,7 @@ const usd = (n: number) => `$${n.toFixed(2)}`;
 
 export default function Finance() {
     const navigate = useNavigate();
-    const [tab, setTab] = useState<'resumen' | 'ingresos' | 'costos' | 'creditos' | 'ajustes'>('resumen');
+    const [tab, setTab] = useState<'resumen' | 'ingresos' | 'costos' | 'creditos' | 'tarifas' | 'ajustes'>('resumen');
     const [months, setMonths] = useState(12);
     const [data, setData] = useState<Summary | null>(null);
     const [loading, setLoading] = useState(true);
@@ -69,7 +69,7 @@ export default function Finance() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-                {([['resumen', 'Resumen'], ['ingresos', 'Ingresos'], ['costos', 'Costos'], ['creditos', 'Créditos'], ['ajustes', 'Ajustes']] as const).map(([k, label]) => (
+                {([['resumen', 'Resumen'], ['ingresos', 'Ingresos'], ['costos', 'Costos'], ['creditos', 'Créditos'], ['tarifas', 'Tarifas'], ['ajustes', 'Ajustes']] as const).map(([k, label]) => (
                     <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 rounded-xl text-sm font-bold border ${tab === k ? 'bg-[#9146FF] border-[#9146FF] text-white' : 'bg-white dark:bg-[#1B1C1D] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}>{label}</button>
                 ))}
             </div>
@@ -81,6 +81,7 @@ export default function Finance() {
             {data && tab === 'ingresos' && <Ingresos months={months} />}
             {data && tab === 'costos' && <Costos d={data} onChanged={load} />}
             {tab === 'creditos' && <Creditos months={months} />}
+            {tab === 'tarifas' && <Tarifas />}
             {tab === 'ajustes' && <Ajustes onSaved={load} />}
         </div>
     );
@@ -368,8 +369,96 @@ function Creditos({ months }: { months: number }) {
     );
 }
 
+interface Rate {
+    engine: string; label: string; unit: string; creditsPerUnit: number; providerUsdPerUnit: number; enabled: boolean; notes: string | null;
+    chargedUsdPerUnit: number; marginPercent: number | null; suggestedCreditsPerUnit: number | null;
+    perMillionCharsUsd: number | null; providerPerMillionCharsUsd: number | null; perMinuteUsd: number | null; providerPerMinuteUsd: number | null;
+}
+
+/**
+ * Tarifas de créditos: lo que se le cobra al canal por cada motor contra lo que cuesta
+ * de verdad. Todo editable: ningún precio vive en el código.
+ */
+function Tarifas() {
+    const [d, setD] = useState<{ creditUsd: number; targetMarginPercent: number; rates: Rate[] } | null>(null);
+    const [editing, setEditing] = useState<Rate | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [msg, setMsg] = useState<string | null>(null);
+    const load = () => api.get('/admin/finance/rates').then(r => setD(r.data)).catch(() => setMsg('No se pudieron cargar las tarifas.'));
+    useEffect(() => { load(); }, []);
+    if (!d) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-[#9146FF]" /></div>;
+
+    const save = async () => {
+        if (!editing) return;
+        setBusy(true); setMsg(null);
+        try { await api.put(`/admin/finance/rates/${encodeURIComponent(editing.engine)}`, editing); setEditing(null); load(); }
+        catch (e: any) { setMsg(e?.response?.data?.message ?? 'No se pudo guardar.'); }
+        finally { setBusy(false); }
+    };
+    const applyMargin = async () => {
+        if (!confirm(`¿Poner todas las tarifas al ${d.targetMarginPercent}% de margen sobre el costo del proveedor?`)) return;
+        setBusy(true);
+        try { const r = await api.post('/admin/finance/rates/apply-margin'); setMsg(`${r.data.changed} tarifas actualizadas al ${r.data.marginPercent}%.`); load(); }
+        finally { setBusy(false); }
+    };
+    const marginColor = (m: number | null) => m == null ? muted : m >= d.targetMarginPercent ? 'text-green-600 dark:text-green-400' : m > 0 ? 'text-amber-500' : 'text-red-500';
+
+    return (
+        <>
+            <div className={card}>
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+                    <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Tarifas por motor</h2>
+                    <button onClick={applyMargin} disabled={busy} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-white text-xs font-bold disabled:opacity-50">Aplicar {d.targetMarginPercent}% a todas</button>
+                </div>
+                <p className={`${muted} mb-4`}>1 crédito = {usd(d.creditUsd)} (${(d.creditUsd * 1_000_000).toFixed(2)} por millón). El margen es lo que cobras por encima de lo que te cobra el proveedor. En verde, los que llegan al objetivo.</p>
+                {msg && <p className={`${muted} mb-3`}>{msg}</p>}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead><tr><th className={th}>Motor</th><th className={`${th} text-right`}>Cobra</th><th className={`${th} text-right`}>Cuesta</th><th className={`${th} text-right`}>Margen</th><th className={`${th} text-right`}>Sugerido</th><th className={th}></th></tr></thead>
+                        <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                            {d.rates.map(r => (
+                                <tr key={r.engine} className={tr}>
+                                    <td className="py-1.5 text-xs">{r.label}{!r.enabled && <span className="ml-1 text-[10px] uppercase text-[#94a3b8]">apagado</span>}<div className={muted}>{r.engine}</div></td>
+                                    <td className="text-right font-mono text-xs">
+                                        {r.creditsPerUnit.toLocaleString()} cr/{r.unit === 'char' ? 'car' : r.unit === 'second' ? 'seg' : 'USD'}
+                                        <div className={muted}>{r.perMillionCharsUsd != null ? `${usd(r.perMillionCharsUsd)}/M car` : r.perMinuteUsd != null ? `${usd(r.perMinuteUsd)}/min` : `×${r.creditsPerUnit} sobre el costo`}</div>
+                                    </td>
+                                    <td className="text-right font-mono text-xs">
+                                        {r.providerPerMillionCharsUsd != null ? `${usd(r.providerPerMillionCharsUsd)}/M car` : r.providerPerMinuteUsd != null ? `${usd(r.providerPerMinuteUsd)}/min` : r.unit === 'usd' ? 'costo real' : '—'}
+                                    </td>
+                                    <td className={`text-right font-mono text-xs font-bold ${marginColor(r.marginPercent)}`}>{r.marginPercent != null ? `${r.marginPercent}%` : '—'}</td>
+                                    <td className="text-right font-mono text-xs text-[#64748b] dark:text-[#94a3b8]">{r.suggestedCreditsPerUnit != null ? r.suggestedCreditsPerUnit.toLocaleString() : '—'}</td>
+                                    <td className="text-right"><button onClick={() => setEditing({ ...r })} className="text-[#9146FF] hover:underline text-xs">Editar</button></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {editing && (
+                    <div className="mt-4 p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#111213] grid md:grid-cols-3 gap-3">
+                        <label className="md:col-span-2"><span className={muted}>Nombre</span><input className={input} value={editing.label} onChange={e => setEditing({ ...editing, label: e.target.value })} /></label>
+                        <label><span className={muted}>Unidad</span><select className={input} value={editing.unit} onChange={e => setEditing({ ...editing, unit: e.target.value })}><option value="char">Por carácter</option><option value="second">Por segundo</option><option value="usd">Multiplicador sobre el costo</option></select></label>
+                        <label><span className={muted}>Créditos por unidad</span><input type="number" step="0.0001" className={input} value={editing.creditsPerUnit} onChange={e => setEditing({ ...editing, creditsPerUnit: Number(e.target.value) })} /></label>
+                        <label><span className={muted}>Costo del proveedor (USD por unidad)</span><input type="number" step="0.0000000001" className={input} value={editing.providerUsdPerUnit} onChange={e => setEditing({ ...editing, providerUsdPerUnit: Number(e.target.value) })} /></label>
+                        <label className="flex items-end gap-2 text-sm text-[#1e293b] dark:text-[#f8fafc]"><input type="checkbox" checked={editing.enabled} onChange={e => setEditing({ ...editing, enabled: e.target.checked })} /> Activo</label>
+                        <label className="md:col-span-2"><span className={muted}>Notas</span><input className={input} value={editing.notes ?? ''} onChange={e => setEditing({ ...editing, notes: e.target.value })} /></label>
+                        <div className="flex items-end gap-2">
+                            <button onClick={() => setEditing(null)} className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-sm">Cancelar</button>
+                            <button onClick={save} disabled={busy} className="px-3 py-2 rounded-lg bg-[#9146FF] text-white text-sm font-bold disabled:opacity-50">{busy ? 'Guardando…' : 'Guardar'}</button>
+                        </div>
+                        {editing.suggestedCreditsPerUnit != null && (
+                            <p className={`${muted} md:col-span-3`}>Para {d.targetMarginPercent}% de margen: <b>{editing.suggestedCreditsPerUnit.toLocaleString()}</b> créditos por unidad.</p>
+                        )}
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}
+
 function Ajustes({ onSaved }: { onSaved: () => void }) {
-    const [s, setS] = useState<Summary['settings'] | null>(null);
+    const [s, setS] = useState<(Summary['settings'] & { creditUsd: number; targetMarginPercent: number }) | null>(null);
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<string | null>(null);
     useEffect(() => { api.get('/admin/finance/settings').then(r => setS(r.data)).catch(() => { }); }, []);
@@ -391,6 +480,8 @@ function Ajustes({ onSaved }: { onSaved: () => void }) {
                 <label><span className={muted}>Parte fija por cobro (S/)</span><input type="number" step="0.01" className={input} value={s.gatewayFixedPen} onChange={e => setS({ ...s, gatewayFixedPen: Number(e.target.value) })} /></label>
                 <label><span className={muted}>IGV (%)</span><input type="number" step="0.01" className={input} value={s.igvPercent} onChange={e => setS({ ...s, igvPercent: Number(e.target.value) })} /></label>
                 <label><span className={muted}>Tipo de cambio (S/ por USD)</span><input type="number" step="0.0001" className={input} value={s.penPerUsd} onChange={e => setS({ ...s, penPerUsd: Number(e.target.value) })} /></label>
+                <label><span className={muted}>Valor del crédito (USD)</span><input type="number" step="0.000000001" className={input} value={s.creditUsd} onChange={e => setS({ ...s, creditUsd: Number(e.target.value) })} /></label>
+                <label><span className={muted}>Margen objetivo (%)</span><input type="number" step="1" className={input} value={s.targetMarginPercent} onChange={e => setS({ ...s, targetMarginPercent: Number(e.target.value) })} /></label>
                 <label className="flex items-end gap-2 text-sm text-[#1e293b] dark:text-[#f8fafc]"><input type="checkbox" checked={s.gatewayFeeHasIgv} onChange={e => setS({ ...s, gatewayFeeHasIgv: e.target.checked })} /> La comisión lleva IGV</label>
                 <div className="flex items-end gap-3">
                     <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#9146FF] text-white text-sm font-bold disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar</button>

@@ -87,7 +87,7 @@ namespace Decatron.Controllers
                             success = false,
                             message = "Sin créditos TTS suficientes, ni premium ni de voz estándar",
                             creditsAvailable = balance.TotalAvailable,
-                            creditsNeeded = _creditService.CalculateCost(request.Text.Length, request.Engine),
+                            creditsNeeded = await _creditService.CalculateCostAsync(request.Text.Length, request.Engine),
                             standardAvailable = balance.StandardRemaining
                         });
                     }

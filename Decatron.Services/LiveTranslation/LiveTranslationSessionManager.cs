@@ -208,7 +208,7 @@ namespace Decatron.Services.LiveTranslation
         internal ILogger Logger => _logger;
 
         /// <summary>Cobra créditos. Devuelve false si no alcanzó (no descuenta nada). El motor "standard" (Piper) va a la bolsa estándar.</summary>
-        internal async Task<(bool ok, long charged)> ChargeAsync(long userId, int units, string engine, string? voice, string? language)
+        internal async Task<(bool ok, long charged)> ChargeAsync(long userId, int units, string engine, string? voice, string? language, bool byUnit = false)
         {
             using var scope = _scopes.CreateScope();
             var credits = scope.ServiceProvider.GetRequiredService<ITtsCreditService>();
@@ -302,6 +302,10 @@ namespace Decatron.Services.LiveTranslation
         /// <summary>Cuándo llegó el primer frame de audio: reloj de referencia para el eje de tiempo de Deepgram.</summary>
         public DateTime? FirstAudioUtc { get; private set; }
         private long _audioBytes;
+        private long _audioBytesCharged;
+        private int _chargingStt;
+        /// <summary>Cada cuánto audio se pasa por el ledger: 15 s (PCM16 16 kHz mono).</summary>
+        private const long SttChargeChunkBytes = 15 * 32000;
         /// <summary>Segundos de audio recibidos (PCM16 16 kHz mono = 32000 B/s).</summary>
         public double AudioSecondsReceived => _audioBytes / 32000.0;
         /// <summary>Cuánto va el flujo de audio por detrás del reloj real: tiempo transcurrido − audio recibido. Positivo = la app se atrasa (búfer/deriva).</summary>
@@ -339,8 +343,39 @@ namespace Decatron.Services.LiveTranslation
         {
             LastAudioUtc = DateTime.UtcNow;
             FirstAudioUtc ??= LastAudioUtc;
-            Interlocked.Add(ref _audioBytes, pcm16.Length);
+            var total = Interlocked.Add(ref _audioBytes, pcm16.Length);
+            // Deepgram cobra el audio que recibe, silencios incluidos (el Desktop manda
+            // continuo a propósito, para que cierre bien las frases). Así que el crédito
+            // se descuenta por audio enviado, no por frase reconocida: si no, el silencio
+            // lo pagaba la plataforma. Se cobra por tandas para no ir al ledger por frame.
+            if (total - Interlocked.Read(ref _audioBytesCharged) >= SttChargeChunkBytes && Interlocked.Exchange(ref _chargingStt, 1) == 0)
+                _ = ChargeStreamedAudioAsync();
             return _stt?.SendAudioAsync(pcm16, ct) ?? Task.CompletedTask;
+        }
+
+        /// <summary>Descuenta el audio enviado que todavía no se cobró. Sin saldo, corta la sesión.</summary>
+        private async Task ChargeStreamedAudioAsync()
+        {
+            try
+            {
+                var pending = Interlocked.Read(ref _audioBytes) - Interlocked.Read(ref _audioBytesCharged);
+                if (pending <= 0) return;
+                var seconds = pending / 32000.0;
+                var (ok, charged) = await _mgr.ChargeAsync(UserId, (int)Math.Ceiling(seconds), "live_stt", null, Settings.SourceLanguage, byUnit: true);
+                if (!ok)
+                {
+                    _lastError = "Sin créditos";
+                    _mgr.RequestStop(this, "no_credits");
+                    return;
+                }
+                Interlocked.Add(ref _audioBytesCharged, pending);
+                Interlocked.Add(ref _creditsUsed, charged);
+            }
+            catch (Exception ex)
+            {
+                _mgr.Logger.LogWarning(ex, "[LiveTranslation] {Login}: no se pudo cobrar el audio enviado", Login);
+            }
+            finally { Interlocked.Exchange(ref _chargingStt, 0); }
         }
 
         internal void EnsurePipeline(string lang)
@@ -372,17 +407,8 @@ namespace Decatron.Services.LiveTranslation
             if (_cts.IsCancellationRequested) return;
             var seconds = Math.Max(0.5, u.EndSec - u.StartSec);
 
-            // El STT se cobra una vez por frase aunque haya cinco idiomas. Se cobra
-            // siempre, haya oyentes o no, porque Deepgram ya lo transcribió.
-            var units = (int)Math.Ceiling(seconds * _mgr.Options.SttCreditsPerSecond);
-            var (ok, charged) = await _mgr.ChargeAsync(UserId, units, "live_stt", null, Settings.SourceLanguage);
-            if (!ok)
-            {
-                _lastError = "Sin créditos";
-                _mgr.RequestStop(this, "no_credits");
-                return;
-            }
-            Interlocked.Add(ref _creditsUsed, charged);
+            // El STT ya se cobró por audio enviado (ChargeStreamedAudioAsync): acá solo se
+            // mide cuánto habló el streamer, que es otra cosa que lo que factura Deepgram.
             _speechSeconds += seconds;
             Interlocked.Increment(ref _segments);
             TouchPeak();

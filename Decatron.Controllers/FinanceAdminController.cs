@@ -77,7 +77,7 @@ namespace Decatron.Controllers
             {
                 success = true,
                 from = fromUtc, to = toUtc,
-                settings = new { s.GatewayPercent, s.GatewayFixedPen, s.GatewayFeeHasIgv, s.IgvPercent, s.PenPerUsd, s.PrimaryCurrency },
+                settings = new { s.GatewayPercent, s.GatewayFixedPen, s.GatewayFeeHasIgv, s.IgvPercent, s.PenPerUsd, s.PrimaryCurrency, s.CreditUsd, s.TargetMarginPercent },
                 income = new
                 {
                     grossPen, grossUsd = grossPen / rate, count = income.Count, bySource, byMonth,
@@ -248,7 +248,7 @@ namespace Decatron.Controllers
         [HttpGet("settings")]
         public async Task<IActionResult> GetSettings() => Ok(await _finance.GetSettingsAsync(HttpContext.RequestAborted));
 
-        public record SettingsInput(decimal GatewayPercent, decimal GatewayFixedPen, bool GatewayFeeHasIgv, decimal IgvPercent, decimal PenPerUsd, string PrimaryCurrency);
+        public record SettingsInput(decimal GatewayPercent, decimal GatewayFixedPen, bool GatewayFeeHasIgv, decimal IgvPercent, decimal PenPerUsd, string PrimaryCurrency, decimal? CreditUsd, decimal? TargetMarginPercent);
 
         [HttpPut("settings")]
         public async Task<IActionResult> SaveSettings([FromBody] SettingsInput input)
@@ -262,9 +262,97 @@ namespace Decatron.Controllers
             s.IgvPercent = Math.Clamp(input.IgvPercent, 0m, 50m);
             s.PenPerUsd = input.PenPerUsd;
             s.PrimaryCurrency = input.PrimaryCurrency == "USD" ? "USD" : "PEN";
+            if (input.CreditUsd is > 0) s.CreditUsd = input.CreditUsd.Value;
+            if (input.TargetMarginPercent is >= 0) s.TargetMarginPercent = Math.Clamp(input.TargetMarginPercent.Value, 0m, 500m);
             s.UpdatedAt = DateTimeOffset.UtcNow;
             await _db.SaveChangesAsync();
             return Ok(s);
+        }
+
+        // ── Tarifas de créditos ────────────────────────────────────────────────
+
+        /// <summary>
+        /// Lo que se le cobra al canal por cada motor y lo que cuesta de verdad, con el
+        /// margen resultante y la tarifa sugerida para el margen objetivo.
+        /// </summary>
+        [HttpGet("rates")]
+        public async Task<IActionResult> GetRates()
+        {
+            var s = await _finance.GetSettingsAsync(HttpContext.RequestAborted);
+            var rates = await _db.CreditRates.AsNoTracking().OrderBy(r => r.Label).ToListAsync();
+            var creditUsd = s.CreditUsd > 0 ? s.CreditUsd : 0.000004m;
+            return Ok(new
+            {
+                success = true,
+                creditUsd,
+                targetMarginPercent = s.TargetMarginPercent,
+                rates = rates.Select(r =>
+                {
+                    // Lo que cobramos por unidad, en dólares. Para el motor "ai" la unidad
+                    // es el propio dólar de costo, así que el multiplicador ya es el margen.
+                    var chargedUsd = r.Unit == "usd" ? r.CreditsPerUnit : r.CreditsPerUnit * creditUsd;
+                    var cost = r.Unit == "usd" ? 1m : r.ProviderUsdPerUnit;
+                    var margin = cost > 0 ? Math.Round((chargedUsd / cost - 1m) * 100m, 1) : (decimal?)null;
+                    var suggested = cost > 0
+                        ? Math.Round(cost * (1 + s.TargetMarginPercent / 100m) / (r.Unit == "usd" ? 1m : creditUsd), 4)
+                        : (decimal?)null;
+                    return new
+                    {
+                        r.Engine, r.Label, r.Unit, r.CreditsPerUnit, r.ProviderUsdPerUnit, r.Enabled, r.Notes, r.UpdatedAt,
+                        chargedUsdPerUnit = chargedUsd,
+                        marginPercent = margin,
+                        suggestedCreditsPerUnit = suggested,
+                        // Referencias legibles: por millón de caracteres o por minuto.
+                        perMillionCharsUsd = r.Unit == "char" ? Math.Round(chargedUsd * 1_000_000m, 2) : (decimal?)null,
+                        providerPerMillionCharsUsd = r.Unit == "char" ? Math.Round(r.ProviderUsdPerUnit * 1_000_000m, 2) : (decimal?)null,
+                        perMinuteUsd = r.Unit == "second" ? Math.Round(chargedUsd * 60m, 5) : (decimal?)null,
+                        providerPerMinuteUsd = r.Unit == "second" ? Math.Round(r.ProviderUsdPerUnit * 60m, 5) : (decimal?)null,
+                    };
+                }),
+            });
+        }
+
+        public record RateInput(string Label, string Unit, decimal CreditsPerUnit, decimal ProviderUsdPerUnit, bool Enabled, string? Notes);
+
+        [HttpPut("rates/{engine}")]
+        public async Task<IActionResult> SaveRate(string engine, [FromBody] RateInput input)
+        {
+            if (input.CreditsPerUnit <= 0) return BadRequest(new { success = false, message = "La tarifa tiene que ser mayor que cero" });
+            var r = await _db.CreditRates.FirstOrDefaultAsync(x => x.Engine == engine);
+            if (r == null)
+            {
+                r = new Decatron.Core.Models.Finance.CreditRate { Engine = engine };
+                _db.CreditRates.Add(r);
+            }
+            r.Label = string.IsNullOrWhiteSpace(input.Label) ? engine : input.Label.Trim();
+            r.Unit = input.Unit is "second" or "usd" ? input.Unit : "char";
+            r.CreditsPerUnit = input.CreditsPerUnit;
+            r.ProviderUsdPerUnit = Math.Max(0m, input.ProviderUsdPerUnit);
+            r.Enabled = input.Enabled;
+            r.Notes = input.Notes?.Trim();
+            r.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+            return Ok(r);
+        }
+
+        /// <summary>Pone todas las tarifas al margen objetivo de una vez.</summary>
+        [HttpPost("rates/apply-margin")]
+        public async Task<IActionResult> ApplyMargin()
+        {
+            var s = await _finance.GetSettingsAsync(HttpContext.RequestAborted);
+            var creditUsd = s.CreditUsd > 0 ? s.CreditUsd : 0.000004m;
+            var rates = await _db.CreditRates.ToListAsync();
+            var changed = 0;
+            foreach (var r in rates)
+            {
+                if (r.Unit == "usd") { r.CreditsPerUnit = 1 + s.TargetMarginPercent / 100m; r.UpdatedAt = DateTimeOffset.UtcNow; changed++; continue; }
+                if (r.ProviderUsdPerUnit <= 0) continue; // Piper y demás: no cuestan dinero
+                r.CreditsPerUnit = Math.Round(r.ProviderUsdPerUnit * (1 + s.TargetMarginPercent / 100m) / creditUsd, 4);
+                r.UpdatedAt = DateTimeOffset.UtcNow;
+                changed++;
+            }
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true, changed, marginPercent = s.TargetMarginPercent });
         }
 
         // ── Costos fijos ───────────────────────────────────────────────────────
