@@ -1,4 +1,5 @@
 ﻿import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import decatronLockup from './assets/decatron-lockup.png';
 import ThemeToggle from './components/ThemeToggle';
 import Layout from './components/Layout';
@@ -66,6 +67,7 @@ import TournamentConfig from './pages/features/tournament-extension/TournamentCo
 import GachaOverlay from './pages/GachaOverlay';
 import GameOverlay from './pages/GameOverlay';
 import GameOverlayDemo from './pages/GameOverlayDemo';
+const PetsDemo = lazy(() => import('./pages/PetsDemo')); // three.js solo se carga en esta ruta
 import WheelOverlay from './pages/WheelOverlay';
 import GachaCollection from './pages/GachaCollection';
 import GachaRanking from './pages/GachaRanking';
@@ -314,6 +316,7 @@ function App() {
                     <Route path="overlays/games" element={<SafeRoute name="Game Overlays"><GameOverlays /></SafeRoute>} />
                     <Route path="overlays/live" element={<SafeRoute name="Live Match"><LiveOverlays /></SafeRoute>} />
                     <Route path="overlays/rueda" element={<SafeRoute name="Rueda de la Suerte"><WheelConfig /></SafeRoute>} />
+                    <Route path="overlays/pets-demo" element={<SafeRoute name="Pets Demo"><Suspense fallback={null}><PetsDemo /></Suspense></SafeRoute>} />
 
                     {/* Gacha System */}
                     <Route path="features/gacha" element={<SafeRoute name="Gacha"><GachaConfig /></SafeRoute>} />

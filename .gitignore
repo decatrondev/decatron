@@ -246,3 +246,6 @@ appsettings.Secrets.json.example
 # Logs de screen: aparecen al arrancar servicios en el servidor
 screenlog.*
 __pycache__/
+
+# Modelos 3D de mascotas (repo público, se sirven firmados por el backend)
+pets-assets/

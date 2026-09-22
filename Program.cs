@@ -360,6 +360,7 @@ try
     // Catálogo de voces de Polly. Singleton: la lista es la misma para todo el mundo y
     // se cachea un día, así que no tiene sentido reconstruirlo por petición.
     builder.Services.AddSingleton<PollyVoiceCatalogService>();
+    builder.Services.AddSingleton<Decatron.Services.Pets.PetCatalogService>(); // Mascotas: catálogo de pets-assets/ + URLs firmadas
 
     // Radiografía del propio repositorio para /admin. Singleton porque cachea el
     // resultado y la raíz no cambia mientras el proceso viva.
