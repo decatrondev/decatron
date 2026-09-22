@@ -136,6 +136,8 @@ namespace Decatron.Controllers
                     return StatusCode(502, new { error = "El pago no se pudo confirmar. Si te llegó el cargo, escribe a soporte con tu comprobante y se resuelve — no vuelvas a pagar." });
                 }
                 var chargeId = chargeIdEl.GetString() ?? "";
+                // El id del cargo manda sobre el modo configurado: un chr_test_ nunca se factura.
+                esTest = Decatron.Services.CargoDePrueba.Es(esTest, chargeId);
 
                 // Cargo confirmado: registrar la compra y acreditar. Los datos del comprobante
                 // van congelados con la compra, no se leen del perfil al emitir.

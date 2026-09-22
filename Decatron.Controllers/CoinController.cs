@@ -286,6 +286,8 @@ namespace Decatron.Controllers
                 }
 
                 var chargeId = chargeIdEl.GetString() ?? "";
+                // El id del cargo manda sobre el modo configurado: un chr_test_ nunca se factura.
+                esTest = Decatron.Services.CargoDePrueba.Es(esTest, chargeId);
 
                 // 5. Cargo confirmado — crear y completar la orden en el mismo paso.
                 // paypal_order_id/paypal_status son nombres heredados de cuando esto era

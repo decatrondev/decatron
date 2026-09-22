@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -5,6 +6,18 @@ using Npgsql;
 namespace Decatron.Services
 {
     /// <summary>Qué llaves de Culqi usar y con qué sección de configuración leerlas.</summary>
+    /// <summary>
+    /// Un cargo de Culqi es de prueba si el modo lo dice **o** si el id del cargo empieza
+    /// por chr_test_. La segunda barrera existe porque en julio de 2026 se emitió una
+    /// factura real (F002-11) por un cargo de prueba: el modo puede cambiar entre el cobro
+    /// y el guardado, pero el id del cargo no miente. Ver .dev/plans/FINANZAS_PLAN.md.
+    /// </summary>
+    public static class CargoDePrueba
+    {
+        public static bool Es(bool modoTest, string? chargeId) =>
+            modoTest || (chargeId?.StartsWith("chr_test_", StringComparison.OrdinalIgnoreCase) ?? false);
+    }
+
     public sealed record ModoCobro(bool EsTest)
     {
         /// <summary>Sección de appsettings de la que salen las llaves.</summary>

@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -36,6 +36,14 @@ export default function AdminHub() {
             description: 'Gestiona las donaciones recibidas en la plataforma',
             icon: <Heart className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/donations',
+            ready: true
+        },
+        {
+            id: 'finance',
+            name: 'Finanzas',
+            description: 'Ingresos, costos y beneficio de la plataforma',
+            icon: <Wallet className="w-6 h-6 text-[#16a34a]" />,
+            route: '/admin/finance',
             ready: true
         },
         {
@@ -126,15 +134,7 @@ export default function AdminHub() {
             route: '/admin/tts-lab',
             ready: true
         },
-        {
-            id: 'ai-costs',
-            name: 'Costos de IA',
-            description: 'Gasto en modelos de lenguaje por módulo, modelo y streamer; saldo de OpenRouter y modelos por módulo',
-            icon: <CircleDollarSign className="w-6 h-6 text-[#9146FF]" />,
-            route: '/admin/ai-costs',
-            ready: true
-        },
-        {
+                {
             id: 'live-translation',
             name: 'Traducción en vivo',
             description: 'Uso, costo estimado por proveedor, sesiones activas y límites',

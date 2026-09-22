@@ -1563,6 +1563,8 @@ namespace Decatron.Controllers
                 }
 
                 var chargeId = chargeIdEl.GetString() ?? "";
+                // El id del cargo manda sobre el modo configurado: un chr_test_ nunca se factura.
+                esTest = Decatron.Services.CargoDePrueba.Es(esTest, chargeId);
 
                 // Increment discount code usage
                 if (appliedCodeId.HasValue && appliedCodeId > 0)
@@ -1750,6 +1752,7 @@ namespace Decatron.Controllers
                 }
 
                 var chargeId = donationIdEl.GetString() ?? "";
+                esTest = Decatron.Services.CargoDePrueba.Es(esTest, chargeId);
 
                 var userLogin = User.Identity?.IsAuthenticated == true
                     ? (User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value)

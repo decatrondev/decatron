@@ -97,6 +97,10 @@ namespace Decatron.Core.Models
         [MaxLength(20)]
         public string? InvoiceStatus { get; set; }
 
+        /// <summary>Cobro de prueba (claves test de Culqi o sandbox de PayPal): no es ingreso ni se factura.</summary>
+        [Column("is_test")]
+        public bool IsTest { get; set; }
+
         /// <summary>Id del SunatDocument del lado de DecatronAPI.</summary>
         [Column("invoice_document_id")]
         public int? InvoiceDocumentId { get; set; }

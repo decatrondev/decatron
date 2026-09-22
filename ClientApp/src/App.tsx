@@ -41,6 +41,7 @@ import AdminTcgArtQueue from './pages/admin/AdminTcgArtQueue';
 import DecatronAIAdmin from './pages/admin/DecatronAIAdmin';
 import DecatronChatAdmin from './pages/admin/DecatronChatAdmin';
 import AdminDonations from './pages/admin/Donations/index';
+import Finance from './pages/admin/Finance';
 import EmailManagement from './pages/admin/EmailManagement/index';
 import DevDocs from './pages/admin/DevDocs';
 import TtsLab from './pages/admin/TtsLab';
@@ -303,8 +304,10 @@ function App() {
                     <Route path="admin/email" element={<SafeRoute name="Email"><EmailManagement /></SafeRoute>} />
                     <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
                     <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
+                    <Route path="admin/finance" element={<SafeRoute name="Finanzas"><Finance /></SafeRoute>} />
                     <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
                     <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />
+                    {/* Absorbido por Finanzas → Costos (plan FINANZAS_PLAN.md fase 5); la ruta vieja sigue viva para enlaces guardados. */}
                     <Route path="admin/ai-costs" element={<SafeRoute name="AI Costs Admin"><AiCostsAdmin /></SafeRoute>} />
                     <Route path="admin/project-analysis" element={<SafeRoute name="Project Analysis"><ProjectAnalysis /></SafeRoute>} />
                     <Route path="admin/fortnite" element={<SafeRoute name="Fortnite Sprites"><AdminFortnite /></SafeRoute>} />
