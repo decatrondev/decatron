@@ -84,6 +84,103 @@
         "Configurable item rarity",
         "Channel points integration"
       ]
+    },
+    "pets": {
+      "name": "Pet",
+      "description": "A 3D cat that lives on your stream: it wanders, sits, sleeps and (soon) reacts to your alerts and chat commands. Free for every channel.",
+      "features": [
+        "A real 3D model, not a gif",
+        "Wanders, sits and falls asleep on its own",
+        "Configurable name and speech bubbles",
+        "One transparent URL for OBS"
+      ],
+      "usage": "/overlay/pets?channel=your_channel"
+    }
+  },
+  "pets": {
+    "title": "Pet",
+    "subtitle": "A 3D cat that lives on your stream. You choose its name, its look and how much it moves.",
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Could not save",
+    "loadError": "Could not load the configuration",
+    "tabs": {
+      "pet": "Pet",
+      "behavior": "Behavior",
+      "overlay": "Overlay",
+      "testing": "Test"
+    },
+    "preview": {
+      "title": "Preview",
+      "hint": "This is the very same overlay scene ({{size}}), scaled to fit here. Changes show instantly; save to apply them in OBS.",
+      "pause": "Pause",
+      "resume": "Resume"
+    },
+    "pet": {
+      "model": "Model",
+      "modelHint": "There is one cat for now; more pets will be added.",
+      "clips": "animations",
+      "by": "by",
+      "identity": "Name",
+      "name": "Pet name",
+      "showName": "Show the name above it"
+    },
+    "style": {
+      "font": "Font",
+      "size": "Size",
+      "color": "Color",
+      "background": "Background",
+      "outline": "Outline",
+      "bubbleTitle": "Speech bubble",
+      "bubbleHint": "This is how the pet's messages will look (greetings, reactions, command replies)."
+    },
+    "behavior": {
+      "title": "Behavior",
+      "hint": "What the pet does when nothing is happening on the channel.",
+      "reset": "Reset",
+      "confirmReset": "Reset behavior to defaults?",
+      "wander": "How often it does something (walk or sit)",
+      "min": "Min",
+      "max": "Max",
+      "walkSpeed": "Walking speed",
+      "walkArea": "Walking area (overlay width)",
+      "left": "From",
+      "right": "To",
+      "sit": "Sitting",
+      "chance": "Chance",
+      "sleep": "Sleeping",
+      "sleepHint": "If nothing happens on the channel for this long, it lies down to sleep. 0 = never sleeps.",
+      "sleepAfter": "Falls asleep after"
+    },
+    "url": {
+      "title": "OBS URL",
+      "hint": "Add a {{size}} browser source with this URL. The background is transparent.",
+      "copy": "Copy",
+      "open": "Open the overlay",
+      "enabled": "Overlay enabled",
+      "enabledHint": "When off, the URL shows nothing."
+    },
+    "overlay": {
+      "title": "Size and position",
+      "hint": "Pet height is in real pixels of your OBS source; ground is the distance from the bottom edge to its paws.",
+      "width": "Width (px)",
+      "height": "Height (px)",
+      "petHeight": "Pet height (px)",
+      "ground": "Ground (px)",
+      "tilt": "Camera tilt",
+      "shadow": "Ground shadow"
+    },
+    "testing": {
+      "title": "Test",
+      "hint": "Pick what the pet does and says. Watch it here only, or send it to the real overlay in OBS.",
+      "noClip": "This model has no such animation; the closest one is used",
+      "bubble": "Bubble text",
+      "bubblePlaceholder": "Empty = no bubble",
+      "duration": "Duration",
+      "previewOnly": "Show in preview",
+      "sendToOverlay": "Send to the OBS overlay",
+      "sent": "Sent to the overlay",
+      "note": "* = animation the model does not have yet; the closest one is used. Automatic reactions to alerts and chat commands come in the next phase."
     }
   }
 }

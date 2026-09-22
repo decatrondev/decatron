@@ -67,7 +67,10 @@ import TournamentConfig from './pages/features/tournament-extension/TournamentCo
 import GachaOverlay from './pages/GachaOverlay';
 import GameOverlay from './pages/GameOverlay';
 import GameOverlayDemo from './pages/GameOverlayDemo';
-const PetsDemo = lazy(() => import('./pages/PetsDemo')); // three.js solo se carga en esta ruta
+// three.js solo se carga en las rutas de mascotas
+const PetsDemo = lazy(() => import('./pages/PetsDemo'));
+const PetsConfig = lazy(() => import('./pages/features/PetsConfig'));
+const PetsOverlay = lazy(() => import('./pages/PetsOverlay'));
 import WheelOverlay from './pages/WheelOverlay';
 import GachaCollection from './pages/GachaCollection';
 import GachaRanking from './pages/GachaRanking';
@@ -120,6 +123,7 @@ import FollowersDoc from './pages/docs/private/features/FollowersDoc';
 import AIDoc from './pages/docs/private/features/AIDoc';
 import NowPlayingDoc from './pages/docs/private/features/NowPlayingDoc';
 import GameOverlaysDoc from './pages/docs/private/features/GameOverlaysDoc';
+import PetsDoc from './pages/docs/private/features/PetsDoc';
 import DecatronChatDoc from './pages/docs/private/features/DecatronChatDoc';
 import DeveloperPortalDoc from './pages/docs/private/features/DeveloperPortalDoc';
 import GachaDoc from './pages/docs/private/features/GachaDoc';
@@ -184,6 +188,7 @@ function App() {
                 <Route path="/overlay/giveaway" element={<SafeRoute name="Giveaway Overlay"><GiveawayOverlay /></SafeRoute>} />
                 <Route path="/overlay/goals" element={<SafeRoute name="Goals Overlay"><GoalsOverlay /></SafeRoute>} />
                 <Route path="/overlay/event-alerts" element={<SafeRoute name="Event Alerts Overlay"><EventAlertsOverlay /></SafeRoute>} />
+                <Route path="/overlay/pets" element={<SafeRoute name="Pets Overlay"><Suspense fallback={null}><PetsOverlay /></Suspense></SafeRoute>} />
                 <Route path="/overlay/tips" element={<SafeRoute name="Tips Overlay"><TipsOverlay /></SafeRoute>} />
                 <Route path="/overlay/now-playing" element={<SafeRoute name="Now Playing Overlay"><NowPlayingOverlay /></SafeRoute>} />
                 <Route path="/overlay/speak-chat" element={<SafeRoute name="Speak Chat Overlay"><SpeakChatOverlay /></SafeRoute>} />
@@ -316,6 +321,7 @@ function App() {
                     <Route path="overlays/games" element={<SafeRoute name="Game Overlays"><GameOverlays /></SafeRoute>} />
                     <Route path="overlays/live" element={<SafeRoute name="Live Match"><LiveOverlays /></SafeRoute>} />
                     <Route path="overlays/rueda" element={<SafeRoute name="Rueda de la Suerte"><WheelConfig /></SafeRoute>} />
+                    <Route path="overlays/pets" element={<SafeRoute name="Pets"><Suspense fallback={null}><PetsConfig /></Suspense></SafeRoute>} />
                     <Route path="overlays/pets-demo" element={<SafeRoute name="Pets Demo"><Suspense fallback={null}><PetsDemo /></Suspense></SafeRoute>} />
 
                     {/* Gacha System */}
@@ -387,6 +393,7 @@ function App() {
                     <Route path="dashboard/docs/features/ai" element={<AIDoc />} />
                     <Route path="dashboard/docs/features/now-playing" element={<NowPlayingDoc />} />
                     <Route path="dashboard/docs/features/game-overlays" element={<GameOverlaysDoc />} />
+                    <Route path="dashboard/docs/features/pets" element={<PetsDoc />} />
                     <Route path="dashboard/docs/features/decatron-chat" element={<DecatronChatDoc />} />
                     <Route path="dashboard/docs/features/developer" element={<DeveloperPortalDoc />} />
                     <Route path="dashboard/docs/features/gacha" element={<GachaDoc />} />

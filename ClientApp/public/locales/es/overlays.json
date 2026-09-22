@@ -84,6 +84,103 @@
         "Rareza de items configurable",
         "Integración con puntos del canal"
       ]
+    },
+    "pets": {
+      "name": "Mascota",
+      "description": "Un gato 3D que vive en tu stream: pasea, se sienta, duerme y (pronto) reacciona a tus alertas y a comandos del chat. Gratis para todos los canales.",
+      "features": [
+        "Modelo 3D real, no un gif",
+        "Pasea, se sienta y se duerme sola",
+        "Nombre y burbujas de texto configurables",
+        "Una sola URL para OBS, transparente"
+      ],
+      "usage": "/overlay/pets?channel=tu_canal"
+    }
+  },
+  "pets": {
+    "title": "Mascota",
+    "subtitle": "Un gato 3D que vive en tu stream. Tú decides cómo se llama, cómo se ve y cuánto se mueve.",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "saveError": "No se pudo guardar",
+    "loadError": "No se pudo cargar la configuración",
+    "tabs": {
+      "pet": "Mascota",
+      "behavior": "Comportamiento",
+      "overlay": "Overlay",
+      "testing": "Probar"
+    },
+    "preview": {
+      "title": "Vista previa",
+      "hint": "Es la misma escena del overlay ({{size}}), escalada para que entre aquí. Los cambios se ven al instante; guarda para aplicarlos en OBS.",
+      "pause": "Pausar",
+      "resume": "Reanudar"
+    },
+    "pet": {
+      "model": "Modelo",
+      "modelHint": "Por ahora hay un gato; se irán agregando más mascotas.",
+      "clips": "animaciones",
+      "by": "por",
+      "identity": "Nombre",
+      "name": "Nombre de la mascota",
+      "showName": "Mostrar el nombre encima"
+    },
+    "style": {
+      "font": "Fuente",
+      "size": "Tamaño",
+      "color": "Color",
+      "background": "Fondo",
+      "outline": "Contorno",
+      "bubbleTitle": "Burbuja de texto",
+      "bubbleHint": "Así se verán los mensajes que diga la mascota (saludos, reacciones, respuestas a comandos)."
+    },
+    "behavior": {
+      "title": "Comportamiento",
+      "hint": "Qué hace la mascota cuando no pasa nada en el canal.",
+      "reset": "Restablecer",
+      "confirmReset": "¿Volver a los valores por defecto del comportamiento?",
+      "wander": "Cada cuánto hace algo (pasear o sentarse)",
+      "min": "Mínimo",
+      "max": "Máximo",
+      "walkSpeed": "Velocidad al caminar",
+      "walkArea": "Zona por la que camina (ancho del overlay)",
+      "left": "Desde",
+      "right": "Hasta",
+      "sit": "Sentarse",
+      "chance": "Probabilidad",
+      "sleep": "Dormir",
+      "sleepHint": "Si en el canal no pasa nada durante este tiempo, se echa a dormir. 0 = nunca duerme.",
+      "sleepAfter": "Se duerme tras"
+    },
+    "url": {
+      "title": "URL para OBS",
+      "hint": "Agrega una fuente de navegador de {{size}} con esta URL. El fondo es transparente.",
+      "copy": "Copiar",
+      "open": "Abrir el overlay",
+      "enabled": "Overlay activo",
+      "enabledHint": "Apagado, la URL no muestra nada."
+    },
+    "overlay": {
+      "title": "Tamaño y posición",
+      "hint": "El alto de la mascota es en píxeles reales de tu fuente de OBS; el suelo es la distancia del borde inferior a sus patas.",
+      "width": "Ancho (px)",
+      "height": "Alto (px)",
+      "petHeight": "Alto de la mascota (px)",
+      "ground": "Suelo (px)",
+      "tilt": "Inclinación de cámara",
+      "shadow": "Sombra en el suelo"
+    },
+    "testing": {
+      "title": "Probar",
+      "hint": "Elige qué hace la mascota y qué dice. Puedes verlo solo aquí o mandarlo al overlay real en OBS.",
+      "noClip": "Este modelo no trae esta animación; usa la más parecida",
+      "bubble": "Texto de la burbuja",
+      "bubblePlaceholder": "Vacío = sin burbuja",
+      "duration": "Duración",
+      "previewOnly": "Ver en la vista previa",
+      "sendToOverlay": "Mandar al overlay de OBS",
+      "sent": "Enviado al overlay",
+      "note": "* = animación que el modelo no trae todavía; se usa la más parecida. Las reacciones automáticas a alertas y los comandos del chat vienen en la siguiente fase."
     }
   }
 }

@@ -1,6 +1,7 @@
 /**
  * Carga un glb de mascota y reproduce el estado pedido según el manifest.
  * No asume nombres de clips: todo pasa por manifest.states (con fallback).
+ * Al cargar, apoya el modelo en y=0 y lo centra en x/z, así la escena no depende de cómo lo exportó el autor.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { useGLTF, useAnimations } from '@react-three/drei';
@@ -8,13 +9,20 @@ import * as THREE from 'three';
 import type { PetManifest } from './types';
 import { resolveState } from './types';
 
+export interface PetModelInfo {
+    clips: string[];
+    triangles: number;
+    /** Tamaño en unidades de mundo ya con manifest.scale aplicado. */
+    size: THREE.Vector3;
+}
+
 interface Props {
     url: string;
     manifest: PetManifest;
     state: string;
-    /** Se llama cuando termina un clip sin loop (para encadenar `next`). */
+    /** Se llama cuando termina un clip sin loop (para encadenar `next`). Recibe el estado pedido. */
     onClipEnd?: (state: string) => void;
-    onLoaded?: (info: { clips: string[]; triangles: number; size: THREE.Vector3 }) => void;
+    onLoaded?: (info: PetModelInfo) => void;
 }
 
 export default function PetModel({ url, manifest, state, onClipEnd, onLoaded }: Props) {
@@ -24,7 +32,6 @@ export default function PetModel({ url, manifest, state, onClipEnd, onLoaded }: 
     const scene = useMemo(() => gltf.scene, [gltf.scene]);
     const lastAction = useRef<THREE.AnimationAction | null>(null);
 
-    // Info del modelo cargado (una sola vez) + centrar en el suelo
     useEffect(() => {
         let triangles = 0;
         scene.traverse((o) => {
@@ -36,14 +43,19 @@ export default function PetModel({ url, manifest, state, onClipEnd, onLoaded }: 
                 triangles += geo.index ? geo.index.count / 3 : geo.attributes.position.count / 3;
             }
         });
+        // Apoyar en el suelo y centrar (en pose de reposo)
+        scene.position.set(0, 0, 0);
+        scene.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(scene);
         const size = new THREE.Vector3();
+        const center = new THREE.Vector3();
         box.getSize(size);
-        onLoaded?.({ clips: names, triangles: Math.round(triangles), size });
+        box.getCenter(center);
+        scene.position.set(-center.x, -box.min.y, -center.z);
+        onLoaded?.({ clips: names, triangles: Math.round(triangles), size: size.multiplyScalar(manifest.scale) });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scene]);
 
-    // Cambio de estado → crossFade al clip correspondiente
     useEffect(() => {
         const resolved = resolveState(manifest, state);
         if (!resolved || !resolved.def.clip) return;

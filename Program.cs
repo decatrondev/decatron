@@ -502,6 +502,7 @@ try
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayConfigService>();
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayPromoService>();
     builder.Services.AddScoped<Decatron.Services.GameData.LiveOverlayService>();
+    builder.Services.AddScoped<Decatron.Services.Pets.PetService>(); // Mascotas: config por canal + estímulos al overlay
     builder.Services.AddScoped<Decatron.Services.GameData.GameAccountService>();
     builder.Services.AddSingleton<Decatron.Services.GameData.IGameDataProvider, Decatron.Services.GameData.Providers.ManualProvider>();
     builder.Services.AddSingleton<Decatron.Services.GameData.IGameDataProvider, Decatron.Services.GameData.Providers.RiotLolProvider>();

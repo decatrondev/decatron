@@ -134,6 +134,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.GameOverlays.LolPredictionPoints> LolPredictionPoints { get; set; }
         public DbSet<Core.Models.GameOverlays.GameOverlayPromo> GameOverlayPromos { get; set; }
         public DbSet<Core.Models.GameOverlays.LiveOverlayConfig> LiveOverlayConfigs { get; set; }
+        public DbSet<Core.Models.Pets.PetConfig> PetConfigs { get; set; }
         public DbSet<Core.Models.GameOverlays.GameOverlayPromoSettings> GameOverlayPromoSettings { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
@@ -2041,6 +2042,10 @@ namespace Decatron.Data
             modelBuilder.Entity<Decatron.Core.Models.GameOverlays.LiveOverlayConfig>(entity =>
             {
                 entity.HasIndex(e => new { e.UserId, e.Slug }).IsUnique();
+            });
+            modelBuilder.Entity<Decatron.Core.Models.Pets.PetConfig>(entity =>
+            {
+                entity.HasIndex(e => e.UserId).IsUnique();
             });
             modelBuilder.Entity<Decatron.Core.Models.GameOverlays.GameCategoryMapping>(entity =>
             {

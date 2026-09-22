@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio } from 'lucide-react';
+import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -159,6 +159,16 @@ export default function Overlays() {
             kickReady: true,
         },
         {
+            id: 'pets',
+            name: t('overlays:overlays.pets.name'),
+            description: t('overlays:overlays.pets.description'),
+            status: 'active',
+            icon: <Cat className="w-6 h-6 text-[#2563eb]" />,
+            features: t('overlays:overlays.pets.features', { returnObjects: true } as any),
+            usage: t('overlays:overlays.pets.usage'),
+            kickReady: true,
+        },
+        {
             id: 'wheel',
             name: t('overlays:overlays.wheel.name'),
             description: t('overlays:overlays.wheel.description'),
@@ -188,6 +198,7 @@ export default function Overlays() {
             'event-alerts': '/overlays/event-alerts',
             'now-playing': '/overlays/now-playing',
             'wheel': '/overlays/rueda',
+            'pets': '/overlays/pets',
             'gacha': '/overlays/gacha'
         };
         navigate(routes[overlayId] || `/overlays/${overlayId}`);
