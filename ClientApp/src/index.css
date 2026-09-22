@@ -359,3 +359,10 @@ body.dark-mode {
         transform: translateX(-50%) rotate(180deg) scale(0);
     }
 }
+
+/* Páginas del panel en pantallas grandes: todo (texto, espacios, anchos) escala en proporción.
+   Anchos en px CSS: 1920 = Full HD (o 4K al 200 %), 2560 = 2K (o 4K al 150 %), 3200+ = 4K al 100 %.
+   No usar en vistas con arrastre o coordenadas de mouse (editores de overlays). */
+@media (min-width: 1920px) { .panel-scale { zoom: 1.1; } }
+@media (min-width: 2560px) { .panel-scale { zoom: 1.3; } }
+@media (min-width: 3200px) { .panel-scale { zoom: 1.65; } }

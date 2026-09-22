@@ -69,7 +69,7 @@ export default function Layout() {
     return (
         <div className="flex h-screen bg-white dark:bg-[#1B1C1D] overflow-hidden">
             {/* Sidebar */}
-            <aside className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f8fafc] dark:bg-[#1B1C1D] border-r border-[#e2e8f0] dark:border-[#374151] transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
+            <aside className={`panel-scale fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f8fafc] dark:bg-[#1B1C1D] border-r border-[#e2e8f0] dark:border-[#374151] transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
                 <div className="p-6 border-b border-[#e2e8f0] dark:border-[#374151] flex-shrink-0">
                     <Link to="/dashboard" className="flex items-center">
                         <img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />
@@ -167,7 +167,7 @@ export default function Layout() {
             {/* Main Content */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
                 {/* Navbar */}
-                <nav className="bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151] px-6 py-4 flex items-center justify-between">
+                <nav className="panel-scale bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151] px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button onClick={toggleSidebar} className="md:hidden p-2 hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] rounded-lg">
                             <Menu className="w-6 h-6" />

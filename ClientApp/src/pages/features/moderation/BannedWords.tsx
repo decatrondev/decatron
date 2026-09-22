@@ -297,7 +297,7 @@ export default function BannedWords() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-6">
+        <div className="panel-scale bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6">
             {/* Header */}
             <div className="max-w-7xl mx-auto mb-6">
                 <button

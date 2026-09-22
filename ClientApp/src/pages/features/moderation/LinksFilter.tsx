@@ -176,8 +176,8 @@ export default function LinksFilter() {
     if (!permissionsLoading && !hasMinimumLevel('moderation')) return null;
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-6">
-            <div className="max-w-5xl mx-auto mb-6">
+        <div className="panel-scale bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6">
+            <div className="max-w-6xl mx-auto mb-6">
                 <button
                     onClick={() => navigate('/moderation')}
                     className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
@@ -205,7 +205,7 @@ export default function LinksFilter() {
             </div>
 
             {notice && (
-                <div className="max-w-5xl mx-auto mb-6">
+                <div className="max-w-6xl mx-auto mb-6">
                     <div className={`flex items-center gap-2 p-4 rounded-lg ${notice.type === 'success'
                         ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                         : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
@@ -216,7 +216,7 @@ export default function LinksFilter() {
             )}
 
             {!loading && !enabled && (
-                <div className="max-w-5xl mx-auto mb-6">
+                <div className="max-w-6xl mx-auto mb-6">
                     <div className="flex items-center gap-2 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300">
                         <AlertCircle className="w-5 h-5 shrink-0" />
                         <span className="font-semibold">El filtro está apagado: hoy los links pasan sin control.</span>
@@ -225,9 +225,9 @@ export default function LinksFilter() {
             )}
 
             {loading ? (
-                <p className="max-w-5xl mx-auto text-center py-12 text-[#64748b] dark:text-[#94a3b8]">Cargando…</p>
+                <p className="max-w-6xl mx-auto text-center py-12 text-[#64748b] dark:text-[#94a3b8]">Cargando…</p>
             ) : (
-                <div className="max-w-5xl mx-auto space-y-6">
+                <div className="max-w-6xl mx-auto space-y-6">
                     {/* Dominios permitidos */}
                     <div className={card}>
                         <h2 className={title}>Dominios permitidos</h2>

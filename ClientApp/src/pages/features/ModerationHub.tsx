@@ -77,7 +77,7 @@ export default function ModerationHub() {
     const cards = CARDS.filter(card => !card.filter || !filters || filters.some(f => f.key === card.filter));
 
     return (
-        <div className="space-y-6">
+        <div className="panel-scale space-y-6">
             <div>
                 <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Moderación</h1>
                 <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">
@@ -117,7 +117,7 @@ export default function ModerationHub() {
                                 {card.description}
                             </p>
 
-                            <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="flex flex-wrap items-center justify-between gap-2 pt-4 mt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
                                 <span className={`text-xs font-bold whitespace-nowrap ${(state?.enabled || (groupActive ?? 0) > 0) ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
                                     {state ? (state.enabled ? 'Activo' : 'Apagado')
                                         : card.group && filters ? `${groupActive} de ${card.group.length} activos` : ''}
