@@ -102,20 +102,53 @@ namespace Decatron.Default.Controllers
                     costUsd = g.Sum(u => u.EstimatedCostUsd),
                 }).OrderByDescending(x => x.costUsd).ThenByDescending(x => x.calls).Take(10).ToListAsync();
 
-            var recent = await _db.AiUsageLogs.AsNoTracking().OrderByDescending(u => u.Id).Take(25).Select(u => new
-            {
-                u.Id, u.Module, u.Provider, u.Model, u.ChannelName, u.PromptTokens, u.CompletionTokens,
-                u.EstimatedCostUsd, u.ResponseTimeMs, u.Success, u.ErrorMessage, u.UsedAt,
-            }).ToListAsync();
-
             return Ok(new
             {
                 success = true,
                 days,
                 totals = totals ?? new { calls = 0, failed = 0, promptTokens = 0L, completionTokens = 0L, costUsd = 0m },
                 todayCost,
-                byModule, byModel, byDay, topChannels, recent,
+                byModule, byModel, byDay, topChannels,
             });
+        }
+
+        /// <summary>
+        /// Llamadas una por una, paginadas y filtrables (módulo, modelo, canal, éxito, fechas).
+        /// Es la herramienta para verificar qué cobró cada cosa; el resumen de arriba no alcanza
+        /// cuando hay que buscar una llamada concreta.
+        /// </summary>
+        [HttpGet("calls")]
+        public async Task<IActionResult> Calls(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 25,
+            [FromQuery] string? module = null, [FromQuery] string? model = null, [FromQuery] string? channel = null,
+            [FromQuery] bool? success = null, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 10, 200);
+            var q = _db.AiUsageLogs.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(module)) q = q.Where(u => u.Module == module);
+            if (!string.IsNullOrWhiteSpace(model)) q = q.Where(u => u.Model == model);
+            if (!string.IsNullOrWhiteSpace(channel))
+            {
+                var term = channel.Trim().ToLowerInvariant();
+                q = q.Where(u => u.ChannelName != null && u.ChannelName.ToLower().Contains(term));
+            }
+            if (success.HasValue) q = q.Where(u => u.Success == success.Value);
+            if (from.HasValue) q = q.Where(u => u.UsedAt >= DateTime.SpecifyKind(from.Value, DateTimeKind.Utc));
+            if (to.HasValue) q = q.Where(u => u.UsedAt < DateTime.SpecifyKind(to.Value, DateTimeKind.Utc).AddDays(1));
+
+            var total = await q.CountAsync();
+            var items = await q.OrderByDescending(u => u.Id).Skip((page - 1) * pageSize).Take(pageSize).Select(u => new
+            {
+                u.Id, u.Module, u.Provider, u.Model, u.UserId, u.ChannelName, u.PromptTokens, u.CompletionTokens,
+                u.EstimatedCostUsd, u.ResponseTimeMs, u.Success, u.ErrorMessage, u.UsedAt,
+            }).ToListAsync();
+
+            // Valores distintos para los desplegables de filtro (son pocos: módulos y modelos).
+            var modules = await _db.AiUsageLogs.AsNoTracking().Select(u => u.Module).Distinct().OrderBy(m => m).ToListAsync();
+            var models = await _db.AiUsageLogs.AsNoTracking().Select(u => u.Model).Distinct().OrderBy(m => m).ToListAsync();
+
+            return Ok(new { success = true, page, pageSize, total, totalPages = (int)Math.Ceiling(total / (double)pageSize), items, modules, models });
         }
 
         /// <summary>Saldo de OpenRouter en vivo.</summary>
