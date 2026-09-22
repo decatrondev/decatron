@@ -26,11 +26,6 @@ namespace Decatron.Services.GameData
         /// Es lo que paga el tier gratis: cada stream promociona el bot. Los tiers de pago pueden apagarla.
         /// </summary>
         public bool CanHidePromo { get; init; }
-        /// <summary>
-        /// Llamadas a la IA del coach de LoL por día (UTC). Cada selección de campeón gasta
-        /// hasta 8, más briefing/lobby/post-partida. int.MaxValue = ilimitado. La voz va aparte (créditos TTS).
-        /// </summary>
-        public int MaxCoachCallsPerDay { get; init; }
 
         public const int HardMaxAccountsPerGame = 10;
 
@@ -42,25 +37,25 @@ namespace Decatron.Services.GameData
             {
                 MaxAccountsPerGame = 1, MaxInstances = 1,
                 AllowedRotationModes = new[] { "none" },
-                PollingIntervalSeconds = 180, MaxRecentMatches = 5, SessionHistoryDays = 0, CanHidePromo = false, MaxCoachCallsPerDay = 60,
+                PollingIntervalSeconds = 180, MaxRecentMatches = 5, SessionHistoryDays = 0, CanHidePromo = false,
             },
             ["supporter"] = new()
             {
                 MaxAccountsPerGame = 3, MaxInstances = 2,
                 AllowedRotationModes = new[] { "none", "interval" },
-                PollingIntervalSeconds = 120, MaxRecentMatches = 10, SessionHistoryDays = 30, CanHidePromo = true, MaxCoachCallsPerDay = 250,
+                PollingIntervalSeconds = 120, MaxRecentMatches = 10, SessionHistoryDays = 30, CanHidePromo = true,
             },
             ["premium"] = new()
             {
                 MaxAccountsPerGame = 5, MaxInstances = 4,
                 AllowedRotationModes = new[] { "none", "interval", "active_first" },
-                PollingIntervalSeconds = 60, MaxRecentMatches = 20, SessionHistoryDays = 365, CanHidePromo = true, MaxCoachCallsPerDay = 800,
+                PollingIntervalSeconds = 60, MaxRecentMatches = 20, SessionHistoryDays = 365, CanHidePromo = true,
             },
             ["fundador"] = new()
             {
                 MaxAccountsPerGame = HardMaxAccountsPerGame, MaxInstances = int.MaxValue,
                 AllowedRotationModes = new[] { "none", "interval", "active_first" },
-                PollingIntervalSeconds = 60, MaxRecentMatches = 20, SessionHistoryDays = int.MaxValue, CanHidePromo = true, MaxCoachCallsPerDay = int.MaxValue,
+                PollingIntervalSeconds = 60, MaxRecentMatches = 20, SessionHistoryDays = int.MaxValue, CanHidePromo = true,
             },
         };
 

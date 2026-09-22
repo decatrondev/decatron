@@ -39,6 +39,8 @@ namespace Decatron.Services
             ["live_stt"]      = 1,   // unidades ya vienen en créditos (segundos × SttCreditsPerSecond)
             ["deepgram_aura"] = 8,   // Aura-2 ≈ $30/M chars, el doble de Polly neural
             ["fish"]          = 4,   // Fish ≈ $15/M chars
+            // IA (OpenRouter/Gemini): las unidades ya vienen en créditos (costo real ÷ AiCreditGate.CreditUsd)
+            ["ai"]            = 1,
         };
 
         // Cuotas mensuales por tier (créditos)
@@ -104,7 +106,7 @@ namespace Decatron.Services
 
         public async Task<CreditConsumeResult> TryConsumeAsync(
             long userId, int chars, string engine, string feature,
-            string? voice = null, string? language = null)
+            string? voice = null, string? language = null, bool allowPartial = false)
         {
             if (chars <= 0)
                 return new CreditConsumeResult(true, 0, 0);
@@ -131,6 +133,9 @@ namespace Decatron.Services
 
                 var monthlyRemaining = Math.Max(0, balance.MonthlyGranted - balance.MonthlyUsed);
                 var available = monthlyRemaining + balance.PurchasedBalance;
+
+                if (available < cost && allowPartial && available > 0)
+                    cost = available;
 
                 if (available < cost)
                 {

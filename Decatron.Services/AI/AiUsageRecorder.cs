@@ -6,19 +6,22 @@ using Microsoft.Extensions.Logging;
 namespace Decatron.Services.AI
 {
     /// <summary>
-    /// Escribe una fila en ai_usage_logs por cada llamada a un LLM. Fire-and-forget: nunca
+    /// Escribe una fila en ai_usage_logs por cada llamada a un LLM y, si salió bien y tiene
+    /// canal, le descuenta el costo en créditos (AiCreditGate). Fire-and-forget: nunca
     /// bloquea ni hace fallar la respuesta al usuario.
     /// </summary>
     public class AiUsageRecorder
     {
         private readonly IServiceScopeFactory _scopes;
         private readonly AiSettingsCache _settings;
+        private readonly AiCreditGate _credits;
         private readonly ILogger<AiUsageRecorder> _logger;
 
-        public AiUsageRecorder(IServiceScopeFactory scopes, AiSettingsCache settings, ILogger<AiUsageRecorder> logger)
+        public AiUsageRecorder(IServiceScopeFactory scopes, AiSettingsCache settings, AiCreditGate credits, ILogger<AiUsageRecorder> logger)
         {
             _scopes = scopes;
             _settings = settings;
+            _credits = credits;
             _logger = logger;
         }
 
@@ -47,6 +50,10 @@ namespace Decatron.Services.AI
             {
                 try
                 {
+                    // Solo se cobra lo que salió bien: un 429 del proveedor no le cuesta nada al canal.
+                    if (row.Success && row.EstimatedCostUsd > 0 && row.UserId > 0)
+                        row.CreditsCharged = await _credits.ChargeAsync(row.UserId, row.Module, row.Model, row.EstimatedCostUsd);
+
                     using var scope = _scopes.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
                     db.AiUsageLogs.Add(row);

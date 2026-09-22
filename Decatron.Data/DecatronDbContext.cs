@@ -1060,6 +1060,7 @@ namespace Decatron.Data
                 entity.Property(e => e.Success).HasColumnName("success");
                 entity.Property(e => e.ErrorMessage).HasColumnName("error_message");
                 entity.Property(e => e.UsedAt).HasColumnName("used_at");
+                entity.Property(e => e.CreditsCharged).HasColumnName("credits_charged");
 
                 entity.HasIndex(e => e.UsedAt).HasDatabaseName("idx_ai_usage_logs_used_at");
                 entity.HasIndex(e => new { e.Module, e.UsedAt }).HasDatabaseName("idx_ai_usage_logs_module_date");

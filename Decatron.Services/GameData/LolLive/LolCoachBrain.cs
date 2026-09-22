@@ -32,24 +32,25 @@ namespace Decatron.Services.GameData.LolLive
         private readonly AiSettingsCache _settings;
         private readonly LolStaticNames _names;
         private readonly IServiceScopeFactory _scopes;
+        private readonly AiCreditGate _credits;
         private readonly ILogger<LolCoachBrain> _logger;
 
-        public LolCoachBrain(OpenRouterClient ai, AiSettingsCache settings, LolStaticNames names, IServiceScopeFactory scopes, ILogger<LolCoachBrain> logger)
+        public LolCoachBrain(OpenRouterClient ai, AiSettingsCache settings, LolStaticNames names, IServiceScopeFactory scopes, AiCreditGate credits, ILogger<LolCoachBrain> logger)
         {
-            _ai = ai; _settings = settings; _names = names; _scopes = scopes; _logger = logger;
+            _ai = ai; _settings = settings; _names = names; _scopes = scopes; _credits = credits; _logger = logger;
         }
 
-        /// <summary>Llamadas del coach hechas hoy (UTC) por el canal y el tope de su tier.</summary>
-        public async Task<(int used, int max)> DailyUsageAsync(long userId, CancellationToken ct = default)
+        /// <summary>Llamadas del coach hechas hoy (UTC) por el canal. Informativo: el límite real es el saldo de créditos.</summary>
+        public async Task<int> CallsTodayAsync(long userId, CancellationToken ct = default)
         {
             using var scope = _scopes.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-            var tier = await TierResolver.GetEffectiveTierAsync(db, userId);
-            var max = GameOverlayTierLimits.ForTier(tier).MaxCoachCallsPerDay;
             var since = DateTime.UtcNow.Date;
-            var used = await db.AiUsageLogs.CountAsync(l => l.Module == Module && l.UserId == userId && l.UsedAt >= since, ct);
-            return (used, max);
+            return await db.AiUsageLogs.CountAsync(l => l.Module == Module && l.UserId == userId && l.UsedAt >= since && l.Success, ct);
         }
+
+        /// <summary>El canal puede pagar una llamada del coach (saldo de créditos mayor que cero o tier sin límite).</summary>
+        public Task<bool> HasCreditsAsync(long userId) => _credits.HasCreditsAsync(userId);
 
         public bool IsAvailable => _ai.IsConfigured;
 
@@ -65,11 +66,10 @@ namespace Decatron.Services.GameData.LolLive
             if (!IsAvailable) return null;
             try
             {
-                // Tope diario por tier: el texto del coach es gratis para el canal, pero no ilimitado.
-                var (used, max) = await DailyUsageAsync(ctx.UserId, ct);
-                if (used >= max)
+                // La IA se paga con créditos (plan CREDITOS_UNIFICADOS): sin saldo, el coach calla y el resto del overlay sigue.
+                if (!await _credits.HasCreditsAsync(ctx.UserId))
                 {
-                    if (used == max) _logger.LogInformation("[LolCoach] {Login}: tope diario alcanzado ({Max} llamadas)", ctx.Login, max);
+                    _logger.LogInformation("[LolCoach] {Login}: sin créditos, no se llama a la IA ({Kind})", ctx.Login, kind);
                     return null;
                 }
                 var system = SystemPrompt(ctx, kind, phase);

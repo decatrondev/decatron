@@ -118,10 +118,11 @@ namespace Decatron.Controllers
         {
             var userId = GetChannelOwnerId();
             var e = _live.Get(userId);
-            var (callsToday, maxCallsPerDay) = await _brain.DailyUsageAsync(userId);
+            var callsToday = await _brain.CallsTodayAsync(userId);
+            var hasCredits = await _brain.HasCreditsAsync(userId);
             return Ok(new
             {
-                callsToday, maxCallsPerDay = maxCallsPerDay == int.MaxValue ? (int?)null : maxCallsPerDay,
+                callsToday, hasCredits,
                 desktopConnected = _desktop.CountFor(userId) > 0,
                 clientConnected = e?.Puuid != null,
                 summoner = e?.SummonerName,

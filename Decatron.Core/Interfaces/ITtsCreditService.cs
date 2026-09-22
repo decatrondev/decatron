@@ -48,10 +48,13 @@ namespace Decatron.Core.Interfaces
         /// <summary>
         /// Intenta descontar créditos. Devuelve Allowed=false sin descontar nada si no
         /// alcanza el saldo. Se consume primero la bolsa mensual y luego la comprada.
+        /// Con <paramref name="allowPartial"/> cobra lo que haya (hasta dejar el saldo en
+        /// cero) en vez de negar: es para gastos que se conocen después de hechos, como
+        /// una llamada a la IA cuyo costo depende de la respuesta.
         /// </summary>
         Task<CreditConsumeResult> TryConsumeAsync(
             long userId, int chars, string engine, string feature,
-            string? voice = null, string? language = null);
+            string? voice = null, string? language = null, bool allowPartial = false);
 
         /// <summary>Devuelve créditos ya descontados (la síntesis falló después del cobro).</summary>
         Task RefundAsync(long userId, long credits, string feature, string note);

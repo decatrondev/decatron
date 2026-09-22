@@ -116,10 +116,10 @@
       "victory": "Victory",
       "defeat": "Defeat",
       "callsToday": "AI calls today",
-      "capReached": "Your plan's daily cap is reached; the coach speaks again tomorrow.",
       "seePlans": "See plans",
       "unranked": "unranked",
-      "last20": "last 20"
+      "last20": "last 20",
+      "noCredits": "No credits: the coach stays silent until you have balance (the AI is paid with your plan's credits)."
     },
     "history": {
       "title": "Latest from the coach",

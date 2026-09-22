@@ -116,10 +116,10 @@
       "victory": "Victoria",
       "defeat": "Derrota",
       "callsToday": "Llamadas a la IA hoy",
-      "capReached": "Tope diario de tu plan alcanzado; el coach vuelve a hablar mañana.",
       "seePlans": "Ver planes",
       "unranked": "sin rango",
-      "last20": "últimas 20"
+      "last20": "últimas 20",
+      "noCredits": "Sin créditos: el coach no habla hasta que tengas saldo (la IA se paga con los créditos de tu plan)."
     },
     "history": {
       "title": "Lo último que dijo",

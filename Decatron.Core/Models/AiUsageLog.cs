@@ -46,6 +46,9 @@ namespace Decatron.Core.Models
         public string? ErrorMessage { get; set; }
 
         public DateTime UsedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>Créditos descontados al canal por esta llamada (null = anterior al cobro por créditos o sin canal).</summary>
+        public long? CreditsCharged { get; set; }
     }
 
     /// <summary>A quién y a qué módulo se le atribuye una llamada de IA.</summary>

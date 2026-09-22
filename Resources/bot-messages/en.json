@@ -18,7 +18,8 @@
     "error_processing": "@{0}, I couldn't process your question. Try again.",
     "error_generic": "@{0}, an error occurred. Try again later.",
     "permission_denied_broadcaster": "@{0}, only the streamer can use !ia in this channel.",
-    "permission_denied_level": "@{0}, you don't have the required permission level to use !ia."
+    "permission_denied_level": "@{0}, you don't have the required permission level to use !ia.",
+    "no_credits": "@{0}, this channel has no credits for the AI. The streamer can buy a plan or a credit pack at decatron.net."
   },
   "title": {
     "platform_unavailable": "Changing the title isn't available on this platform yet. Coming soon.",

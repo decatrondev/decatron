@@ -98,6 +98,13 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
+                // 4b. La IA se paga con los créditos del canal (plan CREDITOS_UNIFICADOS): sin saldo, no se llama.
+                if (channelUserInfo != null && !await scope.ServiceProvider.GetRequiredService<Decatron.Services.AI.AiCreditGate>().HasCreditsAsync(channelUserInfo.Id))
+                {
+                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("ia", "no_credits", userLanguage, username));
+                    return;
+                }
+
                 // 5. Verificar cooldown del canal
                 var channelCooldown = channelConfig?.ChannelCooldownSeconds ?? globalConfig.DefaultChannelCooldownSeconds;
                 var channelCooldownResult = await CheckChannelCooldownAsync(dbContext, channelLower, channelCooldown);

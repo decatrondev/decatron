@@ -413,6 +413,7 @@ try
     // IA unificada: cache de config/precios, registro de uso y cliente OpenRouter (singletons).
     // Plan: .dev/plans/AI_OPENROUTER_UNIFICACION_PLAN.md
     builder.Services.AddSingleton<Decatron.Services.AI.AiSettingsCache>();
+    builder.Services.AddSingleton<Decatron.Services.AI.AiCreditGate>();
     builder.Services.AddSingleton<Decatron.Services.AI.AiUsageRecorder>();
     builder.Services.AddSingleton<Decatron.Services.AI.OpenRouterClient>();
     builder.Services.AddScoped<Decatron.Services.GeminiService>();

@@ -25,17 +25,20 @@ namespace Decatron.Default.Controllers
         private readonly AIProviderService _aiProviderService;
         private readonly ILogger<ChatController> _logger;
         private readonly IPermissionService _permissionService;
+        private readonly Decatron.Services.AI.AiCreditGate _aiCredits;
 
         public ChatController(
             DecatronDbContext dbContext,
             AIProviderService aiProviderService,
             ILogger<ChatController> logger,
-            IPermissionService permissionService)
+            IPermissionService permissionService,
+            Decatron.Services.AI.AiCreditGate aiCredits)
         {
             _dbContext = dbContext;
             _aiProviderService = aiProviderService;
             _logger = logger;
             _permissionService = permissionService;
+            _aiCredits = aiCredits;
         }
 
         private long GetUserId()
@@ -361,6 +364,12 @@ namespace Decatron.Default.Controllers
                 if (config == null || !config.Enabled)
                 {
                     return BadRequest(new { success = false, message = "El sistema de chat está deshabilitado" });
+                }
+
+                // La IA se paga con créditos (plan CREDITOS_UNIFICADOS): sin saldo no se manda nada al modelo.
+                if (!await _aiCredits.HasCreditsAsync(userId))
+                {
+                    return StatusCode(402, new { success = false, code = "no_credits", message = "No tienes créditos para usar la IA. Compra un plan o un paquete de créditos." });
                 }
 
                 var messageCount = await _dbContext.DecatronChatMessages

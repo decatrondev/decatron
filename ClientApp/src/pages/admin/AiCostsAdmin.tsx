@@ -12,7 +12,7 @@ interface Summary {
     byDay: { day: string; calls: number; costUsd: number; modules: Record<string, number> }[];
     topChannels: { userId: number; channel: string | null; calls: number; tokens: number; costUsd: number }[];
 }
-interface Call { id: number; module: string; provider: string; model: string; userId: number; channelName: string | null; promptTokens: number; completionTokens: number; estimatedCostUsd: number; responseTimeMs: number; success: boolean; errorMessage: string | null; usedAt: string }
+interface Call { id: number; module: string; provider: string; model: string; userId: number; channelName: string | null; promptTokens: number; completionTokens: number; estimatedCostUsd: number; responseTimeMs: number; success: boolean; errorMessage: string | null; usedAt: string; creditsCharged: number | null }
 interface CallsPage { page: number; pageSize: number; total: number; totalPages: number; items: Call[]; modules: string[]; models: string[] }
 interface CallFilters { module: string; model: string; channel: string; success: '' | 'true' | 'false'; from: string; to: string }
 const EMPTY_FILTERS: CallFilters = { module: '', model: '', channel: '', success: '', from: '', to: '' };
@@ -289,7 +289,7 @@ function CallsTable() {
 
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                    <thead><tr><th className={th}></th><th className={th}>Cuándo</th><th className={th}>Módulo</th><th className={th}>Modelo</th><th className={th}>Canal</th><th className={th}>in/out</th><th className={th}>ms</th><th className={`${th} text-right`}>Costo</th><th className={`${th} text-right`}>Estado</th></tr></thead>
+                    <thead><tr><th className={th}></th><th className={th}>Cuándo</th><th className={th}>Módulo</th><th className={th}>Modelo</th><th className={th}>Canal</th><th className={th}>in/out</th><th className={th}>ms</th><th className={`${th} text-right`}>Costo</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Estado</th></tr></thead>
                     <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
                         {data?.items.map(r => {
                             const expanded = open === r.id;
@@ -304,15 +304,16 @@ function CallsTable() {
                                         <td className="font-mono text-xs">{r.promptTokens}/{r.completionTokens}</td>
                                         <td className="text-xs">{r.responseTimeMs}</td>
                                         <td className="text-right font-mono text-xs">{r.success ? usd(r.estimatedCostUsd) : '—'}</td>
+                                        <td className="text-right font-mono text-xs" title={r.creditsCharged == null ? 'Anterior al cobro por créditos o sin canal' : undefined}>{r.creditsCharged == null ? '—' : r.creditsCharged.toLocaleString()}</td>
                                         <td className="text-right text-xs">{r.success ? <span className="text-green-500">OK</span> : <span title={r.errorMessage ?? undefined}>{(r.errorMessage ?? 'error').slice(0, 24)}</span>}</td>
                                     </tr>
                                     {expanded && r.errorMessage && (
-                                        <tr className={tr}><td colSpan={9} className="py-2"><pre className="text-[11px] whitespace-pre-wrap break-all rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3">{r.errorMessage}</pre></td></tr>
+                                        <tr className={tr}><td colSpan={10} className="py-2"><pre className="text-[11px] whitespace-pre-wrap break-all rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3">{r.errorMessage}</pre></td></tr>
                                     )}
                                 </Fragment>
                             );
                         })}
-                        {data && data.items.length === 0 && <tr><td colSpan={9} className={`${muted} py-6 text-center`}>Sin llamadas con esos filtros.</td></tr>}
+                        {data && data.items.length === 0 && <tr><td colSpan={10} className={`${muted} py-6 text-center`}>Sin llamadas con esos filtros.</td></tr>}
                     </tbody>
                 </table>
             </div>

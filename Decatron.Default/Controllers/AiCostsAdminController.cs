@@ -141,7 +141,7 @@ namespace Decatron.Default.Controllers
             var items = await q.OrderByDescending(u => u.Id).Skip((page - 1) * pageSize).Take(pageSize).Select(u => new
             {
                 u.Id, u.Module, u.Provider, u.Model, u.UserId, u.ChannelName, u.PromptTokens, u.CompletionTokens,
-                u.EstimatedCostUsd, u.ResponseTimeMs, u.Success, u.ErrorMessage, u.UsedAt,
+                u.EstimatedCostUsd, u.ResponseTimeMs, u.Success, u.ErrorMessage, u.UsedAt, u.CreditsCharged,
             }).ToListAsync();
 
             // Valores distintos para los desplegables de filtro (son pocos: módulos y modelos).
