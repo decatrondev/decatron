@@ -273,7 +273,11 @@ namespace Decatron.Services
         /// Calcula el tiempo a añadir basado en la configuración y las reglas (Tiers)
         /// Soporta lógica de tiempo fijo, multiplicadores (per unit) y reglas específicas.
         /// </summary>
-        private int CalculateTimeWithRules(EventConfig config, int amount, int defaultPerUnit = 1)
+        /// <param name="amount">Cantidad con la que se evalúan las reglas (bits, viewers, meses, etc.).</param>
+        /// <param name="defaultPerUnit">Unidad del cálculo base (ej: 100 bits).</param>
+        /// <param name="baseAmount">Cantidad usada en el cálculo base si difiere de <paramref name="amount"/>.
+        /// Para subs las reglas se evalúan por meses acumulados pero el tiempo base es el de UNA sub.</param>
+        private int CalculateTimeWithRules(EventConfig config, int amount, int defaultPerUnit = 1, int? baseAmount = null)
         {
             if (config == null || !config.enabled) return 0;
 
@@ -320,10 +324,11 @@ namespace Decatron.Services
                 // Evitar división por cero
                 if (defaultPerUnit <= 0) defaultPerUnit = 1;
 
-                var multiplier = (double)amount / defaultPerUnit;
+                var baseQty = baseAmount ?? amount;
+                var multiplier = (double)baseQty / defaultPerUnit;
                 secondsToAdd = (int)(multiplier * config.time);
 
-                _logger.LogInformation($"[TIMER BASE] No rules matched. Base Calc: ({amount}/{defaultPerUnit}) * {config.time}s = {secondsToAdd}s");
+                _logger.LogInformation($"[TIMER BASE] No rules matched. Base Calc: ({baseQty}/{defaultPerUnit}) * {config.time}s = {secondsToAdd}s");
             }
 
             return secondsToAdd;
@@ -476,8 +481,10 @@ namespace Decatron.Services
                     }
                 }
 
-                // Usamos 'months' como la cantidad para las reglas (ej: Regla para veteranos de 12 meses)
-                int secondsToAdd = CalculateTimeWithRules(targetConfig, months, 1);
+                // Usamos 'months' como la cantidad para las reglas (ej: Regla para veteranos de 12 meses),
+                // pero el tiempo base es el de UNA sub: una resub vale lo mismo que una sub nueva,
+                // no meses × tiempo (bug: una resub de 21 meses Tier 2 sumaba 21 × 4200s = 1 día).
+                int secondsToAdd = CalculateTimeWithRules(targetConfig, months, 1, baseAmount: 1);
 
                 if (secondsToAdd <= 0 && !isTest) return false; // Permitimos test incluso si es 0 para debug
 
