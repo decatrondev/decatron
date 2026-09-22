@@ -9,6 +9,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Coins, Loader2, RefreshCw, ChevronLeft, ChevronRight, Sparkles, Mic, Bot, Bell, MessageSquare, Clock, Cpu, Info } from 'lucide-react';
 import api from '../services/api';
+import { usePermissions } from '../hooks/usePermissions';
+import BuyCreditsSection from './credits/BuyCreditsSection';
 
 interface Summary {
     tier: string; isUnlimited: boolean; tierExpiresAt: string | null;
@@ -36,6 +38,7 @@ const select = 'px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#37415
 
 export default function Credits() {
     const { t } = useTranslation('features', { keyPrefix: 'credits' });
+    const { permissions } = usePermissions();
     const [summary, setSummary] = useState<Summary | null>(null);
     const [history, setHistory] = useState<HistoryPage | null>(null);
     const [page, setPage] = useState(1);
@@ -112,13 +115,16 @@ export default function Credits() {
                         </div>
                     </div>
                     <div className="w-full sm:w-auto">
-                        <Link to="/supporters" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#9146FF] hover:bg-[#7c3aed] text-white font-bold text-sm">{t('getMore')}</Link>
+                        <a href="#buy" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#9146FF] hover:bg-[#7c3aed] text-white font-bold text-sm">{t('getMore')}</a>
+                        <Link to="/supporters" className="block mt-2 text-xs text-[#94a3b8] hover:underline">{t('orPlan')}</Link>
                     </div>
                 </div>
                 {s.inTransitionWindow && s.transitionEndsAt && <p className="text-xs text-amber-300 mt-4">{t('transition', { date: new Date(s.transitionEndsAt).toLocaleDateString() })}</p>}
                 {s.tierExpiresAt && <p className="text-xs text-[#94a3b8] mt-2">{t('expires', { date: new Date(s.tierExpiresAt).toLocaleDateString() })}</p>}
                 {!s.isUnlimited && s.totalAvailable <= 0 && <p className="text-sm text-amber-300 mt-4">{t('empty')}</p>}
             </div>
+
+            <BuyCreditsSection canBuy={permissions.isOwner} onPurchased={loadSummary} />
 
             <div className="grid md:grid-cols-2 gap-6">
                 {/* Gasto del período por concepto */}

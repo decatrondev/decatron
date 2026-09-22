@@ -1411,6 +1411,35 @@
       "cache_hit": "Desde caché (gratis)",
       "transfer": "Transferencia"
     },
-    "loadError": "No se pudo cargar tu saldo."
+    "loadError": "No se pudo cargar tu saldo.",
+    "orPlan": "o consigue una cuota mensual con un plan →",
+    "buy": {
+      "title": "Comprar créditos",
+      "hint": "Los créditos comprados no vencen y se usan cuando se agota la cuota del mes. Pago con tarjeta o Yape (Culqi); se cobra en soles y recibes tu boleta o factura.",
+      "onlyOwner": "Solo el dueño del canal puede comprar créditos.",
+      "popular": "popular",
+      "credits": "créditos",
+      "bonus": "+{{n}} de regalo",
+      "perMillion": "≈ ${{usd}} por millón",
+      "buy": "Comprar",
+      "noPackages": "No hay paquetes disponibles por ahora.",
+      "legal": "Precio en dólares; el cobro se hace en soles al tipo de cambio fijo de la plataforma. El comprobante electrónico llega en unos minutos.",
+      "checkoutTitle": "Créditos",
+      "previewError": "No se pudo calcular el comprobante.",
+      "success": "¡Listo! Recibiste {{n}} créditos. Tu comprobante llega en unos minutos.",
+      "error": "No se pudo completar la compra.",
+      "downloadError": "No se pudo descargar el comprobante.",
+      "purchasesTitle": "Tus compras",
+      "col": {
+        "when": "Cuándo",
+        "credits": "Créditos",
+        "paid": "Pagado",
+        "invoice": "Comprobante"
+      },
+      "factura": "Factura",
+      "boleta": "Boleta",
+      "invoicePending": "en emisión…",
+      "invoiceError": "error al emitir (te lo resolvemos)"
+    }
   }
 }

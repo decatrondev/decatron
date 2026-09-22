@@ -223,6 +223,8 @@ export default function TtsCreditsAdmin() {
 
             <UsageSection />
 
+            <PackagesSection />
+
             {/* Lote. Va plegado porque se usa dos veces al año, pero cuando hace falta
                 —el regalo de transición— es la diferencia entre un clic y treinta. */}
             <div className={cardClass}>
@@ -707,6 +709,124 @@ function Stat({ label, value }: { label: string; value: string }) {
         <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
             <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{label}</p>
             <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{value}</p>
+        </div>
+    );
+}
+
+
+interface CreditPackage { id: number; name: string; description: string | null; credits: number; bonusCredits: number; priceUsd: number; sortOrder: number; enabled: boolean; highlight: boolean }
+interface CreditPurchaseRow { id: number; userId: number; login: string | null; creditsReceived: number; amountPaidUsd: number; chargedAmount: number | null; chargedCurrency: string | null; chargeId: string | null; isTest: boolean; invoiceStatus: string | null; invoiceType: string | null; invoiceSeries: string | null; invoiceNumber: number | null; invoiceError: string | null; createdAt: string }
+const EMPTY_PACKAGE: Omit<CreditPackage, 'id'> = { name: '', description: '', credits: 100000, bonusCredits: 0, priceUsd: 4, sortOrder: 0, enabled: true, highlight: false };
+
+/**
+ * Paquetes de créditos a la venta (tabla credit_packages) y últimas compras con el estado
+ * del comprobante. Los precios viven acá, no en código. Plan CREDITOS_UNIFICADOS, fase 4.
+ */
+function PackagesSection() {
+    const [packages, setPackages] = useState<CreditPackage[]>([]);
+    const [purchases, setPurchases] = useState<CreditPurchaseRow[]>([]);
+    const [editing, setEditing] = useState<(Omit<CreditPackage, 'id'> & { id?: number }) | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [msg, setMsg] = useState<string | null>(null);
+
+    const load = async () => {
+        try {
+            const [p, c] = await Promise.all([api.get('/admin/tts-credits/packages'), api.get('/admin/tts-credits/purchases?limit=30')]);
+            setPackages(p.data); setPurchases(c.data);
+        } catch { setMsg('No se pudieron cargar los paquetes.'); }
+    };
+    useEffect(() => { load(); }, []);
+
+    const save = async () => {
+        if (!editing) return;
+        setSaving(true); setMsg(null);
+        try {
+            if (editing.id) await api.put(`/admin/tts-credits/packages/${editing.id}`, editing);
+            else await api.post('/admin/tts-credits/packages', editing);
+            setEditing(null); await load();
+        } catch (e: any) { setMsg(e?.response?.data?.message ?? 'No se pudo guardar.'); }
+        finally { setSaving(false); }
+    };
+    const remove = async (p: CreditPackage) => {
+        if (!confirm(`¿Borrar el paquete "${p.name}"? Si tiene compras solo se desactiva.`)) return;
+        try { await api.delete(`/admin/tts-credits/packages/${p.id}`); await load(); } catch { setMsg('No se pudo borrar.'); }
+    };
+    const perM = (p: { credits: number; bonusCredits: number; priceUsd: number }) => p.credits + p.bonusCredits > 0 ? (p.priceUsd * 1_000_000 / (p.credits + p.bonusCredits)).toFixed(0) : '—';
+    const th = 'py-1 text-left text-[#64748b] dark:text-[#94a3b8] font-medium';
+    const tr = 'border-t border-[#f1f5f9] dark:border-[#26262c]';
+    const field = (label: string, node: React.ReactNode) => <label className="block"><span className={labelClass}>{label}</span>{node}</label>;
+
+    return (
+        <div className={cardClass}>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                    <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Paquetes de créditos a la venta</h2>
+                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Lo que ve el streamer en /credits. Costo real ≈ $4 por millón; los planes dan ~$17–33/M.</p>
+                </div>
+                <button onClick={() => setEditing({ ...EMPTY_PACKAGE, sortOrder: packages.length + 1 })} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-white text-xs font-bold">Nuevo paquete</button>
+            </div>
+            {msg && <p className="text-xs text-red-500 mb-3">{msg}</p>}
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead><tr><th className={th}>#</th><th className={th}>Nombre</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Bono</th><th className={`${th} text-right`}>USD</th><th className={`${th} text-right`}>$/M</th><th className={th}>Estado</th><th className={th}></th></tr></thead>
+                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                        {packages.map(p => (
+                            <tr key={p.id} className={tr}>
+                                <td className="py-1 text-xs">{p.sortOrder}</td>
+                                <td className="text-xs">{p.name}{p.highlight && <span className="ml-1 text-[10px] uppercase text-[#9146FF]">popular</span>}<div className="text-[11px] text-[#94a3b8]">{p.description}</div></td>
+                                <td className="text-right font-mono text-xs">{p.credits.toLocaleString()}</td>
+                                <td className="text-right font-mono text-xs">{p.bonusCredits.toLocaleString()}</td>
+                                <td className="text-right font-mono text-xs">${p.priceUsd.toFixed(2)}</td>
+                                <td className="text-right font-mono text-xs">${perM(p)}</td>
+                                <td className="text-xs">{p.enabled ? <span className="text-green-500">activo</span> : <span className="text-[#94a3b8]">oculto</span>}</td>
+                                <td className="text-right text-xs whitespace-nowrap"><button onClick={() => setEditing({ ...p })} className="text-[#9146FF] hover:underline mr-3">Editar</button><button onClick={() => remove(p)} className="text-red-500 hover:underline">Borrar</button></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {editing && (
+                <div className="mt-4 p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#111213]">
+                    <div className="grid md:grid-cols-3 gap-3">
+                        {field('Nombre', <input className={inputClass} value={editing.name} onChange={e => setEditing({ ...editing, name: e.target.value })} />)}
+                        {field('Créditos', <input type="number" className={inputClass} value={editing.credits} onChange={e => setEditing({ ...editing, credits: Number(e.target.value) })} />)}
+                        {field('Bono (créditos de regalo)', <input type="number" className={inputClass} value={editing.bonusCredits} onChange={e => setEditing({ ...editing, bonusCredits: Number(e.target.value) })} />)}
+                        {field('Precio USD', <input type="number" step="0.01" className={inputClass} value={editing.priceUsd} onChange={e => setEditing({ ...editing, priceUsd: Number(e.target.value) })} />)}
+                        {field('Orden', <input type="number" className={inputClass} value={editing.sortOrder} onChange={e => setEditing({ ...editing, sortOrder: Number(e.target.value) })} />)}
+                        {field('Descripción', <input className={inputClass} value={editing.description ?? ''} onChange={e => setEditing({ ...editing, description: e.target.value })} />)}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-[#1e293b] dark:text-[#f8fafc]">
+                        <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editing.enabled} onChange={e => setEditing({ ...editing, enabled: e.target.checked })} /> Activo</label>
+                        <label className="inline-flex items-center gap-2"><input type="checkbox" checked={editing.highlight} onChange={e => setEditing({ ...editing, highlight: e.target.checked })} /> Destacar como "popular"</label>
+                        <span className="text-[#94a3b8]">≈ ${perM(editing)} por millón</span>
+                        <span className="flex-1" />
+                        <button onClick={() => setEditing(null)} className="px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151]">Cancelar</button>
+                        <button onClick={save} disabled={saving} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-white font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
+                    </div>
+                </div>
+            )}
+
+            {purchases.length > 0 && (
+                <div className="mt-6 overflow-x-auto">
+                    <h3 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Últimas compras</h3>
+                    <table className="w-full text-sm">
+                        <thead><tr><th className={th}>Cuándo</th><th className={th}>Canal</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Cobrado</th><th className={th}>Culqi</th><th className={th}>Comprobante</th></tr></thead>
+                        <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                            {purchases.map(p => (
+                                <tr key={p.id} className={tr}>
+                                    <td className="py-1 text-xs whitespace-nowrap">{new Date(p.createdAt).toLocaleString()}</td>
+                                    <td className="text-xs">{p.login ?? `#${p.userId}`}{p.isTest && <span className="ml-1 text-[10px] uppercase text-amber-500">test</span>}</td>
+                                    <td className="text-right font-mono text-xs">{p.creditsReceived.toLocaleString()}</td>
+                                    <td className="text-right font-mono text-xs">{p.chargedCurrency === 'PEN' ? 'S/ ' : '$'}{(p.chargedAmount ?? p.amountPaidUsd).toFixed(2)}</td>
+                                    <td className="text-xs font-mono">{p.chargeId ?? '—'}</td>
+                                    <td className="text-xs" title={p.invoiceError ?? undefined}>{p.invoiceSeries && p.invoiceNumber != null ? `${p.invoiceType} ${p.invoiceSeries}-${String(p.invoiceNumber).padStart(8, '0')}` : p.invoiceStatus ?? '—'}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 }

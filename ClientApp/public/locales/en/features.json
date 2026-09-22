@@ -1411,6 +1411,35 @@
       "cache_hit": "From cache (free)",
       "transfer": "Transfer"
     },
-    "loadError": "Couldn't load your balance."
+    "loadError": "Couldn't load your balance.",
+    "orPlan": "or get a monthly quota with a plan →",
+    "buy": {
+      "title": "Buy credits",
+      "hint": "Purchased credits never expire and are used once the monthly quota runs out. Pay by card or Yape (Culqi); charged in soles, you get your receipt or invoice.",
+      "onlyOwner": "Only the channel owner can buy credits.",
+      "popular": "popular",
+      "credits": "credits",
+      "bonus": "+{{n}} bonus",
+      "perMillion": "≈ ${{usd}} per million",
+      "buy": "Buy",
+      "noPackages": "No packages available right now.",
+      "legal": "Price in USD; charged in soles at the platform's fixed exchange rate. The electronic receipt arrives in a few minutes.",
+      "checkoutTitle": "Credits",
+      "previewError": "Couldn't compute the receipt.",
+      "success": "Done! You received {{n}} credits. Your receipt arrives in a few minutes.",
+      "error": "The purchase couldn't be completed.",
+      "downloadError": "Couldn't download the receipt.",
+      "purchasesTitle": "Your purchases",
+      "col": {
+        "when": "When",
+        "credits": "Credits",
+        "paid": "Paid",
+        "invoice": "Receipt"
+      },
+      "factura": "Invoice",
+      "boleta": "Receipt",
+      "invoicePending": "being issued…",
+      "invoiceError": "issue error (we'll fix it)"
+    }
   }
 }

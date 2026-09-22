@@ -30,15 +30,25 @@ namespace Decatron.Services
         /// <summary>Emite los comprobantes pendientes. Devuelve cuántos resolvió.</summary>
         Task<int> ProcesarPendientesAsync(CancellationToken ct = default);
 
-        /// <summary>Emite el comprobante de una compra concreta. False si no se pudo.</summary>
-        Task<bool> EmitirAsync(long purchaseId, CancellationToken ct = default);
+        /// <summary>Emite el comprobante de una compra concreta. False si no se pudo. fuente: coins | credits.</summary>
+        Task<bool> EmitirAsync(long purchaseId, CancellationToken ct = default, string fuente = "coins");
 
-        /// <summary>El id de documento del comprobante de esa compra, si ya se emitió.</summary>
-        Task<int?> ObtenerDocumentIdAsync(long purchaseId, long userId, CancellationToken ct = default);
+        /// <summary>El id de documento del comprobante de esa compra, si ya se emitió. fuente: coins | credits.</summary>
+        Task<int?> ObtenerDocumentIdAsync(long purchaseId, long userId, CancellationToken ct = default, string fuente = "coins");
     }
 
     public class CoinInvoiceService : ICoinInvoiceService
     {
+        /// <summary>
+        /// De qué tabla sale la compra. Coins y créditos comparten el mismo esquema de
+        /// facturación (columnas customer_*, charged_*, invoice_*), solo cambia la tabla,
+        /// la columna de cantidad y el texto del comprobante. Plan CREDITOS_UNIFICADOS, fase 4.
+        /// </summary>
+        private sealed record Fuente(string Tabla, string ColumnaCantidad, string PrefijoExterno, string Nombre, Func<int, string> Descripcion);
+        private static readonly Fuente FuenteCoins = new("coin_purchases", "coins_received", "coins", "coins", n => $"Compra de {n:N0} DecaCoins");
+        private static readonly Fuente FuenteCreditos = new("credit_purchases", "credits_received", "credits", "créditos", n => $"Compra de {n:N0} créditos de Decatron");
+        private static Fuente FuenteDe(string fuente) => fuente == "credits" ? FuenteCreditos : FuenteCoins;
+
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<CoinInvoiceService> _logger;
@@ -100,48 +110,47 @@ namespace Decatron.Services
         public async Task<int> ProcesarPendientesAsync(CancellationToken ct = default)
         {
             if (!Habilitado) return 0;
-
-            var pendientes = new List<long>();
-
-            await using (var conn = new NpgsqlConnection(ConnectionString))
-            {
-                await conn.OpenAsync(ct);
-                await using var cmd = new NpgsqlCommand(@"
-                    SELECT id FROM coin_purchases
-                    WHERE invoice_status = 'PENDING'
-                      AND invoice_attempts < @max
-                      AND (invoice_last_attempt_at IS NULL
-                           OR invoice_last_attempt_at < NOW() - INTERVAL '5 minutes')
-                    ORDER BY created_at
-                    LIMIT 20", conn);
-                cmd.Parameters.AddWithValue("max", MaxIntentos);
-
-                await using var reader = await cmd.ExecuteReaderAsync(ct);
-                while (await reader.ReadAsync(ct))
-                    pendientes.Add(reader.GetInt64(0));
-            }
-
             var emitidos = 0;
-            foreach (var id in pendientes)
+            foreach (var fuente in new[] { FuenteCoins, FuenteCreditos })
             {
-                if (ct.IsCancellationRequested) break;
-                if (await EmitirAsync(id, ct)) emitidos++;
+                var pendientes = new List<long>();
+                await using (var conn = new NpgsqlConnection(ConnectionString))
+                {
+                    await conn.OpenAsync(ct);
+                    await using var cmd = new NpgsqlCommand($@"
+                        SELECT id FROM {fuente.Tabla}
+                        WHERE invoice_status = 'PENDING'
+                          AND invoice_attempts < @max
+                          AND (invoice_last_attempt_at IS NULL
+                               OR invoice_last_attempt_at < NOW() - INTERVAL '5 minutes')
+                        ORDER BY created_at
+                        LIMIT 20", conn);
+                    cmd.Parameters.AddWithValue("max", MaxIntentos);
+                    await using var reader = await cmd.ExecuteReaderAsync(ct);
+                    while (await reader.ReadAsync(ct))
+                        pendientes.Add(reader.GetInt64(0));
+                }
+                foreach (var id in pendientes)
+                {
+                    if (ct.IsCancellationRequested) break;
+                    if (await EmitirAsync(id, ct, fuente.PrefijoExterno)) emitidos++;
+                }
             }
-
             return emitidos;
         }
 
         // ── Emisión ───────────────────────────────────────────────────────────────
 
-        public async Task<bool> EmitirAsync(long purchaseId, CancellationToken ct = default)
+        public async Task<bool> EmitirAsync(long purchaseId, CancellationToken ct = default, string fuente = "coins")
         {
+            var f = FuenteDe(fuente);
             if (!Habilitado)
             {
-                _logger.LogDebug("Facturación deshabilitada; se omite la compra de coins {Id}", purchaseId);
+                _logger.LogDebug("Facturación deshabilitada; se omite la compra de {Fuente} {Id}", f.Nombre, purchaseId);
                 return false;
             }
 
-            var compra = await CargarCompraAsync(purchaseId, ct);
+            var compra = await CargarCompraAsync(f, purchaseId, ct);
             if (compra == null)
             {
                 _logger.LogWarning("No existe la compra de coins {Id}", purchaseId);
@@ -152,7 +161,7 @@ namespace Decatron.Services
             {
                 // Sin importe cobrado no hay nada que declarar: compras regaladas, o de
                 // antes de que se guardara el monto real en soles.
-                await MarcarAsync(purchaseId, null, "Sin importe cobrado", ct);
+                await MarcarAsync(f, purchaseId, null, "Sin importe cobrado", ct);
                 return false;
             }
 
@@ -164,7 +173,7 @@ namespace Decatron.Services
             {
                 _logger.LogWarning(
                     "La compra de coins {Id} es de prueba: no se emite comprobante", purchaseId);
-                await MarcarAsync(purchaseId, null, "Compra de prueba, no se emite", ct);
+                await MarcarAsync(f, purchaseId, null, "Compra de prueba, no se emite", ct);
                 return false;
             }
 
@@ -178,8 +187,8 @@ namespace Decatron.Services
             }
 
             var (endpoint, cuerpo) = InvoiceDocumentBuilder.Armar(new VentaParaComprobante(
-                ExternalId:       $"coins-{compra.Id}",
-                Descripcion:      $"Compra de {compra.TotalCoins:N0} DecaCoins",
+                ExternalId:       $"{f.PrefijoExterno}-{compra.Id}",
+                Descripcion:      f.Descripcion(compra.TotalCoins),
                 ImporteCobrado:   compra.ChargedAmount!.Value,
                 MonedaCobrada:    compra.ChargedCurrency,
                 FechaEmision:     compra.CreatedAt,
@@ -206,20 +215,20 @@ namespace Decatron.Services
                 {
                     var msg = root.TryGetProperty("message", out var m) ? m.GetString() : body;
                     _logger.LogError("Comprobante de la compra de coins {Id} rechazado: {Msg}", purchaseId, msg);
-                    await MarcarAsync(purchaseId, "ERROR", msg, ct);
+                    await MarcarAsync(f, purchaseId, "ERROR", msg, ct);
                     return false;
                 }
 
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("DecatronAPI devolvió {Code} para la compra {Id}", (int)response.StatusCode, purchaseId);
-                    await AnotarIntentoAsync(purchaseId, $"HTTP {(int)response.StatusCode}", ct);
+                    await AnotarIntentoAsync(f, purchaseId, $"HTTP {(int)response.StatusCode}", ct);
                     return false;
                 }
 
                 if (!root.TryGetProperty("document", out var documento))
                 {
-                    await AnotarIntentoAsync(purchaseId, "Respuesta sin documento", ct);
+                    await AnotarIntentoAsync(f, purchaseId, "Respuesta sin documento", ct);
                     return false;
                 }
 
@@ -230,7 +239,7 @@ namespace Decatron.Services
                 var estado  = documento.TryGetProperty("sunatStatus", out var st) ? st.GetString() : "PENDING";
                 var mensaje = root.TryGetProperty("error", out var er) ? er.GetString() : null;
 
-                await GuardarComprobanteAsync(purchaseId, estado, docId, tipo, serie, numero, mensaje, ct);
+                await GuardarComprobanteAsync(f, purchaseId, estado, docId, tipo, serie, numero, mensaje, ct);
 
                 _logger.LogInformation(
                     "Compra de coins {Id}: comprobante {Tipo} {Serie}-{Numero} → {Estado}",
@@ -245,20 +254,21 @@ namespace Decatron.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error emitiendo el comprobante de la compra de coins {Id}", purchaseId);
-                await AnotarIntentoAsync(purchaseId, ex.Message, ct);
+                await AnotarIntentoAsync(f, purchaseId, ex.Message, ct);
                 return false;
             }
         }
 
-        public async Task<int?> ObtenerDocumentIdAsync(long purchaseId, long userId, CancellationToken ct = default)
+        public async Task<int?> ObtenerDocumentIdAsync(long purchaseId, long userId, CancellationToken ct = default, string fuente = "coins")
         {
+            var f = FuenteDe(fuente);
             await using var conn = new NpgsqlConnection(ConnectionString);
             await conn.OpenAsync(ct);
 
             // El user_id va en el WHERE, no se compara después: así no hay forma de pedir
             // el comprobante de otro pasando un id que no es tuyo.
             await using var cmd = new NpgsqlCommand(
-                "SELECT invoice_document_id FROM coin_purchases WHERE id = @id AND user_id = @user", conn);
+                $"SELECT invoice_document_id FROM {f.Tabla} WHERE id = @id AND user_id = @user", conn);
             cmd.Parameters.AddWithValue("id", purchaseId);
             cmd.Parameters.AddWithValue("user", userId);
 
@@ -284,7 +294,7 @@ namespace Decatron.Services
             public bool     IsTest { get; init; }
         }
 
-        private async Task<CompraParaFacturar?> CargarCompraAsync(long id, CancellationToken ct)
+        private async Task<CompraParaFacturar?> CargarCompraAsync(Fuente f, long id, CancellationToken ct)
         {
             await using var conn = new NpgsqlConnection(ConnectionString);
             await conn.OpenAsync(ct);
@@ -292,12 +302,12 @@ namespace Decatron.Services
             // coins_received ya incluye el bono de primera compra (se acredita en el mismo
             // acto). El bono por cupón NO va: se acredita después y aparte, no es parte de
             // lo que se compró en esta operación.
-            await using var cmd = new NpgsqlCommand(@"
-                SELECT cp.coins_received, cp.created_at,
+            await using var cmd = new NpgsqlCommand($@"
+                SELECT cp.{f.ColumnaCantidad}, cp.created_at,
                        cp.charged_amount, cp.charged_currency,
                        cp.customer_name, cp.customer_country, cp.customer_doc_type,
                        cp.customer_doc_number, cp.prefer_factura, u.login, cp.is_test
-                FROM coin_purchases cp
+                FROM {f.Tabla} cp
                 JOIN users u ON u.id = cp.user_id
                 WHERE cp.id = @id", conn);
             cmd.Parameters.AddWithValue("id", id);
@@ -323,14 +333,14 @@ namespace Decatron.Services
         }
 
         private async Task GuardarComprobanteAsync(
-            long id, string? estado, int? docId, string? tipo, string? serie, int? numero,
+            Fuente f, long id, string? estado, int? docId, string? tipo, string? serie, int? numero,
             string? error, CancellationToken ct)
         {
             await using var conn = new NpgsqlConnection(ConnectionString);
             await conn.OpenAsync(ct);
 
-            await using var cmd = new NpgsqlCommand(@"
-                UPDATE coin_purchases SET
+            await using var cmd = new NpgsqlCommand($@"
+                UPDATE {f.Tabla} SET
                     invoice_status = @estado,
                     invoice_document_id = @docId,
                     invoice_type = @tipo,
@@ -352,13 +362,13 @@ namespace Decatron.Services
             await cmd.ExecuteNonQueryAsync(ct);
         }
 
-        private async Task MarcarAsync(long id, string? estado, string? error, CancellationToken ct)
+        private async Task MarcarAsync(Fuente f, long id, string? estado, string? error, CancellationToken ct)
         {
             await using var conn = new NpgsqlConnection(ConnectionString);
             await conn.OpenAsync(ct);
 
-            await using var cmd = new NpgsqlCommand(@"
-                UPDATE coin_purchases
+            await using var cmd = new NpgsqlCommand($@"
+                UPDATE {f.Tabla}
                 SET invoice_status = @estado, invoice_error = @error,
                     invoice_attempts = invoice_attempts + 1, invoice_last_attempt_at = NOW()
                 WHERE id = @id", conn);
@@ -374,13 +384,13 @@ namespace Decatron.Services
         /// intentarlo, salvo que ya se hayan agotado los intentos: ahí pasa a ERROR, para
         /// que no quede una fila pendiente para siempre que nadie mire.
         /// </summary>
-        private async Task AnotarIntentoAsync(long id, string? error, CancellationToken ct)
+        private async Task AnotarIntentoAsync(Fuente f, long id, string? error, CancellationToken ct)
         {
             await using var conn = new NpgsqlConnection(ConnectionString);
             await conn.OpenAsync(ct);
 
-            await using var cmd = new NpgsqlCommand(@"
-                UPDATE coin_purchases
+            await using var cmd = new NpgsqlCommand($@"
+                UPDATE {f.Tabla}
                 SET invoice_error = @error,
                     invoice_attempts = invoice_attempts + 1,
                     invoice_last_attempt_at = NOW(),

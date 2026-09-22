@@ -116,6 +116,8 @@ function Estado({ estado }: { estado: string | null }) {
     );
 }
 
+interface ComprobanteCredits { purchaseId: number; creditsReceived: number; createdAt: string; amount: number; currency: string; status: string | null; type: string | null; number: string | null; canDownload: boolean }
+
 export default function MeInvoices() {
     const [items, setItems]     = useState<Comprobante[]>([]);
     const [loading, setLoading] = useState(true);
@@ -126,12 +128,13 @@ export default function MeInvoices() {
         (async () => {
             // Las dos fuentes en paralelo, y si una falla se muestra la otra: es mejor
             // ver la mitad de tus comprobantes que una pantalla de error entera.
-            const [tiers, coins] = await Promise.allSettled([
+            const [tiers, coins, credits] = await Promise.allSettled([
                 api.get<ComprobanteTier[]>('/supporters/my-invoices'),
                 api.get<ComprobanteCoins[]>('/coins/my-invoices'),
+                api.get<ComprobanteCredits[]>('/tts-credits/purchases'),
             ]);
 
-            if (tiers.status === 'rejected' && coins.status === 'rejected') {
+            if (tiers.status === 'rejected' && coins.status === 'rejected' && credits.status === 'rejected') {
                 setError('No pudimos cargar tus comprobantes. Intentá de nuevo en un momento.');
                 setLoading(false);
                 return;
@@ -173,8 +176,27 @@ export default function MeInvoices() {
                 }))
                 : [];
 
+            // Compras de créditos (voz premium, traducción, IA): mismo esquema de comprobante que coins.
+            const deCredits: Comprobante[] = credits.status === 'fulfilled'
+                ? credits.value.data.filter(c => c.status != null).map(c => ({
+                    key: `credits-${c.purchaseId}`,
+                    concepto: `Compra de ${c.creditsReceived.toLocaleString('es-PE')} créditos`,
+                    fechaIso: c.createdAt,
+                    amount: c.amount,
+                    currency: c.currency,
+                    status: c.status,
+                    type: c.type,
+                    number: c.number,
+                    customerName: null,
+                    customerDoc: null,
+                    canDownload: c.canDownload,
+                    downloadBase: `/tts-credits/purchases/${c.purchaseId}/download`,
+                    yaAcreditado: 'Tus créditos están acreditados igual',
+                }))
+                : [];
+
             setItems(
-                [...deTiers, ...deCoins].sort(
+                [...deTiers, ...deCoins, ...deCredits].sort(
                     (a, b) => new Date(b.fechaIso).getTime() - new Date(a.fechaIso).getTime()
                 )
             );

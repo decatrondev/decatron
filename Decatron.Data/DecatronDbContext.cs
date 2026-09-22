@@ -163,6 +163,8 @@ namespace Decatron.Data
         public DbSet<CoinPackage> CoinPackages { get; set; }
         public DbSet<CoinPendingOrder> CoinPendingOrders { get; set; }
         public DbSet<CoinPurchase> CoinPurchases { get; set; }
+        public DbSet<Decatron.Core.Models.Credits.CreditPackage> CreditPackages { get; set; }
+        public DbSet<Decatron.Core.Models.Credits.CreditPurchase> CreditPurchases { get; set; }
         public DbSet<CoinTransaction> CoinTransactions { get; set; }
         public DbSet<CoinTransfer> CoinTransfers { get; set; }
         public DbSet<CoinDiscountCode> CoinDiscountCodes { get; set; }

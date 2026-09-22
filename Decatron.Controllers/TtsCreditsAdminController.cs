@@ -83,6 +83,59 @@ namespace Decatron.Controllers
             });
         }
 
+        // ── Paquetes a la venta (plan CREDITOS_UNIFICADOS, fase 4) ─────────────
+
+        [HttpGet("packages")]
+        public async Task<IActionResult> Packages() =>
+            Ok(await _db.CreditPackages.AsNoTracking().OrderBy(p => p.SortOrder).ThenBy(p => p.Id).ToListAsync());
+
+        public record PackageInput(string Name, string? Description, long Credits, long BonusCredits, decimal PriceUsd, int SortOrder, bool Enabled, bool Highlight);
+
+        [HttpPost("packages")]
+        public async Task<IActionResult> CreatePackage([FromBody] PackageInput input)
+        {
+            if (string.IsNullOrWhiteSpace(input.Name) || input.Credits <= 0 || input.PriceUsd < 0) return BadRequest(new { success = false, message = "Nombre, créditos (> 0) y precio (≥ 0) son obligatorios" });
+            var p = new Decatron.Core.Models.Credits.CreditPackage { Name = input.Name.Trim(), Description = input.Description?.Trim(), Credits = input.Credits, BonusCredits = Math.Max(0, input.BonusCredits), PriceUsd = input.PriceUsd, SortOrder = input.SortOrder, Enabled = input.Enabled, Highlight = input.Highlight };
+            _db.CreditPackages.Add(p);
+            await _db.SaveChangesAsync();
+            return Ok(p);
+        }
+
+        [HttpPut("packages/{id:long}")]
+        public async Task<IActionResult> UpdatePackage(long id, [FromBody] PackageInput input)
+        {
+            var p = await _db.CreditPackages.FirstOrDefaultAsync(x => x.Id == id);
+            if (p == null) return NotFound();
+            if (string.IsNullOrWhiteSpace(input.Name) || input.Credits <= 0 || input.PriceUsd < 0) return BadRequest(new { success = false, message = "Nombre, créditos (> 0) y precio (≥ 0) son obligatorios" });
+            p.Name = input.Name.Trim(); p.Description = input.Description?.Trim(); p.Credits = input.Credits; p.BonusCredits = Math.Max(0, input.BonusCredits);
+            p.PriceUsd = input.PriceUsd; p.SortOrder = input.SortOrder; p.Enabled = input.Enabled; p.Highlight = input.Highlight; p.UpdatedAt = DateTimeOffset.UtcNow;
+            await _db.SaveChangesAsync();
+            return Ok(p);
+        }
+
+        /// <summary>Un paquete con compras no se borra (las compras lo referencian): se desactiva.</summary>
+        [HttpDelete("packages/{id:long}")]
+        public async Task<IActionResult> DeletePackage(long id)
+        {
+            var p = await _db.CreditPackages.FirstOrDefaultAsync(x => x.Id == id);
+            if (p == null) return NotFound();
+            if (await _db.CreditPurchases.AnyAsync(x => x.PackageId == id)) { p.Enabled = false; p.UpdatedAt = DateTimeOffset.UtcNow; await _db.SaveChangesAsync(); return Ok(new { success = true, disabled = true }); }
+            _db.CreditPackages.Remove(p);
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true, deleted = true });
+        }
+
+        /// <summary>Últimas compras de créditos (todas las cuentas), con el estado del comprobante.</summary>
+        [HttpGet("purchases")]
+        public async Task<IActionResult> Purchases([FromQuery] int limit = 50)
+        {
+            limit = Math.Clamp(limit, 1, 200);
+            var rows = await _db.CreditPurchases.AsNoTracking().OrderByDescending(p => p.CreatedAt).Take(limit).ToListAsync();
+            var ids = rows.Select(r => r.UserId).Distinct().ToList();
+            var logins = await _db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Login);
+            return Ok(rows.Select(p => new { p.Id, p.UserId, login = logins.GetValueOrDefault(p.UserId), p.CreditsReceived, p.AmountPaidUsd, p.ChargedAmount, p.ChargedCurrency, p.ChargeId, p.IsTest, p.InvoiceStatus, p.InvoiceType, p.InvoiceSeries, p.InvoiceNumber, p.InvoiceError, createdAt = DateTime.SpecifyKind(p.CreatedAt, DateTimeKind.Utc) }));
+        }
+
         // La búsqueda de canales vive en AdminUsersController: la usan también las
         // pantallas de supporters y no tiene sentido tener dos copias.
 
