@@ -4,7 +4,8 @@
  */
 import api from './api';
 
-export const PEN_PER_USD = 3.80;
+/** Solo por si el backend no lo informa: el valor histórico. El real llega con la clave pública. */
+export const PEN_PER_USD_FALLBACK = 3.80;
 
 function loadCulqiScript(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -30,7 +31,8 @@ export async function openCulqiCheckout(amountUsd: number, title: string): Promi
     await loadCulqiScript();
     const { data: keyData } = await api.get('/coins/culqi-public-key');
     if (!keyData.publicKey) throw new Error('Culqi no configurado');
-    const amountPen = Math.round(amountUsd * PEN_PER_USD * 100);
+    // El monto que se muestra tiene que ser exactamente el que se va a cobrar.
+    const amountPen = Math.round(amountUsd * (keyData.penPerUsd || PEN_PER_USD_FALLBACK) * 100);
     return new Promise((resolve, reject) => {
         const config = {
             settings: { title, currency: 'PEN', amount: amountPen },

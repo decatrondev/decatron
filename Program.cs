@@ -372,6 +372,7 @@ try
     builder.Services.AddScoped<ISpeakChatService, SpeakChatService>();
     builder.Services.AddScoped<ITtsCreditService, TtsCreditService>();
     builder.Services.AddScoped<Decatron.Services.Finance.FinanceService>();
+    builder.Services.AddSingleton<Decatron.Services.Finance.ExchangeRate>();
     builder.Services.AddScoped<ITipsService, TipsService>();
     builder.Services.AddScoped<ISupportersService, SupportersService>();
     builder.Services.AddScoped<ISupporterInvoiceService, SupporterInvoiceService>();

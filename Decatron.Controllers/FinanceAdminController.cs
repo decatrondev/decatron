@@ -100,6 +100,101 @@ namespace Decatron.Controllers
             });
         }
 
+        /// <summary>
+        /// Unidad económica de los créditos: cuánto se vendió, cuánto se consumió, qué
+        /// queda debiendo la plataforma (créditos pagados y todavía no gastados) y qué
+        /// paga vs. qué consume cada canal. Es lo que dice si los precios y las cuotas
+        /// de los tiers están bien.
+        /// </summary>
+        [HttpGet("credits")]
+        public async Task<IActionResult> Credits([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] int months = 12)
+        {
+            var (fromUtc, toUtc) = Range(from, to, months);
+            var s = await _finance.GetSettingsAsync(HttpContext.RequestAborted);
+            var rate = s.PenPerUsd <= 0 ? 3.8m : s.PenPerUsd;
+            var creditUsd = Decatron.Services.AI.AiCreditGate.CreditUsd;
+            var fromOffset = new DateTimeOffset(fromUtc, TimeSpan.Zero);
+            var toOffset = new DateTimeOffset(toUtc, TimeSpan.Zero);
+
+            // Vendidos en paquetes: lo único con un precio directo por crédito.
+            var sold = await _db.CreditPurchases.AsNoTracking()
+                .Where(p => !p.IsTest && p.CreatedAt >= fromUtc && p.CreatedAt < toUtc)
+                .GroupBy(_ => 1)
+                .Select(g => new { credits = g.Sum(p => (long)p.CreditsReceived), usd = g.Sum(p => p.AmountPaidUsd), n = g.Count() })
+                .FirstOrDefaultAsync(HttpContext.RequestAborted);
+
+            // Otorgados por el plan (cuota mensual) y regalados por el admin: no tienen
+            // precio propio, pero son créditos que la plataforma va a tener que servir.
+            var granted = await _db.TtsCreditLedger.AsNoTracking()
+                .Where(e => e.Credits > 0 && e.Bucket != "standard" && e.CreatedAt >= fromOffset && e.CreatedAt < toOffset)
+                .GroupBy(e => e.Type)
+                .Select(g => new { type = g.Key, credits = g.Sum(e => e.Credits), n = g.Count() })
+                .ToListAsync(HttpContext.RequestAborted);
+
+            var consumed = await _db.TtsCreditLedger.AsNoTracking()
+                .Where(e => e.Type == "consume" && (e.Bucket == "monthly" || e.Bucket == "purchased")
+                            && e.CreatedAt >= fromOffset && e.CreatedAt < toOffset)
+                .GroupBy(_ => 1)
+                .Select(g => new { credits = -g.Sum(e => e.Credits), n = g.Count() })
+                .FirstOrDefaultAsync(HttpContext.RequestAborted);
+
+            // Pasivo: créditos comprados que nadie gastó todavía. Es plata ya cobrada por
+            // un servicio que falta prestar; los del plan no cuentan porque vencen al mes.
+            var liability = await _db.TtsCreditBalances.AsNoTracking()
+                .Where(b => b.PurchasedBalance > 0)
+                .GroupBy(_ => 1)
+                .Select(g => new { credits = g.Sum(b => b.PurchasedBalance), channels = g.Count() })
+                .FirstOrDefaultAsync(HttpContext.RequestAborted);
+
+            // Por canal: lo que pagó en el período contra lo que consumió.
+            var income = await _finance.IncomeAsync(fromUtc, toUtc, HttpContext.RequestAborted);
+            var paidByUser = income.Where(i => i.UserId != null)
+                .GroupBy(i => i.UserId!.Value)
+                .ToDictionary(g => g.Key, g => new { pen = g.Sum(x => x.AmountPen), n = g.Count() });
+            var usedByUser = await _db.TtsCreditLedger.AsNoTracking()
+                .Where(e => e.Type == "consume" && (e.Bucket == "monthly" || e.Bucket == "purchased")
+                            && e.CreatedAt >= fromOffset && e.CreatedAt < toOffset)
+                .GroupBy(e => e.UserId)
+                .Select(g => new { userId = g.Key, credits = -g.Sum(e => e.Credits) })
+                .ToListAsync(HttpContext.RequestAborted);
+
+            var ids = paidByUser.Keys.Union(usedByUser.Select(u => u.userId)).Distinct().ToList();
+            var users = await _db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Login, HttpContext.RequestAborted);
+            var tiers = new Dictionary<long, string>();
+            foreach (var id in ids) tiers[id] = await Decatron.Core.Helpers.TierResolver.GetEffectiveTierAsync(_db, id);
+
+            var byChannel = ids.Select(id =>
+            {
+                var paid = paidByUser.GetValueOrDefault(id);
+                var usedCredits = usedByUser.FirstOrDefault(u => u.userId == id)?.credits ?? 0;
+                var costPen = usedCredits * creditUsd * rate;
+                return new
+                {
+                    userId = id, login = users.GetValueOrDefault(id), tier = tiers.GetValueOrDefault(id),
+                    paidPen = paid?.pen ?? 0m, payments = paid?.n ?? 0,
+                    usedCredits, costPen, costUsd = usedCredits * creditUsd,
+                    marginPen = (paid?.pen ?? 0m) - costPen,
+                };
+            }).OrderByDescending(c => c.costPen).ThenByDescending(c => c.paidPen).Take(50).ToList();
+
+            var soldCredits = sold?.credits ?? 0;
+            var soldUsd = sold?.usd ?? 0m;
+            return Ok(new
+            {
+                success = true,
+                from = fromUtc, to = toUtc, creditUsd,
+                sold = new { credits = soldCredits, usd = soldUsd, pen = soldUsd * rate, purchases = sold?.n ?? 0,
+                    pricePerMillionUsd = soldCredits > 0 ? Math.Round(soldUsd * 1_000_000m / soldCredits, 2) : 0m,
+                    costPerMillionUsd = Math.Round(creditUsd * 1_000_000m, 2) },
+                granted,
+                consumed = new { credits = consumed?.credits ?? 0, entries = consumed?.n ?? 0,
+                    costUsd = (consumed?.credits ?? 0) * creditUsd, costPen = (consumed?.credits ?? 0) * creditUsd * rate },
+                liability = new { credits = liability?.credits ?? 0, channels = liability?.channels ?? 0,
+                    costUsd = (liability?.credits ?? 0) * creditUsd, costPen = (liability?.credits ?? 0) * creditUsd * rate },
+                byChannel,
+            });
+        }
+
         /// <summary>Cobros uno por uno, con su comprobante. Para revisar y conciliar.</summary>
         [HttpGet("income")]
         public async Task<IActionResult> Income([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null,

@@ -38,6 +38,7 @@ namespace Decatron.Controllers
         private readonly IBillingProfileService _billing;
         private readonly ISupporterInvoiceService _invoices;
         private readonly IPaymentModeService _paymentMode;
+        private readonly Decatron.Services.Finance.ExchangeRate _rate;
 
         public SupportersController(
             ISupportersService service,
@@ -47,10 +48,12 @@ namespace Decatron.Controllers
             IHttpClientFactory httpClientFactory,
             IBillingProfileService billing,
             ISupporterInvoiceService invoices,
-            IPaymentModeService paymentMode)
+            IPaymentModeService paymentMode,
+            Decatron.Services.Finance.ExchangeRate rate)
         {
             _invoices           = invoices;
             _paymentMode        = paymentMode;
+            _rate               = rate;
             _service            = service;
             _db                 = db;
             _logger             = logger;
@@ -1032,7 +1035,7 @@ namespace Decatron.Controllers
             }
 
             // Culqi cobra en soles, así que el comprobante va en soles por lo que se cobra.
-            var totalPen = decimal.Round(finalAmountUsd * PEN_PER_USD, 2);
+            var totalPen = decimal.Round(finalAmountUsd * await _rate.PenPerUsdAsync(HttpContext.RequestAborted), 2);
             var preview = _billing.Preview(perfil, totalPen, "PEN", req.PrefiereFactura);
 
             // Qué le hace esta compra al tier que ya tiene. Se le dice antes de pagar: si la
@@ -1422,14 +1425,14 @@ namespace Decatron.Controllers
 
         // ── Culqi endpoints ─────────────────────────────────────────────────────
 
-        private const decimal PEN_PER_USD = 3.80m; // Fixed conversion rate for Culqi (PEN)
 
         [HttpGet("culqi-public-key")]
         public async Task<IActionResult> GetCulqiPublicKey()
         {
             // Publica y secreta tienen que salir del mismo modo, o Culqi rechaza el cargo.
             var (publicKey, _, esTest) = await _paymentMode.GetLlavesAsync(HttpContext.RequestAborted);
-            return Ok(new { publicKey, testMode = esTest });
+            // El front muestra el mismo monto que se va a cobrar: el tipo de cambio sale de acá.
+            return Ok(new { publicKey, testMode = esTest, penPerUsd = await _rate.PenPerUsdAsync(HttpContext.RequestAborted) });
         }
 
         [Authorize]
@@ -1487,7 +1490,7 @@ namespace Decatron.Controllers
             }
 
             // Convert USD to PEN for Culqi (amount in centavos)
-            var amountPen = finalAmountUsd * PEN_PER_USD;
+            var amountPen = finalAmountUsd * await _rate.PenPerUsdAsync(HttpContext.RequestAborted);
             var amountCentavos = (int)Math.Round(amountPen * 100);
 
             try
@@ -1688,7 +1691,7 @@ namespace Decatron.Controllers
             if (req.AmountUsd < 1m)
                 return BadRequest(new { error = "El monto mínimo es $1" });
 
-            var amountCentavos = (int)Math.Round(req.AmountUsd * PEN_PER_USD * 100);
+            var amountCentavos = (int)Math.Round(req.AmountUsd * await _rate.PenPerUsdAsync(HttpContext.RequestAborted) * 100);
 
             try
             {

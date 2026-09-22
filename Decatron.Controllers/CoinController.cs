@@ -28,6 +28,7 @@ namespace Decatron.Controllers
         private readonly ICoinInvoiceService _invoices;
         private readonly ISupporterInvoiceService _invoiceFiles;
         private readonly IPaymentModeService _paymentMode;
+        private readonly Decatron.Services.Finance.ExchangeRate _rate;
 
         public CoinController(
             CoinService coinService,
@@ -38,7 +39,8 @@ namespace Decatron.Controllers
             IBillingProfileService billing,
             ICoinInvoiceService invoices,
             ISupporterInvoiceService invoiceFiles,
-            IPaymentModeService paymentMode)
+            IPaymentModeService paymentMode,
+            Decatron.Services.Finance.ExchangeRate rate)
         {
             _coinService       = coinService;
             _configuration     = configuration;
@@ -51,6 +53,7 @@ namespace Decatron.Controllers
             // qué se vendió: se reusa el de supporters en vez de duplicar el cliente HTTP.
             _invoiceFiles      = invoiceFiles;
             _paymentMode       = paymentMode;
+            _rate              = rate;
         }
 
         // ─── GET /api/coins/packages ─────────────────────────────────────────────
@@ -117,7 +120,6 @@ namespace Decatron.Controllers
 
         // ─── POST /api/coins/buy ─────────────────────────────────────────────────
 
-        private const decimal PEN_PER_USD = 3.80m; // mismo tipo de cambio fijo que ya usa Culqi en Supporters
 
         [HttpGet("culqi-public-key")]
         [AllowAnonymous]
@@ -127,7 +129,8 @@ namespace Decatron.Controllers
             // navegador tokeniza con la de live y el backend cobra con la secreta de test,
             // Culqi rechaza el cargo con un error que no dice nada.
             var (publicKey, _, esTest) = await _paymentMode.GetLlavesAsync(HttpContext.RequestAborted);
-            return Ok(new { publicKey, testMode = esTest });
+            // El front cobra el mismo monto que el backend: el tipo de cambio sale de acá, no de una constante suya.
+            return Ok(new { publicKey, testMode = esTest, penPerUsd = await _rate.PenPerUsdAsync(HttpContext.RequestAborted) });
         }
 
         // Culqi cobra en un solo paso (token del frontend + cargo directo), no hay
@@ -216,7 +219,8 @@ namespace Decatron.Controllers
             if (string.IsNullOrWhiteSpace(req.CulqiToken) || string.IsNullOrWhiteSpace(req.CulqiEmail))
                 return BadRequest(new { error = "Token y email de Culqi son requeridos" });
 
-            var amountPen      = finalPrice * PEN_PER_USD;
+            var penPerUsd      = await _rate.PenPerUsdAsync(HttpContext.RequestAborted);
+            var amountPen      = finalPrice * penPerUsd;
             var amountCentavos = (int)Math.Round(amountPen * 100);
 
             try
@@ -527,7 +531,7 @@ namespace Decatron.Controllers
             }
 
             // Culqi cobra en soles, así que el comprobante va en soles por lo cobrado.
-            var totalPen = decimal.Round(finalPrice * PEN_PER_USD, 2);
+            var totalPen = decimal.Round(finalPrice * await _rate.PenPerUsdAsync(HttpContext.RequestAborted), 2);
             var preview = _billing.Preview(perfil, totalPen, "PEN", req.PrefiereFactura);
 
             return Ok(new { success = true, preview, priceUsd = finalPrice, coins });

@@ -542,7 +542,7 @@ function TierCards() {
             if (codeValidation) {
                 finalUsd = codeValidation.discountedAmount;
             }
-            const amountPen = Math.round(finalUsd * 3.80 * 100); // centavos PEN
+            const amountPen = Math.round(finalUsd * (keyData.penPerUsd || 3.80) * 100); // centavos PEN
 
             const config = {
                 settings: { title: 'Decatron', currency: 'PEN', amount: amountPen },
@@ -1095,7 +1095,7 @@ function FreeDonation() {
             const { data: keyData } = await api.get('/supporters/culqi-public-key');
             if (!keyData.publicKey) throw new Error('Culqi no configurado');
 
-            const amountPen = Math.round(numAmount * 3.80 * 100); // centavos PEN
+            const amountPen = Math.round(numAmount * (keyData.penPerUsd || 3.80) * 100); // centavos PEN
 
             const config = {
                 settings: { title: 'Decatron', currency: 'PEN', amount: amountPen },

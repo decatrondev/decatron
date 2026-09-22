@@ -38,7 +38,7 @@ const usd = (n: number) => `$${n.toFixed(2)}`;
 
 export default function Finance() {
     const navigate = useNavigate();
-    const [tab, setTab] = useState<'resumen' | 'ingresos' | 'costos' | 'ajustes'>('resumen');
+    const [tab, setTab] = useState<'resumen' | 'ingresos' | 'costos' | 'creditos' | 'ajustes'>('resumen');
     const [months, setMonths] = useState(12);
     const [data, setData] = useState<Summary | null>(null);
     const [loading, setLoading] = useState(true);
@@ -69,7 +69,7 @@ export default function Finance() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-                {([['resumen', 'Resumen'], ['ingresos', 'Ingresos'], ['costos', 'Costos'], ['ajustes', 'Ajustes']] as const).map(([k, label]) => (
+                {([['resumen', 'Resumen'], ['ingresos', 'Ingresos'], ['costos', 'Costos'], ['creditos', 'Créditos'], ['ajustes', 'Ajustes']] as const).map(([k, label]) => (
                     <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 rounded-xl text-sm font-bold border ${tab === k ? 'bg-[#9146FF] border-[#9146FF] text-white' : 'bg-white dark:bg-[#1B1C1D] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}>{label}</button>
                 ))}
             </div>
@@ -80,6 +80,7 @@ export default function Finance() {
             {data && tab === 'resumen' && <Resumen d={data} />}
             {data && tab === 'ingresos' && <Ingresos months={months} />}
             {data && tab === 'costos' && <Costos d={data} onChanged={load} />}
+            {tab === 'creditos' && <Creditos months={months} />}
             {tab === 'ajustes' && <Ajustes onSaved={load} />}
         </div>
     );
@@ -295,6 +296,73 @@ function Costos({ d, onChanged }: { d: Summary; onChanged: () => void }) {
                         </div>
                     </div>
                 )}
+            </div>
+        </>
+    );
+}
+
+interface CreditsEco {
+    creditUsd: number;
+    sold: { credits: number; usd: number; pen: number; purchases: number; pricePerMillionUsd: number; costPerMillionUsd: number };
+    granted: { type: string; credits: number; n: number }[];
+    consumed: { credits: number; entries: number; costUsd: number; costPen: number };
+    liability: { credits: number; channels: number; costUsd: number; costPen: number };
+    byChannel: { userId: number; login: string | null; tier: string | null; paidPen: number; payments: number; usedCredits: number; costPen: number; costUsd: number; marginPen: number }[];
+}
+const GRANT_LABEL: Record<string, string> = { monthly_reset: 'Cuota del plan', grant: 'Regalo del admin', purchase: 'Compra de paquetes', refund: 'Devoluciones' };
+
+/**
+ * Unidad económica de los créditos: si el precio cubre el costo, cuánto se debe en
+ * créditos ya cobrados y qué canal consume más de lo que paga.
+ */
+function Creditos({ months }: { months: number }) {
+    const [d, setD] = useState<CreditsEco | null>(null);
+    useEffect(() => { api.get(`/admin/finance/credits?months=${months}`).then(r => setD(r.data)).catch(() => { }); }, [months]);
+    if (!d) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-[#9146FF]" /></div>;
+    const healthy = d.sold.pricePerMillionUsd >= d.sold.costPerMillionUsd;
+
+    return (
+        <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Stat icon={<Wallet className="w-4 h-4" />} label="Créditos vendidos" value={d.sold.credits.toLocaleString()} sub={`${d.sold.purchases} compras · ${usd(d.sold.usd)}`} />
+                <Stat icon={<TrendingUp className="w-4 h-4" />} label="Precio por millón" value={d.sold.pricePerMillionUsd > 0 ? usd(d.sold.pricePerMillionUsd) : '—'} sub={`cuesta ${usd(d.sold.costPerMillionUsd)}`} accent={d.sold.pricePerMillionUsd > 0 ? healthy : undefined} />
+                <Stat icon={<TrendingDown className="w-4 h-4" />} label="Créditos consumidos" value={d.consumed.credits.toLocaleString()} sub={`costo real ${pen(d.consumed.costPen)}`} />
+                <Stat icon={<Info className="w-4 h-4" />} label="Pasivo de créditos" value={d.liability.credits.toLocaleString()} sub={`${d.liability.channels} canales · ${pen(d.liability.costPen)} por servir`} />
+            </div>
+
+            <div className={card}>
+                <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1">Créditos que entraron a circulación</h2>
+                <p className={`${muted} mb-4`}>Todo lo que se acreditó en el período. La cuota del plan no se paga por crédito: se paga con la suscripción.</p>
+                <table className="w-full text-sm">
+                    <thead><tr><th className={th}>Origen</th><th className={`${th} text-right`}>Movs.</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Costo si se gastan (USD)</th></tr></thead>
+                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                        {d.granted.map(g => <tr key={g.type} className={tr}><td className="py-1 text-xs">{GRANT_LABEL[g.type] ?? g.type}</td><td className="text-right text-xs">{g.n}</td><td className="text-right font-mono text-xs">{g.credits.toLocaleString()}</td><td className="text-right font-mono text-xs">{usd(g.credits * d.creditUsd)}</td></tr>)}
+                        {d.granted.length === 0 && <tr><td colSpan={4} className={`${muted} py-4 text-center`}>Nada acreditado en el período.</td></tr>}
+                    </tbody>
+                </table>
+            </div>
+
+            <div className={card}>
+                <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1">Qué paga y qué consume cada canal</h2>
+                <p className={`${muted} mb-4`}>Con esto se ajustan las cuotas de los tiers: un canal que consume más de lo que paga es el que hay que mirar.</p>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead><tr><th className={th}>Canal</th><th className={th}>Plan</th><th className={`${th} text-right`}>Pagó</th><th className={`${th} text-right`}>Créditos usados</th><th className={`${th} text-right`}>Costo real</th><th className={`${th} text-right`}>Diferencia</th></tr></thead>
+                        <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                            {d.byChannel.map(c => (
+                                <tr key={c.userId} className={tr}>
+                                    <td className="py-1 text-xs">{c.login ?? `#${c.userId}`}</td>
+                                    <td className="text-xs capitalize">{c.tier ?? '—'}</td>
+                                    <td className="text-right font-mono text-xs">{c.paidPen > 0 ? pen(c.paidPen) : '—'}</td>
+                                    <td className="text-right font-mono text-xs">{c.usedCredits.toLocaleString()}</td>
+                                    <td className="text-right font-mono text-xs">{pen(c.costPen)}</td>
+                                    <td className={`text-right font-mono text-xs ${c.marginPen >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>{c.marginPen >= 0 ? '' : '−'}{pen(Math.abs(c.marginPen))}</td>
+                                </tr>
+                            ))}
+                            {d.byChannel.length === 0 && <tr><td colSpan={6} className={`${muted} py-4 text-center`}>Sin actividad en el período.</td></tr>}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </>
     );

@@ -31,8 +31,6 @@ namespace Decatron.Controllers
     [Authorize]
     public class CreditPurchaseController : ControllerBase
     {
-        private const decimal PEN_PER_USD = 3.80m; // mismo tipo de cambio fijo que Coins y Supporters
-
         private readonly DecatronDbContext _db;
         private readonly ITtsCreditService _credits;
         private readonly IBillingProfileService _billing;
@@ -40,14 +38,15 @@ namespace Decatron.Controllers
         private readonly ICoinInvoiceService _invoices;
         private readonly ISupporterInvoiceService _invoiceFiles;
         private readonly IHttpClientFactory _httpFactory;
+        private readonly Decatron.Services.Finance.ExchangeRate _rate;
         private readonly ILogger<CreditPurchaseController> _logger;
 
         public CreditPurchaseController(DecatronDbContext db, ITtsCreditService credits, IBillingProfileService billing,
             IPaymentModeService paymentMode, ICoinInvoiceService invoices, ISupporterInvoiceService invoiceFiles,
-            IHttpClientFactory httpFactory, ILogger<CreditPurchaseController> logger)
+            IHttpClientFactory httpFactory, Decatron.Services.Finance.ExchangeRate rate, ILogger<CreditPurchaseController> logger)
         {
             _db = db; _credits = credits; _billing = billing; _paymentMode = paymentMode;
-            _invoices = invoices; _invoiceFiles = invoiceFiles; _httpFactory = httpFactory; _logger = logger;
+            _invoices = invoices; _invoiceFiles = invoiceFiles; _httpFactory = httpFactory; _rate = rate; _logger = logger;
         }
 
         [HttpGet("packages")]
@@ -70,7 +69,7 @@ namespace Decatron.Controllers
             var package = await _db.CreditPackages.AsNoTracking().FirstOrDefaultAsync(p => p.Id == req.PackageId && p.Enabled);
             if (package == null) return BadRequest(new { error = "Paquete no disponible" });
 
-            var totalPen = decimal.Round(package.PriceUsd * PEN_PER_USD, 2);
+            var totalPen = decimal.Round(package.PriceUsd * await _rate.PenPerUsdAsync(HttpContext.RequestAborted), 2);
             var preview = _billing.Preview(perfil, totalPen, "PEN", req.PrefiereFactura);
             return Ok(new { success = true, preview, priceUsd = package.PriceUsd, credits = package.Credits + package.BonusCredits });
         }
@@ -87,7 +86,7 @@ namespace Decatron.Controllers
                 return BadRequest(new { error = "Token y email de Culqi son requeridos" });
 
             var totalCredits = package.Credits + package.BonusCredits;
-            var amountPen = package.PriceUsd * PEN_PER_USD;
+            var amountPen = package.PriceUsd * await _rate.PenPerUsdAsync(HttpContext.RequestAborted);
             var amountCentavos = (int)Math.Round(amountPen * 100);
 
             try
