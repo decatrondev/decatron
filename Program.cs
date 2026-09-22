@@ -414,6 +414,14 @@ try
     builder.Services.AddScoped<DatabaseSeeder>();
     builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.BannedWordsFilter>();
     builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.LinkFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.CapsFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.SymbolsFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.EmotesFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.LengthFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.RepetitionFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.CopypastaFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.ZalgoFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.MentionsFilter>();
     builder.Services.AddScoped<Decatron.Core.Services.ModerationService>();
     builder.Services.AddScoped<Decatron.Core.Services.FollowersService>();
     // IA unificada: cache de config/precios, registro de uso y cliente OpenRouter (singletons).

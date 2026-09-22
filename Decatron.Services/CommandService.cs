@@ -1097,6 +1097,8 @@ namespace Decatron.Services
                         Channel = channel,
                         Username = username,
                         Text = message,
+                        TextWithoutEmotes = metadata != null && metadata.TryGetValue("text-without-emotes", out var plain) ? plain?.ToString() : null,
+                        EmoteCount = metadata != null && metadata.TryGetValue("emote-count", out var emotes) && emotes is int n ? n : 0,
                         MessageId = messageId,
                         IsBroadcaster = isBroadcaster,
                         IsLeadModerator = isLeadModerator,

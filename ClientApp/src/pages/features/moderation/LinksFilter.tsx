@@ -164,7 +164,7 @@ export default function LinksFilter() {
         if (!testMessage.trim()) return;
         setTesting(true);
         try {
-            const res = await api.post('/moderation/test-message', { message: testMessage });
+            const res = await api.post('/moderation/test-message', { message: testMessage, filter: 'links' });
             if (res.data.success) setTestResult(res.data);
         } catch {
             showNotice('error', 'No se pudo analizar el mensaje');
@@ -430,7 +430,7 @@ export default function LinksFilter() {
                                 {testResult.hasMatch ? (
                                     <div className="space-y-1">
                                         <p className="font-bold text-red-700 dark:text-red-400">
-                                            {testResult.filter === 'links' ? `Link bloqueado: ${testResult.matchedWord}` : `Palabra prohibida: ${testResult.matchedWord}`}
+                                            Link bloqueado: {testResult.matchedWord}
                                         </p>
                                         <p className={`text-sm ${text}`}>
                                             Acción para un viewer sin strikes: {ACTION_LABELS[testResult.actionNormal ?? ''] ?? testResult.actionNormal}
@@ -442,7 +442,7 @@ export default function LinksFilter() {
                                         )}
                                     </div>
                                 ) : (
-                                    <p className="font-bold text-green-700 dark:text-green-400">El mensaje pasa: no tiene links bloqueados ni palabras prohibidas.</p>
+                                    <p className="font-bold text-green-700 dark:text-green-400">El mensaje pasa: no tiene links bloqueados.</p>
                                 )}
                             </div>
                         )}

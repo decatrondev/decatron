@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { ShieldBan, Settings, Link2, Terminal } from 'lucide-react';
+import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FilterSwitch, fetchModerationFilters, saveModerationFilter, type ModerationFilterState } from './moderation/filterSwitch';
+import { SPAM_FILTERS } from './moderation/SpamFilters';
 
 interface ModerationCard {
     key: string;
     /** Clave del filtro en el backend; sin filtro, la tarjeta no lleva interruptor */
     filter?: string;
+    /** Grupo de filtros: la tarjeta muestra cuántos están activos */
+    group?: string[];
     name: string;
     description: string;
     icon: React.ReactNode;
@@ -30,6 +33,14 @@ const CARDS: ModerationCard[] = [
         description: 'Bloquea los links del chat, también los disfrazados, salvo los dominios que permitas o con !permit',
         icon: <Link2 className="w-6 h-6 shrink-0 text-[#2563eb]" />,
         route: '/features/moderation/links'
+    },
+    {
+        key: 'spam',
+        group: SPAM_FILTERS.map(f => f.key),
+        name: 'Spam',
+        description: 'Mayúsculas, símbolos, emotes, mensajes largos o repetidos, copypasta, zalgo y menciones',
+        icon: <MessageSquareWarning className="w-6 h-6 shrink-0 text-[#2563eb]" />,
+        route: '/features/moderation/spam'
     },
     {
         key: 'commands',
@@ -81,6 +92,7 @@ export default function ModerationHub() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
                 {cards.map((card) => {
                     const state = card.filter ? filters?.find(f => f.key === card.filter) : undefined;
+                    const groupActive = card.group && filters?.filter(f => card.group!.includes(f.key) && f.enabled).length;
                     return (
                         <div
                             key={card.key}
@@ -106,8 +118,9 @@ export default function ModerationHub() {
                             </p>
 
                             <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                <span className={`text-xs font-bold ${state?.enabled ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
-                                    {state ? (state.enabled ? 'Activo' : 'Apagado') : ''}
+                                <span className={`text-xs font-bold whitespace-nowrap ${(state?.enabled || (groupActive ?? 0) > 0) ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                    {state ? (state.enabled ? 'Activo' : 'Apagado')
+                                        : card.group && filters ? `${groupActive} de ${card.group.length} activos` : ''}
                                 </span>
                                 <button
                                     onClick={() => navigate(card.route)}

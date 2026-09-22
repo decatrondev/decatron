@@ -196,7 +196,8 @@ export default function BannedWords() {
         try {
             setTesting(true);
             const res = await api.post('/moderation/test-message', {
-                message: testMessage
+                message: testMessage,
+                filter: 'banned_words'
             });
 
             if (res.data.success) {

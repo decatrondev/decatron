@@ -451,6 +451,8 @@ namespace Decatron.Controllers
                 }
 
                 var hits = await _moderationService.TestMessageAsync(username, request.Message);
+                if (!string.IsNullOrEmpty(request.Filter))
+                    hits = hits.Where(h => h.Hit.FilterKey == request.Filter).ToList();
                 if (hits.Count == 0)
                     return Ok(new { success = true, hasMatch = false });
 
@@ -724,5 +726,7 @@ namespace Decatron.Controllers
     public class TestMessageRequest
     {
         public string Message { get; set; } = "";
+        /// <summary>Probar solo contra este filtro (null = todos)</summary>
+        public string? Filter { get; set; }
     }
 }

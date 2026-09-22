@@ -437,6 +437,20 @@ namespace Decatron.Services
                     }
                 }
 
+                // Emotes de Twitch del mensaje (los de 7TV/BTTV/FFZ llegan como texto): para el filtro de emotes
+                if (datosEvento["message"]?["fragments"] is JArray fragments)
+                {
+                    var emoteCount = fragments.Count(f => f?["type"]?.ToString() is "emote" or "cheermote");
+                    if (emoteCount > 0)
+                    {
+                        metadata["emote-count"] = emoteCount;
+                        // Sin los emotes, "KEKW LUL" no cuenta como gritar en mayúsculas
+                        metadata["text-without-emotes"] = string.Concat(fragments
+                            .Where(f => f?["type"]?.ToString() is not ("emote" or "cheermote"))
+                            .Select(f => f?["text"]?.ToString() ?? ""));
+                    }
+                }
+
                 // Canje de puntos de canal con texto obligatorio: el mensaje llega por
                 // chat con el id de la recompensa. Lo pasamos para las reglas de Speak Chat.
                 var chatRewardId = datosEvento["channel_points_custom_reward_id"]?.ToString();

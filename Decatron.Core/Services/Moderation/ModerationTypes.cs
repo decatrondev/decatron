@@ -11,6 +11,10 @@ namespace Decatron.Core.Services.Moderation
         public string Channel { get; set; } = "";
         public string Username { get; set; } = "";
         public string Text { get; set; } = "";
+        /// <summary>El texto sin los emotes de Twitch (si se conocen); si no, igual a Text</summary>
+        public string? TextWithoutEmotes { get; set; }
+        /// <summary>Cantidad de emotes de Twitch del mensaje (los de 7TV/BTTV/FFZ no se conocen)</summary>
+        public int EmoteCount { get; set; }
         public string? MessageId { get; set; }
         public bool IsBroadcaster { get; set; }
         public bool IsLeadModerator { get; set; }
