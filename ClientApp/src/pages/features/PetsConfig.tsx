@@ -4,16 +4,17 @@
  * Ver .dev/plans/PETS_PLAN.md §4.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Cat, Footprints, Monitor, FlaskConical, Save, Loader2, Copy, ExternalLink, RotateCcw, Pause, Play } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Cat, Footprints, Monitor, FlaskConical, Save, Loader2, Copy, ExternalLink, RotateCcw, Pause, Play, Bell, Terminal, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { Card, SectionTitle, SubLabel, Label, TextInput, Toggle, SelectInput, ColorInput, Slider, NumberInput, Checkbox } from './now-playing-extension/components/ui/SharedUI';
 import PetScene from './pets/PetScene';
 import { PetEventBus } from './pets/PetEventBus';
-import { PET_LIMITS, defaultPetsConfig, resolvePetsConfig, type PetManifest, type PetsConfig, type PetsPanelData, type PetTextStyle } from './pets/types';
+import { PET_LIMITS, REACTION_KEYS, REACTION_VARS, REACTIONS_WITH_MIN, DEFAULT_REACTIONS, defaultPetsConfig, requiredOverlayHeight, resolvePetsConfig, type PetCommand, type PetManifest, type PetPermission, type PetReaction, type PetsConfig, type PetsPanelData, type PetTextStyle, type ReactionKey } from './pets/types';
 
-type TabId = 'pet' | 'behavior' | 'overlay' | 'testing';
+type TabId = 'pet' | 'behavior' | 'reactions' | 'commands' | 'overlay' | 'testing';
+const PERMISSIONS: PetPermission[] = ['everyone', 'subs', 'vips', 'mods', 'streamer'];
 const FONT_FAMILIES = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Oswald', 'Bebas Neue', 'Rajdhani', 'Exo 2', 'Press Start 2P', 'system-ui'];
 
 const errorMessage = (e: any) => e?.response?.data?.message || e?.message || 'Error';
@@ -78,6 +79,11 @@ const PetsConfigPage: React.FC = () => {
     const updateOverlay = (patch: Partial<PetsConfig['overlay']>) => cfg && update({ overlay: { ...cfg.overlay, ...patch } });
     const updateBehavior = (patch: Partial<PetsConfig['behavior']>) => cfg && update({ behavior: { ...cfg.behavior, ...patch } });
     const updateStyle = (key: 'nameStyle' | 'bubbleStyle', patch: Partial<PetTextStyle>) => cfg && update({ [key]: { ...cfg[key], ...patch } } as Partial<PetsConfig>);
+    const updateReaction = (key: ReactionKey, patch: Partial<PetReaction>) => cfg && update({ reactions: { ...cfg.reactions, [key]: { ...cfg.reactions[key], ...patch } } });
+    const updateCommand = (i: number, patch: Partial<PetCommand>) => cfg && update({ commands: cfg.commands.map((c, j) => j === i ? { ...c, ...patch } : c) });
+    const addCommand = () => cfg && update({ commands: [...cfg.commands, { name: '', enabled: true, state: 'react', durationSec: 4, bubble: '', reply: '', cooldownSec: 30, permission: 'everyone' }] });
+    const removeCommand = (i: number) => cfg && update({ commands: cfg.commands.filter((_, j) => j !== i) });
+    const usedNames = useMemo(() => cfg ? cfg.commands.map(c => c.name.trim().toLowerCase()) : [], [cfg]);
 
     const save = async () => {
         if (!cfg) return;
@@ -101,6 +107,8 @@ const PetsConfigPage: React.FC = () => {
     };
 
     const overlayUrl = useMemo(() => data ? `${frontendUrl}${data.overlayUrlTemplate}` : '', [data, frontendUrl]);
+    const neededHeight = cfg ? requiredOverlayHeight(cfg) : 0;
+    const tooShort = !!cfg && cfg.overlay.height < neededHeight;
     const scale = cfg ? Math.min(1, previewWidth / cfg.overlay.width) : 1;
 
     if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-blue-400" /></div>;
@@ -136,6 +144,12 @@ const PetsConfigPage: React.FC = () => {
                         {previewPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}{previewPaused ? t('preview.resume') : t('preview.pause')}
                     </button>
                 </div>
+                {tooShort && (
+                    <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span>{t('overlay.tooShort', { needed: neededHeight, height: cfg.overlay.height })} <button className="underline" onClick={() => updateOverlay({ height: neededHeight })}>{t('overlay.fixHeight')}</button></span>
+                    </div>
+                )}
                 <div ref={previewBox} className="mt-3 w-full overflow-hidden rounded-lg border border-[#374151]"
                     style={{ height: cfg.overlay.height * scale, backgroundImage: 'linear-gradient(45deg,#1f2937 25%,transparent 25%),linear-gradient(-45deg,#1f2937 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1f2937 75%),linear-gradient(-45deg,transparent 75%,#1f2937 75%)', backgroundSize: '20px 20px', backgroundPosition: '0 0,0 10px,10px -10px,-10px 0', backgroundColor: '#111827' }}>
                     <div style={{ width: cfg.overlay.width, height: cfg.overlay.height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
@@ -146,7 +160,7 @@ const PetsConfigPage: React.FC = () => {
 
             <div className="flex flex-col lg:flex-row gap-5">
                 <div className="lg:w-48 flex lg:flex-col gap-1">
-                    {([['pet', Cat], ['behavior', Footprints], ['overlay', Monitor], ['testing', FlaskConical]] as [TabId, React.FC<{ className?: string }>][]).map(([id, Icon]) => (
+                    {([['pet', Cat], ['behavior', Footprints], ['reactions', Bell], ['commands', Terminal], ['overlay', Monitor], ['testing', FlaskConical]] as [TabId, React.FC<{ className?: string }>][]).map(([id, Icon]) => (
                         <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${tab === id ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626]'}`}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
                     ))}
                 </div>
@@ -234,6 +248,79 @@ const PetsConfigPage: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                        </Card>
+                    )}
+
+                    {tab === 'reactions' && (
+                        <Card>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div><SectionTitle>{t('reactions.title')}</SectionTitle><SubLabel>{t('reactions.hint')}</SubLabel></div>
+                                <button onClick={() => { if (confirm(t('reactions.confirmReset'))) update({ reactions: JSON.parse(JSON.stringify(DEFAULT_REACTIONS)) }); }} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm border border-[#374151]" title={t('reactions.reset')}><RotateCcw className="w-4 h-4" /></button>
+                            </div>
+                            <div className="mt-4 space-y-3">
+                                {REACTION_KEYS.map(key => {
+                                    const r = cfg.reactions[key];
+                                    return (
+                                        <div key={key} className={`rounded-lg border px-4 py-3 ${r.enabled ? 'border-[#374151] bg-[#111214]' : 'border-[#2a2b2e] bg-[#0d0e10] opacity-70'}`}>
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <Toggle checked={r.enabled} onChange={v => updateReaction(key, { enabled: v })} label={t(`reactions.keys.${key}`)} size="sm" />
+                                                <span className="text-[11px] text-[#6b7280]">{t('reactions.vars')}: {REACTION_VARS[key].join(' ')}</span>
+                                            </div>
+                                            {r.enabled && (
+                                                <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                    <div className="col-span-2"><Label>{t('reactions.bubble')}</Label><TextInput value={r.bubble ?? ''} onChange={v => updateReaction(key, { bubble: v })} placeholder={t('reactions.bubblePlaceholder')} /></div>
+                                                    <div><Label>{t('reactions.state')}</Label><SelectInput value={r.state} onChange={v => updateReaction(key, { state: v })} options={states.map(st => ({ value: st, label: manifest?.states[st]?.clip ? st : `${st} *` }))} /></div>
+                                                    <div><Label>{t('reactions.duration')}</Label><Slider value={r.durationSec} onChange={v => updateReaction(key, { durationSec: v })} min={1} max={30} unit="s" /></div>
+                                                    {REACTIONS_WITH_MIN.includes(key) && (
+                                                        <div><Label>{t(`reactions.min.${key}`)}</Label><NumberInput value={r.minAmount ?? 0} onChange={v => updateReaction(key, { minAmount: Math.max(0, v) })} min={0} /></div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[11px] text-[#6b7280] mt-3">{t('reactions.note')}</p>
+                        </Card>
+                    )}
+
+                    {tab === 'commands' && (
+                        <Card>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div><SectionTitle>{t('commands.title')}</SectionTitle><SubLabel>{t('commands.hint')}</SubLabel></div>
+                                <button onClick={addCommand} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />{t('commands.add')}</button>
+                            </div>
+                            <div className="mt-4 space-y-3">
+                                {cfg.commands.length === 0 && <p className="text-sm text-[#6b7280]">{t('commands.empty')}</p>}
+                                {cfg.commands.map((c, i) => {
+                                    const name = c.name.trim().toLowerCase();
+                                    const dup = name && usedNames.filter(n => n === name).length > 1;
+                                    return (
+                                        <div key={i} className={`rounded-lg border px-4 py-3 ${c.enabled ? 'border-[#374151] bg-[#111214]' : 'border-[#2a2b2e] bg-[#0d0e10] opacity-70'}`}>
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[#6b7280] font-mono">!</span>
+                                                    <TextInput value={c.name} onChange={v => updateCommand(i, { name: v.replace(/^!/, '').replace(/\s+/g, '').slice(0, 30) })} placeholder="acariciar" className="w-44" />
+                                                    {dup && <span className="text-[11px] text-red-400">{t('commands.duplicate')}</span>}
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <Toggle checked={c.enabled} onChange={v => updateCommand(i, { enabled: v })} label={t('commands.enabled')} size="sm" />
+                                                    <button onClick={() => removeCommand(i)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title={t('commands.delete')}><Trash2 className="w-4 h-4" /></button>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                <div className="col-span-2"><Label>{t('commands.bubble')}</Label><TextInput value={c.bubble ?? ''} onChange={v => updateCommand(i, { bubble: v })} placeholder={t('commands.bubblePlaceholder')} /></div>
+                                                <div className="col-span-2"><Label>{t('commands.reply')}</Label><TextInput value={c.reply ?? ''} onChange={v => updateCommand(i, { reply: v })} placeholder={t('commands.replyPlaceholder')} /></div>
+                                                <div><Label>{t('reactions.state')}</Label><SelectInput value={c.state} onChange={v => updateCommand(i, { state: v })} options={states.map(st => ({ value: st, label: manifest?.states[st]?.clip ? st : `${st} *` }))} /></div>
+                                                <div><Label>{t('reactions.duration')}</Label><Slider value={c.durationSec} onChange={v => updateCommand(i, { durationSec: v })} min={1} max={30} unit="s" /></div>
+                                                <div><Label>{t('commands.cooldown')}</Label><Slider value={c.cooldownSec} onChange={v => updateCommand(i, { cooldownSec: v })} min={0} max={600} step={5} unit="s" /></div>
+                                                <div><Label>{t('commands.permission')}</Label><SelectInput value={c.permission} onChange={v => updateCommand(i, { permission: v as PetPermission })} options={PERMISSIONS.map(p => ({ value: p, label: t(`commands.permissions.${p}`) }))} /></div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[11px] text-[#6b7280] mt-3">{t('commands.note')}</p>
                         </Card>
                     )}
 

@@ -614,6 +614,14 @@ namespace Decatron.Services
                 await _commandService.ProcessMessageAsync(username, channel, message, userId, messageId,
                     isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster, metadata);
 
+                // Mascota: saludo a quien escribe por primera vez (nunca lanza)
+                try
+                {
+                    var petBridge = scope.ServiceProvider.GetService<Decatron.Services.Pets.PetEventBridge>();
+                    if (petBridge != null) await petBridge.OnChatMessageAsync(channel, username);
+                }
+                catch (Exception petEx) { _logger.LogWarning(petEx, "[PETS] saludo en [{Channel}]", channel); }
+
                 // Speak Chat TTS
                 try
                 {

@@ -37,6 +37,7 @@ namespace Decatron.Services
         private readonly Decatron.Core.Services.FollowersService _followersService;
         private readonly TimerEventService _timerEventService;
         private readonly IEventAlertsService _eventAlertsService;
+        private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
         private readonly IStreamStatusService _streamStatusService;
         private readonly ILiveAlertHandler _liveAlertHandler;
         private readonly ISpeakChatService _speakChatService;
@@ -61,7 +62,8 @@ namespace Decatron.Services
             ISpeakChatService speakChatService,
             GiveawayService giveawayService,
             IGachaService gachaService,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            Decatron.Services.Pets.PetEventBridge petEventBridge)
         {
             _configuration = configuration;
             _logger = logger;
@@ -71,6 +73,7 @@ namespace Decatron.Services
             _followersService = followersService;
             _timerEventService = timerEventService;
             _eventAlertsService = eventAlertsService;
+            _petEventBridge = petEventBridge;
             _streamStatusService = streamStatusService;
             _liveAlertHandler = liveAlertHandler;
             _speakChatService = speakChatService;
@@ -858,6 +861,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering follow alert for {User}", userName);
                 }
+                await _petEventBridge.OnAlertAsync(channelNameLower, "follow", userName); // mascota: nunca lanza
             }
             catch (Exception ex)
             {
@@ -924,6 +928,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering bits alert for {User}", userName);
                 }
+                await _petEventBridge.OnAlertAsync(broadcasterUserName, "bits", userName, amount: bits); // mascota: nunca lanza
 
                 // Actualizar bits en giveaway activo si el usuario es participante
                 if (!string.IsNullOrEmpty(broadcasterUserId) && !string.IsNullOrEmpty(userId))
@@ -1002,6 +1007,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering sub alert for {User}", userName);
                 }
+                await _petEventBridge.OnAlertAsync(broadcasterUserName, "sub", userName, tier: tier); // mascota: nunca lanza
 
                 try
                 {
@@ -1049,6 +1055,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering giftSub alert for {User}", userName);
                 }
+                await _petEventBridge.OnAlertAsync(broadcasterUserName, "giftSub", userName, amount: total); // mascota: nunca lanza
 
                 // Gacha: convertir gift subs en tiros (al que regala)
                 try
@@ -1096,6 +1103,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering raid alert for {User}", fromBroadcasterUserName);
                 }
+                await _petEventBridge.OnAlertAsync(toBroadcasterUserName, "raid", fromBroadcasterUserName, amount: viewers); // mascota: nunca lanza
             }
             catch (Exception ex)
             {
@@ -1128,6 +1136,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering hypeTrain alert for {Channel}", broadcasterUserName);
                 }
+                await _petEventBridge.OnAlertAsync(broadcasterUserName, "hypeTrain", broadcasterUserName, level: level); // mascota: nunca lanza
             }
             catch (Exception ex)
             {
@@ -1171,6 +1180,7 @@ namespace Decatron.Services
                 {
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering resub alert for {User}", userName);
                 }
+                await _petEventBridge.OnAlertAsync(broadcasterUserName, "resub", userName, months: months, tier: tier); // mascota: nunca lanza
 
                 if (!string.IsNullOrEmpty(tier))
                 {

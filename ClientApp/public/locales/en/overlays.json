@@ -108,7 +108,9 @@
       "pet": "Pet",
       "behavior": "Behavior",
       "overlay": "Overlay",
-      "testing": "Test"
+      "testing": "Test",
+      "reactions": "Reactions",
+      "commands": "Commands"
     },
     "preview": {
       "title": "Preview",
@@ -168,7 +170,9 @@
       "petHeight": "Pet height (px)",
       "ground": "Ground (px)",
       "tilt": "Camera tilt",
-      "shadow": "Ground shadow"
+      "shadow": "Ground shadow",
+      "tooShort": "Name and bubble do not fit: the overlay needs at least {{needed}} px of height (now {{height}}).",
+      "fixHeight": "Fix height"
     },
     "testing": {
       "title": "Test",
@@ -180,7 +184,57 @@
       "previewOnly": "Show in preview",
       "sendToOverlay": "Send to the OBS overlay",
       "sent": "Sent to the overlay",
-      "note": "* = animation the model does not have yet; the closest one is used. Automatic reactions to alerts and chat commands come in the next phase."
+      "note": "* = animation the model does not have yet; the closest one is used."
+    },
+    "reactions": {
+      "title": "Alert reactions",
+      "hint": "What the pet does and says on each channel alert. The bubble text accepts variables.",
+      "reset": "Reset",
+      "confirmReset": "Reset reactions to defaults?",
+      "vars": "Variables",
+      "bubble": "Bubble",
+      "bubblePlaceholder": "Empty = reacts without saying anything",
+      "state": "Animation",
+      "duration": "Duration",
+      "min": {
+        "bits": "Minimum bits",
+        "giftSub": "Minimum gifted subs",
+        "raid": "Minimum viewers"
+      },
+      "keys": {
+        "follow": "Follow",
+        "bits": "Bits",
+        "sub": "New sub",
+        "resub": "Resub",
+        "giftSub": "Gifted subs",
+        "raid": "Raid",
+        "hypeTrain": "Hype Train",
+        "firstChat": "First message in chat (greet newcomers)"
+      },
+      "note": "* = animation the model does not have; the closest one is used. Reactions queue up if several arrive at once (max 5)."
+    },
+    "commands": {
+      "title": "Chat commands",
+      "hint": "Create any commands you want: what the pet does, what it says in the bubble and, optionally, what the bot replies in chat.",
+      "add": "New command",
+      "empty": "No commands yet. Create the first one.",
+      "enabled": "Enabled",
+      "delete": "Delete",
+      "duplicate": "Duplicate name",
+      "bubble": "Pet bubble",
+      "bubblePlaceholder": "Purr… thanks {user}",
+      "reply": "Chat reply (optional)",
+      "replyPlaceholder": "Empty = no chat reply",
+      "cooldown": "Cooldown",
+      "permission": "Who can use it",
+      "permissions": {
+        "everyone": "Everyone",
+        "subs": "Subs, VIPs and mods",
+        "vips": "VIPs and mods",
+        "mods": "Mods",
+        "streamer": "Streamer only"
+      },
+      "note": "Variables: {user} and {pet}. Cooldown is per command for the whole channel; the streamer has none. If a pet command shares its name with a custom command, the pet one wins."
     }
   }
 }

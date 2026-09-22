@@ -29,12 +29,14 @@ namespace Decatron.Controllers
         private readonly PetCatalogService _catalog;
         private readonly PetService _service;
         private readonly DecatronDbContext _db;
+        private readonly PetEventBridge _bridge;
 
-        public PetsController(PetCatalogService catalog, PetService service, DecatronDbContext db)
+        public PetsController(PetCatalogService catalog, PetService service, DecatronDbContext db, PetEventBridge bridge)
         {
             _catalog = catalog;
             _service = service;
             _db = db;
+            _bridge = bridge;
         }
 
         private long GetUserId()
@@ -119,6 +121,7 @@ namespace Decatron.Controllers
                 config = config == null ? (System.Text.Json.JsonElement?)null : System.Text.Json.JsonDocument.Parse(config.ConfigJson).RootElement,
                 catalog = _catalog.GetAll().Select(ManifestDto),
                 overlayUrlTemplate = $"/overlay/pets?channel={Uri.EscapeDataString(user.Login.ToLowerInvariant())}&platform={platform}",
+                defaultReactions = PetEventBridge.DefaultReactions,
             });
         }
 
@@ -133,6 +136,7 @@ namespace Decatron.Controllers
             try
             {
                 var saved = await _service.SaveAsync(channelId, req.IsEnabled, req.Config.GetRawText());
+                _bridge.Invalidate(user.Login);
                 await _service.NotifyConfigChangedAsync(user.Login);
                 return Ok(new { success = true, isEnabled = saved.IsEnabled, updatedAt = saved.UpdatedAt });
             }

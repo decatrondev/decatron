@@ -44,15 +44,24 @@ function textStyle(s: PetTextStyle): React.CSSProperties {
     };
 }
 
-/** Cámara: zoom desde petHeightPx, centro para que y=0 caiga a groundPx del borde inferior, con inclinación opcional. */
+/**
+ * Cámara ortográfica inclinada `tilt` sobre el eje X. Con inclinación `a`, un punto a altura y se ve a y·cos(a) píxeles,
+ * así que el zoom y el centro se corrigen con cos(a) para que la mascota mida exactamente petHeightPx y sus patas
+ * queden a groundPx del borde inferior, sea cual sea la inclinación.
+ */
+export function cameraParams(petWorldHeight: number, petHeightPx: number, tilt: number) {
+    const a = tilt * (35 * Math.PI / 180);
+    const cos = Math.cos(a);
+    return { a, cos, zoom: petHeightPx / (petWorldHeight * cos) };
+}
+
 function Rig({ width, height, petWorldHeight, petHeightPx, groundPx, tilt }: { width: number; height: number; petWorldHeight: number; petHeightPx: number; groundPx: number; tilt: number }) {
     const cam = useRef<THREE.OrthographicCamera>(null);
     const set = useThree(s => s.set);
-    const zoom = petHeightPx / petWorldHeight;
+    const { a, cos, zoom } = cameraParams(petWorldHeight, petHeightPx, tilt);
     useEffect(() => {
         const c = cam.current; if (!c) return;
-        const cy = (height / 2 - groundPx) / zoom;
-        const a = tilt * (35 * Math.PI / 180);
+        const cy = (height / 2 - groundPx) / (zoom * cos);
         const D = 60;
         c.position.set(0, cy + Math.sin(a) * D, Math.cos(a) * D);
         c.up.set(0, 1, 0);
@@ -62,7 +71,7 @@ function Rig({ width, height, petWorldHeight, petHeightPx, groundPx, tilt }: { w
         c.near = 0.1; c.far = 200;
         c.updateProjectionMatrix();
         set({ camera: c });
-    }, [width, height, zoom, groundPx, tilt, set]);
+    }, [width, height, zoom, cos, a, groundPx, set]);
     return <OrthographicCamera ref={cam} makeDefault />;
 }
 
@@ -108,7 +117,7 @@ export default function PetScene({ config, manifest, modelUrl, bus, paused, widt
     const w = width ?? config.overlay.width;
     const h = height ?? config.overlay.height;
     const [petWorldHeight, setPetWorldHeight] = useState(FALLBACK_HEIGHT);
-    const zoom = config.overlay.petHeightPx / petWorldHeight;
+    const { zoom } = cameraParams(petWorldHeight, config.overlay.petHeightPx, config.overlay.cameraTilt);
     const halfWidth = useMemo(() => (w / zoom) / 2, [w, zoom]);
     const pet = config.pets[0];
 

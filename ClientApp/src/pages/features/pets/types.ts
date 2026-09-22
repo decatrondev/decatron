@@ -98,10 +98,64 @@ export interface PetsConfig {
     behavior: PetBehaviorConfig;
     nameStyle: PetTextStyle;
     bubbleStyle: PetTextStyle;
-    /** Fase 2: reacciones y comandos (PETS_PLAN.md D1/D2). Se guardan tal cual aunque el panel aún no los edite. */
-    reactions?: Record<string, unknown>;
-    commands?: unknown[];
+    /** Reacciones a alertas + saludo a nuevos (PETS_PLAN.md D1/D5). Las claves que falten usan el default del backend. */
+    reactions: Record<string, PetReaction>;
+    /** Comandos del streamer (D2). */
+    commands: PetCommand[];
 }
+
+export interface PetReaction {
+    enabled: boolean;
+    state: string;
+    durationSec: number;
+    /** Solo bits / gift subs / raid: mínimo para reaccionar. */
+    minAmount?: number;
+    bubble?: string | null;
+}
+
+export type PetPermission = 'everyone' | 'subs' | 'vips' | 'mods' | 'streamer';
+
+export interface PetCommand {
+    name: string;
+    enabled: boolean;
+    state: string;
+    durationSec: number;
+    bubble?: string | null;
+    reply?: string | null;
+    cooldownSec: number;
+    permission: PetPermission;
+}
+
+/** Orden y variables disponibles por reacción (mismo set que Event Alerts + primer mensaje). */
+export const REACTION_KEYS = ['follow', 'bits', 'sub', 'resub', 'giftSub', 'raid', 'hypeTrain', 'firstChat'] as const;
+export type ReactionKey = typeof REACTION_KEYS[number];
+export const REACTION_VARS: Record<ReactionKey, string[]> = {
+    follow: ['{user}', '{pet}'],
+    bits: ['{user}', '{amount}', '{pet}'],
+    sub: ['{user}', '{tier}', '{pet}'],
+    resub: ['{user}', '{months}', '{tier}', '{pet}'],
+    giftSub: ['{user}', '{amount}', '{pet}'],
+    raid: ['{user}', '{viewers}', '{pet}'],
+    hypeTrain: ['{level}', '{pet}'],
+    firstChat: ['{user}', '{pet}'],
+};
+export const REACTIONS_WITH_MIN: ReactionKey[] = ['bits', 'giftSub', 'raid'];
+
+/** Mismos defaults que PetEventBridge.DefaultReactions (backend). */
+export const DEFAULT_REACTIONS: Record<ReactionKey, PetReaction> = {
+    follow:    { enabled: true, state: 'react', durationSec: 4, bubble: '¡Gracias por el follow, {user}!' },
+    bits:      { enabled: true, state: 'react', durationSec: 5, minAmount: 50, bubble: '{user} tiró {amount} bits 💎' },
+    sub:       { enabled: true, state: 'react', durationSec: 6, bubble: '¡{user} se suscribió! 🎉' },
+    resub:     { enabled: true, state: 'react', durationSec: 6, bubble: '¡{user} lleva {months} meses! 💜' },
+    giftSub:   { enabled: true, state: 'react', durationSec: 6, minAmount: 0, bubble: '{user} regaló {amount} subs 🎁' },
+    raid:      { enabled: true, state: 'react', durationSec: 8, minAmount: 0, bubble: '¡Raid de {user} con {viewers}! 🚀' },
+    hypeTrain: { enabled: true, state: 'react', durationSec: 8, bubble: '¡Hype Train nivel {level}! 🚂' },
+    firstChat: { enabled: true, state: 'react', durationSec: 4, bubble: 'Hola {user} 👋' },
+};
+
+export const DEFAULT_COMMANDS: PetCommand[] = [
+    { name: 'acariciar', enabled: true, state: 'sit', durationSec: 6, bubble: 'Prrr… gracias {user} 🐾', reply: '', cooldownSec: 30, permission: 'everyone' },
+];
 
 export const PET_LIMITS = {
     minWidth: 320, maxWidth: 3840,
@@ -109,11 +163,19 @@ export const PET_LIMITS = {
     minPetHeight: 60, maxPetHeight: 1200,
 };
 
+/** Alto mínimo del overlay para que quepan la mascota, el nombre y una burbuja de dos líneas. */
+export function requiredOverlayHeight(c: PetsConfig): number {
+    const pet = c.pets[0];
+    const name = pet.showName && pet.name ? c.nameStyle.size * 1.2 + 6 + 14 : 0;
+    const bubble = c.bubbleStyle.size * 1.2 * 2 + 6 + 30;
+    return Math.ceil(c.overlay.groundPx + c.overlay.petHeightPx + name + bubble);
+}
+
 export function defaultPetsConfig(modelId = 'somali'): PetsConfig {
     return {
         version: 1,
         pets: [{ model: modelId, skin: 'default', name: 'Michi', showName: true }],
-        overlay: { width: 1920, height: 320, petHeightPx: 220, groundPx: 16, shadow: true, walkSpeedPx: 110, cameraTilt: 0.25 },
+        overlay: { width: 1920, height: 420, petHeightPx: 220, groundPx: 16, shadow: true, walkSpeedPx: 110, cameraTilt: 0.25 },
         behavior: {
             wanderMinSec: 6, wanderMaxSec: 20,
             sitChance: 0.35, sitMinSec: 8, sitMaxSec: 25,
@@ -122,6 +184,8 @@ export function defaultPetsConfig(modelId = 'somali'): PetsConfig {
         },
         nameStyle: { font: 'Inter', size: 16, color: '#ffffff', background: 'rgba(0,0,0,0.55)', outline: false },
         bubbleStyle: { font: 'Inter', size: 18, color: '#111827', background: '#ffffff', outline: false },
+        reactions: JSON.parse(JSON.stringify(DEFAULT_REACTIONS)),
+        commands: JSON.parse(JSON.stringify(DEFAULT_COMMANDS)),
     };
 }
 
@@ -139,8 +203,8 @@ export function resolvePetsConfig(raw: Partial<PetsConfig> | null | undefined, f
         behavior: { ...d.behavior, ...(raw.behavior ?? {}), walkArea: { ...d.behavior.walkArea, ...(raw.behavior?.walkArea ?? {}) } },
         nameStyle: { ...d.nameStyle, ...(raw.nameStyle ?? {}) },
         bubbleStyle: { ...d.bubbleStyle, ...(raw.bubbleStyle ?? {}) },
-        reactions: raw.reactions,
-        commands: raw.commands,
+        reactions: Object.fromEntries(REACTION_KEYS.map(k => [k, { ...DEFAULT_REACTIONS[k], ...((raw.reactions as any)?.[k] ?? {}) }])),
+        commands: Array.isArray(raw.commands) ? raw.commands.map(c => ({ ...DEFAULT_COMMANDS[0], ...c, name: String(c.name ?? '').replace(/^!/, '') })) : d.commands,
     };
 }
 

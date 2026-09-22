@@ -108,7 +108,9 @@
       "pet": "Mascota",
       "behavior": "Comportamiento",
       "overlay": "Overlay",
-      "testing": "Probar"
+      "testing": "Probar",
+      "reactions": "Reacciones",
+      "commands": "Comandos"
     },
     "preview": {
       "title": "Vista previa",
@@ -168,7 +170,9 @@
       "petHeight": "Alto de la mascota (px)",
       "ground": "Suelo (px)",
       "tilt": "Inclinación de cámara",
-      "shadow": "Sombra en el suelo"
+      "shadow": "Sombra en el suelo",
+      "tooShort": "No entran el nombre y la burbuja: el overlay necesita al menos {{needed}} px de alto (ahora {{height}}).",
+      "fixHeight": "Ajustar alto"
     },
     "testing": {
       "title": "Probar",
@@ -180,7 +184,57 @@
       "previewOnly": "Ver en la vista previa",
       "sendToOverlay": "Mandar al overlay de OBS",
       "sent": "Enviado al overlay",
-      "note": "* = animación que el modelo no trae todavía; se usa la más parecida. Las reacciones automáticas a alertas y los comandos del chat vienen en la siguiente fase."
+      "note": "* = animación que el modelo no trae todavía; se usa la más parecida."
+    },
+    "reactions": {
+      "title": "Reacciones a alertas",
+      "hint": "Qué hace y qué dice la mascota con cada alerta del canal. El texto de la burbuja admite variables.",
+      "reset": "Restablecer",
+      "confirmReset": "¿Volver a las reacciones por defecto?",
+      "vars": "Variables",
+      "bubble": "Burbuja",
+      "bubblePlaceholder": "Vacío = reacciona sin decir nada",
+      "state": "Animación",
+      "duration": "Duración",
+      "min": {
+        "bits": "Mínimo de bits",
+        "giftSub": "Mínimo de subs regaladas",
+        "raid": "Mínimo de viewers"
+      },
+      "keys": {
+        "follow": "Follow",
+        "bits": "Bits",
+        "sub": "Sub nueva",
+        "resub": "Resub",
+        "giftSub": "Subs regaladas",
+        "raid": "Raid",
+        "hypeTrain": "Hype Train",
+        "firstChat": "Primer mensaje en el chat (saludo a nuevos)"
+      },
+      "note": "* = animación que el modelo no trae; se usa la más parecida. Las reacciones se encolan si llegan varias seguidas (máximo 5)."
+    },
+    "commands": {
+      "title": "Comandos del chat",
+      "hint": "Crea los comandos que quieras: qué hace la mascota, qué dice en la burbuja y, si quieres, qué responde el bot en el chat.",
+      "add": "Nuevo comando",
+      "empty": "Sin comandos. Crea el primero.",
+      "enabled": "Activo",
+      "delete": "Eliminar",
+      "duplicate": "Nombre repetido",
+      "bubble": "Burbuja de la mascota",
+      "bubblePlaceholder": "Prrr… gracias {user}",
+      "reply": "Respuesta en el chat (opcional)",
+      "replyPlaceholder": "Vacío = no responde en el chat",
+      "cooldown": "Cooldown",
+      "permission": "Quién puede usarlo",
+      "permissions": {
+        "everyone": "Todos",
+        "subs": "Subs, VIPs y mods",
+        "vips": "VIPs y mods",
+        "mods": "Mods",
+        "streamer": "Solo el streamer"
+      },
+      "note": "Variables: {user} y {pet}. El cooldown es por comando para todo el canal; el streamer no tiene cooldown. Si un comando de la mascota se llama igual que un comando personalizado, gana el de la mascota."
     }
   }
 }

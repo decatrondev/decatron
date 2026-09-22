@@ -57,11 +57,15 @@ export default function PetsDoc() {
                 </DocAlert>
             </DocSection>
 
-            <DocSection title="Próximamente">
-                <p>
-                    La mascota reaccionará a todas tus alertas (follow, bits, subs, raids…), tendrá comandos que tú mismo defines (<code>!acariciar</code>, por ejemplo)
-                    y saludará a quien escribe por primera vez en tu chat. Todo configurable desde el mismo panel.
-                </p>
+            <DocSection title="Reacciones, comandos y saludo">
+                <ul className="list-disc pl-5 space-y-2">
+                    <li><b>Reacciones</b>: con cada alerta (follow, bits, sub, resub, subs regaladas, raid, Hype Train) la mascota hace la animación que elijas y muestra una burbuja con texto tuyo. Variables: <code>{'{user}'}</code>, <code>{'{amount}'}</code>, <code>{'{months}'}</code>, <code>{'{viewers}'}</code>, <code>{'{level}'}</code>, <code>{'{tier}'}</code>, <code>{'{pet}'}</code>. Bits, subs regaladas y raids admiten un mínimo.</li>
+                    <li><b>Saludo a nuevos</b>: la primera vez que alguien escribe en tu chat, la mascota lo saluda ("Hola {'{user}'}"). Se cuenta desde que activaste la mascota.</li>
+                    <li><b>Comandos</b>: crea los que quieras (<code>!acariciar</code>, <code>!dormir</code>…): animación, burbuja, respuesta opcional en el chat, cooldown y quién puede usarlo (todos, subs, VIPs, mods o solo tú).</li>
+                </ul>
+                <DocAlert type="info" title="Nunca estorba">
+                    Si la mascota falla por lo que sea, tus alertas, el timer y los demás comandos siguen igual: va por un camino aparte.
+                </DocAlert>
             </DocSection>
 
             <DocSection title="Créditos">

@@ -31,6 +31,7 @@ namespace Decatron.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Dictionary<string, ICommand> _commands;
         private readonly Dictionary<string, Dictionary<string, string>> _microCommandsCache;
+        private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
 
         public CommandService(
             ILogger<CommandService> logger,
@@ -38,9 +39,11 @@ namespace Decatron.Services
             IConfiguration configuration,
             ILoggerFactory loggerFactory,
             ICommandStateService commandStateService,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            Decatron.Services.Pets.PetEventBridge petEventBridge)
         {
             _instanceId = ++_instanceCount;
+            _petEventBridge = petEventBridge;
             _logger = logger;
             _messageSender = messageSender;
             _configuration = configuration;
@@ -671,6 +674,13 @@ namespace Decatron.Services
                         await ProcessMicroCommand(username, channel, commandName, _microCommandsCache[channel][baseCommand]);
                         return;
                     }
+                }
+
+                // 3b. COMANDOS DE LA MASCOTA (definidos por el streamer en /overlays/pets)
+                if (commandName.StartsWith("!"))
+                {
+                    if (await _petEventBridge.TryHandleCommandAsync(channel, username, commandName.Substring(1), isBroadcaster, isModerator || isLeadModerator, isVip, isSubscriber))
+                        return;
                 }
 
                 // 4. COMANDOS CUSTOM del streamer (de la BD)
