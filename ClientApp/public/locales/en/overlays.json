@@ -125,7 +125,17 @@
       "by": "by",
       "identity": "Name",
       "name": "Pet name",
-      "showName": "Show the name above it"
+      "showName": "Show the name above it",
+      "skin": "Color",
+      "skinHint": "Color variants of the same cat. They apply instantly in the preview.",
+      "skins": {
+        "default": "Original",
+        "orange": "Orange",
+        "grey": "Grey",
+        "black": "Black",
+        "white": "White",
+        "brown": "Brown"
+      }
     },
     "style": {
       "font": "Font",

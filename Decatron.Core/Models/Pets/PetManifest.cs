@@ -16,7 +16,18 @@ namespace Decatron.Core.Models.Pets
         public double Scale { get; set; } = 1.0;
         public double GroundOffset { get; set; }
         public Dictionary<string, PetStateDef> States { get; set; } = new();
-        public Dictionary<string, string?> Skins { get; set; } = new();
+        /// <summary>Skins por tinte HSL sobre la textura base (null = textura tal cual).</summary>
+        public Dictionary<string, PetSkinTint?> Skins { get; set; } = new();
+        /// <summary>Huesos del rig para animaciones procedurales (head, neck, earL, earR, tailBase). Opcional.</summary>
+        public Dictionary<string, string> Bones { get; set; } = new();
+    }
+
+    public class PetSkinTint
+    {
+        /// <summary>Desplazamiento de tono en grados.</summary>
+        public double Hue { get; set; }
+        public double Saturation { get; set; } = 1.0;
+        public double Lightness { get; set; } = 1.0;
     }
 
     public class PetCredit

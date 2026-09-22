@@ -27,7 +27,16 @@ export interface PetManifest {
     scale: number;
     groundOffset: number;
     states: Record<string, PetStateDef>;
-    skins: Record<string, string | null>;
+    /** Skins por tinte HSL sobre la textura base (null = textura tal cual). */
+    skins: Record<string, PetSkinTint | null>;
+    /** Huesos del rig para animaciones procedurales (head, neck, earL, earR, tailBase). */
+    bones?: Record<string, string>;
+}
+
+export interface PetSkinTint {
+    hue: number;
+    saturation: number;
+    lightness: number;
 }
 
 /** Resuelve un estado a su definición real siguiendo `fallback` (máximo 3 saltos). */

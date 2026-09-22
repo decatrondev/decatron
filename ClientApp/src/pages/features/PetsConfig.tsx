@@ -11,6 +11,7 @@ import api from '../../services/api';
 import { Card, SectionTitle, SubLabel, Label, TextInput, Toggle, SelectInput, ColorInput, Slider, NumberInput, Checkbox } from './now-playing-extension/components/ui/SharedUI';
 import PetScene from './pets/PetScene';
 import { PetEventBus } from './pets/PetEventBus';
+import { skinSwatch } from './pets/tint';
 import { PET_LIMITS, REACTION_KEYS, REACTION_VARS, REACTIONS_WITH_MIN, DEFAULT_REACTIONS, defaultPetsConfig, requiredOverlayHeight, resolvePetsConfig, type PetCommand, type PetManifest, type PetPermission, type PetReaction, type PetsConfig, type PetsPanelData, type PetTextStyle, type ReactionKey } from './pets/types';
 
 type TabId = 'pet' | 'behavior' | 'reactions' | 'commands' | 'overlay' | 'testing';
@@ -182,6 +183,20 @@ const PetsConfigPage: React.FC = () => {
                                     ))}
                                 </div>
                             </Card>
+                            {manifest && Object.keys(manifest.skins ?? {}).length > 1 && (
+                                <Card>
+                                    <SectionTitle>{t('pet.skin')}</SectionTitle>
+                                    <SubLabel>{t('pet.skinHint')}</SubLabel>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {Object.entries(manifest.skins).map(([key, tint]) => (
+                                            <button key={key} onClick={() => updatePet({ skin: key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border ${cfg.pets[0].skin === key ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#1a1b1e]'}`}>
+                                                <span className="w-4 h-4 rounded-full border border-black/40" style={{ background: skinSwatch(tint) }} />
+                                                {t(`pet.skins.${key}`, { defaultValue: key })}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </Card>
+                            )}
                             <Card>
                                 <SectionTitle>{t('pet.identity')}</SectionTitle>
                                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">

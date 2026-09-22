@@ -125,7 +125,17 @@
       "by": "por",
       "identity": "Nombre",
       "name": "Nombre de la mascota",
-      "showName": "Mostrar el nombre encima"
+      "showName": "Mostrar el nombre encima",
+      "skin": "Color",
+      "skinHint": "Variantes de color sobre el mismo gato. Se aplican al instante en la vista previa.",
+      "skins": {
+        "default": "Original",
+        "orange": "Naranja",
+        "grey": "Gris",
+        "black": "Negro",
+        "white": "Blanco",
+        "brown": "Café"
+      }
     },
     "style": {
       "font": "Fuente",

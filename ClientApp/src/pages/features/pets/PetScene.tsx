@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import PetModel, { type PetModelInfo } from './PetModel';
 import { usePetBrain } from './usePetBrain';
 import type { PetEventBus } from './PetEventBus';
-import type { PetInstanceConfig, PetManifest, PetsConfig, PetTextStyle } from './types';
+import { resolveState, type PetInstanceConfig, type PetManifest, type PetsConfig, type PetTextStyle } from './types';
 
 interface Props {
     config: PetsConfig;
@@ -97,7 +97,13 @@ function Actor({ config, pet, manifest, modelUrl, bus, paused, forcedState, half
     const state = forcedState ?? brain.animState;
     return (
         <group ref={group}>
-            <PetModel url={modelUrl} manifest={manifest} state={state} onClipEnd={brain.onClipEnd} onLoaded={(i) => { setInfo(i); onLoaded?.(i); }} />
+            <PetModel url={modelUrl} manifest={manifest} state={state} skin={manifest.skins?.[pet.skin] ?? null} onClipEnd={brain.onClipEnd} onLoaded={(i) => { setInfo(i); onLoaded?.(i); }} />
+            {brain.kind === 'sleep' && resolveState(manifest, 'sleep')?.name !== 'sleep' && (
+                <Html position={[petLen * 0.35, petH * 0.85, 0]} center zIndexRange={[9, 0]} style={{ pointerEvents: 'none' }}>
+                    <div style={{ fontSize: Math.max(14, config.overlay.petHeightPx * 0.14), animation: 'pet-zzz 2.4s ease-in-out infinite', opacity: 0.9, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,.5))' }}>💤</div>
+                    <style>{`@keyframes pet-zzz { 0% { transform: translate(0,0) scale(.8); opacity: .2 } 50% { opacity: .95 } 100% { transform: translate(14px,-28px) scale(1.15); opacity: 0 } }`}</style>
+                </Html>
+            )}
             {config.overlay.shadow && <ContactShadows position={[0, 0.01, 0]} opacity={0.45} scale={petLen * 2.2} blur={2.4} far={petH} frames={Infinity} />}
             {pet.showName && pet.name && (
                 <Html position={[0, petH + 0.15, 0]} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>

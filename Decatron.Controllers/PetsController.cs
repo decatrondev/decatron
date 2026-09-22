@@ -57,7 +57,7 @@ namespace Decatron.Controllers
 
         private static object ManifestDto(Decatron.Core.Models.Pets.PetManifest m) => new
         {
-            m.Id, m.Name, m.Credit, m.Triangles, m.Scale, m.GroundOffset, m.States, m.Skins
+            m.Id, m.Name, m.Credit, m.Triangles, m.Scale, m.GroundOffset, m.States, m.Skins, m.Bones
         };
 
         private string SignedUrl(string id, TimeSpan ttl)
