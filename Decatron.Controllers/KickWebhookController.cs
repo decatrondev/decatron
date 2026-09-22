@@ -95,7 +95,8 @@ namespace Decatron.Controllers
                 await _commandService.ProcessMessageAsync(
                     msg.Username, msg.Channel, msg.Message, msg.UserId, msg.MessageId,
                     isModerator: msg.IsModerator, isLeadModerator: false, isVip: msg.IsVip,
-                    isSubscriber: msg.IsSubscriber, isBroadcaster: msg.IsBroadcaster);
+                    isSubscriber: msg.IsSubscriber, isBroadcaster: msg.IsBroadcaster,
+                    metadata: new Dictionary<string, object> { ["platform"] = "kick" });
             }
 
             if (eventType == "channel.reward.redemption.updated")

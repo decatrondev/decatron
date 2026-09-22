@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
+import { FilterSwitch, useFilterEnabled } from './filterSwitch';
 
 // Tipos
 type SeverityLevel = 'leve' | 'medio' | 'severo';
@@ -46,15 +47,17 @@ interface ModerationStats {
 
 interface TestResult {
     hasMatch: boolean;
+    filterEnabled?: boolean;
     matchedWord?: string;
     severity?: SeverityLevel;
-    actionNormal?: string;
-    actionWithImmunity?: string;
+    actionNormal?: StrikeAction;
+    actionEscalamiento?: StrikeAction;
 }
 
 export default function BannedWords() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const filter = useFilterEnabled('banned_words');
 
     // Estados
     const [loading, setLoading] = useState(true);
@@ -197,7 +200,7 @@ export default function BannedWords() {
             });
 
             if (res.data.success) {
-                setTestResult(res.data.result);
+                setTestResult(res.data);
             }
         } catch (error) {
             console.error('Error testing message:', error);
@@ -297,14 +300,14 @@ export default function BannedWords() {
             {/* Header */}
             <div className="max-w-7xl mx-auto mb-6">
                 <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/moderation')}
                     className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    Volver al Dashboard
+                    Volver a Moderación
                 </button>
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
                             Palabras Prohibidas
@@ -313,8 +316,32 @@ export default function BannedWords() {
                             Sistema completo de moderación de palabras y frases prohibidas
                         </p>
                     </div>
+                    {filter.enabled !== null && (
+                        <div className="flex items-center gap-3">
+                            <span className={`text-sm font-bold whitespace-nowrap ${filter.enabled ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                {filter.enabled ? 'Filtro activo' : 'Filtro apagado'}
+                            </span>
+                            <FilterSwitch
+                                on={filter.enabled}
+                                disabled={filter.saving}
+                                onChange={filter.toggle}
+                                label="Activar el filtro de palabras prohibidas"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {filter.enabled === false && (
+                <div className="max-w-7xl mx-auto mb-6">
+                    <div className="flex items-center gap-2 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
+                        <span className="font-semibold">
+                            El filtro está apagado: el bot no sanciona ninguna palabra de la lista hasta que lo actives.
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Save Message */}
             {saveMessage && (
@@ -409,7 +436,7 @@ export default function BannedWords() {
                                         className="w-full px-4 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc]"
                                     >
                                         <option value="leve">Leve (Escalamiento normal)</option>
-                                        <option value="medio">Medio (Timeout directo)</option>
+                                        <option value="medio">Medio (strike + timeout de 10 min como mínimo)</option>
                                         <option value="severo">Severo (Ban directo)</option>
                                     </select>
                                 </div>
@@ -528,11 +555,16 @@ export default function BannedWords() {
                                                 <strong>Severidad:</strong> {testResult.severity?.toUpperCase()}
                                             </p>
                                             <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
-                                                <strong>Acción (usuario normal):</strong> {testResult.actionNormal}
+                                                <strong>Acción (viewer, primer strike):</strong> {testResult.actionNormal && getActionLabel(testResult.actionNormal)}
                                             </p>
                                             <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
-                                                <strong>Acción (usuario con inmunidad):</strong> {testResult.actionWithImmunity}
+                                                <strong>Acción (VIP/sub con escalamiento):</strong> {testResult.actionEscalamiento && getActionLabel(testResult.actionEscalamiento)}
                                             </p>
+                                            {testResult.filterEnabled === false && (
+                                                <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                                                    El filtro está apagado: hoy este mensaje pasaría sin sanción.
+                                                </p>
+                                            )}
                                         </div>
                                     ) : (
                                         <p className="font-bold text-green-700 dark:text-green-400">
@@ -554,10 +586,10 @@ export default function BannedWords() {
                             {/* Moderadores */}
                             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                 <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
-                                    🛡️ Moderadores
+                                    🛡️ Streamer, Lead Moderators y moderadores
                                 </p>
                                 <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                    Los moderadores SIEMPRE tienen inmunidad total. No pueden ser baneados por el sistema.
+                                    SIEMPRE tienen inmunidad total. También quien tenga control total del canal en el dashboard, aunque en el chat sea un viewer.
                                 </p>
                             </div>
 

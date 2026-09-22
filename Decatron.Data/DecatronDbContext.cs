@@ -60,6 +60,7 @@ namespace Decatron.Data
         public DbSet<ModerationConfig> ModerationConfigs { get; set; }
         public DbSet<UserStrike> UserStrikes { get; set; }
         public DbSet<ModerationLog> ModerationLogs { get; set; }
+        public DbSet<ModerationFilter> ModerationFilters { get; set; }
         public DbSet<SoundAlertConfig> SoundAlertConfigs { get; set; }
         public DbSet<SoundAlertFile> SoundAlertFiles { get; set; }
         public DbSet<SoundAlertHistory> SoundAlertHistories { get; set; }
@@ -836,6 +837,8 @@ namespace Decatron.Data
                 entity.Property(e => e.ActionTaken).IsRequired().HasMaxLength(50).HasColumnName("action_taken");
                 entity.Property(e => e.StrikeLevel).IsRequired().HasColumnName("strike_level");
                 entity.Property(e => e.FullMessage).HasColumnName("full_message");
+                entity.Property(e => e.FilterKey).IsRequired().HasMaxLength(30).HasColumnName("filter_key");
+                entity.Property(e => e.ExecutedBy).HasMaxLength(100).HasColumnName("executed_by");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
 
                 entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_moderation_log_channel");
@@ -843,6 +846,14 @@ namespace Decatron.Data
                 entity.HasIndex(e => new { e.ChannelName, e.CreatedAt }).HasDatabaseName("idx_moderation_log_channel_date");
 
                 entity.ToTable("moderation_logs");
+            });
+
+            modelBuilder.Entity<ModerationFilter>(entity =>
+            {
+                entity.HasIndex(e => new { e.ChannelName, e.FilterKey })
+                    .IsUnique()
+                    .HasDatabaseName("uq_moderation_filter_channel_key");
+                entity.ToTable("moderation_filters");
             });
 
             // SoundAlertConfig Configuration

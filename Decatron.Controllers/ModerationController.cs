@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Decatron.Core.Models;
 using Decatron.Core.Services;
+using Decatron.Core.Services.Moderation;
 using Decatron.Data;
 using Decatron.Attributes;
 using Microsoft.AspNetCore.Authorization;
@@ -168,6 +169,7 @@ namespace Decatron.Controllers
 
                 _dbContext.BannedWords.Add(bannedWord);
                 await _dbContext.SaveChangesAsync();
+                ModerationCache.Invalidate(username);
 
                 return Ok(new
                 {
@@ -217,6 +219,7 @@ namespace Decatron.Controllers
 
                 _dbContext.BannedWords.Remove(word);
                 await _dbContext.SaveChangesAsync();
+                ModerationCache.Invalidate(username);
 
                 return Ok(new { success = true, message = "Palabra eliminada exitosamente" });
             }
@@ -282,6 +285,7 @@ namespace Decatron.Controllers
                 }
 
                 await _dbContext.SaveChangesAsync();
+                ModerationCache.Invalidate(username);
 
                 return Ok(new
                 {
@@ -316,29 +320,9 @@ namespace Decatron.Controllers
                 }
 
                 var config = await _dbContext.ModerationConfigs
-                    .FirstOrDefaultAsync(c => c.ChannelName == username);
-
-                if (config == null)
-                {
-                    // Retornar configuración por defecto
-                    return Ok(new
-                    {
-                        success = true,
-                        config = new
-                        {
-                            vipImmunity = "escalamiento",
-                            subImmunity = "escalamiento",
-                            whitelistUsers = new List<string>(),
-                            warningMessage = "⚠️ $(user), evita usar ese lenguaje. Strike $(strike)/5",
-                            strikeExpiration = "15min",
-                            strike1Action = "warning",
-                            strike2Action = "timeout_1m",
-                            strike3Action = "timeout_5m",
-                            strike4Action = "timeout_10m",
-                            strike5Action = "ban"
-                        }
-                    });
-                }
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.ChannelName == username)
+                    ?? new ModerationConfig();
 
                 var whitelistUsers = JsonSerializer.Deserialize<List<string>>(config.WhitelistUsers) ?? new List<string>();
 
@@ -351,6 +335,10 @@ namespace Decatron.Controllers
                         config.SubImmunity,
                         whitelistUsers,
                         config.WarningMessage,
+                        config.DeleteMessage,
+                        config.TimeoutMessage,
+                        config.BanMessage,
+                        config.SeveroMessage,
                         config.StrikeExpiration,
                         config.Strike1Action,
                         config.Strike2Action,
@@ -434,6 +422,7 @@ namespace Decatron.Controllers
                 }
 
                 await _dbContext.SaveChangesAsync();
+                ModerationCache.Invalidate(username);
 
                 return Ok(new { success = true, message = "Configuración guardada exitosamente" });
             }
@@ -461,55 +450,123 @@ namespace Decatron.Controllers
                     return NotFound(new { success = false, message = "Canal no encontrado" });
                 }
 
-                var (hasMatch, matchedWord) = await _moderationService.DetectBannedWordAsync(username, request.Message);
+                var hits = await _moderationService.TestMessageAsync(username, request.Message);
+                if (hits.Count == 0)
+                    return Ok(new { success = true, hasMatch = false });
 
-                if (!hasMatch || matchedWord == null)
-                {
-                    return Ok(new
-                    {
-                        success = true,
-                        hasMatch = false
-                    });
-                }
+                var (hit, enabled) = hits[0];
+                var config = await _moderationService.GetModerationConfigAsync(username) ?? new ModerationConfig();
 
-                var config = await _moderationService.GetModerationConfigAsync(username);
-
-                // Determinar acción para usuario normal (escalamiento)
-                string actionNormal;
-                if (matchedWord.Severity == "severo")
-                {
-                    actionNormal = "Ban directo";
-                }
-                else if (matchedWord.Severity == "medio")
-                {
-                    actionNormal = "Timeout 10m directo";
-                }
-                else
-                {
-                    actionNormal = $"Escalamiento (Strike 1: {config?.Strike1Action ?? "warning"})";
-                }
-
-                // Acción para usuario con inmunidad
-                string actionWithImmunity = "Sin sanción (inmunidad total)";
-                if (matchedWord.Severity == "severo" || matchedWord.Severity == "medio")
-                {
-                    actionWithImmunity = actionNormal; // Severidad alta ignora inmunidad parcial
-                }
+                // Con escalamiento (VIP/sub) la severidad baja un nivel antes de decidir la acción
+                var reduced = hit.Severity switch { "severo" => "medio", _ => "leve" };
 
                 return Ok(new
                 {
                     success = true,
                     hasMatch = true,
-                    matchedWord = matchedWord.Word,
-                    severity = matchedWord.Severity,
-                    actionNormal,
-                    actionWithImmunity
+                    filter = hit.FilterKey,
+                    filterEnabled = enabled,
+                    matchedWord = hit.Detail,
+                    severity = hit.Severity,
+                    actionNormal = ModerationService.PreviewAction(config, hit.Severity),
+                    actionEscalamiento = ModerationService.PreviewAction(config, reduced)
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error probando mensaje: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error al probar mensaje" });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/moderation/filters - Estado de cada filtro del canal (sin fila = apagado)
+        /// </summary>
+        [HttpGet("filters")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> GetFilters()
+        {
+            try
+            {
+                var username = await GetChannelUsernameAsync(GetChannelOwnerId());
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var rows = await _dbContext.ModerationFilters
+                    .AsNoTracking()
+                    .Where(f => f.ChannelName == username)
+                    .ToListAsync();
+
+                var filters = _moderationService.FilterKeys.Select(key =>
+                {
+                    var row = rows.FirstOrDefault(r => r.FilterKey == key);
+                    return new
+                    {
+                        key,
+                        enabled = row?.Enabled ?? false,
+                        severity = row?.Severity ?? "leve",
+                        settings = JsonDocument.Parse(row?.Settings ?? "{}").RootElement,
+                        message = row?.Message
+                    };
+                });
+
+                return Ok(new { success = true, filters });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo filtros de moderación");
+                return StatusCode(500, new { success = false, message = "Error al obtener filtros" });
+            }
+        }
+
+        /// <summary>
+        /// PUT /api/moderation/filters/{key} - Enciende/apaga un filtro o cambia su configuración.
+        /// Solo se tocan los campos enviados.
+        /// </summary>
+        [HttpPut("filters/{key}")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> UpdateFilter(string key, [FromBody] UpdateModerationFilterRequest request)
+        {
+            try
+            {
+                if (!_moderationService.FilterKeys.Contains(key))
+                    return NotFound(new { success = false, message = "Filtro desconocido" });
+
+                if (request.Severity != null && request.Severity is not ("leve" or "medio" or "severo"))
+                    return BadRequest(new { success = false, message = "Severidad inválida" });
+
+                if (request.Message != null && request.Message.Length > 500)
+                    return BadRequest(new { success = false, message = "El mensaje no puede pasar de 500 caracteres" });
+
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var row = await _dbContext.ModerationFilters
+                    .FirstOrDefaultAsync(f => f.ChannelName == username && f.FilterKey == key);
+
+                if (row == null)
+                {
+                    row = new ModerationFilter { UserId = channelOwnerId, ChannelName = username, FilterKey = key };
+                    _dbContext.ModerationFilters.Add(row);
+                }
+
+                if (request.Enabled.HasValue) row.Enabled = request.Enabled.Value;
+                if (request.Severity != null) row.Severity = request.Severity;
+                if (request.Settings.HasValue) row.Settings = request.Settings.Value.GetRawText();
+                if (request.Message != null) row.Message = string.IsNullOrWhiteSpace(request.Message) ? null : request.Message.Trim();
+                row.UpdatedAt = DateTime.Now;
+
+                await _dbContext.SaveChangesAsync();
+                ModerationCache.Invalidate(username);
+
+                return Ok(new { success = true, enabled = row.Enabled });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando el filtro de moderación {Key}", key);
+                return StatusCode(500, new { success = false, message = "Error al guardar el filtro" });
             }
         }
 
@@ -597,6 +654,15 @@ namespace Decatron.Controllers
         public string? Strike3Action { get; set; }
         public string? Strike4Action { get; set; }
         public string? Strike5Action { get; set; }
+    }
+
+    public class UpdateModerationFilterRequest
+    {
+        public bool? Enabled { get; set; }
+        public string? Severity { get; set; }
+        public JsonElement? Settings { get; set; }
+        /// <summary>Vacío = volver a los mensajes por acción</summary>
+        public string? Message { get; set; }
     }
 
     public class TestMessageRequest

@@ -526,10 +526,10 @@ namespace Decatron.Services
                 // SISTEMA DE MODERACIÓN - Verificar palabras prohibidas
                 // Debe ejecutarse ANTES de procesar comandos
                 // =====================================================
-                await CheckMessageModerationAsync(username, channel, chatMessage, messageId,
-                    isModerator, isVip, isSubscriber, isBroadcaster);
-                // Si el mensaje fue moderado, CheckMessageModerationAsync ya envió el timeout/ban
-                // Continuamos procesando comandos normalmente (el mensaje ya fue registrado)
+                // Si el mensaje salió del chat (borrado, timeout, ban), el comando que traía no se ejecuta
+                if (await CheckMessageModerationAsync(username, channel, chatMessage, userId, messageId,
+                    isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster, metadata))
+                    return;
 
                 var parts = chatMessage.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 0)
@@ -1058,149 +1058,107 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Verifica si el mensaje contiene palabras prohibidas y ejecuta acciones de moderación
+        /// Pasa el mensaje por la cadena de moderación y ejecuta la acción en Twitch.
+        /// Devuelve true si el mensaje salió del chat (borrado, timeout o ban): ahí no se
+        /// ejecuta el comando que traía.
         /// </summary>
-        private async Task CheckMessageModerationAsync(string username, string channel, string message, string? messageId = null,
-            bool isModerator = false, bool isVip = false, bool isSubscriber = false, bool isBroadcaster = false)
+        private async Task<bool> CheckMessageModerationAsync(string username, string channel, string message, string userId, string? messageId,
+            bool isModerator, bool isLeadModerator, bool isVip, bool isSubscriber, bool isBroadcaster, Dictionary<string, object>? metadata)
         {
             try
             {
+                // Kick todavía no tiene acciones de moderación (fase K del plan de moderación)
+                if (metadata != null && metadata.TryGetValue("platform", out var platform) && platform?.ToString() == "kick")
+                    return false;
+
                 using var scope = _serviceScopeFactory.CreateScope();
                 var moderationService = scope.ServiceProvider.GetRequiredService<Decatron.Core.Services.ModerationService>();
-                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
 
-                // =====================================================
-                // PASO 1: VERIFICAR INMUNIDAD PRIMERO
-                // Broadcaster, Moderadores y Whitelist tienen inmunidad TOTAL
-                // =====================================================
-
-                // Broadcaster siempre tiene inmunidad total
-                if (isBroadcaster)
-                {
-                    _logger.LogDebug($"✅ [MODERACIÓN] Usuario {username} es el broadcaster, inmunidad total - NO verificar palabras");
-                    return;
-                }
-
-                // Moderadores siempre tienen inmunidad total
-                if (isModerator)
-                {
-                    _logger.LogDebug($"✅ [MODERACIÓN] Usuario {username} es moderador, inmunidad total - NO verificar palabras");
-                    return;
-                }
-
-                // Verificar inmunidad (VIPs, Subs, Whitelist) ANTES de detectar palabras
-                var (hasImmunity, hasEscalamiento, reason) = await moderationService.CheckImmunityAsync(
-                    channel, username, isModerator, isVip, isSubscriber);
-
-                if (hasImmunity)
-                {
-                    _logger.LogInformation($"✅ [MODERACIÓN] Usuario {username} tiene inmunidad TOTAL: {reason} - NO verificar palabras");
-                    return;
-                }
-
-                // =====================================================
-                // PASO 2: DETECTAR PALABRAS PROHIBIDAS
-                // Solo si el usuario NO tiene inmunidad total
-                // =====================================================
-
-                var (hasMatch, matchedWord) = await moderationService.DetectBannedWordAsync(channel, message);
-
-                if (!hasMatch || matchedWord == null)
-                {
-                    return; // No hay palabras prohibidas, continuar normal
-                }
-
-                _logger.LogWarning($"⚠️ [MODERACIÓN] Palabra prohibida detectada en [{channel}] por [{username}]: '{matchedWord.Word}' (severidad: {matchedWord.Severity})");
-
-                // Log de badges detectados
-                _logger.LogInformation($"🎭 [MODERACIÓN] Badges de {username}: VIP={isVip}, Sub={isSubscriber}, Mod={isModerator}, Broadcaster={isBroadcaster}, Escalamiento={hasEscalamiento}");
-
-                // Reducir severidad si tiene escalamiento (VIP/Sub con escalamiento)
-                var severidadFinal = matchedWord.Severity;
-                if (hasEscalamiento)
-                {
-                    severidadFinal = matchedWord.Severity switch
+                var verdict = await moderationService.EvaluateAsync(
+                    new Decatron.Core.Services.Moderation.ModerationMessage
                     {
-                        "severo" => "medio",
-                        "medio" => "leve",
-                        "leve" => "leve",
-                        _ => matchedWord.Severity
-                    };
-                    _logger.LogInformation($"🔽 [MODERACIÓN] Escalamiento aplicado para {username}: {matchedWord.Severity} → {severidadFinal} ({reason})");
-                }
+                        Channel = channel,
+                        Username = username,
+                        Text = message,
+                        MessageId = messageId,
+                        IsBroadcaster = isBroadcaster,
+                        IsLeadModerator = isLeadModerator,
+                        IsModerator = isModerator,
+                        IsVip = isVip,
+                        IsSubscriber = isSubscriber
+                    },
+                    () => HasControlTotalAsync(scope.ServiceProvider, channel, userId));
 
-                // Incrementar contador de detecciones
-                await moderationService.IncrementWordDetectionAsync(matchedWord.Id);
+                if (verdict == null)
+                    return false;
 
-                // Procesar strike y obtener acción (con severidad reducida si tiene escalamiento)
-                var (strikeLevel, action) = await moderationService.ProcessStrikeAsync(
-                    channel, username, severidadFinal);
-
-                _logger.LogWarning($"🔨 [MODERACIÓN] Acción ejecutada en [{channel}] para [{username}]: {action} (Strike nivel: {strikeLevel})");
-
-                // Ejecutar acción en Twitch (pasar severidad original para mensaje correcto)
-                await ExecuteModerationActionAsync(channel, username, action, strikeLevel, matchedWord, messageId, matchedWord.Severity);
+                await ExecuteModerationActionAsync(scope.ServiceProvider, channel, username, messageId, verdict);
+                return verdict.RemovesMessage;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error verificando moderación para mensaje de {username} en {channel}");
-                // No lanzar excepción para no interrumpir el flujo normal del bot
+                return false;
             }
         }
 
         /// <summary>
-        /// Ejecuta la acción de moderación en Twitch (timeout, ban, warning)
+        /// Quien tiene control_total del canal en el dashboard cuenta como el streamer
+        /// aunque en ese chat sea un viewer más.
         /// </summary>
-        private async Task ExecuteModerationActionAsync(string channel, string username, string action, int strikeLevel, BannedWord matchedWord, string? messageId = null, string originalSeverity = "leve")
+        private static async Task<bool> HasControlTotalAsync(IServiceProvider services, string channel, string twitchUserId)
         {
+            if (string.IsNullOrEmpty(twitchUserId))
+                return false;
+
+            var db = services.GetRequiredService<DecatronDbContext>();
+            var chatterId = await db.Users
+                .Where(u => u.TwitchId == twitchUserId && u.IsActive)
+                .Select(u => (long?)u.Id)
+                .FirstOrDefaultAsync();
+            if (chatterId == null)
+                return false;
+
+            var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(db, channel);
+            if (channelInfo == null)
+                return false;
+
+            var permissions = services.GetRequiredService<IPermissionService>();
+            return await permissions.HasPermissionLevelAsync(chatterId.Value, channelInfo.UserId, "control_total");
+        }
+
+        /// <summary>
+        /// Ejecuta en Twitch la acción que decidió la moderación y avisa en el chat
+        /// </summary>
+        private async Task ExecuteModerationActionAsync(IServiceProvider services, string channel, string username, string? messageId,
+            Decatron.Core.Services.Moderation.ModerationVerdict verdict)
+        {
+            var action = verdict.Action;
             try
             {
-                // Obtener configuración para mensajes personalizados
-                using var scope = _serviceScopeFactory.CreateScope();
-                var moderationService = scope.ServiceProvider.GetRequiredService<Decatron.Core.Services.ModerationService>();
-                var twitchApiService = scope.ServiceProvider.GetRequiredService<TwitchApiService>();
-                var config = await moderationService.GetModerationConfigAsync(channel);
+                var twitchApiService = services.GetRequiredService<TwitchApiService>();
+                var config = verdict.Config;
 
-                // Función helper para preparar mensaje
-                string PrepareMessage(string template, string defaultMsg)
-                {
-                    var msg = template ?? defaultMsg;
-                    return msg
-                        .Replace("$(user)", username)
-                        .Replace("$(strike)", strikeLevel.ToString())
-                        .Replace("$(word)", matchedWord.Word);
-                }
+                string Prepare(string template) => template
+                    .Replace("$(user)", username)
+                    .Replace("$(strike)", verdict.StrikeLevel.ToString())
+                    .Replace("$(word)", verdict.Hit.Detail);
+
+                // Un filtro con mensaje propio lo usa para cualquier acción; si no, el de cada acción
+                string ChatMessage(string actionMessage) => Prepare(verdict.FilterMessage ?? actionMessage);
 
                 switch (action)
                 {
                     case "warning":
-                        // Usar mensaje de warning
-                        var warningMsg = PrepareMessage(
-                            config?.WarningMessage,
-                            "⚠️ $(user), evita usar ese lenguaje. Strike $(strike)/5");
-                        await _messageSender.SendMessageAsync(channel, warningMsg);
+                        await _messageSender.SendMessageAsync(channel, ChatMessage(config.WarningMessage));
                         break;
 
                     case "delete":
-                        // Borrar mensaje via API si tenemos el messageId
                         if (!string.IsNullOrEmpty(messageId))
-                        {
-                            var deleted = await twitchApiService.DeleteMessageAsync(channel, messageId);
-                            if (deleted)
-                            {
-                                _logger.LogInformation($"🗑️ [MODERACIÓN] Mensaje de {username} eliminado: {messageId}");
-                            }
-                        }
+                            await twitchApiService.DeleteMessageAsync(channel, messageId);
                         else
-                        {
                             _logger.LogWarning($"⚠️ [MODERACIÓN] No se puede borrar mensaje de {username}: messageId no disponible");
-                        }
-
-                        // Usar mensaje de delete
-                        var deleteMsg = PrepareMessage(
-                            config?.DeleteMessage,
-                            "🗑️ $(user), mensaje borrado por lenguaje inapropiado. Strike $(strike)/5");
-                        await _messageSender.SendMessageAsync(channel, deleteMsg);
+                        await _messageSender.SendMessageAsync(channel, ChatMessage(config.DeleteMessage));
                         break;
 
                     case "timeout_30s":
@@ -1209,7 +1167,6 @@ namespace Decatron.Services
                     case "timeout_10m":
                     case "timeout_30m":
                     case "timeout_1h":
-                        // Determinar duración en segundos
                         int duration = action switch
                         {
                             "timeout_30s" => 30,
@@ -1220,36 +1177,15 @@ namespace Decatron.Services
                             "timeout_1h" => 3600,
                             _ => 60
                         };
-
-                        await twitchApiService.TimeoutUserAsync(channel, username, duration, "Palabra prohibida detectada");
-
-                        // Usar mensaje de timeout
-                        var timeoutMsg = PrepareMessage(
-                            config?.TimeoutMessage,
-                            "⏱️ $(user), timeout aplicado por lenguaje inapropiado. Strike $(strike)/5");
-                        await _messageSender.SendMessageAsync(channel, timeoutMsg);
+                        await twitchApiService.TimeoutUserAsync(channel, username, duration, verdict.Hit.Reason);
+                        await _messageSender.SendMessageAsync(channel, ChatMessage(config.TimeoutMessage));
                         break;
 
                     case "ban":
-                        await twitchApiService.BanUserAsync(channel, username, "Palabra prohibida grave detectada");
-
-                        // Si la severidad original era "severo" (ban directo), usar mensaje especial
-                        // Si no, usar el mensaje normal de ban por strikes
-                        string banMsg;
-                        if (originalSeverity == "severo")
-                        {
-                            banMsg = PrepareMessage(
-                                config?.SeveroMessage,
-                                "🔨 $(user), has sido baneado por usar: $(word)");
-                            _logger.LogWarning($"🚨 [MODERACIÓN SEVERA] Ban directo por palabra severa: {matchedWord.Word}");
-                        }
-                        else
-                        {
-                            banMsg = PrepareMessage(
-                                config?.BanMessage,
-                                "🔨 $(user), has sido baneado por lenguaje inapropiado. Strike $(strike)/5");
-                        }
-                        await _messageSender.SendMessageAsync(channel, banMsg);
+                        await twitchApiService.BanUserAsync(channel, username, verdict.Hit.Reason);
+                        // Ban directo por severidad "severo" (sin strikes) tiene su propio mensaje
+                        await _messageSender.SendMessageAsync(channel,
+                            ChatMessage(verdict.StrikeLevel == 0 ? config.SeveroMessage : config.BanMessage));
                         break;
 
                     default:

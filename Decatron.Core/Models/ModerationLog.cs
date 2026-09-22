@@ -70,6 +70,18 @@ namespace Decatron.Core.Models
         [Column("full_message")]
         public string? FullMessage { get; set; }
 
+        /// <summary>
+        /// Filtro que disparó la acción (banned_words, links, ...)
+        /// </summary>
+        [Column("filter_key")]
+        public string FilterKey { get; set; } = "banned_words";
+
+        /// <summary>
+        /// Quién ejecutó la acción; null = el bot automáticamente
+        /// </summary>
+        [Column("executed_by")]
+        public string? ExecutedBy { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
