@@ -88,6 +88,7 @@ namespace Decatron.Services
             // Registrar comando Watchtime
             RegisterWatchtimeCommand();
             RegisterRuletaCommand();
+            RegisterCommand(new Commands.PermitCommand(_loggerFactory.CreateLogger<Commands.PermitCommand>(), _serviceScopeFactory));
             RegisterGameOverlayCommands();
 
             // Registrar comando de link a vista pública de comandos
@@ -1087,7 +1088,7 @@ namespace Decatron.Services
                         IsVip = isVip,
                         IsSubscriber = isSubscriber
                     },
-                    () => HasControlTotalAsync(scope.ServiceProvider, channel, userId));
+                    () => Moderation.ModerationPermissions.HasControlTotalAsync(scope.ServiceProvider, channel, userId));
 
                 if (verdict == null)
                     return false;
@@ -1100,31 +1101,6 @@ namespace Decatron.Services
                 _logger.LogError(ex, $"Error verificando moderación para mensaje de {username} en {channel}");
                 return false;
             }
-        }
-
-        /// <summary>
-        /// Quien tiene control_total del canal en el dashboard cuenta como el streamer
-        /// aunque en ese chat sea un viewer más.
-        /// </summary>
-        private static async Task<bool> HasControlTotalAsync(IServiceProvider services, string channel, string twitchUserId)
-        {
-            if (string.IsNullOrEmpty(twitchUserId))
-                return false;
-
-            var db = services.GetRequiredService<DecatronDbContext>();
-            var chatterId = await db.Users
-                .Where(u => u.TwitchId == twitchUserId && u.IsActive)
-                .Select(u => (long?)u.Id)
-                .FirstOrDefaultAsync();
-            if (chatterId == null)
-                return false;
-
-            var channelInfo = await ChannelResolver.ResolveChannelInfoAsync(db, channel);
-            if (channelInfo == null)
-                return false;
-
-            var permissions = services.GetRequiredService<IPermissionService>();
-            return await permissions.HasPermissionLevelAsync(chatterId.Value, channelInfo.UserId, "control_total");
         }
 
         /// <summary>

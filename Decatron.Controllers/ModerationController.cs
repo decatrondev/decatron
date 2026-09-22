@@ -468,8 +468,8 @@ namespace Decatron.Controllers
                     filterEnabled = enabled,
                     matchedWord = hit.Detail,
                     severity = hit.Severity,
-                    actionNormal = ModerationService.PreviewAction(config, hit.Severity),
-                    actionEscalamiento = ModerationService.PreviewAction(config, reduced)
+                    actionNormal = ModerationService.PreviewAction(config, hit.Severity, hit.MinimumAction),
+                    actionEscalamiento = ModerationService.PreviewAction(config, reduced, hit.MinimumAction)
                 });
             }
             catch (Exception ex)

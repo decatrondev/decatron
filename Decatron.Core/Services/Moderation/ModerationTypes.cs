@@ -33,6 +33,10 @@ namespace Decatron.Core.Services.Moderation
         public string Reason { get; set; } = "";
         /// <summary>Id propio del filtro (ej. la palabra prohibida), para OnSanctionedAsync</summary>
         public long? RefId { get; set; }
+        /// <summary>Acción mínima de este filtro: un link no puede quedar en el chat con una simple advertencia</summary>
+        public string MinimumAction { get; set; } = "warning";
+        /// <summary>Mensaje del chat si el streamer no puso uno propio; null = los mensajes por acción</summary>
+        public string? DefaultMessage { get; set; }
     }
 
     /// <summary>

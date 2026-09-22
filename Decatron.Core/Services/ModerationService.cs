@@ -123,7 +123,7 @@ namespace Decatron.Core.Services
                     Hit = hit,
                     Action = action,
                     StrikeLevel = strikeLevel,
-                    FilterMessage = hitConfig.Message,
+                    FilterMessage = hitConfig.Message ?? hit.DefaultMessage,
                     Config = config
                 };
             }
@@ -159,12 +159,18 @@ namespace Decatron.Core.Services
         /// Acción que tocaría a un usuario sin inmunidad con el strike que se le sumaría ahora
         /// (strike 1 si no tiene). Solo para mostrar en "Probar mensaje".
         /// </summary>
-        public static string PreviewAction(ModerationConfig config, string severity) => severity switch
+        public static string PreviewAction(ModerationConfig config, string severity, string minimumAction = "warning") => severity switch
         {
             "severo" => "ban",
-            "medio" => Harsher(config.Strike1Action, "timeout_10m"),
-            _ => config.Strike1Action
+            "medio" => Harsher(Harsher(config.Strike1Action, minimumAction), "timeout_10m"),
+            _ => Harsher(config.Strike1Action, minimumAction)
         };
+
+        /// <summary>
+        /// Fila de un filtro del canal (null si nunca se configuró = apagado)
+        /// </summary>
+        public async Task<ModerationFilter?> GetFilterAsync(string channelName, string filterKey) =>
+            (await GetFilterConfigsAsync(channelName)).FirstOrDefault(f => f.FilterKey == filterKey);
 
         /// <summary>
         /// Configuración de moderación del canal (null si nunca la guardó)
@@ -325,7 +331,7 @@ namespace Decatron.Core.Services
 
                 await UpdateUserStrikeAsync(conn, userStrike);
 
-                var action = GetStrikeAction(config, userStrike.StrikeLevel);
+                var action = Harsher(GetStrikeAction(config, userStrike.StrikeLevel), hit.MinimumAction);
                 if (severity == "medio")
                     action = Harsher(action, "timeout_10m");
 

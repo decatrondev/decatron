@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldBan, Settings } from 'lucide-react';
+import { ShieldBan, Settings, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FilterSwitch, fetchModerationFilters, saveModerationFilter, type ModerationFilterState } from './moderation/filterSwitch';
 
@@ -17,8 +17,15 @@ const CARDS: ModerationCard[] = [
         key: 'banned_words',
         name: 'Palabras prohibidas',
         description: 'Palabras y frases que no se pueden usar en el chat, cada una con su severidad',
-        icon: <ShieldBan className="w-6 h-6 text-[#2563eb]" />,
+        icon: <ShieldBan className="w-6 h-6 shrink-0 text-[#2563eb]" />,
         route: '/features/moderation/banned-words'
+    },
+    {
+        key: 'links',
+        name: 'Links',
+        description: 'Bloquea los links del chat, también los disfrazados, salvo los dominios que permitas o con !permit',
+        icon: <Link2 className="w-6 h-6 shrink-0 text-[#2563eb]" />,
+        route: '/features/moderation/links'
     }
 ];
 
