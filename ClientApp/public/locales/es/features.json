@@ -1331,5 +1331,86 @@
       "restarted": "reiniciada",
       "server": "servidor"
     }
+  },
+  "credits": {
+    "title": "Créditos",
+    "subtitle": "Un solo saldo para todo lo que cuesta dinero: voz premium, traducción en vivo, coach de LoL, !ia y chat con IA. Lo que corre en nuestro servidor (voz estándar) no gasta de aquí.",
+    "refresh": "Actualizar",
+    "available": "Disponibles",
+    "credits": "créditos",
+    "plan": "plan",
+    "monthly": "Del plan este mes",
+    "purchased": "Comprados",
+    "purchasedHint": "No vencen; se usan cuando se agota lo del mes.",
+    "getMore": "Conseguir créditos",
+    "transition": "Créditos de cortesía mientras eliges plan, hasta el {{date}}.",
+    "expires": "Tu plan vence el {{date}}. Los créditos comprados no se pierden.",
+    "empty": "Sin créditos: el coach, la traducción con voz premium, !ia y el chat con IA quedan en pausa hasta que tengas saldo. La voz estándar sigue funcionando.",
+    "spentTitle": "Gastado este período",
+    "spentHint": "Desde el {{date}}, por concepto.",
+    "nothingYet": "Nada todavía.",
+    "standardTitle": "Voz estándar (gratis)",
+    "standardHint": "Piper corre en nuestro servidor y no cuesta dinero: tiene su propia cuota holgada, aparte de los créditos.",
+    "standardUsed": "usados {{n}}",
+    "ratesTitle": "Cómo se gastan",
+    "ratesHint": "1 millón de créditos equivale a unos ${{usd}} de costo real para la plataforma. Cada cosa descuenta según lo que cuesta de verdad.",
+    "rates": {
+      "stt": "Traducción: escuchar (Deepgram)",
+      "perSecond": "{{n}} por segundo hablado",
+      "perMinute": "≈ {{n}} por minuto",
+      "premiumVoice": "Voz premium (Aura, Fish, Polly)",
+      "perChar": "{{n}} por carácter",
+      "premiumVoiceSub": "Por idioma: cada idioma extra suma su voz.",
+      "standardVoice": "Voz estándar (Piper)",
+      "free": "Gratis",
+      "standardVoiceSub": "Cuota aparte, no toca los créditos.",
+      "coach": "Coach de LoL (IA)",
+      "perCall": "{{n}} por llamada",
+      "aiSub": "Según tokens reales del modelo; solo si la llamada salió bien.",
+      "translationAi": "Traducción: la IA que traduce",
+      "perPhrase": "{{n}} por frase",
+      "chatAi": "!ia y chat con IA"
+    },
+    "historyTitle": "Historial",
+    "allFeatures": "Todo",
+    "col": {
+      "when": "Cuándo",
+      "what": "Qué",
+      "detail": "Detalle",
+      "credits": "Créditos"
+    },
+    "standardTag": "estándar",
+    "chars": "{{n}} caracteres",
+    "features": {
+      "lol_coach_ai": "Coach de LoL (IA)",
+      "lol_coach": "Coach de LoL (voz)",
+      "live_translation": "Traducción en vivo",
+      "live_translation_ai": "Traducción (IA)",
+      "twitch_chat_ai": "!ia en el chat",
+      "decatron_chat_ai": "Decatron Chat (IA)",
+      "event_alerts": "Alertas de eventos",
+      "speak_chat": "Speak Chat",
+      "timer_alerts": "Temporizadores",
+      "tips": "Donaciones",
+      "other": "Otro"
+    },
+    "engines": {
+      "live_stt": "Escuchar",
+      "deepgram_aura": "Voz Aura",
+      "fish": "Voz Fish",
+      "standard": "Voz estándar",
+      "neural": "Voz neural",
+      "generative": "Voz generativa",
+      "longform": "Voz long-form"
+    },
+    "types": {
+      "grant": "Créditos otorgados",
+      "purchase": "Compra",
+      "monthly_reset": "Renovación mensual",
+      "refund": "Devolución",
+      "cache_hit": "Desde caché (gratis)",
+      "transfer": "Transferencia"
+    },
+    "loadError": "No se pudo cargar tu saldo."
   }
 }

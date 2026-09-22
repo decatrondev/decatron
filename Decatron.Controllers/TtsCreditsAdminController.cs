@@ -42,6 +42,47 @@ namespace Decatron.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Consumo de créditos premium en un rango: por canal y por concepto, con el costo
+        /// real aproximado (créditos × AiCreditGate.CreditUsd). Para ver márgenes por tier.
+        /// Plan CREDITOS_UNIFICADOS, fase 3.
+        /// </summary>
+        [HttpGet("usage")]
+        public async Task<IActionResult> Usage([FromQuery] int days = 30)
+        {
+            days = Math.Clamp(days, 1, 365);
+            var since = DateTimeOffset.UtcNow.AddDays(-days);
+            var usd = Decatron.Services.AI.AiCreditGate.CreditUsd;
+            var q = _db.TtsCreditLedger.AsNoTracking().Where(e => e.Type == "consume" && e.Bucket != "standard" && e.Bucket != "none" && e.CreatedAt >= since);
+
+            var byChannel = await q.GroupBy(e => e.UserId)
+                .Select(g => new { userId = g.Key, credits = -g.Sum(e => e.Credits), entries = g.Count() })
+                .OrderByDescending(x => x.credits).Take(50).ToListAsync();
+            var ids = byChannel.Select(x => x.userId).ToList();
+            var users = await _db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).Select(u => new { u.Id, u.Login }).ToListAsync();
+            var tiers = new Dictionary<long, string>();
+            foreach (var id in ids) tiers[id] = await Decatron.Core.Helpers.TierResolver.GetEffectiveTierAsync(_db, id);
+            var balances = await _db.TtsCreditBalances.AsNoTracking().Where(b => ids.Contains(b.UserId)).Select(b => new { b.UserId, b.MonthlyGranted, b.MonthlyUsed, b.PurchasedBalance }).ToListAsync();
+
+            var byFeature = await q.GroupBy(e => e.Feature)
+                .Select(g => new { feature = g.Key ?? "other", credits = -g.Sum(e => e.Credits), entries = g.Count() })
+                .OrderByDescending(x => x.credits).ToListAsync();
+            var total = byFeature.Sum(x => x.credits);
+
+            return Ok(new
+            {
+                success = true, days, creditUsd = usd,
+                totalCredits = total, totalUsd = total * usd,
+                byChannel = byChannel.Select(x =>
+                {
+                    var u = users.FirstOrDefault(y => y.Id == x.userId);
+                    var b = balances.FirstOrDefault(y => y.UserId == x.userId);
+                    return new { x.userId, login = u?.Login, tier = tiers.GetValueOrDefault(x.userId), x.credits, usd = x.credits * usd, x.entries, monthlyGranted = b?.MonthlyGranted ?? 0, monthlyUsed = b?.MonthlyUsed ?? 0, purchasedBalance = b?.PurchasedBalance ?? 0 };
+                }),
+                byFeature = byFeature.Select(x => new { x.feature, x.credits, usd = x.credits * usd, x.entries }),
+            });
+        }
+
         // La búsqueda de canales vive en AdminUsersController: la usan también las
         // pantallas de supporters y no tiene sentido tener dos copias.
 

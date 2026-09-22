@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, Coins, Infinity as InfinityIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 
 /**
@@ -279,6 +280,8 @@ export function TtsCreditsCard({
                     ⏳ Tu plan vence el {expiryLabel}. Los créditos comprados no se pierden.
                 </p>
             )}
+
+            <Link to="/credits" className="inline-block mt-3 text-xs font-semibold text-[#9146FF] hover:underline">Ver gasto por concepto e historial →</Link>
         </div>
     );
 }

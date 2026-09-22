@@ -1,4 +1,4 @@
-﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User } from 'lucide-react';
+﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins } from 'lucide-react';
 import decatronLockup from '../assets/decatron-lockup.png';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
@@ -129,6 +129,7 @@ export default function Layout() {
                                 seccion 8, item 3), el resto de FeaturesHub se
                                 marca "Proximamente en Kick" hasta verificarse. */}
                             <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
+                            <NavLink to="/credits" icon={<Coins />} label={t('layout:navigation.credits')} active={location.pathname.startsWith('/credits')} />
 
                             {hasTwitchAccess && (
                                 <>

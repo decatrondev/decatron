@@ -6,7 +6,7 @@
  * el plan) y la premium es Polly, la que se compra.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Coins, Infinity as InfinityIcon, Users } from 'lucide-react';
 import api from '../../services/api';
@@ -67,6 +67,11 @@ const FEATURE_LABEL: Record<string, string> = {
     tips: 'Propinas',
     timer_alerts: 'Timer',
     live_translation: 'Traducción en vivo',
+    live_translation_ai: 'Traducción (IA)',
+    lol_coach_ai: 'Coach de LoL (IA)',
+    lol_coach: 'Coach de LoL (voz)',
+    twitch_chat_ai: '!ia',
+    decatron_chat_ai: 'Decatron Chat (IA)',
     admin: 'Admin',
 };
 
@@ -215,6 +220,8 @@ export default function TtsCreditsAdmin() {
                     </p>
                 </div>
             </div>
+
+            <UsageSection />
 
             {/* Lote. Va plegado porque se usa dos veces al año, pero cuando hace falta
                 —el regalo de transición— es la diferencia entre un clic y treinta. */}
@@ -614,6 +621,92 @@ export default function TtsCreditsAdmin() {
                     </div>
                 </>
             )}
+        </div>
+    );
+}
+
+
+interface Usage {
+    days: number; creditUsd: number; totalCredits: number; totalUsd: number;
+    byChannel: { userId: number; login: string | null; tier: string | null; credits: number; usd: number; entries: number; monthlyGranted: number; monthlyUsed: number; purchasedBalance: number }[];
+    byFeature: { feature: string; credits: number; usd: number; entries: number }[];
+}
+const usdFmt = (n: number) => `$${n.toFixed(n < 0.01 && n > 0 ? 4 : 2)}`;
+
+/**
+ * Consumo de créditos premium por canal y por concepto, con el costo real aproximado.
+ * Es la vista para revisar cuotas por tier con datos (plan CREDITOS_UNIFICADOS, fase 3).
+ */
+function UsageSection() {
+    const [days, setDays] = useState(30);
+    const [data, setData] = useState<Usage | null>(null);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        let alive = true;
+        setLoading(true);
+        api.get(`/admin/tts-credits/usage?days=${days}`).then(r => { if (alive) setData(r.data); }).catch(() => { }).finally(() => { if (alive) setLoading(false); });
+        return () => { alive = false; };
+    }, [days]);
+    const th = 'py-1 text-left text-[#64748b] dark:text-[#94a3b8] font-medium';
+    const tr = 'border-t border-[#f1f5f9] dark:border-[#26262c]';
+    return (
+        <div className={cardClass}>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                    <h2 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Consumo de créditos premium</h2>
+                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Lo que cuesta dinero de verdad, por canal y por concepto. 1M créditos ≈ ${data ? (data.creditUsd * 1_000_000).toFixed(0) : '4'}.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={`px-3 py-1 rounded-lg text-xs border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-white' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b]'}`}>{d} días</button>)}
+                </div>
+            </div>
+            {!data ? <p className="text-xs text-[#64748b]">{loading ? 'Cargando…' : 'Sin datos.'}</p> : (
+                <>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                        <Stat label="Créditos consumidos" value={data.totalCredits.toLocaleString()} />
+                        <Stat label="Costo real aprox." value={usdFmt(data.totalUsd)} />
+                        <Stat label="Canales con gasto" value={String(data.byChannel.length)} />
+                        <Stat label="Por día (promedio)" value={usdFmt(data.totalUsd / data.days)} />
+                    </div>
+                    <div className="grid lg:grid-cols-2 gap-6">
+                        <div className="overflow-x-auto">
+                            <h3 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Por concepto</h3>
+                            <table className="w-full text-sm">
+                                <thead><tr><th className={th}>Concepto</th><th className={`${th} text-right`}>Movs.</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>USD</th></tr></thead>
+                                <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                    {data.byFeature.map(f => <tr key={f.feature} className={tr}><td className="py-1 text-xs">{(FEATURE_LABEL as Record<string, string>)[f.feature] ?? f.feature}</td><td className="text-right text-xs">{f.entries}</td><td className="text-right font-mono text-xs">{f.credits.toLocaleString()}</td><td className="text-right font-mono text-xs">{usdFmt(f.usd)}</td></tr>)}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <h3 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2 uppercase">Por canal (top 50)</h3>
+                            <table className="w-full text-sm">
+                                <thead><tr><th className={th}>Canal</th><th className={th}>Tier</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>USD</th><th className={`${th} text-right`}>Cuota mes</th></tr></thead>
+                                <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                                    {data.byChannel.map(c => (
+                                        <tr key={c.userId} className={tr}>
+                                            <td className="py-1 text-xs">{c.login ?? `#${c.userId}`}</td>
+                                            <td className="text-xs capitalize">{c.tier ?? '—'}</td>
+                                            <td className="text-right font-mono text-xs">{c.credits.toLocaleString()}</td>
+                                            <td className="text-right font-mono text-xs">{usdFmt(c.usd)}</td>
+                                            <td className="text-right font-mono text-xs" title={`Comprados: ${c.purchasedBalance.toLocaleString()}`}>{c.monthlyGranted > 0 ? `${Math.round((c.monthlyUsed / c.monthlyGranted) * 100)}%` : '—'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{label}</p>
+            <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{value}</p>
         </div>
     );
 }

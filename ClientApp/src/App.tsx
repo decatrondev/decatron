@@ -56,6 +56,7 @@ import LiveOverlays from './pages/features/LiveOverlays';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import ChannelsVisibility from './pages/admin/ChannelsVisibility';
 import SupportersPublic from './pages/SupportersPublic';
+import Credits from './pages/Credits';
 import PublicCommandsPage from './pages/PublicCommandsPage';
 import TranslatePublic from './pages/TranslatePublic';
 import TournamentPublicPage from './pages/TournamentPublicPage';
@@ -285,6 +286,7 @@ function App() {
                     <Route path="features/decatron-ai" element={<SafeRoute name="Decatron AI"><DecatronAIConfig /></SafeRoute>} />
                     <Route path="features/live-translation" element={<SafeRoute name="Traducción en vivo"><LiveTranslationConfig /></SafeRoute>} />
                     <Route path="features/lol-coach" element={<SafeRoute name="Coach de LoL"><LolCoachConfig /></SafeRoute>} />
+                    <Route path="credits" element={<SafeRoute name="Créditos"><Credits /></SafeRoute>} />
                     <Route path="features/decatron-chat" element={<SafeRoute name="Decatron Chat"><DecatronChat /></SafeRoute>} />
                     <Route path="features/tips" element={<SafeRoute name="Tips"><TipsConfig /></SafeRoute>} />
                     <Route path="features/speak-chat" element={<SafeRoute name="Speak Chat"><SpeakChat /></SafeRoute>} />

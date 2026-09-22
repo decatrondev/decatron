@@ -46,7 +46,8 @@
       "overlays": "Overlays",
       "apiReference": "API Reference"
     },
-    "logout": "Cerrar Sesión"
+    "logout": "Cerrar Sesión",
+    "credits": "Créditos"
   },
   "comingSoon": "Pronto",
   "tokenExpiration": {
