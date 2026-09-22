@@ -819,6 +819,15 @@ namespace Decatron.Services
                 }
                 var channelNameLower = broadcasterName.ToLower();
 
+                // Disparo automático del pánico por oleada de follows (nunca frena el evento)
+                try
+                {
+                    var broadcasterLogin = datosEvento["broadcaster_user_login"]?.ToString() ?? channelNameLower;
+                    using var panicScope = _serviceScopeFactory.CreateScope();
+                    await panicScope.ServiceProvider.GetRequiredService<Decatron.Services.Moderation.PanicModeService>().OnFollowAsync(broadcasterLogin);
+                }
+                catch (Exception panicEx) { _logger.LogWarning(panicEx, "[PÁNICO] Error contando follows en {Channel}", channelNameLower); }
+
                 // Obtener UserId del canal para FK constraint
                 var channelUser = await _dbContext.Users
                     .FirstOrDefaultAsync(u => u.TwitchId == broadcasterId);

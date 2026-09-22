@@ -212,6 +212,114 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Fecha de creación de una cuenta de Twitch por su id (usa App Access Token)
+        /// </summary>
+        public async Task<DateTime?> GetUserCreatedAtAsync(string userId)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{TwitchApiBaseUrl}/users?id={userId}");
+                var response = await SendWithAppTokenAsync(request);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var result = JsonSerializer.Deserialize<TwitchApiResponse<TwitchUserData>>(await response.Content.ReadAsStringAsync());
+                var createdAt = result?.data?.FirstOrDefault()?.created_at;
+                return DateTime.TryParse(createdAt, null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var date)
+                    ? date
+                    : null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetUserCreatedAtAsync: {UserId}", userId);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Llamada a Helix como moderador (el bot) en el canal: agrega broadcaster_id y moderator_id a la URL.
+        /// </summary>
+        private async Task<HttpResponseMessage?> SendAsBotModeratorAsync(HttpMethod method, string channelName, string path, object? body)
+        {
+            var broadcasterUser = await GetUserByLoginAsync(channelName);
+            var botTwitchId = await GetBotTwitchIdAsync();
+            var accessToken = await GetBotUserAccessTokenAsync();
+            if (broadcasterUser == null || string.IsNullOrEmpty(botTwitchId) || string.IsNullOrEmpty(accessToken))
+            {
+                _logger.LogWarning("No se pudo preparar la llamada de moderador en {ChannelName} ({Path})", channelName, path);
+                return null;
+            }
+
+            var request = new HttpRequestMessage(method, $"{TwitchApiBaseUrl}/{path}?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}");
+            if (body != null)
+                request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            return await _httpClient.SendAsync(request);
+        }
+
+        /// <summary>
+        /// Configuración actual del chat (modos solo seguidores, emotes, subs, lento...). null si falla.
+        /// </summary>
+        public async Task<JsonElement?> GetChatSettingsAsync(string channelName)
+        {
+            try
+            {
+                var response = await SendAsBotModeratorAsync(HttpMethod.Get, channelName, "chat/settings", null);
+                if (response == null || !response.IsSuccessStatusCode)
+                    return null;
+
+                using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return doc.RootElement.GetProperty("data")[0].Clone();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetChatSettingsAsync: {ChannelName}", channelName);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Cambia modos del chat. Solo se mandan los campos a cambiar (emote_mode, follower_mode, ...).
+        /// </summary>
+        public async Task<bool> UpdateChatSettingsAsync(string channelName, Dictionary<string, object?> changes)
+        {
+            try
+            {
+                var response = await SendAsBotModeratorAsync(HttpMethod.Patch, channelName, "chat/settings", changes);
+                if (response == null) return false;
+                if (!response.IsSuccessStatusCode)
+                    _logger.LogWarning("Error cambiando el chat de {ChannelName}: {Status} {Body}", channelName, response.StatusCode, await response.Content.ReadAsStringAsync());
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateChatSettingsAsync: {ChannelName}", channelName);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Activa o desactiva el Shield Mode de Twitch en el canal
+        /// </summary>
+        public async Task<bool> SetShieldModeAsync(string channelName, bool active)
+        {
+            try
+            {
+                var response = await SendAsBotModeratorAsync(HttpMethod.Put, channelName, "moderation/shield_mode", new { is_active = active });
+                if (response == null) return false;
+                if (!response.IsSuccessStatusCode)
+                    _logger.LogWarning("Error con el Shield Mode de {ChannelName}: {Status} {Body}", channelName, response.StatusCode, await response.Content.ReadAsStringAsync());
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SetShieldModeAsync: {ChannelName}", channelName);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Obtiene los clips más recientes de un usuario (usa App Access Token)
         /// </summary>
         public async Task<List<TwitchClipData>> GetClipsAsync(string broadcasterId, int first = 1)

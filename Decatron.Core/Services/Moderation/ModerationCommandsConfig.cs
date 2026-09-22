@@ -34,6 +34,7 @@ namespace Decatron.Core.Services.Moderation
         public const string Words = "words";
         public const string Links = "links";
         public const string Nuke = "nuke";
+        public const string Panic = "panic";
 
         public const int NukeMaxWindowSeconds = 300;
         public const int NukeMaxUsers = 100;
@@ -49,6 +50,7 @@ namespace Decatron.Core.Services.Moderation
             [ResetStrikes] = "lead_moderator",
             [Words] = "lead_moderator",
             [Links] = "lead_moderator",
+            [Panic] = "lead_moderator",
         };
 
         public static IReadOnlyCollection<string> Keys => DefaultRoles.Keys;

@@ -422,6 +422,11 @@ try
     builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.CopypastaFilter>();
     builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.ZalgoFilter>();
     builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.MentionsFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.AccountAgeFilter>();
+    builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.BotPhrasesFilter>();
+    builder.Services.AddSingleton<Decatron.Core.Services.Moderation.IAccountAgeProvider, Decatron.Services.Moderation.AccountAgeProvider>();
+    builder.Services.AddScoped<Decatron.Services.Moderation.PanicModeService>();
+    builder.Services.AddHostedService<Decatron.Services.Moderation.PanicModeBackgroundService>();
     builder.Services.AddScoped<Decatron.Core.Services.ModerationService>();
     builder.Services.AddScoped<Decatron.Core.Services.FollowersService>();
     // IA unificada: cache de config/precios, registro de uso y cliente OpenRouter (singletons).

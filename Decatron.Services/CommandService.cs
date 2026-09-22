@@ -248,6 +248,8 @@ namespace Decatron.Services
             RegisterCommand(new Commands.LinkDomainCommand(true, _loggerFactory.CreateLogger<Commands.LinkDomainCommand>(), _serviceScopeFactory));
             RegisterCommand(new Commands.LinkDomainCommand(false, _loggerFactory.CreateLogger<Commands.LinkDomainCommand>(), _serviceScopeFactory));
             RegisterCommand(new Commands.NukeCommand(_loggerFactory.CreateLogger<Commands.NukeCommand>(), _serviceScopeFactory));
+            foreach (var name in new[] { "!panico", "!pánico", "!panic" })
+                RegisterCommand(new Commands.PanicCommand(name, _loggerFactory.CreateLogger<Commands.PanicCommand>(), _serviceScopeFactory));
         }
 
         private void RegisterRuletaCommand()
@@ -1084,11 +1086,18 @@ namespace Decatron.Services
                 if (metadata != null && metadata.TryGetValue("platform", out var platform) && platform?.ToString() == "kick")
                     return false;
 
-                // Búfer para !nuke: solo quien puede ser sancionado
+                using var scope = _serviceScopeFactory.CreateScope();
+
                 if (!isBroadcaster && !isLeadModerator && !isModerator)
+                {
+                    // Búfer para !nuke, repetidos y copypasta: solo quien puede ser sancionado
                     Decatron.Core.Services.Moderation.RecentChatBuffer.Add(channel, username, message);
 
-                using var scope = _serviceScopeFactory.CreateScope();
+                    // Disparo automático del pánico por cuentas nuevas escribiendo (nunca frena el mensaje)
+                    var panic = scope.ServiceProvider.GetRequiredService<Moderation.PanicModeService>();
+                    try { await panic.OnChatAsync(channel, userId); }
+                    catch (Exception panicEx) { _logger.LogWarning(panicEx, "[PÁNICO] Error contando cuentas nuevas en {Channel}", channel); }
+                }
                 var moderationService = scope.ServiceProvider.GetRequiredService<Decatron.Core.Services.ModerationService>();
 
                 var verdict = await moderationService.EvaluateAsync(
@@ -1096,6 +1105,7 @@ namespace Decatron.Services
                     {
                         Channel = channel,
                         Username = username,
+                        ChatterUserId = userId,
                         Text = message,
                         TextWithoutEmotes = metadata != null && metadata.TryGetValue("text-without-emotes", out var plain) ? plain?.ToString() : null,
                         EmoteCount = metadata != null && metadata.TryGetValue("emote-count", out var emotes) && emotes is int n ? n : 0,

@@ -10,6 +10,8 @@ namespace Decatron.Core.Services.Moderation
     {
         public string Channel { get; set; } = "";
         public string Username { get; set; } = "";
+        /// <summary>Id de Twitch de quien escribe (para la edad de la cuenta)</summary>
+        public string? ChatterUserId { get; set; }
         public string Text { get; set; } = "";
         /// <summary>El texto sin los emotes de Twitch (si se conocen); si no, igual a Text</summary>
         public string? TextWithoutEmotes { get; set; }

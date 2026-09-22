@@ -21,6 +21,14 @@ namespace Decatron.Controllers
     [ApiController]
     public class ModerationController : ControllerBase
     {
+        // Severidad con la que arranca un filtro que el canal nunca configuró
+        private static readonly Dictionary<string, string> DefaultSeverities = new()
+        {
+            [BotPhrasesFilter.FilterKey] = "severo",
+        };
+
+        private static string DefaultSeverity(string key) => DefaultSeverities.GetValueOrDefault(key, "leve");
+
         private readonly DecatronDbContext _dbContext;
         private readonly ModerationService _moderationService;
         private readonly ILogger<ModerationController> _logger;
@@ -506,7 +514,7 @@ namespace Decatron.Controllers
                     {
                         key,
                         enabled = row?.Enabled ?? false,
-                        severity = row?.Severity ?? "leve",
+                        severity = row?.Severity ?? DefaultSeverity(key),
                         settings = JsonDocument.Parse(row?.Settings ?? "{}").RootElement,
                         message = row?.Message
                     };
@@ -550,7 +558,7 @@ namespace Decatron.Controllers
 
                 if (row == null)
                 {
-                    row = new ModerationFilter { UserId = channelOwnerId, ChannelName = username, FilterKey = key };
+                    row = new ModerationFilter { UserId = channelOwnerId, ChannelName = username, FilterKey = key, Severity = DefaultSeverity(key) };
                     _dbContext.ModerationFilters.Add(row);
                 }
 
@@ -624,6 +632,96 @@ namespace Decatron.Controllers
             {
                 _logger.LogError(ex, "Error guardando comandos de moderación");
                 return StatusCode(500, new { success = false, message = "Error al guardar los comandos" });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/moderation/panic - Configuración y estado del modo pánico
+        /// </summary>
+        [HttpGet("panic")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> GetPanic([FromServices] Decatron.Services.Moderation.PanicModeService panic)
+        {
+            try
+            {
+                var username = await GetChannelUsernameAsync(GetChannelOwnerId());
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var (settings, state) = await panic.GetAsync(username);
+                var active = state.Active && state.EndsAt > DateTime.Now;
+                return Ok(new
+                {
+                    success = true,
+                    settings,
+                    state = new { active, state.StartedAt, state.EndsAt, state.TriggeredBy, state.Reason },
+                    defaultBotPhrases = BotPhrasesFilter.DefaultPhrases
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo el modo pánico");
+                return StatusCode(500, new { success = false, message = "Error al obtener el modo pánico" });
+            }
+        }
+
+        /// <summary>
+        /// PUT /api/moderation/panic - Guarda la configuración del modo pánico
+        /// </summary>
+        [HttpPut("panic")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> UpdatePanic([FromBody] JsonElement body, [FromServices] Decatron.Services.Moderation.PanicModeService panic)
+        {
+            try
+            {
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var settings = PanicSettings.Parse(body.GetRawText());
+                await panic.SaveSettingsAsync(username, channelOwnerId, settings);
+                ModerationCache.Invalidate(username);
+                return Ok(new { success = true, settings });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error guardando el modo pánico");
+                return StatusCode(500, new { success = false, message = "Error al guardar el modo pánico" });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/moderation/panic/activate | deactivate - Botón del dashboard
+        /// </summary>
+        [HttpPost("panic/{mode}")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> TogglePanic(string mode, [FromServices] Decatron.Services.Moderation.PanicModeService panic)
+        {
+            try
+            {
+                if (mode is not ("activate" or "deactivate"))
+                    return NotFound(new { success = false, message = "Acción desconocida" });
+
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var by = User.FindFirst(ClaimTypes.Name)?.Value ?? "dashboard";
+                if (mode == "activate")
+                {
+                    var endsAt = await panic.ActivateAsync(username, channelOwnerId, by, "activado desde el dashboard");
+                    return Ok(new { success = true, active = true, endsAt });
+                }
+
+                await panic.DeactivateAsync(username, by);
+                return Ok(new { success = true, active = false });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cambiando el modo pánico");
+                return StatusCode(500, new { success = false, message = "Error al cambiar el modo pánico" });
             }
         }
 
