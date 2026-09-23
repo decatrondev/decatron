@@ -14,7 +14,7 @@ interface Summary {
     topChannels: { userId: number; channel: string | null; calls: number; tokens: number; costUsd: number }[];
 }
 interface Credits { success: boolean; configured?: boolean; totalCredits?: number; totalUsage?: number; remaining?: number }
-interface Models { chatProvider: string; fallbackEnabled: boolean; chatModel: string; geminiModel: string; translationModel: string; coachModel: string; prices: Record<string, { in: number; out: number }> }
+interface Models { chatProvider: string; fallbackEnabled: boolean; chatModel: string; geminiModel: string; translationModel: string; coachModel: string; fallbackModels: string; prices: Record<string, { in: number; out: number }> }
 
 const usd = (n: number) => `$${n.toFixed(n < 0.01 && n > 0 ? 4 : 2)}`;
 const k = (n: number) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
@@ -67,7 +67,7 @@ export default function AiCostsAdmin() {
         try { prices = JSON.parse(pricesText); } catch { setError('La tabla de precios no es JSON válido.'); return; }
         setSaving(true); setError(null); setNotice(null);
         try {
-            await api.put('/admin/ai-costs/models', { chatModel: models.chatModel, translationModel: models.translationModel, coachModel: models.coachModel, prices });
+            await api.put('/admin/ai-costs/models', { chatModel: models.chatModel, translationModel: models.translationModel, coachModel: models.coachModel, fallbackModels: models.fallbackModels, prices });
             setNotice('Modelos y precios guardados. Aplican desde la próxima llamada, sin reiniciar.');
             load();
         } catch (e: any) {
@@ -196,6 +196,7 @@ export default function AiCostsAdmin() {
                                     <Field label="!decatronai / chat web" value={models.chatModel} onChange={v => setModels({ ...models, chatModel: v })} hint={`proveedor: ${models.chatProvider}${models.fallbackEnabled ? ` · fallback Gemini ${models.geminiModel}` : ''}`} />
                                     <Field label="Traducción en vivo" value={models.translationModel} onChange={v => setModels({ ...models, translationModel: v })} hint="frase a frase, timeout 4 s, cae a Gemini si falla" />
                                     <Field label="Coach de LoL" value={models.coachModel} onChange={v => setModels({ ...models, coachModel: v })} />
+                                    <Field label="Respaldo (en orden, separados por coma)" value={models.fallbackModels} onChange={v => setModels({ ...models, fallbackModels: v })} hint="si el modelo del módulo da 429, se cae o rechaza, OpenRouter pasa solo al siguiente en la misma petición · aplica a chat, traducción y coach · máx. 3" />
                                     <div>
                                         <div className={`${muted} mb-1`}>Precios USD por 1M tokens: {"{ \"modelo\": { \"in\": n, \"out\": n } }"}</div>
                                         <textarea value={pricesText} onChange={e => setPricesText(e.target.value)} rows={7} className={input} spellCheck={false} />

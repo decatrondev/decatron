@@ -436,6 +436,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.AI.AiCreditGate>();
     builder.Services.AddSingleton<Decatron.Services.AI.AiUsageRecorder>();
     builder.Services.AddSingleton<Decatron.Services.AI.OpenRouterClient>();
+    builder.Services.AddSingleton<Decatron.Services.AI.GeminiChatClient>();
     builder.Services.AddScoped<Decatron.Services.GeminiService>();
     builder.Services.AddScoped<Decatron.Services.OpenRouterService>();
     builder.Services.AddScoped<Decatron.Services.AIProviderService>();

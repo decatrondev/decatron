@@ -74,11 +74,8 @@ namespace Decatron.Services.GameData.LolLive
                 }
                 var system = SystemPrompt(ctx, kind, phase);
                 var user = UserPrompt(kind, phase, ctx);
-                var isFinal = kind is "final" or "postgame" or "briefing";
-                var r = await _ai.ChatAsync(_settings.CoachModel, system, user, new AiCallContext(Module, ctx.UserId, ctx.Login),
-                    maxTokens: isFinal ? 700 : 400, temperature: 0.7, timeout: TimeSpan.FromSeconds(isFinal ? 25 : 12), reasoning: false, ct: ct);
-                var info = Parse(r.Text, kind, ctx.Settings.CoachName);
-                if (info == null) { _logger.LogWarning("[LolCoach] {Login}: respuesta no parseable: {Text}", ctx.Login, r.Text.Length > 200 ? r.Text[..200] : r.Text); return null; }
+                var info = await PedirAsync(kind, system, user, ctx, ct);
+                if (info == null) return null;
                 // La IA escribe ítems/runas/hechizos en inglés (ver SystemPrompt); acá se pasan al idioma
                 // del canal con la tabla oficial de Data Dragon y se tira lo que no exista.
                 info.Runes = await _names.LocalizeAsync(info.Runes, ctx.Language, ct);
@@ -91,6 +88,33 @@ namespace Decatron.Services.GameData.LolLive
                 _logger.LogWarning(ex, "[LolCoach] {Login}: fallo pensando ({Kind})", ctx.Login, kind);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// La llamada a la IA. El respaldo entre modelos lo hace OpenRouter dentro de la misma
+        /// petición (ver <see cref="OpenRouterClient"/> y "Modelos de respaldo" en el admin).
+        /// Si la respuesta llega pero no se puede leer, se pregunta una vez más: pasa poco, y
+        /// un coach callado en "me toca" es peor que un segundo intento.
+        ///
+        /// Los tiempos se reparten para que todo quepa en la selección: en "me toca" hay unos
+        /// 30 s, y un coach que contesta a los 25 ya no le sirve a nadie. Solo se cobra lo que
+        /// salió bien (lo hace AiUsageRecorder).
+        /// </summary>
+        private async Task<LiveCoachInfo?> PedirAsync(string kind, string system, string user, StreamerContext ctx, CancellationToken ct)
+        {
+            var isFinal = kind is "final" or "postgame" or "briefing" or "lobby";
+            var call = new AiCallContext(Module, ctx.UserId, ctx.Login);
+
+            for (var intento = 1; intento <= 2; intento++)
+            {
+                var r = await _ai.ChatAsync(_settings.CoachModel, system, user, call,
+                    maxTokens: isFinal ? 700 : 400, temperature: 0.7, timeout: TimeSpan.FromSeconds(isFinal ? 20 : 10), reasoning: false, ct: ct);
+                var info = Parse(r.Text, kind, ctx.Settings.CoachName);
+                if (info != null) return info;
+                _logger.LogWarning("[LolCoach] {Login}: respuesta no parseable de {Model} (intento {N}): {Text}",
+                    ctx.Login, r.Model, intento, r.Text.Length > 200 ? r.Text[..200] : r.Text);
+            }
+            return null;
         }
 
         private static string ToneText(string tone, string lang) => (tone, lang.StartsWith("en")) switch

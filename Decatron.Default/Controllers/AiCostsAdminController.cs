@@ -174,6 +174,7 @@ namespace Decatron.Default.Controllers
                 geminiModel = cfg.Model,
                 translationModel = cfg.TranslationModel,
                 coachModel = cfg.CoachModel,
+                fallbackModels = cfg.FallbackModels,
                 prices = JsonSerializer.Deserialize<JsonElement>(cfg.ModelPricesJson),
             });
         }
@@ -183,6 +184,8 @@ namespace Decatron.Default.Controllers
             public string? ChatModel { get; set; }
             public string? TranslationModel { get; set; }
             public string? CoachModel { get; set; }
+            /// <summary>Respaldo de OpenRouter en orden, separados por coma. Vacío = sin respaldo.</summary>
+            public string? FallbackModels { get; set; }
             /// <summary>{ "modelo": { "in": 0.15, "out": 0.47 } }</summary>
             public JsonElement? Prices { get; set; }
         }
@@ -196,6 +199,8 @@ namespace Decatron.Default.Controllers
             if (!string.IsNullOrWhiteSpace(req.ChatModel)) cfg.OpenRouterModel = req.ChatModel.Trim();
             if (!string.IsNullOrWhiteSpace(req.TranslationModel)) cfg.TranslationModel = req.TranslationModel.Trim();
             if (!string.IsNullOrWhiteSpace(req.CoachModel)) cfg.CoachModel = req.CoachModel.Trim();
+            if (req.FallbackModels != null)
+                cfg.FallbackModels = string.Join(",", req.FallbackModels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct());
             if (req.Prices is { ValueKind: JsonValueKind.Object } prices)
             {
                 foreach (var m in prices.EnumerateObject())
@@ -212,7 +217,7 @@ namespace Decatron.Default.Controllers
             await _db.SaveChangesAsync();
             _settings.Invalidate();
             await _settings.RefreshAsync();
-            _logger.LogInformation("✅ [ADMIN] Modelos de IA actualizados: chat={Chat} translation={Tr} coach={Coach}", cfg.OpenRouterModel, cfg.TranslationModel, cfg.CoachModel);
+            _logger.LogInformation("✅ [ADMIN] Modelos de IA actualizados: chat={Chat} translation={Tr} coach={Coach} respaldo={Fallback}", cfg.OpenRouterModel, cfg.TranslationModel, cfg.CoachModel, cfg.FallbackModels);
             return Ok(new { success = true });
         }
     }

@@ -23,13 +23,18 @@ namespace Decatron.Services.AI
 
         private readonly IHttpClientFactory _httpFactory;
         private readonly AiUsageRecorder _usage;
+        private readonly AiSettingsCache _settings;
         private readonly ILogger<OpenRouterClient> _logger;
+
+        /// <summary>OpenRouter acepta pocos modelos por petición: el principal y hasta tres de respaldo.</summary>
+        private const int MaxModels = 4;
         private readonly string _apiKey;
 
-        public OpenRouterClient(IHttpClientFactory httpFactory, IConfiguration config, AiUsageRecorder usage, ILogger<OpenRouterClient> logger)
+        public OpenRouterClient(IHttpClientFactory httpFactory, IConfiguration config, AiUsageRecorder usage, AiSettingsCache settings, ILogger<OpenRouterClient> logger)
         {
             _httpFactory = httpFactory;
             _usage = usage;
+            _settings = settings;
             _logger = logger;
             _apiKey = config["OpenRouterSettings:ApiKey"] ?? "";
         }
@@ -58,9 +63,15 @@ namespace Decatron.Services.AI
             if (!IsConfigured) throw new InvalidOperationException("API Key de OpenRouter no configurada");
 
             var sw = Stopwatch.StartNew();
+            // El principal y los de respaldo del admin. Con más de uno va `models` y no
+            // `model`: OpenRouter prueba en orden y pasa al siguiente si el anterior da 429,
+            // está caído o rechaza — todo dentro de esta misma petición, sin tiempo extra
+            // de ida y vuelta. Se cobra solo el que respondió.
+            var models = new[] { model }.Concat(_settings.FallbackModels)
+                .Distinct(StringComparer.OrdinalIgnoreCase).Take(MaxModels).ToArray();
             var body = new
             {
-                model,
+                models,
                 max_tokens = maxTokens,
                 temperature,
                 reasoning = new { enabled = reasoning },
@@ -119,7 +130,11 @@ namespace Decatron.Services.AI
                 throw new InvalidOperationException("OpenRouter devolvió una respuesta vacía");
             }
 
-            _usage.Record(ctx, "openrouter", model, pIn, pOut, (int)sw.ElapsedMilliseconds, true, actualCostUsd: cost);
+            // Se registra el modelo que respondió de verdad: si fue uno de respaldo, el admin
+            // tiene que poder ver cuántas veces se cayó el principal.
+            _usage.Record(ctx, "openrouter", usedModel, pIn, pOut, (int)sw.ElapsedMilliseconds, true, actualCostUsd: cost);
+            if (!string.Equals(usedModel, model, StringComparison.OrdinalIgnoreCase))
+                _logger.LogWarning("⚠️ [OPENROUTER] {Module}: {Primary} no respondió, contestó el respaldo {Used}", ctx.Module, model, usedModel);
             _logger.LogInformation("✅ [OPENROUTER] {Module} {Model} {Ms}ms in={In} out={Out} ${Cost}", ctx.Module, usedModel, sw.ElapsedMilliseconds, pIn, pOut, cost);
             return new OpenRouterCompletion(text, pIn, pOut, (int)sw.ElapsedMilliseconds, usedModel);
         }

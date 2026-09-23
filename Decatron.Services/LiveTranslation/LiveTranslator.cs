@@ -25,12 +25,10 @@ namespace Decatron.Services.LiveTranslation
         /// <summary>Más que esto y la frase llega tarde: mejor perderla y seguir con la siguiente.</summary>
         private static readonly TimeSpan OpenRouterTimeout = TimeSpan.FromSeconds(4);
 
-        private readonly HttpClient _http;
         private readonly OpenRouterClient _openRouter;
+        private readonly GeminiChatClient _gemini;
         private readonly AiSettingsCache _settings;
-        private readonly AiUsageRecorder _usage;
         private readonly ILogger<LiveTranslator> _logger;
-        private readonly string _geminiKey;
         private readonly string _geminiModel;
 
         private static readonly Dictionary<string, string> _langNames = new(StringComparer.OrdinalIgnoreCase)
@@ -42,20 +40,17 @@ namespace Decatron.Services.LiveTranslation
         public static IReadOnlyCollection<string> SupportedLanguages => _langNames.Keys;
         public static string LanguageName(string code) => _langNames.TryGetValue(code, out var n) ? n : code;
 
-        public LiveTranslator(IHttpClientFactory httpFactory, IConfiguration config, IOptions<LiveTranslationOptions> opts,
-            OpenRouterClient openRouter, AiSettingsCache settings, AiUsageRecorder usage, ILogger<LiveTranslator> logger)
+        public LiveTranslator(IOptions<LiveTranslationOptions> opts,
+            OpenRouterClient openRouter, GeminiChatClient gemini, AiSettingsCache settings, ILogger<LiveTranslator> logger)
         {
-            _http = httpFactory.CreateClient("live-translator");
-            _http.Timeout = TimeSpan.FromSeconds(15);
             _openRouter = openRouter;
+            _gemini = gemini;
             _settings = settings;
-            _usage = usage;
             _logger = logger;
-            _geminiKey = config["GeminiSettings:ApiKey"] ?? "";
             _geminiModel = opts.Value.GeminiFallbackModel;
         }
 
-        public bool IsConfigured => _openRouter.IsConfigured || !string.IsNullOrWhiteSpace(_geminiKey);
+        public bool IsConfigured => _openRouter.IsConfigured || _gemini.IsConfigured;
 
         private static string SystemPrompt(string sourceLang, string targetLang) =>
             $"You are a live interpreter for a Twitch streamer who speaks {LanguageName(sourceLang)}. " +
@@ -80,7 +75,7 @@ namespace Decatron.Services.LiveTranslation
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                 catch (Exception ex)
                 {
-                    if (string.IsNullOrWhiteSpace(_geminiKey)) throw;
+                    if (!_gemini.IsConfigured) throw;
                     _logger.LogWarning("[LiveTranslation] OpenRouter falló ({Err}); fallback a Gemini {Model}", ex.Message, _geminiModel);
                 }
             }
@@ -90,58 +85,8 @@ namespace Decatron.Services.LiveTranslation
 
         private async Task<string> TranslateWithGeminiAsync(string text, string system, AiCallContext ctx, CancellationToken ct)
         {
-            var sw = Stopwatch.StartNew();
-            var body = new
-            {
-                system_instruction = new { parts = new[] { new { text = system } } },
-                contents = new[] { new { role = "user", parts = new[] { new { text } } } },
-                generationConfig = new { temperature = 0.2, maxOutputTokens = 256 },
-                safetySettings = new[]
-                {
-                    new { category = "HARM_CATEGORY_HARASSMENT",        threshold = "BLOCK_NONE" },
-                    new { category = "HARM_CATEGORY_HATE_SPEECH",       threshold = "BLOCK_NONE" },
-                    new { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold = "BLOCK_NONE" },
-                    new { category = "HARM_CATEGORY_DANGEROUS_CONTENT", threshold = "BLOCK_NONE" },
-                }
-            };
-
-            using var req = new HttpRequestMessage(HttpMethod.Post,
-                $"https://generativelanguage.googleapis.com/v1beta/models/{_geminiModel}:generateContent?key={_geminiKey}")
-            {
-                Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
-            };
-
-            string json;
-            try
-            {
-                using var res = await _http.SendAsync(req, ct);
-                json = await res.Content.ReadAsStringAsync(ct);
-                if (!res.IsSuccessStatusCode)
-                {
-                    var err = $"Gemini {(int)res.StatusCode}: {(json.Length > 200 ? json[..200] : json)}";
-                    _usage.Record(ctx, "gemini", _geminiModel, 0, 0, (int)sw.ElapsedMilliseconds, false, err);
-                    throw new InvalidOperationException(err);
-                }
-            }
-            catch (Exception ex) when (ex is not InvalidOperationException)
-            {
-                _usage.Record(ctx, "gemini", _geminiModel, 0, 0, (int)sw.ElapsedMilliseconds, false, ex.Message);
-                throw;
-            }
-
-            var node = JsonNode.Parse(json);
-            var outText = node?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
-            var meta = node?["usageMetadata"];
-            var pIn = meta?["promptTokenCount"]?.GetValue<int>() ?? 0;
-            var pOut = meta?["candidatesTokenCount"]?.GetValue<int>() ?? 0;
-
-            if (string.IsNullOrWhiteSpace(outText))
-            {
-                _usage.Record(ctx, "gemini", _geminiModel, pIn, pOut, (int)sw.ElapsedMilliseconds, false, "respuesta vacía");
-                throw new InvalidOperationException("Gemini devolvió una respuesta vacía");
-            }
-            _usage.Record(ctx, "gemini", _geminiModel, pIn, pOut, (int)sw.ElapsedMilliseconds, true);
-            return Clean(outText);
+            var r = await _gemini.ChatAsync(_geminiModel, system, text, ctx, maxTokens: 256, temperature: 0.2, ct: ct);
+            return Clean(r.Text);
         }
 
         private static string Clean(string s) => s.Trim().Trim('"');

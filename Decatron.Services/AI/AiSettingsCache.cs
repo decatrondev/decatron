@@ -34,6 +34,11 @@ namespace Decatron.Services.AI
         public string TranslationModel => Current.TranslationModel;
         public string CoachModel => Current.CoachModel;
 
+        /// <summary>Los modelos de respaldo, en orden, sin vacíos ni repetidos.</summary>
+        public IReadOnlyList<string> FallbackModels =>
+            (Current.FallbackModels ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
         public DecatronAIGlobalConfig Current
         {
             get

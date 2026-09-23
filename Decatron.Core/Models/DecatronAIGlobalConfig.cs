@@ -42,7 +42,14 @@ namespace Decatron.Core.Models
         // Modelo (OpenRouter) para el Coach de LoL.
         [MaxLength(120)]
         [Column("coach_model")]
-        public string CoachModel { get; set; } = "qwen/qwen3.8-flash";
+        public string CoachModel { get; set; } = "openai/gpt-6-luna";
+
+        // Modelos de respaldo de OpenRouter, en orden, separados por coma. Van en el parámetro
+        // `models` de cada llamada: si el principal da 429, se cae o rechaza, OpenRouter pasa
+        // solo al siguiente en la misma petición. Aplica a chat, traducción y coach.
+        [MaxLength(400)]
+        [Column("fallback_models")]
+        public string FallbackModels { get; set; } = "openai/gpt-6-luna,deepseek/deepseek-v4.1-flash,qwen/qwen3.8-flash";
 
         // Tabla de precios por modelo en USD por 1M tokens: { "modelo": { "in": 0.15, "out": 0.47 } }.
         // Se usa para estimar el costo de cada llamada en ai_usage_logs.
@@ -51,7 +58,8 @@ namespace Decatron.Core.Models
 
         public const string DefaultModelPricesJson =
             "{\"qwen/qwen3.8-flash\":{\"in\":0.15,\"out\":0.47}," +
-            "\"deepseek/deepseek-v4.1-flash\":{\"in\":0.15,\"out\":0.60}," +
+            "\"deepseek/deepseek-v4.1-flash\":{\"in\":0.06,\"out\":0.32}," +
+            "\"openai/gpt-6-luna\":{\"in\":0.10,\"out\":0.50}," +
             "\"gemini-3.5-flash-lite\":{\"in\":0.30,\"out\":2.50}," +
             "\"gemini-2.5-flash-lite\":{\"in\":0.10,\"out\":0.40}}";
 
