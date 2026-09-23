@@ -143,14 +143,14 @@ export default function ModerationHub() {
                                 )}
                             </div>
                             <p className="text-sm text-[#64748b] dark:text-[#94a3b8] flex-1">
-                                {card.description}
+                                {platform === 'kick' && card.key === 'raids' ? 'Frases de bots que venden viewers (en Kick no hay modo pánico ni filtro de cuentas nuevas)' : card.description}
                             </p>
 
                             <div className="flex flex-wrap items-center justify-between gap-2 pt-4 mt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
                                 <span className={`text-xs font-bold whitespace-nowrap ${(state?.enabled || (groupActive ?? 0) > 0) ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
                                     {card.key === 'raids' && panicActive ? <span className="text-red-600 dark:text-red-400">PÁNICO ACTIVO</span>
                                         : state ? (state.enabled ? 'Activo' : 'Apagado')
-                                        : group && filters ? `${groupActive} de ${group.length} activos` : ''}
+                                        : group && filters ? `${groupActive} de ${group.length} ${group.length === 1 ? 'activo' : 'activos'}` : ''}
                                 </span>
                                 <button
                                     onClick={() => navigate(card.route)}
