@@ -11,10 +11,19 @@ export interface ModerationFilterState {
     message: string | null;
 }
 
+export type ModerationPlatform = 'twitch' | 'kick';
+
 /** Estado de todos los filtros del canal (sin fila en la base = apagado). */
 export async function fetchModerationFilters(): Promise<ModerationFilterState[]> {
+    return (await fetchModerationOverview()).filters;
+}
+
+/** Filtros y plataforma del canal activo: en Kick no hay modo pánico ni filtro de cuentas nuevas. */
+export async function fetchModerationOverview(): Promise<{ filters: ModerationFilterState[]; platform: ModerationPlatform }> {
     const res = await api.get('/moderation/filters');
-    return res.data.success ? res.data.filters : [];
+    return res.data.success
+        ? { filters: res.data.filters, platform: res.data.platform ?? 'twitch' }
+        : { filters: [], platform: 'twitch' };
 }
 
 export async function saveModerationFilter(key: string, changes: Partial<Omit<ModerationFilterState, 'key'>>) {

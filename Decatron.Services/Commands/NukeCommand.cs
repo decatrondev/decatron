@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Decatron.Core.Models;
 using Decatron.Core.Services;
 using Decatron.Core.Services.Moderation;
+using Decatron.Services.Moderation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -32,15 +33,15 @@ namespace Decatron.Services.Commands
                 return;
             }
 
-            var channel = run.Context.Channel.ToLower();
+            var channel = run.Key;
             var setting = run.Setting;
             var config = await run.Moderation.GetModerationConfigAsync(channel) ?? new ModerationConfig();
 
             var targets = RecentChatBuffer.Since(channel, TimeSpan.FromSeconds(setting.WindowSeconds))
                 .Where(e => e.Text.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                .Select(e => e.Username)
-                .Distinct()
-                .Where(u => u != run.Mod.ToLower() && !ModerationService.IsWhitelisted(config, u))
+                .GroupBy(e => e.Username)
+                .Select(g => new ModerationTarget(g.Key, g.First().UserId))
+                .Where(t => t.Username != run.Mod.ToLower() && !ModerationService.IsWhitelisted(config, t.Username))
                 .Take(ModerationCommandsConfig.NukeMaxUsers)
                 .ToList();
 
@@ -51,22 +52,20 @@ namespace Decatron.Services.Commands
                 return;
             }
 
-            var twitch = run.Services.GetRequiredService<TwitchApiService>();
             var ban = setting.Action == "ban";
             var reason = $"Nuke de {run.Mod}: \"{phrase}\"";
             var done = 0;
 
-            foreach (var user in targets)
+            foreach (var target in targets)
             {
                 var ok = ban
-                    ? await twitch.BanUserAsync(channel, user, reason)
-                    : await twitch.TimeoutUserAsync(channel, user, setting.TimeoutSeconds, reason);
+                    ? await run.Moderator.BanAsync(target, reason)
+                    : await run.Moderator.TimeoutAsync(target, setting.TimeoutSeconds, reason);
                 if (!ok) continue;
 
                 done++;
-                if (run.Context.ChannelUserId.HasValue)
-                    await run.Moderation.LogCommandActionAsync(channel, run.Context.ChannelUserId.Value, user, phrase,
-                        ban ? "severo" : "medio", ban ? "ban" : $"timeout_{setting.TimeoutSeconds}s", "nuke", run.Mod);
+                await run.Moderation.LogCommandActionAsync(channel, run.Channel.UserId, target.Username, phrase,
+                    ban ? "severo" : "medio", ban ? "ban" : $"timeout_{setting.TimeoutSeconds}s", "nuke", run.Mod, targetUserId: target.UserId);
             }
 
             _logger.LogWarning("[NUKE] {Mod} en {Channel}: \"{Phrase}\" → {Done}/{Total} usuarios ({Action})",

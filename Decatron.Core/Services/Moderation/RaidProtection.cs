@@ -108,7 +108,8 @@ namespace Decatron.Core.Services.Moderation
 
         public async Task<FilterHit?> CheckAsync(ModerationMessage message, ModerationFilter config)
         {
-            if (string.IsNullOrEmpty(message.ChatterUserId))
+            // Kick no informa la fecha de creación de las cuentas
+            if (string.IsNullOrEmpty(message.ChatterUserId) || message.Platform != "twitch")
                 return null;
 
             var settings = SpamFilter<AccountAgeSettings>.ParseSettings(config.Settings);

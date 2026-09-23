@@ -12,5 +12,14 @@ namespace Decatron.Core.Interfaces
     public interface IKickApiService
     {
         Task<List<KickReward>> GetChannelRewardsAsync(string accessToken);
+
+        /// <summary>Ban (sin duración) o timeout (1-10080 minutos). Scope moderation:ban.</summary>
+        Task<bool> BanAsync(string accessToken, long broadcasterUserId, long userId, int? durationMinutes, string reason);
+
+        /// <summary>Quita ban o timeout. true si se quitó, false si no estaba sancionado, null si falló.</summary>
+        Task<bool?> UnbanAsync(string accessToken, long broadcasterUserId, long userId);
+
+        /// <summary>Borra un mensaje del chat. Scope moderation:chat_message:manage.</summary>
+        Task<bool> DeleteMessageAsync(string accessToken, string messageId);
     }
 }

@@ -426,6 +426,7 @@ try
     builder.Services.AddScoped<Decatron.Core.Services.Moderation.IModerationFilter, Decatron.Core.Services.Moderation.BotPhrasesFilter>();
     builder.Services.AddSingleton<Decatron.Core.Services.Moderation.IAccountAgeProvider, Decatron.Services.Moderation.AccountAgeProvider>();
     builder.Services.AddScoped<Decatron.Services.Moderation.PanicModeService>();
+    builder.Services.AddScoped<Decatron.Services.Moderation.ChatModeratorFactory>();
     builder.Services.AddHostedService<Decatron.Services.Moderation.PanicModeBackgroundService>();
     builder.Services.AddScoped<Decatron.Core.Services.ModerationService>();
     builder.Services.AddScoped<Decatron.Core.Services.FollowersService>();

@@ -24,8 +24,15 @@ namespace Decatron.Services.Commands
 
         protected override async Task RunAsync(Run run)
         {
+            // Kick no deja cambiar los modos del chat (solo seguidores, solo emotes, Shield) desde su API
+            if (run.Channel.IsKick)
+            {
+                await run.ReplyAsync($"🚨 @{run.Mod}, el modo pánico no está disponible en Kick: Kick no permite que los bots cambien los modos del chat.");
+                return;
+            }
+
             var panic = run.Services.GetRequiredService<PanicModeService>();
-            var channel = run.Context.Channel;
+            var channel = run.Key;
             var arg = run.Args.Length > 0 ? run.Args[0].ToLower() : "";
 
             if (arg is "off" or "apagar" or "stop")

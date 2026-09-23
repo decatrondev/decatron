@@ -841,6 +841,7 @@ namespace Decatron.Data
                 entity.Property(e => e.ExecutedBy).HasMaxLength(100).HasColumnName("executed_by");
                 entity.Property(e => e.UndoneAt).HasColumnName("undone_at");
                 entity.Property(e => e.UndoneBy).HasMaxLength(100).HasColumnName("undone_by");
+                entity.Property(e => e.TargetUserId).HasMaxLength(50).HasColumnName("target_user_id");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnName("created_at");
 
                 entity.HasIndex(e => e.ChannelName).HasDatabaseName("idx_moderation_log_channel");

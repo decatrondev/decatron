@@ -1073,37 +1073,44 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Pasa el mensaje por la cadena de moderación y ejecuta la acción en Twitch.
-        /// Devuelve true si el mensaje salió del chat (borrado, timeout o ban): ahí no se
-        /// ejecuta el comando que traía.
+        /// Pasa el mensaje por la cadena de moderación y ejecuta la acción en su plataforma
+        /// (Twitch o Kick). Devuelve true si el mensaje salió del chat (borrado, timeout o ban):
+        /// ahí no se ejecuta el comando que traía.
         /// </summary>
         private async Task<bool> CheckMessageModerationAsync(string username, string channel, string message, string userId, string? messageId,
             bool isModerator, bool isLeadModerator, bool isVip, bool isSubscriber, bool isBroadcaster, Dictionary<string, object>? metadata)
         {
             try
             {
-                // Kick todavía no tiene acciones de moderación (fase K del plan de moderación)
-                if (metadata != null && metadata.TryGetValue("platform", out var platform) && platform?.ToString() == "kick")
-                    return false;
-
                 using var scope = _serviceScopeFactory.CreateScope();
+                var factory = scope.ServiceProvider.GetRequiredService<Moderation.ChatModeratorFactory>();
+
+                // Filtros, strikes e historial se guardan con el nombre del canal en el dashboard
+                // (el login de Twitch, o "kick_<id>" en Kick), no con el kick_id que llega del webhook
+                var modChannel = await factory.ResolveAsync(channel);
+                if (modChannel == null)
+                    return false;
 
                 if (!isBroadcaster && !isLeadModerator && !isModerator)
                 {
                     // Búfer para !nuke, repetidos y copypasta: solo quien puede ser sancionado
-                    Decatron.Core.Services.Moderation.RecentChatBuffer.Add(channel, username, message);
+                    Decatron.Core.Services.Moderation.RecentChatBuffer.Add(modChannel.Key, username, message, userId);
 
-                    // Disparo automático del pánico por cuentas nuevas escribiendo (nunca frena el mensaje)
-                    var panic = scope.ServiceProvider.GetRequiredService<Moderation.PanicModeService>();
-                    try { await panic.OnChatAsync(channel, userId); }
-                    catch (Exception panicEx) { _logger.LogWarning(panicEx, "[PÁNICO] Error contando cuentas nuevas en {Channel}", channel); }
+                    // Disparo automático del pánico por cuentas nuevas escribiendo (solo Twitch; nunca frena el mensaje)
+                    if (!modChannel.IsKick)
+                    {
+                        var panic = scope.ServiceProvider.GetRequiredService<Moderation.PanicModeService>();
+                        try { await panic.OnChatAsync(modChannel.Key, userId); }
+                        catch (Exception panicEx) { _logger.LogWarning(panicEx, "[PÁNICO] Error contando cuentas nuevas en {Channel}", channel); }
+                    }
                 }
                 var moderationService = scope.ServiceProvider.GetRequiredService<Decatron.Core.Services.ModerationService>();
 
                 var verdict = await moderationService.EvaluateAsync(
                     new Decatron.Core.Services.Moderation.ModerationMessage
                     {
-                        Channel = channel,
+                        Channel = modChannel.Key,
+                        Platform = modChannel.Platform,
                         Username = username,
                         ChatterUserId = userId,
                         Text = message,
@@ -1116,12 +1123,12 @@ namespace Decatron.Services
                         IsVip = isVip,
                         IsSubscriber = isSubscriber
                     },
-                    () => Moderation.ModerationPermissions.HasControlTotalAsync(scope.ServiceProvider, channel, userId));
+                    () => Moderation.ModerationPermissions.HasControlTotalAsync(scope.ServiceProvider, modChannel, userId));
 
                 if (verdict == null)
                     return false;
 
-                await ExecuteModerationActionAsync(scope.ServiceProvider, channel, username, messageId, verdict);
+                await ExecuteModerationActionAsync(factory.For(modChannel), channel, new Moderation.ModerationTarget(username, userId), messageId, verdict);
                 return verdict.RemovesMessage;
             }
             catch (Exception ex)
@@ -1132,19 +1139,18 @@ namespace Decatron.Services
         }
 
         /// <summary>
-        /// Ejecuta en Twitch la acción que decidió la moderación y avisa en el chat
+        /// Ejecuta la acción que decidió la moderación y avisa en el chat
         /// </summary>
-        private async Task ExecuteModerationActionAsync(IServiceProvider services, string channel, string username, string? messageId,
+        private async Task ExecuteModerationActionAsync(Moderation.IChatModerator moderator, string channel, Moderation.ModerationTarget target, string? messageId,
             Decatron.Core.Services.Moderation.ModerationVerdict verdict)
         {
             var action = verdict.Action;
             try
             {
-                var twitchApiService = services.GetRequiredService<TwitchApiService>();
                 var config = verdict.Config;
 
                 string Prepare(string template) => template
-                    .Replace("$(user)", username)
+                    .Replace("$(user)", target.Username)
                     .Replace("$(strike)", verdict.StrikeLevel.ToString())
                     .Replace("$(word)", verdict.Hit.Detail);
 
@@ -1159,9 +1165,9 @@ namespace Decatron.Services
 
                     case "delete":
                         if (!string.IsNullOrEmpty(messageId))
-                            await twitchApiService.DeleteMessageAsync(channel, messageId);
+                            await moderator.DeleteMessageAsync(messageId);
                         else
-                            _logger.LogWarning($"⚠️ [MODERACIÓN] No se puede borrar mensaje de {username}: messageId no disponible");
+                            _logger.LogWarning($"⚠️ [MODERACIÓN] No se puede borrar mensaje de {target.Username}: messageId no disponible");
                         await _messageSender.SendMessageAsync(channel, ChatMessage(config.DeleteMessage));
                         break;
 
@@ -1181,12 +1187,12 @@ namespace Decatron.Services
                             "timeout_1h" => 3600,
                             _ => 60
                         };
-                        await twitchApiService.TimeoutUserAsync(channel, username, duration, verdict.Hit.Reason);
+                        await moderator.TimeoutAsync(target, duration, verdict.Hit.Reason);
                         await _messageSender.SendMessageAsync(channel, ChatMessage(config.TimeoutMessage));
                         break;
 
                     case "ban":
-                        await twitchApiService.BanUserAsync(channel, username, verdict.Hit.Reason);
+                        await moderator.BanAsync(target, verdict.Hit.Reason);
                         // Ban directo por severidad "severo" (sin strikes) tiene su propio mensaje
                         await _messageSender.SendMessageAsync(channel,
                             ChatMessage(verdict.StrikeLevel == 0 ? config.SeveroMessage : config.BanMessage));
@@ -1199,7 +1205,7 @@ namespace Decatron.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error ejecutando acción de moderación {action} para {username} en {channel}");
+                _logger.LogError(ex, $"Error ejecutando acción de moderación {action} para {target.Username} en {channel}");
             }
         }
 

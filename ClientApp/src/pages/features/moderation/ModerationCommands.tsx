@@ -23,7 +23,7 @@ const COMMANDS: { key: string; usage: string[]; description: string }[] = [
     { key: 'resetstrikes', usage: ['!resetstrikes @usuario'], description: 'Deja en 0 los strikes de un usuario.' },
     { key: 'words', usage: ['!addword palabra [leve|medio|severo]', '!delword palabra'], description: 'Agrega o quita palabras prohibidas desde el chat. Sin severidad, se agrega como leve.' },
     { key: 'links', usage: ['!addlink dominio', '!dellink dominio'], description: 'Agrega o quita dominios permitidos del filtro de links.' },
-    { key: 'panic', usage: ['!panico', '!panico off'], description: 'Activa el modo pánico (o lo extiende si ya estaba) y lo apaga. Qué hace se configura en Raids y bots. También funcionan !pánico y !panic.' },
+    { key: 'panic', usage: ['!panico', '!panico off'], description: 'Activa el modo pánico (o lo extiende si ya estaba) y lo apaga. Qué hace se configura en Raids y bots. También funcionan !pánico y !panic. No disponible en Kick.' },
     { key: 'nuke', usage: ['!nuke frase'], description: 'Sanciona a todos los que escribieron esa frase en los últimos segundos. No toca al streamer, los mods ni la whitelist.' }
 ];
 

@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Decatron.Services.Commands
 {
     /// <summary>
-    /// Lo que comparten los comandos de moderación: se saltan Kick, respetan el interruptor
+    /// Lo que comparten los comandos de moderación (Twitch y Kick): respetan el interruptor
     /// del canal y el rol mínimo (moderator &lt; lead_moderator &lt; broadcaster, donde
     /// control_total cuenta como broadcaster). A quien no le alcanza el rol se lo ignora en silencio.
     /// </summary>
@@ -36,22 +36,22 @@ namespace Decatron.Services.Commands
         {
             try
             {
-                // Kick todavía no tiene moderación (fase K del plan de moderación)
-                if (context.Metadata != null && context.Metadata.TryGetValue("platform", out var platform) && platform?.ToString() == "kick")
+                using var scope = _serviceScopeFactory.CreateScope();
+                var factory = scope.ServiceProvider.GetRequiredService<ChatModeratorFactory>();
+                var channel = await factory.ResolveAsync(context.Channel);
+                if (channel == null)
                     return;
 
-                using var scope = _serviceScopeFactory.CreateScope();
                 var moderation = scope.ServiceProvider.GetRequiredService<ModerationService>();
-
-                var setting = (await moderation.GetCommandConfigAsync(context.Channel))[ConfigKey];
+                var setting = (await moderation.GetCommandConfigAsync(channel.Key))[ConfigKey];
                 if (!setting.Enabled)
                     return;
 
-                if (!await CanUseAsync(scope.ServiceProvider, context, setting.MinRole))
+                if (!await CanUseAsync(scope.ServiceProvider, context, channel, setting.MinRole))
                     return;
 
                 var args = context.Message.Split(' ', StringSplitOptions.RemoveEmptyEntries).Skip(1).ToArray();
-                await RunAsync(new Run(context, messageSender, scope.ServiceProvider, moderation, setting, args));
+                await RunAsync(new Run(context, messageSender, scope.ServiceProvider, moderation, setting, args, channel, factory.For(channel)));
             }
             catch (Exception ex)
             {
@@ -61,14 +61,14 @@ namespace Decatron.Services.Commands
 
         protected abstract Task RunAsync(Run run);
 
-        private static async Task<bool> CanUseAsync(IServiceProvider services, CommandContext context, string minRole)
+        private static async Task<bool> CanUseAsync(IServiceProvider services, CommandContext context, ModerationChannel channel, string minRole)
         {
             var required = ModerationCommandsConfig.RoleRank(minRole);
             var rank = context.IsBroadcaster ? 3 : context.IsLeadModerator ? 2 : context.IsModerator ? 1 : 0;
             if (rank >= required)
                 return true;
 
-            return await ModerationPermissions.HasControlTotalAsync(services, context.Channel, context.UserId);
+            return await ModerationPermissions.HasControlTotalAsync(services, channel, context.UserId);
         }
 
         protected record Run(
@@ -77,8 +77,13 @@ namespace Decatron.Services.Commands
             IServiceProvider Services,
             ModerationService Moderation,
             ModerationCommandSetting Setting,
-            string[] Args)
+            string[] Args,
+            ModerationChannel Channel,
+            IChatModerator Moderator)
         {
+            /// <summary>Nombre del canal para filtros, strikes e historial (distinto de Context.Channel en Kick)</summary>
+            public string Key => Channel.Key;
+
             public Task ReplyAsync(string message) => Sender.SendMessageAsync(Context.Channel, message);
 
             /// <summary>Primer argumento como usuario (sin @), o null</summary>

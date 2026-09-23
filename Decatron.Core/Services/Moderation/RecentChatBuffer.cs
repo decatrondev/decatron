@@ -11,18 +11,18 @@ namespace Decatron.Core.Services.Moderation
     /// </summary>
     public static class RecentChatBuffer
     {
-        public record Entry(DateTime At, string Username, string Text);
+        public record Entry(DateTime At, string Username, string Text, string? UserId);
 
         private const int MaxPerChannel = 3000;
         private static readonly TimeSpan MaxAge = TimeSpan.FromSeconds(ModerationCommandsConfig.NukeMaxWindowSeconds);
         private static readonly ConcurrentDictionary<string, Queue<Entry>> _channels = new();
 
-        public static void Add(string channel, string username, string text)
+        public static void Add(string channel, string username, string text, string? userId = null)
         {
             var queue = _channels.GetOrAdd(channel.ToLower(), _ => new Queue<Entry>());
             lock (queue)
             {
-                queue.Enqueue(new Entry(DateTime.UtcNow, username.ToLower(), text));
+                queue.Enqueue(new Entry(DateTime.UtcNow, username.ToLower(), text, userId));
                 Trim(queue);
             }
         }

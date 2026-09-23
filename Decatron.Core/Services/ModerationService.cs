@@ -344,17 +344,17 @@ namespace Decatron.Core.Services
 
         private Task LogModerationActionAsync(
             long channelUserId, ModerationMessage message, FilterHit hit, string severity, string action, int strikeLevel) =>
-            InsertLogAsync(message.Channel, channelUserId, message.Username, hit.Detail, severity, action, strikeLevel, message.Text, hit.FilterKey, null);
+            InsertLogAsync(message.Channel, channelUserId, message.Username, hit.Detail, severity, action, strikeLevel, message.Text, hit.FilterKey, null, message.ChatterUserId);
 
         /// <summary>
         /// Registra una acción hecha por un mod con un comando (nuke, quitar strikes...)
         /// </summary>
         public Task LogCommandActionAsync(string channel, long channelUserId, string targetUsername, string detail,
-            string severity, string action, string filterKey, string executedBy, string? fullMessage = null) =>
-            InsertLogAsync(channel, channelUserId, targetUsername, detail, severity, action, 0, fullMessage, filterKey, executedBy);
+            string severity, string action, string filterKey, string executedBy, string? fullMessage = null, string? targetUserId = null) =>
+            InsertLogAsync(channel, channelUserId, targetUsername, detail, severity, action, 0, fullMessage, filterKey, executedBy, targetUserId);
 
         private async Task InsertLogAsync(string channel, long channelUserId, string username, string detail, string severity,
-            string action, int strikeLevel, string? fullMessage, string filterKey, string? executedBy)
+            string action, int strikeLevel, string? fullMessage, string filterKey, string? executedBy, string? targetUserId)
         {
             try
             {
@@ -363,8 +363,8 @@ namespace Decatron.Core.Services
 
                 await using var cmd = new NpgsqlCommand(@"
                     INSERT INTO moderation_logs
-                    (channel_name, user_id, username, detected_word, severity, action_taken, strike_level, full_message, filter_key, executed_by, created_at)
-                    VALUES (@channelName, @userId, @username, @detectedWord, @severity, @actionTaken, @strikeLevel, @fullMessage, @filterKey, @executedBy, @createdAt)", conn);
+                    (channel_name, user_id, username, detected_word, severity, action_taken, strike_level, full_message, filter_key, executed_by, target_user_id, created_at)
+                    VALUES (@channelName, @userId, @username, @detectedWord, @severity, @actionTaken, @strikeLevel, @fullMessage, @filterKey, @executedBy, @targetUserId, @createdAt)", conn);
                 cmd.Parameters.AddWithValue("channelName", channel.ToLower());
                 cmd.Parameters.AddWithValue("userId", channelUserId);
                 cmd.Parameters.AddWithValue("username", username.ToLower());
@@ -375,6 +375,7 @@ namespace Decatron.Core.Services
                 cmd.Parameters.AddWithValue("fullMessage", (object?)fullMessage ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("filterKey", filterKey);
                 cmd.Parameters.AddWithValue("executedBy", (object?)executedBy?.ToLower() ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("targetUserId", (object?)targetUserId ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("createdAt", DateTime.Now);
 
                 await cmd.ExecuteNonQueryAsync();

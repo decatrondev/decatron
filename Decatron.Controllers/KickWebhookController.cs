@@ -96,7 +96,7 @@ namespace Decatron.Controllers
                     msg.Username, msg.Channel, msg.Message, msg.UserId, msg.MessageId,
                     isModerator: msg.IsModerator, isLeadModerator: false, isVip: msg.IsVip,
                     isSubscriber: msg.IsSubscriber, isBroadcaster: msg.IsBroadcaster,
-                    metadata: new Dictionary<string, object> { ["platform"] = "kick" });
+                    metadata: KickMessageMetadata(msg.Message));
             }
 
             if (eventType == "channel.reward.redemption.updated")
@@ -105,6 +105,26 @@ namespace Decatron.Controllers
             }
 
             return Ok();
+        }
+
+        // Kick escribe los emotes dentro del texto como [emote:37226:KEKW]
+        private static readonly System.Text.RegularExpressions.Regex KickEmote =
+            new(@"\[emote:\d+:[^\]]*\]", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>
+        /// Plataforma y emotes para la moderación: cuántos hay y el texto sin ellos, así un
+        /// "KEKW KEKW" no cuenta como gritar en mayúsculas (igual que en Twitch).
+        /// </summary>
+        private static Dictionary<string, object> KickMessageMetadata(string text)
+        {
+            var metadata = new Dictionary<string, object> { ["platform"] = "kick" };
+            var emotes = KickEmote.Matches(text).Count;
+            if (emotes > 0)
+            {
+                metadata["emote-count"] = emotes;
+                metadata["text-without-emotes"] = KickEmote.Replace(text, "");
+            }
+            return metadata;
         }
 
         /// <summary>

@@ -520,7 +520,7 @@ namespace Decatron.Controllers
                     };
                 });
 
-                return Ok(new { success = true, filters });
+                return Ok(new { success = true, filters, platform = await GetPlatformAsync(username) });
             }
             catch (Exception ex)
             {
@@ -653,6 +653,7 @@ namespace Decatron.Controllers
                 return Ok(new
                 {
                     success = true,
+                    platform = await GetPlatformAsync(username),
                     settings,
                     state = new { active, state.StartedAt, state.EndsAt, state.TriggeredBy, state.Reason },
                     defaultBotPhrases = BotPhrasesFilter.DefaultPhrases
@@ -708,6 +709,9 @@ namespace Decatron.Controllers
                 if (string.IsNullOrEmpty(username))
                     return NotFound(new { success = false, message = "Canal no encontrado" });
 
+                if (await GetPlatformAsync(username) == "kick")
+                    return BadRequest(new { success = false, message = "El modo pánico no está disponible en Kick: Kick no permite que los bots cambien los modos del chat." });
+
                 var by = User.FindFirst(ClaimTypes.Name)?.Value ?? "dashboard";
                 if (mode == "activate")
                 {
@@ -723,6 +727,16 @@ namespace Decatron.Controllers
                 _logger.LogError(ex, "Error cambiando el modo pánico");
                 return StatusCode(500, new { success = false, message = "Error al cambiar el modo pánico" });
             }
+        }
+
+        /// <summary>twitch | kick: en Kick no hay modo pánico ni cuentas nuevas (su API no lo permite)</summary>
+        private async Task<string> GetPlatformAsync(string channelKey)
+        {
+            var user = await _dbContext.Users.AsNoTracking()
+                .Where(u => u.Login == channelKey)
+                .Select(u => new { u.Login, u.KickId })
+                .FirstOrDefaultAsync();
+            return user?.KickId != null && user.Login == $"kick_{user.KickId}" ? "kick" : "twitch";
         }
 
         private static bool LiftsSanction(string action) => action == "ban" || action.StartsWith("timeout_");
@@ -802,7 +816,7 @@ namespace Decatron.Controllers
         /// </summary>
         [HttpPost("history/{id:long}/undo")]
         [RequirePermission("moderation")]
-        public async Task<IActionResult> UndoAction(long id, [FromServices] Decatron.Services.TwitchApiService twitch)
+        public async Task<IActionResult> UndoAction(long id, [FromServices] Decatron.Services.Moderation.ChatModeratorFactory moderators)
         {
             try
             {
@@ -819,9 +833,19 @@ namespace Decatron.Controllers
                 bool? lifted = null;
                 if (LiftsSanction(log.ActionTaken))
                 {
-                    lifted = await twitch.UnbanUserAsync(username, log.Username);
+                    var channel = await moderators.ResolveAsync(username);
+                    if (channel == null)
+                        return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                    lifted = await moderators.For(channel).UnbanAsync(new Decatron.Services.Moderation.ModerationTarget(log.Username, log.TargetUserId));
                     if (lifted == null)
-                        return StatusCode(502, new { success = false, message = "Twitch no aceptó quitar la sanción. Revisa que el bot siga siendo moderador del canal." });
+                        return StatusCode(502, new
+                        {
+                            success = false,
+                            message = channel.IsKick
+                                ? "Kick no aceptó quitar la sanción. Si la sanción es anterior a la moderación en Kick, quítala desde Kick; si no, vuelve a conectar tu cuenta de Kick."
+                                : "Twitch no aceptó quitar la sanción. Revisa que el bot siga siendo moderador del canal."
+                        });
                 }
 
                 var strikeReturned = log.StrikeLevel > 0 && await _moderationService.ReturnStrikeAsync(username, log.Username);

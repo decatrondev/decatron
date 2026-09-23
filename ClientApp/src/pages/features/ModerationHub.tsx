@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning, Siren, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { FilterSwitch, fetchModerationFilters, saveModerationFilter, type ModerationFilterState } from './moderation/filterSwitch';
+import { FilterSwitch, fetchModerationOverview, saveModerationFilter, type ModerationFilterState, type ModerationPlatform } from './moderation/filterSwitch';
 import { SPAM_FILTERS } from './moderation/SpamFilters';
 import api from '../../services/api';
 
@@ -72,10 +72,11 @@ export default function ModerationHub() {
     const [filters, setFilters] = useState<ModerationFilterState[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [panicActive, setPanicActive] = useState(false);
+    const [platform, setPlatform] = useState<ModerationPlatform>('twitch');
 
     useEffect(() => {
-        fetchModerationFilters()
-            .then(setFilters)
+        fetchModerationOverview()
+            .then(o => { setFilters(o.filters); setPlatform(o.platform); })
             .catch(() => setError('No se pudo cargar el estado de los filtros'));
         api.get('/moderation/panic')
             .then(res => setPanicActive(Boolean(res.data.state?.active)))
@@ -105,6 +106,12 @@ export default function ModerationHub() {
                 </p>
             </div>
 
+            {platform === 'kick' && (
+                <div className="p-4 rounded-lg bg-[#53fc18]/10 border border-[#53fc18]/40 text-sm text-[#1e293b] dark:text-[#f8fafc] max-w-7xl">
+                    <strong>Canal de Kick.</strong> Funcionan los filtros, los comandos de mods y el historial. El modo pánico y el filtro de cuentas nuevas no están disponibles: la API de Kick no permite cambiar los modos del chat ni informa la antigüedad de las cuentas.
+                </div>
+            )}
+
             {error && (
                 <p className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>
             )}
@@ -112,7 +119,9 @@ export default function ModerationHub() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl">
                 {cards.map((card) => {
                     const state = card.filter ? filters?.find(f => f.key === card.filter) : undefined;
-                    const groupActive = card.group && filters?.filter(f => card.group!.includes(f.key) && f.enabled).length;
+                    // En Kick, de "Raids y bots" solo existen las frases de bots
+                    const group = platform === 'kick' && card.key === 'raids' ? ['bot_phrases'] : card.group;
+                    const groupActive = group && filters?.filter(f => group.includes(f.key) && f.enabled).length;
                     return (
                         <div
                             key={card.key}
@@ -141,7 +150,7 @@ export default function ModerationHub() {
                                 <span className={`text-xs font-bold whitespace-nowrap ${(state?.enabled || (groupActive ?? 0) > 0) ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
                                     {card.key === 'raids' && panicActive ? <span className="text-red-600 dark:text-red-400">PÁNICO ACTIVO</span>
                                         : state ? (state.enabled ? 'Activo' : 'Apagado')
-                                        : card.group && filters ? `${groupActive} de ${card.group.length} activos` : ''}
+                                        : group && filters ? `${groupActive} de ${group.length} activos` : ''}
                                 </span>
                                 <button
                                     onClick={() => navigate(card.route)}

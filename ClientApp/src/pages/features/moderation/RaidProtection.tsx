@@ -4,7 +4,7 @@ import { ArrowLeft, Save, AlertCircle, CheckCircle, Siren, Plus, Trash2, RotateC
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
 import {
-    FilterSwitch, fetchModerationFilters, saveModerationFilter, type FilterSeverity
+    FilterSwitch, fetchModerationOverview, saveModerationFilter, type FilterSeverity, type ModerationPlatform
 } from './filterSwitch';
 
 interface PanicSettings {
@@ -98,6 +98,8 @@ export default function RaidProtection() {
     const [saving, setSaving] = useState(false);
     const [switching, setSwitching] = useState(false);
     const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [platform, setPlatform] = useState<ModerationPlatform>('twitch');
+    const isKick = platform === 'kick';
 
     const showNotice = (type: 'success' | 'error', text: string) => {
         setNotice({ type, text });
@@ -105,7 +107,9 @@ export default function RaidProtection() {
     };
 
     const load = async () => {
-        const [panicRes, filters] = await Promise.all([api.get('/moderation/panic'), fetchModerationFilters()]);
+        const [panicRes, overview] = await Promise.all([api.get('/moderation/panic'), fetchModerationOverview()]);
+        const filters = overview.filters;
+        setPlatform(overview.platform);
         if (panicRes.data.success) {
             setPanic(panicRes.data.settings);
             setState(panicRes.data.state);
@@ -193,13 +197,16 @@ export default function RaidProtection() {
         if (!panic || !age || !bots) return;
         setSaving(true);
         try {
-            const [panicRes, ageOk, botsOk] = await Promise.all([
-                api.put('/moderation/panic', panic),
-                saveModerationFilter('account_age', { severity: age.severity, settings: age.settings, message: age.message }),
+            // En Kick solo existen las frases de bots
+            const [panicOk, ageOk, botsOk] = await Promise.all([
+                isKick ? Promise.resolve(true) : api.put('/moderation/panic', panic).then(res => {
+                    if (res.data.success) setPanic(res.data.settings);
+                    return res.data.success === true;
+                }),
+                isKick ? Promise.resolve(true) : saveModerationFilter('account_age', { severity: age.severity, settings: age.settings, message: age.message }),
                 saveModerationFilter('bot_phrases', { severity: bots.severity, settings: bots.settings, message: bots.message })
             ]);
-            if (panicRes.data.success) setPanic(panicRes.data.settings);
-            const ok = panicRes.data.success && ageOk && botsOk;
+            const ok = panicOk && ageOk && botsOk;
             showNotice(ok ? 'success' : 'error', ok ? 'Configuración guardada' : 'Algo no se pudo guardar');
         } catch {
             showNotice('error', 'No se pudo guardar');
@@ -241,6 +248,11 @@ export default function RaidProtection() {
                 <p className="max-w-6xl mx-auto text-center py-12 text-[#64748b] dark:text-[#94a3b8]">Cargando…</p>
             ) : (
                 <div className="max-w-6xl mx-auto space-y-6">
+                    {isKick ? (
+                        <div className="p-4 rounded-lg bg-[#53fc18]/10 border border-[#53fc18]/40 text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                            <strong>Canal de Kick.</strong> Aquí solo funciona el filtro de frases de bots. El modo pánico y el filtro de cuentas nuevas no están disponibles: la API de Kick no permite cambiar los modos del chat ni informa la antigüedad de las cuentas.
+                        </div>
+                    ) : (<>
                     {/* Estado del pánico */}
                     <div className={`rounded-2xl border-2 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${state.active
                         ? 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700'
@@ -377,9 +389,11 @@ export default function RaidProtection() {
                             </div>
                         </div>
                     </div>
+                    </>)}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Cuentas nuevas */}
+                    <div className={`grid grid-cols-1 gap-6 ${isKick ? '' : 'lg:grid-cols-2'}`}>
+                        {/* Cuentas nuevas (Kick no informa la antigüedad de las cuentas) */}
+                        {!isKick && (
                         <div className={card}>
                             <div className="flex items-start justify-between gap-4 mb-4">
                                 <div className="min-w-0">
@@ -421,6 +435,7 @@ export default function RaidProtection() {
                                 </div>
                             </div>
                         </div>
+                        )}
 
                         {/* Frases de bots */}
                         <div className={card}>

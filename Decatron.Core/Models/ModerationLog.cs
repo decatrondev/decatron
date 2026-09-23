@@ -91,6 +91,12 @@ namespace Decatron.Core.Models
         [Column("undone_by")]
         public string? UndoneBy { get; set; }
 
+        /// <summary>
+        /// Id de plataforma de quien fue sancionado (Kick sanciona y quita sanciones por id)
+        /// </summary>
+        [Column("target_user_id")]
+        public string? TargetUserId { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

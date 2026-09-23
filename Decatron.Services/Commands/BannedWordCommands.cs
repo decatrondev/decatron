@@ -47,7 +47,7 @@ namespace Decatron.Services.Commands
             if (run.Context.ChannelUserId == null)
                 return;
 
-            var channel = run.Context.Channel.ToLower();
+            var channel = run.Key;
             var db = run.Services.GetRequiredService<DecatronDbContext>();
 
             if (await db.BannedWords.AnyAsync(w => w.ChannelName == channel && w.Word.ToLower() == word))
@@ -101,7 +101,7 @@ namespace Decatron.Services.Commands
                 return;
             }
 
-            var channel = run.Context.Channel.ToLower();
+            var channel = run.Key;
             var db = run.Services.GetRequiredService<DecatronDbContext>();
             var row = await db.BannedWords.FirstOrDefaultAsync(w => w.ChannelName == channel && w.Word.ToLower() == word);
             if (row == null)

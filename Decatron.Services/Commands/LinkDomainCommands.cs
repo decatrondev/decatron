@@ -38,7 +38,7 @@ namespace Decatron.Services.Commands
             if (run.Context.ChannelUserId == null)
                 return;
 
-            var channel = run.Context.Channel.ToLower();
+            var channel = run.Key;
             var db = run.Services.GetRequiredService<DecatronDbContext>();
             var row = await db.ModerationFilters.FirstOrDefaultAsync(f => f.ChannelName == channel && f.FilterKey == LinkFilter.FilterKey);
             var settings = LinkFilterSettings.Parse(row?.Settings);

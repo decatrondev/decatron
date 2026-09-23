@@ -26,7 +26,7 @@ namespace Decatron.Services.Commands
                 return;
             }
 
-            var (level, nextDecay) = await run.Moderation.GetStrikeStatusAsync(run.Context.Channel, target);
+            var (level, nextDecay) = await run.Moderation.GetStrikeStatusAsync(run.Key, target);
             if (level == 0)
             {
                 await run.ReplyAsync($"⚖️ @{target} no tiene strikes.");
@@ -60,7 +60,7 @@ namespace Decatron.Services.Commands
                 return;
             }
 
-            var previous = await run.Moderation.ResetStrikesAsync(run.Context.Channel, target);
+            var previous = await run.Moderation.ResetStrikesAsync(run.Key, target);
             if (previous == 0)
             {
                 await run.ReplyAsync($"⚖️ @{target} no tenía strikes.");
@@ -68,7 +68,7 @@ namespace Decatron.Services.Commands
             }
 
             if (run.Context.ChannelUserId.HasValue)
-                await run.Moderation.LogCommandActionAsync(run.Context.Channel, run.Context.ChannelUserId.Value, target,
+                await run.Moderation.LogCommandActionAsync(run.Key, run.Context.ChannelUserId.Value, target,
                     $"{previous} → 0", "comando", "reset_strikes", "strikes", run.Mod);
 
             await run.ReplyAsync($"⚖️ @{target} ya no tiene strikes (tenía {previous}/5).");

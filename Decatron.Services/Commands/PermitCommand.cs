@@ -26,7 +26,7 @@ namespace Decatron.Services.Commands
                 return;
             }
 
-            var filter = await run.Moderation.GetFilterAsync(run.Context.Channel, LinkFilter.FilterKey);
+            var filter = await run.Moderation.GetFilterAsync(run.Key, LinkFilter.FilterKey);
             if (filter == null || !filter.Enabled)
             {
                 await run.ReplyAsync($"🔗 @{run.Mod}, el filtro de links está apagado: los links ya pasan sin permiso.");
@@ -34,7 +34,7 @@ namespace Decatron.Services.Commands
             }
 
             var settings = LinkFilterSettings.Parse(filter.Settings);
-            LinkPermits.Grant(run.Context.Channel, target, settings.PermitSeconds, settings.PermitSingleMessage);
+            LinkPermits.Grant(run.Key, target, settings.PermitSeconds, settings.PermitSingleMessage);
 
             var duration = ModerationText.Duration(settings.PermitSeconds);
             await run.ReplyAsync(settings.PermitSingleMessage
@@ -42,7 +42,7 @@ namespace Decatron.Services.Commands
                 : $"🔗 @{target} puede enviar links durante {duration}.");
 
             _logger.LogInformation("[PERMIT] {Mod} dio permiso de links a {Target} en {Channel} ({Seconds}s, un mensaje: {Single})",
-                run.Mod, target, run.Context.Channel, settings.PermitSeconds, settings.PermitSingleMessage);
+                run.Mod, target, run.Key, settings.PermitSeconds, settings.PermitSingleMessage);
         }
     }
 
