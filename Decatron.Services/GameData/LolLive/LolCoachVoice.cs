@@ -30,6 +30,8 @@ namespace Decatron.Services.GameData.LolLive
         public const string Premium = "premium";
         /// <summary>Tope de caracteres por clip para que el plan final no sea un monólogo de 40 s.</summary>
         private const int MaxChars = 420;
+        /// <summary>Tope del plan final, que llega con la selección a punto de cerrar.</summary>
+        private const int MaxCharsFinal = 280;
 
         private readonly ITranslationTtsEngine? _premium;
         private readonly ITranslationTtsEngine? _standard;
@@ -57,12 +59,16 @@ namespace Decatron.Services.GameData.LolLive
             var t = info.Kind switch
             {
                 "my_turn" when info.Suggestion != null => (en ? $"My pick: {info.Suggestion}. " : $"Mi pick: {info.Suggestion}. ") + info.Comment,
-                "final" => string.Join(" ", new[] { info.Comment, info.Runes != null ? (en ? "Runes: " : "Runas: ") + info.Runes + "." : null, info.Spells != null ? (en ? "Spells: " : "Hechizos: ") + info.Spells + "." : null }.Where(x => x != null)),
+                // Runas y hechizos primero: es lo que el streamer tiene que poner antes de que
+                // empiece la partida. El comentario va después y se corta antes (ver abajo).
+                "final" => string.Join(" ", new[] { info.Runes != null ? (en ? "Runes: " : "Runas: ") + info.Runes + "." : null, info.Spells != null ? (en ? "Spells: " : "Hechizos: ") + info.Spells + "." : null, info.Comment }.Where(x => x != null)),
                 "postgame" => string.Join(" ", new[] { info.Comment }.Concat(info.Tips.Take(2))),
                 _ => info.Comment,
             };
             t = t.Replace("\n", " ").Trim();
-            return t.Length <= MaxChars ? t : t[..MaxChars].TrimEnd() + "…";
+            // El plan final es el que más apura: más corto = sintetiza y se oye antes.
+            var tope = info.Kind == "final" ? MaxCharsFinal : MaxChars;
+            return t.Length <= tope ? t : t[..tope].TrimEnd() + "…";
         }
 
         /// <summary>

@@ -61,6 +61,7 @@ namespace Decatron.Services.AI
             int maxTokens = 256, double temperature = 0.7, TimeSpan? timeout = null, bool reasoning = false, CancellationToken ct = default)
         {
             if (!IsConfigured) throw new InvalidOperationException("API Key de OpenRouter no configurada");
+            await _settings.EnsureFreshAsync();
 
             var sw = Stopwatch.StartNew();
             // El principal y los de respaldo del admin. Con más de uno va `models` y no

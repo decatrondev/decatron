@@ -343,7 +343,13 @@ namespace Decatron.Services.GameData.LolLive
                     .Concat(cs.TheirTeam.Where(p => p.Locked).Select(p => $"t{p.CellId}:{p.Champion?.Id}"))
                     .Concat(cs.MyBans.Select(b => "mb" + b.Id)).Concat(cs.TheirBans.Select(b => "tb" + b.Id)));
                 var allLocked = cs.MyTeam.Count > 0 && cs.MyTeam.All(p => p.Locked) && cs.TheirTeam.All(p => p.Locked || p.Champion == null);
-                var isFinal = !entry.FinalSent && (cs.TimerPhase is "FINALIZATION" or "GAME_STARTING" || allLocked) && cs.MyPick != null;
+                // El plan final (runas, hechizos, build) sale en cuanto el streamer confirma su
+                // campeón, sin esperar a los diez: si el último rival lockeaba al final del
+                // tiempo, las runas llegaban a 2 s de empezar la partida (2026-09-23). Con lo
+                // que ya se sabe del rival alcanza; FINALIZATION y "todos lockearon" quedan como
+                // red para las colas donde el pick propio nunca figura como lockeado.
+                var myLocked = cs.MyTeam.FirstOrDefault(p => p.IsMe)?.Locked == true;
+                var isFinal = !entry.FinalSent && cs.MyPick != null && (myLocked || cs.TimerPhase is "FINALIZATION" or "GAME_STARTING" || allLocked);
                 var myTurn = cs.MyTurn && !entry.LastMyTurn;
                 entry.LastMyTurn = cs.MyTurn;
 
@@ -496,9 +502,12 @@ namespace Decatron.Services.GameData.LolLive
                 return;
             }
 
+            var reloj = System.Diagnostics.Stopwatch.StartNew();
             var extra = await HistoryContextAsync(conn.UserId, entry, kind, conn.Token);
+            var msHistorial = reloj.ElapsedMilliseconds;
             var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.UserId, conn.Login, lang, settings, stats, entry.SummonerName, extra), conn.Token);
             if (info == null) return;
+            var msIa = reloj.ElapsedMilliseconds - msHistorial;
 
             entry.CoachHistory.Add(info);
             if (entry.CoachHistory.Count > 20) entry.CoachHistory.RemoveAt(0);
@@ -510,13 +519,28 @@ namespace Decatron.Services.GameData.LolLive
                 kind = info.Kind, comment = info.Comment, suggestion = info.Suggestion, runes = info.Runes, spells = info.Spells,
                 build = info.Build, matchup = info.Matchup, tips = info.Tips, coachName = info.CoachName,
             });
-            if (settings.ShowOnOverlay) await _poller.PushLivePhaseAsync(conn.UserId);
+            var msTexto = reloj.ElapsedMilliseconds;
 
+            // La voz arranca YA, en paralelo con el overlay y el chat: antes esperaba a que
+            // salieran los dos y el audio del plan final llegaba varios segundos tarde.
+            var voz = settings.SpeaksOn(info.Kind) ? SpeakAloudAsync(conn, settings, info, lang, reloj) : Task.CompletedTask;
+
+            if (settings.ShowOnOverlay) await _poller.PushLivePhaseAsync(conn.UserId);
             if (settings.PostsOn(info.Kind)) await PostToChatAsync(conn.Login, info, lang);
 
-            // Voz: solo en los momentos elegidos; el audio va como MP3 en base64 por el mismo canal
-            // (son clips de pocos segundos). Si no hay créditos, se manda el motivo y sigue en texto.
-            if (settings.SpeaksOn(info.Kind))
+            _logger.LogInformation("[LolCoach] {Login} {Kind}: historial {Hist} ms · IA {Ia} ms · texto al Desktop a los {Texto} ms",
+                conn.Login, info.Kind, msHistorial, msIa, msTexto);
+            await voz;
+        }
+
+        /// <summary>
+        /// Sintetiza y manda la voz. El audio va como MP3 en base64 por el mismo canal (son
+        /// clips de pocos segundos). Si no hay créditos ni voz estándar, se manda el motivo y
+        /// el coach sigue en texto. Nunca lanza.
+        /// </summary>
+        private async Task SpeakAloudAsync(DesktopConnection conn, LolCoachSettings settings, LiveCoachInfo info, string lang, System.Diagnostics.Stopwatch reloj)
+        {
+            try
             {
                 var (mp3, error, fellBack) = await _voice.SpeakAsync(conn.UserId, settings, info, lang, conn.Token);
                 if (fellBack) _logger.LogInformation("[LolCoach] {Login}: sin saldo para la voz premium, salió con la estándar", conn.Login);
@@ -524,6 +548,12 @@ namespace Decatron.Services.GameData.LolLive
                     await conn.SendAsync(Name, "coach-audio", new { kind = info.Kind, mime = "audio/mpeg", data = Convert.ToBase64String(mp3) });
                 else if (error != null)
                     await conn.SendAsync(Name, "coach-audio", new { kind = info.Kind, error });
+                _logger.LogInformation("[LolCoach] {Login} {Kind}: voz ({Engine}{Fallback}) al Desktop a los {Ms} ms{Error}",
+                    conn.Login, info.Kind, settings.VoiceEngine, fellBack ? " → standard" : "", reloj.ElapsedMilliseconds, error != null ? " · " + error : "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[LolCoach] {Login}: la voz falló ({Kind})", conn.Login, info.Kind);
             }
         }
 

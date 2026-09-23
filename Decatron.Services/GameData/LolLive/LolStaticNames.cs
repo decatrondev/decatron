@@ -31,9 +31,27 @@ namespace Decatron.Services.GameData.LolLive
         /// <summary>Inglés normalizado -> (nombre en inglés, nombre en español).</summary>
         private sealed record Catalog(Dictionary<string, (string En, string Es)> Items, Dictionary<string, (string En, string Es)> Runes, Dictionary<string, (string En, string Es)> Spells, string[] SortedKeys);
 
+        /// <summary>
+        /// Carga el catálogo al arrancar el backend. Sin esto, la primera selección después de
+        /// cada deploy esperaba ~6 s a Data Dragon antes de dar las runas (pasó el 2026-09-23:
+        /// llegaron a 2 s de empezar la partida).
+        /// </summary>
+        public Task WarmUpAsync(CancellationToken ct = default) => LoadAsync(ct);
+
+        /// <summary>
+        /// El catálogo. Solo se espera la descarga si no hay ninguno; uno vencido se sigue
+        /// usando mientras se renueva en segundo plano, porque los nombres de un parche atrás
+        /// valen igual y el coach no puede frenar la selección por eso.
+        /// </summary>
         private async Task<Catalog?> GetAsync(CancellationToken ct = default)
         {
-            if (_catalog != null && DateTime.UtcNow - _loadedAt < TimeSpan.FromDays(1)) return _catalog;
+            if (_catalog == null) return await LoadAsync(ct);
+            if (DateTime.UtcNow - _loadedAt >= TimeSpan.FromDays(1)) _ = LoadAsync(CancellationToken.None);
+            return _catalog;
+        }
+
+        private async Task<Catalog?> LoadAsync(CancellationToken ct)
+        {
             await _lock.WaitAsync(ct);
             try
             {

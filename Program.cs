@@ -743,6 +743,9 @@ try
         });
     }
 
+    // Nombres oficiales de LoL (Data Dragon) listos antes de la primera selección de campeón.
+    _ = app.Services.GetRequiredService<Decatron.Services.GameData.LolLive.LolStaticNames>().WarmUpAsync();
+
     app.Run();
 }
 catch (Exception ex)

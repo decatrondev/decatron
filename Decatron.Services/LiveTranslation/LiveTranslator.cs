@@ -63,6 +63,7 @@ namespace Decatron.Services.LiveTranslation
         {
             var ctx = new AiCallContext(Module, userId, login);
             var system = SystemPrompt(sourceLang, targetLang);
+            await _settings.EnsureFreshAsync();
 
             if (_openRouter.IsConfigured)
             {

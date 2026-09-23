@@ -104,6 +104,7 @@ namespace Decatron.Services.GameData.LolLive
         {
             var isFinal = kind is "final" or "postgame" or "briefing" or "lobby";
             var call = new AiCallContext(Module, ctx.UserId, ctx.Login);
+            await _settings.EnsureFreshAsync();
 
             for (var intento = 1; intento <= 2; intento++)
             {

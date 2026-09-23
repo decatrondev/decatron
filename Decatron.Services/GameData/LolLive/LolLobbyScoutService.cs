@@ -39,7 +39,11 @@ namespace Decatron.Services.GameData.LolLive
         public async Task ScoutAsync(string region, IEnumerable<LiveLobbyMember> members, CancellationToken ct = default)
         {
             if (!IsAvailable || string.IsNullOrEmpty(region)) return;
-            var targets = members.Where(m => !m.IsMe && !string.IsNullOrEmpty(m.Puuid) && m.Scout == null).Take(MaxMembers).ToList();
+            var lista = members.Where(m => !m.IsMe).ToList();
+            await ResolvePuuidsAsync(region, lista, ct);
+            var targets = lista.Where(m => !string.IsNullOrEmpty(m.Puuid) && !EsPuuidDelCliente(m.Puuid) && m.Scout == null).Take(MaxMembers).ToList();
+            var sinId = lista.Count(m => string.IsNullOrEmpty(m.Puuid) || EsPuuidDelCliente(m.Puuid));
+            if (sinId > 0) _logger.LogInformation("[LolScout] {Count} miembro(s) del lobby sin Riot ID: no se pueden consultar (¿Desktop anterior a v0.0.16?)", sinId);
             foreach (var m in targets)
             {
                 try
@@ -49,6 +53,42 @@ namespace Decatron.Services.GameData.LolLive
                     if (m.Scout != null) _logger.LogInformation("[LolScout] {Name}: {Tier} {Div} · {Games} partidas · {WinRate}% · racha {Streak}", m.Name, m.Scout.Tier ?? "unranked", m.Scout.Division, m.Scout.Games, m.Scout.WinRate, m.Scout.Streak);
                 }
                 catch (Exception ex) { _logger.LogDebug(ex, "[LolScout] {Name}", m.Name); }
+            }
+        }
+
+        /// <summary>
+        /// El PUUID que da el cliente de LoL (un UUID, "72886918-3fee-…") NO es el que acepta
+        /// la API de Riot: esa usa uno cifrado por clave de aplicación, y con el del cliente
+        /// responde 400 "Exception decrypting". Así estuvo el scouting del lobby hasta el
+        /// 2026-09-23: sin rango ni partidas para nadie.
+        /// </summary>
+        private static bool EsPuuidDelCliente(string puuid) => Guid.TryParse(puuid, out _);
+
+        /// <summary>
+        /// Cambia el PUUID del cliente por el de la API buscando al jugador por su Riot ID
+        /// (nombre#tag). Deja el PUUID bueno en el miembro, así el récord "partidas juntos"
+        /// del historial también cruza con el jugador correcto. Cacheado un día: un Riot ID
+        /// casi nunca cambia y el lobby se revisa en cada cambio de miembros.
+        /// </summary>
+        private async Task ResolvePuuidsAsync(string region, List<LiveLobbyMember> members, CancellationToken ct)
+        {
+            var key = _keys.ForGame(GameIds.Lol)!;
+            foreach (var m in members)
+            {
+                if (string.IsNullOrEmpty(m.Name) || string.IsNullOrEmpty(m.Tag)) continue;
+                if (!string.IsNullOrEmpty(m.Puuid) && !EsPuuidDelCliente(m.Puuid)) continue;
+                try
+                {
+                    var riotId = $"{m.Name}#{m.Tag}".ToLowerInvariant();
+                    var puuid = await _cache.GetOrFetchAsync<string>(GameProviders.Riot, riotId, "riot-id-puuid", TimeSpan.FromDays(1), async () =>
+                    {
+                        var (ok, found, error) = await _riot.ResolvePuuidAsync(region, m.Name, m.Tag, key);
+                        if (!ok) { _logger.LogWarning("[LolScout] no se pudo resolver {Name}#{Tag}: {Error}", m.Name, m.Tag, error); return null; }
+                        return found;
+                    }, ct);
+                    if (!string.IsNullOrEmpty(puuid)) m.Puuid = puuid;
+                }
+                catch (Exception ex) { _logger.LogDebug(ex, "[LolScout] Riot ID {Name}", m.Name); }
             }
         }
 

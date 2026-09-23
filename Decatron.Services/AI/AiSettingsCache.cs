@@ -62,9 +62,33 @@ namespace Decatron.Services.AI
             return (promptTokens * p.In + completionTokens * p.Out) / 1_000_000m;
         }
 
+        /// <summary>
+        /// Espera a tener la config al día antes de una llamada. <see cref="Current"/> solo
+        /// dispara el refresco y devuelve lo que había: después de un rato sin uso, la primera
+        /// llamada salía con el modelo viejo (pasó el 2026-09-23: el coach habló con Qwen
+        /// después de cambiarlo a gpt-6-luna). Con la config fresca no cuesta nada.
+        /// </summary>
+        public async Task EnsureFreshAsync()
+        {
+            if (DateTime.UtcNow - _loadedAt <= Ttl) return;
+            await _lock.WaitAsync();
+            try
+            {
+                if (DateTime.UtcNow - _loadedAt > Ttl) await LoadAsync();
+            }
+            finally { _lock.Release(); }
+        }
+
         public async Task RefreshAsync()
         {
             if (!await _lock.WaitAsync(0)) return;
+            try { await LoadAsync(); }
+            finally { _lock.Release(); }
+        }
+
+        /// <summary>Lee la config de la base. Se llama con el candado tomado.</summary>
+        private async Task LoadAsync()
+        {
             try
             {
                 using var scope = _scopes.CreateScope();
@@ -82,7 +106,6 @@ namespace Decatron.Services.AI
                 _logger.LogWarning(ex, "[AI-SETTINGS] No se pudo refrescar la config global de IA");
                 _loadedAt = DateTime.UtcNow; // no martillar la DB si está caída
             }
-            finally { _lock.Release(); }
         }
 
         private void ParsePrices(string json)
