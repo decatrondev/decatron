@@ -149,6 +149,7 @@ namespace Decatron.Services.Moderation
             }
 
             PanicRegistry.Set(channel, endsAt);
+            await LogAsync(channel, channelUserId, triggeredBy, reason, "panic_on");
             _logger.LogWarning("[PÁNICO] Activado en {Channel} por {By} ({Reason}) hasta {EndsAt}", channel, triggeredBy, reason, endsAt);
 
             if (settings.Announce)
@@ -166,6 +167,7 @@ namespace Decatron.Services.Moderation
 
             string? previousJson = null;
             bool shieldApplied = false, announce = true;
+            long channelUserId;
             await using (var conn = new NpgsqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
@@ -173,7 +175,7 @@ namespace Decatron.Services.Moderation
                 await using var cmd = new NpgsqlCommand(@"
                     UPDATE moderation_panic SET active = FALSE, updated_at = NOW()
                     WHERE channel_name = @channel AND active
-                    RETURNING previous_chat_settings::text, shield_applied, settings::text", conn);
+                    RETURNING previous_chat_settings::text, shield_applied, settings::text, user_id", conn);
                 cmd.Parameters.AddWithValue("channel", channel);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
@@ -184,6 +186,7 @@ namespace Decatron.Services.Moderation
                 previousJson = reader.IsDBNull(0) ? null : reader.GetString(0);
                 shieldApplied = reader.GetBoolean(1);
                 announce = PanicSettings.Parse(reader.GetString(2)).Announce;
+                channelUserId = reader.GetInt64(3);
             }
 
             PanicRegistry.Clear(channel);
@@ -205,6 +208,7 @@ namespace Decatron.Services.Moderation
                     await _twitch.UpdateChatSettingsAsync(channel, restore);
             }
 
+            await LogAsync(channel, channelUserId, by, by == "decatron" ? "se apagó solo" : $"lo apagó {by}", "panic_off");
             _logger.LogWarning("[PÁNICO] Desactivado en {Channel} por {By}", channel, by);
             if (announce)
                 await _sender.SendMessageAsync(channel, "✅ Modo pánico desactivado: el chat vuelve a la normalidad.");
@@ -315,6 +319,20 @@ namespace Decatron.Services.Moderation
             if (s.SubscribersOnly) parts.Add("solo subs");
             if (s.SlowSeconds > 0) parts.Add($"modo lento de {s.SlowSeconds} s");
             return parts.Count == 0 ? "" : "Chat en " + string.Join(", ", parts) + ".";
+        }
+
+        /// <summary>El pánico también queda en el historial de moderación</summary>
+        private async Task LogAsync(string channel, long channelUserId, string by, string detail, string action)
+        {
+            try
+            {
+                await ExecAsync(@"
+                    INSERT INTO moderation_logs (channel_name, user_id, username, detected_word, severity, action_taken, strike_level, filter_key, executed_by, created_at)
+                    VALUES (@channel, @userId, @by, @detail, 'comando', @action, 0, 'panic', @by, NOW())",
+                    ("channel", channel), ("userId", channelUserId), ("by", by.ToLower()),
+                    ("detail", detail.Length > 500 ? detail[..500] : detail), ("action", action));
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "[PÁNICO] No se pudo registrar en el historial de {Channel}", channel); }
         }
 
         private async Task<long> ResolveChannelUserIdAsync(string channel)

@@ -82,6 +82,15 @@ namespace Decatron.Core.Models
         [Column("executed_by")]
         public string? ExecutedBy { get; set; }
 
+        /// <summary>
+        /// Cuándo y quién la deshizo desde el historial (null = sigue vigente)
+        /// </summary>
+        [Column("undone_at")]
+        public DateTime? UndoneAt { get; set; }
+
+        [Column("undone_by")]
+        public string? UndoneBy { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

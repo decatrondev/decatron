@@ -239,7 +239,7 @@ namespace Decatron.Services
         /// <summary>
         /// Llamada a Helix como moderador (el bot) en el canal: agrega broadcaster_id y moderator_id a la URL.
         /// </summary>
-        private async Task<HttpResponseMessage?> SendAsBotModeratorAsync(HttpMethod method, string channelName, string path, object? body)
+        private async Task<HttpResponseMessage?> SendAsBotModeratorAsync(HttpMethod method, string channelName, string path, object? body, string extraQuery = "")
         {
             var broadcasterUser = await GetUserByLoginAsync(channelName);
             var botTwitchId = await GetBotTwitchIdAsync();
@@ -250,7 +250,7 @@ namespace Decatron.Services
                 return null;
             }
 
-            var request = new HttpRequestMessage(method, $"{TwitchApiBaseUrl}/{path}?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}");
+            var request = new HttpRequestMessage(method, $"{TwitchApiBaseUrl}/{path}?broadcaster_id={broadcasterUser.id}&moderator_id={botTwitchId}{extraQuery}");
             if (body != null)
                 request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
             request.Headers.Add("Client-ID", _twitchSettings.ClientId);
@@ -296,6 +296,35 @@ namespace Decatron.Services
             {
                 _logger.LogError(ex, "Error in UpdateChatSettingsAsync: {ChannelName}", channelName);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Quita un ban o un timeout. true si se quitó, false si no estaba sancionado, null si falló.
+        /// </summary>
+        public async Task<bool?> UnbanUserAsync(string channelName, string username)
+        {
+            try
+            {
+                var target = await GetUserByLoginAsync(username);
+                if (target == null) return null;
+
+                var response = await SendAsBotModeratorAsync(HttpMethod.Delete, channelName, "moderation/bans", null, $"&user_id={target.id}");
+                if (response == null) return null;
+                if (response.IsSuccessStatusCode) return true;
+
+                // Twitch responde 400 "user is not banned" cuando el timeout ya venció
+                var body = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest && body.Contains("not banned", StringComparison.OrdinalIgnoreCase))
+                    return false;
+
+                _logger.LogWarning("Error quitando la sanción de {Username} en {ChannelName}: {Status} {Body}", username, channelName, response.StatusCode, body);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UnbanUserAsync: {Username} in {ChannelName}", username, channelName);
+                return null;
             }
         }
 

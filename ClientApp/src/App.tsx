@@ -32,6 +32,7 @@ import LinksFilter from './pages/features/moderation/LinksFilter';
 import ModerationCommands from './pages/features/moderation/ModerationCommands';
 import SpamFilters from './pages/features/moderation/SpamFilters';
 import RaidProtection from './pages/features/moderation/RaidProtection';
+import ModerationHistory from './pages/features/moderation/ModerationHistory';
 import SoundAlerts from './pages/features/SoundAlerts';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import LiveTranslationConfig from './pages/features/LiveTranslationConfig';
@@ -324,6 +325,7 @@ function App() {
                     <Route path="features/moderation/commands" element={<SafeRoute name="Moderation Commands"><ModerationCommands /></SafeRoute>} />
                     <Route path="features/moderation/spam" element={<SafeRoute name="Spam Filters"><SpamFilters /></SafeRoute>} />
                     <Route path="features/moderation/raids" element={<SafeRoute name="Raid Protection"><RaidProtection /></SafeRoute>} />
+                    <Route path="features/moderation/history" element={<SafeRoute name="Moderation History"><ModerationHistory /></SafeRoute>} />
 
                     {/* Overlays */}
                     <Route path="overlays" element={<SafeRoute name="Overlays"><Overlays /></SafeRoute>} />

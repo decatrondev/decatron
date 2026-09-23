@@ -725,6 +725,120 @@ namespace Decatron.Controllers
             }
         }
 
+        private static bool LiftsSanction(string action) => action == "ban" || action.StartsWith("timeout_");
+
+        /// <summary>
+        /// Se puede deshacer si quitó a alguien del chat (timeout/ban) o le sumó un strike, y nadie la deshizo aún
+        /// </summary>
+        private static bool CanUndo(ModerationLog l) =>
+            l.UndoneAt == null && l.Severity != "comando" && (LiftsSanction(l.ActionTaken) || l.StrikeLevel > 0);
+
+        /// <summary>
+        /// GET /api/moderation/history - Historial de sanciones y acciones de mods, del más nuevo al más viejo
+        /// </summary>
+        [HttpGet("history")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> GetHistory(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 25, [FromQuery] string? user = null,
+            [FromQuery] string? filter = null, [FromQuery] string? kind = null,
+            [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
+            try
+            {
+                var username = await GetChannelUsernameAsync(GetChannelOwnerId());
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                page = Math.Max(1, page);
+                pageSize = Math.Clamp(pageSize, 10, 100);
+
+                var query = _dbContext.ModerationLogs.AsNoTracking().Where(l => l.ChannelName == username);
+                if (!string.IsNullOrWhiteSpace(user))
+                {
+                    var u = user.Trim().TrimStart('@').ToLower();
+                    query = query.Where(l => l.Username.Contains(u) || (l.ExecutedBy != null && l.ExecutedBy.Contains(u)));
+                }
+                if (!string.IsNullOrWhiteSpace(filter)) query = query.Where(l => l.FilterKey == filter);
+                if (kind == "sanctions") query = query.Where(l => l.Severity != "comando");
+                else if (kind == "commands") query = query.Where(l => l.Severity == "comando");
+                if (from.HasValue) query = query.Where(l => l.CreatedAt >= from.Value.Date);
+                if (to.HasValue) query = query.Where(l => l.CreatedAt < to.Value.Date.AddDays(1));
+
+                var total = await query.CountAsync();
+                var rows = await query
+                    .OrderByDescending(l => l.CreatedAt).ThenByDescending(l => l.Id)
+                    .Skip((page - 1) * pageSize).Take(pageSize)
+                    .ToListAsync();
+
+                var items = rows.Select(l => new
+                {
+                    l.Id,
+                    l.Username,
+                    detail = l.DetectedWord,
+                    l.Severity,
+                    action = l.ActionTaken,
+                    l.StrikeLevel,
+                    message = l.FullMessage,
+                    filter = l.FilterKey,
+                    executedBy = l.ExecutedBy,
+                    l.CreatedAt,
+                    l.UndoneAt,
+                    l.UndoneBy,
+                    canUndo = CanUndo(l)
+                });
+
+                return Ok(new { success = true, items, total, page, pageSize });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo el historial de moderación");
+                return StatusCode(500, new { success = false, message = "Error al obtener el historial" });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/moderation/history/{id}/undo - Quita el timeout o ban en Twitch y devuelve el strike.
+        /// Un mensaje borrado no se puede recuperar: en ese caso solo se devuelve el strike.
+        /// </summary>
+        [HttpPost("history/{id:long}/undo")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> UndoAction(long id, [FromServices] Decatron.Services.TwitchApiService twitch)
+        {
+            try
+            {
+                var username = await GetChannelUsernameAsync(GetChannelOwnerId());
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var log = await _dbContext.ModerationLogs.FirstOrDefaultAsync(l => l.Id == id && l.ChannelName == username);
+                if (log == null)
+                    return NotFound(new { success = false, message = "Acción no encontrada" });
+                if (!CanUndo(log))
+                    return BadRequest(new { success = false, message = log.UndoneAt != null ? "Esta acción ya se deshizo" : "Esta acción no se puede deshacer" });
+
+                bool? lifted = null;
+                if (LiftsSanction(log.ActionTaken))
+                {
+                    lifted = await twitch.UnbanUserAsync(username, log.Username);
+                    if (lifted == null)
+                        return StatusCode(502, new { success = false, message = "Twitch no aceptó quitar la sanción. Revisa que el bot siga siendo moderador del canal." });
+                }
+
+                var strikeReturned = log.StrikeLevel > 0 && await _moderationService.ReturnStrikeAsync(username, log.Username);
+
+                log.UndoneAt = DateTime.Now;
+                log.UndoneBy = (User.FindFirst(ClaimTypes.Name)?.Value ?? "dashboard").ToLower();
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new { success = true, lifted, strikeReturned });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deshaciendo la acción de moderación {Id}", id);
+                return StatusCode(500, new { success = false, message = "Error al deshacer" });
+            }
+        }
+
         /// <summary>
         /// GET /api/moderation/stats - Obtiene estadísticas de moderación
         /// </summary>

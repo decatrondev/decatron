@@ -437,6 +437,22 @@ namespace Decatron.Core.Services
         }
 
         /// <summary>
+        /// Devuelve un strike (baja 1 nivel) al deshacer una sanción desde el historial
+        /// </summary>
+        public async Task<bool> ReturnStrikeAsync(string channel, string username)
+        {
+            await using var conn = new NpgsqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await using var cmd = new NpgsqlCommand(@"
+                UPDATE user_strikes SET strike_level = GREATEST(strike_level - 1, 0), updated_at = @now
+                WHERE channel_name = @channel AND username = @username AND strike_level > 0", conn);
+            cmd.Parameters.AddWithValue("channel", channel.ToLower());
+            cmd.Parameters.AddWithValue("username", username.ToLower());
+            cmd.Parameters.AddWithValue("now", DateTime.Now);
+            return await cmd.ExecuteNonQueryAsync() > 0;
+        }
+
+        /// <summary>
         /// Configuración de los comandos de moderación del canal (con los valores por defecto)
         /// </summary>
         public async Task<Dictionary<string, ModerationCommandSetting>> GetCommandConfigAsync(string channel)

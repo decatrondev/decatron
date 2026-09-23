@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning, Siren } from 'lucide-react';
+import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning, Siren, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FilterSwitch, fetchModerationFilters, saveModerationFilter, type ModerationFilterState } from './moderation/filterSwitch';
 import { SPAM_FILTERS } from './moderation/SpamFilters';
@@ -57,6 +57,13 @@ const CARDS: ModerationCard[] = [
         description: '!permit, !strikes, !nuke, !panico y más: quién puede usar cada uno',
         icon: <Terminal className="w-6 h-6 shrink-0 text-[#2563eb]" />,
         route: '/features/moderation/commands'
+    },
+    {
+        key: 'history',
+        name: 'Historial',
+        description: 'Quién fue sancionado, por qué y quién lo hizo; deshacer timeouts, bans y strikes',
+        icon: <History className="w-6 h-6 shrink-0 text-[#2563eb]" />,
+        route: '/features/moderation/history'
     }
 ];
 
