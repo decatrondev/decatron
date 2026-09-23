@@ -49,12 +49,16 @@ namespace Decatron.Controllers
             [MaxLength(200)] string? DailyGoal = null,
             bool PredictionsEnabled = false,
             int PredictionStartPoints = 1000,
-            int PredictionCloseMinutes = 5);
+            int PredictionCloseMinutes = 5,
+            string? VoiceEngine = null,
+            string[]? ChatKinds = null);
 
         private static object ToDto(LolCoachSettings s) => new
         {
             s.Enabled, s.CoachName, s.Tone, s.CommentPicks, s.PostGameSummary, s.ShowOnOverlay, s.ChampPool, s.Notes,
-            s.VoiceEnabled, s.VoiceId, VoiceKinds = s.VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            s.VoiceEnabled, s.VoiceId, s.VoiceEngine,
+            ChatKinds = s.ChatKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            VoiceKinds = s.VoiceKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             s.Briefing, s.TiltCheck, s.LobbyComments, DailyGoal = s.CurrentGoal ?? "",
             s.PredictionsEnabled, s.PredictionStartPoints, s.PredictionCloseMinutes,
         };
@@ -74,6 +78,9 @@ namespace Decatron.Controllers
                 desktopConnected = _desktop.CountFor(userId) > 0,
                 tones = new[] { "analyst", "hype", "troll" },
                 voiceAvailable = _voice.IsAvailable,
+                voiceStandardAvailable = _voice.StandardAvailable,
+                voicePremiumAvailable = _voice.PremiumAvailable,
+                chatKinds = LolCoachSettings.ChatKindOptions,
                 voices = _voice.Voices.Select(v => new { v.Id, v.Name, v.Language, v.Gender }),
             });
         }
@@ -94,6 +101,9 @@ namespace Decatron.Controllers
             s.ChampPool = (dto.ChampPool ?? "").Trim();
             s.Notes = (dto.Notes ?? "").Trim();
             s.VoiceEnabled = dto.VoiceEnabled;
+            if (dto.VoiceEngine is LolCoachVoice.Standard or LolCoachVoice.Premium) s.VoiceEngine = dto.VoiceEngine;
+            if (dto.ChatKinds != null)
+                s.ChatKinds = string.Join(",", dto.ChatKinds.Where(k => LolCoachSettings.ChatKindOptions.Contains(k)).Distinct());
             s.VoiceId = dto.VoiceId != null && _voice.Voices.Any(v => v.Id == dto.VoiceId) ? dto.VoiceId : "";
             var kinds = (dto.VoiceKinds ?? new[] { "my_turn", "final", "postgame" }).Where(k => k is "pick" or "my_turn" or "final" or "postgame" or "briefing" or "lobby" or "tilt").Distinct().ToArray();
             s.VoiceKinds = string.Join(",", kinds.Length == 0 ? new[] { "my_turn", "final", "postgame" } : kinds);

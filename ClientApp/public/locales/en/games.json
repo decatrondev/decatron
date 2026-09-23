@@ -47,7 +47,7 @@
     "commentPicks": "Comment on every pick and ban",
     "commentPicksHint": "Up to 8 comments per select. If off, it only speaks on your turn and at the end (2 calls).",
     "postGame": "Automatic opinion when the game ends",
-    "postGameHint": "If off, only via !coach (mods).",
+    "postGameHint": "If off, no summary is generated when the game ends.",
     "showOnOverlay": "Show what it says on the overlay",
     "showOnOverlayHint": "\"Coach says\" blocks in the Live Match overlay (Overlays → Live Match). If off, only you see it in the app and via commands.",
     "champPool": "Your champ pool",
@@ -63,7 +63,7 @@
     "predBalance": "your points",
     "predMin": "Minimum 10 points.",
     "voice": "Coach voice in Decatron Desktop",
-    "voiceHint": "Speaks through your speakers or headphones (you choose the device in the app). Uses the channel's TTS credits, like Speak Chat.",
+    "voiceHint": "Speaks through your speakers or headphones (you pick the device in the app). If you leave it off, the coach works the same in plain text: Desktop, overlay and chat.",
     "voiceId": "Voice",
     "voiceDefault": "Default for the channel language",
     "voiceFemale": "female",
@@ -119,14 +119,34 @@
       "seePlans": "See plans",
       "unranked": "unranked",
       "last20": "last 20",
-      "noCredits": "No credits: the coach stays silent until you have balance (the AI is paid with your plan's credits)."
+      "noCredits": "No credits: the coach stays silent until you have balance (the AI is paid with your plan's credits).",
+      "buyCredits": "Buy credits"
     },
     "history": {
       "title": "Latest from the coach",
       "empty": "Nothing yet. Every comment shows here, with runes/build/tips when given.",
       "suggestion": "Suggestion",
       "matchup": "Matchup"
-    }
+    },
+    "voiceEngine": "Voice engine",
+    "voiceEngines": {
+      "standard": "Standard (Decatron) · free",
+      "premium": "Premium (Deepgram) · uses credits"
+    },
+    "voiceEngineHint": {
+      "standard": "Decatron's own voice. Uses no credits; takes a bit longer to start speaking.",
+      "premium": "More natural voice. Charges credits per sentence; if your balance can't cover the voice, that sentence uses the standard voice instead of going silent."
+    },
+    "chat": "Post in chat",
+    "chatHint": "The bot writes in your chat what the coach says at these moments. It costs nothing extra: the text was already generated. Never during the game.",
+    "chatKinds": {
+      "final": "Runes and build when champ select closes",
+      "postgame": "Summary when the game ends",
+      "briefing": "Briefing when the stream starts",
+      "lobby": "Lobby comment"
+    },
+    "coachCooldown": "!coach with a 30 s wait between uses, except mods",
+    "setGoal": "set the goal with"
   },
   "gameOverlays": {
     "title": "Game Overlays",

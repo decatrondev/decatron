@@ -225,16 +225,28 @@ namespace Decatron.Services.Commands
         }
     }
 
-    /// <summary>!coach — lo último que dijo el coach (resumen post-partida si acaba de terminar). Mods y streamer.</summary>
+    /// <summary>
+    /// !coach — lo último que dijo el coach (resumen post-partida si acaba de terminar).
+    /// Abierto a todos con un cooldown por canal: cualquier viewer puede preguntar qué dijo
+    /// sin que diez personas seguidas llenen el chat con la misma respuesta. Mods y streamer
+    /// no esperan.
+    /// </summary>
     public class CoachCommand : LolCoachCommandBase
     {
+        private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(30);
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<long, DateTime> _ultimo = new();
+
         public CoachCommand(string name, ILogger logger, IServiceScopeFactory scopeFactory) : base(name, logger, scopeFactory) { }
         public override string Description => "Lo último que dijo el coach de LoL (o el resumen de la partida que acaba de terminar)";
         protected override string StateName => "coach";
-        protected override bool RequiresMod => true;
 
         protected override async Task RunAsync(Ctx ctx)
         {
+            var esMod = ctx.Context.IsModerator || ctx.Context.IsBroadcaster;
+            var ahora = DateTime.UtcNow;
+            if (!esMod && _ultimo.TryGetValue(ctx.ChannelUserId, out var antes) && ahora - antes < Cooldown) return;
+            _ultimo[ctx.ChannelUserId] = ahora;
+
             var e = Live(ctx);
             if (e == null) { await SayCoach(ctx, "no_desktop", ctx.Context.Username); return; }
             var c = Last(ctx);

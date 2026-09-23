@@ -34,6 +34,8 @@ namespace Decatron.Services.GameData.LolLive
             public string LastLobbySignature { get; set; } = "";
             /// <summary>Longitud de la racha de derrotas en la que ya se hizo el tilt check.</summary>
             public int TiltCheckedAt { get; set; }
+            /// <summary>Día (UTC) en que se avisó al Desktop que el coach está en pausa por saldo: una vez por día, no en cada fase.</summary>
+            public DateTime? NoCreditsNotifiedOn { get; set; }
             public CancellationTokenSource? Debounce { get; set; }
             /// <summary>Últimos comentarios (los más nuevos al final), para el panel y los comandos.</summary>
             public List<LiveCoachInfo> CoachHistory { get; } = new();

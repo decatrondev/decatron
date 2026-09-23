@@ -18,6 +18,10 @@ interface Settings {
     commentPicks: boolean; postGameSummary: boolean; showOnOverlay: boolean;
     champPool: string; notes: string;
     voiceEnabled: boolean; voiceId: string; voiceKinds: string[];
+    /** standard = Piper (gratis) · premium = Deepgram (cobra créditos, cae a la estándar sin saldo). */
+    voiceEngine: 'standard' | 'premium';
+    /** Momentos que el bot publica en el chat. */
+    chatKinds: string[];
     briefing: boolean; tiltCheck: boolean; lobbyComments: boolean; dailyGoal: string;
     predictionsEnabled: boolean; predictionStartPoints: number; predictionCloseMinutes: number;
 }
@@ -27,6 +31,7 @@ interface State { desktopConnected: boolean; clientConnected: boolean; summoner?
 
 const TONES: Settings['tone'][] = ['analyst', 'hype', 'troll'];
 const VOICE_KINDS = ['my_turn', 'final', 'postgame', 'briefing', 'lobby', 'tilt', 'pick'];
+const CHAT_KINDS = ['final', 'postgame', 'briefing', 'lobby'];
 
 export default function LolCoachConfig() {
     const navigate = useNavigate();
@@ -36,7 +41,7 @@ export default function LolCoachConfig() {
     const download = useDesktopDownload();
 
     const [settings, setSettings] = useState<Settings | null>(null);
-    const [meta, setMeta] = useState<{ aiAvailable: boolean; linkedAccounts: number; voiceAvailable: boolean; voices: Voice[] } | null>(null);
+    const [meta, setMeta] = useState<{ aiAvailable: boolean; linkedAccounts: number; voiceAvailable: boolean; voiceStandardAvailable: boolean; voicePremiumAvailable: boolean; voices: Voice[] } | null>(null);
     const [state, setState] = useState<State | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -45,7 +50,7 @@ export default function LolCoachConfig() {
     const load = useCallback(async () => {
         try {
             const [s, st] = await Promise.all([api.get('/lol-coach/settings'), api.get('/lol-coach/state')]);
-            setSettings(s.data.settings); setMeta({ aiAvailable: s.data.aiAvailable, linkedAccounts: s.data.linkedAccounts, voiceAvailable: s.data.voiceAvailable, voices: s.data.voices ?? [] }); setState(st.data);
+            setSettings(s.data.settings); setMeta({ aiAvailable: s.data.aiAvailable, linkedAccounts: s.data.linkedAccounts, voiceAvailable: s.data.voiceAvailable, voiceStandardAvailable: !!s.data.voiceStandardAvailable, voicePremiumAvailable: !!s.data.voicePremiumAvailable, voices: s.data.voices ?? [] }); setState(st.data);
         } catch { setMessage({ text: t('loadError'), error: true }); }
         finally { setLoading(false); }
     }, []);
@@ -56,6 +61,7 @@ export default function LolCoachConfig() {
     }, []);
 
     const update = (patch: Partial<Settings>) => setSettings(p => p ? { ...p, ...patch } : p);
+    const toggleChat = (k: string) => { if (!settings) return; const has = settings.chatKinds.includes(k); update({ chatKinds: has ? settings.chatKinds.filter(x => x !== k) : [...settings.chatKinds, k] }); };
     const toggleKind = (k: string) => { if (!settings) return; const has = settings.voiceKinds.includes(k); update({ voiceKinds: has ? settings.voiceKinds.filter(x => x !== k) : [...settings.voiceKinds, k] }); };
     const save = async () => {
         if (!settings) return;
@@ -162,9 +168,29 @@ export default function LolCoachConfig() {
                         )}
                     </div>
                     <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                        <div>
+                            <div className={label}>{t('chat')}</div>
+                            <div className={muted}>{t('chatHint')}</div>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                {CHAT_KINDS.map(k => (
+                                    <Check key={k} checked={settings.chatKinds.includes(k)} onChange={() => toggleChat(k)} disabled={!canEdit} label={t(`chatKinds.${k}`)} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
                         <Check checked={settings.voiceEnabled} onChange={v => update({ voiceEnabled: v })} disabled={!canEdit || !meta?.voiceAvailable} label={t('voice')} hint={t('voiceHint')} />
                         {settings.voiceEnabled && (
                             <>
+                                <div>
+                                    <div className={label}>{t('voiceEngine')}</div>
+                                    <select className={`${input} mt-1`} value={settings.voiceEngine} onChange={e => update({ voiceEngine: e.target.value as Settings['voiceEngine'] })} disabled={!canEdit}>
+                                        <option value="standard" disabled={!meta?.voiceStandardAvailable}>{t('voiceEngines.standard')}</option>
+                                        <option value="premium" disabled={!meta?.voicePremiumAvailable}>{t('voiceEngines.premium')}</option>
+                                    </select>
+                                    <div className={`${muted} mt-1`}>{t(`voiceEngineHint.${settings.voiceEngine}`)}</div>
+                                </div>
+                                {settings.voiceEngine === 'premium' && (
                                 <div>
                                     <div className={label}>{t('voiceId')}</div>
                                     <select className={`${input} mt-1`} value={settings.voiceId} onChange={e => update({ voiceId: e.target.value })} disabled={!canEdit}>
@@ -172,6 +198,7 @@ export default function LolCoachConfig() {
                                         {(meta?.voices ?? []).map(v => <option key={v.id} value={v.id}>{v.name} · {v.language.toUpperCase()} · {v.gender === 'f' ? t('voiceFemale') : t('voiceMale')}</option>)}
                                     </select>
                                 </div>
+                                )}
                                 <div>
                                     <div className={label}>{t('voiceWhen')}</div>
                                     <div className="grid grid-cols-2 gap-2 mt-1">
@@ -183,7 +210,7 @@ export default function LolCoachConfig() {
                             </>
                         )}
                     </div>
-                    <p className="text-xs text-[#94a3b8]">{t('chatCommands')}: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>), <code>!vs &lt;{t('champion')}&gt;</code>, <code>!duo</code>, <code>!pool</code>, <code>!meta</code> {t('forEveryone')}; <code>!coach</code> {t('andSet')} <code>!meta &lt;{t('text')}&gt;</code> {t('forMods')}. {t('enableIn')}</p>
+                    <p className="text-xs text-[#94a3b8]">{t('chatCommands')}: <code>!matchup</code>, <code>!build</code> (<code>!runas</code>), <code>!vs &lt;{t('champion')}&gt;</code>, <code>!duo</code>, <code>!pool</code>, <code>!meta</code>, <code>!coach</code> {t('forEveryone')} ({t('coachCooldown')}); {t('setGoal')} <code>!meta &lt;{t('text')}&gt;</code> {t('forMods')}. {t('enableIn')}</p>
                 </div>
 
                 {/* En vivo */}
@@ -193,7 +220,7 @@ export default function LolCoachConfig() {
                         {state && (
                             <p className={`text-xs mb-3 ${state.hasCredits ? 'text-[#94a3b8]' : 'text-amber-500'}`}>
                                 {t('live.callsToday')}: {state.callsToday}
-                                {!state.hasCredits && <> · {t('live.noCredits')} <a href="/supporters" className="underline">{t('live.seePlans')}</a></>}
+                                {!state.hasCredits && <> · {t('live.noCredits')} <Link to="/credits" className="underline">{t('live.buyCredits')}</Link></>}
                             </p>
                         )}
                         {!state?.clientConnected ? <p className={muted}>{t('live.noClient')}</p> : (

@@ -239,7 +239,7 @@
     ]
   },
   "coach": {
-    "description": "Latest thing the LoL Coach said, or the post-game review (mods)",
+    "description": "Latest thing the LoL Coach said, or the post-game review (everyone, 30 s between uses except mods)",
     "aliases": [],
     "usageExamples": [
       "!coach"

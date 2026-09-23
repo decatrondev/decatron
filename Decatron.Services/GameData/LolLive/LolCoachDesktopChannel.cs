@@ -47,13 +47,17 @@ namespace Decatron.Services.GameData.LolLive
         private readonly LolPredictionService _predictions;
         private readonly LolLobbyScoutService _scout;
         private readonly IServiceScopeFactory _scopes;
+        private readonly Decatron.Core.Interfaces.IMessageSender _chat;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
+
+        /// <summary>Límite de un mensaje de Twitch (500) con margen para el prefijo.</summary>
+        private const int ChatMax = 480;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
             LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, LolPredictionService predictions, LolLobbyScoutService scout,
-            IServiceScopeFactory scopes, ILogger<LolCoachDesktopChannel> logger)
+            IServiceScopeFactory scopes, Decatron.Core.Interfaces.IMessageSender chat, ILogger<LolCoachDesktopChannel> logger)
         {
-            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _predictions = predictions; _scout = scout; _scopes = scopes; _logger = logger;
+            _store = store; _poller = poller; _cache = cache; _riot = riot; _brain = brain; _overlays = overlays; _voice = voice; _history = history; _predictions = predictions; _scout = scout; _scopes = scopes; _chat = chat; _logger = logger;
         }
 
         public string Name => ChannelName;
@@ -471,6 +475,27 @@ namespace Decatron.Services.GameData.LolLive
             var stats = _overlays.AllFor(conn.UserId).SelectMany(s => s.Accounts)
                 .FirstOrDefault(a => string.Equals(a.ExternalId, entry.Puuid, StringComparison.OrdinalIgnoreCase))?.Stats;
 
+            // Sin saldo el coach no puede pensar. Antes callaba sin decir nada y el streamer
+            // creía que estaba roto; ahora el Desktop lo avisa, una vez por día.
+            if (!await _brain.HasCreditsAsync(conn.UserId))
+            {
+                if (entry.NoCreditsNotifiedOn?.Date != DateTime.UtcNow.Date)
+                {
+                    entry.NoCreditsNotifiedOn = DateTime.UtcNow;
+                    var en = lang.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+                    await conn.SendAsync(Name, "coach", new
+                    {
+                        kind = "notice",
+                        comment = en
+                            ? "Out of credits: the coach is paused. Top up at decatron.net/credits and it comes back on its own."
+                            : "Sin créditos: el coach está en pausa. Recarga en decatron.net/credits y vuelve solo.",
+                        tips = Array.Empty<string>(),
+                        coachName = settings.CoachName,
+                    });
+                }
+                return;
+            }
+
             var extra = await HistoryContextAsync(conn.UserId, entry, kind, conn.Token);
             var info = await _brain.ThinkAsync(kind, entry.Phase, new LolCoachBrain.StreamerContext(conn.UserId, conn.Login, lang, settings, stats, entry.SummonerName, extra), conn.Token);
             if (info == null) return;
@@ -487,15 +512,54 @@ namespace Decatron.Services.GameData.LolLive
             });
             if (settings.ShowOnOverlay) await _poller.PushLivePhaseAsync(conn.UserId);
 
+            if (settings.PostsOn(info.Kind)) await PostToChatAsync(conn.Login, info, lang);
+
             // Voz: solo en los momentos elegidos; el audio va como MP3 en base64 por el mismo canal
             // (son clips de pocos segundos). Si no hay créditos, se manda el motivo y sigue en texto.
             if (settings.SpeaksOn(info.Kind))
             {
-                var (mp3, error) = await _voice.SpeakAsync(conn.UserId, settings, info, lang, conn.Token);
+                var (mp3, error, fellBack) = await _voice.SpeakAsync(conn.UserId, settings, info, lang, conn.Token);
+                if (fellBack) _logger.LogInformation("[LolCoach] {Login}: sin saldo para la voz premium, salió con la estándar", conn.Login);
                 if (mp3 != null)
                     await conn.SendAsync(Name, "coach-audio", new { kind = info.Kind, mime = "audio/mpeg", data = Convert.ToBase64String(mp3) });
                 else if (error != null)
                     await conn.SendAsync(Name, "coach-audio", new { kind = info.Kind, error });
+            }
+        }
+
+        /// <summary>
+        /// Lo que dijo el coach, en el chat del canal. Un solo mensaje por momento, corto, con
+        /// el nombre del coach delante para que se lea como suyo y no del bot. Nunca durante
+        /// la partida: los momentos que llegan acá son todos fuera de ella (política de Riot).
+        /// </summary>
+        private async Task PostToChatAsync(string login, LiveCoachInfo info, string lang)
+        {
+            try
+            {
+                var en = lang.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+                var partes = new List<string?> { info.Comment };
+                if (info.Kind == "final")
+                {
+                    partes.Add(info.Runes != null ? (en ? "Runes: " : "Runas: ") + info.Runes : null);
+                    partes.Add(info.Spells != null ? (en ? "Spells: " : "Hechizos: ") + info.Spells : null);
+                    partes.Add(info.Build != null ? "Build: " + info.Build : null);
+                }
+                else if (info.Kind == "postgame")
+                {
+                    partes.AddRange(info.Tips.Take(2));
+                }
+
+                var icono = info.Kind switch { "final" => "🎯", "postgame" => "📊", "briefing" => "☀️", "lobby" => "👥", _ => "🎮" };
+                var cuerpo = string.Join(" · ", partes.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Replace("\n", " ").Trim()));
+                var texto = $"{icono} {info.CoachName}: {cuerpo}";
+                if (texto.Length > ChatMax) texto = texto[..(ChatMax - 1)].TrimEnd() + "…";
+
+                await _chat.SendMessageAsync(login, texto);
+            }
+            catch (Exception ex)
+            {
+                // Un mensaje de chat que no sale no puede cortar la voz ni el Desktop.
+                _logger.LogWarning(ex, "[LolCoach] {Login}: no se pudo publicar en el chat ({Kind})", login, info.Kind);
             }
         }
 

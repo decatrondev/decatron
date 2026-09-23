@@ -239,7 +239,7 @@
     ]
   },
   "coach": {
-    "description": "Lo último que dijo el Coach de LoL o el resumen de la partida recién terminada (mods)",
+    "description": "Lo último que dijo el Coach de LoL o el resumen de la partida recién terminada (para todos, 30 s entre usos salvo mods)",
     "aliases": [],
     "usageExamples": [
       "!coach"

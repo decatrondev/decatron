@@ -58,6 +58,26 @@ public class LolCoachSettings
     [Column("voice_id"), MaxLength(60)]
     public string VoiceId { get; set; } = "";
 
+    /// <summary>
+    /// standard = Piper (voz propia de Decatron, no cobra créditos) · premium = Deepgram Aura
+    /// (cobra créditos). Con premium y sin saldo para la voz, el clip sale con Piper: el
+    /// coach no se queda mudo por falta de créditos de voz.
+    /// </summary>
+    [Column("voice_engine"), MaxLength(20)]
+    public string VoiceEngine { get; set; } = "standard";
+
+    /// <summary>
+    /// Qué momentos publica el bot en el chat, separados por coma: final, postgame, briefing,
+    /// lobby. Vacío = nada. Los comentarios de cada pick no están: son muchos y ensucian.
+    /// Publicar no cuesta nada extra: el texto ya se pagó al generarlo.
+    /// </summary>
+    [Column("chat_kinds"), MaxLength(60)]
+    public string ChatKinds { get; set; } = "final,postgame";
+
+    public static readonly string[] ChatKindOptions = { "final", "postgame", "briefing", "lobby" };
+
+    public bool PostsOn(string kind) => ChatKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(kind);
+
     /// <summary>Qué momentos van con voz, separados por coma: pick, my_turn, final, postgame.</summary>
     [Column("voice_kinds"), MaxLength(60)]
     public string VoiceKinds { get; set; } = "my_turn,final,postgame";
