@@ -401,6 +401,30 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Avisa a los overlays de una rueda que algo de ella cambió (aspecto, gajos,
+        /// encendido, inscritos del sorteo) para que se recarguen solos, sin que el
+        /// streamer tenga que refrescar la fuente de OBS.
+        ///
+        /// <para>Es un evento propio y no <c>ConfigurationChanged</c>: ese lo comparten
+        /// el timer y otros overlays del canal, y la rueda se recargaría con cada
+        /// cambio ajeno. El <c>slug</c> le dice a cada rueda en escena si el aviso era
+        /// para ella.</para>
+        /// </summary>
+        public async Task NotifyWheelChangedAsync(string channel, string slug)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"overlay_{channel}")
+                    .SendAsync("WheelConfigChanged", new { slug });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error enviando WheelConfigChanged a overlay_{channel}");
+            }
+        }
+
+        /// <summary>
         /// Avisa al overlay que arrancó un Happy Hour, para que muestre el indicador
         /// al instante en vez de esperar al resync periódico de 30s.
         /// </summary>

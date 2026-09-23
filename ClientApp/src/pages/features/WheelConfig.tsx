@@ -21,6 +21,7 @@ import {
     type NeedleShape, type NeedleSide,
     type Celebration, type Easing, type FontKey, type PresentationKey,
     type SoundKey, type SoundMode, type WheelVisual,
+    LAYOUT_ANIMATIONS, WHEEL_VISIBILITIES, type LayoutAnimation, type WheelVisibility,
 } from '../../components/wheel/visualConfig';
 import WheelCelebration from '../../components/wheel/WheelCelebration';
 import WheelFace from '../../components/wheel/WheelFace';
@@ -1157,6 +1158,7 @@ export default function WheelConfig() {
                             onVisual={patchVisual}
                             onPointer={patchPointer}
                             onSound={patchSound}
+                            mode={wheel.mode}
                             canHideWatermark={!!limits?.canHideWatermark}
                             onTestCelebration={() => setCelebNonce(n => n + 1)}
                             t={t}
@@ -3024,11 +3026,13 @@ function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t }: {
 /// El preview vive en la columna de al lado y usa el MISMO componente que el
 /// overlay, asi que cada cambio de color o de imagen se ve al instante sin tener
 /// que abrir OBS.
-function LookTab({ visual, onVisual, onPointer, onSound, canHideWatermark, onTestCelebration, t }: {
+function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWatermark, onTestCelebration, t }: {
     visual: WheelVisual;
     onVisual: (c: Partial<WheelVisual>) => void;
     onPointer: (c: Partial<WheelVisual['pointer']>) => void;
     onSound: (k: SoundKey, c: Partial<WheelVisual['sounds'][SoundKey]>) => void;
+    /** `prizes` o `raffle`: el Sorteo tiene su propio arranque y su propia celebracion. */
+    mode: string;
     canHideWatermark: boolean;
     onTestCelebration: () => void;
     t: any;
@@ -3436,6 +3440,30 @@ function LookTab({ visual, onVisual, onPointer, onSound, canHideWatermark, onTes
                     <h2 className="font-bold text-[#f8fafc]">{t('wheel.look.motionTitle')}</h2>
                 </div>
 
+                <Row label={t('wheel.look.visibility')} help={t(`wheel.look.visibilityHelp_${visual.visibility}`)}>
+                    <select
+                        value={visual.visibility}
+                        onChange={e => onVisual({ visibility: e.target.value as WheelVisibility })}
+                        className={FIELD}
+                    >
+                        {WHEEL_VISIBILITIES.map(v => (
+                            <option key={v} value={v}>{t(`wheel.look.visibility_${v}`)}</option>
+                        ))}
+                    </select>
+                    {visual.visibility === 'spin' && (
+                        <select
+                            value={visual.visibilityAnimation}
+                            onChange={e => onVisual({ visibilityAnimation: e.target.value as LayoutAnimation })}
+                            className={`${FIELD} ml-3`}
+                            aria-label={t('wheel.look.visibilityAnimation')}
+                        >
+                            {LAYOUT_ANIMATIONS.map(a => (
+                                <option key={a} value={a}>{t('wheel.look.visibilityAnimation')}: {t(`wheel.canvas.anim_${a}`)}</option>
+                            ))}
+                        </select>
+                    )}
+                </Row>
+
                 {pres.motion.spinSeconds && (
                 <Row label={t('wheel.look.spinSeconds')} help={t('wheel.look.spinSecondsHelp')}>
                     <input
@@ -3531,7 +3559,7 @@ function LookTab({ visual, onVisual, onPointer, onSound, canHideWatermark, onTes
                     </span>
                 </Row>
 
-                {soundsFor(pres).map(key => {
+                {soundsFor(pres, mode).map(key => {
                     const cfg = visual.sounds[key];
                     // spin_tick no admite sonido propio: se reproduce en bucle rapido
                     // mientras la rueda gira y un sample con cola suena espantoso
@@ -3544,7 +3572,9 @@ function LookTab({ visual, onVisual, onPointer, onSound, canHideWatermark, onTes
                                 <div className="flex-1 min-w-[160px]">
                                     <p className="text-sm font-medium text-[#f8fafc]">{t(`wheel.look.sound_${key}`)}</p>
                                     <p className="text-xs text-[#94a3b8] mt-0.5">
-                                        {soloDefault ? t('wheel.look.tickOnlyDefault') : t(`wheel.look.soundWhen_${key}`)}
+                                        {soloDefault
+                                            ? `${t(pres.key === 'card' ? 'wheel.look.soundWhen_spin_tick_card' : 'wheel.look.soundWhen_spin_tick')} ${t('wheel.look.tickOnlyDefault')}`
+                                            : t(`wheel.look.soundWhen_${key}`)}
                                     </p>
                                 </div>
 

@@ -9,8 +9,9 @@
  *
  * Es la primera presentación que **no** usa todos los ajustes de movimiento: no
  * hay vueltas que dar ni curva de frenada que elegir, así que el panel esconde
- * esos dos controles y deja solo la duración. Tampoco tiene tick ni frenada, y el
- * editor de sonidos se le queda en tres.
+ * esos dos controles y deja solo la duración. No tiene frenada, pero sí tick: el
+ * temblor va con un redoble que se acelera hasta que la carta se da vuelta. Sin él,
+ * el suspenso era un segundo de silencio entre el arranque y el revelado.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FONTS } from '../visualConfig';
@@ -18,6 +19,10 @@ import type { Presentation, PresentationProps } from './types';
 
 /** Qué parte de la duración se va en el temblor, antes de dar vuelta la carta. */
 const SUSPENSO = 0.55;
+
+/** Separacion entre golpes del redoble al empezar y al llegar al volteo, en ms. */
+const REDOBLE_LENTO = 210;
+const REDOBLE_RAPIDO = 60;
 
 function Card({ segments, visual, spin, phase, onSound, onFinished }: PresentationProps) {
     const rootRef = useRef<HTMLDivElement | null>(null);
@@ -56,12 +61,23 @@ function Card({ segments, visual, spin, phase, onSound, onFinished }: Presentati
         setTemblando(true);
 
         const total = v.spinSeconds * 1000;
-        const giro = window.setTimeout(() => { setTemblando(false); setVolteada(true); }, total * SUSPENSO);
+        const suspenso = total * SUSPENSO;
+        const giro = window.setTimeout(() => { setTemblando(false); setVolteada(true); }, suspenso);
+
+        // El redoble: golpes cada vez mas juntos, de REDOBLE_LENTO a REDOBLE_RAPIDO,
+        // hasta el momento del volteo. Se programa entero de antemano porque cada
+        // golpe depende solo del tiempo, no de nada que pase en pantalla.
+        const golpes: number[] = [];
+        for (let en = 90; en < suspenso - 40;) {
+            golpes.push(window.setTimeout(() => sonar('spin_tick'), en));
+            const avance = en / suspenso;
+            en += REDOBLE_LENTO + (REDOBLE_RAPIDO - REDOBLE_LENTO) * avance;
+        }
         // El aviso llega cuando la carta terminó de girar, no cuando empezó: la
         // tarjeta del ganador del overlay no puede adelantarse a la revelación.
         const fin = window.setTimeout(terminado, total);
 
-        return () => { window.clearTimeout(giro); window.clearTimeout(fin); };
+        return () => { window.clearTimeout(giro); window.clearTimeout(fin); golpes.forEach(window.clearTimeout); };
     }, [nonce]);
 
     if (segments.length === 0) return null;
@@ -162,6 +178,6 @@ export const cardPresentation: Presentation = {
     parts: { centerImage: true },
     // La carta se da vuelta y ya: no hay sorteo a la vista que senalar.
     pointer: 'none',
-    sounds: ['spin_start'],
+    sounds: ['spin_start', 'spin_tick'],
     Component: Card,
 };

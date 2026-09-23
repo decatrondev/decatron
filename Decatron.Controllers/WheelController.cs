@@ -301,6 +301,10 @@ namespace Decatron.Controllers
                 });
 
                 if (!ok) return NotFound(new { success = false, message = "Rueda no encontrada" });
+
+                // Aspecto, encendido y todo lo que se ve en pantalla: el overlay se
+                // recarga solo en vez de esperar a que refresquen la fuente de OBS.
+                await _wheels.NotifyOverlayAsync(channelId, actual.Slug);
                 return Ok(new { success = true });
             }
             catch (DbUpdateException ex)
@@ -326,8 +330,17 @@ namespace Decatron.Controllers
             try
             {
                 var channelId = GetChannelOwnerId();
+                var slug = await _db.Wheels.AsNoTracking()
+                    .Where(w => w.Id == id && w.ChannelId == channelId)
+                    .Select(w => w.Slug)
+                    .FirstOrDefaultAsync();
+
                 var ok = await _wheels.DeleteWheelAsync(channelId, id);
                 if (!ok) return NotFound(new { success = false, message = "Rueda no encontrada" });
+
+                // El overlay recarga, recibe 404 y se vacía: una rueda borrada no puede
+                // quedarse dibujada en la escena hasta el próximo refresco.
+                if (slug != null) await _wheels.NotifyOverlayAsync(channelId, slug);
                 return Ok(new { success = true });
             }
             catch (Exception ex)
@@ -392,6 +405,8 @@ namespace Decatron.Controllers
 
                 var ok = await _wheels.ReplaceSegmentsAsync(channelId, id, entities);
                 if (!ok) return NotFound(new { success = false, message = "Rueda no encontrada" });
+
+                await _wheels.NotifyOverlayAsync(channelId, id);
 
                 var segments = await _wheels.GetSegmentsAsync(id);
                 var pct = WheelService.EffectivePercentages(segments);
@@ -1402,8 +1417,18 @@ namespace Decatron.Controllers
                     return BadRequest(new { success = false, message = "Falta el nuevo identificador" });
 
                 var channelId = GetChannelOwnerId();
+                var anterior = await _db.Wheels.AsNoTracking()
+                    .Where(w => w.Id == id && w.ChannelId == channelId)
+                    .Select(w => w.Slug)
+                    .FirstOrDefaultAsync();
+
                 var final = await _wheels.ChangeSlugAsync(channelId, id, dto.Slug);
                 if (final == null) return NotFound(new { success = false, message = "Rueda no encontrada" });
+
+                // Al que hay que avisar es a la fuente con el slug VIEJO: recarga, no
+                // encuentra la rueda y se vacía, en vez de seguir mostrando una rueda
+                // que ya no va a girar nunca más con esa URL.
+                if (anterior != null && anterior != final) await _wheels.NotifyOverlayAsync(channelId, anterior);
 
                 _logger.LogInformation("🎡 [Rueda] Slug de la rueda {Id} cambiado a '{Slug}'", id, final);
 

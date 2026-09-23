@@ -53,7 +53,6 @@ function Ball({ segments, visual, spin, phase, onSound, onFinished }: Presentati
         const ease = EASINGS[v.easing];
         const inicio = performance.now();
         let cruzados = Math.floor(desde / slice);
-        let frenoSonado = false;
 
         const frame = (ahora: number) => {
             const t = Math.min(1, (ahora - inicio) / (duracion * 1000));
@@ -71,11 +70,6 @@ function Ball({ segments, visual, spin, phase, onSound, onFinished }: Presentati
             if (pasados > cruzados) {
                 cruzados = pasados;
                 sonar('spin_tick');
-            }
-
-            if (!frenoSonado && t > 0.72) {
-                frenoSonado = true;
-                sonar('spin_slowdown');
             }
 
             if (t < 1) {

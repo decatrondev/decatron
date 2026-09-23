@@ -90,7 +90,6 @@ function Grid({ segments, visual, spin, phase, onSound, onFinished }: Presentati
         const ease = EASINGS[v.easing];
         const inicio = performance.now();
         let ultimoSalto = -1;
-        let frenoSonado = false;
 
         const frame = (ahora: number) => {
             const t = Math.min(1, (ahora - inicio) / (duracion * 1000));
@@ -102,11 +101,6 @@ function Grid({ segments, visual, spin, phase, onSound, onFinished }: Presentati
                 // El tick es el salto. Se espacian solos al frenar, porque la curva
                 // avanza cada vez menos por frame — igual que los bordes de gajo.
                 if (salto > 0) sonar('spin_tick');
-            }
-
-            if (!frenoSonado && t > 0.72) {
-                frenoSonado = true;
-                sonar('spin_slowdown');
             }
 
             if (t < 1) {

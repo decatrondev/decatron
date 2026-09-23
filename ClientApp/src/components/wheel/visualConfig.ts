@@ -16,7 +16,11 @@ export type SoundKey =
     | 'spin_tick'
     | 'spin_slowdown'
     | 'reveal'
-    | 'win_celebration';
+    | 'win_celebration'
+    // Solo en modo Sorteo, donde reemplazan a `spin_start` y a `win_celebration`:
+    // sortear a una persona no suena igual que girar por un premio.
+    | 'raffle_draw'
+    | 'raffle_winner';
 
 /** `default` = el de Decatron · `mute` = silencio · `custom` = uno del streamer. */
 export type SoundMode = 'default' | 'mute' | 'custom';
@@ -457,6 +461,18 @@ export const DEFAULT_POINTER: WheelPointer = {
 export type Easing = 'quint' | 'cubic' | 'expo';
 export type Celebration = 'confetti' | 'flash' | 'none';
 
+/**
+ * Cuando se ve la rueda en OBS.
+ *
+ *   `always` - siempre en pantalla, girando o en reposo.
+ *   `spin`   - invisible en reposo. Entra al llegar un giro y sale cuando termina
+ *              de mostrar al ganador. Con giros en cola se queda hasta el ultimo:
+ *              salir y volver a entrar entre dos giros seguidos se veria como un
+ *              parpadeo.
+ */
+export type WheelVisibility = 'always' | 'spin';
+export const WHEEL_VISIBILITIES: WheelVisibility[] = ['spin', 'always'];
+
 export interface WheelVisual {
     /** Colores de reserva para los gajos que no eligieron uno propio. */
     palette: string[];
@@ -501,6 +517,11 @@ export interface WheelVisual {
     /** Escribir las etiquetas en mayusculas. */
     textUppercase: boolean;
 
+    /** Ver `WheelVisibility`. */
+    visibility: WheelVisibility;
+    /** Como entra y sale la rueda entera en modo `spin`. Las mismas del lienzo. */
+    visibilityAnimation: LayoutAnimation;
+
     spinSeconds: number;
     revealSeconds: number;
     /** Vueltas completas antes de frenar. */
@@ -530,13 +551,26 @@ export interface WheelVisual {
     } & Record<SoundKey, SoundSetting>;
 }
 
-/** Los archivos del pack de Decatron. No cuentan contra la cuota del streamer. */
+/**
+ * Los archivos del pack de Decatron. No cuentan contra la cuota del streamer.
+ *
+ * El `?v=` es para la cache de OBS: al reemplazar un archivo con el mismo nombre,
+ * la fuente seguiria sonando el viejo. Subirlo cada vez que se cambia un audio.
+ *
+ * v2: la frenada era una grabacion de diez clics cada vez mas separados —otra
+ * rueda girando— que sonaba encima de los ticks reales y se oia como si la rueda
+ * arrancara de nuevo al salir el premio. Ahora es un roce continuo sin golpes: la
+ * desaceleracion ya la marcan los ticks de verdad. El revelado era un pitido plano
+ * y ahora es una campana de dos notas.
+ */
 export const DEFAULT_SOUND_FILES: Record<SoundKey, string> = {
     spin_start: '/assets/wheel/sounds/spin_start.mp3',
     spin_tick: '/assets/wheel/sounds/spin_tick.mp3',
-    spin_slowdown: '/assets/wheel/sounds/spin_slowdown.mp3',
-    reveal: '/assets/wheel/sounds/reveal.mp3',
+    spin_slowdown: '/assets/wheel/sounds/spin_slowdown.mp3?v=2',
+    reveal: '/assets/wheel/sounds/reveal.mp3?v=2',
     win_celebration: '/assets/wheel/sounds/win_celebration.mp3',
+    raffle_draw: '/assets/wheel/sounds/raffle_draw.mp3',
+    raffle_winner: '/assets/wheel/sounds/raffle_winner.mp3',
 };
 
 /**
@@ -552,7 +586,15 @@ export const SOUND_KEYS: SoundKey[] = [
     'spin_slowdown',
     'reveal',
     'win_celebration',
+    'raffle_draw',
+    'raffle_winner',
 ];
+
+/** Los sonidos que solo existen en modo Sorteo, y a cual reemplaza cada uno. */
+export const RAFFLE_SOUND_FOR: Partial<Record<SoundKey, SoundKey>> = {
+    spin_start: 'raffle_draw',
+    win_celebration: 'raffle_winner',
+};
 
 /** Paleta de escenario de concurso: tinta profunda, latón, magenta y cian. */
 export const DEFAULT_PALETTE = ['#E8B455', '#FF3D7F', '#3DE0FF', '#8B7BF7', '#4ADE80', '#FF8A3D'];
@@ -582,6 +624,12 @@ export const DEFAULT_VISUAL: WheelVisual = {
     textOutlineColor: null,
     textUppercase: true,
 
+    // `always` y no `spin`: es lo que ve una rueda guardada antes de que existiera
+    // la opcion, y cambiarselo haria desaparecer una rueda de una escena ya armada.
+    // Las ruedas NUEVAS nacen en `spin` porque el backend les guarda la clave.
+    visibility: 'always',
+    visibilityAnimation: 'zoom',
+
     spinSeconds: 5.2,
     revealSeconds: 4.5,
     turns: 4,
@@ -605,6 +653,8 @@ export const DEFAULT_VISUAL: WheelVisual = {
         spin_slowdown: { mode: 'default', volume: 0.55 },
         reveal: { mode: 'default', volume: 1 },
         win_celebration: { mode: 'default', volume: 1 },
+        raffle_draw: { mode: 'default', volume: 1 },
+        raffle_winner: { mode: 'default', volume: 1 },
     },
 };
 
@@ -800,7 +850,7 @@ export function resolveVisual(raw: unknown): WheelVisual {
         const cfg = (s[k] && typeof s[k] === 'object' ? s[k] : {}) as Record<string, unknown>;
         const base = DEFAULT_VISUAL.sounds[k];
 
-        let mode = cfg.mode === 'mute' || cfg.mode === 'custom' ? cfg.mode : 'default';
+        let mode: SoundMode = cfg.mode === 'mute' || cfg.mode === 'custom' ? cfg.mode : 'default';
 
         // Un tick "propio" guardado por una versión vieja, o a mano por la API, se
         // trata como el de Decatron en vez de reproducir algo que va a sonar mal.
@@ -833,6 +883,11 @@ export function resolveVisual(raw: unknown): WheelVisual {
         textOutline: numero(v.textOutline, DEFAULT_VISUAL.textOutline, 0, 6),
         textOutlineColor: typeof v.textOutlineColor === 'string' && v.textOutlineColor.trim() !== '' ? v.textOutlineColor : null,
         textUppercase: typeof v.textUppercase === 'boolean' ? v.textUppercase : DEFAULT_VISUAL.textUppercase,
+
+        visibility: v.visibility === 'spin' || v.visibility === 'always' ? v.visibility : DEFAULT_VISUAL.visibility,
+        visibilityAnimation: LAYOUT_ANIMATIONS.includes(v.visibilityAnimation as LayoutAnimation)
+            ? v.visibilityAnimation as LayoutAnimation
+            : DEFAULT_VISUAL.visibilityAnimation,
 
         spinSeconds: numero(v.spinSeconds, DEFAULT_VISUAL.spinSeconds, 1, 20),
         revealSeconds: numero(v.revealSeconds, DEFAULT_VISUAL.revealSeconds, 1, 30),

@@ -12,7 +12,7 @@
  * componente **no compila**. Es a propósito — una clave que el panel ofrece y
  * el overlay no sabe dibujar es una rueda en negro en mitad de un directo.
  */
-import { SOUND_KEYS, type PresentationKey, type SoundKey, type WheelVisual } from '../visualConfig';
+import { RAFFLE_SOUND_FOR, SOUND_KEYS, type PresentationKey, type SoundKey, type WheelVisual } from '../visualConfig';
 import { wheelPresentation } from './WheelPresentation';
 import { reelPresentation, stripPresentation } from './StripPresentation';
 import { gridPresentation } from './GridPresentation';
@@ -43,9 +43,18 @@ export function presentationOf(visual: WheelVisual): Presentation {
 }
 
 /**
- * Qué sonidos tiene sentido configurar en esta presentación, en el orden de
- * siempre. Una que no mueva nada no ofrece tick ni frenada.
+ * Qué sonidos tiene sentido configurar en esta presentación y este modo, en el
+ * orden de siempre. Una que no mueva nada no ofrece tick ni frenada, y una rueda
+ * de Sorteo ofrece los suyos en el lugar de arranque y celebración: mostrar los
+ * dos juegos haría creer que suenan los cuatro.
  */
-export function soundsFor(p: Presentation): SoundKey[] {
-    return SOUND_KEYS.filter(k => p.sounds.includes(k) || UNIVERSAL_SOUNDS.includes(k));
+export function soundsFor(p: Presentation, mode: string = 'prizes'): SoundKey[] {
+    const propios = SOUND_KEYS.filter(k => p.sounds.includes(k) || UNIVERSAL_SOUNDS.includes(k));
+    if (mode !== 'raffle') return propios;
+    return propios.map(k => RAFFLE_SOUND_FOR[k] ?? k);
+}
+
+/** El sonido que de verdad suena para un evento, según el modo del giro. */
+export function soundForMode(key: SoundKey, mode: string | undefined): SoundKey {
+    return mode === 'raffle' ? RAFFLE_SOUND_FOR[key] ?? key : key;
 }

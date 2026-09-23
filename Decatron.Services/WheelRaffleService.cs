@@ -251,6 +251,7 @@ namespace Decatron.Services
                     };
             }
 
+            var esNueva = entrada == null;
             if (entrada == null)
             {
                 entrada = new WheelRaffleEntry
@@ -270,6 +271,10 @@ namespace Decatron.Services
             entrada.WeightBreakdown = desglose;
 
             await _db.SaveChangesAsync();
+
+            // Solo un inscrito nuevo cambia lo que se dibuja; un boleto extra de alguien
+            // que ya estaba pesa distinto pero ocupa el mismo gajo.
+            if (esNueva) await AvisarOverlayAsync(wheelId);
 
             return new JoinOutcome
             {
@@ -443,6 +448,28 @@ namespace Decatron.Services
         // POOL
         // ====================================================================
 
+        /// <summary>
+        /// Avisa al overlay que el pool cambió, para que la rueda en reposo muestre a
+        /// los inscritos de ahora y no a los de cuando se abrió la escena.
+        /// </summary>
+        private async Task AvisarOverlayAsync(int wheelId)
+        {
+            try
+            {
+                var destino = await _db.Wheels.AsNoTracking()
+                    .Where(w => w.Id == wheelId)
+                    .Join(_db.Users, w => w.ChannelId, u => u.Id, (w, u) => new { w.Slug, u.Login })
+                    .FirstOrDefaultAsync();
+                if (destino != null)
+                    await _overlays.NotifyWheelChangedAsync(destino.Login.ToLowerInvariant(), destino.Slug);
+            }
+            catch (Exception ex)
+            {
+                // Un aviso que no sale no puede tumbar una inscripción ya guardada.
+                _logger.LogWarning(ex, "🎡 [Sorteo] No se pudo avisar al overlay de la rueda {Id}", wheelId);
+            }
+        }
+
         public async Task<List<WheelRaffleEntry>> GetEntriesAsync(int wheelId, bool soloEnJuego = false)
         {
             var q = _db.WheelRaffleEntries.AsNoTracking().Where(e => e.WheelId == wheelId);
@@ -460,6 +487,7 @@ namespace Decatron.Services
 
             _db.WheelRaffleEntries.Remove(entrada);
             await _db.SaveChangesAsync();
+            await AvisarOverlayAsync(wheelId);
             return true;
         }
 
@@ -473,6 +501,7 @@ namespace Decatron.Services
             foreach (var seguida in _db.ChangeTracker.Entries<WheelRaffleEntry>().ToList())
                 seguida.State = EntityState.Detached;
 
+            if (borradas > 0) await AvisarOverlayAsync(wheelId);
             return borradas;
         }
 
@@ -628,6 +657,11 @@ namespace Decatron.Services
                 }
                 await _db.SaveChangesAsync();
             }
+
+            // Los ganadores que salieron del pool no pueden quedar dibujados en reposo.
+            // El overlay aplica la recarga cuando termina de mostrar la tanda, no en
+            // mitad de un giro.
+            await AvisarOverlayAsync(wheelId);
 
             _logger.LogInformation("🎡 [Sorteo] '{Rueda}' sorteó {Cuantos} ganador(es) de {Pool}: {Ganadores}",
                 wheel.Name, ganadores.Count, pool.Count, string.Join(", ", ganadores));

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import WheelCelebration from '../components/wheel/WheelCelebration';
-import { presentationOf, type ActiveSpin, type Presentation } from '../components/wheel/presentations';
+import { presentationOf, soundForMode, type ActiveSpin, type Presentation } from '../components/wheel/presentations';
 import {
-    esVideoUrl, FONTS, fitBoxToAspect, resolveVisual, SOUND_KEYS, soundUrl,
+    esVideoUrl, FONTS, fitBoxToAspect, RAFFLE_SOUND_FOR, resolveVisual, SOUND_KEYS, soundUrl,
     WATERMARK_BASE_HEIGHT, WINNER_BASE_HEIGHT,
     type LayoutBox, type LayoutMedia, type LayoutText, type PieceWhen,
     type SoundKey, type WheelLayout, type WheelVisual,
@@ -50,7 +50,35 @@ interface SpinEvent {
     poolSize?: number;
     drawIndex?: number;
     drawTotal?: number;
+
+    // --- solo en modo Premios ---
+    // Los gajos sobre los que el backend calculo `segmentIndex`. Mismo motivo que
+    // en Sorteo: si el streamer edito los gajos y esta fuente todavia tenia la
+    // lista vieja, la aguja pararia en un gajo y la tarjeta anunciaria otro.
+    wheelSegments?: Segment[];
 }
+
+/** Lo que devuelve `/api/wheel/overlay`, ya reducido a lo que el overlay usa. */
+interface OverlayData {
+    segments: Segment[];
+    visual: unknown;
+    /** `prizes` o `raffle`. Decide que sonidos precargar. */
+    mode: string | null;
+}
+
+/** Cuanto dura la entrada y la salida de la rueda entera en modo `spin`. */
+const ENTRADA_MS = 520;
+const SALIDA_MS = 460;
+
+/**
+ * Minimo entre dos ticks. Al arrancar, una rueda con muchos gajos cruza un borde
+ * en cada frame: sesenta ticks por segundo ya no se oyen como ticks sino como un
+ * zumbido. Veintidos por segundo sigue leyendose como velocidad.
+ */
+const TICK_MIN_MS = 45;
+
+/** Espera tras un aviso de cambio antes de recargar: agrupa una rafaga de inscritos. */
+const RECARGA_MS = 350;
 
 export default function WheelOverlay() {
     const [params] = useSearchParams();
@@ -59,10 +87,16 @@ export default function WheelOverlay() {
 
     const [segments, setSegments] = useState<Segment[]>([]);
     const [visualRaw, setVisualRaw] = useState<unknown>(null);
+    const [mode, setMode] = useState<string | null>(null);
 
     // El aspecto configurado por el streamer, ya completado con los defaults de
     // Decatron. Si el streamer no toco nada, esto es exactamente el pack de fabrica.
     const visual: WheelVisual = useMemo(() => resolveVisual(visualRaw), [visualRaw]);
+
+    // Los callbacks del giro viven mas que un render (timers de varios segundos):
+    // leen el aspecto de aca para no quedarse con el de cuando arranco el giro.
+    const visualRef = useRef(visual);
+    visualRef.current = visual;
 
     // Quién dibuja. El overlay no sabe si es una rueda, una tira o una rejilla:
     // solo le pide que anime hasta el indice ganador y le avise cuando llego.
@@ -83,104 +117,266 @@ export default function WheelOverlay() {
     // Contador y no booleano: dos giros seguidos tienen que celebrarse dos veces.
     const [celebracion, setCelebracion] = useState(0);
 
+    // Solo cuenta en modo `spin`. `null` es "todavia no aparecio nunca": sin
+    // animacion de salida, para que abrir la escena no haga salir una rueda que
+    // nadie vio entrar.
+    const [shown, setShown] = useState<boolean | null>(null);
+    const shownRef = useRef(false);
+
     const queueRef = useRef<SpinEvent[]>([]);
     const busyRef = useRef(false);
     /** El evento que se esta animando ahora, para revelarlo cuando termine. */
     const currentRef = useRef<SpinEvent | null>(null);
     const nonceRef = useRef(0);
+    /**
+     * Una recarga que llego en mitad de un giro. Se aplica cuando la cola se vacia:
+     * cambiar los gajos o el aspecto con la rueda girando la haria saltar, o parar
+     * en un gajo que ya no esta donde estaba.
+     */
+    const pendingRef = useRef<OverlayData | null>(null);
 
     // ----------------------------------------------------------------
     // Audio
     // ----------------------------------------------------------------
     // WebAudio y no <audio>: el tick se dispara hasta 20 veces por segundo y un
     // elemento HTML no puede re-arrancar tan rápido sin cortarse a sí mismo.
+    //
+    // El contexto se crea UNA vez. Antes se recreaba con cada cambio de aspecto y
+    // descargaba los cinco sonidos de nuevo: un aviso de recarga justo antes de un
+    // giro lo dejaba mudo. Los buffers se guardan por URL, asi que cambiar un
+    // volumen no descarga nada y cambiar un sonido descarga solo ese.
     const ctxRef = useRef<AudioContext | null>(null);
-    const buffersRef = useRef<Partial<Record<SoundKey, AudioBuffer>>>({});
+    const buffersRef = useRef(new Map<string, AudioBuffer>());
+    const cargandoRef = useRef(new Set<string>());
+    const lastTickRef = useRef(0);
 
     useEffect(() => {
-        let cancelled = false;
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
         ctxRef.current = ctx;
-
-        (async () => {
-            // Se precarga lo que este configurado AHORA: el que el streamer silencio
-            // no se descarga, y el que reemplazo por uno propio se descarga en lugar
-            // del de Decatron. Descargar los cinco de fabrica igual seria trafico
-            // tirado en cada arranque de OBS.
-            for (const key of SOUND_KEYS) {
-                const url = soundUrl(visual, key);
-                if (!url) continue;
-                try {
-                    const res = await fetch(url);
-                    const buf = await ctx.decodeAudioData(await res.arrayBuffer());
-                    if (!cancelled) buffersRef.current[key] = buf;
-                } catch {
-                    // Un sonido que no carga no puede impedir que la rueda gire.
-                }
-            }
-        })();
 
         // OBS arranca el contexto suspendido más veces de las que debería.
         const wake = () => ctx.state === 'suspended' && ctx.resume();
         const timer = window.setInterval(wake, 1000);
 
         return () => {
-            cancelled = true;
             window.clearInterval(timer);
+            ctxRef.current = null;
             ctx.close();
         };
-    }, [visual]);
+    }, []);
 
-    const play = useCallback((key: SoundKey) => {
+    const cargar = useCallback(async (url: string) => {
         const ctx = ctxRef.current;
-        const buf = buffersRef.current[key];
-        if (!ctx || !buf) return;
-        if (visual.sounds[key].mode === 'mute') return;
+        if (!ctx || buffersRef.current.has(url) || cargandoRef.current.has(url)) return;
+        cargandoRef.current.add(url);
+        try {
+            const res = await fetch(url);
+            if (!res.ok) return;
+            buffersRef.current.set(url, await ctx.decodeAudioData(await res.arrayBuffer()));
+        } catch {
+            // Un sonido que no carga no puede impedir que la rueda gire.
+        } finally {
+            cargandoRef.current.delete(url);
+        }
+    }, []);
 
-        const src = ctx.createBufferSource();
-        const gain = ctx.createGain();
+    // Se precarga lo que este configurado AHORA: el que el streamer silencio no se
+    // descarga, y el que reemplazo por uno propio se descarga en lugar del de
+    // Decatron.
+    // Y solo los del modo de esta rueda: una de Premios nunca va a sonar los del
+    // Sorteo, ni al reves.
+    useEffect(() => {
+        for (const key of SOUND_KEYS) {
+            if (soundForMode(key, mode ?? undefined) !== key) continue;
+            if (mode !== 'raffle' && Object.values(RAFFLE_SOUND_FOR).includes(key)) continue;
+            const url = soundUrl(visual, key);
+            if (url) cargar(url);
+        }
+    }, [visual, mode, cargar]);
+
+    /** El buffer y el volumen final de un sonido, o null si no hay que sonar. */
+    const preparar = useCallback((key: SoundKey) => {
+        const ctx = ctxRef.current;
+        const v = visualRef.current;
+        if (!ctx) return null;
+        const cfg = v.sounds[key];
+        if (cfg.mode === 'mute') return null;
+        const url = soundUrl(v, key);
+        const buf = url ? buffersRef.current.get(url) : undefined;
+        if (!buf) {
+            if (url) cargar(url);
+            return null;
+        }
         // Volumen por evento por el maestro: el streamer baja todo de una o afina
         // solo el que le molesta, sin tener que tocar los cinco.
-        gain.gain.value = (visual.sounds[key].volume ?? 1) * visual.sounds.master;
-        src.buffer = buf;
-        src.connect(gain).connect(ctx.destination);
+        return { ctx, buf, volume: (cfg.volume ?? 1) * v.sounds.master };
+    }, [cargar]);
+
+    const play = useCallback((pedido: SoundKey) => {
+        // En modo Sorteo el arranque y la celebracion tienen sonido propio. Se
+        // traduce aca, en un solo sitio, para que ninguna presentacion tenga que
+        // saber en que modo esta.
+        const key = soundForMode(pedido, currentRef.current?.mode);
+
+        if (key === 'spin_tick') {
+            const ahora = performance.now();
+            if (ahora - lastTickRef.current < TICK_MIN_MS) return;
+            lastTickRef.current = ahora;
+        }
+
+        const p = preparar(key);
+        if (!p) return;
+        const src = p.ctx.createBufferSource();
+        const gain = p.ctx.createGain();
+        gain.gain.value = p.volume;
+        src.buffer = p.buf;
+        src.connect(gain).connect(p.ctx.destination);
         src.start();
-    }, [visual]);
+    }, [preparar]);
+
+    /**
+     * La frenada, programada para que TERMINE cuando la presentacion se detiene.
+     *
+     * Antes cada presentacion la disparaba al 72% del tiempo. Con la curva de
+     * fabrica la rueda ya esta casi quieta en ese punto, y como el audio dura casi
+     * dos segundos se montaba encima del revelado. Ahora arranca cuanto antes haga
+     * falta para acabar a tiempo —nunca antes de un tercio del giro, que es cuando
+     * todavia va rapido— y si el giro es mas corto que el audio, se apaga con un
+     * fundido justo al parar en vez de cortarse seco.
+     */
+    const programarFrenada = useCallback((segundos: number) => {
+        const p = preparar('spin_slowdown');
+        if (!p) return;
+
+        const ahora = p.ctx.currentTime;
+        const inicio = ahora + Math.max(segundos * 0.35, segundos - p.buf.duration);
+        const fin = ahora + segundos;
+
+        const src = p.ctx.createBufferSource();
+        const gain = p.ctx.createGain();
+        gain.gain.setValueAtTime(p.volume, ahora);
+        gain.gain.setValueAtTime(p.volume, fin);
+        gain.gain.linearRampToValueAtTime(0, fin + 0.25);
+        src.buffer = p.buf;
+        src.connect(gain).connect(p.ctx.destination);
+        src.start(inicio);
+        src.stop(fin + 0.3);
+    }, [preparar]);
 
     // ----------------------------------------------------------------
     // Datos
     // ----------------------------------------------------------------
+    const aplicar = useCallback((data: OverlayData) => {
+        setSegments(data.segments);
+        setVisualRaw(data.visual);
+        setMode(data.mode);
+    }, []);
+
+    const reintentoRef = useRef<number | null>(null);
+    const esperaRef = useRef(5000);
+
     const loadData = useCallback(async () => {
         if (!channel || !slug) return;
+        if (reintentoRef.current) { window.clearTimeout(reintentoRef.current); reintentoRef.current = null; }
+
+        let data: OverlayData | null;
         try {
             const res = await fetch(`/api/wheel/overlay?channel=${encodeURIComponent(channel)}&wheel=${encodeURIComponent(slug)}`);
-            if (!res.ok) return;
-            const json = await res.json();
-            if (json?.success) {
-                setSegments(json.data.segments || []);
-                setVisualRaw(json.data.wheel?.visual ?? null);
+            if (res.status === 404) {
+                // La rueda no existe o esta apagada: el overlay se vacia en vez de
+                // quedarse mostrando la ultima que vio. Cuando la enciendan, el aviso
+                // del backend la trae de vuelta.
+                data = { segments: [], visual: null, mode: null };
+            } else if (!res.ok) {
+                throw new Error(String(res.status));
+            } else {
+                const json = await res.json();
+                if (!json?.success) throw new Error('respuesta invalida');
+                data = {
+                    segments: json.data.segments || [],
+                    visual: json.data.wheel?.visual ?? null,
+                    mode: json.data.wheel?.mode ?? null,
+                };
             }
+            esperaRef.current = 5000;
         } catch {
-            // Sin datos el overlay se queda invisible, que es mejor que una rueda rota.
+            // Servidor caido o red cortada al abrir la escena: se reintenta solo, con
+            // espera creciente, en vez de quedarse en blanco hasta un refresco manual.
+            reintentoRef.current = window.setTimeout(loadData, esperaRef.current);
+            esperaRef.current = Math.min(esperaRef.current * 2, 60000);
+            return;
         }
-    }, [channel, slug]);
 
-    useEffect(() => { loadData(); }, [loadData]);
+        if (busyRef.current) pendingRef.current = data;
+        else aplicar(data);
+    }, [channel, slug, aplicar]);
+
+    useEffect(() => {
+        loadData();
+        return () => { if (reintentoRef.current) window.clearTimeout(reintentoRef.current); };
+    }, [loadData]);
 
     // ----------------------------------------------------------------
     // El giro
     // ----------------------------------------------------------------
+    const startRef = useRef<number | null>(null);
+
     const runSpin = useCallback((ev: SpinEvent) => {
-        const count = ev.segmentCount || segments.length;
+        // El evento trae la lista sobre la que se calculo el indice (en Sorteo, los
+        // inscritos; en Premios, los gajos de ahora). Se adopta AL GIRAR y no al
+        // recibirlo: si llegara encolado, cambiaria la rueda que esta girando.
+        const lista: Segment[] | null = ev.segments && ev.segments.length > 0
+            ? ev.segments.map((sl, i) => ({ id: -(i + 1), label: sl.label, color: null, icon: null }))
+            : ev.wheelSegments && ev.wheelSegments.length > 0
+                ? ev.wheelSegments
+                : null;
+
+        const count = ev.segmentCount || lista?.length || 0;
         if (count === 0) return;
 
         busyRef.current = true;
         currentRef.current = ev;
+        if (lista) setSegments(lista);
         setWinner(null);
-        setPhase('spinning');
-        nonceRef.current += 1;
-        setActiveSpin({ nonce: nonceRef.current, segmentIndex: ev.segmentIndex, segmentCount: count });
-    }, [segments.length]);
+
+        const arrancar = () => {
+            startRef.current = null;
+            setPhase('spinning');
+            nonceRef.current += 1;
+            setActiveSpin({ nonce: nonceRef.current, segmentIndex: ev.segmentIndex, segmentCount: count });
+            if (presentationOf(visualRef.current).sounds.includes('spin_slowdown')) {
+                programarFrenada(visualRef.current.spinSeconds);
+            }
+        };
+
+        // En modo `spin` la rueda primero entra y despues gira: girar durante la
+        // entrada haria que el espectador se perdiera el arranque.
+        const v = visualRef.current;
+        if (v.visibility === 'spin' && !shownRef.current) {
+            shownRef.current = true;
+            setShown(true);
+            setPhase('idle');
+            startRef.current = window.setTimeout(arrancar, v.visibilityAnimation === 'none' ? 0 : ENTRADA_MS);
+        } else {
+            arrancar();
+        }
+    }, [programarFrenada]);
+
+    /** Vuelve a reposo y sigue con la cola, o aplica la recarga que estaba esperando. */
+    const reposo = useCallback(() => {
+        setPhase('idle');
+        setWinner(null);
+        setActiveSpin(null);
+        busyRef.current = false;
+        currentRef.current = null;
+
+        const next = queueRef.current.shift();
+        if (next) { runSpin(next); return; }
+
+        const pendiente = pendingRef.current;
+        pendingRef.current = null;
+        if (pendiente) aplicar(pendiente);
+    }, [runSpin, aplicar]);
 
     /** La presentacion llego al ganador. De aca en adelante es igual en todas. */
     const handleFinished = useCallback(() => {
@@ -194,33 +390,34 @@ export default function WheelOverlay() {
         window.setTimeout(() => play('win_celebration'), 220);
 
         window.setTimeout(() => {
-            setPhase('idle');
-            setWinner(null);
-            setActiveSpin(null);
-            busyRef.current = false;
-            currentRef.current = null;
-            const next = queueRef.current.shift();
-            if (next) runSpin(next);
-        }, visual.revealSeconds * 1000);
-    }, [play, runSpin, visual.revealSeconds]);
+            const v = visualRef.current;
+            // Con giros en cola, en modo `spin` la rueda se queda en pantalla: salir y
+            // volver a entrar entre dos giros seguidos se veria como un parpadeo.
+            if (v.visibility === 'spin' && queueRef.current.length === 0) {
+                shownRef.current = false;
+                setShown(false);
+                window.setTimeout(reposo, v.visibilityAnimation === 'none' ? 0 : SALIDA_MS);
+            } else {
+                reposo();
+            }
+        }, visualRef.current.revealSeconds * 1000);
+    }, [play, reposo]);
 
     const enqueue = useCallback((ev: SpinEvent) => {
         if (ev.slug !== slug) return;   // otra rueda del mismo canal
 
-        // El sorteo trae su lista: se adopta antes de girar para que lo que se dibuja
-        // sea exactamente sobre lo que se calculo el indice del ganador.
-        if (ev.segments && ev.segments.length > 0) {
-            setSegments(ev.segments.map((sl, i) => ({
-                id: -(i + 1),
-                label: sl.label,
-                color: null,
-                icon: null,
-            })));
-        }
-
         if (busyRef.current) queueRef.current.push(ev);
         else runSpin(ev);
     }, [runSpin, slug]);
+
+    // Si el streamer cambia a "siempre visible" con la rueda escondida, aparece.
+    // Al volver despues a "solo al girar", arranca escondida y no con el estado
+    // que tenia antes del cambio.
+    useEffect(() => {
+        if (visual.visibility === 'always') { shownRef.current = false; setShown(null); }
+    }, [visual.visibility]);
+
+    useEffect(() => () => { if (startRef.current) window.clearTimeout(startRef.current); }, []);
 
     // ----------------------------------------------------------------
     // SignalR
@@ -229,6 +426,13 @@ export default function WheelOverlay() {
         if (!channel) return;
         let connection: signalR.HubConnection | null = null;
         let alive = true;
+        let recarga: number | null = null;
+
+        // Una rafaga de avisos (diez inscritos en un segundo) es UNA recarga.
+        const recargarPronto = () => {
+            if (recarga) window.clearTimeout(recarga);
+            recarga = window.setTimeout(() => { recarga = null; loadData(); }, RECARGA_MS);
+        };
 
         const connect = async () => {
             try {
@@ -238,7 +442,12 @@ export default function WheelOverlay() {
                     .build();
 
                 connection.on('WheelSpin', (data: SpinEvent) => enqueue(data));
-                connection.on('ConfigurationChanged', () => loadData());
+                // Solo el aviso de ESTA rueda. `ConfigurationChanged` ya no se
+                // escucha: lo mandan el timer y otros overlays del canal, y la rueda
+                // se recargaba con cada cambio ajeno.
+                connection.on('WheelConfigChanged', (data: { slug?: string }) => {
+                    if ((data?.slug || '').toLowerCase() === slug) recargarPronto();
+                });
 
                 connection.onreconnected(async () => {
                     await connection?.invoke('JoinChannel', channel);
@@ -258,9 +467,16 @@ export default function WheelOverlay() {
         connect();
         return () => {
             alive = false;
+            if (recarga) window.clearTimeout(recarga);
             connection?.stop();
         };
-    }, [channel, enqueue, loadData]);
+    }, [channel, slug, enqueue, loadData]);
+
+    // En modo `spin` la rueda solo se ve mientras hay algo que mostrar.
+    const enEscena = visual.visibility === 'always' || shown === true;
+    const claseEscena = visual.visibility === 'always'
+        ? 'is-always'
+        : shown === true ? 'is-on' : shown === false ? 'is-off' : '';
 
     if (!channel || !slug || segments.length === 0) return null;
 
@@ -295,7 +511,7 @@ export default function WheelOverlay() {
     };
 
     return (
-        <div className="wheel-stage">
+        <div className={`wheel-stage ${claseEscena}`} data-anim={visual.visibilityAnimation}>
             <style>{buildCss(visual, pres, layout)}</style>
 
             {/* El fondo es una CAJA y no la pantalla entera. Antes se pintaba sobre
@@ -313,7 +529,8 @@ export default function WheelOverlay() {
             {layout?.media.filter(m => m.url).map(m => (
                 <Pieza key={m.id} visible={seVe(m.when, phase)} pieza={m}>
                     {esVideoUrl(m.url)
-                        ? <Video pieza={m} visible={seVe(m.when, phase)} />
+                        // Un video de la escena escondida no puede seguir sonando.
+                        ? <Video pieza={m} visible={enEscena && seVe(m.when, phase)} />
                         : (
                             <img
                                 src={m.url}
@@ -359,6 +576,17 @@ export default function WheelOverlay() {
             )}
         </div>
     );
+}
+
+/**
+ * Desde donde crece y se encoge la escena al entrar y salir. Con lienzo, desde el
+ * centro de la RUEDA: si la rueda esta en una esquina y la escena creciera desde el
+ * centro de la pantalla, entraria volando en diagonal.
+ */
+function origenEscena(layout: WheelLayout | null): string {
+    if (!layout) return '50% 50%';
+    const w = layout.wheel;
+    return `${(w.x + w.width / 2).toFixed(0)}px ${(w.y + w.height / 2).toFixed(0)}px`;
 }
 
 /** Si una pieza se ve en esta fase. */
@@ -560,6 +788,17 @@ function buildCss(v: WheelVisual, pres: Presentation, layout: WheelLayout | null
     text-shadow: 0 1px 3px rgba(0,0,0,.9);
     z-index: 6;
 }
+/* Visibilidad de la escena entera en modo "solo al girar". Sin clase es que
+   todavia no aparecio nunca: invisible y sin animacion de salida. */
+.wheel-stage { opacity: 0; visibility: hidden; transform-origin: ${origenEscena(layout)}; }
+.wheel-stage.is-always, .wheel-stage.is-on { opacity: 1; visibility: visible; }
+.wheel-stage.is-off { opacity: 0; visibility: visible; }
+.wheel-stage.is-off[data-anim="none"] { visibility: hidden; }
+${['fade', 'slideUp', 'slideDown', 'slideLeft', 'slideRight', 'zoom', 'bounce'].map(a => `
+.wheel-stage.is-on[data-anim="${a}"]  { animation: p-${a}-in ${ENTRADA_MS}ms cubic-bezier(.22,1,.36,1) both; }
+.wheel-stage.is-off[data-anim="${a}"] { animation: p-${a}-out ${SALIDA_MS}ms ease-in both; }
+`).join('')}
+
 /* Al revelar, la rueda se aparta y deja el escenario a la tarjeta del ganador. */
 .wheel-shell.is-revealed { transform: scale(.9); }
 .wheel-shell { transition: transform 620ms cubic-bezier(.22,1,.36,1), opacity 620ms; }

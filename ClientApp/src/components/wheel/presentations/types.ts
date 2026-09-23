@@ -45,7 +45,12 @@ export interface PresentationProps {
     /** El giro a animar, o `null` en reposo (el panel dibuja siempre así). */
     spin: ActiveSpin | null;
     phase: SpinPhase;
-    /** Los sonidos de movimiento. Los de revelado los dispara el overlay. */
+    /**
+     * Los sonidos de movimiento. Los de revelado los dispara el overlay, y la
+     * frenada tambien: la programa el overlay para que TERMINE cuando la
+     * presentacion se detiene, y para eso hace falta saber cuanto dura el audio,
+     * que es algo que solo sabe quien lo cargo.
+     */
     onSound: (key: SoundKey) => void;
     /** La animación llegó al ganador. */
     onFinished: () => void;
@@ -80,8 +85,10 @@ export interface Presentation {
      */
     pointer: PointerKind;
     /**
-     * Los sonidos que dispara esta presentación. `reveal` y `win_celebration`
-     * NO van acá: los dispara el overlay y existen en todas.
+     * Los sonidos que usa esta presentación. `reveal` y `win_celebration` NO van
+     * acá: los dispara el overlay y existen en todas. `spin_slowdown` sí va, pero
+     * la presentación no lo dispara: declararlo es pedirle al overlay que lo
+     * programe para que acabe justo cuando ella termina de moverse.
      */
     sounds: SoundKey[];
     Component: (props: PresentationProps) => ReactElement | null;

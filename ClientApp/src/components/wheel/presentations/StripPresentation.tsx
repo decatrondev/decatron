@@ -121,7 +121,6 @@ function crearStrip(axis: Axis) {
             const ease = EASINGS[v.easing];
             const inicio = performance.now();
             let cruzadas = Math.floor(50 / celda);
-            let frenoSonado = false;
 
             const frame = (ahora: number) => {
                 const t = Math.min(1, (ahora - inicio) / (duracion * 1000));
@@ -134,11 +133,6 @@ function crearStrip(axis: Axis) {
                 if (pasadas > cruzadas) {
                     cruzadas = pasadas;
                     sonar('spin_tick');
-                }
-
-                if (!frenoSonado && t > 0.72) {
-                    frenoSonado = true;
-                    sonar('spin_slowdown');
                 }
 
                 if (t < 1) {

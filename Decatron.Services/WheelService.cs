@@ -40,9 +40,27 @@ namespace Decatron.Services
         [JsonPropertyName("spinner")]      public string? Spinner { get; init; }
         [JsonPropertyName("trigger")]      public string Trigger { get; init; } = string.Empty;
 
+        /// <summary>
+        /// Los gajos sobre los que se calculó <c>segmentIndex</c>, en el mismo orden.
+        /// El overlay los adopta antes de girar: si el streamer editó los gajos y la
+        /// fuente de OBS todavía tenía la lista vieja, la aguja pararía en el gajo de
+        /// al lado del que anuncia la tarjeta. Con la lista dentro del evento no hay
+        /// dos fuentes de verdad, igual que en el modo Sorteo.
+        /// </summary>
+        [JsonPropertyName("wheelSegments")] public List<WheelOverlaySegment> WheelSegments { get; init; } = new();
+
         /// <summary>El premio sin parsear, para el handler de entrega. No viaja al overlay.</summary>
         [JsonIgnore]
         public string? PrizeJson { get; init; }
+    }
+
+    /// <summary>Un gajo tal como lo dibuja el overlay: nada de pesos, stock ni premio.</summary>
+    public class WheelOverlaySegment
+    {
+        [JsonPropertyName("id")]    public int Id { get; init; }
+        [JsonPropertyName("label")] public string Label { get; init; } = string.Empty;
+        [JsonPropertyName("color")] public string? Color { get; init; }
+        [JsonPropertyName("icon")]  public string? Icon { get; init; }
     }
 
     /// <summary>
@@ -170,6 +188,11 @@ namespace Decatron.Services
                 Name = name.Trim(),
                 Mode = mode,
                 Slug = finalSlug,
+                // Las ruedas nuevas solo aparecen en OBS cuando giran. Las que ya
+                // existían no traen la clave y siguen siempre visibles, como las dejó
+                // su streamer: cambiarles el comportamiento sin pedirlo haría
+                // desaparecer una rueda de una escena que ya estaba armada.
+                VisualConfig = "{\"visibility\":\"spin\"}",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -343,6 +366,33 @@ namespace Decatron.Services
 
             await _db.SaveChangesAsync();
             return true;
+        }
+
+        /// <summary>
+        /// Avisa al overlay de esta rueda que se recargue. Se llama después de cada
+        /// cambio que se ve en pantalla; sin esto el streamer tenía que refrescar la
+        /// fuente de OBS a mano para ver lo que acababa de guardar.
+        /// </summary>
+        public async Task NotifyOverlayAsync(long channelId, int wheelId)
+        {
+            var slug = await _db.Wheels.AsNoTracking()
+                .Where(w => w.Id == wheelId && w.ChannelId == channelId)
+                .Select(w => w.Slug)
+                .FirstOrDefaultAsync();
+            if (slug != null) await NotifyOverlayAsync(channelId, slug);
+        }
+
+        /// <summary>
+        /// Igual que la otra, pero con el slug a mano: al borrar la rueda o cambiarle
+        /// el slug, al que hay que avisar es al overlay que tiene el VIEJO en la URL.
+        /// </summary>
+        public async Task NotifyOverlayAsync(long channelId, string slug)
+        {
+            var login = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == channelId)
+                .Select(u => u.Login)
+                .FirstOrDefaultAsync();
+            if (login != null) await _overlays.NotifyWheelChangedAsync(login.ToLowerInvariant(), slug);
         }
 
         public async Task<bool> DeleteWheelAsync(long channelId, int wheelId)
@@ -568,6 +618,9 @@ namespace Decatron.Services
                 Spinner = spinnerLogin,
                 Trigger = trigger,
                 PrizeJson = ganador.Prize,
+                WheelSegments = candidatos
+                    .Select(s => new WheelOverlaySegment { Id = s.Id, Label = s.Label, Color = s.Color, Icon = s.Icon })
+                    .ToList(),
             };
 
             await _overlays.SendWheelSpinAsync(channelLogin, payload);

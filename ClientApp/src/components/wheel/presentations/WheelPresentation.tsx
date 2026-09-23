@@ -56,7 +56,6 @@ function CircularWheel({ segments, visual, spin, phase, onSound, onFinished }: P
 
         const start = performance.now();
         let ticksSonados = Math.floor(from / slice);
-        let frenoSonado = false;
 
         const frame = (now: number) => {
             const t = Math.min(1, (now - start) / (duracion * 1000));
@@ -71,11 +70,6 @@ function CircularWheel({ segments, visual, spin, phase, onSound, onFinished }: P
             if (cruzados > ticksSonados) {
                 ticksSonados = cruzados;
                 sonar('spin_tick');
-            }
-
-            if (!frenoSonado && t > 0.72) {
-                frenoSonado = true;
-                sonar('spin_slowdown');
             }
 
             if (t < 1) {
