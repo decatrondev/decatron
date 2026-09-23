@@ -309,9 +309,17 @@ namespace Decatron.Services.GameData.LolLive
             if (!settings.Enabled) return;
 
             // Briefing: una vez por día al ver el cliente con una cuenta vinculada.
-            if (type == "client" && entry.Puuid != null && settings.Briefing && entry.BriefedOn?.Date != DateTime.UtcNow.Date)
+            // Briefing: una vez por sesión de juego (no en cada reconexión del Desktop ni en
+            // cada reinicio del backend). Se recuerda en la base.
+            if (type == "client" && entry.Puuid != null && settings.Briefing
+                && (settings.LastBriefingAt == null || DateTime.UtcNow - settings.LastBriefingAt.Value >= LolHistoryService.SessionGap))
             {
-                entry.BriefedOn = DateTime.UtcNow;
+                using (var scope = _scopes.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                    await db.LolCoachSettings.Where(s => s.UserId == conn.UserId)
+                        .ExecuteUpdateAsync(u => u.SetProperty(s => s.LastBriefingAt, DateTime.UtcNow));
+                }
                 await SpeakAsync(conn, entry, settings, "briefing");
                 return;
             }
@@ -410,9 +418,20 @@ namespace Decatron.Services.GameData.LolLive
 
                 if (kind == "briefing")
                 {
-                    var yesterday = LolHistoryService.Between(history, now.Date.AddDays(-1), now.Date);
+                    // "Hoy" y "la vez anterior" por sesiones de juego, no por fecha UTC. Si ya jugó
+                    // en esta sesión (volvió después de una pausa), el coach tiene que saberlo en
+                    // vez de saludar como si recién empezara.
+                    var current = LolHistoryService.CurrentSession(history);
+                    var previous = LolHistoryService.PreviousSession(history);
                     var week = LolHistoryService.Between(history, now.AddDays(-7), now);
-                    o["yesterday"] = new JsonObject { ["games"] = yesterday.Count, ["wins"] = yesterday.Count(m => m.Win), ["losses"] = yesterday.Count(m => !m.Win) };
+                    if (current.Count > 0)
+                        o["todaySoFar"] = new JsonObject { ["games"] = current.Count, ["wins"] = current.Count(m => m.Win), ["losses"] = current.Count(m => !m.Win) };
+                    if (previous.Count > 0)
+                        o["lastSession"] = new JsonObject
+                        {
+                            ["games"] = previous.Count, ["wins"] = previous.Count(m => m.Win), ["losses"] = previous.Count(m => !m.Win),
+                            ["hoursAgo"] = Math.Round((now - previous[0].At).TotalHours),
+                        };
                     if (LolHistoryService.BestChampion(week) is { } best)
                         o["bestChampionThisWeek"] = new JsonObject { ["champion"] = best.Champion, ["games"] = best.Record.Games, ["winRate"] = best.Record.WinRate };
                     var rank = _overlays.AllFor(userId).SelectMany(s => s.Accounts).FirstOrDefault(a => a.ExternalId == entry.Puuid)?.Rank;
@@ -454,7 +473,7 @@ namespace Decatron.Services.GameData.LolLive
                 }
                 if (kind == "postgame")
                 {
-                    var today = LolHistoryService.Between(history, now.Date, now.AddDays(1));
+                    var today = LolHistoryService.CurrentSession(history);
                     o["today"] = new JsonObject { ["games"] = today.Count, ["wins"] = today.Count(m => m.Win), ["losses"] = today.Count(m => !m.Win) };
                 }
                 return o.Count > 0 ? o : null;

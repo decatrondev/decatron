@@ -112,6 +112,45 @@ namespace Decatron.Services.GameData.LolLive
                 .OrderByDescending(x => x.Item3.Games).ToList();
         }
 
+        /// <summary>Pausa entre partidas a partir de la cual empieza otra sesión de juego.</summary>
+        public static readonly TimeSpan SessionGap = TimeSpan.FromHours(5);
+
+        /// <summary>
+        /// Las sesiones de juego, de la más reciente a la más vieja: partidas seguidas sin una
+        /// pausa de <see cref="SessionGap"/> entre ellas. Es lo que el streamer llama "hoy" y
+        /// "ayer", y no depende de la zona horaria: con días en UTC, para un streamer de Perú
+        /// "hoy" empezaba a las 7 de la tarde, en mitad del stream.
+        /// </summary>
+        public static List<List<HistoryMatch>> Sessions(IEnumerable<HistoryMatch> history)
+        {
+            var list = history.Where(m => !m.IsRemake).OrderByDescending(m => m.At).ToList();
+            var result = new List<List<HistoryMatch>>();
+            foreach (var m in list)
+            {
+                var actual = result.LastOrDefault();
+                // `m` es anterior a la última de la sesión en curso: se compara su final con el
+                // inicio de la que vino después.
+                if (actual != null && actual[^1].At - m.At.AddSeconds(m.DurationSeconds) < SessionGap) actual.Add(m);
+                else result.Add(new List<HistoryMatch> { m });
+            }
+            return result;
+        }
+
+        /// <summary>La sesión en curso (la última partida terminó hace menos de <see cref="SessionGap"/>), o vacía.</summary>
+        public static List<HistoryMatch> CurrentSession(IEnumerable<HistoryMatch> history)
+        {
+            var first = Sessions(history).FirstOrDefault();
+            return first != null && DateTime.UtcNow - first[0].At.AddSeconds(first[0].DurationSeconds) < SessionGap ? first : new();
+        }
+
+        /// <summary>La sesión anterior a la actual (si no hay actual, la última que hubo).</summary>
+        public static List<HistoryMatch> PreviousSession(IEnumerable<HistoryMatch> history)
+        {
+            var sessions = Sessions(history);
+            var hayActual = CurrentSession(history).Count > 0;
+            return sessions.Skip(hayActual ? 1 : 0).FirstOrDefault() ?? new();
+        }
+
         /// <summary>Partidas entre dos instantes (UTC).</summary>
         public static List<HistoryMatch> Between(IEnumerable<HistoryMatch> history, DateTime fromUtc, DateTime toUtc) =>
             history.Where(m => !m.IsRemake && m.At >= fromUtc && m.At < toUtc).ToList();

@@ -86,6 +86,13 @@ public class LolCoachSettings
     [Column("briefing")]
     public bool Briefing { get; set; } = true;
 
+    /// <summary>
+    /// Cuándo se dio el último briefing. Va en la base y no en memoria: en memoria, cada
+    /// reinicio del backend lo repetía en mitad del stream.
+    /// </summary>
+    [Column("last_briefing_at")]
+    public DateTime? LastBriefingAt { get; set; }
+
     /// <summary>A las 3 derrotas seguidas de la sesión pregunta si sigue. Off por defecto: a muchos les molesta.</summary>
     [Column("tilt_check")]
     public bool TiltCheck { get; set; }
