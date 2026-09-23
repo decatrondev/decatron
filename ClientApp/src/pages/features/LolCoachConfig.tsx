@@ -31,7 +31,7 @@ interface State { desktopConnected: boolean; clientConnected: boolean; summoner?
 
 const TONES: Settings['tone'][] = ['analyst', 'hype', 'troll'];
 const VOICE_KINDS = ['my_turn', 'final', 'postgame', 'briefing', 'lobby', 'tilt', 'pick'];
-const CHAT_KINDS = ['final', 'postgame', 'briefing', 'lobby'];
+const CHAT_KINDS = ['final', 'postgame', 'my_turn', 'briefing', 'lobby', 'tilt', 'pick'];
 
 export default function LolCoachConfig() {
     const navigate = useNavigate();

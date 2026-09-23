@@ -50,8 +50,11 @@ namespace Decatron.Services.GameData.LolLive
         private readonly Decatron.Core.Interfaces.IMessageSender _chat;
         private readonly ILogger<LolCoachDesktopChannel> _logger;
 
-        /// <summary>Límite de un mensaje de Twitch (500) con margen para el prefijo.</summary>
+        /// <summary>Límite de un mensaje de Twitch (500) con margen.</summary>
         private const int ChatMax = 480;
+        /// <summary>Un comentario largo se reparte en hasta este número de mensajes seguidos.</summary>
+        private const int MaxChatMessages = 3;
+        private const int ChatPauseMs = 1200;
 
         public LolCoachDesktopChannel(LolLiveStateStore store, GameDataPollingService poller, GameDataCache cache, RiotApiClient riot,
             LolCoachBrain brain, GameOverlayStateStore overlays, LolCoachVoice voice, LolHistoryService history, LolPredictionService predictions, LolLobbyScoutService scout,
@@ -108,9 +111,53 @@ namespace Decatron.Services.GameData.LolLive
             return await db.LolCoachSettings.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId) ?? new LolCoachSettings { UserId = userId };
         }
 
+        /// <summary>
+        /// Recupera lo que el coach ya dijo y comentó, si es de esta sesión de juego. Una vez
+        /// por entrada: la entrada nace al conectar el Desktop, que es justo después de un
+        /// reinicio del backend o de reabrir la app.
+        /// </summary>
+        private async Task LoadMemoryAsync(long userId, LolLiveStateStore.Entry entry)
+        {
+            if (entry.MemoryLoaded) return;
+            entry.MemoryLoaded = true;
+            try
+            {
+                var settings = await CoachSettingsAsync(userId);
+                if (string.IsNullOrWhiteSpace(settings.CoachMemory)) return;
+                var m = System.Text.Json.JsonSerializer.Deserialize<LolLiveStateStore.CoachMemory>(settings.CoachMemory);
+                if (m == null || DateTime.UtcNow - m.SavedAt >= LolHistoryService.SessionGap) return;
+                entry.Restore(m);
+                // El overlay vuelve a mostrar lo último que dijo, si fue hace poco.
+                if (settings.ShowOnOverlay && entry.CoachHistory.LastOrDefault() is { } last && DateTime.UtcNow - last.At < TimeSpan.FromMinutes(30))
+                    entry.Phase.Coach = last;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[LolCoach] no se pudo recuperar la memoria del coach de {UserId}", userId);
+            }
+        }
+
+        /// <summary>Guarda la memoria del coach. Nunca lanza: perderla solo hace que repita algo.</summary>
+        private async Task SaveMemoryAsync(long userId, LolLiveStateStore.Entry entry)
+        {
+            try
+            {
+                var json = System.Text.Json.JsonSerializer.Serialize(entry.ToMemory());
+                using var scope = _scopes.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                await db.LolCoachSettings.Where(s => s.UserId == userId)
+                    .ExecuteUpdateAsync(u => u.SetProperty(s => s.CoachMemory, json));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[LolCoach] no se pudo guardar la memoria del coach de {UserId}", userId);
+            }
+        }
+
         public async Task OnMessageAsync(DesktopConnection conn, string type, JsonNode msg)
         {
             var entry = _store.GetOrCreate(conn.UserId, conn.Device.Id);
+            await LoadMemoryAsync(conn.UserId, entry);
             var phase = entry.Phase;
             var prevPhase = phase.Phase;
             switch (type)
@@ -332,6 +379,7 @@ namespace Decatron.Services.GameData.LolLive
                 if (others.Count > 0 && sig != entry.LastLobbySignature)
                 {
                     entry.LastLobbySignature = sig;
+                    await SaveMemoryAsync(conn.UserId, entry);
                     // 3b: rango/winrate/top champs públicos de los que entraron, para el overlay, el panel y el prompt.
                     var region = await RegionAsync(conn.UserId, entry);
                     if (region != null)
@@ -388,7 +436,7 @@ namespace Decatron.Services.GameData.LolLive
                         .FirstOrDefault(a => string.Equals(a.ExternalId, entry.Puuid, StringComparison.OrdinalIgnoreCase))?.Session?.Streak ?? 0;
                     // El overlay puede no haber visto aún la partida recién terminada: contarla si fue derrota.
                     if (phase.PostGame is { Win: false } && streak <= 0) streak -= 1;
-                    if (streak <= -3 && entry.TiltCheckedAt != streak) { entry.TiltCheckedAt = streak; await SpeakAsync(conn, entry, settings, "tilt"); }
+                    if (streak <= -3 && entry.TiltCheckedAt != streak) { entry.TiltCheckedAt = streak; await SaveMemoryAsync(conn.UserId, entry); await SpeakAsync(conn, entry, settings, "tilt"); }
                     else if (streak >= 0) entry.TiltCheckedAt = 0;
                 }
             }
@@ -507,6 +555,7 @@ namespace Decatron.Services.GameData.LolLive
                 if (entry.NoCreditsNotifiedOn?.Date != DateTime.UtcNow.Date)
                 {
                     entry.NoCreditsNotifiedOn = DateTime.UtcNow;
+                    await SaveMemoryAsync(conn.UserId, entry);
                     var en = lang.StartsWith("en", StringComparison.OrdinalIgnoreCase);
                     await conn.SendAsync(Name, "coach", new
                     {
@@ -530,6 +579,7 @@ namespace Decatron.Services.GameData.LolLive
 
             entry.CoachHistory.Add(info);
             if (entry.CoachHistory.Count > 20) entry.CoachHistory.RemoveAt(0);
+            await SaveMemoryAsync(conn.UserId, entry);
             if (settings.ShowOnOverlay) entry.Phase.Coach = info;
             entry.Phase.UpdatedAt = DateTime.UtcNow;
 
@@ -577,39 +627,97 @@ namespace Decatron.Services.GameData.LolLive
         }
 
         /// <summary>
-        /// Lo que dijo el coach, en el chat del canal. Un solo mensaje por momento, corto, con
-        /// el nombre del coach delante para que se lea como suyo y no del bot. Nunca durante
-        /// la partida: los momentos que llegan acá son todos fuera de ella (política de Riot).
+        /// Lo que dijo el coach, en el chat del canal: lo mismo que muestra el overlay, con el
+        /// nombre del coach delante para que se lea como suyo y no del bot. Si no entra en un
+        /// mensaje de Twitch se reparte en varios seguidos —(1/2), (2/2)— en vez de cortarse
+        /// con "…", hasta <see cref="MaxChatMessages"/>. Nunca durante la partida: los momentos
+        /// que llegan acá son todos fuera de ella (política de Riot).
         /// </summary>
         private async Task PostToChatAsync(string login, LiveCoachInfo info, string lang)
         {
             try
             {
                 var en = lang.StartsWith("en", StringComparison.OrdinalIgnoreCase);
-                var partes = new List<string?> { info.Comment };
+                var partes = new List<string?>();
+                if (info.Kind == "my_turn" && info.Suggestion != null) partes.Add((en ? "Pick: " : "Pick: ") + info.Suggestion);
+                partes.Add(info.Comment);
                 if (info.Kind == "final")
                 {
                     partes.Add(info.Runes != null ? (en ? "Runes: " : "Runas: ") + info.Runes : null);
                     partes.Add(info.Spells != null ? (en ? "Spells: " : "Hechizos: ") + info.Spells : null);
                     partes.Add(info.Build != null ? "Build: " + info.Build : null);
+                    partes.Add(info.Matchup != null ? "Matchup: " + info.Matchup : null);
                 }
-                else if (info.Kind == "postgame")
+                partes.AddRange(info.Tips);
+
+                var icono = info.Kind switch { "final" => "🎯", "postgame" => "📊", "briefing" => "☀️", "lobby" => "👥", "my_turn" => "👉", "tilt" => "🫂", _ => "🎮" };
+                var limpias = partes.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Replace("\n", " ").Trim()).ToList();
+                var mensajes = Repartir($"{icono} {info.CoachName}: ", limpias);
+
+                for (var n = 0; n < mensajes.Count; n++)
                 {
-                    partes.AddRange(info.Tips.Take(2));
+                    // Una pausa corta entre partes: Twitch las muestra en orden y el chat las lee
+                    // como una sola intervención, no como spam.
+                    if (n > 0) await Task.Delay(ChatPauseMs);
+                    await _chat.SendMessageAsync(login, mensajes[n]);
                 }
-
-                var icono = info.Kind switch { "final" => "🎯", "postgame" => "📊", "briefing" => "☀️", "lobby" => "👥", _ => "🎮" };
-                var cuerpo = string.Join(" · ", partes.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Replace("\n", " ").Trim()));
-                var texto = $"{icono} {info.CoachName}: {cuerpo}";
-                if (texto.Length > ChatMax) texto = texto[..(ChatMax - 1)].TrimEnd() + "…";
-
-                await _chat.SendMessageAsync(login, texto);
             }
             catch (Exception ex)
             {
                 // Un mensaje de chat que no sale no puede cortar la voz ni el Desktop.
                 _logger.LogWarning(ex, "[LolCoach] {Login}: no se pudo publicar en el chat ({Kind})", login, info.Kind);
             }
+        }
+
+        /// <summary>
+        /// Reparte las partes en mensajes de hasta <see cref="ChatMax"/> caracteres, sin partir
+        /// una parte si cabe entera; si una sola no cabe, se parte por frases y, si hace falta,
+        /// por palabras. Más de <see cref="MaxChatMessages"/> no: lo que sobre se corta con "…".
+        /// </summary>
+        internal static List<string> Repartir(string prefijo, List<string> partes)
+        {
+            const string sep = " · ";
+            // Lugar para el prefijo y el contador " (n/N)".
+            var cupo = ChatMax - prefijo.Length - 8;
+
+            var trozos = new List<string>();
+            foreach (var p in partes)
+            {
+                if (p.Length <= cupo) { trozos.Add(p); continue; }
+                var actual = "";
+                foreach (var frase in System.Text.RegularExpressions.Regex.Split(p, @"(?<=[.!?])\s+"))
+                {
+                    foreach (var palabra in frase.Length <= cupo ? new[] { frase } : frase.Split(' '))
+                    {
+                        var candidato = actual.Length == 0 ? palabra : actual + " " + palabra;
+                        if (candidato.Length <= cupo) { actual = candidato; continue; }
+                        if (actual.Length > 0) trozos.Add(actual);
+                        actual = palabra.Length <= cupo ? palabra : palabra[..cupo];
+                    }
+                }
+                if (actual.Length > 0) trozos.Add(actual);
+            }
+
+            var cuerpos = new List<string>();
+            var cuerpo = "";
+            foreach (var t in trozos)
+            {
+                var candidato = cuerpo.Length == 0 ? t : cuerpo + sep + t;
+                if (candidato.Length <= cupo) { cuerpo = candidato; continue; }
+                if (cuerpo.Length > 0) cuerpos.Add(cuerpo);
+                cuerpo = t;
+            }
+            if (cuerpo.Length > 0) cuerpos.Add(cuerpo);
+
+            if (cuerpos.Count > MaxChatMessages)
+            {
+                var ultimo = cuerpos[MaxChatMessages - 1];
+                cuerpos = cuerpos.Take(MaxChatMessages).ToList();
+                cuerpos[^1] = (ultimo.Length > cupo - 1 ? ultimo[..(cupo - 1)] : ultimo).TrimEnd() + "…";
+            }
+
+            if (cuerpos.Count <= 1) return cuerpos.Select(c => prefijo + c).ToList();
+            return cuerpos.Select((c, n) => $"{prefijo}({n + 1}/{cuerpos.Count}) {c}").ToList();
         }
 
         public Task OnBinaryAsync(DesktopConnection conn, ReadOnlyMemory<byte> payload) => Task.CompletedTask;

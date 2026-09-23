@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Decatron.Core.Models.GameOverlays;
 
@@ -38,11 +39,46 @@ namespace Decatron.Services.GameData.LolLive
             /// <summary>Últimos comentarios (los más nuevos al final), para el panel y los comandos.</summary>
             public List<LiveCoachInfo> CoachHistory { get; } = new();
 
+            /// <summary>Ya se intentó recuperar la memoria guardada para esta entrada.</summary>
+            public bool MemoryLoaded { get; set; }
+
+            public CoachMemory ToMemory() => new()
+            {
+                History = CoachHistory.ToList(),
+                LastLobbySignature = LastLobbySignature,
+                TiltCheckedAt = TiltCheckedAt,
+                NoCreditsNotifiedOn = NoCreditsNotifiedOn,
+                SavedAt = DateTime.UtcNow,
+            };
+
+            public void Restore(CoachMemory m)
+            {
+                CoachHistory.Clear();
+                CoachHistory.AddRange(m.History.TakeLast(20));
+                LastLobbySignature = m.LastLobbySignature ?? "";
+                TiltCheckedAt = m.TiltCheckedAt;
+                NoCreditsNotifiedOn = m.NoCreditsNotifiedOn;
+            }
+
             public void ResetChampSelect()
             {
                 CoachCalls = 0; LastCommentedSignature = ""; LastMyTurn = false; FinalSent = false;
                 Debounce?.Cancel(); Debounce = null;
             }
+        }
+
+        /// <summary>
+        /// Lo que se guarda en lol_coach_settings.coach_memory. Solo lo que evita que el coach
+        /// "empiece de cero": lo que ya dijo y lo que ya comentó. La fase del cliente no, esa
+        /// la vuelve a mandar el Desktop al reconectar.
+        /// </summary>
+        public sealed class CoachMemory
+        {
+            public List<LiveCoachInfo> History { get; set; } = new();
+            public string? LastLobbySignature { get; set; }
+            public int TiltCheckedAt { get; set; }
+            public DateTime? NoCreditsNotifiedOn { get; set; }
+            public DateTime SavedAt { get; set; }
         }
 
         private readonly ConcurrentDictionary<long, Entry> _byUser = new();

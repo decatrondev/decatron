@@ -67,14 +67,15 @@ public class LolCoachSettings
     public string VoiceEngine { get; set; } = "standard";
 
     /// <summary>
-    /// Qué momentos publica el bot en el chat, separados por coma: final, postgame, briefing,
-    /// lobby. Vacío = nada. Los comentarios de cada pick no están: son muchos y ensucian.
-    /// Publicar no cuesta nada extra: el texto ya se pagó al generarlo.
+    /// Qué momentos publica el bot en el chat, separados por coma: los mismos que muestra el
+    /// overlay (final, postgame, my_turn, briefing, lobby, tilt, pick). Vacío = nada. Por
+    /// defecto solo final y postgame: cada pick es mucho ruido para el chat. Publicar no
+    /// cuesta nada extra: el texto ya se pagó al generarlo.
     /// </summary>
     [Column("chat_kinds"), MaxLength(60)]
     public string ChatKinds { get; set; } = "final,postgame";
 
-    public static readonly string[] ChatKindOptions = { "final", "postgame", "briefing", "lobby" };
+    public static readonly string[] ChatKindOptions = { "final", "postgame", "my_turn", "briefing", "lobby", "tilt", "pick" };
 
     public bool PostsOn(string kind) => ChatKinds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Contains(kind);
 
@@ -92,6 +93,14 @@ public class LolCoachSettings
     /// </summary>
     [Column("last_briefing_at")]
     public DateTime? LastBriefingAt { get; set; }
+
+    /// <summary>
+    /// Memoria del coach en JSON (ver LolLiveStateStore.CoachMemory): lo último que dijo y lo
+    /// que ya comentó. Sobrevive a reinicios del backend y reconexiones del Desktop, para que
+    /// el coach no actúe como si el streamer recién empezara.
+    /// </summary>
+    [Column("coach_memory")]
+    public string CoachMemory { get; set; } = "";
 
     /// <summary>A las 3 derrotas seguidas de la sesión pregunta si sigue. Off por defecto: a muchos les molesta.</summary>
     [Column("tilt_check")]

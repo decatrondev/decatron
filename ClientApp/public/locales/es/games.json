@@ -137,13 +137,16 @@
       "standard": "Voz propia de Decatron. No gasta créditos; tarda un poco más en empezar a hablar.",
       "premium": "Voz más natural. Cobra créditos por cada frase; si no te alcanza el saldo para la voz, esa frase sale con la voz estándar en vez de quedarse mudo."
     },
-    "chat": "Publicar en el chat",
-    "chatHint": "El bot escribe en tu chat lo que dice el coach en estos momentos. No cuesta nada extra: el texto ya se generó. Nunca durante la partida.",
+    "chat": "Publicar en el chat de tu stream",
+    "chatHint": "Lo que el coach muestra en el overlay también sale en tu chat, en los momentos que marques. Si es largo, se reparte en varios mensajes seguidos (1/2, 2/2) en vez de cortarse. No cuesta nada extra y nunca publica durante la partida.",
     "chatKinds": {
       "final": "Runas y build al cerrar la selección",
       "postgame": "Resumen al terminar la partida",
       "briefing": "Briefing al empezar el stream",
-      "lobby": "Comentario del lobby"
+      "lobby": "Comentario del lobby",
+      "my_turn": "Tu turno (sugerencia de pick)",
+      "tilt": "Tilt check",
+      "pick": "Cada pick/ban (mucho ruido)"
     },
     "coachCooldown": "!coach con 30 s de espera entre usos, salvo mods",
     "setGoal": "fijar el objetivo con"

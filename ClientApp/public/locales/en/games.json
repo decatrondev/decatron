@@ -137,13 +137,16 @@
       "standard": "Decatron's own voice. Uses no credits; takes a bit longer to start speaking.",
       "premium": "More natural voice. Charges credits per sentence; if your balance can't cover the voice, that sentence uses the standard voice instead of going silent."
     },
-    "chat": "Post in chat",
-    "chatHint": "The bot writes in your chat what the coach says at these moments. It costs nothing extra: the text was already generated. Never during the game.",
+    "chat": "Post in your stream chat",
+    "chatHint": "What the coach shows on the overlay also goes to your chat, at the moments you tick. Long text is split into several consecutive messages (1/2, 2/2) instead of being cut. It costs nothing extra and never posts during the game.",
     "chatKinds": {
       "final": "Runes and build when champ select closes",
       "postgame": "Summary when the game ends",
       "briefing": "Briefing when the stream starts",
-      "lobby": "Lobby comment"
+      "lobby": "Lobby comment",
+      "my_turn": "Your turn (pick suggestion)",
+      "tilt": "Tilt check",
+      "pick": "Every pick/ban (very noisy)"
     },
     "coachCooldown": "!coach with a 30 s wait between uses, except mods",
     "setGoal": "set the goal with"

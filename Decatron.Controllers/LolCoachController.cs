@@ -129,6 +129,23 @@ namespace Decatron.Controllers
             var userId = GetChannelOwnerId();
             var e = _live.Get(userId);
             var callsToday = await _brain.CallsTodayAsync(userId);
+
+            // Sin Desktop conectado (o recién reiniciado el backend) el historial sale de la
+            // memoria guardada, para que el panel no aparezca vacío como si nunca hubiera hablado.
+            IEnumerable<LiveCoachInfo> history = e?.CoachHistory.AsEnumerable().Reverse().Take(10) ?? Enumerable.Empty<LiveCoachInfo>();
+            if (e == null || e.CoachHistory.Count == 0)
+            {
+                var memoria = await _db.LolCoachSettings.AsNoTracking().Where(x => x.UserId == userId).Select(x => x.CoachMemory).FirstOrDefaultAsync();
+                if (!string.IsNullOrWhiteSpace(memoria))
+                {
+                    try
+                    {
+                        var m = System.Text.Json.JsonSerializer.Deserialize<LolLiveStateStore.CoachMemory>(memoria);
+                        if (m != null) history = m.History.AsEnumerable().Reverse().Take(10).ToList();
+                    }
+                    catch (System.Text.Json.JsonException) { }
+                }
+            }
             var hasCredits = await _brain.HasCreditsAsync(userId);
             return Ok(new
             {
@@ -137,7 +154,7 @@ namespace Decatron.Controllers
                 clientConnected = e?.Puuid != null,
                 summoner = e?.SummonerName,
                 phase = e?.Phase,
-                history = e?.CoachHistory.AsEnumerable().Reverse().Take(10) ?? Enumerable.Empty<LiveCoachInfo>(),
+                history,
                 callsThisSelect = e?.CoachCalls ?? 0,
                 maxCallsPerSelect = LolCoachBrain.MaxCallsPerChampSelect,
             });
