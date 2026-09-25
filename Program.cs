@@ -530,6 +530,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongResolverService>();
+    builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestService>();
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.SongRequestChatHandler>();
     builder.Services.AddScoped<Decatron.Services.GameData.LiveOverlayService>();
     builder.Services.AddScoped<Decatron.Services.Pets.PetService>(); // Mascotas: config por canal + estímulos al overlay
     builder.Services.AddSingleton<Decatron.Services.Pets.PetEventBridge>(); // Mascotas: alertas, comandos y saludo → mascota

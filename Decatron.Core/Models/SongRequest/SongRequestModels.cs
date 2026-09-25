@@ -80,6 +80,10 @@ public class SongRequestConfig
     [Column("requests_open")]
     public bool RequestsOpen { get; set; } = true;
 
+    /// <summary>El reproductor se detiene; los pedidos se siguen aceptando.</summary>
+    [Column("is_paused")]
+    public bool IsPaused { get; set; }
+
     /// <summary>Filtros, límites, permisos y mensajes (JSON).</summary>
     [Column("settings", TypeName = "jsonb")]
     public string Settings { get; set; } = "{}";

@@ -30,6 +30,7 @@ namespace Decatron.Services
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly Dictionary<string, ICommand> _commands;
+        private readonly Decatron.Services.SongRequest.SongRequestChatHandler _songRequestHandler;
         private readonly Dictionary<string, Dictionary<string, string>> _microCommandsCache;
         private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
 
@@ -40,8 +41,10 @@ namespace Decatron.Services
             ILoggerFactory loggerFactory,
             ICommandStateService commandStateService,
             IServiceScopeFactory serviceScopeFactory,
-            Decatron.Services.Pets.PetEventBridge petEventBridge)
+            Decatron.Services.Pets.PetEventBridge petEventBridge,
+            Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler)
         {
+            _songRequestHandler = songRequestHandler;
             _instanceId = ++_instanceCount;
             _petEventBridge = petEventBridge;
             _logger = logger;
@@ -643,6 +646,15 @@ namespace Decatron.Services
                     {
                         _logger.LogDebug(ex, "Error checking watchtime alias for {Cmd}", commandName);
                     }
+                }
+
+                // 1e. SONG REQUEST — solo si el módulo está activo en el canal; si no, sigue de largo
+                // (un !song custom del streamer no se pierde por no usar el módulo)
+                if (Decatron.Services.SongRequest.SongRequestChatHandler.IsSongRequestCommand(commandName))
+                {
+                    var ctx = new CommandContext(username, channel, chatMessage, userId) { MessageId = messageId, IsModerator = isModerator, IsLeadModerator = isLeadModerator, IsVip = isVip, IsSubscriber = isSubscriber, IsBroadcaster = isBroadcaster, Metadata = metadata, ChannelUserId = channelUserId, ChannelTwitchId = channelTwitchId };
+                    if (await _songRequestHandler.TryHandleAsync(ctx, _messageSender))
+                        return;
                 }
 
                 if (commandName.StartsWith("!") && !commandName.StartsWith("!gc"))

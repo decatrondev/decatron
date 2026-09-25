@@ -83,6 +83,17 @@ namespace Decatron.Hubs
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// La cola pública de song request (/sr/{canal}). Grupo aparte y sin contar como overlay:
+        /// los viewers que la miran no son fuentes de OBS y no deben despertar a los servicios
+        /// que solo trabajan cuando hay overlays conectados (Now Playing…).
+        /// </summary>
+        public Task JoinSongRequestQueue(string channel) =>
+            Groups.AddToGroupAsync(Context.ConnectionId, $"songrequest_{channel.ToLowerInvariant()}");
+
+        public Task LeaveSongRequestQueue(string channel) =>
+            Groups.RemoveFromGroupAsync(Context.ConnectionId, $"songrequest_{channel.ToLowerInvariant()}");
+
         public async Task LeaveChannel(string channel)
         {
             try

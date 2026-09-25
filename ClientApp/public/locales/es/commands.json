@@ -383,5 +383,28 @@
       "fieldRequired": "El nombre del comando es requerido",
       "scriptRequired": "El contenido del script es requerido"
     }
+  },
+  "songRequestPublic": {
+    "title": "Cola de canciones",
+    "loading": "Cargando la cola…",
+    "notFound": "No existe el canal «{{channel}}».",
+    "error": "No se pudo cargar la cola.",
+    "disabled": "Este canal no tiene los pedidos de canciones activos.",
+    "open": "Pedidos abiertos",
+    "closed": "Pedidos cerrados",
+    "paused": "En pausa",
+    "live": "En vivo",
+    "howTo": "Pide una canción en el chat con",
+    "howToArg": "<link de YouTube o nombre>",
+    "nowPlaying": "Sonando ahora",
+    "nothingPlaying": "No está sonando ninguna canción pedida.",
+    "upNext": "A continuación",
+    "empty": "La cola está vacía. ¡Sé el primero en pedir una canción!",
+    "requestedBy": "pedida por {{user}}",
+    "songs_one": "{{count}} canción",
+    "songs_other": "{{count}} canciones",
+    "totalDuration": "{{duration}} en total",
+    "openOn": "Abrir en {{source}}",
+    "footer": "Cola en vivo de Decatron"
   }
 }

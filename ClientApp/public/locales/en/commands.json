@@ -383,5 +383,28 @@
       "fieldRequired": "Command name is required",
       "scriptRequired": "Script content is required"
     }
+  },
+  "songRequestPublic": {
+    "title": "Song queue",
+    "loading": "Loading the queue…",
+    "notFound": "Channel “{{channel}}” doesn't exist.",
+    "error": "Couldn't load the queue.",
+    "disabled": "This channel doesn't have song requests turned on.",
+    "open": "Requests open",
+    "closed": "Requests closed",
+    "paused": "Paused",
+    "live": "Live",
+    "howTo": "Request a song in chat with",
+    "howToArg": "<YouTube link or name>",
+    "nowPlaying": "Now playing",
+    "nothingPlaying": "No requested song is playing.",
+    "upNext": "Up next",
+    "empty": "The queue is empty. Be the first to request a song!",
+    "requestedBy": "requested by {{user}}",
+    "songs_one": "{{count}} song",
+    "songs_other": "{{count}} songs",
+    "totalDuration": "{{duration}} total",
+    "openOn": "Open on {{source}}",
+    "footer": "Live queue by Decatron"
   }
 }
