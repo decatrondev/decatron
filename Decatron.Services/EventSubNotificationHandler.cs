@@ -697,6 +697,7 @@ namespace Decatron.Services
                     fileUrl = fileUrl,
                     fileType = fileType,
                     imageUrl = imageUrl,
+                    showImage = showImage,
                     volume = volume ?? globalVolume,
                     duration = duration,
                     textLines = textLines,

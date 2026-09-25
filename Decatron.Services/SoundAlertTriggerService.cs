@@ -60,6 +60,7 @@ namespace Decatron.Services
                     fileUrl,
                     fileType,
                     imageUrl,
+                    showImage = mapping.ShowImage,
                     volume = mapping.Volume ?? config?.GlobalVolume ?? 70,
                     duration = config?.Duration ?? 10,
                     textLines = config?.TextLines ?? "[]",

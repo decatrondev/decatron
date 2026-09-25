@@ -33,7 +33,7 @@ interface SoundAlertData {
     fileUrl?: string;
     fileType: 'sound' | 'video' | 'image';
     imageUrl?: string; // Imagen opcional para archivos de audio
-    showImage?: boolean; // Si false, no mostrar imagen ni emoji
+    showImage?: boolean; // El icono por defecto solo sale con showImage === true explícito
     volume: number;
     duration: number;
     textLines: string;
@@ -692,7 +692,8 @@ export default function SoundAlertsOverlay() {
                                 </audio>
 
                                 {/* Visualización para audio */}
-                                {alertData.showImage !== false && (
+                                {/* Si el aviso no dice nada sobre la imagen, no se inventa el icono */}
+                                {(alertData.imageUrl ? alertData.showImage !== false : alertData.showImage === true) && (
                                     alertData.imageUrl ? (
                                         /* Imagen asociada al audio */
                                         <img

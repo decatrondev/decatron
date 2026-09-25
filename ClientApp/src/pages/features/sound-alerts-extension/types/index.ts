@@ -26,6 +26,7 @@ export interface SoundFile {
     imageUrl?: string;
     imageSource: 'upload' | 'url';
     imagePath?: string;
+    imagePublicUrl?: string | null;
 }
 
 export interface TextLine {

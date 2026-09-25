@@ -48,6 +48,12 @@ export function LayoutTab({
         return `/uploads/soundalerts/${channelName}/${file.fileName}`;
     };
 
+    // Misma regla que el overlay: URL externa o la imagen subida
+    const getImageUrl = (file: SoundFile): string | null => {
+        if (file.imageSource === 'url' && file.imageUrl) return file.imageUrl;
+        return file.imagePublicUrl || null;
+    };
+
     const getTextShadowStyle = (shadow: string): string => {
         switch (shadow) {
             case 'normal': return '2px 2px 4px rgba(0,0,0,0.5)';
@@ -394,6 +400,17 @@ export function LayoutTab({
                                                 src={getFileUrl(previewFile)}
                                                 className="w-full h-full"
                                                 style={{ objectFit: 'contain' }}
+                                                alt="Preview"
+                                            />
+                                        ) : !previewFile.showImage ? (
+                                            <div className="w-full h-full flex items-center justify-center text-[10px] text-white/60 text-center px-1">
+                                                Sin imagen en el overlay
+                                            </div>
+                                        ) : getImageUrl(previewFile) ? (
+                                            <img
+                                                src={getImageUrl(previewFile)!}
+                                                className="w-full h-full"
+                                                style={{ objectFit: 'scale-down' }}
                                                 alt="Preview"
                                             />
                                         ) : (

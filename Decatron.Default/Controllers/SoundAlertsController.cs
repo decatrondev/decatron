@@ -567,7 +567,8 @@ namespace Decatron.Default.Controllers
                         showImage = m.ShowImage,
                         imageUrl = m.ImageUrl,
                         imageSource = m.ImageSource,
-                        imagePath = m.ImagePath
+                        imagePath = m.ImagePath,
+                        imagePublicUrl = string.IsNullOrEmpty(m.ImagePath) ? null : ToPublicPath(m.ImagePath)
                     })
                 });
             }
