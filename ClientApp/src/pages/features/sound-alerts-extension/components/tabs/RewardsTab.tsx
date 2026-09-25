@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-    Gift, Eye, EyeOff, Trash2, Music, Video, Image as ImageIcon, Pencil, Upload, ChevronLeft, ChevronRight
+    Gift, Eye, EyeOff, Trash2, Music, Video, Image as ImageIcon, Pencil, Upload, ChevronLeft, ChevronRight, MonitorPlay
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ChannelPointsReward, SoundFile } from '../../types';
@@ -20,6 +20,8 @@ interface RewardsTabProps {
     setSelectedImageFile: (file: File | null) => void;
     setShowAudioImageModal: (show: boolean) => void;
     onEditFile: (rewardId: string) => void;
+    /** Muestra esa alerta en la vista previa. */
+    onPreview: (file: SoundFile) => void;
 }
 
 function detectFileType(file: File): string {
@@ -39,6 +41,7 @@ export function RewardsTab({
     handleDeleteFile,
     handleToggleFile,
     onEditFile,
+    onPreview,
 }: RewardsTabProps) {
     const { t } = useTranslation('features');
     const [dragOverRewardId, setDragOverRewardId] = useState<string | null>(null);
@@ -66,13 +69,13 @@ export function RewardsTab({
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1 flex items-center gap-2">
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 3xl:p-6 shadow-lg">
+                <h3 className="text-base 3xl:text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1 flex items-center gap-2">
                     <Gift className="w-5 h-5 text-[#2563eb]" />
                     {t('soundAlertsTabs.manageAlertFiles')}
                 </h3>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
-                    {t('soundAlertsTabs.manageAlertFilesDesc')} — arrastrá un archivo directo sobre una recompensa para asignarlo.
+                <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] mb-4">
+                    {t('soundAlertsTabs.manageAlertFilesDesc')}. También puedes arrastrar un archivo directo sobre una recompensa para asignarlo.
                 </p>
 
                 {rewards.length === 0 ? (
@@ -136,7 +139,14 @@ export function RewardsTab({
                                                     {(file.fileType === 'image' || file.fileType === 'gif') && <ImageIcon className="w-3 h-3" />}
                                                     <span className="truncate">{file.fileName} • {file.durationSeconds}s • {(file.fileSize / 1024 / 1024).toFixed(2)}MB</span>
                                                 </p>
-                                                <div className="grid grid-cols-3 gap-1">
+                                                <div className="grid grid-cols-4 gap-1">
+                                                    <button
+                                                        onClick={() => onPreview(file)}
+                                                        className="p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-lg transition-colors flex items-center justify-center"
+                                                        title="Ver en la vista previa"
+                                                    >
+                                                        <MonitorPlay className="w-4 h-4 text-[#2563eb]" />
+                                                    </button>
                                                     <button
                                                         onClick={() => onEditFile(file.rewardId)}
                                                         className="p-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors flex items-center justify-center"
@@ -170,7 +180,7 @@ export function RewardsTab({
                                             >
                                                 <Upload className="w-6 h-6" />
                                                 <span className="text-xs font-semibold">
-                                                    {isUploading ? 'Subiendo...' : 'Sin archivo — arrastrá o hacé click'}
+                                                    {isUploading ? 'Subiendo...' : 'Sin archivo: arrástralo aquí o haz clic'}
                                                 </span>
                                             </button>
                                         )}

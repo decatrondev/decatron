@@ -1,4 +1,4 @@
-import { Volume2, Coins, Upload, Settings, Play, ArrowRight, Music, Video } from 'lucide-react';
+import { Volume2, Coins, Play, ArrowRight, Music, Video, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DocAlert from '../../../../components/docs/DocAlert';
 import DocSection from '../../../../components/docs/DocSection';
@@ -17,7 +17,7 @@ export default function SoundAlertsDoc() {
                             Sound Alerts
                         </h1>
                         <p className="text-[#64748b] dark:text-[#94a3b8]">
-                            Alertas de sonido y video con Channel Points
+                            Sonidos, videos e imágenes con los puntos del canal
                         </p>
                     </div>
                 </div>
@@ -33,177 +33,82 @@ export default function SoundAlertsDoc() {
             {/* Como funciona */}
             <DocSection title="Como funciona">
                 <p className="mb-4">
-                    Sound Alerts permite a tu audiencia reproducir sonidos y videos en tu stream
-                    usando Channel Points de Twitch. Es una forma divertida de interactuar con tu comunidad.
+                    Sound Alerts reproduce un sonido, un video o una imagen en tu stream cuando alguien canjea
+                    una recompensa de puntos del canal. Cada recompensa tiene su propio archivo. Funciona en Twitch y en Kick.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FeatureCard
-                        icon={<Coins className="w-5 h-5" />}
-                        title="Channel Points"
-                        description="Los viewers gastan puntos para reproducir alertas"
-                    />
-                    <FeatureCard
-                        icon={<Music className="w-5 h-5" />}
-                        title="Audio y Video"
-                        description="Soporta MP3, WAV, MP4 y WebM"
-                    />
-                    <FeatureCard
-                        icon={<Play className="w-5 h-5" />}
-                        title="Overlay"
-                        description="Muestra el contenido en tu stream"
-                    />
+                    <FeatureCard icon={<Coins className="w-5 h-5" />} title="Puntos del canal" description="Cada recompensa dispara su propia alerta" />
+                    <FeatureCard icon={<Music className="w-5 h-5" />} title="Sonido, video o imagen" description="A los sonidos se les puede poner una imagen" />
+                    <FeatureCard icon={<Play className="w-5 h-5" />} title="Overlay en OBS" description="Lo que ves en el editor es lo que sale en OBS" />
                 </div>
             </DocSection>
 
-            {/* Configurar Channel Points */}
-            <DocSection title="Configurar Channel Points">
-                <div className="space-y-4">
-                    <Step number={1} title="Crea una recompensa en Twitch">
-                        <p>Ve a tu panel de creador en Twitch → Puntos de canal → Agregar nueva recompensa.</p>
+            {/* Primeros pasos */}
+            <DocSection title="Primeros pasos">
+                <div className="space-y-3">
+                    <Step number={1} title="Crea las recompensas">
+                        <p>En tu panel de creador de Twitch (o en Kick): Puntos de canal, Agregar recompensa. Aparecen solas en Sound Alerts.</p>
                     </Step>
-                    <Step number={2} title="Nombra la recompensa">
-                        <p>Dale un nombre descriptivo como "Sound Alert" o el nombre del sonido especifico.</p>
+                    <Step number={2} title="Asigna un archivo a cada una">
+                        <p>En la pestaña <strong>Recompensas</strong>, haz clic en una recompensa o arrastra un archivo encima. Puedes subir uno nuevo o elegirlo de la <strong>Biblioteca</strong>.</p>
                     </Step>
-                    <Step number={3} title="Conecta con Decatron">
-                        <p>En Decatron, ve a Sound Alerts y selecciona la recompensa que creaste.</p>
+                    <Step number={3} title="Agrega el overlay a OBS">
+                        <p>Copia el link de la pestaña <strong>Guía</strong> y agrégalo como fuente de navegador de 1920×1080. Haz clic una vez en la fuente (Interactuar) para desbloquear el audio.</p>
                     </Step>
-                    <Step number={4} title="Sube el archivo">
-                        <p>Sube el archivo de audio o video que quieres reproducir.</p>
+                    <Step number={4} title="Pruébalo">
+                        <p>Elige una recompensa en la vista previa y usa <strong>Probar en OBS</strong>. La prueba usa lo último que guardaste.</p>
                     </Step>
                 </div>
-                <DocAlert type="info" title="Permisos">
-                    Decatron necesita permisos de Channel Points para detectar cuando se canjea una recompensa.
+            </DocSection>
+
+            {/* Archivos */}
+            <DocSection title="Archivos">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <FormatCard icon={<Music className="w-5 h-5" />} title="Sonido" formats={['MP3', 'WAV', 'OGG']} maxSize="10 MB" />
+                    <FormatCard icon={<Video className="w-5 h-5" />} title="Video" formats={['MP4', 'WebM']} maxSize="50 MB" />
+                    <FormatCard icon={<ImageIcon className="w-5 h-5" />} title="Imagen" formats={['PNG', 'JPG']} maxSize="5 MB" />
+                </div>
+                <DocAlert type="info" title="Imagen para los sonidos">
+                    A un sonido le puedes poner una imagen (subida o por link, PNG/JPG/GIF de hasta 10 MB) con el lápiz de la
+                    recompensa. Si apagas "Mostrar imagen", solo se escucha el sonido.
                 </DocAlert>
             </DocSection>
 
-            {/* Subir archivos */}
-            <DocSection title="Subir archivos">
-                <p className="mb-4">
-                    Formatos soportados:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormatCard
-                        icon={<Music className="w-5 h-5" />}
-                        title="Audio"
-                        formats={["MP3", "WAV", "OGG"]}
-                        maxSize="5 MB"
-                    />
-                    <FormatCard
-                        icon={<Video className="w-5 h-5" />}
-                        title="Video"
-                        formats={["MP4", "WebM", "GIF"]}
-                        maxSize="25 MB"
-                    />
-                </div>
-                <DocAlert type="tip" title="Optimizacion">
-                    Para mejor rendimiento, usa archivos de audio en MP3 y videos en WebM.
-                    Mantén los videos cortos (menos de 10 segundos).
-                </DocAlert>
-            </DocSection>
-
-            {/* Configurar overlay */}
-            <DocSection title="Configurar overlay">
-                <p className="mb-4">
-                    El overlay de Sound Alerts muestra los videos cuando se reproducen:
-                </p>
+            {/* Diseño */}
+            <DocSection title="Diseño de la alerta">
                 <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        <strong>Posicion:</strong> Centro, esquina, personalizada
-                    </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        <strong>Tamaño:</strong> Pequeño, mediano, grande, pantalla completa
-                    </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        <strong>Volumen:</strong> Control de volumen global
-                    </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        <strong>Nombre del usuario:</strong> Mostrar quien activo la alerta
-                    </li>
+                    <DocItem label="Textos">Líneas con @redeemer (quien canjeó) y @reward (la recompensa), con su tamaño, grosor y alineación. Fuente, color, sombra y borde para todas.</DocItem>
+                    <DocItem label="Fondo">Transparente, de un color o degradado, con opacidad.</DocItem>
+                    <DocItem label="Animación">Fundido, deslizar, rebote, zoom o sin animación, en tres velocidades.</DocItem>
+                    <DocItem label="Editor">Arrastra la imagen, cada línea de texto y el fondo, y cambia su tamaño desde las esquinas.</DocItem>
+                    <DocItem label="Duración">Los sonidos y videos duran lo que dura el archivo; las imágenes, lo que elijas en Básico (3 a 30 s).</DocItem>
                 </ul>
-                <Link
-                    to="/dashboard/docs/overlays"
-                    className="inline-flex items-center gap-2 text-[#2563eb] font-medium hover:underline"
-                >
-                    Como agregar el overlay a OBS
-                    <ArrowRight className="w-4 h-4" />
-                </Link>
-            </DocSection>
-
-            {/* Cola de alertas */}
-            <DocSection title="Cola de alertas">
-                <p className="mb-4">
-                    Cuando multiples alertas se activan al mismo tiempo, se agregan a una cola:
-                </p>
-                <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        Las alertas se reproducen una por una
-                    </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        Puedes saltar alertas desde el dashboard
-                    </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
-                        Limite configurable de cola
-                    </li>
-                </ul>
-            </DocSection>
-
-            {/* Moderacion */}
-            <DocSection title="Moderacion">
-                <p className="mb-4">
-                    Controla quien puede usar Sound Alerts:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Cooldown</h4>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Tiempo minimo entre alertas del mismo usuario
-                        </p>
-                    </div>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Blacklist</h4>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Bloquea usuarios especificos
-                        </p>
-                    </div>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Solo Followers/Subs</h4>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Limita quien puede usar alertas
-                        </p>
-                    </div>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Pausar alertas</h4>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Pausa temporalmente todas las alertas
-                        </p>
-                    </div>
-                </div>
+                <DocAlert type="warning" title="Una alerta a la vez">
+                    Si llega un canje mientras otra alerta se está mostrando, la nueva reemplaza a la anterior.
+                </DocAlert>
             </DocSection>
 
             {/* Tips */}
-            <DocSection title="Tips y trucos">
+            <DocSection title="Tips">
                 <div className="space-y-4">
                     <DocAlert type="tip" title="Costos diferentes">
-                        Puedes crear multiples recompensas con diferentes costos para alertas
-                        de diferente "calidad" o duracion.
-                    </DocAlert>
-                    <DocAlert type="tip" title="Alertas tematicas">
-                        Crea alertas tematicas para eventos especiales: Halloween, Navidad, etc.
+                        Crea recompensas con distintos costos para alertas más largas o más llamativas.
                     </DocAlert>
                     <DocAlert type="warning" title="Derechos de autor">
-                        Asegurate de usar contenido libre de derechos o con licencia para evitar
-                        problemas de copyright.
+                        Usa contenido libre de derechos o con licencia para evitar problemas de copyright.
                     </DocAlert>
                 </div>
             </DocSection>
         </div>
+    );
+}
+
+function DocItem({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <li className="flex items-start gap-2 text-[#64748b] dark:text-[#94a3b8]">
+            <span className="text-[#2563eb]">•</span>
+            <span><strong className="text-gray-900 dark:text-white">{label}:</strong> {children}</span>
+        </li>
     );
 }
 

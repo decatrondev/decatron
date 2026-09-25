@@ -1,99 +1,21 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
+import SoundAlertRenderer from './features/sound-alerts-extension/components/SoundAlertRenderer';
+import { normalizeDesign } from './features/sound-alerts-extension/model';
+import { ALERT_KEYFRAMES, alertAnimation, animationDurationMs } from './features/sound-alerts-extension/animations';
+import type { AlertContent, AlertDesign } from './features/sound-alerts-extension/types';
 
-interface TextLine {
-    text: string;
-    fontSize: number;
-    fontWeight: string;
-    enabled: boolean;
-}
-
-interface StyleConfig {
-    fontFamily: string;
-    textColor: string;
-    textShadow: 'none' | 'normal' | 'strong' | 'glow';
-    backgroundType: 'gradient' | 'solid' | 'transparent';
-    gradientColor1: string;
-    gradientColor2: string;
-    gradientAngle: number;
-    solidColor: string;
-    backgroundOpacity: number;
-}
-
-interface LayoutConfig {
-    media: { x: number; y: number; width: number; height: number };
-    text: { x: number; y: number; width: number; height: number; align: string };
-}
-
-interface SoundAlertData {
+interface SoundAlertData extends AlertContent {
     type: string;
-    redeemer: string;
-    reward: string;
-    fileUrl?: string;
     fileType: 'sound' | 'video' | 'image';
-    imageUrl?: string; // Imagen opcional para archivos de audio
-    showImage?: boolean; // El icono por defecto solo sale con showImage === true explícito
     volume: number;
     duration: number;
     textLines: string;
     styles: string;
     layout: string;
-    animation: {
-        type: string;
-        speed: string;
-    };
-    textOutline: {
-        enabled: boolean;
-        color: string;
-        width: number;
-    };
-}
-
-// Migra layouts viejos (400x450) a 1920x1080
-function migrateLayout(raw: any): LayoutConfig {
-    if (!raw || !raw.media || !raw.text) {
-        return {
-            media: { x: 660, y: 190, width: 600, height: 400 },
-            text: { x: 660, y: 640, width: 600, height: 200, align: 'center' }
-        };
-    }
-    // Si text no tiene width, es layout viejo → escalar
-    if (raw.text.width === undefined || raw.text.width === null) {
-        const scaleX = 1920 / 400;
-        const scaleY = 1080 / 450;
-        return {
-            media: {
-                x: Math.round((raw.media.x || 0) * scaleX),
-                y: Math.round((raw.media.y || 0) * scaleY),
-                width: Math.round((raw.media.width || 200) * scaleX),
-                height: Math.round((raw.media.height || 200) * scaleY),
-            },
-            text: {
-                x: Math.round((raw.text.x || 0) * scaleX),
-                y: Math.round((raw.text.y || 0) * scaleY),
-                width: 600,
-                height: 200,
-                align: raw.text.align || 'center',
-            }
-        };
-    }
-    // Layout nuevo, usar directo
-    return {
-        media: {
-            x: raw.media.x,
-            y: raw.media.y,
-            width: raw.media.width,
-            height: raw.media.height,
-        },
-        text: {
-            x: raw.text.x,
-            y: raw.text.y,
-            width: raw.text.width,
-            height: raw.text.height,
-            align: raw.text.align || 'center',
-        }
-    };
+    animation: { type: string; speed: string };
+    textOutline: { enabled: boolean; color: string; width: number };
 }
 
 export default function SoundAlertsOverlay() {
@@ -106,37 +28,23 @@ export default function SoundAlertsOverlay() {
     const [duration, setDuration] = useState(10);
     const [globalVolume, setGlobalVolume] = useState(70);
 
-    // Animation & Effects state
-    const [animationType, setAnimationType] = useState('fade');
-    const [animationSpeed, setAnimationSpeed] = useState('normal');
-    const [textOutlineEnabled, setTextOutlineEnabled] = useState(false);
-    const [textOutlineColor, setTextOutlineColor] = useState('#000000');
-    const [textOutlineWidth, setTextOutlineWidth] = useState(2);
-    const [textLines, setTextLines] = useState<TextLine[]>([
-        { text: '@redeemer canjeó @reward', fontSize: 24, fontWeight: 'bold', enabled: true },
-        { text: '¡Gracias por el apoyo!', fontSize: 18, fontWeight: '600', enabled: true }
-    ]);
-    const [styles, setStyles] = useState<StyleConfig>({
-        fontFamily: 'Inter',
-        textColor: '#ffffff',
-        textShadow: 'normal',
-        backgroundType: 'transparent',
-        gradientColor1: '#667eea',
-        gradientColor2: '#764ba2',
-        gradientAngle: 135,
-        solidColor: '#8b5cf6',
-        backgroundOpacity: 100
-    });
-    const [layout, setLayout] = useState<LayoutConfig>({
-        media: { x: 260, y: 40, width: 1400, height: 700 },
-        text: { x: 460, y: 780, width: 1000, height: 240, align: 'center' }
-    });
+    // Todo lo visual (textos, estilos, posiciones, animación) en el formato actual
+    const [design, setDesign] = useState<AlertDesign>(() => normalizeDesign({}));
+    const designRef = useRef(design);
+    designRef.current = design;
+    // El tamaño de letra se escala con el ancho de la fuente de OBS (antes era en vw)
+    const [scale, setScale] = useState(() => window.innerWidth / 1920);
+    useEffect(() => {
+        const onResize = () => setScale(window.innerWidth / 1920);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const durationRef = useRef(10);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const cleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Timeout de seguridad
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const cleanupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Timeout de seguridad
     const timerStartedRef = useRef(false); // Flag para evitar múltiples llamadas a startExitTimer
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -213,16 +121,7 @@ export default function SoundAlertsOverlay() {
                     durationRef.current = newDuration;
                     setGlobalVolume(config.globalVolume || 70);
 
-                    // Animation & Effects
-                    setAnimationType(config.animationType || 'fade');
-                    setAnimationSpeed(config.animationSpeed || 'normal');
-                    setTextOutlineEnabled(config.textOutlineEnabled || false);
-                    setTextOutlineColor(config.textOutlineColor || '#000000');
-                    setTextOutlineWidth(config.textOutlineWidth || 2);
-
-                    if (config.textLines) setTextLines(config.textLines);
-                    if (config.styles) setStyles(prev => ({ ...prev, ...config.styles }));
-                    if (config.layout) setLayout(migrateLayout(config.layout));
+                    setDesign(normalizeDesign(config));
                 }
             } else {
                 console.error('Error en respuesta del servidor:', res.status);
@@ -251,50 +150,8 @@ export default function SoundAlertsOverlay() {
             // CRÍTICO: Configurar listeners ANTES de conectar
             connection.on('ShowSoundAlert', (data) => {
 
-                // Aplicar configuración del evento
-                if (data.textLines) {
-                    try {
-                        const parsedTextLines = typeof data.textLines === 'string'
-                            ? JSON.parse(data.textLines)
-                            : data.textLines;
-                        setTextLines(parsedTextLines);
-                    } catch (e) {
-                        console.error('Error parsing textLines:', e);
-                    }
-                }
-
-                if (data.styles) {
-                    try {
-                        const parsedStyles = typeof data.styles === 'string'
-                            ? JSON.parse(data.styles)
-                            : data.styles;
-                        setStyles(prev => ({ ...prev, ...parsedStyles }));
-                    } catch (e) {
-                        console.error('Error parsing styles:', e);
-                    }
-                }
-
-                if (data.layout) {
-                    try {
-                        const parsedLayout = typeof data.layout === 'string'
-                            ? JSON.parse(data.layout)
-                            : data.layout;
-                        setLayout(migrateLayout(parsedLayout));
-                    } catch (e) {
-                        console.error('Error parsing layout:', e);
-                    }
-                }
-
-                if (data.animation) {
-                    setAnimationType(data.animation.type || 'fade');
-                    setAnimationSpeed(data.animation.speed || 'normal');
-                }
-
-                if (data.textOutline) {
-                    setTextOutlineEnabled(data.textOutline.enabled || false);
-                    setTextOutlineColor(data.textOutline.color || '#000000');
-                    setTextOutlineWidth(data.textOutline.width || 2);
-                }
+                // Aplicar el diseño que viene con el aviso
+                setDesign(normalizeDesign(data));
 
                 if (data.volume !== undefined) {
                     setGlobalVolume(data.volume);
@@ -484,7 +341,8 @@ export default function SoundAlertsOverlay() {
             setIsExiting(true);
 
             // Esperar a que la animación de salida termine + un pequeño buffer
-            const exitAnimationDuration = getAnimationDurationMs();
+            const { type, speed } = designRef.current.animation;
+            const exitAnimationDuration = animationDurationMs(speed, type);
             const cleanupDelay = exitAnimationDuration + 100; // +100ms buffer para asegurar que la animación termine
 
             cleanupTimeoutRef.current = setTimeout(() => {
@@ -523,322 +381,78 @@ export default function SoundAlertsOverlay() {
         }, durationInSeconds * 1000);
     };
 
-    const getBackgroundStyle = (): React.CSSProperties => {
-        if (styles.backgroundType === 'transparent') {
-            return { background: 'transparent' };
-        } else if (styles.backgroundType === 'solid') {
-            return {
-                background: styles.solidColor,
-                opacity: styles.backgroundOpacity / 100
-            };
-        } else {
-            return {
-                background: `linear-gradient(${styles.gradientAngle}deg, ${styles.gradientColor1}, ${styles.gradientColor2})`,
-                opacity: styles.backgroundOpacity / 100
-            };
-        }
-    };
-
-    const getAnimationName = (entering: boolean): string => {
-        if (animationType === 'none') return entering ? 'fadeIn' : 'fadeOut';
-        if (animationType === 'slide') return entering ? 'slideIn' : 'slideOut';
-        if (animationType === 'bounce') return entering ? 'bounceIn' : 'bounceOut';
-        if (animationType === 'fade') return entering ? 'fadeIn' : 'fadeOut';
-        if (animationType === 'zoom') return entering ? 'zoomIn' : 'zoomOut';
-        return entering ? 'fadeIn' : 'fadeOut';
-    };
-
-    const getAnimationDuration = (): string => {
-        if (animationSpeed === 'slow') return '1s';
-        if (animationSpeed === 'fast') return '0.3s';
-        return '0.5s'; // normal
-    };
-
-    const getAnimationDurationMs = (): number => {
-        if (animationSpeed === 'slow') return 1000;
-        if (animationSpeed === 'fast') return 300;
-        return 500; // normal
-    };
-
-    const getTextOutlineStyle = (): React.CSSProperties => {
-        if (!textOutlineEnabled) return {};
-        return {
-            WebkitTextStroke: `${textOutlineWidth}px ${textOutlineColor}`,
-            paintOrder: 'stroke fill'
-        };
-    };
-
-    const getTextShadowStyle = (shadow: string): string => {
-        switch (shadow) {
-            case 'normal': return '2px 2px 4px rgba(0,0,0,0.5)';
-            case 'strong': return '3px 3px 6px rgba(0,0,0,0.8)';
-            case 'glow': return '0 0 10px rgba(255,255,255,0.8)';
-            default: return 'none';
-        }
-    };
-
-    const replaceVariables = (text: string): string => {
-        if (!alertData) return text;
-        return text
-            .replace('@redeemer', alertData.redeemer)
-            .replace('@reward', alertData.reward);
-    };
+    const { type: animType, speed: animSpeed } = design.animation;
 
     return (
-        <div
-            style={{
-                width: '100vw',
-                height: '100vh',
-                overflow: 'hidden',
-                position: 'relative',
-                fontFamily: styles.fontFamily
-            }}
-        >
-            <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes fadeOut {
-                    from { opacity: 1; }
-                    to { opacity: 0; }
-                }
-                @keyframes slideIn {
-                    from { transform: translateX(-100%); }
-                    to { transform: translateX(0); }
-                }
-                @keyframes slideOut {
-                    from { transform: translateX(0); }
-                    to { transform: translateX(-100%); }
-                }
-                @keyframes bounceIn {
-                    0% { transform: scale(0); opacity: 0; }
-                    50% { transform: scale(1.1); }
-                    100% { transform: scale(1); opacity: 1; }
-                }
-                @keyframes bounceOut {
-                    0% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.1); }
-                    100% { transform: scale(0); opacity: 0; }
-                }
-                @keyframes zoomIn {
-                    from { transform: scale(0); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
-                }
-                @keyframes zoomOut {
-                    from { transform: scale(1); opacity: 1; }
-                    to { transform: scale(0); opacity: 0; }
-                }
-            `}</style>
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+            <style>{ALERT_KEYFRAMES}</style>
 
-            {/* Sound Alert Box */}
+            {/* Caja de la alerta: la animación de entrada y salida mueve todo junto */}
             <div
                 style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+                    inset: 0,
                     display: alertData ? 'block' : 'none',
-                    ...getBackgroundStyle(),
-                    animation: !isExiting
-                        ? `${getAnimationName(true)} ${getAnimationDuration()} ease-in-out`
-                        : `${getAnimationName(false)} ${getAnimationDuration()} ease-in-out`
+                    animation: alertAnimation(animType, animSpeed, !isExiting),
                 }}
             >
-                {/* Media Element */}
-                {alertData?.fileUrl && (
-                    <>
-                        {/* Audio */}
-                        {alertData.fileType === 'sound' && (
-                            <>
-                                <audio
-                                    ref={audioRef}
-                                    key={alertData.fileUrl}
-                                    autoPlay
-                                    style={{ display: 'none' }}
-                                    onError={(e) => console.error('Error cargando audio:', e)}
-                                    onLoadedData={() => {}}
-                                    onCanPlay={() => {
-                                        // Intentar reproducir cuando el audio esté listo
-                                        if (audioRef.current && audioRef.current.paused) {
-                                            audioRef.current.play().catch((err) => {
-                                                console.error('Autoplay blocked:', err);
-                                            });
-                                        }
-                                    }}
-                                    onLoadedMetadata={() => {
-                                        if (audioRef.current) {
-                                            audioRef.current.volume = globalVolume / 100;
-                                        }
-                                    }}
-                                    onPlay={() => {
-                                        // Iniciar timer cuando realmente empiece a reproducirse
-                                        if (audioRef.current && !timerStartedRef.current) {
-                                            const audioDuration = audioRef.current.duration;
-                                            if (audioDuration && !isNaN(audioDuration) && isFinite(audioDuration)) {
-                                                startExitTimer(audioDuration);
-                                            } else {
-                                                // Audio duration not available, using configured duration
-                                                startExitTimer(durationRef.current);
-                                            }
-                                        }
-                                    }}
-                                    onEnded={() => {
-                                        // No hacer nada aquí, el timer ya manejará la limpieza
-                                    }}
-                                >
-                                    <source src={alertData.fileUrl} type="audio/mpeg" />
-                                </audio>
-
-                                {/* Visualización para audio */}
-                                {/* Si el aviso no dice nada sobre la imagen, no se inventa el icono */}
-                                {(alertData.imageUrl ? alertData.showImage !== false : alertData.showImage === true) && (
-                                    alertData.imageUrl ? (
-                                        /* Imagen asociada al audio */
-                                        <img
-                                            src={alertData.imageUrl}
-                                            alt="Audio visualization"
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${(layout.media.x / 1920) * 100}%`,
-                                                top: `${(layout.media.y / 1080) * 100}%`,
-                                                width: `${(layout.media.width / 1920) * 100}%`,
-                                                height: `${(layout.media.height / 1080) * 100}%`,
-                                                borderRadius: 0,
-                                                objectFit: 'scale-down',
-                                            }}
-                                            onError={(e) => console.error('Error cargando imagen:', e)}
-                                        />
-                                    ) : (
-                                        /* Icono por defecto si no hay imagen */
-                                        <div
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${(layout.media.x / 1920) * 100}%`,
-                                                top: `${(layout.media.y / 1080) * 100}%`,
-                                                width: `${(layout.media.width / 1920) * 100}%`,
-                                                height: `${(layout.media.height / 1080) * 100}%`,
-                                                borderRadius: 0,
-                                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '120px'
-                                            }}
-                                        >
-                                            🎵
-                                        </div>
-                                    )
-                                )}
-                            </>
-                        )}
-
-                        {/* Video */}
-                        {alertData.fileType === 'video' && (
-                            <video
-                                ref={videoRef}
+                {alertData && (
+                    <SoundAlertRenderer
+                        design={design}
+                        content={alertData}
+                        scale={scale}
+                        videoRef={videoRef}
+                        videoProps={{
+                            muted: false,
+                            onError: (e) => console.error('Error cargando video:', e),
+                            onCanPlay: () => {
+                                // Intentar reproducir cuando el video esté listo
+                                if (videoRef.current && videoRef.current.paused) {
+                                    videoRef.current.play().catch((err) => console.error('Autoplay blocked:', err));
+                                }
+                            },
+                            onLoadedMetadata: () => {
+                                if (videoRef.current) videoRef.current.volume = globalVolume / 100;
+                            },
+                            onPlay: () => {
+                                // Iniciar timer cuando realmente empiece a reproducirse
+                                if (videoRef.current && !timerStartedRef.current) {
+                                    const videoDuration = videoRef.current.duration;
+                                    startExitTimer(videoDuration && isFinite(videoDuration) ? videoDuration : durationRef.current);
+                                }
+                            },
+                        }}
+                    >
+                        {/* Audio: no se ve; la imagen o el icono los dibuja el renderizador */}
+                        {alertData.fileUrl && alertData.fileType === 'sound' && (
+                            <audio
+                                ref={audioRef}
                                 key={alertData.fileUrl}
                                 autoPlay
-                                playsInline
-                                muted={false}
-                                style={{
-                                    position: 'absolute',
-                                    left: `${(layout.media.x / 1920) * 100}%`,
-                                    top: `${(layout.media.y / 1080) * 100}%`,
-                                    width: `${(layout.media.width / 1920) * 100}%`,
-                                    height: `${(layout.media.height / 1080) * 100}%`,
-                                    borderRadius: 0,
-                                    objectFit: 'scale-down',
-                                }}
-                                onError={(e) => console.error('Error cargando video:', e)}
-                                onLoadedData={() => {}}
+                                style={{ display: 'none' }}
+                                onError={(e) => console.error('Error cargando audio:', e)}
                                 onCanPlay={() => {
-                                    // Intentar reproducir cuando el video esté listo
-                                    if (videoRef.current && videoRef.current.paused) {
-                                        videoRef.current.play().catch((err) => {
-                                            console.error('Autoplay blocked:', err);
-                                        });
+                                    // Intentar reproducir cuando el audio esté listo
+                                    if (audioRef.current && audioRef.current.paused) {
+                                        audioRef.current.play().catch((err) => console.error('Autoplay blocked:', err));
                                     }
                                 }}
                                 onLoadedMetadata={() => {
-                                    if (videoRef.current) {
-                                        videoRef.current.volume = globalVolume / 100;
-                                    }
+                                    if (audioRef.current) audioRef.current.volume = globalVolume / 100;
                                 }}
                                 onPlay={() => {
                                     // Iniciar timer cuando realmente empiece a reproducirse
-                                    if (videoRef.current && !timerStartedRef.current) {
-                                        const videoDuration = videoRef.current.duration;
-                                        if (videoDuration && !isNaN(videoDuration) && isFinite(videoDuration)) {
-                                            startExitTimer(videoDuration);
-                                        } else {
-                                            startExitTimer(durationRef.current);
-                                        }
+                                    if (audioRef.current && !timerStartedRef.current) {
+                                        const audioDuration = audioRef.current.duration;
+                                        startExitTimer(audioDuration && isFinite(audioDuration) ? audioDuration : durationRef.current);
                                     }
                                 }}
-                                onEnded={() => {
-                                    // Timer handles cleanup
-                                }}
                             >
-                                <source src={alertData.fileUrl} type="video/mp4" />
-                            </video>
+                                <source src={alertData.fileUrl} type="audio/mpeg" />
+                            </audio>
                         )}
-
-                        {/* Image */}
-                        {alertData.fileType === 'image' && (
-                            <img
-                                src={alertData.fileUrl}
-                                alt="Sound Alert"
-                                style={{
-                                    position: 'absolute',
-                                    left: `${(layout.media.x / 1920) * 100}%`,
-                                    top: `${(layout.media.y / 1080) * 100}%`,
-                                    width: `${(layout.media.width / 1920) * 100}%`,
-                                    height: `${(layout.media.height / 1080) * 100}%`,
-                                    borderRadius: 0,
-                                    objectFit: 'scale-down',
-                                }}
-                                onError={(e) => console.error('Error cargando imagen:', e)}
-                                onLoad={() => {}}
-                            />
-                        )}
-                    </>
+                    </SoundAlertRenderer>
                 )}
-
-                {/* Text Lines */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: `${(layout.text.x / 1920) * 100}%`,
-                        top: `${(layout.text.y / 1080) * 100}%`,
-                        width: `${((layout.text.width || 600) / 1920) * 100}%`,
-                        height: `${((layout.text.height || 200) / 1080) * 100}%`,
-                        textAlign: layout.text.align as 'left' | 'center' | 'right',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        overflow: 'hidden',
-                    }}
-                >
-                    {textLines.filter(l => l.enabled).map((line, idx) => (
-                        <div
-                            key={idx}
-                            style={{
-                                fontSize: `${(line.fontSize / 1920) * 100}vw`,
-                                fontWeight: line.fontWeight,
-                                color: styles.textColor,
-                                textShadow: getTextShadowStyle(styles.textShadow),
-                                fontFamily: styles.fontFamily,
-                                margin: '0.4vw 0',
-                                lineHeight: 1.2,
-                                ...getTextOutlineStyle()
-                            }}
-                        >
-                            {replaceVariables(line.text)}
-                        </div>
-                    ))}
-                </div>
             </div>
         </div>
     );

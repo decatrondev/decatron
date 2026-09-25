@@ -8,8 +8,8 @@ export function MediaTab() {
                     📁 Galería de Multimedia
                 </label>
                 <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
-                    Subí y gestioná los archivos de tus Sound Alerts desde acá — es la misma
-                    galería que después elegís al asignar un archivo a una recompensa en "Archivos".
+                    Sube y administra aquí los archivos de tus Sound Alerts. Es la misma galería
+                    que aparece al asignar un archivo a una recompensa en "Recompensas".
                 </p>
             </div>
 

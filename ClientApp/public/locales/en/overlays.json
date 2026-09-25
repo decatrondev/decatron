@@ -847,5 +847,169 @@
         "invalid_request": "Invalid request."
       }
     }
+  },
+  "overlayEditor": {
+    "snap": "Grid",
+    "keyboardHint": "Click the canvas and use the arrow keys to move 1 px (10 px with Shift).",
+    "layers": "Elements",
+    "hide": "Hide",
+    "show": "Show",
+    "width": "Width",
+    "height": "Height",
+    "centerH": "Center horizontally",
+    "canvas": "Canvas",
+    "canvasHint": "The overlay size. Use the same one in the OBS browser source."
+  },
+  "soundAlerts": {
+    "title": "Sound Alerts",
+    "subtitle": "Sounds, videos and images your chat triggers by redeeming channel points",
+    "unsaved": "Unsaved changes",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Changes saved",
+    "saveFailed": "Couldn't save your changes",
+    "forbidden": "You don't have permission to configure Sound Alerts on this channel.",
+    "loadFailed": "Couldn't load the configuration. Reload the page.",
+    "fileEdited": "File changes saved",
+    "fileEditFailed": "Couldn't save the file changes",
+    "tabs": {
+      "guide": "Guide",
+      "rewards": "Rewards",
+      "library": "Library",
+      "basic": "Basic",
+      "texts": "Texts",
+      "background": "Background",
+      "animation": "Animation",
+      "editor": "Editor"
+    },
+    "guide": {
+      "disabledWarning": "Alerts are turned off: redemptions don't show in OBS.",
+      "goBasic": "Turn them on in Basic",
+      "title": "Getting started",
+      "description": "Four steps to make your redemptions play on stream.",
+      "step1Title": "Assign a file to each reward",
+      "step1Body": "Pick a sound, video or image for the channel point rewards you want to use.",
+      "assigned": "{{count}} of {{total}} rewards have a file.",
+      "goRewards": "Go to Rewards",
+      "step2Title": "Add the overlay to OBS",
+      "step2Body": "Copy this link and add it as a browser source.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "open": "Open",
+      "obs1": "In OBS, add a “Browser” source.",
+      "obs2": "Paste the overlay link.",
+      "obs3": "Width 1920 and height 1080, so everything stays where you placed it.",
+      "obs4": "Click the source once (Interact) to unlock audio.",
+      "step3Title": "Test the alert",
+      "step3Body": "Use “Test in OBS” below the preview: it sends the selected reward's alert to your overlay.",
+      "step4Title": "Make it yours",
+      "step4Body": "Change texts, background and animation, and arrange each element on the canvas.",
+      "goEditor": "Go to Editor"
+    },
+    "basic": {
+      "title": "General",
+      "enabled": "Alerts enabled",
+      "enabledHint": "When off, redemptions are logged but don't show in OBS.",
+      "volume": "Volume",
+      "volumeHint": "For every alert. Each file can have its own volume in Rewards.",
+      "duration": "Image duration",
+      "durationHint": "How long an image stays on screen. Sounds and videos last as long as the file.",
+      "resetTitle": "Reset design",
+      "resetDescription": "Sets texts, background, animation and positions back to defaults. Your files and rewards don't change.",
+      "reset": "Reset design",
+      "resetConfirm": "Texts, background, animation and positions will be replaced with defaults. Continue?"
+    },
+    "texts": {
+      "linesTitle": "Text lines",
+      "linesDescription": "Each line shows with the alert and can be moved on its own in the Editor.",
+      "add": "Line",
+      "empty": "No text lines: the alert only shows the file.",
+      "line": "Line {{n}}",
+      "remove": "Remove",
+      "newLine": "New text",
+      "text": "Text",
+      "variables": "@redeemer = who redeemed · @reward = the reward",
+      "size": "Size",
+      "weight": "Weight",
+      "weights": {
+        "400": "Normal",
+        "600": "Semibold",
+        "bold": "Bold"
+      },
+      "align": "Alignment",
+      "aligns": {
+        "left": "Left",
+        "center": "Center",
+        "right": "Right"
+      },
+      "styleTitle": "Text style",
+      "styleDescription": "Applies to every line.",
+      "font": "Font",
+      "color": "Color",
+      "shadow": "Shadow",
+      "shadows": {
+        "none": "No shadow",
+        "normal": "Normal",
+        "strong": "Strong",
+        "glow": "Glow"
+      },
+      "outline": "Text outline",
+      "outlineHint": "An outline around the letters so they read on any background.",
+      "outlineColor": "Outline color",
+      "outlineWidth": "Outline width"
+    },
+    "background": {
+      "title": "Background",
+      "description": "A background behind the alert. When transparent, only the file and text show.",
+      "types": {
+        "transparent": "Transparent",
+        "solid": "Color",
+        "gradient": "Gradient"
+      },
+      "color": "Color",
+      "color1": "Color 1",
+      "color2": "Color 2",
+      "angle": "Angle",
+      "opacity": "Opacity",
+      "moveHint": "The background is one more element: change its size and position in the Editor."
+    },
+    "animation": {
+      "title": "Animation",
+      "description": "How the alert comes in and out. Use “Replay” in the preview to see it.",
+      "type": "Effect",
+      "types": {
+        "none": "No animation",
+        "fade": "Fade",
+        "slide": "Slide",
+        "bounce": "Bounce",
+        "zoom": "Zoom"
+      },
+      "speed": "Speed",
+      "speeds": {
+        "slow": "Slow",
+        "normal": "Normal",
+        "fast": "Fast"
+      }
+    },
+    "editor": {
+      "title": "Visual editor",
+      "description": "Drag each element and resize it from the corners. What you see is exactly what shows in OBS.",
+      "media": "Image or video",
+      "panel": "Background",
+      "mediaHint": "The reward's sound, video or image fits inside this box without stretching.",
+      "panelHint": "Color and opacity in the Background tab."
+    },
+    "preview": {
+      "title": "Preview",
+      "replay": "Replay",
+      "sample": "Sample (sound without image)",
+      "sampleUser": "Viewer123",
+      "sampleReward": "Reward",
+      "test": "Test in OBS",
+      "testing": "Sending...",
+      "testHint": "Sends the selected alert to your OBS overlay, using what you have saved.",
+      "testUnsaved": "You have unsaved changes: the OBS test uses what you last saved.",
+      "size": "1920×1080 px canvas: use that size in the OBS source."
+    }
   }
 }

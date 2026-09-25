@@ -847,5 +847,169 @@
         "invalid_request": "Pedido inválido."
       }
     }
+  },
+  "overlayEditor": {
+    "snap": "Cuadrícula",
+    "keyboardHint": "Haz clic en el lienzo y usa las flechas para mover 1 px (con Shift, 10 px).",
+    "layers": "Elementos",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "width": "Ancho",
+    "height": "Alto",
+    "centerH": "Centrar horizontal",
+    "canvas": "Lienzo",
+    "canvasHint": "El tamaño del overlay. Usa el mismo en la fuente de navegador de OBS."
+  },
+  "soundAlerts": {
+    "title": "Sound Alerts",
+    "subtitle": "Sonidos, videos e imágenes que el chat activa canjeando puntos del canal",
+    "unsaved": "Cambios sin guardar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saved": "Cambios guardados",
+    "saveFailed": "No se pudieron guardar los cambios",
+    "forbidden": "No tienes permiso para configurar Sound Alerts en este canal.",
+    "loadFailed": "No se pudo cargar la configuración. Recarga la página.",
+    "fileEdited": "Cambios del archivo guardados",
+    "fileEditFailed": "No se pudieron guardar los cambios del archivo",
+    "tabs": {
+      "guide": "Guía",
+      "rewards": "Recompensas",
+      "library": "Biblioteca",
+      "basic": "Básico",
+      "texts": "Textos",
+      "background": "Fondo",
+      "animation": "Animación",
+      "editor": "Editor"
+    },
+    "guide": {
+      "disabledWarning": "Las alertas están apagadas: los canjes no se muestran en OBS.",
+      "goBasic": "Activarlas en Básico",
+      "title": "Cómo empezar",
+      "description": "Cuatro pasos para que tus canjes suenen en el stream.",
+      "step1Title": "Asigna un archivo a cada recompensa",
+      "step1Body": "Elige un sonido, video o imagen para las recompensas de puntos del canal que quieras usar.",
+      "assigned": "{{count}} de {{total}} recompensas tienen archivo.",
+      "goRewards": "Ir a Recompensas",
+      "step2Title": "Agrega el overlay a OBS",
+      "step2Body": "Copia este link y agrégalo como fuente de navegador.",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "open": "Abrir",
+      "obs1": "En OBS, agrega una fuente «Navegador».",
+      "obs2": "Pega el link del overlay.",
+      "obs3": "Ancho 1920 y alto 1080, para que todo quede donde lo pusiste.",
+      "obs4": "Haz clic una vez en la fuente (Interactuar) para desbloquear el audio.",
+      "step3Title": "Prueba la alerta",
+      "step3Body": "Usa «Probar en OBS» debajo de la vista previa: manda la alerta de la recompensa elegida a tu overlay.",
+      "step4Title": "Dale tu estilo",
+      "step4Body": "Cambia textos, fondo y animación, y acomoda cada elemento en el lienzo.",
+      "goEditor": "Ir al Editor"
+    },
+    "basic": {
+      "title": "General",
+      "enabled": "Alertas activadas",
+      "enabledHint": "Apagado, los canjes se registran pero no se muestran en OBS.",
+      "volume": "Volumen",
+      "volumeHint": "Para todas las alertas. Cada archivo puede tener su propio volumen en Recompensas.",
+      "duration": "Duración de las imágenes",
+      "durationHint": "Cuánto tiempo se ve una imagen. Los sonidos y videos duran lo que dura el archivo.",
+      "resetTitle": "Restablecer el diseño",
+      "resetDescription": "Vuelve textos, fondo, animación y posiciones a los valores por defecto. Tus archivos y recompensas no cambian.",
+      "reset": "Restablecer diseño",
+      "resetConfirm": "Se reemplazan textos, fondo, animación y posiciones por los valores por defecto. ¿Continuar?"
+    },
+    "texts": {
+      "linesTitle": "Líneas de texto",
+      "linesDescription": "Cada línea se muestra con la alerta y se puede mover sola en el Editor.",
+      "add": "Línea",
+      "empty": "No hay líneas de texto: la alerta solo muestra el archivo.",
+      "line": "Línea {{n}}",
+      "remove": "Eliminar",
+      "newLine": "Nuevo texto",
+      "text": "Texto",
+      "variables": "@redeemer = quien canjeó · @reward = la recompensa",
+      "size": "Tamaño",
+      "weight": "Grosor",
+      "weights": {
+        "400": "Normal",
+        "600": "Semi-negrita",
+        "bold": "Negrita"
+      },
+      "align": "Alineación",
+      "aligns": {
+        "left": "Izquierda",
+        "center": "Centro",
+        "right": "Derecha"
+      },
+      "styleTitle": "Estilo del texto",
+      "styleDescription": "Se aplica a todas las líneas.",
+      "font": "Fuente",
+      "color": "Color",
+      "shadow": "Sombra",
+      "shadows": {
+        "none": "Sin sombra",
+        "normal": "Normal",
+        "strong": "Fuerte",
+        "glow": "Brillo"
+      },
+      "outline": "Borde del texto",
+      "outlineHint": "Un contorno alrededor de las letras para leerlas sobre cualquier fondo.",
+      "outlineColor": "Color del borde",
+      "outlineWidth": "Grosor del borde"
+    },
+    "background": {
+      "title": "Fondo",
+      "description": "Un fondo detrás de la alerta. Transparente, se ve solo el archivo y el texto.",
+      "types": {
+        "transparent": "Transparente",
+        "solid": "Color",
+        "gradient": "Degradado"
+      },
+      "color": "Color",
+      "color1": "Color 1",
+      "color2": "Color 2",
+      "angle": "Ángulo",
+      "opacity": "Opacidad",
+      "moveHint": "El fondo es un elemento más: cambia su tamaño y posición en el Editor."
+    },
+    "animation": {
+      "title": "Animación",
+      "description": "Cómo entra y sale la alerta. Usa «Repetir» en la vista previa para verla.",
+      "type": "Efecto",
+      "types": {
+        "none": "Sin animación",
+        "fade": "Fundido",
+        "slide": "Deslizar",
+        "bounce": "Rebote",
+        "zoom": "Zoom"
+      },
+      "speed": "Velocidad",
+      "speeds": {
+        "slow": "Lenta",
+        "normal": "Normal",
+        "fast": "Rápida"
+      }
+    },
+    "editor": {
+      "title": "Editor visual",
+      "description": "Arrastra cada elemento y cambia su tamaño desde las esquinas. Lo que ves es exactamente lo que sale en OBS.",
+      "media": "Imagen o video",
+      "panel": "Fondo",
+      "mediaHint": "El sonido, video o imagen de la recompensa se ajusta dentro de esta caja sin deformarse.",
+      "panelHint": "Color y opacidad en la pestaña Fondo."
+    },
+    "preview": {
+      "title": "Vista previa",
+      "replay": "Repetir",
+      "sample": "Ejemplo (sonido sin imagen)",
+      "sampleUser": "Viewer123",
+      "sampleReward": "Recompensa",
+      "test": "Probar en OBS",
+      "testing": "Enviando...",
+      "testHint": "Manda la alerta elegida a tu overlay en OBS, con lo que tienes guardado.",
+      "testUnsaved": "Tienes cambios sin guardar: la prueba en OBS usa lo último que guardaste.",
+      "size": "Lienzo de 1920×1080 px: usa ese tamaño en la fuente de OBS."
+    }
   }
 }

@@ -452,7 +452,12 @@ namespace Decatron.Default.Controllers
                 var config = await _dbContext.SoundAlertConfigs
                     .FirstOrDefaultAsync(c => c.Username == username);
 
-                var camelCaseOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                // Sin nulos: las líneas y el fondo sin posición propia se guardan como antes
+                var camelCaseOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                };
                 var textLinesJson = JsonSerializer.Serialize(request.TextLines, camelCaseOptions);
                 var stylesJson = JsonSerializer.Serialize(request.Styles, camelCaseOptions);
                 var layoutJson = JsonSerializer.Serialize(request.Layout, camelCaseOptions);
@@ -1207,7 +1212,7 @@ namespace Decatron.Default.Controllers
         /// Envía una alerta de prueba a través de SignalR
         /// </summary>
         [HttpPost("test")]
-        public async Task<IActionResult> SendTestAlert()
+        public async Task<IActionResult> SendTestAlert([FromQuery] string? rewardId = null)
         {
             try
             {
@@ -1235,10 +1240,10 @@ namespace Decatron.Default.Controllers
                 string textOutlineColor = config?.TextOutlineColor ?? "#000000";
                 int textOutlineWidth = config?.TextOutlineWidth ?? 2;
 
-                // Obtener el primer mapeo disponible para testing, o null si no hay
+                // La recompensa elegida en la vista previa; sin elegir, el último mapeo activo
                 var mapping = await _dbContext.SoundAlertRewardFiles
                     .Include(m => m.MediaFile)
-                    .Where(m => m.UserId == channelOwnerId && m.Enabled)
+                    .Where(m => m.UserId == channelOwnerId && (rewardId != null ? m.RewardId == rewardId : m.Enabled))
                     .OrderByDescending(m => m.UpdatedAt)
                     .FirstOrDefaultAsync();
 
@@ -1274,7 +1279,7 @@ namespace Decatron.Default.Controllers
                 {
                     type = "soundalert",
                     redeemer = "TestUser",
-                    reward = "Alerta de Prueba",
+                    reward = rewardId != null && mapping != null ? mapping.RewardTitle : "Alerta de Prueba",
                     fileUrl = fileUrl,
                     imageUrl = imageUrl,
                     showImage = showImageFlag,
@@ -1450,6 +1455,12 @@ namespace Decatron.Default.Controllers
             public int FontSize { get; set; } = 32;
             public string FontWeight { get; set; } = "bold";
             public bool Enabled { get; set; } = true;
+            // Caja propia de la línea sobre 1920×1080 (desde el rediseño); sin esto se apila en Layout.Text
+            public int? X { get; set; }
+            public int? Y { get; set; }
+            public int? Width { get; set; }
+            public int? Height { get; set; }
+            public string? Align { get; set; }
         }
 
         public class StylesDto
@@ -1470,6 +1481,8 @@ namespace Decatron.Default.Controllers
         {
             public MediaPositionDto Media { get; set; } = new();
             public TextPositionDto Text { get; set; } = new();
+            // Dónde va el fondo; sin esto cubre todo el lienzo
+            public MediaPositionDto? Panel { get; set; }
         }
 
         public class MediaPositionDto

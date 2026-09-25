@@ -1,877 +1,317 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-    ArrowLeft, Save, Volume2, AlertCircle, CheckCircle, Gift,
-    Type, Palette, LayoutIcon as Layout, Zap, Clock, Plus, Eye, EyeOff,
-    Trash2, Upload, Monitor, Copy, ExternalLink, Play, RotateCcw,
-    Music, Video, Image as ImageIcon, FolderOpen
-} from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import api from '../../services/api';
-import type {
-    ChannelPointsReward, SoundFile, TextLine, Styles,
-    Layout as LayoutType, TabType
-} from './sound-alerts-extension/types';
-import {
-    BasicTab,
-    TypographyTab,
-    BackgroundTab,
-    LayoutTab,
-    AnimationsTab,
-    RewardsTab,
-    MediaTab,
-    PreviewPanel,
-    FileSelectionModal,
-} from './sound-alerts-extension/components/tabs';
+import type { ChannelPointsReward, SoundFile, TabId } from './sound-alerts-extension/types';
+import { useSoundAlertsConfig } from './sound-alerts-extension/hooks/useSoundAlertsConfig';
+import { RewardsTab, MediaTab, FileSelectionModal } from './sound-alerts-extension/components/tabs';
 import EditSoundModal from './sound-alerts-extension/components/tabs/EditSoundModal';
+import { GuideTab, BasicTab, TextsTab, BackgroundTab, AnimationTab } from './sound-alerts-extension/components/ConfigTabs';
+import EditorTab from './sound-alerts-extension/components/EditorTab';
+import SoundAlertPreview, { contentForFile } from './sound-alerts-extension/components/SoundAlertPreview';
+
+// Sound Alerts (.dev/plans/SOUND_ALERTS_REDESIGN_PLAN.md, fase 2): mismo patrón que /overlays/timer y
+// /overlays/song-request — pestañas a la izquierda (2/3), vista previa en vivo a la derecha (1/3).
+
+const TABS: { id: TabId; icon: string }[] = [
+    { id: 'guide', icon: '📚' },
+    { id: 'rewards', icon: '🎁' },
+    { id: 'library', icon: '📁' },
+    { id: 'basic', icon: '⚙️' },
+    { id: 'texts', icon: '🔤' },
+    { id: 'background', icon: '🎨' },
+    { id: 'animation', icon: '✨' },
+    { id: 'editor', icon: '🖥️' },
+];
 
 export default function SoundAlerts() {
     const navigate = useNavigate();
-    const { t } = useTranslation('features');
+    const { t } = useTranslation('overlays');
+    const { t: tf } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
-    const previewRef = useRef<HTMLDivElement>(null);
-    const [activeTab, setActiveTab] = useState<TabType>('basic');
-
-    // Estados
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+    const cfg = useSoundAlertsConfig();
+    const [tab, setTab] = useState<TabId>(() => (sessionStorage.getItem('sa-tab') as TabId) || 'guide');
+    const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
     const [testing, setTesting] = useState(false);
-    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [previewFileId, setPreviewFileId] = useState<number | null>(null);
 
-    // Datos
-    const [rewards, setRewards] = useState<ChannelPointsReward[]>([]);
-    const [files, setFiles] = useState<SoundFile[]>([]);
-    const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-    const [systemFiles, setSystemFiles] = useState<any[]>([]);
+    // Archivos por recompensa (modales de antes)
+    const [uploading, setUploading] = useState<Record<string, boolean>>({});
     const [showFileDialog, setShowFileDialog] = useState(false);
     const [selectedRewardForFile, setSelectedRewardForFile] = useState<ChannelPointsReward | null>(null);
-
-    // Modal para subir audio + imagen
     const [showAudioImageModal, setShowAudioImageModal] = useState(false);
-    const [pendingAudioUpload, setPendingAudioUpload] = useState<{
-        rewardId: string;
-        rewardTitle: string;
-        audioFile: File;
-    } | null>(null);
+    const [pendingAudioUpload, setPendingAudioUpload] = useState<{ rewardId: string; rewardTitle: string; audioFile: File } | null>(null);
     const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-
-    // Modal de edición de archivo
     const [editingFile, setEditingFile] = useState<SoundFile | null>(null);
     const [savingEdit, setSavingEdit] = useState(false);
 
-    // Configuración
-    const [globalVolume, setGlobalVolume] = useState(70);
-    const [globalEnabled, setGlobalEnabled] = useState(true);
-    const [duration, setDuration] = useState(10);
-    const [textLines, setTextLines] = useState<TextLine[]>([
-        { text: '@redeemer canjeó @reward', fontSize: 24, fontWeight: 'bold', enabled: false },
-        { text: '¡Gracias por el apoyo!', fontSize: 18, fontWeight: '600', enabled: false }
-    ]);
-    const [styles, setStyles] = useState<Styles>({
-        fontFamily: 'Inter',
-        fontSize: 24,
-        textColor: '#ffffff',
-        textShadow: 'normal',
-        backgroundType: 'transparent',
-        gradientColor1: '#667eea',
-        gradientColor2: '#764ba2',
-        gradientAngle: 135,
-        solidColor: '#8b5cf6',
-        backgroundOpacity: 100
-    });
-    const [layout, setLayout] = useState<LayoutType>({
-        media: { x: 260, y: 40, width: 1400, height: 700 },
-        text: { x: 460, y: 780, width: 1000, height: 240, align: 'center' }
-    });
-    const [animationType, setAnimationType] = useState('fade');
-    const [animationSpeed, setAnimationSpeed] = useState('normal');
-    const [textOutlineEnabled, setTextOutlineEnabled] = useState(false);
-    const [textOutlineColor, setTextOutlineColor] = useState('#000000');
-    const [textOutlineWidth, setTextOutlineWidth] = useState(2);
-    const [cooldownMs, setCooldownMs] = useState(500);
-
-    // URL del overlay
-    const [channelName, setChannelName] = useState('tu_canal');
-    const overlayUrl = `${window.location.origin}/overlay/soundalerts?channel=${channelName}`;
+    useEffect(() => { try { sessionStorage.setItem('sa-tab', tab); } catch { /* sin storage */ } }, [tab]);
 
     useEffect(() => {
-        if (!permissionsLoading && hasMinimumLevel('moderation')) {
-            loadAll();
-        } else if (!permissionsLoading) {
-            navigate('/dashboard');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [permissionsLoading]);
+        if (!permissionsLoading && !hasMinimumLevel('moderation')) navigate('/dashboard');
+    }, [permissionsLoading, hasMinimumLevel, navigate]);
 
-    const loadAll = async () => {
-        try {
-            setLoading(true);
-            await Promise.all([
-                loadRewards(),
-                loadConfiguration(),
-                loadFiles(),
-                loadSystemFiles()
-            ]);
-        } catch (error) {
-            console.error('Error loading data:', error);
-        } finally {
-            setLoading(false);
-        }
+    useEffect(() => {
+        if (!cfg.dirty) return;
+        const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [cfg.dirty]);
+
+    useEffect(() => {
+        if (!message) return;
+        const id = window.setTimeout(() => setMessage(null), 4000);
+        return () => window.clearTimeout(id);
+    }, [message]);
+
+    const notify = (ok: boolean, text: string) => setMessage({ ok, text });
+
+    const previewFile = cfg.files.find(f => f.id === previewFileId);
+    const content = useMemo(
+        () => contentForFile(previewFile, t('soundAlerts.preview.sampleUser'), t('soundAlerts.preview.sampleReward')),
+        [previewFile, t],
+    );
+
+    const save = async () => {
+        const err = await cfg.save();
+        notify(!err, err === null ? t('soundAlerts.saved') : err === 'save_failed' ? t('soundAlerts.saveFailed') : err);
     };
 
-    const loadRewards = async () => {
+    const test = async () => {
+        setTesting(true);
         try {
-            const res = await api.get('/soundalerts/channel-points-rewards');
-            if (res.data.success) {
-                setRewards(res.data.rewards || []);
-                if (res.data.channelName) {
-                    setChannelName(res.data.channelName);
-                }
-            }
-        } catch (error) {
-            console.error('Error loading rewards:', error);
-        }
-    };
-
-    const loadConfiguration = async () => {
-        try {
-            const res = await api.get('/soundalerts/config');
-            console.log('🔍 [DEBUG] Respuesta completa del backend:', res.data);
-
-            if (res.data.success && res.data.config) {
-                const cfg = res.data.config;
-                console.log('🔍 [DEBUG] Layout recibido del backend:', cfg.layout);
-                console.log('🔍 [DEBUG] Tipo de layout:', typeof cfg.layout);
-
-                setGlobalVolume(cfg.globalVolume);
-                setGlobalEnabled(cfg.globalEnabled);
-                setDuration(cfg.duration);
-                setTextLines(cfg.textLines);
-                setStyles(cfg.styles);
-
-                // Parse layout if it's a string and validate structure
-                let parsedLayout = cfg.layout;
-                if (typeof cfg.layout === 'string') {
-                    try {
-                        parsedLayout = JSON.parse(cfg.layout);
-                        console.log('🔍 [DEBUG] Layout parseado de string:', parsedLayout);
-                    } catch (e) {
-                        console.error('Error parsing layout:', e);
-                        parsedLayout = null;
-                    }
-                } else {
-                    console.log('🔍 [DEBUG] Layout ya es objeto:', parsedLayout);
-                }
-
-                // Validate layout structure and provide defaults if needed
-                if (parsedLayout &&
-                    typeof parsedLayout === 'object' &&
-                    parsedLayout.media &&
-                    typeof parsedLayout.media.x === 'number' &&
-                    typeof parsedLayout.media.y === 'number' &&
-                    parsedLayout.text &&
-                    typeof parsedLayout.text.x === 'number' &&
-                    typeof parsedLayout.text.y === 'number') {
-
-                    // Detectar si es layout viejo (400x450) — si text no tiene width, es viejo
-                    const isLegacy = parsedLayout.text.width === undefined || parsedLayout.text.width === null;
-
-                    let completeLayout: LayoutType;
-                    if (isLegacy) {
-                        // Migrar coordenadas de 400x450 a 1920x1080
-                        const scaleX = 1920 / 400;
-                        const scaleY = 1080 / 450;
-                        completeLayout = {
-                            media: {
-                                x: Math.round(parsedLayout.media.x * scaleX),
-                                y: Math.round(parsedLayout.media.y * scaleY),
-                                width: Math.round((parsedLayout.media.width ?? 200) * scaleX),
-                                height: Math.round((parsedLayout.media.height ?? 200) * scaleY),
-                            },
-                            text: {
-                                x: Math.round(parsedLayout.text.x * scaleX),
-                                y: Math.round(parsedLayout.text.y * scaleY),
-                                width: 600,
-                                height: 200,
-                                align: parsedLayout.text.align ?? 'center',
-                            }
-                        };
-
-                        // Auto-save: guardar layout migrado en BD para que no se repita
-                        api.post('/soundalerts/config', {
-                            globalVolume: cfg.globalVolume,
-                            globalEnabled: cfg.globalEnabled,
-                            duration: cfg.duration,
-                            textLines: cfg.textLines,
-                            styles: cfg.styles,
-                            layout: completeLayout,
-                            animationType: cfg.animationType,
-                            animationSpeed: cfg.animationSpeed,
-                            textOutlineEnabled: cfg.textOutlineEnabled,
-                            textOutlineColor: cfg.textOutlineColor,
-                            textOutlineWidth: cfg.textOutlineWidth,
-                            cooldownMs: cfg.cooldownMs,
-                        }).catch(err => console.error('Error auto-saving migrated layout:', err));
-                    } else {
-                        completeLayout = {
-                            media: {
-                                x: parsedLayout.media.x,
-                                y: parsedLayout.media.y,
-                                width: parsedLayout.media.width,
-                                height: parsedLayout.media.height,
-                            },
-                            text: {
-                                x: parsedLayout.text.x,
-                                y: parsedLayout.text.y,
-                                width: parsedLayout.text.width,
-                                height: parsedLayout.text.height,
-                                align: parsedLayout.text.align ?? 'center',
-                            }
-                        };
-                    }
-                    setLayout(completeLayout);
-                } else {
-                    console.warn('❌ Invalid layout structure, using defaults. Received:', parsedLayout);
-                    console.warn('❌ parsedLayout.media:', parsedLayout?.media);
-                    console.warn('❌ parsedLayout.text:', parsedLayout?.text);
-                    // Keep the default layout initialized in useState
-                }
-
-                setAnimationType(cfg.animationType);
-                setAnimationSpeed(cfg.animationSpeed);
-                setTextOutlineEnabled(cfg.textOutlineEnabled);
-                setTextOutlineColor(cfg.textOutlineColor);
-                setTextOutlineWidth(cfg.textOutlineWidth);
-                setCooldownMs(cfg.cooldownMs);
-            }
-        } catch (error) {
-            console.error('Error loading configuration:', error);
-        }
-    };
-
-    const loadFiles = async () => {
-        try {
-            const res = await api.get('/soundalerts/files');
-            if (res.data.success) {
-                setFiles(res.data.files || []);
-            }
-        } catch (error) {
-            console.error('Error loading files:', error);
-        }
-    };
-
-    const handleSave = async () => {
-        if (duration < 3 || duration > 30) {
-            setSaveMessage({ type: 'error', text: t('soundAlerts.durationError') });
-            setTimeout(() => setSaveMessage(null), 3000);
-            return;
-        }
-
-        try {
-            setSaving(true);
-
-            const configData = {
-                globalVolume,
-                globalEnabled,
-                duration,
-                textLines,
-                styles,
-                layout,
-                animationType,
-                animationSpeed,
-                textOutlineEnabled,
-                textOutlineColor,
-                textOutlineWidth,
-                cooldownMs
-            };
-
-            await api.post('/soundalerts/config', configData);
-
-            setSaveMessage({ type: 'success', text: t('soundAlerts.saveSuccess') });
-            setTimeout(() => setSaveMessage(null), 3000);
-        } catch (error: any) {
-            const message = error.response?.data?.message || t('soundAlerts.saveError');
-            setSaveMessage({ type: 'error', text: message });
-            console.error('🎵 [ERROR] Error guardando configuración:', error);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleReset = () => {
-        if (!confirm(t('soundAlerts.resetConfirm'))) return;
-
-        setGlobalVolume(70);
-        setGlobalEnabled(true);
-        setDuration(10);
-        setAnimationType('fade');
-        setAnimationSpeed('normal');
-        setTextOutlineEnabled(false);
-        setTextOutlineColor('#000000');
-        setTextOutlineWidth(2);
-        setCooldownMs(500);
-        setTextLines([
-            { text: '@redeemer canjeó @reward', fontSize: 24, fontWeight: 'bold', enabled: true },
-            { text: '¡Gracias por el apoyo!', fontSize: 18, fontWeight: '600', enabled: true }
-        ]);
-        setStyles({
-            fontFamily: 'Inter',
-            fontSize: 24,
-            textColor: '#ffffff',
-            textShadow: 'normal',
-            backgroundType: 'transparent',
-            gradientColor1: '#667eea',
-            gradientColor2: '#764ba2',
-            gradientAngle: 135,
-            solidColor: '#8b5cf6',
-            backgroundOpacity: 100
-        });
-        setLayout({
-            media: { x: 100, y: 20, width: 200, height: 200 },
-            text: { x: 200, y: 300, align: 'center' }
-        });
-    };
-
-    const loadSystemFiles = async () => {
-        try {
-            const res = await api.get('/soundalerts/system-files');
-            if (res.data.success) {
-                setSystemFiles(res.data.files || []);
-            }
-        } catch (error) {
-            console.error('Error loading system files:', error);
-        }
-    };
-
-    const handleTestAlert = async () => {
-        try {
-            setTesting(true);
-            const res = await api.post('/soundalerts/test');
-            if (res.data.success) {
-                setSaveMessage({ type: 'success', text: t('soundAlerts.testSuccess') });
-                setTimeout(() => setSaveMessage(null), 3000);
-            }
-        } catch (error: any) {
-            const message = error.response?.data?.message || t('soundAlerts.testError');
-            setSaveMessage({ type: 'error', text: message });
-            setTimeout(() => setSaveMessage(null), 3000);
+            const res = await api.post('/soundalerts/test', null, { params: previewFile ? { rewardId: previewFile.rewardId } : undefined });
+            if (res.data.success) notify(true, tf('soundAlerts.testSuccess'));
+        } catch (e: any) {
+            notify(false, e?.response?.data?.message || tf('soundAlerts.testError'));
         } finally {
             setTesting(false);
         }
     };
 
-    const handleAssignSystemFile = async (systemFile: any) => {
-        if (!selectedRewardForFile) return;
+    // ── Archivos por recompensa ────────────────────────────────────────────────
 
-        try {
-            setUploading({ ...uploading, [selectedRewardForFile.id]: true });
-
-            await api.post('/soundalerts/assign-system-file', {
-                rewardId: selectedRewardForFile.id,
-                rewardTitle: selectedRewardForFile.title,
-                systemFilePath: systemFile.path,
-                systemFileName: systemFile.name,
-                fileType: systemFile.type
-            });
-
-            setSaveMessage({ type: 'success', text: t('soundAlerts.systemFileAssigned', { name: systemFile.name }) });
-            setTimeout(() => setSaveMessage(null), 3000);
-            await loadFiles();
-            setShowFileDialog(false);
-            setSelectedRewardForFile(null);
-        } catch (error: any) {
-            const message = error.response?.data?.message || t('soundAlerts.systemFileError');
-            setSaveMessage({ type: 'error', text: message });
-        } finally {
-            setUploading({ ...uploading, [selectedRewardForFile.id]: false });
-        }
-    };
-
-    const handleAssignMediaFile = async (mediaFileId: number) => {
-        if (!selectedRewardForFile) return;
-
-        try {
-            setUploading({ ...uploading, [selectedRewardForFile.id]: true });
-
-            await api.post('/soundalerts/assign-media-file', {
-                rewardId: selectedRewardForFile.id,
-                rewardTitle: selectedRewardForFile.title,
-                mediaFileId
-            });
-
-            setSaveMessage({ type: 'success', text: t('soundAlerts.fileUploaded', { name: selectedRewardForFile.title }) });
-            setTimeout(() => setSaveMessage(null), 3000);
-            await loadFiles();
-            setShowFileDialog(false);
-            setSelectedRewardForFile(null);
-        } catch (error: any) {
-            const message = error.response?.data?.message || t('soundAlerts.systemFileError');
-            setSaveMessage({ type: 'error', text: message });
-        } finally {
-            setUploading({ ...uploading, [selectedRewardForFile.id]: false });
-        }
-    };
-
-    const handleCopyUrl = async () => {
-        try {
-            await navigator.clipboard.writeText(overlayUrl);
-            setSaveMessage({ type: 'success', text: t('soundAlerts.urlCopied') });
-            setTimeout(() => setSaveMessage(null), 2000);
-        } catch {
-            setSaveMessage({ type: 'error', text: t('soundAlerts.urlCopyError') });
-        }
-    };
-
-    const handleOpenBrowser = () => {
-        window.open(overlayUrl, '_blank');
-    };
-
-    const addTextLine = () => {
-        setTextLines([...textLines, { text: t('soundAlerts.newTextLine'), fontSize: 24, fontWeight: '600', enabled: true }]);
-    };
-
-    const updateTextLine = (index: number, field: keyof TextLine, value: TextLine[keyof TextLine]) => {
-        if (!textLines || index < 0 || index >= textLines.length) {
-            console.error('Invalid textLines index:', index);
-            return;
-        }
-        const newTextLines = [...textLines];
-        newTextLines[index] = { ...newTextLines[index], [field]: value };
-        setTextLines(newTextLines);
-    };
-
-    const removeTextLine = (index: number) => {
-        if (textLines.length <= 1) {
-            setSaveMessage({ type: 'error', text: t('soundAlerts.minTextLine') });
-            setTimeout(() => setSaveMessage(null), 2000);
-            return;
-        }
-        setTextLines(textLines.filter((_, i) => i !== index));
-    };
-
-    const toggleTextLine = (index: number) => {
-        if (!textLines || index < 0 || index >= textLines.length) {
-            console.error('Invalid textLines index in toggleTextLine:', index);
-            return;
-        }
-        updateTextLine(index, 'enabled', !textLines[index].enabled);
-    };
-
-    const getPreviewBackground = () => {
-        if (styles.backgroundType === 'transparent') {
-            return 'transparent';
-        } else if (styles.backgroundType === 'solid') {
-            return `rgba(${hexToRgb(styles.solidColor)}, ${styles.backgroundOpacity / 100})`;
-        } else {
-            return `linear-gradient(${styles.gradientAngle}deg, ${styles.gradientColor1}, ${styles.gradientColor2})`;
-        }
-    };
-
-    const hexToRgb = (hex: string): string => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '139, 92, 246';
-    };
-
-    const getTextShadowStyle = (shadow: string): string => {
-        switch (shadow) {
-            case 'normal': return '2px 2px 4px rgba(0,0,0,0.5)';
-            case 'strong': return '3px 3px 6px rgba(0,0,0,0.8)';
-            case 'glow': return '0 0 10px rgba(255,255,255,0.8)';
-            default: return 'none';
-        }
-    };
+    const busy = (rewardId: string, value: boolean) => setUploading(prev => ({ ...prev, [rewardId]: value }));
 
     const handleFileUpload = async (rewardId: string, rewardTitle: string, file: File, fileType: string, imageFile?: File, showImage: boolean = true, imageSource: 'upload' | 'url' = 'upload', imageUrl?: string) => {
+        busy(rewardId, true);
         try {
-            setUploading({ ...uploading, [rewardId]: true });
-
-            // Obtener duración del archivo (simplificado, en producción usar library como MediaInfo)
             let duration = 0;
             if (fileType === 'sound' || fileType === 'video') {
-                const mediaElement = document.createElement(fileType === 'sound' ? 'audio' : 'video');
-                const fileUrl = URL.createObjectURL(file);
-
-                await new Promise<void>((resolve) => {
-                    mediaElement.onloadedmetadata = () => {
-                        const raw = mediaElement.duration;
-                        duration = isFinite(raw) ? Math.floor(raw) : 0;
-                        URL.revokeObjectURL(fileUrl);
-                        resolve();
-                    };
-                    mediaElement.onerror = () => {
-                        URL.revokeObjectURL(fileUrl);
-                        resolve();
-                    };
-                    mediaElement.src = fileUrl;
+                const el = document.createElement(fileType === 'sound' ? 'audio' : 'video');
+                const src = URL.createObjectURL(file);
+                await new Promise<void>(resolve => {
+                    el.onloadedmetadata = () => { duration = isFinite(el.duration) ? Math.floor(el.duration) : 0; URL.revokeObjectURL(src); resolve(); };
+                    el.onerror = () => { URL.revokeObjectURL(src); resolve(); };
+                    el.src = src;
                 });
             }
-
-            const formData = new FormData();
-            formData.append('File', file);
-            formData.append('RewardId', rewardId);
-            formData.append('RewardTitle', rewardTitle);
-            formData.append('FileType', fileType);
-            formData.append('DurationSeconds', duration.toString());
-            formData.append('ShowImage', String(showImage));
-            formData.append('ImageSource', imageSource);
-            if (imageUrl) formData.append('ImageUrl', imageUrl);
-
-            // Agregar imagen si se proporcionó (para archivos de audio)
-            if (imageFile) {
-                formData.append('ImageFile', imageFile);
-            }
-
-            await api.post('/soundalerts/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            setSaveMessage({ type: 'success', text: t('soundAlerts.fileUploaded', { name: file.name }) });
-            setTimeout(() => setSaveMessage(null), 3000);
-            await loadFiles();
-        } catch (error: any) {
-            const message = error.response?.data?.message || t('soundAlerts.fileUploadError');
-            setSaveMessage({ type: 'error', text: message });
+            const fd = new FormData();
+            fd.append('File', file);
+            fd.append('RewardId', rewardId);
+            fd.append('RewardTitle', rewardTitle);
+            fd.append('FileType', fileType);
+            fd.append('DurationSeconds', duration.toString());
+            fd.append('ShowImage', String(showImage));
+            fd.append('ImageSource', imageSource);
+            if (imageUrl) fd.append('ImageUrl', imageUrl);
+            if (imageFile) fd.append('ImageFile', imageFile);
+            await api.post('/soundalerts/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+            notify(true, tf('soundAlerts.fileUploaded', { name: file.name }));
+            await cfg.loadFiles();
+        } catch (e: any) {
+            notify(false, e?.response?.data?.message || tf('soundAlerts.fileUploadError'));
         } finally {
-            setUploading({ ...uploading, [rewardId]: false });
+            busy(rewardId, false);
+        }
+    };
+
+    const assign = async (url: string, body: Record<string, unknown>, okText: string) => {
+        const reward = selectedRewardForFile;
+        if (!reward) return;
+        busy(reward.id, true);
+        try {
+            await api.post(url, { rewardId: reward.id, rewardTitle: reward.title, ...body });
+            notify(true, okText);
+            await cfg.loadFiles();
+            setShowFileDialog(false);
+            setSelectedRewardForFile(null);
+        } catch (e: any) {
+            notify(false, e?.response?.data?.message || tf('soundAlerts.systemFileError'));
+        } finally {
+            busy(reward.id, false);
         }
     };
 
     const handleDeleteFile = async (rewardId: string) => {
-        if (!confirm(t('soundAlerts.deleteConfirm'))) return;
-
+        if (!window.confirm(tf('soundAlerts.deleteConfirm'))) return;
         try {
             await api.delete(`/soundalerts/file/${rewardId}`);
-            setSaveMessage({ type: 'success', text: t('soundAlerts.fileDeleted') });
-            setTimeout(() => setSaveMessage(null), 3000);
-            await loadFiles();
-        } catch (error: any) {
-            const message = error.response?.data?.message || t('soundAlerts.fileDeleteError');
-            setSaveMessage({ type: 'error', text: message });
+            notify(true, tf('soundAlerts.fileDeleted'));
+            await cfg.loadFiles();
+        } catch (e: any) {
+            notify(false, e?.response?.data?.message || tf('soundAlerts.fileDeleteError'));
         }
     };
 
     const handleToggleFile = async (rewardId: string) => {
         try {
             await api.patch(`/soundalerts/file/${rewardId}/toggle`);
-            await loadFiles();
-        } catch (error) {
-            console.error('Error toggling file:', error);
-        }
+            await cfg.loadFiles();
+        } catch { /* queda como estaba */ }
     };
 
     const handleEditFile = async (rewardId: string, data: FormData) => {
+        setSavingEdit(true);
         try {
-            setSavingEdit(true);
-            await api.patch(`/soundalerts/file/${rewardId}/edit`, data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setSaveMessage({ type: 'success', text: 'Cambios guardados correctamente' });
-            setTimeout(() => setSaveMessage(null), 3000);
-            await loadFiles();
+            await api.patch(`/soundalerts/file/${rewardId}/edit`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+            notify(true, t('soundAlerts.fileEdited'));
+            await cfg.loadFiles();
             setEditingFile(null);
-        } catch (error: any) {
-            const message = error.response?.data?.error || error.response?.data?.message || 'Error al guardar cambios';
-            setSaveMessage({ type: 'error', text: message });
-            setTimeout(() => setSaveMessage(null), 3000);
+        } catch (e: any) {
+            notify(false, e?.response?.data?.error || e?.response?.data?.message || t('soundAlerts.fileEditFailed'));
         } finally {
             setSavingEdit(false);
         }
     };
 
-    const getRewardFile = (rewardId: string) => {
-        return files.find(f => f.rewardId === rewardId);
-    };
-
-    if (permissionsLoading || loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('soundAlerts.loading')}</div>;
+    if (permissionsLoading || cfg.loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+            </div>
+        );
     }
 
-    if (!hasMinimumLevel('moderation')) {
-        navigate('/dashboard');
-        return null;
+    if (cfg.error) {
+        return (
+            <div className="p-8">
+                <div className="max-w-xl mx-auto p-6 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+                    {cfg.error === 'forbidden' ? t('soundAlerts.forbidden') : t('soundAlerts.loadFailed')}
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-[1800px] mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/overlays')}
-                        className="p-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] rounded-lg transition-colors"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                            {t('soundAlerts.title')}
-                        </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                            {t('soundAlerts.subtitle')}
-                        </p>
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8">
+            {/* panel-scale agranda todo en 2K/4K; el editor calcula el arrastre con el tamaño real en pantalla */}
+            <div className="panel-scale max-w-[1920px] mx-auto">
+                {/* Encabezado */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate('/overlays')}
+                            className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg"
+                        >
+                            <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                        </button>
+                        <div>
+                            <h1 className="text-3xl 3xl:text-4xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('soundAlerts.title')}</h1>
+                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] mt-1">{t('soundAlerts.subtitle')}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {cfg.dirty && <span className="text-xs 3xl:text-sm font-bold text-amber-600 dark:text-amber-400">{t('soundAlerts.unsaved')}</span>}
+                        <button
+                            onClick={save}
+                            disabled={cfg.saving || !cfg.dirty}
+                            className={`px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg ${cfg.saving || !cfg.dirty
+                                ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                                : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white'}`}
+                        >
+                            <Save className="w-5 h-5" />
+                            {cfg.saving ? t('soundAlerts.saving') : t('soundAlerts.save')}
+                        </button>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleReset}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        {t('soundAlerts.reset')}
-                    </button>
-                    <button
-                        onClick={handleTestAlert}
-                        disabled={testing}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-all"
-                        title="Envía una alerta de prueba al overlay"
-                    >
-                        <Play className="w-4 h-4" />
-                        {testing ? t('soundAlerts.sending') : t('soundAlerts.test')}
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-6 py-2 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
-                    >
-                        <Save className="w-5 h-5" />
-                        {saving ? t('soundAlerts.saving') : t('soundAlerts.save')}
-                    </button>
-                </div>
-            </div>
 
-            {/* Save Message */}
-            {saveMessage && (
-                <div className={`rounded-xl border p-4 ${
-                    saveMessage.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                }`}>
-                    <div className="flex items-start gap-3">
-                        {saveMessage.type === 'success' ? (
-                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        ) : (
-                            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                        )}
-                        <p className={`font-bold ${
-                            saveMessage.type === 'success'
-                                ? 'text-green-700 dark:text-green-300'
-                                : 'text-red-700 dark:text-red-300'
-                        }`}>
-                            {saveMessage.text}
-                        </p>
+                {message && (
+                    <div className={`mb-6 p-4 rounded-xl border ${message.ok
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'}`}>
+                        {message.text}
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column: Configuration (2 columns) */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Tabs Navigation */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-2 shadow-lg">
-                        <div className="grid grid-cols-4 lg:grid-cols-7 gap-2">
-                            <button
-                                onClick={() => setActiveTab('basic')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'basic'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Clock className="w-4 h-4" />
-                                <span className="hidden lg:inline">{t('soundAlerts.tabs.basic')}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('typography')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'typography'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Type className="w-4 h-4" />
-                                <span className="hidden lg:inline">{t('soundAlerts.tabs.text')}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('background')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'background'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Palette className="w-4 h-4" />
-                                <span className="hidden lg:inline">{t('soundAlerts.tabs.background')}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('layout')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'layout'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Layout className="w-4 h-4" />
-                                <span className="hidden lg:inline">{t('soundAlerts.tabs.layout')}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('animations')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'animations'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Zap className="w-4 h-4" />
-                                <span className="hidden lg:inline">{t('soundAlerts.tabs.animation')}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('rewards')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'rewards'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Gift className="w-4 h-4" />
-                                <span className="hidden lg:inline">{t('soundAlerts.tabs.files')}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('media')}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'media'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <FolderOpen className="w-4 h-4" />
-                                <span className="hidden lg:inline">Media</span>
-                            </button>
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div className="xl:col-span-2 space-y-6 min-w-0">
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+                            <div className="flex flex-wrap gap-2">
+                                {TABS.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => setTab(item.id)}
+                                        className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${tab === item.id
+                                            ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg'
+                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'}`}
+                                    >
+                                        {item.icon} {t(`soundAlerts.tabs.${item.id}`)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            {tab === 'guide' && <GuideTab cfg={cfg} onNavigate={setTab} />}
+                            {tab === 'rewards' && (
+                                <RewardsTab
+                                    rewards={cfg.rewards}
+                                    files={cfg.files}
+                                    uploading={uploading}
+                                    getRewardFile={id => cfg.files.find(f => f.rewardId === id)}
+                                    selectedRewardForFile={selectedRewardForFile}
+                                    setSelectedRewardForFile={setSelectedRewardForFile}
+                                    setShowFileDialog={setShowFileDialog}
+                                    handleFileUpload={handleFileUpload}
+                                    handleDeleteFile={handleDeleteFile}
+                                    handleToggleFile={handleToggleFile}
+                                    setPendingAudioUpload={setPendingAudioUpload}
+                                    setSelectedImageFile={setSelectedImageFile}
+                                    setShowAudioImageModal={setShowAudioImageModal}
+                                    onEditFile={rewardId => { const f = cfg.files.find(x => x.rewardId === rewardId); if (f) setEditingFile(f); }}
+                                    onPreview={file => setPreviewFileId(file.id)}
+                                />
+                            )}
+                            {tab === 'library' && <MediaTab />}
+                            {tab === 'basic' && <BasicTab cfg={cfg} />}
+                            {tab === 'texts' && <TextsTab cfg={cfg} />}
+                            {tab === 'background' && <BackgroundTab cfg={cfg} onNavigate={setTab} />}
+                            {tab === 'animation' && <AnimationTab cfg={cfg} />}
+                            {tab === 'editor' && <EditorTab cfg={cfg} content={content} />}
                         </div>
                     </div>
 
-                    {/* Tab: Básico */}
-                    {activeTab === 'basic' && (
-                        <BasicTab
-                            globalVolume={globalVolume}
-                            setGlobalVolume={setGlobalVolume}
-                            globalEnabled={globalEnabled}
-                            setGlobalEnabled={setGlobalEnabled}
-                            duration={duration}
-                            setDuration={setDuration}
-                            textLines={textLines}
-                            addTextLine={addTextLine}
-                            updateTextLine={updateTextLine}
-                            removeTextLine={removeTextLine}
-                            toggleTextLine={toggleTextLine}
-                        />
-                    )}
-
-                    {/* Tab: Tipografía */}
-                    {activeTab === 'typography' && (
-                        <TypographyTab
-                            styles={styles}
-                            setStyles={setStyles}
-                            textOutlineEnabled={textOutlineEnabled}
-                            setTextOutlineEnabled={setTextOutlineEnabled}
-                            textOutlineColor={textOutlineColor}
-                            setTextOutlineColor={setTextOutlineColor}
-                            textOutlineWidth={textOutlineWidth}
-                            setTextOutlineWidth={setTextOutlineWidth}
-                        />
-                    )}
-
-                    {/* Tab: Fondo */}
-                    {activeTab === 'background' && (
-                        <BackgroundTab
-                            styles={styles}
-                            setStyles={setStyles}
-                        />
-                    )}
-
-                    {/* Tab: Layout */}
-                    {activeTab === 'layout' && (
-                        <LayoutTab
-                            layout={layout}
-                            setLayout={setLayout}
-                            files={files}
-                            channelName={channelName}
-                            textLines={textLines}
-                            styles={styles}
-                            textOutlineEnabled={textOutlineEnabled}
-                            textOutlineColor={textOutlineColor}
-                            textOutlineWidth={textOutlineWidth}
-                        />
-                    )}
-
-                    {/* Tab: Animaciones */}
-                    {activeTab === 'animations' && (
-                        <AnimationsTab
-                            animationType={animationType}
-                            setAnimationType={setAnimationType}
-                            animationSpeed={animationSpeed}
-                            setAnimationSpeed={setAnimationSpeed}
-                            cooldownMs={cooldownMs}
-                            setCooldownMs={setCooldownMs}
+                    <div className="xl:col-span-1 min-w-0">
+                        <SoundAlertPreview
+                            design={cfg.settings.design}
+                            files={cfg.files}
+                            selectedFileId={previewFile ? previewFile.id : null}
+                            onSelectFile={setPreviewFileId}
+                            content={content}
+                            dirty={cfg.dirty}
                             testing={testing}
-                            setSaveMessage={setSaveMessage}
+                            onTest={test}
                         />
-                    )}
-
-                    {/* Tab: Recompensas y Archivos */}
-                    {activeTab === 'rewards' && (
-                        <RewardsTab
-                            rewards={rewards}
-                            files={files}
-                            uploading={uploading}
-                            getRewardFile={getRewardFile}
-                            selectedRewardForFile={selectedRewardForFile}
-                            setSelectedRewardForFile={setSelectedRewardForFile}
-                            setShowFileDialog={setShowFileDialog}
-                            handleFileUpload={handleFileUpload}
-                            handleDeleteFile={handleDeleteFile}
-                            handleToggleFile={handleToggleFile}
-                            setPendingAudioUpload={setPendingAudioUpload}
-                            setSelectedImageFile={setSelectedImageFile}
-                            setShowAudioImageModal={setShowAudioImageModal}
-                            onEditFile={(rewardId) => {
-                                const f = files.find(x => x.rewardId === rewardId);
-                                if (f) setEditingFile(f);
-                            }}
-                        />
-                    )}
-
-                    {activeTab === 'media' && <MediaTab />}
+                    </div>
                 </div>
-
-                {/* Right Column: Preview & URL */}
-                <PreviewPanel
-                    previewRef={previewRef as React.RefObject<HTMLDivElement>}
-                    styles={styles}
-                    layout={layout}
-                    textLines={textLines}
-                    textOutlineEnabled={textOutlineEnabled}
-                    textOutlineColor={textOutlineColor}
-                    textOutlineWidth={textOutlineWidth}
-                    getPreviewBackground={getPreviewBackground}
-                    getTextShadowStyle={getTextShadowStyle}
-                    overlayUrl={overlayUrl}
-                    handleCopyUrl={handleCopyUrl}
-                    handleOpenBrowser={handleOpenBrowser}
-                />
             </div>
 
-            {/* Modals */}
             <FileSelectionModal
                 showFileDialog={showFileDialog}
                 selectedRewardForFile={selectedRewardForFile}
                 setShowFileDialog={setShowFileDialog}
                 setSelectedRewardForFile={setSelectedRewardForFile}
-                systemFiles={systemFiles}
+                systemFiles={cfg.systemFiles}
                 uploading={uploading}
-                handleAssignSystemFile={handleAssignSystemFile}
-                handleAssignMediaFile={handleAssignMediaFile}
+                handleAssignSystemFile={sf => assign('/soundalerts/assign-system-file',
+                    { systemFilePath: sf.path, systemFileName: sf.name, fileType: sf.type },
+                    tf('soundAlerts.systemFileAssigned', { name: sf.name }))}
+                handleAssignMediaFile={mediaFileId => assign('/soundalerts/assign-media-file',
+                    { mediaFileId },
+                    tf('soundAlerts.fileUploaded', { name: selectedRewardForFile?.title ?? '' }))}
                 showAudioImageModal={showAudioImageModal}
                 pendingAudioUpload={pendingAudioUpload}
                 selectedImageFile={selectedImageFile}
@@ -882,12 +322,7 @@ export default function SoundAlerts() {
             />
 
             {editingFile && (
-                <EditSoundModal
-                    file={editingFile}
-                    onClose={() => setEditingFile(null)}
-                    onSave={handleEditFile}
-                    saving={savingEdit}
-                />
+                <EditSoundModal file={editingFile} onClose={() => setEditingFile(null)} onSave={handleEditFile} saving={savingEdit} />
             )}
         </div>
     );
