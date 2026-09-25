@@ -15,17 +15,20 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _dbContext;
         private readonly ICommandStateService _commandStateService;
         private readonly ICommandTranslationService _commandTranslationService;
+        private readonly Decatron.Services.SongRequest.SongRequestService _songs;
         private readonly ILogger<PublicCommandsController> _logger;
 
         public PublicCommandsController(
             DecatronDbContext dbContext,
             ICommandStateService commandStateService,
             ICommandTranslationService commandTranslationService,
+            Decatron.Services.SongRequest.SongRequestService songs,
             ILogger<PublicCommandsController> logger)
         {
             _dbContext = dbContext;
             _commandStateService = commandStateService;
             _commandTranslationService = commandTranslationService;
+            _songs = songs;
             _logger = logger;
         }
 
@@ -198,8 +201,62 @@ namespace Decatron.Controllers
                 AddItem(results, overrideMap, "scripting", script.Id.ToString(), script.CommandName, "", null, applyHiddenFilter);
             }
 
+            await AddSongRequestItemsAsync(results, overrideMap, channelOwnerId, applyHiddenFilter);
+
             return results;
         }
+
+        /// <summary>
+        /// Los comandos de song request, solo si el módulo está activo. Kick vinculado usa la cola de su
+        /// Twitch, así que se mira esa config. La restricción sale de los permisos que eligió el streamer.
+        /// </summary>
+        private async Task AddSongRequestItemsAsync(
+            List<PublicCommandItemResult> results,
+            Dictionary<(string Category, string CommandKey), PublicCommandOverride> overrideMap,
+            long channelOwnerId, bool applyHiddenFilter)
+        {
+            var config = await _songs.GetConfigAsync(await _songs.GetQueueOwnerIdAsync(channelOwnerId));
+            if (config == null || !config.Enabled)
+                return;
+
+            var settings = Decatron.Services.SongRequest.SongRequestService.ParseSettings(config);
+            var permissions = settings.Permissions;
+            var request = RoleRestriction(permissions.Request);
+            var skip = RoleRestriction(permissions.Skip);
+            var manage = RoleRestriction(permissions.Manage);
+
+            var commands = new (string Name, string Description, string? Restriction)[]
+            {
+                ("sr", "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre (también !songrequest)", request),
+                ("wrongsong", "Quita de la cola tu último pedido", request),
+                ("queue", "Muestra las próximas canciones y el link a la cola", request),
+                ("song", "Muestra la canción que está sonando (también !currentsong)", request),
+                ("myqueue", "Muestra en qué puesto están tus pedidos", request),
+                ("skip", settings.SkipVoteEnabled
+                    ? $"Salta la canción; los demás votan y se salta con {Math.Max(1, settings.SkipVotesRequired)} votos"
+                    : "Salta la canción que está sonando",
+                    settings.SkipVoteEnabled ? request : skip),
+                ("srremove", "Quita un pedido de la cola por su número (!srremove 3)", skip),
+                ("sropen", "Abre los pedidos de canciones", manage),
+                ("srclose", "Cierra los pedidos de canciones", manage),
+                ("srpause", "Pausa la música", manage),
+                ("srresume", "Vuelve a reproducir la música", manage),
+                ("srban", "Veta la canción que suena, o a un usuario con !srban @usuario", manage),
+            };
+            foreach (var (name, description, restriction) in commands)
+                AddItem(results, overrideMap, "songrequest", name, name, description, restriction, applyHiddenFilter);
+        }
+
+        /// <summary>El rol mínimo de song request, con las mismas claves cortas que usa la vista pública.</summary>
+        private static string? RoleRestriction(string role) => role switch
+        {
+            "subscriber" => "sub",
+            "vip" => "vip",
+            "moderator" => "mod",
+            "lead_moderator" => "lead_mod",
+            "broadcaster" => "streamer",
+            _ => null
+        };
 
         private static void AddItem(
             List<PublicCommandItemResult> results,

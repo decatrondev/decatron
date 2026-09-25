@@ -1,17 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Globe, Copy, Check, Zap, MessageSquare, Code, Terminal, EyeOff, Eye, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, Copy, Check, Zap, MessageSquare, Code, Terminal, EyeOff, Eye, Pencil, ListMusic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
-type Category = 'default' | 'custom' | 'microcommands' | 'scripting';
+type Category = 'default' | 'custom' | 'microcommands' | 'scripting' | 'songrequest';
 
 interface PublicCommandItem {
     key: string; // categoria:identificador único
     category: Category;
     commandKey: string;
     name: string; // tal cual viene guardado, sin agregar ni quitar "!"
-    description: string; // solo Default trae descripción real
-    restriction?: string; // solo Custom trae restriction
+    description: string; // Default y Song Request traen descripción real
+    restriction?: string; // Custom y Song Request traen restriction
     hidden: boolean;
     publicDescription: string;
 }
@@ -23,6 +23,7 @@ const CATEGORY_META: Record<Category, { label: string; icon: React.ReactNode }> 
     custom: { label: 'Comandos Custom', icon: <Code className="w-4 h-4" /> },
     microcommands: { label: 'Microcommands', icon: <MessageSquare className="w-4 h-4" /> },
     scripting: { label: 'Scripting', icon: <Terminal className="w-4 h-4" /> },
+    songrequest: { label: 'Song Request', icon: <ListMusic className="w-4 h-4" /> },
 };
 
 export default function PublicCommandsConfig() {
@@ -34,7 +35,7 @@ export default function PublicCommandsConfig() {
     const [saving, setSaving] = useState(false);
     const [notice, setNotice] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [editingKey, setEditingKey] = useState<string | null>(null);
-    const [pages, setPages] = useState<Record<Category, number>>({ default: 1, custom: 1, microcommands: 1, scripting: 1 });
+    const [pages, setPages] = useState<Record<Category, number>>({ default: 1, custom: 1, microcommands: 1, scripting: 1, songrequest: 1 });
 
     useEffect(() => {
         (async () => {
@@ -64,7 +65,7 @@ export default function PublicCommandsConfig() {
 
     const grouped = useMemo(() => {
         const groups: Record<Category, PublicCommandItem[]> = {
-            default: [], custom: [], microcommands: [], scripting: [],
+            default: [], custom: [], microcommands: [], scripting: [], songrequest: [],
         };
         for (const item of items) groups[item.category].push(item);
         return groups;

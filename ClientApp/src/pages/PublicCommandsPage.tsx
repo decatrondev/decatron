@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
 
-type Category = 'default' | 'custom' | 'microcommands' | 'scripting';
+type Category = 'default' | 'custom' | 'microcommands' | 'scripting' | 'songrequest';
 
 interface CommandItem {
     category: Category;
@@ -16,14 +16,17 @@ const CATEGORY_LABELS: Record<Category, string> = {
     custom: 'custom',
     microcommands: 'micro',
     scripting: 'script',
+    songrequest: 'song request',
 };
 
-const CATEGORY_ORDER: Category[] = ['default', 'custom', 'microcommands', 'scripting'];
+const CATEGORY_ORDER: Category[] = ['default', 'songrequest', 'custom', 'microcommands', 'scripting'];
 
 const RESTRICTION_LABELS: Record<string, string> = {
     mod: 'mods',
     vip: 'vips',
     sub: 'subs',
+    lead_mod: 'lead mods',
+    streamer: 'streamer',
 };
 
 export default function PublicCommandsPage() {
