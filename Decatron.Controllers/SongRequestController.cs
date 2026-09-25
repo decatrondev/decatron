@@ -28,12 +28,14 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _db;
         private readonly ICommandMessagesService _messages;
         private readonly SongRequestLibraryService _library;
+        private readonly DownloadsDesktopChannel _downloads;
 
         /// <summary>Tope del JSON del editor: sobra para dos layouts con plantillas.</summary>
         private const int MaxOverlayConfigLength = 300_000;
 
-        public SongRequestController(SongResolverService resolver, SongRequestService songs, DecatronDbContext db, ICommandMessagesService messages, SongRequestLibraryService library)
+        public SongRequestController(SongResolverService resolver, SongRequestService songs, DecatronDbContext db, ICommandMessagesService messages, SongRequestLibraryService library, DownloadsDesktopChannel downloads)
         {
+            _downloads = downloads;
             _library = library;
             _resolver = resolver;
             _songs = songs;
@@ -461,6 +463,118 @@ namespace Decatron.Controllers
             if (config == null) return NotFound(new { success = false });
             return await _library.RemoveBanAsync(config.UserId, id, ct) ? Ok(new { success = true }) : NotFound(new { success = false });
         }
+
+        // ── Descargas (fase 5): corren en Decatron Desktop, en la PC del streamer ──
+
+        private static readonly string[] VideoFormats = { "mp4", "webm" };
+        private static readonly string[] AudioFormats = { "mp3", "m4a", "opus", "wav" };
+        private static readonly string[] AudioQualities = { "best", "320", "256", "192", "128" };
+        private static readonly int[] Heights = { 4320, 2160, 1440, 1080, 720, 480, 360, 240, 144 };
+        private static readonly System.Text.RegularExpressions.Regex LangRegex = new("^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})?$");
+
+        [HttpGet("api/song-request/downloads")]
+        [RequirePermission("overlays")]
+        public IActionResult Downloads()
+        {
+            var userId = this.GetChannelOwnerId();
+            var status = _downloads.GetStatus(userId);
+            return Ok(new
+            {
+                success = true,
+                connected = _downloads.IsConnected(userId),
+                // Conectada pero sin estado = una versión de la app sin el módulo de descargas
+                supported = status != null,
+                appVersion = _downloads.AppVersion(userId),
+                status = status == null ? (JsonElement?)null : JsonDocument.Parse(status.ToJsonString()).RootElement.Clone(),
+                jobs = _downloads.GetJobs(userId)
+            });
+        }
+
+        [HttpPost("api/song-request/downloads/probe")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ProbeDownload([FromBody] AddRequest body, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(body.Input) || body.Input.Length > 500)
+                return BadRequest(new { success = false, error = "invalid_input" });
+            var userId = this.GetChannelOwnerId();
+            if (!_downloads.IsConnected(userId))
+                return Ok(new { success = false, error = "desktop_offline" });
+
+            var (url, origin, error) = await _resolver.ResolveDownloadUrlAsync(body.Input, ct);
+            if (url == null)
+                return Ok(new { success = false, error = SongRequestService.ErrorKeyFor(error) });
+
+            var result = await _downloads.ProbeAsync(userId, url, ct);
+            if (result == null)
+                return Ok(new { success = false, error = "desktop_timeout" });
+            if (result["ok"]?.GetValue<bool>() != true)
+                return Ok(new { success = false, error = result["error"]?.GetValue<string>() ?? "probe_failed" });
+
+            return Ok(new
+            {
+                success = true,
+                url,
+                info = JsonDocument.Parse(result["info"]?.ToJsonString() ?? "{}").RootElement.Clone(),
+                origin = origin == null ? null : new { source = origin.Origin, url = origin.Url, title = origin.Title, artist = origin.Artist, thumbnailUrl = origin.ThumbnailUrl }
+            });
+        }
+
+        public sealed class StartDownloadRequest
+        {
+            public string Url { get; set; } = "";
+            public string Title { get; set; } = "";
+            public string Kind { get; set; } = "video";
+            public string Format { get; set; } = "mp4";
+            public int? MaxHeight { get; set; }
+            public string AudioQuality { get; set; } = "best";
+            public double? TrimStart { get; set; }
+            public double? TrimEnd { get; set; }
+            public bool Thumbnail { get; set; }
+            public string[]? Subtitles { get; set; }
+        }
+
+        [HttpPost("api/song-request/downloads")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> StartDownload([FromBody] StartDownloadRequest b)
+        {
+            // La app vuelve a validar todo: esto termina en un proceso en la PC del streamer
+            if (!Uri.TryCreate(b.Url, UriKind.Absolute, out var uri) || (uri.Scheme != "https" && uri.Scheme != "http") || b.Url.Length > 1000)
+                return BadRequest(new { success = false, error = "invalid_url" });
+            var audio = b.Kind == "audio";
+            if (!(audio ? AudioFormats : VideoFormats).Contains(b.Format)) return BadRequest(new { success = false, error = "invalid_format" });
+            if (b.MaxHeight != null && !Heights.Contains(b.MaxHeight.Value)) return BadRequest(new { success = false, error = "invalid_quality" });
+            if (!AudioQualities.Contains(b.AudioQuality)) return BadRequest(new { success = false, error = "invalid_quality" });
+            if (b.TrimStart is < 0 || b.TrimEnd is < 0 || (b.TrimStart != null && b.TrimEnd != null && b.TrimEnd <= b.TrimStart))
+                return BadRequest(new { success = false, error = "invalid_trim" });
+            var subs = (b.Subtitles ?? Array.Empty<string>()).Where(x => x != null && LangRegex.IsMatch(x)).Distinct().Take(5).ToArray();
+
+            var userId = this.GetChannelOwnerId();
+            var jobId = await _downloads.StartAsync(userId, b.Title ?? "", new
+            {
+                url = uri.ToString(), kind = audio ? "audio" : "video", format = b.Format,
+                maxHeight = audio ? null : b.MaxHeight, audioQuality = b.AudioQuality,
+                trimStart = b.TrimStart, trimEnd = b.TrimEnd, thumbnail = b.Thumbnail, subtitles = audio ? Array.Empty<string>() : subs
+            });
+            return jobId == null ? Ok(new { success = false, error = "desktop_offline" }) : Ok(new { success = true, jobId });
+        }
+
+        [HttpPost("api/song-request/downloads/{jobId}/cancel")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> CancelDownload(string jobId) =>
+            Ok(new { success = await _downloads.SendAsync(this.GetChannelOwnerId(), "cancel", new { jobId }) });
+
+        public sealed class OpenFolderRequest { public string? JobId { get; set; } }
+
+        /// <summary>Abre la carpeta (o muestra el archivo) en la PC donde corre la app.</summary>
+        [HttpPost("api/song-request/downloads/open-folder")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> OpenDownloadFolder([FromBody] OpenFolderRequest body) =>
+            Ok(new { success = await _downloads.SendAsync(this.GetChannelOwnerId(), "openFolder", new { jobId = body.JobId }) });
+
+        [HttpPost("api/song-request/downloads/clear")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ClearDownloads() =>
+            Ok(new { success = await _downloads.SendAsync(this.GetChannelOwnerId(), "clear", new { }) });
 
         private async Task<SongRequestConfig?> OwnConfigAsync(CancellationToken ct)
         {

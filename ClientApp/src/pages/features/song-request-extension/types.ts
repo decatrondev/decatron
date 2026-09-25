@@ -140,5 +140,5 @@ export interface SongRequestOverlayConfig {
 }
 
 export type TabId =
-    | 'guide' | 'queue' | 'basic' | 'filters' | 'blacklist' | 'fallback' | 'history' | 'commands' | 'messages'
+    | 'guide' | 'queue' | 'basic' | 'filters' | 'blacklist' | 'fallback' | 'history' | 'downloads' | 'commands' | 'messages'
     | 'theme' | 'elements' | 'typography' | 'animations' | 'editor';

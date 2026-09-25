@@ -282,7 +282,8 @@
       "filters": "Filtros",
       "blacklist": "Listas negras",
       "fallback": "Playlist de respaldo",
-      "history": "Historial"
+      "history": "Historial",
+      "downloads": "Descargas"
     },
     "kinds": {
       "player": "Reproductor",
@@ -758,6 +759,85 @@
         "skipped": "Saltada",
         "error": "Error",
         "removed": "Quitada"
+      }
+    },
+    "downloads": {
+      "title": "Descargar video o audio",
+      "description": "Pega un link de YouTube, Spotify u otro sitio (o escribe el nombre de una canción). Se descarga en tu PC con Decatron Desktop, con tu conexión.",
+      "placeholder": "Link de YouTube, Spotify u otro sitio, o nombre de la canción",
+      "analyze": "Analizar",
+      "analyzing": "Analizando…",
+      "firstTimeHint": "La primera vez la app descarga yt-dlp y ffmpeg (unos 100 MB en Windows); puede tardar un par de minutos.",
+      "discard": "Descartar",
+      "kinds": {
+        "video": "Video",
+        "audio": "Solo audio"
+      },
+      "quality": "Calidad",
+      "format": "Formato",
+      "best": "La mejor disponible",
+      "formats": {
+        "mp4": "MP4 (compatible con todo)",
+        "webm": "WebM",
+        "mp3": "MP3",
+        "m4a": "M4A (AAC)",
+        "opus": "Opus",
+        "wav": "WAV (sin comprimir)"
+      },
+      "trim": "Recortar un tramo",
+      "trimHint": "Solo se descarga ese pedazo. Formato m:ss o segundos.",
+      "from": "Desde",
+      "to": "Hasta",
+      "thumbnail": "Miniatura",
+      "thumbnailHint": "Guarda la imagen aparte y, en MP4/MP3/M4A, también dentro del archivo.",
+      "subtitles": "Subtítulos (hasta 5, van dentro del video)",
+      "download": "Descargar",
+      "jobsTitle": "Descargas",
+      "noJobs": "Todavía no descargaste nada.",
+      "clear": "Limpiar terminadas",
+      "showFile": "Mostrar en la PC",
+      "openFolder": "Abrir carpeta en la PC",
+      "liveNote": "Se actualiza en vivo. Los archivos quedan en la PC donde corre Decatron Desktop.",
+      "sendTo": "Descargar",
+      "appConnected": "Decatron Desktop conectado (v{{version}})",
+      "toolsReady": "Listo · yt-dlp {{version}}",
+      "toolsLater": "yt-dlp y ffmpeg se preparan con la primera descarga",
+      "stages": {
+        "ytdlp": "Descargando yt-dlp… {{percent}}%",
+        "ffmpeg": "Descargando ffmpeg… {{percent}}% (solo la primera vez)",
+        "unpack": "Descomprimiendo ffmpeg…",
+        "update": "Actualizando yt-dlp…",
+        "other": "Preparando…"
+      },
+      "states": {
+        "queued": "En cola",
+        "preparing": "Preparando…",
+        "processing": "Procesando…",
+        "done": "Listo",
+        "canceled": "Cancelada"
+      },
+      "offlineTitle": "Decatron Desktop no está conectado",
+      "offlineBody": "Las descargas se hacen en tu PC, con tu conexión, para que YouTube no las bloquee. Instala Decatron Desktop, vincúlalo con tu canal y déjalo abierto.",
+      "outdatedTitle": "Actualiza Decatron Desktop",
+      "outdatedBody": "Tienes la versión {{version}}, que todavía no trae las descargas. Cierra y vuelve a abrir la app: se actualiza sola al arrancar.",
+      "linkApp": "Vincular en Ajustes",
+      "errors": {
+        "desktop_offline": "Decatron Desktop se desconectó.",
+        "desktop_timeout": "Decatron Desktop no respondió a tiempo. Si es la primera vez, puede estar descargando yt-dlp y ffmpeg: intenta de nuevo en un momento.",
+        "tools_unavailable": "La app no pudo preparar yt-dlp/ffmpeg. Revisa tu conexión.",
+        "ffmpeg_missing": "Falta ffmpeg en la PC.",
+        "unsupported_site": "Ese sitio no está soportado.",
+        "private": "El video es privado o tiene restricción de edad.",
+        "not_found": "No está disponible.",
+        "blocked": "El sitio bloqueó la descarga; intenta más tarde.",
+        "disk_full": "No hay espacio en el disco.",
+        "no_permission": "La app no tiene permiso para escribir en la carpeta.",
+        "format_unavailable": "Esa calidad o formato no está disponible.",
+        "probe_failed": "No se pudo analizar el link.",
+        "download_failed": "La descarga falló.",
+        "invalid_trim": "El recorte no es válido: usa m:ss y que 'hasta' sea después de 'desde'.",
+        "invalid_url": "El link no es válido.",
+        "invalid_request": "Pedido inválido."
       }
     }
   }

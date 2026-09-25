@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2 } from 'lucide-react';
+import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Field, NumberInput, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
@@ -307,7 +307,7 @@ export function FallbackTab({ cfg }: TabProps) {
 
 interface HistoryItem { id: number; track: TrackDto; requestedBy: string | null; platform: string | null; endReason: string; isFavorite: boolean; playedAt: string }
 
-export function HistoryTab() {
+export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void }) {
     const { t } = useTranslation('overlays');
     const errorText = useErrorText();
     const [favorites, setFavorites] = useState(false);
@@ -386,6 +386,11 @@ export function HistoryTab() {
                                 <button className={iconBtn} title={t('songRequest.history.requeue')} onClick={() => act(() => api.post(`/song-request/history/${item.id}/requeue`), t('songRequest.history.requeued'))}>
                                     <RotateCcw className="w-4 h-4" />
                                 </button>
+                                {onDownload && item.track.url && (
+                                    <button className={iconBtn} title={t('songRequest.downloads.sendTo')} onClick={() => onDownload(item.track.url!)}>
+                                        <HardDriveDownload className="w-4 h-4" />
+                                    </button>
+                                )}
                                 <button className={iconBtn} title={t('songRequest.history.toFallback')} onClick={() => act(() => api.post(`/song-request/history/${item.id}/fallback`), t('songRequest.fallback.added'))}>
                                     <ListPlus className="w-4 h-4" />
                                 </button>

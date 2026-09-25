@@ -8,6 +8,7 @@ import { useLayoutFonts } from './song-request-extension/utils';
 import SongRequestPreview from './song-request-extension/components/SongRequestPreview';
 import QueueTab from './song-request-extension/components/tabs/QueueTab';
 import { GuideTab, BasicTab, CommandsTab, MessagesTab } from './song-request-extension/components/tabs/SetupTabs';
+import DownloadsTab from './song-request-extension/components/tabs/DownloadsTab';
 import { FiltersTab, BlacklistTab, FallbackTab, HistoryTab } from './song-request-extension/components/tabs/LibraryTabs';
 import { ThemeTab, ElementsTab, TypographyTab, AnimationsTab, EditorTab } from './song-request-extension/components/tabs/DesignTabs';
 import type { OverlayLabels } from './song-request-extension/components/SongOverlayRenderer';
@@ -24,6 +25,7 @@ const TABS: { id: TabId; icon: string }[] = [
     { id: 'blacklist', icon: '⛔' },
     { id: 'fallback', icon: '🎶' },
     { id: 'history', icon: '📈' },
+    { id: 'downloads', icon: '⬇️' },
     { id: 'commands', icon: '💬' },
     { id: 'messages', icon: '📢' },
     { id: 'theme', icon: '🎨' },
@@ -39,6 +41,9 @@ export default function SongRequestConfig() {
     const cfg = useSongRequestConfig();
     const [tab, setTab] = useState<TabId>(() => (sessionStorage.getItem('sr-tab') as TabId) || 'guide');
     const [kind, setKind] = useState<OverlayKind>('player');
+    // Link que se manda a Descargas desde la Cola o el Historial
+    const [downloadInput, setDownloadInput] = useState<string | null>(null);
+    const sendToDownloads = (url: string) => { setDownloadInput(url); setTab('downloads'); };
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
     const live = useSongRequestWatch(cfg.server?.channel ?? null);
     useLayoutFonts([cfg.overlay.player, cfg.overlay.nowPlaying]);
@@ -151,12 +156,13 @@ export default function SongRequestConfig() {
 
                         <div>
                             {tab === 'guide' && <GuideTab cfg={cfg} onNavigate={setTab} />}
-                            {tab === 'queue' && <QueueTab cfg={cfg} snapshot={live.snapshot} progress={live.progress} connected={live.connected} />}
+                            {tab === 'queue' && <QueueTab cfg={cfg} snapshot={live.snapshot} progress={live.progress} connected={live.connected} onDownload={sendToDownloads} />}
                             {tab === 'basic' && <BasicTab cfg={cfg} />}
                             {tab === 'filters' && <FiltersTab cfg={cfg} />}
                             {tab === 'blacklist' && <BlacklistTab />}
                             {tab === 'fallback' && <FallbackTab cfg={cfg} />}
-                            {tab === 'history' && <HistoryTab />}
+                            {tab === 'history' && <HistoryTab onDownload={sendToDownloads} />}
+                            {tab === 'downloads' && <DownloadsTab initialInput={downloadInput} onInputConsumed={() => setDownloadInput(null)} />}
                             {tab === 'commands' && <CommandsTab cfg={cfg} />}
                             {tab === 'messages' && <MessagesTab cfg={cfg} />}
                             {tab === 'theme' && <ThemeTab {...designProps} />}

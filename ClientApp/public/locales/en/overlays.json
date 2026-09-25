@@ -282,7 +282,8 @@
       "filters": "Filters",
       "blacklist": "Blacklists",
       "fallback": "Fallback playlist",
-      "history": "History"
+      "history": "History",
+      "downloads": "Downloads"
     },
     "kinds": {
       "player": "Player",
@@ -758,6 +759,85 @@
         "skipped": "Skipped",
         "error": "Error",
         "removed": "Removed"
+      }
+    },
+    "downloads": {
+      "title": "Download video or audio",
+      "description": "Paste a YouTube, Spotify or other site link (or type a song name). It downloads to your PC with Decatron Desktop, using your connection.",
+      "placeholder": "YouTube, Spotify or other site link, or song name",
+      "analyze": "Analyze",
+      "analyzing": "Analyzing…",
+      "firstTimeHint": "The first time, the app downloads yt-dlp and ffmpeg (about 100 MB on Windows); it may take a couple of minutes.",
+      "discard": "Discard",
+      "kinds": {
+        "video": "Video",
+        "audio": "Audio only"
+      },
+      "quality": "Quality",
+      "format": "Format",
+      "best": "Best available",
+      "formats": {
+        "mp4": "MP4 (works everywhere)",
+        "webm": "WebM",
+        "mp3": "MP3",
+        "m4a": "M4A (AAC)",
+        "opus": "Opus",
+        "wav": "WAV (uncompressed)"
+      },
+      "trim": "Trim a section",
+      "trimHint": "Only that part is downloaded. Use m:ss or seconds.",
+      "from": "From",
+      "to": "To",
+      "thumbnail": "Thumbnail",
+      "thumbnailHint": "Saves the image separately and, for MP4/MP3/M4A, also inside the file.",
+      "subtitles": "Subtitles (up to 5, embedded in the video)",
+      "download": "Download",
+      "jobsTitle": "Downloads",
+      "noJobs": "You haven't downloaded anything yet.",
+      "clear": "Clear finished",
+      "showFile": "Show on the PC",
+      "openFolder": "Open folder on the PC",
+      "liveNote": "Updates live. Files stay on the PC where Decatron Desktop runs.",
+      "sendTo": "Download",
+      "appConnected": "Decatron Desktop connected (v{{version}})",
+      "toolsReady": "Ready · yt-dlp {{version}}",
+      "toolsLater": "yt-dlp and ffmpeg are set up with the first download",
+      "stages": {
+        "ytdlp": "Downloading yt-dlp… {{percent}}%",
+        "ffmpeg": "Downloading ffmpeg… {{percent}}% (first time only)",
+        "unpack": "Unpacking ffmpeg…",
+        "update": "Updating yt-dlp…",
+        "other": "Preparing…"
+      },
+      "states": {
+        "queued": "Queued",
+        "preparing": "Preparing…",
+        "processing": "Processing…",
+        "done": "Done",
+        "canceled": "Canceled"
+      },
+      "offlineTitle": "Decatron Desktop isn't connected",
+      "offlineBody": "Downloads run on your PC, with your connection, so YouTube doesn't block them. Install Decatron Desktop, link it to your channel and keep it open.",
+      "outdatedTitle": "Update Decatron Desktop",
+      "outdatedBody": "You have version {{version}}, which doesn't include downloads yet. Close and reopen the app: it updates itself on launch.",
+      "linkApp": "Link in Settings",
+      "errors": {
+        "desktop_offline": "Decatron Desktop disconnected.",
+        "desktop_timeout": "Decatron Desktop didn't answer in time. If it's the first time, it may be downloading yt-dlp and ffmpeg: try again in a moment.",
+        "tools_unavailable": "The app couldn't set up yt-dlp/ffmpeg. Check your connection.",
+        "ffmpeg_missing": "ffmpeg is missing on the PC.",
+        "unsupported_site": "That site isn't supported.",
+        "private": "The video is private or age-restricted.",
+        "not_found": "It isn't available.",
+        "blocked": "The site blocked the download; try again later.",
+        "disk_full": "There's no disk space left.",
+        "no_permission": "The app can't write to the folder.",
+        "format_unavailable": "That quality or format isn't available.",
+        "probe_failed": "Couldn't analyze the link.",
+        "download_failed": "The download failed.",
+        "invalid_trim": "The trim isn't valid: use m:ss and make 'to' later than 'from'.",
+        "invalid_url": "The link isn't valid.",
+        "invalid_request": "Invalid request."
       }
     }
   }

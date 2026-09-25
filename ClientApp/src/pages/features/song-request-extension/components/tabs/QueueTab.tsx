@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pause, Play, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio } from 'lucide-react';
+import { Pause, Play, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio, Download } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Toggle, inputClass } from '../ui';
 import YouTubePlayer from '../YouTubePlayer';
@@ -14,12 +14,14 @@ interface Props {
     snapshot: QueueSnapshot | null;
     progress: PlaybackProgress | null;
     connected: boolean;
+    /** Abre Descargas con este link. */
+    onDownload?: (url: string) => void;
 }
 
 const control = (action: string, value?: number) => api.post('/song-request/control', { action, value });
 
 /** Control remoto en vivo de la cola. */
-export default function QueueTab({ cfg, snapshot, progress, connected }: Props) {
+export default function QueueTab({ cfg, snapshot, progress, connected, onDownload }: Props) {
     const { t } = useTranslation('overlays');
     const [input, setInput] = useState('');
     const [adding, setAdding] = useState(false);
@@ -183,6 +185,11 @@ export default function QueueTab({ cfg, snapshot, progress, connected }: Props) 
                                     <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{item.artist} · {t('songRequest.queue.requestedBy', { user: item.requestedBy })}</p>
                                 </div>
                                 <span className="font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0 hidden sm:inline">{formatDuration(item.durationSeconds)}</span>
+                                {onDownload && (item.originUrl ?? item.url) && (
+                                    <button className={iconBtn} title={t('songRequest.downloads.sendTo')} onClick={() => onDownload((item.originUrl ?? item.url)!)}>
+                                        <Download className="w-4 h-4" />
+                                    </button>
+                                )}
                                 <BanMenu item={item} onBan={ban} />
                                 <button className={iconBtn} title={t('songRequest.queue.remove')} onClick={() => api.delete(`/song-request/queue/${item.id}`)}>
                                     <Trash2 className="w-4 h-4" />

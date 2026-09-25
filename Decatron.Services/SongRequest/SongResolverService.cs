@@ -94,6 +94,29 @@ namespace Decatron.Services.SongRequest
             return await SearchAndGetAsync(DefaultSourceKey, query, info.DurationSeconds, info, ct);
         }
 
+        /// <summary>
+        /// Para el descargador (fase 5): qué URL se le pasa a yt-dlp en la PC del streamer.
+        /// YouTube y cualquier otro sitio van tal cual (yt-dlp soporta cientos); Spotify (sin audio propio)
+        /// y el texto se convierten en la canción de YouTube, igual que en !sr.
+        /// </summary>
+        public async Task<(string? Url, TrackInfo? Origin, SongResolveError Error)> ResolveDownloadUrlAsync(string input, CancellationToken ct = default)
+        {
+            input = input.Trim();
+            var url = TryParseUrl(input);
+            if (url != null)
+            {
+                var resolver = _resolvers.FirstOrDefault(r => r.CanHandle(url));
+                if (resolver == null || resolver is ITrackSource)
+                    return (url.ToString(), null, SongResolveError.None);
+            }
+
+            var resolved = await ResolveAsync(input, ct);
+            if (!resolved.Success)
+                return (null, resolved.Origin, resolved.Error);
+            var source = GetSource(resolved.Track!.Source);
+            return (source == null ? null : source.GetPublicUrl(resolved.Track.SourceId), resolved.Origin, SongResolveError.None);
+        }
+
         private async Task<SongResolveResult> SearchAndGetAsync(
             string sourceKey, string query, int? expectedDuration, TrackInfo? origin, CancellationToken ct)
         {

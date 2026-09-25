@@ -402,6 +402,9 @@ try
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolHistoryService>();
     builder.Services.AddSingleton<Decatron.Services.GameData.LolLive.LolPredictionService>();
     builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel, Decatron.Services.GameData.LolLive.LolCoachDesktopChannel>();
+    // Song Request fase 5: descargas en Decatron Desktop. Una sola instancia: el canal y la API comparten estado
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.DownloadsDesktopChannel>();
+    builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.DownloadsDesktopChannel>());
     builder.Services.AddSingleton<Decatron.Services.Desktop.DesktopConnectionRegistry>();
 
     // Decatron Desktop (app de escritorio; la traducción en vivo es su primer módulo)
