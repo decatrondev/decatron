@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Clock, Gift, Volume2, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages, Gamepad2 } from 'lucide-react';
+import { Clock, Gift, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages, Gamepad2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 
@@ -50,14 +50,6 @@ export default function FeaturesHub() {
             description: 'Crea y gestiona sorteos para tu comunidad',
             icon: <Gift className="w-6 h-6 text-[#2563eb]" />,
             route: '/features/giveaways'
-        },
-        {
-            id: 'sound-alerts',
-            name: 'Sound Alerts',
-            description: 'Alertas de sonido que los viewers pueden activar con puntos',
-            icon: <Volume2 className="w-6 h-6 text-[#2563eb]" />,
-            route: '/features/sound-alerts',
-            kickVerified: true
         },
         {
             id: 'decatron-chat',

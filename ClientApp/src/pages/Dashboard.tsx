@@ -418,7 +418,7 @@ export default function Dashboard() {
                             </button>
 
                             <button
-                                onClick={() => navigate('/features/sound-alerts')}
+                                onClick={() => navigate('/overlays/sound-alerts')}
                                 className="w-full p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#f1f5f9] dark:hover:bg-[#333] rounded-xl transition-colors text-left"
                             >
                                 <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{t('dashboard:overlays.soundAlerts.title')}</p>

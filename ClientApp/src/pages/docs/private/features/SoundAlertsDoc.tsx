@@ -22,7 +22,7 @@ export default function SoundAlertsDoc() {
                     </div>
                 </div>
                 <Link
-                    to="/features/sound-alerts"
+                    to="/overlays/sound-alerts"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
                 >
                     Ir a configuracion

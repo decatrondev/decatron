@@ -125,10 +125,10 @@ export default function Layout() {
                                 Commands (plan seccion 8.17). */}
                             <NavLink to="/overlays" icon={<Target />} label={t('layout:navigation.overlays.title')} active={location.pathname.startsWith('/overlays')} />
 
-                            {/* Funciones: visible para Kick — Sound Alerts ya
-                                resuelve rewards contra la API de Kick (plan
-                                seccion 8, item 3), el resto de FeaturesHub se
-                                marca "Proximamente en Kick" hasta verificarse. */}
+                            {/* Funciones: visible para Kick. Sound Alerts (el primero
+                                verificado en Kick, plan seccion 8, item 3) ahora vive
+                                en Overlays; el resto de FeaturesHub se marca
+                                "Proximamente en Kick" hasta verificarse. */}
                             <NavLink to="/features" icon={<Target />} label={t('layout:navigation.features.title')} active={location.pathname === '/features'} />
                             <NavLink to="/credits" icon={<Coins />} label={t('layout:navigation.credits')} active={location.pathname.startsWith('/credits')} />
 

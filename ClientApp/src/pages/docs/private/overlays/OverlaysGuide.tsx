@@ -154,7 +154,7 @@ export default function OverlaysGuide() {
                         icon={<Volume2 className="w-5 h-5" />}
                         title="Sound Alerts"
                         description="Alertas de sonido"
-                        configPath="/features/sound-alerts"
+                        configPath="/overlays/sound-alerts"
                     />
                     <OverlayCard
                         icon={<DollarSign className="w-5 h-5" />}

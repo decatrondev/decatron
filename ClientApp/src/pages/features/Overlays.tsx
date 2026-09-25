@@ -99,6 +99,7 @@ export default function Overlays() {
             icon: <Volume2 className="w-6 h-6 text-[#2563eb]" />,
             features: t('overlays:overlays.soundAlerts.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.soundAlerts.usage'),
+            kickReady: true, // Resuelve rewards contra la API de Kick (plan UNIFICACION, sección 8, item 3)
         },
         {
             id: 'event-alerts',
@@ -205,7 +206,7 @@ export default function Overlays() {
             'shoutout': '/overlays/shoutout',
             'timer': '/overlays/timer',
             'giveaways': '/features/giveaways',
-            'sound-alerts': '/features/sound-alerts',
+            'sound-alerts': '/overlays/sound-alerts',
             'event-alerts': '/overlays/event-alerts',
             'now-playing': '/overlays/now-playing',
             'song-request': '/overlays/song-request',

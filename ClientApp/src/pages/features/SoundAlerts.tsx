@@ -598,7 +598,7 @@ export default function SoundAlerts() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/overlays')}
                         className="p-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] rounded-lg transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />

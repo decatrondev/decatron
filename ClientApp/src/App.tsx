@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route } from 'react-router-dom';
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import decatronLockup from './assets/decatron-lockup.png';
 import ThemeToggle from './components/ThemeToggle';
@@ -298,7 +298,8 @@ function App() {
                     {/* Rutas de Funciones */}
                     <Route path="features/timers" element={<SafeRoute name="Timers"><Timers /></SafeRoute>} />
                     <Route path="features/giveaways" element={<SafeRoute name="Giveaways"><GiveawayConfig /></SafeRoute>} />
-                    <Route path="features/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
+                    {/* Sound Alerts pasó a Overlays: la ruta vieja redirige para no romper links ni favoritos */}
+                    <Route path="features/sound-alerts" element={<Navigate to="/overlays/sound-alerts" replace />} />
                     <Route path="features/decatron-ai" element={<SafeRoute name="Decatron AI"><DecatronAIConfig /></SafeRoute>} />
                     <Route path="features/live-translation" element={<SafeRoute name="Traducción en vivo"><LiveTranslationConfig /></SafeRoute>} />
                     <Route path="features/lol-coach" element={<SafeRoute name="Coach de LoL"><LolCoachConfig /></SafeRoute>} />
@@ -343,6 +344,7 @@ function App() {
                     <Route path="overlays" element={<SafeRoute name="Overlays"><Overlays /></SafeRoute>} />
                     <Route path="overlays/shoutout" element={<SafeRoute name="Shoutout"><ShoutoutConfig /></SafeRoute>} />
                     <Route path="overlays/timer" element={<SafeRoute name="Timer"><TimerConfig /></SafeRoute>} />
+                    <Route path="overlays/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
                     <Route path="overlays/goals" element={<SafeRoute name="Goals"><GoalsConfig /></SafeRoute>} />
                     <Route path="overlays/event-alerts" element={<SafeRoute name="Event Alerts"><EventAlertsConfig /></SafeRoute>} />
                     <Route path="overlays/now-playing" element={<SafeRoute name="Now Playing"><NowPlayingConfig /></SafeRoute>} />
