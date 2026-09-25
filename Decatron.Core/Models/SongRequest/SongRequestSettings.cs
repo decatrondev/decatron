@@ -24,6 +24,30 @@ public class SongRequestSettings
     /// <summary>Cuántas canciones lista !queue en el chat.</summary>
     public int QueuePreviewCount { get; set; } = 3;
 
+    // ── Filtros (fase 3). No aplican al streamer, a control_total ni a lo que se agrega desde el dashboard ──
+
+    /// <summary>Duración máxima en segundos. 0 = sin límite.</summary>
+    public int MaxDurationSeconds { get; set; }
+
+    /// <summary>
+    /// Con duración máxima activa, qué pasa con una canción de duración desconocida (videos no listados
+    /// cuando YouTube bloquea al server): true = se acepta y el reproductor la corta al llegar al máximo.
+    /// </summary>
+    public bool AllowUnknownDuration { get; set; } = true;
+
+    /// <summary>Vistas mínimas en YouTube. 0 = sin mínimo. Si no se conocen las vistas, se acepta.</summary>
+    public long MinViews { get; set; }
+
+    /// <summary>No volver a aceptar una canción que sonó hace menos de estos minutos. 0 = sin restricción.</summary>
+    public int NoRepeatMinutes { get; set; }
+
+    // ── Playlist de respaldo (fase 3) ──
+
+    /// <summary>Con la cola vacía suena la playlist de respaldo. Los pedidos siempre van antes.</summary>
+    public bool FallbackEnabled { get; set; }
+
+    public bool FallbackShuffle { get; set; }
+
     /// <summary>Mensajes del bot editados por el streamer (clave → plantilla). Lo que falte sale del idioma del canal.</summary>
     public Dictionary<string, string> Messages { get; set; } = new();
 }

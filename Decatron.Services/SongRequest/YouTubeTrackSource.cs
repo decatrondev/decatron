@@ -22,7 +22,7 @@ namespace Decatron.Services.SongRequest
     ///    vistas y canal, y oEmbed dice si existe y se puede embeber.
     /// Cuando el 1 da bloqueo, se deja de intentar un rato y se usa directo el 2.
     /// </summary>
-    public sealed class YouTubeTrackSource : ITrackResolver, ITrackSource
+    public sealed class YouTubeTrackSource : ITrackResolver, ITrackSource, IPlaylistSource
     {
         public const string SourceKey = "youtube";
 
@@ -295,6 +295,72 @@ namespace Decatron.Services.SongRequest
 
         private static bool ContainsWord(string text, string word) =>
             Regex.IsMatch(text, $@"(^|[^\p{{L}}\p{{N}}]){Regex.Escape(word)}($|[^\p{{L}}\p{{N}}])");
+
+        // ── Playlists ────────────────────────────────────────────────────────
+
+        private static readonly Regex PlaylistIdRegex = new("^[A-Za-z0-9_-]{10,64}$", RegexOptions.Compiled);
+
+        public bool CanHandlePlaylist(Uri url) => CanHandle(url) && ExtractPlaylistId(url) != null;
+
+        private static string? ExtractPlaylistId(Uri url)
+        {
+            var id = HttpUtility.ParseQueryString(url.Query)["list"];
+            return id != null && PlaylistIdRegex.IsMatch(id) ? id : null;
+        }
+
+        /// <summary>Lista plana (como la búsqueda, no la bloquea YouTube): título y duración de cada video.</summary>
+        public async Task<(List<SongTrack> Tracks, SongResolveError Error)> ListPlaylistAsync(Uri url, int max, CancellationToken ct = default)
+        {
+            var listId = ExtractPlaylistId(url);
+            if (listId == null)
+                return (new List<SongTrack>(), SongResolveError.InvalidLink);
+
+            var result = await _ytDlp.RunAsync(new[]
+            {
+                "--flat-playlist", "--dump-json", "--no-warnings", "--playlist-end", Math.Clamp(max, 1, 500).ToString(),
+                "--", $"https://www.youtube.com/playlist?list={listId}"
+            }, TimeSpan.FromSeconds(60), ct);
+
+            if (!result.Success)
+            {
+                var error = result.TimedOut ? SongResolveError.Failed : ClassifyError(result.Stderr);
+                _logger.LogWarning("[SongRequest] No se pudo leer la playlist {List}: {Stderr}", listId, Truncate(result.Stderr, 300));
+                return (new List<SongTrack>(), error == SongResolveError.Failed ? SongResolveError.NotFound : error);
+            }
+
+            var tracks = new List<SongTrack>();
+            foreach (var line in result.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    var root = doc.RootElement;
+                    var id = GetString(root, "id");
+                    var duration = GetInt(root, "duration");
+                    // Sin duración = directo, o video privado/borrado dentro de la lista
+                    if (id == null || !VideoIdRegex.IsMatch(id) || duration is not > 0)
+                        continue;
+                    tracks.Add(new SongTrack
+                    {
+                        Source = SourceKey,
+                        SourceId = id,
+                        Title = Truncate(GetString(root, "title") ?? "", 300),
+                        Artist = Truncate(StripTopic(GetString(root, "channel") ?? GetString(root, "uploader") ?? ""), 200),
+                        AuthorId = GetString(root, "channel_id"),
+                        DurationSeconds = duration,
+                        ViewCount = GetLong(root, "view_count"),
+                        ThumbnailUrl = $"https://i.ytimg.com/vi/{id}/hqdefault.jpg",
+                        LiveStatus = "not_live",
+                        IsEmbeddable = true
+                    });
+                }
+                catch (JsonException)
+                {
+                    // línea que no es JSON; se ignora
+                }
+            }
+            return (tracks, tracks.Count == 0 ? SongResolveError.NotFound : SongResolveError.None);
+        }
 
         // ── Lectura de datos ─────────────────────────────────────────────────
 

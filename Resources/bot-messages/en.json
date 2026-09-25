@@ -390,6 +390,11 @@
     "resumed": "▶️ Song request is playing again.",
     "ban_user": "⛔ @{target} can no longer request songs.",
     "ban_track": "⛔ “{title}” is now banned and was skipped.",
-    "ban_nothing": "⛔ No song is playing to ban."
+    "ban_nothing": "⛔ No song is playing to ban.",
+    "too_long": "🎵 @{user}, “{title}” is longer than {max}, the channel's maximum.",
+    "unknown_duration": "🎵 @{user}, I couldn't tell how long that song is and the channel has a length limit.",
+    "too_few_views": "🎵 @{user}, that song has fewer than {views} views, the channel's minimum.",
+    "recently_played": "🎵 @{user}, “{title}” played recently. Request it again later ({minutes} min).",
+    "song_current_fallback": "🎵 Now playing “{title}” by {artist}, from the channel playlist · {url}"
   }
 }

@@ -71,7 +71,8 @@ namespace Decatron.Services.SongRequest
         {
             "added", "usage", "closed", "already_queued", "user_limit", "queue_full", "banned_user", "banned_track", "banned_author",
             "unsupported", "invalid_link", "not_found", "private", "live", "upcoming", "not_embeddable", "age_restricted", "no_match", "failed",
-            "wrongsong_removed", "no_requests", "queue_empty", "queue_list", "song_current", "song_none", "myqueue",
+            "too_long", "unknown_duration", "too_few_views", "recently_played",
+            "wrongsong_removed", "no_requests", "queue_empty", "queue_list", "song_current", "song_current_fallback", "song_none", "myqueue",
             "skip_nothing", "skip_done", "skip_vote", "skip_voted_done", "remove_usage", "remove_invalid", "removed",
             "opened", "closed_now", "paused", "resumed", "ban_user", "ban_track", "ban_nothing"
         };
@@ -155,7 +156,11 @@ namespace Decatron.Services.SongRequest
             var result = await run.Songs.AddAsync(run.Config, run.Requester, run.Args, unlimited);
             if (!result.Success)
             {
-                await run.ReplyAsync(result.ErrorKey!, Vars(result.Track).With("max", run.Settings.MaxPerUser.ToString()));
+                var vars = Vars(result.Track)
+                    .With("max", result.ErrorKey == "too_long" ? FormatDuration(run.Settings.MaxDurationSeconds) : run.Settings.MaxPerUser.ToString())
+                    .With("views", run.Settings.MinViews.ToString("N0"))
+                    .With("minutes", run.Settings.NoRepeatMinutes.ToString());
+                await run.ReplyAsync(result.ErrorKey!, vars);
                 return;
             }
 
@@ -192,7 +197,9 @@ namespace Decatron.Services.SongRequest
         private static async Task SongAsync(Run run)
         {
             var current = await run.Songs.GetCurrentAsync(run.Config.UserId);
-            await run.ReplyAsync(current == null ? "song_none" : "song_current", Vars(current));
+            var key = current == null ? "song_none"
+                : current.RequestedPlatform == SongRequestPlatforms.Fallback ? "song_current_fallback" : "song_current";
+            await run.ReplyAsync(key, Vars(current));
         }
 
         private static async Task MyQueueAsync(Run run)
@@ -318,6 +325,9 @@ namespace Decatron.Services.SongRequest
         }
 
         // ── Mensajes ─────────────────────────────────────────────────────────
+
+        private static string FormatDuration(int seconds) =>
+            seconds >= 3600 ? $"{seconds / 3600}:{seconds % 3600 / 60:00}:{seconds % 60:00}" : $"{seconds / 60}:{seconds % 60:00}";
 
         private static string DisplayTitle(SongRequestQueueItem item) => item.OriginTitle ?? item.Track?.Title ?? "";
 

@@ -400,6 +400,7 @@
     "nothingPlaying": "No está sonando ninguna canción pedida.",
     "upNext": "A continuación",
     "empty": "La cola está vacía. ¡Sé el primero en pedir una canción!",
+    "fromPlaylist": "de la playlist del canal",
     "requestedBy": "pedida por {{user}}",
     "songs_one": "{{count}} canción",
     "songs_other": "{{count}} canciones",

@@ -73,6 +73,17 @@ namespace Decatron.Services.SongRequest
         public static SourceSearchResult Fail(SongResolveError error) => new(null, error);
     }
 
+    /// <summary>Una fuente que además entiende listas (importar una playlist a la playlist de respaldo).</summary>
+    public interface IPlaylistSource
+    {
+        string Key { get; }
+
+        bool CanHandlePlaylist(Uri url);
+
+        /// <summary>Las canciones de la lista (filas sin guardar, datos básicos), hasta <paramref name="max"/>.</summary>
+        Task<(System.Collections.Generic.List<SongTrack> Tracks, SongResolveError Error)> ListPlaylistAsync(Uri url, int max, CancellationToken ct = default);
+    }
+
     /// <summary>De dónde sale el audio para reproducir y descargar (YouTube, luego SoundCloud…).</summary>
     public interface ITrackSource
     {

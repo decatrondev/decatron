@@ -8,6 +8,7 @@ import { useLayoutFonts } from './song-request-extension/utils';
 import SongRequestPreview from './song-request-extension/components/SongRequestPreview';
 import QueueTab from './song-request-extension/components/tabs/QueueTab';
 import { GuideTab, BasicTab, CommandsTab, MessagesTab } from './song-request-extension/components/tabs/SetupTabs';
+import { FiltersTab, BlacklistTab, FallbackTab, HistoryTab } from './song-request-extension/components/tabs/LibraryTabs';
 import { ThemeTab, ElementsTab, TypographyTab, AnimationsTab, EditorTab } from './song-request-extension/components/tabs/DesignTabs';
 import type { OverlayLabels } from './song-request-extension/components/SongOverlayRenderer';
 import type { OverlayKind, TabId } from './song-request-extension/types';
@@ -19,6 +20,10 @@ const TABS: { id: TabId; icon: string }[] = [
     { id: 'guide', icon: '📚' },
     { id: 'queue', icon: '🎵' },
     { id: 'basic', icon: '⚙️' },
+    { id: 'filters', icon: '🚦' },
+    { id: 'blacklist', icon: '⛔' },
+    { id: 'fallback', icon: '🎶' },
+    { id: 'history', icon: '📈' },
     { id: 'commands', icon: '💬' },
     { id: 'messages', icon: '📢' },
     { id: 'theme', icon: '🎨' },
@@ -56,6 +61,7 @@ export default function SongRequestConfig() {
     const labels: OverlayLabels = useMemo(() => ({
         requestedBy: t('songRequest.overlayLabels.requestedBy', { user: '{{user}}' }),
         next: t('songRequest.overlayLabels.next'),
+        fallback: t('songRequest.overlayLabels.fallback'),
         idle: t('songRequest.overlayLabels.idle'),
     }), [t]);
 
@@ -147,6 +153,10 @@ export default function SongRequestConfig() {
                             {tab === 'guide' && <GuideTab cfg={cfg} onNavigate={setTab} />}
                             {tab === 'queue' && <QueueTab cfg={cfg} snapshot={live.snapshot} progress={live.progress} connected={live.connected} />}
                             {tab === 'basic' && <BasicTab cfg={cfg} />}
+                            {tab === 'filters' && <FiltersTab cfg={cfg} />}
+                            {tab === 'blacklist' && <BlacklistTab />}
+                            {tab === 'fallback' && <FallbackTab cfg={cfg} />}
+                            {tab === 'history' && <HistoryTab />}
                             {tab === 'commands' && <CommandsTab cfg={cfg} />}
                             {tab === 'messages' && <MessagesTab cfg={cfg} />}
                             {tab === 'theme' && <ThemeTab {...designProps} />}

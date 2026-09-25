@@ -26,6 +26,12 @@ export const DEFAULT_SETTINGS: SongRequestSettings = {
     skipVoteEnabled: false,
     skipVotesRequired: 3,
     queuePreviewCount: 3,
+    maxDurationSeconds: 0,
+    allowUnknownDuration: true,
+    minViews: 0,
+    noRepeatMinutes: 0,
+    fallbackEnabled: false,
+    fallbackShuffle: false,
     messages: {},
 };
 

@@ -27,6 +27,13 @@ namespace Decatron.Services.SongRequest
         public static SongAddResult Fail(string errorKey, SongTrack? track = null) => new(null, 0, track, errorKey);
     }
 
+    /// <summary>Plataforma de los pedidos que pone la playlist de respaldo (no los pidió nadie).</summary>
+    public static class SongRequestPlatforms
+    {
+        public const string Fallback = "fallback";
+        public const string Dashboard = "dashboard";
+    }
+
     /// <summary>
     /// La cola de un canal: agregar, quitar, saltar, abrir/cerrar, pausar y vetar.
     /// Cada cambio se avisa por SignalR al overlay y a la cola pública.
@@ -181,6 +188,13 @@ namespace Decatron.Services.SongRequest
             if (alreadyIn)
                 return SongAddResult.Fail("already_queued", track);
 
+            if (!unlimited)
+            {
+                var filtered = await CheckFiltersAsync(userId, settings, track, ct);
+                if (filtered != null)
+                    return SongAddResult.Fail(filtered, track);
+            }
+
             var lastPosition = await queued.MaxAsync(q => (int?)q.Position, ct) ?? 0;
             var origin = resolved.Origin;
             var item = new SongRequestQueueItem
@@ -207,6 +221,36 @@ namespace Decatron.Services.SongRequest
             var position = await queued.CountAsync(q => q.Position < item.Position || (q.Position == item.Position && q.Id <= item.Id), ct);
             await NotifyAsync(config, ct);
             return new SongAddResult(item, position, track, null);
+        }
+
+        /// <summary>Los filtros del canal. Devuelve la clave del mensaje de rechazo, o null si pasa.</summary>
+        private async Task<string?> CheckFiltersAsync(long userId, SongRequestSettings settings, SongTrack track, CancellationToken ct)
+        {
+            if (settings.MaxDurationSeconds > 0)
+            {
+                if (track.DurationSeconds == null)
+                {
+                    if (!settings.AllowUnknownDuration)
+                        return "unknown_duration";
+                }
+                else if (track.DurationSeconds > settings.MaxDurationSeconds)
+                {
+                    return "too_long";
+                }
+            }
+
+            if (settings.MinViews > 0 && track.ViewCount != null && track.ViewCount < settings.MinViews)
+                return "too_few_views";
+
+            if (settings.NoRepeatMinutes > 0)
+            {
+                var since = DateTime.UtcNow.AddMinutes(-settings.NoRepeatMinutes);
+                var recent = await _db.SongRequestHistory.AnyAsync(h => h.UserId == userId && h.TrackId == track.Id
+                    && h.PlayedAt >= since && h.RequestedPlatform != SongRequestPlatforms.Fallback, ct);
+                if (recent)
+                    return "recently_played";
+            }
+            return null;
         }
 
         /// <summary>!wrongsong: el último pedido del usuario que todavía no sonó.</summary>
@@ -273,6 +317,8 @@ namespace Decatron.Services.SongRequest
             var next = await QueuedQuery(config.UserId).FirstOrDefaultAsync(ct);
             if (next != null)
                 next.Status = "playing";
+            else if (_players.HasPlayer(config.ChannelName.ToLowerInvariant()))
+                await StartFallbackAsync(config, ct); // sin pedidos: sigue la playlist de respaldo (solo si hay quien la suene)
 
             await _db.SaveChangesAsync(ct);
             await NotifyAsync(config, ct);
@@ -287,17 +333,61 @@ namespace Decatron.Services.SongRequest
                 await AdvanceAsync(config, endReason, ct);
         }
 
-        /// <summary>Si no suena nada, la primera de la cola pasa a sonar.</summary>
+        /// <summary>Si no suena nada, la primera de la cola pasa a sonar; con la cola vacía, la playlist de respaldo.</summary>
         public async Task StartNextIfIdleAsync(SongRequestConfig config, CancellationToken ct = default)
         {
             if (await _db.SongRequestQueue.AnyAsync(q => q.UserId == config.UserId && q.Status == "playing", ct))
                 return;
             var next = await QueuedQuery(config.UserId).FirstOrDefaultAsync(ct);
-            if (next == null)
+            if (next != null)
+                next.Status = "playing";
+            else if (!await StartFallbackAsync(config, ct))
                 return;
-            next.Status = "playing";
             await _db.SaveChangesAsync(ct);
             await NotifyAsync(config, ct);
+        }
+
+        /// <summary>Agrega a la cola, ya sonando, la próxima de la playlist de respaldo. false si no hay.</summary>
+        private async Task<bool> StartFallbackAsync(SongRequestConfig config, CancellationToken ct)
+        {
+            var settings = ParseSettings(config);
+            if (!settings.FallbackEnabled)
+                return false;
+
+            var items = await _db.SongRequestFallback.Where(f => f.UserId == config.UserId)
+                .OrderBy(f => f.Position).ThenBy(f => f.Id)
+                .Select(f => f.TrackId).ToListAsync(ct);
+            if (items.Count == 0)
+                return false;
+
+            int index;
+            if (settings.FallbackShuffle)
+            {
+                // Al azar, sin repetir la que acaba de sonar
+                var last = await _db.SongRequestHistory.Where(h => h.UserId == config.UserId)
+                    .OrderByDescending(h => h.PlayedAt).Select(h => (long?)h.TrackId).FirstOrDefaultAsync(ct);
+                index = Random.Shared.Next(items.Count);
+                if (items.Count > 1 && items[index] == last)
+                    index = (index + 1) % items.Count;
+            }
+            else
+            {
+                index = ((config.FallbackCursor % items.Count) + items.Count) % items.Count;
+                config.FallbackCursor = index + 1;
+            }
+
+            _db.SongRequestQueue.Add(new SongRequestQueueItem
+            {
+                UserId = config.UserId,
+                TrackId = items[index],
+                Position = 0,
+                Status = "playing",
+                RequestedPlatform = SongRequestPlatforms.Fallback,
+                RequestedByLogin = config.ChannelName,
+                RequestedByName = config.ChannelName,
+                CreatedAt = DateTime.UtcNow
+            });
+            return true;
         }
 
         /// <summary>Nuevo orden de la cola desde el dashboard. Los ids que no vengan quedan al final en su orden.</summary>
@@ -388,6 +478,7 @@ namespace Decatron.Services.SongRequest
         {
             var current = await GetCurrentAsync(config.UserId, ct);
             var queued = await GetQueuedAsync(config.UserId, ct: ct);
+            var settings = ParseSettings(config);
             return new
             {
                 channel = config.ChannelName,
@@ -395,6 +486,9 @@ namespace Decatron.Services.SongRequest
                 requestsOpen = config.RequestsOpen,
                 paused = config.IsPaused,
                 volume = config.Volume,
+                // El reproductor corta al llegar aquí las canciones de duración desconocida (0 = no corta)
+                maxDurationSeconds = settings.MaxDurationSeconds > 0 && settings.AllowUnknownDuration ? settings.MaxDurationSeconds : 0,
+                fallbackEnabled = settings.FallbackEnabled,
                 playerConnected = _players.HasPlayer(config.ChannelName.ToLowerInvariant()),
                 current = current == null ? null : ToDto(current, 0),
                 queue = queued.Select((q, i) => ToDto(q, i + 1)).ToList(),
@@ -419,6 +513,7 @@ namespace Decatron.Services.SongRequest
                 requestedBy = item.RequestedByName,
                 requestedByLogin = item.RequestedByLogin,
                 platform = item.RequestedPlatform,
+                isFallback = item.RequestedPlatform == SongRequestPlatforms.Fallback,
                 originSource = item.OriginSource,
                 originUrl = item.OriginUrl
             };

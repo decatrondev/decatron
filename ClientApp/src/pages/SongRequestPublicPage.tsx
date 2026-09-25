@@ -18,6 +18,7 @@ interface QueueItem {
     thumbnailUrl: string | null;
     requestedBy: string;
     platform: string;
+    isFallback?: boolean;
     originSource: string | null;
     originUrl: string | null;
 }
@@ -175,7 +176,7 @@ export default function SongRequestPublicPage() {
                         {/* Sonando ahora */}
                         <SectionTitle>{t('songRequestPublic.nowPlaying')}</SectionTitle>
                         {current ? (
-                            <NowPlaying item={current} paused={state.paused} openLabel={t('songRequestPublic.openOn', { source: SOURCE_NAMES[current.originSource ?? current.source ?? ''] ?? 'YouTube' })} requestedBy={t('songRequestPublic.requestedBy', { user: current.requestedBy })} />
+                            <NowPlaying item={current} paused={state.paused} openLabel={t('songRequestPublic.openOn', { source: SOURCE_NAMES[current.originSource ?? current.source ?? ''] ?? 'YouTube' })} requestedBy={current.isFallback ? t('songRequestPublic.fromPlaylist') : t('songRequestPublic.requestedBy', { user: current.requestedBy })} />
                         ) : (
                             <p className="mb-10 text-sm 3xl:text-base 4xl:text-lg text-[#71717a]">{t('songRequestPublic.nothingPlaying')}</p>
                         )}

@@ -400,6 +400,7 @@
     "nothingPlaying": "No requested song is playing.",
     "upNext": "Up next",
     "empty": "The queue is empty. Be the first to request a song!",
+    "fromPlaylist": "from the channel playlist",
     "requestedBy": "requested by {{user}}",
     "songs_one": "{{count}} song",
     "songs_other": "{{count}} songs",

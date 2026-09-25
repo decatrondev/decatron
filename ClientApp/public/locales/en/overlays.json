@@ -278,7 +278,11 @@
       "elements": "Elements",
       "typography": "Typography",
       "animations": "Animations",
-      "editor": "Editor"
+      "editor": "Editor",
+      "filters": "Filters",
+      "blacklist": "Blacklists",
+      "fallback": "Fallback playlist",
+      "history": "History"
     },
     "kinds": {
       "player": "Player",
@@ -301,7 +305,8 @@
     "overlayLabels": {
       "requestedBy": "Requested by {{user}}",
       "next": "Up next:",
-      "idle": "Request a song with !sr"
+      "idle": "Request a song with !sr",
+      "fallback": "From the channel playlist"
     },
     "overlayErrors": {
       "invalidKey": "Song Request: the player key isn't valid. Copy the URL again from the dashboard."
@@ -435,7 +440,12 @@
       "resumed": "!srresume",
       "ban_user": "!srban @user",
       "ban_track": "!srban (song)",
-      "ban_nothing": "!srban: nothing playing"
+      "ban_nothing": "!srban: nothing playing",
+      "too_long": "Longer than the maximum",
+      "unknown_duration": "Unknown length",
+      "too_few_views": "Too few views",
+      "recently_played": "Played recently",
+      "song_current_fallback": "!song: fallback playlist playing"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
@@ -503,7 +513,16 @@
       "banned_track": "That song is banned.",
       "banned_author": "Songs from that artist are banned.",
       "already_queued": "That song is already in the queue.",
-      "invalid_input": "Type a link or a name."
+      "invalid_input": "Type a link or a name.",
+      "too_long": "That song is longer than the maximum.",
+      "unknown_duration": "That song's length is unknown.",
+      "too_few_views": "That song has fewer views than the minimum.",
+      "recently_played": "That song played recently.",
+      "already_in_fallback": "That song is already in the fallback playlist.",
+      "fallback_full": "The fallback playlist is full.",
+      "not_a_playlist": "That link isn't a YouTube playlist.",
+      "author_unknown": "Couldn't tell which channel that song is from.",
+      "invalid_user": "That username isn't valid."
     },
     "theme": {
       "presetsTitle": "Themes",
@@ -663,6 +682,83 @@
       "hidden": "The cover was hidden because it was in the same spot as the video. To see both, turn it on and move it in the Editor so they don't overlap.",
       "overlap": "The video and the cover overlap: the video hides the cover. Move one of them in the Editor, or turn the cover off in Elements.",
       "ok": "Got it"
+    },
+    "filters": {
+      "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
+      "durationTitle": "Length",
+      "maxDuration": "Maximum length (minutes)",
+      "maxDurationHint": "0 = no limit. E.g. 6 = up to 6 minutes.",
+      "allowUnknown": "Accept songs of unknown length",
+      "allowUnknownOn": "Happens with some unlisted videos. They're accepted and the player cuts them at the maximum.",
+      "allowUnknownOff": "They're rejected with a message in chat.",
+      "otherTitle": "Other filters",
+      "minViews": "Minimum YouTube views",
+      "minViewsHint": "0 = no minimum. If the view count is unknown, it's accepted.",
+      "noRepeat": "Don't repeat for (minutes)",
+      "noRepeatHint": "A song that already played isn't accepted again until this time passes. 0 = no restriction.",
+      "alwaysBlocked": "Always rejected, regardless of filters: live streams, premieres, private videos and videos that can't play outside YouTube."
+    },
+    "blacklist": {
+      "title": "Blacklists",
+      "description": "Banned items can't be requested. You can also ban from chat with !srban and from the Queue tab.",
+      "add": "Ban",
+      "remove": "Remove from the list",
+      "empty": "Nothing banned yet.",
+      "by": "by {{user}}",
+      "track": {
+        "title": "Songs ({{count}})",
+        "description": "A specific song.",
+        "placeholder": "YouTube link or song name"
+      },
+      "author": {
+        "title": "Artists and channels ({{count}})",
+        "description": "Every song from a YouTube channel. Paste the link of any of its songs.",
+        "placeholder": "Link to a song from the artist or channel"
+      },
+      "user": {
+        "title": "Users ({{count}})",
+        "description": "Viewers who can't request songs. Banning them removes their pending requests.",
+        "placeholder": "Twitch username"
+      }
+    },
+    "fallback": {
+      "title": "Fallback playlist",
+      "description": "Plays when the queue is empty. Chat requests always come first: if one arrives, it plays as soon as the current song ends.",
+      "enabled": "Use the fallback playlist",
+      "enabledHint": "So your stream is never silent.",
+      "shuffle": "Shuffle",
+      "saveNote": "These two options are saved with the Save button. The list below is saved instantly.",
+      "addTitle": "Add songs",
+      "importPlaceholder": "YouTube playlist link (…?list=…)",
+      "import": "Import",
+      "added": "Added to the fallback playlist.",
+      "imported": "{{added}} songs were added ({{skipped}} were already there or didn't fit).",
+      "listTitle": "Songs ({{count}} of {{max}})",
+      "empty": "The playlist is empty. Add songs or import a YouTube playlist.",
+      "clear": "Empty",
+      "clearConfirm": "Remove every song from the fallback playlist?"
+    },
+    "history": {
+      "title": "History ({{count}})",
+      "description": "What played on your channel. Mark favorites, put them back in the queue or add them to the fallback playlist.",
+      "all": "All",
+      "favorites": "Favorites",
+      "empty": "No song has played yet.",
+      "noFavorites": "You have no favorites.",
+      "favorite": "Mark as favorite",
+      "unfavorite": "Remove from favorites",
+      "requeue": "Back to the queue",
+      "requeued": "Added to the queue.",
+      "toFallback": "Add to the fallback playlist",
+      "more": "Load more",
+      "clear": "Clear history",
+      "clearConfirm": "Clear the history? Favorites are kept.",
+      "reasons": {
+        "finished": "Finished",
+        "skipped": "Skipped",
+        "error": "Error",
+        "removed": "Removed"
+      }
     }
   }
 }

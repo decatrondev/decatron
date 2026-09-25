@@ -278,7 +278,11 @@
       "elements": "Elementos",
       "typography": "Tipografía",
       "animations": "Animaciones",
-      "editor": "Editor"
+      "editor": "Editor",
+      "filters": "Filtros",
+      "blacklist": "Listas negras",
+      "fallback": "Playlist de respaldo",
+      "history": "Historial"
     },
     "kinds": {
       "player": "Reproductor",
@@ -301,7 +305,8 @@
     "overlayLabels": {
       "requestedBy": "Pedida por {{user}}",
       "next": "Siguiente:",
-      "idle": "Pide una canción con !sr"
+      "idle": "Pide una canción con !sr",
+      "fallback": "De la playlist del canal"
     },
     "overlayErrors": {
       "invalidKey": "Song Request: la clave del reproductor no es válida. Copia la URL de nuevo desde el dashboard."
@@ -435,7 +440,12 @@
       "resumed": "!srresume",
       "ban_user": "!srban @usuario",
       "ban_track": "!srban (canción)",
-      "ban_nothing": "!srban: no suena nada"
+      "ban_nothing": "!srban: no suena nada",
+      "too_long": "Supera la duración máxima",
+      "unknown_duration": "Duración desconocida",
+      "too_few_views": "Pocas vistas",
+      "recently_played": "Sonó hace poco",
+      "song_current_fallback": "!song: suena la playlist de respaldo"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -503,7 +513,16 @@
       "banned_track": "Esa canción está vetada.",
       "banned_author": "Las canciones de ese artista están vetadas.",
       "already_queued": "Esa canción ya está en la cola.",
-      "invalid_input": "Escribe un link o un nombre."
+      "invalid_input": "Escribe un link o un nombre.",
+      "too_long": "Esa canción supera la duración máxima.",
+      "unknown_duration": "No se sabe cuánto dura esa canción.",
+      "too_few_views": "Esa canción tiene menos vistas que el mínimo.",
+      "recently_played": "Esa canción sonó hace poco.",
+      "already_in_fallback": "Esa canción ya está en la playlist de respaldo.",
+      "fallback_full": "La playlist de respaldo está llena.",
+      "not_a_playlist": "Ese link no es una playlist de YouTube.",
+      "author_unknown": "No se pudo saber de qué canal es esa canción.",
+      "invalid_user": "Ese usuario no es válido."
     },
     "theme": {
       "presetsTitle": "Temas",
@@ -663,6 +682,83 @@
       "hidden": "Se ocultó la portada porque ocupaba el mismo lugar que el video. Si quieres ver las dos, actívala y muévela en el Editor para que no se encimen.",
       "overlap": "El video y la portada están encimados: el video tapa la portada. Mueve una de las dos en el Editor, o apaga la portada en Elementos.",
       "ok": "Entendido"
+    },
+    "filters": {
+      "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
+      "durationTitle": "Duración",
+      "maxDuration": "Duración máxima (minutos)",
+      "maxDurationHint": "0 = sin límite. Ej.: 6 = hasta 6 minutos.",
+      "allowUnknown": "Aceptar canciones de duración desconocida",
+      "allowUnknownOn": "Pasa con algunos videos no listados. Se aceptan y el reproductor las corta al llegar al máximo.",
+      "allowUnknownOff": "Se rechazan con un aviso en el chat.",
+      "otherTitle": "Otros filtros",
+      "minViews": "Vistas mínimas en YouTube",
+      "minViewsHint": "0 = sin mínimo. Si no se sabe cuántas vistas tiene, se acepta.",
+      "noRepeat": "No repetir durante (minutos)",
+      "noRepeatHint": "Una canción que ya sonó no se acepta de nuevo hasta que pase este tiempo. 0 = sin restricción.",
+      "alwaysBlocked": "Siempre se rechazan, sin importar los filtros: transmisiones en vivo, estrenos, videos privados y los que no se pueden reproducir fuera de YouTube."
+    },
+    "blacklist": {
+      "title": "Listas negras",
+      "description": "Lo vetado no se puede pedir. También se veta desde el chat con !srban y desde la pestaña Cola.",
+      "add": "Vetar",
+      "remove": "Quitar de la lista",
+      "empty": "Nada vetado todavía.",
+      "by": "por {{user}}",
+      "track": {
+        "title": "Canciones ({{count}})",
+        "description": "Una canción concreta.",
+        "placeholder": "Link de YouTube o nombre de la canción"
+      },
+      "author": {
+        "title": "Artistas y canales ({{count}})",
+        "description": "Todas las canciones de un canal de YouTube. Pega el link de cualquier canción suya.",
+        "placeholder": "Link de una canción del artista o canal"
+      },
+      "user": {
+        "title": "Usuarios ({{count}})",
+        "description": "Viewers que no pueden pedir canciones. Al vetarlos se quitan sus pedidos pendientes.",
+        "placeholder": "Usuario de Twitch"
+      }
+    },
+    "fallback": {
+      "title": "Playlist de respaldo",
+      "description": "Suena cuando la cola se queda vacía. Los pedidos del chat siempre van antes: si llega uno, suena apenas termine la canción actual.",
+      "enabled": "Usar la playlist de respaldo",
+      "enabledHint": "Así el stream nunca se queda en silencio.",
+      "shuffle": "Orden aleatorio",
+      "saveNote": "Estas dos opciones se guardan con el botón Guardar. La lista de abajo se guarda al instante.",
+      "addTitle": "Agregar canciones",
+      "importPlaceholder": "Link de una playlist de YouTube (…?list=…)",
+      "import": "Importar",
+      "added": "Agregada a la playlist de respaldo.",
+      "imported": "Se agregaron {{added}} canciones ({{skipped}} ya estaban o no entraron).",
+      "listTitle": "Canciones ({{count}} de {{max}})",
+      "empty": "La playlist está vacía. Agrega canciones o importa una playlist de YouTube.",
+      "clear": "Vaciar",
+      "clearConfirm": "¿Quitar todas las canciones de la playlist de respaldo?"
+    },
+    "history": {
+      "title": "Historial ({{count}})",
+      "description": "Lo que sonó en tu canal. Marca favoritas, vuelve a ponerlas en la cola o súmalas a la playlist de respaldo.",
+      "all": "Todas",
+      "favorites": "Favoritas",
+      "empty": "Todavía no sonó ninguna canción.",
+      "noFavorites": "No tienes favoritas.",
+      "favorite": "Marcar como favorita",
+      "unfavorite": "Quitar de favoritas",
+      "requeue": "Volver a la cola",
+      "requeued": "Agregada a la cola.",
+      "toFallback": "Agregar a la playlist de respaldo",
+      "more": "Cargar más",
+      "clear": "Borrar historial",
+      "clearConfirm": "¿Borrar el historial? Las favoritas se conservan.",
+      "reasons": {
+        "finished": "Terminó",
+        "skipped": "Saltada",
+        "error": "Error",
+        "removed": "Quitada"
+      }
     }
   }
 }

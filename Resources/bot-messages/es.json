@@ -390,6 +390,11 @@
     "resumed": "▶️ El song request sigue sonando.",
     "ban_user": "⛔ @{target} ya no puede pedir canciones.",
     "ban_track": "⛔ «{title}» quedó vetada y se saltó.",
-    "ban_nothing": "⛔ No está sonando ninguna canción para vetar."
+    "ban_nothing": "⛔ No está sonando ninguna canción para vetar.",
+    "too_long": "🎵 @{user}, «{title}» dura más de {max}, el máximo del canal.",
+    "unknown_duration": "🎵 @{user}, no pude saber cuánto dura esa canción y el canal tiene un máximo de duración.",
+    "too_few_views": "🎵 @{user}, esa canción tiene menos de {views} vistas, el mínimo del canal.",
+    "recently_played": "🎵 @{user}, «{title}» sonó hace poco. Pídela de nuevo en un rato ({minutes} min).",
+    "song_current_fallback": "🎵 Suena «{title}» de {artist}, de la playlist del canal · {url}"
   }
 }

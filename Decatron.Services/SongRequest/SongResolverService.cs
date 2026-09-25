@@ -152,6 +152,35 @@ namespace Decatron.Services.SongRequest
             return SourceTrackResult.Ok(await SaveAsync(existing, fetched.Track, ct));
         }
 
+        /// <summary>
+        /// Guarda varias canciones de una vez (importar una playlist). Las que ya existen se reutilizan tal cual.
+        /// Devuelve las filas guardadas en el mismo orden.
+        /// </summary>
+        public async Task<List<SongTrack>> UpsertTracksAsync(IReadOnlyList<SongTrack> tracks, CancellationToken ct = default)
+        {
+            if (tracks.Count == 0)
+                return new List<SongTrack>();
+
+            var source = tracks[0].Source;
+            var ids = tracks.Select(t => t.SourceId).Distinct().ToList();
+            var existing = await _db.SongTracks
+                .Where(t => t.Source == source && ids.Contains(t.SourceId))
+                .ToDictionaryAsync(t => t.SourceId, ct);
+
+            var now = DateTime.UtcNow;
+            foreach (var t in tracks)
+            {
+                if (existing.ContainsKey(t.SourceId))
+                    continue;
+                t.ResolvedAt = now;
+                t.CreatedAt = now;
+                _db.SongTracks.Add(t);
+                existing[t.SourceId] = t;
+            }
+            await _db.SaveChangesAsync(ct);
+            return ids.Select(id => existing[id]).ToList();
+        }
+
         private static bool IsFresh(SongTrack track)
         {
             var ttl = track.DurationSeconds == null ? PartialTrackTtl : TrackTtl;

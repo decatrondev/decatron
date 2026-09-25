@@ -93,10 +93,12 @@ export function useSongRequestPlayer(channel: string | null, key: string | null,
     const current = snapshot?.current ?? null;
     const queueLength = snapshot?.queue.length ?? 0;
     const paused = snapshot?.paused ?? false;
+    const fallback = snapshot?.fallbackEnabled ?? false;
     useEffect(() => {
-        if (!active || current || queueLength === 0 || paused) return;
+        // Con la cola vacía igual se pide: el servidor pone la playlist de respaldo si está activa
+        if (!active || current || (queueLength === 0 && !fallback) || paused) return;
         connectionRef.current?.invoke('PlayerIdle', ch).catch(() => { /* reintenta con el próximo cambio */ });
-    }, [active, current, queueLength, paused, ch]);
+    }, [active, current, queueLength, fallback, paused, ch]);
 
     const invoke = useCallback((method: string, ...args: unknown[]) => {
         if (statusRef.current !== 'active') return;
@@ -105,9 +107,19 @@ export function useSongRequestPlayer(channel: string | null, key: string | null,
 
     const reportEnded = useCallback((itemId: number) => invoke('PlayerEnded', itemId), [invoke]);
     const reportError = useCallback((itemId: number, code: number) => invoke('PlayerError', itemId, code), [invoke]);
+    // Canción de duración desconocida con máximo del canal: se corta al llegar al máximo
+    const snapshotRef = useRef(snapshot);
+    snapshotRef.current = snapshot;
+    const cutItem = useRef<number | null>(null);
     const reportProgress = useCallback((itemId: number, position: number, duration: number, playing: boolean) => {
         setProgress({ itemId, position, duration, playing });
         invoke('PlayerProgress', itemId, position, duration, playing);
+        const s = snapshotRef.current;
+        const max = s?.maxDurationSeconds ?? 0;
+        if (max > 0 && s?.current?.id === itemId && s.current.durationSeconds == null && position >= max && cutItem.current !== itemId) {
+            cutItem.current = itemId;
+            invoke('PlayerEnded', itemId);
+        }
     }, [invoke]);
 
     return { snapshot, status, progress, reportEnded, reportError, reportProgress };

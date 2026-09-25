@@ -9,6 +9,12 @@ export interface SongRequestSettings {
     skipVoteEnabled: boolean;
     skipVotesRequired: number;
     queuePreviewCount: number;
+    maxDurationSeconds: number;
+    allowUnknownDuration: boolean;
+    minViews: number;
+    noRepeatMinutes: number;
+    fallbackEnabled: boolean;
+    fallbackShuffle: boolean;
     messages: Record<string, string>;
 }
 
@@ -25,6 +31,8 @@ export interface QueueItem {
     requestedBy: string;
     requestedByLogin?: string;
     platform: string;
+    /** Lo puso la playlist de respaldo (no lo pidió nadie). */
+    isFallback?: boolean;
     originSource: string | null;
     originUrl: string | null;
 }
@@ -35,6 +43,10 @@ export interface QueueSnapshot {
     requestsOpen: boolean;
     paused: boolean;
     volume: number;
+    /** El reproductor corta aquí las canciones de duración desconocida (0 = no corta). */
+    maxDurationSeconds?: number;
+    /** Con la cola vacía suena la playlist de respaldo. */
+    fallbackEnabled?: boolean;
     playerConnected: boolean;
     current: QueueItem | null;
     queue: QueueItem[];
@@ -128,5 +140,5 @@ export interface SongRequestOverlayConfig {
 }
 
 export type TabId =
-    | 'guide' | 'queue' | 'basic' | 'commands' | 'messages'
+    | 'guide' | 'queue' | 'basic' | 'filters' | 'blacklist' | 'fallback' | 'history' | 'commands' | 'messages'
     | 'theme' | 'elements' | 'typography' | 'animations' | 'editor';

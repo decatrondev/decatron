@@ -102,7 +102,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected }: Props) 
                         {current.thumbnailUrl && <img src={current.thumbnailUrl} alt="" className="w-full sm:w-48 3xl:w-56 aspect-video object-cover rounded-xl" />}
                         <div className="flex-1 min-w-0 space-y-1">
                             <a href={current.originUrl ?? current.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block font-bold text-[#1e293b] dark:text-[#f8fafc] text-base 3xl:text-lg hover:underline break-words">{current.title}</a>
-                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{current.artist} · {t('songRequest.queue.requestedBy', { user: current.requestedBy })}</p>
+                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{current.artist} · {current.isFallback ? t('songRequest.overlayLabels.fallback') : t('songRequest.queue.requestedBy', { user: current.requestedBy })}</p>
                             <ProgressBar progress={currentProgress} duration={current.durationSeconds} />
                         </div>
                     </div>
@@ -253,7 +253,7 @@ function BanMenu({ item, onBan }: { item: QueueItem; onBan: (item: QueueItem, ty
             {open && (
                 <div className="absolute right-0 top-full mt-1 z-20 w-56 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-xl p-1" onMouseLeave={() => setOpen(false)}>
                     {(['track', 'author', 'user'] as const)
-                        .filter(type => type !== 'user' || item.platform !== 'dashboard')
+                        .filter(type => type !== 'user' || (item.platform !== 'dashboard' && !item.isFallback))
                         .map(type => (
                             <button key={type} onClick={() => { setOpen(false); onBan(item, type); }} className="w-full text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#fef2f2] dark:hover:bg-red-900/20">
                                 {t(`songRequest.queue.banOptions.${type}`)}

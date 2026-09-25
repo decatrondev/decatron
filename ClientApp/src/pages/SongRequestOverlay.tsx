@@ -46,6 +46,7 @@ function useLabels(): OverlayLabels {
     return {
         requestedBy: t('songRequest.overlayLabels.requestedBy', { user: '{{user}}' }),
         next: t('songRequest.overlayLabels.next'),
+        fallback: t('songRequest.overlayLabels.fallback'),
         idle: t('songRequest.overlayLabels.idle'),
     };
 }

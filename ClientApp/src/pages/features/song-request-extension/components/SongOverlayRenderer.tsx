@@ -9,6 +9,7 @@ import { formatDuration } from '../utils';
 
 export interface OverlayLabels {
     requestedBy: string; // con {{user}}
+    fallback: string; // lo puso la playlist de respaldo
     next: string;
     idle: string;
 }
@@ -178,7 +179,7 @@ export default function SongOverlayRenderer({ layout, current, queue, progress, 
                         ? textEl('title', current.title)
                         : textEl('title', labels.idle)}
                     {current && textEl('artist', current.artist)}
-                    {current && textEl('requester', requesterLabel.replace('{{user}}', current.requestedBy))}
+                    {current && textEl('requester', current.isFallback ? labels.fallback : requesterLabel.replace('{{user}}', current.requestedBy))}
                     {current && textEl('time', timeText)}
                     {next && textEl('next', `${nextLabel} ${next.title}`)}
                     {current && textEl('source', sourceName)}

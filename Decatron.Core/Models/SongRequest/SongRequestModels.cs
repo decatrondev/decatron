@@ -92,6 +92,10 @@ public class SongRequestConfig
     [Column("volume")]
     public int Volume { get; set; } = 50;
 
+    /// <summary>Por dónde va la playlist de respaldo (en orden, sin mezclar).</summary>
+    [Column("fallback_cursor")]
+    public int FallbackCursor { get; set; }
+
     /// <summary>Filtros, límites, permisos y mensajes (JSON).</summary>
     [Column("settings", TypeName = "jsonb")]
     public string Settings { get; set; } = "{}";
@@ -228,6 +232,28 @@ public class SongRequestBan
 
     [Column("created_by"), MaxLength(100)]
     public string? CreatedBy { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Una canción de la playlist de respaldo del canal (suena con la cola vacía).</summary>
+[Table("song_request_fallback")]
+public class SongRequestFallbackItem
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("track_id")]
+    public long TrackId { get; set; }
+
+    public SongTrack? Track { get; set; }
+
+    [Column("position")]
+    public int Position { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
