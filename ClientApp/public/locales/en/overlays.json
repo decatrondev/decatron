@@ -658,6 +658,11 @@
         "video": "With video"
       },
       "layoutConfirm": "The position and size of every element will be replaced. Continue?"
+    },
+    "videoCover": {
+      "hidden": "The cover was hidden because it was in the same spot as the video. To see both, turn it on and move it in the Editor so they don't overlap.",
+      "overlap": "The video and the cover overlap: the video hides the cover. Move one of them in the Editor, or turn the cover off in Elements.",
+      "ok": "Got it"
     }
   }
 }

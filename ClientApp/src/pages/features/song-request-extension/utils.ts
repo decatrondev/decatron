@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { OverlayLayout } from './types';
+import type { ElementConfig, ElementId, OverlayLayout } from './types';
 import { TEXT_ELEMENTS } from './constants/defaults';
 
 export function formatDuration(seconds: number | null | undefined): string {
@@ -39,4 +39,24 @@ export function useLayoutFonts(layouts: (OverlayLayout | null | undefined)[]) {
             .join('&')}&display=swap`;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key]);
+}
+
+const overlaps = (a: ElementConfig, b: ElementConfig) =>
+    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+/** Video y portada activos y encimados: la portada no se ve (el video va arriba) y confunde. */
+export function videoCoversOverlap(layout: OverlayLayout): boolean {
+    const { video, cover } = layout.elements;
+    return video.enabled && cover.enabled && overlaps(video, cover);
+}
+
+/**
+ * Prende o apaga un elemento. Al prender el video, si la portada ocupa el mismo lugar se apaga
+ * sola y se avisa: quien quiera las dos las separa en el Editor.
+ */
+export function toggleElement(layout: OverlayLayout, id: ElementId, enabled: boolean): { layout: OverlayLayout; coverHidden: boolean } {
+    const elements = { ...layout.elements, [id]: { ...layout.elements[id], enabled } };
+    const coverHidden = id === 'video' && enabled && elements.cover.enabled && overlaps(elements.video, elements.cover);
+    if (coverHidden) elements.cover = { ...elements.cover, enabled: false };
+    return { layout: { ...layout, elements }, coverHidden };
 }

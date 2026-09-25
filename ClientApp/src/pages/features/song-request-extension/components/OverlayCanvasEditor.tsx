@@ -5,6 +5,8 @@ import SongOverlayRenderer, { type OverlayLabels } from './SongOverlayRenderer';
 import { Card, Field, NumberInput, CHECKER_BG } from './ui';
 import { ELEMENT_ORDER, SAMPLE_SONGS } from '../constants/defaults';
 import type { ElementConfig, ElementId, OverlayKind, OverlayLayout } from '../types';
+import { toggleElement } from '../utils';
+import VideoCoverNotice from './VideoCoverNotice';
 
 type Handle = 'nw' | 'ne' | 'sw' | 'se';
 
@@ -28,6 +30,7 @@ export default function OverlayCanvasEditor({ kind, layout, onChange, labels }: 
     const [scale, setScale] = useState(1);
     const [selected, setSelected] = useState<ElementId>('title');
     const [snap, setSnap] = useState(true);
+    const [coverHidden, setCoverHidden] = useState(false);
     const drag = useRef<{ id: ElementId; handle: Handle | null; startX: number; startY: number; pxPerUnit: number; orig: ElementConfig } | null>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
     const layoutRef = useRef(layout);
@@ -102,6 +105,7 @@ export default function OverlayCanvasEditor({ kind, layout, onChange, labels }: 
 
     return (
         <div className="space-y-4">
+            <VideoCoverNotice layout={layout} coverHidden={coverHidden} onDismiss={() => setCoverHidden(false)} />
             <Card title={t('songRequest.editor.title')} description={t('songRequest.editor.description')}
                 actions={
                     <button
@@ -179,7 +183,7 @@ export default function OverlayCanvasEditor({ kind, layout, onChange, labels }: 
                             return (
                                 <div key={id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${id === selected ? 'bg-[#eff6ff] dark:bg-[#1e3a8a]/30' : 'hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}>
                                     <button
-                                        onClick={() => setElement(id, { enabled: !e.enabled })}
+                                        onClick={() => { const r = toggleElement(layoutRef.current, id, !e.enabled); onChange(r.layout); setCoverHidden(r.coverHidden); }}
                                         className="p-1 text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white"
                                         title={e.enabled ? t('songRequest.editor.hide') : t('songRequest.editor.show')}
                                     >

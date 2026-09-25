@@ -658,6 +658,11 @@
         "video": "Con video"
       },
       "layoutConfirm": "Se reemplazan las posiciones y el tamaño de todos los elementos. ¿Continuar?"
+    },
+    "videoCover": {
+      "hidden": "Se ocultó la portada porque ocupaba el mismo lugar que el video. Si quieres ver las dos, actívala y muévela en el Editor para que no se encimen.",
+      "overlap": "El video y la portada están encimados: el video tapa la portada. Mueve una de las dos en el Editor, o apaga la portada en Elementos.",
+      "ok": "Entendido"
     }
   }
 }

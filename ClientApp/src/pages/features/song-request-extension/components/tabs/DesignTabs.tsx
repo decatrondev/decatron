@@ -6,6 +6,8 @@ import OverlayCanvasEditor from '../OverlayCanvasEditor';
 import type { OverlayLabels } from '../SongOverlayRenderer';
 import { FONT_FAMILIES, LAYOUT_PRESETS, TEXT_ELEMENTS, ELEMENT_ORDER } from '../../constants/defaults';
 import { THEME_PRESETS, applyThemePreset } from '../../constants/presets';
+import { toggleElement } from '../../utils';
+import VideoCoverNotice from '../VideoCoverNotice';
 import type { ElementConfig, ElementId, OverlayKind, OverlayLayout, SavedTemplate, SongChangeAnimation, TextStyle } from '../../types';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
 
@@ -160,8 +162,14 @@ function TemplatesCard({ cfg, kind }: DesignProps) {
 
 export function ElementsTab(props: DesignProps) {
     const { t } = useTranslation('overlays');
-    const { layout, setElement, setOptions } = useLayout(props);
+    const { layout, set, setOptions } = useLayout(props);
+    const [coverHidden, setCoverHidden] = useState(false);
     const ids = ELEMENT_ORDER.filter(id => props.kind === 'player' || id !== 'video');
+    const toggle = (id: ElementId, enabled: boolean) => {
+        const r = toggleElement(layout, id, enabled);
+        set(r.layout);
+        setCoverHidden(r.coverHidden);
+    };
     const e = layout.elements;
 
     const extra = (id: ElementId) => {
@@ -212,13 +220,14 @@ export function ElementsTab(props: DesignProps) {
     return (
         <div className="space-y-6">
             <KindSwitch {...props} />
+            <VideoCoverNotice layout={layout} coverHidden={coverHidden} onDismiss={() => setCoverHidden(false)} />
             <Card title={t('songRequest.elementsTab.title')} description={t('songRequest.elementsTab.description')}>
                 <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
                     {ids.map(id => {
                         const options = extra(id);
                         return (
                             <div key={id} className="py-3 space-y-3">
-                                <Toggle checked={e[id].enabled} onChange={v => setElement(id, { enabled: v })} label={t(`songRequest.elements.${id}`)} hint={t(`songRequest.elementHints.${id}`)} />
+                                <Toggle checked={e[id].enabled} onChange={v => toggle(id, v)} label={t(`songRequest.elements.${id}`)} hint={t(`songRequest.elementHints.${id}`)} />
                                 {e[id].enabled && options && <div className="pl-14">{options}</div>}
                             </div>
                         );
