@@ -5,6 +5,7 @@ import { Loader2, Search, Filter, Trophy, ExternalLink, Bot, Zap } from 'lucide-
 import api from '../services/api';
 import SpiritCard, { type SpriteCollectionItem } from '../components/spirits/SpiritCard';
 import '../components/spirits/spirits.css';
+import { BrandMark } from '../brand/BrandMark';
 
 const RARITIES = ['Rare', 'Special', 'Epic', 'Legendary', 'Mythic'];
 const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Cube', 'Rift/Cube', 'Cheat', 'Quack', 'Hacker'];
@@ -105,8 +106,8 @@ export default function SpiritCollection() {
             <header className="sticky top-0 z-40 bg-[#0A0C14]/90 backdrop-blur border-b border-[#1E2A3B]">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <a href="/" className="flex items-center gap-2 text-xl font-black text-[#7B61FF] hover:text-[#A78BFA] transition-colors">
-                        <Bot className="w-6 h-6" />
-                        <span>Decatron</span>
+                        <BrandMark slot="spirits-header" fallback={<><Bot className="w-6 h-6" />
+                        <span>Decatron</span></>} />
                     </a>
                     <div className="flex items-center gap-2">
                         <Link to="/sprites" className="px-3 py-2 text-[#9CA3AF] hover:text-white text-sm font-semibold transition-colors">

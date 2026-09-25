@@ -1,5 +1,6 @@
 import { Link, Outlet } from 'react-router-dom';
 import { Bot, ArrowLeft } from 'lucide-react';
+import { BrandMark } from '../../brand/BrandMark';
 
 export default function LegalLayout() {
     return (
@@ -8,8 +9,8 @@ export default function LegalLayout() {
             <nav className="sticky top-0 z-50 bg-white/95 dark:bg-[#1B1C1D]/95 backdrop-blur-sm border-b border-[#e2e8f0] dark:border-[#374151] shadow-sm">
                 <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2 text-2xl font-black text-[#2563eb]">
-                        <Bot className="w-8 h-8" />
-                        <span>Decatron</span>
+                        <BrandMark slot="legal-header" fallback={<><Bot className="w-8 h-8" />
+                        <span>Decatron</span></>} />
                     </Link>
                     <Link
                         to="/"

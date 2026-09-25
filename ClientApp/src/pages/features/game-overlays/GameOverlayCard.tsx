@@ -13,6 +13,7 @@
 import { CSSProperties, ReactNode, useEffect, useState } from 'react';
 import { AccountOverlayState, AccountStats, ElementConfig, FontStyle, GameId, GameVisualConfig, LivePhaseInfo, MatchSummary, PointsSample, PromoItem, ROLE_LABELS, SessionState } from './types';
 import { CardView, PROMO_MESSAGES } from './slides';
+import { BrandMark } from '../../../brand/BrandMark';
 
 interface Props {
     game: GameId;
@@ -81,6 +82,9 @@ export function PromoCard({ config, lang = 'es', animation, promo, measure }: { 
     const title = promo?.title ?? msgs.title;
     const line = promo?.line ?? msgs.lines[Math.floor(Date.now() / 60000) % msgs.lines.length];
     const image = promo?.imageUrl || '/brand/decatron-lockup-light.png';
+    // Un anuncio con imagen propia manda esa; si no, el logo que se edita en /admin/brand.
+    const logo = (variant: 'bar' | 'card', fallback: ReactNode) =>
+        promo?.imageUrl ? fallback : <BrandMark slot="games-promo" variant={variant} theme="dark" fallback={fallback} />;
     const url = <div style={{ fontSize: 20, fontWeight: 800, color: '#ffffff', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>decatron<span style={{ color: '#3b82f6' }}>.net</span></div>;
     // Con fondo transparente el anuncio igual lleva fondo: sin él no se lee sobre el juego.
     const forcedBg: CSSProperties = config.background.type === 'transparent'
@@ -90,7 +94,7 @@ export function PromoCard({ config, lang = 'es', animation, promo, measure }: { 
     if (config.layout === 'bar' || config.layout === 'compact') {
         return (
             <CardBox config={config} animation={animation} measure={measure} style={{ ...forcedBg, ...font, padding: '6px 18px', alignItems: 'center', gap: 18 }}>
-                <img src={image} alt="Decatron" style={{ height: 40, width: 'auto', maxWidth: 160, objectFit: 'contain', flexShrink: 0 }} />
+                {logo('bar', <img src={image} alt="Decatron" style={{ height: 40, width: 'auto', maxWidth: 160, objectFit: 'contain', flexShrink: 0 }} />)}
                 <span style={{ width: 1, height: 26, background: 'rgba(255,255,255,.12)', flexShrink: 0 }} />
                 <div style={{ fontSize: 12, color: '#c9d1d9', whiteSpace: 'normal', flex: 1, flexShrink: 1, minWidth: 0, overflow: 'hidden', maxHeight: '3.9em' }}>{line}</div>
                 <span style={{ width: 1, height: 26, background: 'rgba(255,255,255,.12)', flexShrink: 0 }} />
@@ -100,7 +104,7 @@ export function PromoCard({ config, lang = 'es', animation, promo, measure }: { 
     }
     return (
         <CardBox config={config} animation={animation} measure={measure} style={{ ...forcedBg, ...font, padding: '14px 18px', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center', maxWidth: config.layout === 'emblem-only' ? 200 : 380 }}>
-            <img src={image} alt="Decatron" style={{ width: '70%', maxWidth: 200, height: 'auto', maxHeight: '40%', objectFit: 'contain' }} />
+            {logo('card', <img src={image} alt="Decatron" style={{ width: '70%', maxWidth: 200, height: 'auto', maxHeight: '40%', objectFit: 'contain' }} />)}
             <div style={{ fontSize: 12, color: '#c9d1d9', lineHeight: 1.3, whiteSpace: 'normal', overflow: 'hidden' }}>{line}</div>
             <div style={{ fontSize: 11, color: '#8b949e', textTransform: 'uppercase', letterSpacing: 1 }}>{title}</div>
             {url}

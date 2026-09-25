@@ -14,6 +14,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import api from '../../services/api';
+import { BrandMark } from '../../brand/BrandMark';
 
 interface AppInfo {
     id: string;
@@ -251,9 +252,9 @@ export default function OAuthAuthorizePage() {
                         <ArrowRight className="w-6 h-6 text-gray-500" />
 
                         {/* Decatron Logo */}
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+                        <BrandMark slot="oauth-authorize" fallback={<div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
                             <Shield className="w-8 h-8" />
-                        </div>
+                        </div>} />
                     </div>
 
                     <h1 className="text-2xl font-bold mb-1">

@@ -1,5 +1,6 @@
 ﻿import { Home, Zap, Target, Settings, LogOut, Menu, Clock, Book, Shield, Cpu, BarChart3, MessageSquare, User, Coins } from 'lucide-react';
 import decatronLockup from '../assets/decatron-lockup.png';
+import { BrandMark } from '../brand/BrandMark';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -72,7 +73,7 @@ export default function Layout() {
             <aside className={`panel-scale fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f8fafc] dark:bg-[#1B1C1D] border-r border-[#e2e8f0] dark:border-[#374151] transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
                 <div className="p-6 border-b border-[#e2e8f0] dark:border-[#374151] flex-shrink-0">
                     <Link to="/dashboard" className="flex items-center">
-                        <img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />
+                        <BrandMark slot="panel-sidebar" fallback={<img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />} />
                     </Link>
                 </div>
 

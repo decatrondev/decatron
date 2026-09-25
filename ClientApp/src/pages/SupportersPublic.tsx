@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Bot, Heart, Star, Check, ChevronDown, ChevronUp, ExternalLink, Zap, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import api from '../services/api';
+import { BrandMark } from '../brand/BrandMark';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -149,8 +150,8 @@ function SupportersNav() {
         <nav className="sticky top-0 z-50 bg-white/95 dark:bg-[#1B1C1D]/95 backdrop-blur-sm border-b border-[#e2e8f0] dark:border-[#374151] shadow-sm">
             <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <a href="/" className="flex items-center gap-2 text-xl font-black text-[#2563eb]">
-                    <Bot className="w-7 h-7" />
-                    <span>Decatron</span>
+                    <BrandMark slot="supporters-header" fallback={<><Bot className="w-7 h-7" />
+                    <span>Decatron</span></>} />
                 </a>
                 <div className="flex items-center gap-3">
                     <ThemeToggle />
@@ -1464,8 +1465,8 @@ function PageFooter() {
     return (
         <footer className="bg-white dark:bg-[#1B1C1D] border-t border-[#e2e8f0] dark:border-[#374151] py-8 px-4 text-center">
             <div className="flex items-center justify-center gap-2 text-[#2563eb] font-black mb-2">
-                <Bot className="w-5 h-5" />
-                <span>Decatron</span>
+                <BrandMark slot="supporters-footer" fallback={<><Bot className="w-5 h-5" />
+                <span>Decatron</span></>} />
             </div>
             <p className="text-xs text-[#94a3b8]">
                 <a href="/tip/privacy" className="hover:text-[#64748b] underline">{t('footerPrivacy')}</a>

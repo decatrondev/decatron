@@ -176,10 +176,14 @@ import { PermissionsProvider } from './contexts/PermissionsContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ToastProvider } from './components/ui/Toast';
 import './i18n/config'; // Initialize i18next
+import { BrandProvider } from './brand/BrandContext';
+import { BrandMark } from './brand/BrandMark';
+import BrandAdmin from './pages/admin/BrandAdmin';
 
 function App() {
     return (
         <BrowserRouter>
+            <BrandProvider>
             <ToastProvider>
                 <PermissionsProvider>
                     <LanguageProvider>
@@ -317,6 +321,7 @@ function App() {
                     <Route path="admin/project-analysis" element={<SafeRoute name="Project Analysis"><ProjectAnalysis /></SafeRoute>} />
                     <Route path="admin/fortnite" element={<SafeRoute name="Fortnite Sprites"><AdminFortnite /></SafeRoute>} />
                     <Route path="admin/logo" element={<SafeRoute name="Logo Guide"><LogoGuide /></SafeRoute>} />
+                    <Route path="admin/brand" element={<SafeRoute name="Brand Logos"><BrandAdmin /></SafeRoute>} />
                     <Route path="admin/game-overlay-promos" element={<SafeRoute name="Game Overlay Promos"><GameOverlayPromosAdmin /></SafeRoute>} />
 
                     {/* Chat Moderation */}
@@ -422,6 +427,7 @@ function App() {
                     </LanguageProvider>
                 </PermissionsProvider>
             </ToastProvider>
+            </BrandProvider>
         </BrowserRouter>
                 );
             }
@@ -430,7 +436,7 @@ function PublicNav() {
         <nav className="sticky top-0 z-50 bg-white/95 dark:bg-[#1B1C1D]/95 backdrop-blur-sm border-b border-[#e2e8f0] dark:border-[#374151] shadow-sm">
             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                 <a href="/" className="flex items-center">
-                    <img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />
+                    <BrandMark slot="public-nav" fallback={<img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />} />
                 </a>
                 <ThemeToggle />
             </div>

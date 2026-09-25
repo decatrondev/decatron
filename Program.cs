@@ -523,6 +523,7 @@ try
     builder.Services.AddScoped<Decatron.Services.GameData.GameSessionService>();
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayConfigService>();
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayPromoService>();
+    builder.Services.AddScoped<Decatron.Services.Brand.BrandService>(); // Logos de la marca editables desde /admin/brand
     builder.Services.AddScoped<Decatron.Services.GameData.LiveOverlayService>();
     builder.Services.AddScoped<Decatron.Services.Pets.PetService>(); // Mascotas: config por canal + estímulos al overlay
     builder.Services.AddSingleton<Decatron.Services.Pets.PetEventBridge>(); // Mascotas: alertas, comandos y saludo → mascota
@@ -615,6 +616,25 @@ try
         RequestPath = "/uploads/soundalerts",
     });
     Log.Information($"Sirviendo archivos de Sound Alerts desde: {soundAlertsUploadsPath}");
+
+    // Piezas de la marca subidas desde /admin/brand (fuera del repo y de dist/, igual que los clips)
+    // El padre (/var/www/html/decatron) es de root: si la carpeta no existe, crearla falla
+    // y eso no puede tirar el backend entero (pasó el 2026-09-24). Sin ella, los lugares
+    // que usen piezas subidas vuelven a su diseño de código.
+    var brandAssetsPath = builder.Configuration["Brand:AssetsPath"] ?? "/var/www/html/decatron/brand-assets";
+    try { Directory.CreateDirectory(brandAssetsPath); }
+    catch (Exception ex) { Log.Error(ex, $"No se pudo crear {brandAssetsPath} (crearla con dueño decatron)"); }
+    if (Directory.Exists(brandAssetsPath))
+    {
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(brandAssetsPath),
+            RequestPath = "/uploads/brand",
+            // Cada subida tiene nombre único, así que el navegador puede guardarla para siempre.
+            OnPrepareResponse = ctx => ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable",
+        });
+        Log.Information($"Sirviendo piezas de la marca desde: {brandAssetsPath}");
+    }
 
     // Servir archivos de Timer Extensible (media para eventos)
     var timerExtensiblePath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "public", "timerextensible");

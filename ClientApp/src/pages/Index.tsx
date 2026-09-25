@@ -3,6 +3,7 @@ import { Bot, Zap, Settings, Users, BarChart, Sparkles, MonitorPlay, Globe, Hear
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import decatronHero from '../assets/decatron-hero.png';
+import { BrandMark } from '../brand/BrandMark';
 import ChannelsCarousel from '../components/landing/ChannelsCarousel';
 
 type PlatformKey = 'twitch' | 'kick' | 'youtube';
@@ -161,10 +162,14 @@ export default function Index() {
                     <div className="w-full max-w-3xl mx-auto lg:mx-0">
                         <PlatformTerminal />
                     </div>
-                    <img
-                        src={decatronHero}
-                        alt=""
-                        className="hidden lg:block w-[420px] xl:w-[520px] 3xl:w-[600px] 4xl:w-[720px] shrink-0 select-none"
+                    <BrandMark
+                        slot="landing-hero"
+                        className="shrink-0 select-none"
+                        fallback={<img
+                            src={decatronHero}
+                            alt=""
+                            className="hidden lg:block w-[420px] xl:w-[520px] 3xl:w-[600px] 4xl:w-[720px] shrink-0 select-none"
+                        />}
                     />
                 </div>
             </section>

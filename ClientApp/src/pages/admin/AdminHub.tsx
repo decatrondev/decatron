@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet} from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -148,6 +148,14 @@ export default function AdminHub() {
             description: 'Saldo, historial y ajustes manuales de créditos por canal',
             icon: <Coins className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/tts-credits',
+            ready: true
+        },
+        {
+            id: 'brand',
+            name: 'Logos de la marca',
+            description: 'Cómo se ve el logo de Decatron en cada lugar del sitio: imagen, texto, tamaño y posición por pantalla. Se publica al guardar',
+            icon: <ImageIcon className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/brand',
             ready: true
         },
         {

@@ -138,6 +138,8 @@ namespace Decatron.Data
         public DbSet<Core.Models.Pets.PetConfig> PetConfigs { get; set; }
         public DbSet<Core.Models.Pets.PetSeenChatter> PetSeenChatters { get; set; }
         public DbSet<Core.Models.GameOverlays.GameOverlayPromoSettings> GameOverlayPromoSettings { get; set; }
+        public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }
+        public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 
