@@ -353,7 +353,8 @@
       "srremove": "Removes the song at that queue position.",
       "openclose": "Opens or closes requests.",
       "pause": "Pauses or resumes the player.",
-      "srban": "Bans the song that's playing, or a user if you mention them."
+      "srban": "Bans the song that's playing, or a user if you mention them.",
+      "srvolume": "Tells the volume, or changes it from 0 to 100 (!srvolume 40)."
     },
     "basic": {
       "moduleTitle": "Module",
@@ -447,7 +448,10 @@
       "unknown_duration": "Unknown length",
       "too_few_views": "Too few views",
       "recently_played": "Played recently",
-      "song_current_fallback": "!song: fallback playlist playing"
+      "song_current_fallback": "!song: fallback playlist playing",
+      "volume_current": "!srvolume: current volume",
+      "volume_set": "!srvolume: volume changed",
+      "volume_usage": "How to use !srvolume"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",

@@ -353,7 +353,8 @@
       "srremove": "Quita la canción en esa posición de la cola.",
       "openclose": "Abre o cierra los pedidos.",
       "pause": "Pausa o reanuda el reproductor.",
-      "srban": "Veta la canción que suena, o a un usuario si lo mencionas."
+      "srban": "Veta la canción que suena, o a un usuario si lo mencionas.",
+      "srvolume": "Dice el volumen, o lo cambia de 0 a 100 (!srvolume 40)."
     },
     "basic": {
       "moduleTitle": "Módulo",
@@ -447,7 +448,10 @@
       "unknown_duration": "Duración desconocida",
       "too_few_views": "Pocas vistas",
       "recently_played": "Sonó hace poco",
-      "song_current_fallback": "!song: suena la playlist de respaldo"
+      "song_current_fallback": "!song: suena la playlist de respaldo",
+      "volume_current": "!srvolume: volumen actual",
+      "volume_set": "!srvolume: volumen cambiado",
+      "volume_usage": "Cómo usar !srvolume"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",

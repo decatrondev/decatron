@@ -102,6 +102,7 @@ const COMMANDS: { cmd: string; key: string }[] = [
     { cmd: '!song', key: 'song' }, { cmd: '!myqueue', key: 'myqueue' }, { cmd: '!skip', key: 'skip' },
     { cmd: '!srremove <#>', key: 'srremove' }, { cmd: '!sropen · !srclose', key: 'openclose' },
     { cmd: '!srpause · !srresume', key: 'pause' }, { cmd: '!srban [@usuario]', key: 'srban' },
+    { cmd: '!srvolume [0-100]', key: 'srvolume' },
 ];
 
 function CommandList() {

@@ -242,6 +242,7 @@ namespace Decatron.Controllers
                 ("srpause", "Pausa la música", manage),
                 ("srresume", "Vuelve a reproducir la música", manage),
                 ("srban", "Veta la canción que suena, o a un usuario con !srban @usuario", manage),
+                ("srvolume", "Dice el volumen de la música; los que administran lo cambian con !srvolume 40", request),
             };
             foreach (var (name, description, restriction) in commands)
                 AddItem(results, overrideMap, "songrequest", name, name, description, restriction, applyHiddenFilter);

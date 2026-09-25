@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -38,7 +38,8 @@ namespace Decatron.Services.SongRequest
             ["!srclose"] = Action.Close,
             ["!srpause"] = Action.Pause,
             ["!srresume"] = Action.Resume,
-            ["!srban"] = Action.Ban
+            ["!srban"] = Action.Ban,
+            ["!srvolume"] = Action.Volume
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -74,7 +75,8 @@ namespace Decatron.Services.SongRequest
             "too_long", "unknown_duration", "too_few_views", "recently_played",
             "wrongsong_removed", "no_requests", "queue_empty", "queue_list", "song_current", "song_current_fallback", "song_none", "myqueue",
             "skip_nothing", "skip_done", "skip_vote", "skip_voted_done", "remove_usage", "remove_invalid", "removed",
-            "opened", "closed_now", "paused", "resumed", "ban_user", "ban_track", "ban_nothing"
+            "opened", "closed_now", "paused", "resumed", "ban_user", "ban_track", "ban_nothing",
+            "volume_current", "volume_set", "volume_usage"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -107,6 +109,7 @@ namespace Decatron.Services.SongRequest
                 var required = action switch
                 {
                     Action.Skip => null, // decide adentro: directo o voto
+                    Action.Volume => null, // decide adentro: ver el volumen o cambiarlo
                     Action.Remove => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban => run.Settings.Permissions.Manage,
                     _ => run.Settings.Permissions.Request
@@ -128,6 +131,7 @@ namespace Decatron.Services.SongRequest
                     case Action.Pause: await SetPausedAsync(run, true); break;
                     case Action.Resume: await SetPausedAsync(run, false); break;
                     case Action.Ban: await BanAsync(run); break;
+                    case Action.Volume: await VolumeAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -322,6 +326,28 @@ namespace Decatron.Services.SongRequest
             await run.Songs.AdvanceAsync(run.Config, "skipped");
             _skipVotes.TryRemove(run.Config.UserId, out _);
             await run.ReplyAsync("ban_track", Vars(current));
+        }
+
+        /// <summary>!srvolume dice el volumen (quien puede pedir); !srvolume 40 lo cambia (quien puede administrar).</summary>
+        private static async Task VolumeAsync(Run run)
+        {
+            if (run.Args.Length == 0)
+            {
+                if (await run.HasRoleAsync(run.Settings.Permissions.Request))
+                    await run.ReplyAsync("volume_current", new() { ["volume"] = run.Config.Volume.ToString() });
+                return;
+            }
+
+            if (!await run.HasRoleAsync(run.Settings.Permissions.Manage))
+                return;
+            if (!int.TryParse(run.Args.Split(' ', 2)[0].TrimEnd('%'), out var volume) || volume is < 0 or > 100)
+            {
+                await run.ReplyAsync("volume_usage");
+                return;
+            }
+
+            await run.Songs.SetVolumeAsync(run.Config, volume);
+            await run.ReplyAsync("volume_set", new() { ["volume"] = volume.ToString() });
         }
 
         // ── Mensajes ─────────────────────────────────────────────────────────
