@@ -140,6 +140,11 @@ namespace Decatron.Data
         public DbSet<Core.Models.GameOverlays.GameOverlayPromoSettings> GameOverlayPromoSettings { get; set; }
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }
         public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
+        public DbSet<Core.Models.SongRequest.SongTrack> SongTracks { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestConfig> SongRequestConfigs { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestQueueItem> SongRequestQueue { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestHistoryItem> SongRequestHistory { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestBan> SongRequestBans { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 
@@ -859,6 +864,32 @@ namespace Decatron.Data
                     .IsUnique()
                     .HasDatabaseName("uq_moderation_filter_channel_key");
                 entity.ToTable("moderation_filters");
+            });
+
+            // Song Request (.dev/plans/SONG_REQUEST_PLAN.md)
+            modelBuilder.Entity<Core.Models.SongRequest.SongTrack>(entity =>
+            {
+                entity.HasIndex(e => new { e.Source, e.SourceId })
+                    .IsUnique()
+                    .HasDatabaseName("uq_song_request_tracks_source");
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestConfig>(entity =>
+            {
+                entity.HasIndex(e => e.UserId).IsUnique().HasDatabaseName("uq_song_request_configs_user");
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestQueueItem>(entity =>
+            {
+                entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestHistoryItem>(entity =>
+            {
+                entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestBan>(entity =>
+            {
+                entity.HasIndex(e => new { e.UserId, e.BanType, e.Value })
+                    .IsUnique()
+                    .HasDatabaseName("uq_song_request_bans");
             });
 
             // SoundAlertConfig Configuration
