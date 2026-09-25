@@ -145,6 +145,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.SongRequest.SongRequestQueueItem> SongRequestQueue { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestHistoryItem> SongRequestHistory { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestBan> SongRequestBans { get; set; }
+        public DbSet<Core.Models.AdminModAction> AdminModActions { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestFallbackItem> SongRequestFallback { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }

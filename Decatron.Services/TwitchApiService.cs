@@ -846,6 +846,99 @@ namespace Decatron.Services
             }
         }
 
+        /// <summary>Resultado de consultar o cambiar mods con el token del streamer. Error = por qué falló, para mostrarlo en admin.</summary>
+        public sealed record ModeratorCallResult(bool Success, HashSet<string> ModeratorIds, string? Error)
+        {
+            public static ModeratorCallResult Fail(string error) => new(false, new HashSet<string>(), error);
+        }
+
+        /// <summary>
+        /// Cuáles de <paramref name="userIds"/> son mods del canal. Usa el token del streamer
+        /// (moderation:read o channel:manage:moderators). Admin → Mod en canales.
+        /// </summary>
+        public async Task<ModeratorCallResult> GetModeratorsAmongAsync(string broadcasterId, IEnumerable<string> userIds)
+        {
+            try
+            {
+                var accessToken = await GetUserAccessTokenAsync(broadcasterId);
+                if (string.IsNullOrEmpty(accessToken))
+                    return ModeratorCallResult.Fail("token_expired");
+
+                var query = string.Join("", userIds.Select(id => $"&user_id={Uri.EscapeDataString(id)}"));
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterId}{query}");
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+                var body = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    return ModeratorCallResult.Fail(ClassifyModeratorError(response.StatusCode, body));
+
+                using var doc = JsonDocument.Parse(body);
+                var ids = new HashSet<string>();
+                if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+                    foreach (var mod in data.EnumerateArray())
+                        if (mod.TryGetProperty("user_id", out var id) && id.GetString() is { } s)
+                            ids.Add(s);
+                return new ModeratorCallResult(true, ids, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetModeratorsAmongAsync for broadcaster {BroadcasterId}", broadcasterId);
+                return ModeratorCallResult.Fail("failed");
+            }
+        }
+
+        /// <summary>
+        /// Da (<paramref name="add"/>) o quita mod a un usuario, con el token del streamer. A diferencia de
+        /// AddModeratorAsync/RemoveModeratorAsync, trabaja con ids y devuelve el motivo si Twitch lo rechaza.
+        /// </summary>
+        public async Task<ModeratorCallResult> SetModeratorAsync(string broadcasterId, string userId, bool add)
+        {
+            try
+            {
+                var accessToken = await GetUserAccessTokenAsync(broadcasterId);
+                if (string.IsNullOrEmpty(accessToken))
+                    return ModeratorCallResult.Fail("token_expired");
+
+                var request = new HttpRequestMessage(add ? HttpMethod.Post : HttpMethod.Delete,
+                    $"{TwitchApiBaseUrl}/moderation/moderators?broadcaster_id={broadcasterId}&user_id={Uri.EscapeDataString(userId)}");
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+                var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("[AdminMods] {Action} mod a {UserId} en {BroadcasterId}", add ? "Dio" : "Quitó", userId, broadcasterId);
+                    return new ModeratorCallResult(true, new HashSet<string>(), null);
+                }
+
+                var body = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("[AdminMods] Twitch rechazó {Action} mod a {UserId} en {BroadcasterId}: {Status} {Body}",
+                    add ? "dar" : "quitar", userId, broadcasterId, (int)response.StatusCode, body);
+                return ModeratorCallResult.Fail(ClassifyModeratorError(response.StatusCode, body));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SetModeratorAsync: {UserId} in {BroadcasterId}", userId, broadcasterId);
+                return ModeratorCallResult.Fail("failed");
+            }
+        }
+
+        /// <summary>Lo que devuelve Twitch en moderation/moderators, en una clave corta para admin.</summary>
+        private static string ClassifyModeratorError(System.Net.HttpStatusCode status, string body)
+        {
+            var text = body.ToLowerInvariant();
+            if (status == System.Net.HttpStatusCode.Unauthorized)
+                return text.Contains("scope") ? "missing_scope" : "token_invalid";
+            if (text.Contains("is banned")) return "user_banned";
+            if (text.Contains("already a mod")) return "already_mod";
+            if (text.Contains("is a vip")) return "is_vip";
+            if (text.Contains("not a mod")) return "not_mod";
+            if (status == System.Net.HttpStatusCode.TooManyRequests) return "rate_limited";
+            return $"twitch_{(int)status}";
+        }
+
         /// <summary>
         /// Elimina un mensaje específico (requiere que el bot sea moderador)
         /// </summary>

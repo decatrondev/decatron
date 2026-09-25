@@ -1,4 +1,4 @@
-import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon } from 'lucide-react';
+import { Cpu, MessageSquare, Heart, Star, TrendingUp, Settings, Coins, FileText, Mail, Gamepad2, Mic, Activity, Palette, Sparkles, Users, Languages, CircleDollarSign, Megaphone, Wallet, Image as ImageIcon, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface AdminCard {
@@ -92,6 +92,14 @@ export default function AdminHub() {
             description: 'Gestiona qué canales de Twitch y Kick aparecen en la página pública',
             icon: <Users className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/channels',
+            ready: true
+        },
+        {
+            id: 'channel-mods',
+            name: 'Mod en canales',
+            description: 'Da o quita mod al bot y a ti en los canales de Twitch, con el token del streamer',
+            icon: <ShieldCheck className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/mods',
             ready: true
         },
         {

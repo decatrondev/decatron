@@ -61,6 +61,7 @@ import LiveOverlay from './pages/LiveOverlay';
 import LiveOverlays from './pages/features/LiveOverlays';
 import SupportersConfig from './pages/admin/SupportersConfig/index';
 import ChannelsVisibility from './pages/admin/ChannelsVisibility';
+import AdminMods from './pages/admin/AdminMods';
 import SupportersPublic from './pages/SupportersPublic';
 import Credits from './pages/Credits';
 import PublicCommandsPage from './pages/PublicCommandsPage';
@@ -312,6 +313,7 @@ function App() {
                     <Route path="admin/donations" element={<SafeRoute name="Donations"><AdminDonations /></SafeRoute>} />
                     <Route path="admin/supporters" element={<SafeRoute name="Supporters"><SupportersConfig /></SafeRoute>} />
                     <Route path="admin/channels" element={<SafeRoute name="Channels Visibility"><ChannelsVisibility /></SafeRoute>} />
+                    <Route path="admin/mods" element={<SafeRoute name="Admin Mods"><AdminMods /></SafeRoute>} />
                     <Route path="admin/economy" element={<SafeRoute name="Economy"><AdminEconomy /></SafeRoute>} />
                     <Route path="admin/tcg" element={<SafeRoute name="TCG Admin"><AdminTcg /></SafeRoute>} />
                     <Route path="admin/tcg-art-queue" element={<SafeRoute name="TCG Art Queue"><AdminTcgArtQueue /></SafeRoute>} />
