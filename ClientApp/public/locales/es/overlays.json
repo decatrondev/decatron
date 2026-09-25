@@ -95,6 +95,17 @@
         "Una sola URL para OBS, transparente"
       ],
       "usage": "/overlay/pets?channel=tu_canal"
+    },
+    "songRequest": {
+      "name": "Song Request",
+      "description": "Tus viewers piden canciones de YouTube con !sr y suenan en tu stream, con cola, votación y vetos.",
+      "features": [
+        "!sr con link o nombre, sin API de YouTube",
+        "Control remoto de la cola desde el dashboard",
+        "Editor visual con temas, plantillas y animaciones",
+        "Cola pública en vivo para tus viewers"
+      ],
+      "usage": "/overlay/songrequest?channel=tu_canal&key=…"
     }
   },
   "pets": {
@@ -245,6 +256,408 @@
         "streamer": "Solo el streamer"
       },
       "note": "Variables: {user} y {pet}. El cooldown es por comando para todo el canal; el streamer no tiene cooldown. Si un comando de la mascota se llama igual que un comando personalizado, gana el de la mascota."
+    }
+  },
+  "songRequest": {
+    "title": "Song Request",
+    "subtitle": "Tus viewers piden canciones con !sr y suenan en tu stream. Tú controlas la cola y el diseño.",
+    "unsaved": "Cambios sin guardar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saved": "Configuración guardada.",
+    "saveFailed": "No se pudo guardar. Intenta de nuevo.",
+    "forbidden": "No tienes permiso para configurar overlays en este canal.",
+    "loadFailed": "No se pudo cargar la configuración.",
+    "tabs": {
+      "guide": "Guía",
+      "queue": "Cola",
+      "basic": "Básico",
+      "commands": "Comandos",
+      "messages": "Mensajes",
+      "theme": "Tema",
+      "elements": "Elementos",
+      "typography": "Tipografía",
+      "animations": "Animaciones",
+      "editor": "Editor"
+    },
+    "kinds": {
+      "player": "Reproductor",
+      "nowPlaying": "Sonando ahora",
+      "editing": "Editando:",
+      "copyTo": "Copiar diseño a {{to}}",
+      "copyConfirm": "¿Reemplazar el diseño de «{{to}}» por este?"
+    },
+    "preview": {
+      "title": "Vista previa",
+      "sample": "Ejemplo",
+      "live": "Cola real",
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "next": "Siguiente canción",
+      "idle": "Sin canción",
+      "size": "Lienzo de {{width}}×{{height}} px: usa ese tamaño en la fuente de OBS.",
+      "liveEmpty": "no está sonando nada ahora"
+    },
+    "overlayLabels": {
+      "requestedBy": "Pedida por {{user}}",
+      "next": "Siguiente:",
+      "idle": "Pide una canción con !sr"
+    },
+    "overlayErrors": {
+      "invalidKey": "Song Request: la clave del reproductor no es válida. Copia la URL de nuevo desde el dashboard."
+    },
+    "common": {
+      "copy": "Copiar",
+      "copied": "¡Copiado!"
+    },
+    "urls": {
+      "player": "URL del reproductor (suena)",
+      "playerHint": "Tiene una clave privada: no la muestres en pantalla ni la compartas.",
+      "display": "URL de «Sonando ahora» (solo muestra)",
+      "public": "Cola pública para tus viewers"
+    },
+    "guide": {
+      "disabledWarning": "El módulo está apagado: los comandos no responden en el chat.",
+      "goBasic": "Activarlo en Básico",
+      "title": "Cómo ponerlo en marcha",
+      "description": "Cinco pasos y tus viewers ya pueden pedir canciones.",
+      "step1Title": "Activa el módulo",
+      "step1Body": "En la pestaña Básico enciende Song Request y guarda. Desde ese momento !sr funciona en tu chat.",
+      "step2Title": "Agrega el reproductor a OBS",
+      "step2Body": "Crea una Fuente de navegador con esta URL. Es el overlay que suena: sin él la cola no avanza. Usa el tamaño del lienzo que ves bajo la vista previa.",
+      "step3Title": "Protege tus VODs del copyright",
+      "step3Body": "La música pedida puede silenciar tus VODs. OBS permite que suene en vivo sin quedar grabada en el VOD:",
+      "obs1": "En la fuente del reproductor marca «Controlar audio mediante OBS».",
+      "obs2": "En Mezclador de audio → Propiedades de audio avanzadas, deja esa fuente solo en una pista (por ejemplo la 2).",
+      "obs3": "En Ajustes → Emisión (Twitch) activa «Pista para VOD de Twitch» y elige una pista distinta a la de la música.",
+      "obs4": "Así tus viewers escuchan la música en directo y el VOD queda sin ella.",
+      "step4Title": "Opcional: overlay «Sonando ahora»",
+      "step4Body": "Si quieres mostrar la canción en otra escena o en otro lugar sin duplicar el audio, usa esta URL. Tiene su propio diseño.",
+      "step5Title": "Comparte la cola",
+      "step5Body": "Tus viewers ven la cola en vivo en esta página. !queue la comparte en el chat.",
+      "commandsTitle": "Comandos del chat"
+    },
+    "commandHelp": {
+      "sr": "Pide una canción con un link de YouTube o el nombre.",
+      "wrongsong": "Quita el último pedido de quien lo escribe.",
+      "queue": "Muestra las próximas canciones y el link a la cola pública.",
+      "song": "Dice qué suena ahora, con el link.",
+      "myqueue": "Muestra en qué posición están tus pedidos.",
+      "skip": "Salta la canción (mods) o vota para saltarla (viewers, si está activo).",
+      "srremove": "Quita la canción en esa posición de la cola.",
+      "openclose": "Abre o cierra los pedidos.",
+      "pause": "Pausa o reanuda el reproductor.",
+      "srban": "Veta la canción que suena, o a un usuario si lo mencionas."
+    },
+    "basic": {
+      "moduleTitle": "Módulo",
+      "enabled": "Song Request activo",
+      "enabledHint": "Apagado, los comandos no responden y si tienes comandos propios con el mismo nombre (!song, !queue…) siguen funcionando.",
+      "limitsTitle": "Límites",
+      "limitsDescription": "Para que un raid no llene la cola. Tú y quien tenga control total no tienen límite.",
+      "maxQueue": "Canciones en la cola",
+      "maxPerUser": "Pedidos por usuario",
+      "zeroUnlimited": "0 = sin límite",
+      "queuePreview": "Canciones en !queue",
+      "queuePreviewHint": "Cuántas lista el bot en el chat.",
+      "linksTitle": "Links",
+      "regenerate": "Generar clave nueva del reproductor",
+      "regenerateConfirm": "La URL actual del reproductor dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?"
+    },
+    "roles": {
+      "everyone": "Todos",
+      "subscriber": "Suscriptores",
+      "vip": "VIPs",
+      "moderator": "Moderadores",
+      "lead_moderator": "Lead Moderators",
+      "broadcaster": "Solo el streamer"
+    },
+    "commands": {
+      "permissionsTitle": "Permisos",
+      "permissionsDescription": "El rol mínimo para cada grupo de comandos. Cada rol incluye a los de arriba.",
+      "permRequest": "Pedir y consultar",
+      "permRequestHint": "!sr, !wrongsong, !queue, !song, !myqueue y votar !skip.",
+      "permSkip": "Saltar y quitar",
+      "permSkipHint": "!skip directo y !srremove.",
+      "permManage": "Administrar",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume y !srban.",
+      "controlTotalNote": "Quien tiene control total en tu dashboard cuenta como el streamer.",
+      "voteTitle": "Votación para saltar",
+      "voteEnabled": "Los viewers pueden votar !skip",
+      "voteHint": "Con suficientes votos la canción se salta. Los que tienen permiso de saltar lo hacen directo.",
+      "votesRequired": "Votos necesarios"
+    },
+    "messages": {
+      "title": "Mensajes del bot",
+      "description": "Deja un campo vacío para usar el mensaje por defecto (el gris). Puedes usar estas variables:",
+      "mute": "Silenciar",
+      "unmute": "Volver a activar",
+      "reset": "Restaurar",
+      "muted": "Este mensaje está silenciado: el bot no responde nada."
+    },
+    "messageKeys": {
+      "added": "Canción agregada",
+      "usage": "Cómo usar !sr",
+      "closed": "Pedidos cerrados",
+      "already_queued": "Ya está en la cola",
+      "user_limit": "Límite por usuario",
+      "queue_full": "Cola llena",
+      "banned_user": "Usuario vetado",
+      "banned_track": "Canción vetada",
+      "banned_author": "Artista vetado",
+      "unsupported": "Link no soportado",
+      "invalid_link": "Link sin video",
+      "not_found": "No existe",
+      "private": "Video privado",
+      "live": "Transmisión en vivo",
+      "upcoming": "Todavía no se estrena",
+      "not_embeddable": "No se puede reproducir fuera de YouTube",
+      "age_restricted": "Restricción de edad",
+      "no_match": "No se encontró",
+      "failed": "Error al leer la canción",
+      "wrongsong_removed": "!wrongsong: quitada",
+      "no_requests": "No tiene canciones en la cola",
+      "queue_empty": "!queue: cola vacía",
+      "queue_list": "!queue: próximas",
+      "song_current": "!song: la que suena",
+      "song_none": "!song: no suena nada",
+      "myqueue": "!myqueue",
+      "skip_nothing": "!skip: no suena nada",
+      "skip_done": "!skip: saltada",
+      "skip_vote": "!skip: voto",
+      "skip_voted_done": "!skip: saltada por votación",
+      "remove_usage": "Cómo usar !srremove",
+      "remove_invalid": "!srremove: posición vacía",
+      "removed": "!srremove: quitada",
+      "opened": "!sropen",
+      "closed_now": "!srclose",
+      "paused": "!srpause",
+      "resumed": "!srresume",
+      "ban_user": "!srban @usuario",
+      "ban_track": "!srban (canción)",
+      "ban_nothing": "!srban: no suena nada"
+    },
+    "queue": {
+      "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
+      "live": "En vivo",
+      "reconnecting": "Reconectando…",
+      "playerOn": "Reproductor conectado",
+      "playerOff": "Sin reproductor",
+      "open": "Pedidos abiertos",
+      "closed": "Pedidos cerrados",
+      "paused": "En pausa",
+      "nowPlaying": "Sonando ahora",
+      "requestedBy": "pedida por {{user}}",
+      "waitingPlayer": "Hay canciones en la cola: abre el reproductor en OBS o activa «Escuchar aquí» para que empiece.",
+      "nothing": "No está sonando nada.",
+      "resume": "Reanudar",
+      "pause": "Pausar",
+      "skip": "Saltar",
+      "closeRequests": "Cerrar pedidos",
+      "openRequests": "Abrir pedidos",
+      "listenHere": "Escuchar aquí",
+      "listenHereHint": "Este navegador pasa a ser el reproductor y el de OBS se calla. Al apagarlo, OBS vuelve a sonar solo.",
+      "addTitle": "Agregar una canción",
+      "addPlaceholder": "Link de YouTube o nombre de la canción",
+      "adding": "Buscando…",
+      "add": "Agregar",
+      "added": "Agregada en la posición #{{position}}.",
+      "upNext": "A continuación ({{count}})",
+      "total": "{{duration}} en total",
+      "empty": "La cola está vacía.",
+      "remove": "Quitar",
+      "ban": "Vetar",
+      "banCurrent": "Vetar lo que suena:",
+      "banOptions": {
+        "track": "Vetar esta canción",
+        "author": "Vetar al artista / canal",
+        "user": "Vetar a quien la pidió"
+      },
+      "banConfirm": {
+        "track": "¿Vetar «{{name}}»? No se podrá volver a pedir.",
+        "author": "¿Vetar todas las canciones de «{{name}}»?",
+        "user": "¿Vetar a {{name}}? Se quitan todos sus pedidos."
+      },
+      "localStatus": {
+        "connecting": "Conectando…",
+        "active": "Sonando en este navegador",
+        "replaced": "Otro reproductor tomó el control.",
+        "invalid_key": "La clave cambió: recarga la página.",
+        "disconnected": "Se perdió la conexión, reconectando…"
+      }
+    },
+    "errors": {
+      "banned_user": "Ese usuario está vetado.",
+      "queue_full": "La cola está llena.",
+      "user_limit": "Límite de pedidos alcanzado.",
+      "unsupported": "Por ahora solo se aceptan links de YouTube.",
+      "invalid_link": "Ese link no lleva a un video.",
+      "not_found": "Ese video no existe o ya no está disponible.",
+      "private": "Ese video es privado.",
+      "live": "No se aceptan transmisiones en vivo.",
+      "upcoming": "Ese video todavía no se estrenó.",
+      "not_embeddable": "Ese video no se puede reproducir fuera de YouTube.",
+      "age_restricted": "Ese video tiene restricción de edad.",
+      "no_match": "No se encontró esa canción.",
+      "failed": "No se pudo leer la canción. Intenta de nuevo.",
+      "banned_track": "Esa canción está vetada.",
+      "banned_author": "Las canciones de ese artista están vetadas.",
+      "already_queued": "Esa canción ya está en la cola.",
+      "invalid_input": "Escribe un link o un nombre."
+    },
+    "theme": {
+      "presetsTitle": "Temas",
+      "presetsDescription": "Cambian colores, fuentes y el fondo. La posición de los elementos no se toca.",
+      "presets": {
+        "decatron": "Decatron",
+        "neon": "Neón",
+        "minimal": "Minimal claro",
+        "vinyl": "Vinilo",
+        "glass": "Cristal",
+        "arcade": "Arcade",
+        "transparent": "Sin fondo"
+      },
+      "panelTitle": "Fondo y colores",
+      "panelBackground": "Color del fondo",
+      "panelBorder": "Color del borde",
+      "borderWidth": "Grosor del borde",
+      "radius": "Redondeo",
+      "blur": "Desenfoque del fondo",
+      "blurHint": "Difumina lo que hay detrás del overlay (efecto cristal).",
+      "coverRadius": "Redondeo de la portada",
+      "accent": "Color de acento",
+      "accentHint": "Ecualizador, barra y detalles.",
+      "shadow": "Sombra"
+    },
+    "templates": {
+      "title": "Mis plantillas",
+      "description": "Guarda el diseño completo del overlay que estás editando para reutilizarlo cuando quieras.",
+      "namePlaceholder": "Nombre de la plantilla",
+      "save": "Guardar",
+      "empty": "Todavía no guardaste ninguna plantilla.",
+      "apply": "Aplicar",
+      "delete": "Borrar",
+      "deleteConfirm": "¿Borrar la plantilla «{{name}}»?"
+    },
+    "elements": {
+      "panel": "Fondo",
+      "video": "Video",
+      "cover": "Portada",
+      "equalizer": "Ecualizador",
+      "title": "Título",
+      "artist": "Artista",
+      "requester": "Quién la pidió",
+      "progress": "Barra de progreso",
+      "time": "Tiempo",
+      "next": "Siguiente",
+      "queue": "Cola",
+      "source": "Servicio"
+    },
+    "elementHints": {
+      "panel": "La tarjeta detrás de todo. Su color y forma se editan en Tema.",
+      "video": "El video de YouTube a la vista, en vez de solo la portada.",
+      "cover": "La miniatura de la canción.",
+      "equalizer": "Barras que se mueven con la música.",
+      "title": "El nombre de la canción.",
+      "artist": "El artista o el canal que la subió.",
+      "requester": "El viewer que la pidió.",
+      "progress": "Cuánto lleva la canción.",
+      "time": "Tiempo transcurrido y duración.",
+      "next": "La próxima canción de la cola.",
+      "queue": "Lista de las próximas canciones.",
+      "source": "De dónde viene (YouTube, Spotify…)."
+    },
+    "elementOptions": {
+      "videoHint": "Sin el video, el reproductor sigue sonando igual: solo no se ve.",
+      "label": "Texto",
+      "requesterLabelHint": "Usa {{user}} donde va el nombre.",
+      "queueCount": "Canciones a mostrar",
+      "showRequester": "Mostrar quién la pidió",
+      "fill": "Color del avance",
+      "track": "Color de fondo",
+      "timeFormat": "Formato",
+      "bars": "Cantidad de barras",
+      "color": "Color"
+    },
+    "elementsTab": {
+      "title": "Qué se muestra",
+      "description": "Enciende lo que quieres ver en el overlay. La posición y el tamaño se ajustan en Editor."
+    },
+    "typography": {
+      "title": "Tipografía por elemento",
+      "hiddenNote": "Este elemento está oculto: actívalo en Elementos para verlo.",
+      "font": "Fuente",
+      "applyAll": "A todos",
+      "applyAllHint": "Usar esta fuente en todos los textos",
+      "color": "Color",
+      "size": "Tamaño",
+      "weight": "Grosor",
+      "weights": {
+        "400": "Normal",
+        "500": "Medio",
+        "600": "Semi negrita",
+        "700": "Negrita",
+        "800": "Extra negrita"
+      },
+      "align": "Alineación",
+      "aligns": {
+        "left": "Izquierda",
+        "center": "Centro",
+        "right": "Derecha"
+      },
+      "shadow": "Sombra",
+      "shadows": {
+        "none": "Sin sombra",
+        "soft": "Suave",
+        "strong": "Fuerte",
+        "glow": "Brillo"
+      },
+      "letterSpacing": "Espaciado",
+      "uppercase": "Mayúsculas",
+      "marquee": "Desplazar si no entra",
+      "marqueeHint": "Los títulos largos se mueven en vez de cortarse con «…»."
+    },
+    "animations": {
+      "title": "Cambio de canción",
+      "description": "Cómo entra la canción nueva.",
+      "names": {
+        "none": "Sin animación",
+        "fade": "Aparecer",
+        "slide-up": "Subir",
+        "slide-left": "Desde la derecha",
+        "zoom": "Zoom",
+        "flip": "Girar"
+      },
+      "duration": "Duración",
+      "marqueeSpeed": "Velocidad del desplazamiento",
+      "marqueeSpeedHint": "Para los textos largos con «Desplazar si no entra».",
+      "hideWhenIdle": "Ocultar cuando no suena nada",
+      "hideWhenIdleHint": "El overlay desaparece con la cola vacía y vuelve con la próxima canción.",
+      "freezeWhenPaused": "Congelar en pausa",
+      "previewHint": "Usa el botón ⏭ de la vista previa para ver la animación."
+    },
+    "editor": {
+      "title": "Editor visual",
+      "description": "Arrastra cada elemento y cambia su tamaño desde las esquinas. Lo que ves es exactamente lo que sale en OBS.",
+      "snap": "Cuadrícula",
+      "keyboardHint": "Haz clic en el lienzo y usa las flechas para mover 1 px (con Shift, 10 px).",
+      "layers": "Elementos",
+      "hide": "Ocultar",
+      "show": "Mostrar",
+      "width": "Ancho",
+      "height": "Alto",
+      "centerH": "Centrar horizontal",
+      "canvas": "Lienzo",
+      "canvasHint": "El tamaño del overlay. Usa el mismo en la fuente de navegador de OBS.",
+      "layoutsTitle": "Diseños",
+      "layoutsDescription": "Un punto de partida. Conserva tus colores y fuentes; reemplaza las posiciones.",
+      "layouts": {
+        "card": "Tarjeta",
+        "bar": "Barra",
+        "vertical": "Vertical",
+        "video": "Con video"
+      },
+      "layoutConfirm": "Se reemplazan las posiciones y el tamaño de todos los elementos. ¿Continuar?"
     }
   }
 }

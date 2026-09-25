@@ -65,6 +65,8 @@ import SupportersPublic from './pages/SupportersPublic';
 import Credits from './pages/Credits';
 import PublicCommandsPage from './pages/PublicCommandsPage';
 import SongRequestPublicPage from './pages/SongRequestPublicPage';
+import SongRequestOverlay from './pages/SongRequestOverlay';
+import SongRequestConfig from './pages/features/SongRequestConfig';
 import TranslatePublic from './pages/TranslatePublic';
 import TournamentPublicPage from './pages/TournamentPublicPage';
 import MyTournamentPage from './pages/tournament-public/MyTournamentPage';
@@ -204,6 +206,7 @@ function App() {
                 <Route path="/overlay/pets" element={<SafeRoute name="Pets Overlay"><Suspense fallback={null}><PetsOverlay /></Suspense></SafeRoute>} />
                 <Route path="/overlay/tips" element={<SafeRoute name="Tips Overlay"><TipsOverlay /></SafeRoute>} />
                 <Route path="/overlay/now-playing" element={<SafeRoute name="Now Playing Overlay"><NowPlayingOverlay /></SafeRoute>} />
+                <Route path="/overlay/songrequest" element={<SafeRoute name="Song Request Overlay"><SongRequestOverlay /></SafeRoute>} />
                 <Route path="/overlay/speak-chat" element={<SafeRoute name="Speak Chat Overlay"><SpeakChatOverlay /></SafeRoute>} />
                 <Route path="/overlay/gacha" element={<SafeRoute name="Gacha Overlay"><GachaOverlay /></SafeRoute>} />
                 <Route path="/overlay/rueda" element={<SafeRoute name="Wheel Overlay"><WheelOverlay /></SafeRoute>} />
@@ -341,6 +344,7 @@ function App() {
                     <Route path="overlays/goals" element={<SafeRoute name="Goals"><GoalsConfig /></SafeRoute>} />
                     <Route path="overlays/event-alerts" element={<SafeRoute name="Event Alerts"><EventAlertsConfig /></SafeRoute>} />
                     <Route path="overlays/now-playing" element={<SafeRoute name="Now Playing"><NowPlayingConfig /></SafeRoute>} />
+                    <Route path="overlays/song-request" element={<SafeRoute name="Song Request"><SongRequestConfig /></SafeRoute>} />
                     <Route path="overlays/games" element={<SafeRoute name="Game Overlays"><GameOverlays /></SafeRoute>} />
                     <Route path="overlays/live" element={<SafeRoute name="Live Match"><LiveOverlays /></SafeRoute>} />
                     <Route path="overlays/rueda" element={<SafeRoute name="Rueda de la Suerte"><WheelConfig /></SafeRoute>} />

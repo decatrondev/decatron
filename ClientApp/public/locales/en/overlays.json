@@ -95,6 +95,17 @@
         "One transparent URL for OBS"
       ],
       "usage": "/overlay/pets?channel=your_channel"
+    },
+    "songRequest": {
+      "name": "Song Request",
+      "description": "Your viewers request YouTube songs with !sr and they play on your stream, with a queue, voting and bans.",
+      "features": [
+        "!sr with a link or name, no YouTube API",
+        "Remote control of the queue from the dashboard",
+        "Visual editor with themes, templates and animations",
+        "Live public queue for your viewers"
+      ],
+      "usage": "/overlay/songrequest?channel=your_channel&key=…"
     }
   },
   "pets": {
@@ -245,6 +256,408 @@
         "streamer": "Streamer only"
       },
       "note": "Variables: {user} and {pet}. Cooldown is per command for the whole channel; the streamer has none. If a pet command shares its name with a custom command, the pet one wins."
+    }
+  },
+  "songRequest": {
+    "title": "Song Request",
+    "subtitle": "Your viewers request songs with !sr and they play on your stream. You control the queue and the design.",
+    "unsaved": "Unsaved changes",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Settings saved.",
+    "saveFailed": "Couldn't save. Try again.",
+    "forbidden": "You don't have permission to configure overlays on this channel.",
+    "loadFailed": "Couldn't load the settings.",
+    "tabs": {
+      "guide": "Guide",
+      "queue": "Queue",
+      "basic": "Basic",
+      "commands": "Commands",
+      "messages": "Messages",
+      "theme": "Theme",
+      "elements": "Elements",
+      "typography": "Typography",
+      "animations": "Animations",
+      "editor": "Editor"
+    },
+    "kinds": {
+      "player": "Player",
+      "nowPlaying": "Now playing",
+      "editing": "Editing:",
+      "copyTo": "Copy design to {{to}}",
+      "copyConfirm": "Replace the “{{to}}” design with this one?"
+    },
+    "preview": {
+      "title": "Preview",
+      "sample": "Sample",
+      "live": "Live queue",
+      "play": "Play",
+      "pause": "Pause",
+      "next": "Next song",
+      "idle": "No song",
+      "size": "{{width}}×{{height}} px canvas: use that size in the OBS source.",
+      "liveEmpty": "nothing is playing right now"
+    },
+    "overlayLabels": {
+      "requestedBy": "Requested by {{user}}",
+      "next": "Up next:",
+      "idle": "Request a song with !sr"
+    },
+    "overlayErrors": {
+      "invalidKey": "Song Request: the player key isn't valid. Copy the URL again from the dashboard."
+    },
+    "common": {
+      "copy": "Copy",
+      "copied": "Copied!"
+    },
+    "urls": {
+      "player": "Player URL (plays audio)",
+      "playerHint": "It has a private key: don't show it on stream or share it.",
+      "display": "“Now playing” URL (display only)",
+      "public": "Public queue for your viewers"
+    },
+    "guide": {
+      "disabledWarning": "The module is off: commands don't respond in chat.",
+      "goBasic": "Turn it on in Basic",
+      "title": "Getting started",
+      "description": "Five steps and your viewers can request songs.",
+      "step1Title": "Turn the module on",
+      "step1Body": "In the Basic tab switch Song Request on and save. From then on !sr works in your chat.",
+      "step2Title": "Add the player to OBS",
+      "step2Body": "Create a Browser Source with this URL. It's the overlay that plays audio: without it the queue doesn't move. Use the canvas size shown under the preview.",
+      "step3Title": "Keep your VODs copyright-safe",
+      "step3Body": "Requested music can get your VODs muted. OBS can play it live without recording it in the VOD:",
+      "obs1": "On the player source, check “Control audio via OBS”.",
+      "obs2": "In Audio Mixer → Advanced Audio Properties, put that source on a single track only (for example track 2).",
+      "obs3": "In Settings → Stream (Twitch), enable “Twitch VOD Track” and pick a different track than the music.",
+      "obs4": "Your viewers hear the music live and the VOD stays without it.",
+      "step4Title": "Optional: “Now playing” overlay",
+      "step4Body": "To show the song in another scene or place without duplicating the audio, use this URL. It has its own design.",
+      "step5Title": "Share the queue",
+      "step5Body": "Your viewers see the live queue on this page. !queue shares it in chat.",
+      "commandsTitle": "Chat commands"
+    },
+    "commandHelp": {
+      "sr": "Request a song with a YouTube link or its name.",
+      "wrongsong": "Removes the sender's last request.",
+      "queue": "Shows the next songs and the link to the public queue.",
+      "song": "Says what's playing, with the link.",
+      "myqueue": "Shows the position of your requests.",
+      "skip": "Skips the song (mods) or votes to skip it (viewers, when enabled).",
+      "srremove": "Removes the song at that queue position.",
+      "openclose": "Opens or closes requests.",
+      "pause": "Pauses or resumes the player.",
+      "srban": "Bans the song that's playing, or a user if you mention them."
+    },
+    "basic": {
+      "moduleTitle": "Module",
+      "enabled": "Song Request on",
+      "enabledHint": "When off, the commands don't respond and your own commands with the same name (!song, !queue…) keep working.",
+      "limitsTitle": "Limits",
+      "limitsDescription": "So a raid can't flood the queue. You and anyone with full control have no limit.",
+      "maxQueue": "Songs in the queue",
+      "maxPerUser": "Requests per user",
+      "zeroUnlimited": "0 = no limit",
+      "queuePreview": "Songs in !queue",
+      "queuePreviewHint": "How many the bot lists in chat.",
+      "linksTitle": "Links",
+      "regenerate": "Generate a new player key",
+      "regenerateConfirm": "The current player URL will stop working and you'll need to paste the new one into OBS. Continue?"
+    },
+    "roles": {
+      "everyone": "Everyone",
+      "subscriber": "Subscribers",
+      "vip": "VIPs",
+      "moderator": "Moderators",
+      "lead_moderator": "Lead Moderators",
+      "broadcaster": "Streamer only"
+    },
+    "commands": {
+      "permissionsTitle": "Permissions",
+      "permissionsDescription": "The minimum role for each group of commands. Each role includes the ones above.",
+      "permRequest": "Request and check",
+      "permRequestHint": "!sr, !wrongsong, !queue, !song, !myqueue and voting !skip.",
+      "permSkip": "Skip and remove",
+      "permSkipHint": "Direct !skip and !srremove.",
+      "permManage": "Manage",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume and !srban.",
+      "controlTotalNote": "Anyone with full control of your dashboard counts as the streamer.",
+      "voteTitle": "Vote to skip",
+      "voteEnabled": "Viewers can vote !skip",
+      "voteHint": "With enough votes the song is skipped. Those with skip permission skip directly.",
+      "votesRequired": "Votes needed"
+    },
+    "messages": {
+      "title": "Bot messages",
+      "description": "Leave a field empty to use the default message (the grey one). You can use these variables:",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "reset": "Reset",
+      "muted": "This message is muted: the bot doesn't reply."
+    },
+    "messageKeys": {
+      "added": "Song added",
+      "usage": "How to use !sr",
+      "closed": "Requests closed",
+      "already_queued": "Already in the queue",
+      "user_limit": "Per-user limit",
+      "queue_full": "Queue full",
+      "banned_user": "Banned user",
+      "banned_track": "Banned song",
+      "banned_author": "Banned artist",
+      "unsupported": "Unsupported link",
+      "invalid_link": "Link without a video",
+      "not_found": "Doesn't exist",
+      "private": "Private video",
+      "live": "Live stream",
+      "upcoming": "Not premiered yet",
+      "not_embeddable": "Can't play outside YouTube",
+      "age_restricted": "Age-restricted",
+      "no_match": "Not found",
+      "failed": "Couldn't read the song",
+      "wrongsong_removed": "!wrongsong: removed",
+      "no_requests": "No songs in the queue",
+      "queue_empty": "!queue: empty queue",
+      "queue_list": "!queue: up next",
+      "song_current": "!song: now playing",
+      "song_none": "!song: nothing playing",
+      "myqueue": "!myqueue",
+      "skip_nothing": "!skip: nothing playing",
+      "skip_done": "!skip: skipped",
+      "skip_vote": "!skip: vote",
+      "skip_voted_done": "!skip: skipped by vote",
+      "remove_usage": "How to use !srremove",
+      "remove_invalid": "!srremove: empty position",
+      "removed": "!srremove: removed",
+      "opened": "!sropen",
+      "closed_now": "!srclose",
+      "paused": "!srpause",
+      "resumed": "!srresume",
+      "ban_user": "!srban @user",
+      "ban_track": "!srban (song)",
+      "ban_nothing": "!srban: nothing playing"
+    },
+    "queue": {
+      "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
+      "live": "Live",
+      "reconnecting": "Reconnecting…",
+      "playerOn": "Player connected",
+      "playerOff": "No player",
+      "open": "Requests open",
+      "closed": "Requests closed",
+      "paused": "Paused",
+      "nowPlaying": "Now playing",
+      "requestedBy": "requested by {{user}}",
+      "waitingPlayer": "There are songs in the queue: open the player in OBS or turn on “Listen here” to start.",
+      "nothing": "Nothing is playing.",
+      "resume": "Resume",
+      "pause": "Pause",
+      "skip": "Skip",
+      "closeRequests": "Close requests",
+      "openRequests": "Open requests",
+      "listenHere": "Listen here",
+      "listenHereHint": "This browser becomes the player and the OBS one goes quiet. When you turn it off, OBS plays again on its own.",
+      "addTitle": "Add a song",
+      "addPlaceholder": "YouTube link or song name",
+      "adding": "Searching…",
+      "add": "Add",
+      "added": "Added at position #{{position}}.",
+      "upNext": "Up next ({{count}})",
+      "total": "{{duration}} total",
+      "empty": "The queue is empty.",
+      "remove": "Remove",
+      "ban": "Ban",
+      "banCurrent": "Ban what's playing:",
+      "banOptions": {
+        "track": "Ban this song",
+        "author": "Ban the artist / channel",
+        "user": "Ban the requester"
+      },
+      "banConfirm": {
+        "track": "Ban “{{name}}”? It can't be requested again.",
+        "author": "Ban every song from “{{name}}”?",
+        "user": "Ban {{name}}? All their requests are removed."
+      },
+      "localStatus": {
+        "connecting": "Connecting…",
+        "active": "Playing in this browser",
+        "replaced": "Another player took control.",
+        "invalid_key": "The key changed: reload the page.",
+        "disconnected": "Connection lost, reconnecting…"
+      }
+    },
+    "errors": {
+      "banned_user": "That user is banned.",
+      "queue_full": "The queue is full.",
+      "user_limit": "Request limit reached.",
+      "unsupported": "Only YouTube links are accepted for now.",
+      "invalid_link": "That link doesn't point to a video.",
+      "not_found": "That video doesn't exist or is no longer available.",
+      "private": "That video is private.",
+      "live": "Live streams aren't accepted.",
+      "upcoming": "That video hasn't premiered yet.",
+      "not_embeddable": "That video can't be played outside YouTube.",
+      "age_restricted": "That video is age-restricted.",
+      "no_match": "Couldn't find that song.",
+      "failed": "Couldn't read the song. Try again.",
+      "banned_track": "That song is banned.",
+      "banned_author": "Songs from that artist are banned.",
+      "already_queued": "That song is already in the queue.",
+      "invalid_input": "Type a link or a name."
+    },
+    "theme": {
+      "presetsTitle": "Themes",
+      "presetsDescription": "They change colors, fonts and the background. Element positions stay the same.",
+      "presets": {
+        "decatron": "Decatron",
+        "neon": "Neon",
+        "minimal": "Minimal light",
+        "vinyl": "Vinyl",
+        "glass": "Glass",
+        "arcade": "Arcade",
+        "transparent": "No background"
+      },
+      "panelTitle": "Background and colors",
+      "panelBackground": "Background color",
+      "panelBorder": "Border color",
+      "borderWidth": "Border width",
+      "radius": "Roundness",
+      "blur": "Background blur",
+      "blurHint": "Blurs what's behind the overlay (glass effect).",
+      "coverRadius": "Cover roundness",
+      "accent": "Accent color",
+      "accentHint": "Equalizer, bar and details.",
+      "shadow": "Shadow"
+    },
+    "templates": {
+      "title": "My templates",
+      "description": "Save the full design of the overlay you're editing to reuse it any time.",
+      "namePlaceholder": "Template name",
+      "save": "Save",
+      "empty": "You haven't saved any templates yet.",
+      "apply": "Apply",
+      "delete": "Delete",
+      "deleteConfirm": "Delete the “{{name}}” template?"
+    },
+    "elements": {
+      "panel": "Background",
+      "video": "Video",
+      "cover": "Cover",
+      "equalizer": "Equalizer",
+      "title": "Title",
+      "artist": "Artist",
+      "requester": "Requested by",
+      "progress": "Progress bar",
+      "time": "Time",
+      "next": "Up next",
+      "queue": "Queue",
+      "source": "Service"
+    },
+    "elementHints": {
+      "panel": "The card behind everything. Its color and shape are edited in Theme.",
+      "video": "The YouTube video on screen instead of just the cover.",
+      "cover": "The song thumbnail.",
+      "equalizer": "Bars that move with the music.",
+      "title": "The song name.",
+      "artist": "The artist or the channel that uploaded it.",
+      "requester": "The viewer who requested it.",
+      "progress": "How far the song is.",
+      "time": "Elapsed time and length.",
+      "next": "The next song in the queue.",
+      "queue": "A list of the next songs.",
+      "source": "Where it comes from (YouTube, Spotify…)."
+    },
+    "elementOptions": {
+      "videoHint": "Without the video the player still plays: it just isn't shown.",
+      "label": "Text",
+      "requesterLabelHint": "Use {{user}} where the name goes.",
+      "queueCount": "Songs to show",
+      "showRequester": "Show who requested it",
+      "fill": "Progress color",
+      "track": "Background color",
+      "timeFormat": "Format",
+      "bars": "Number of bars",
+      "color": "Color"
+    },
+    "elementsTab": {
+      "title": "What's shown",
+      "description": "Turn on what you want in the overlay. Position and size are adjusted in Editor."
+    },
+    "typography": {
+      "title": "Typography per element",
+      "hiddenNote": "This element is hidden: turn it on in Elements to see it.",
+      "font": "Font",
+      "applyAll": "To all",
+      "applyAllHint": "Use this font for every text",
+      "color": "Color",
+      "size": "Size",
+      "weight": "Weight",
+      "weights": {
+        "400": "Regular",
+        "500": "Medium",
+        "600": "Semibold",
+        "700": "Bold",
+        "800": "Extra bold"
+      },
+      "align": "Alignment",
+      "aligns": {
+        "left": "Left",
+        "center": "Center",
+        "right": "Right"
+      },
+      "shadow": "Shadow",
+      "shadows": {
+        "none": "No shadow",
+        "soft": "Soft",
+        "strong": "Strong",
+        "glow": "Glow"
+      },
+      "letterSpacing": "Letter spacing",
+      "uppercase": "Uppercase",
+      "marquee": "Scroll when it doesn't fit",
+      "marqueeHint": "Long titles move instead of being cut with “…”."
+    },
+    "animations": {
+      "title": "Song change",
+      "description": "How the new song comes in.",
+      "names": {
+        "none": "No animation",
+        "fade": "Fade",
+        "slide-up": "Slide up",
+        "slide-left": "From the right",
+        "zoom": "Zoom",
+        "flip": "Flip"
+      },
+      "duration": "Duration",
+      "marqueeSpeed": "Scroll speed",
+      "marqueeSpeedHint": "For long texts with “Scroll when it doesn't fit”.",
+      "hideWhenIdle": "Hide when nothing is playing",
+      "hideWhenIdleHint": "The overlay disappears with an empty queue and comes back with the next song.",
+      "freezeWhenPaused": "Freeze while paused",
+      "previewHint": "Use the ⏭ button in the preview to see the animation."
+    },
+    "editor": {
+      "title": "Visual editor",
+      "description": "Drag each element and resize it from the corners. What you see is exactly what shows in OBS.",
+      "snap": "Grid",
+      "keyboardHint": "Click the canvas and use the arrow keys to move 1 px (10 px with Shift).",
+      "layers": "Elements",
+      "hide": "Hide",
+      "show": "Show",
+      "width": "Width",
+      "height": "Height",
+      "centerH": "Center horizontally",
+      "canvas": "Canvas",
+      "canvasHint": "The overlay size. Use the same one in the OBS browser source.",
+      "layoutsTitle": "Layouts",
+      "layoutsDescription": "A starting point. Keeps your colors and fonts; replaces the positions.",
+      "layouts": {
+        "card": "Card",
+        "bar": "Bar",
+        "vertical": "Vertical",
+        "video": "With video"
+      },
+      "layoutConfirm": "The position and size of every element will be replaced. Continue?"
     }
   }
 }

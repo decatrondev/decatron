@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Decatron.Core.Models.SongRequest;
 using Decatron.Data;
-using Decatron.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,31 +37,32 @@ namespace Decatron.Services.SongRequest
     public sealed class SongRequestService
     {
         public const string UpdatedEvent = "SongRequestUpdated";
+        public const string ConfigChangedEvent = "SongRequestConfigChanged";
 
         private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
         private readonly DecatronDbContext _db;
         private readonly SongResolverService _resolver;
-        private readonly IHubContext<OverlayHub> _hub;
+        private readonly IHubContext<SongRequestHub> _hub;
+        private readonly SongRequestPlayerRegistry _players;
         private readonly IConfiguration _configuration;
         private readonly ILogger<SongRequestService> _logger;
 
         public SongRequestService(
             DecatronDbContext db,
             SongResolverService resolver,
-            IHubContext<OverlayHub> hub,
+            IHubContext<SongRequestHub> hub,
+            SongRequestPlayerRegistry players,
             IConfiguration configuration,
             ILogger<SongRequestService> logger)
         {
             _db = db;
             _resolver = resolver;
             _hub = hub;
+            _players = players;
             _configuration = configuration;
             _logger = logger;
         }
-
-        /// <summary>Grupo de SignalR de la cola pública (los overlays usan overlay_{canal}).</summary>
-        public static string PublicGroup(string channelLogin) => $"songrequest_{channelLogin.ToLowerInvariant()}";
 
         public string PublicQueueUrl(string channelLogin) =>
             $"{(_configuration["SongRequest:PublicBaseUrl"] ?? "https://decatron.net").TrimEnd('/')}/sr/{channelLogin.ToLowerInvariant()}";
@@ -116,6 +117,26 @@ namespace Decatron.Services.SongRequest
             config.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
             await NotifyAsync(config, ct);
+        }
+
+        public async Task SetVolumeAsync(SongRequestConfig config, int volume, CancellationToken ct = default)
+        {
+            config.Volume = Math.Clamp(volume, 0, 100);
+            config.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+        }
+
+        /// <summary>La clave de la URL del reproductor; se crea la primera vez que se pide.</summary>
+        public async Task<string> GetOrCreatePlayerKeyAsync(SongRequestConfig config, bool regenerate = false, CancellationToken ct = default)
+        {
+            if (!regenerate && !string.IsNullOrEmpty(config.PlayerKey))
+                return config.PlayerKey;
+
+            config.PlayerKey = Convert.ToHexString(RandomNumberGenerator.GetBytes(20)).ToLowerInvariant();
+            config.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            return config.PlayerKey;
         }
 
         // ── Pedidos ──────────────────────────────────────────────────────────
@@ -258,6 +279,55 @@ namespace Decatron.Services.SongRequest
             return current;
         }
 
+        /// <summary>Para el reproductor: solo avanza si <paramref name="itemId"/> sigue siendo la actual (evita saltar dos).</summary>
+        public async Task AdvanceIfCurrentAsync(SongRequestConfig config, long itemId, string endReason, CancellationToken ct = default)
+        {
+            var isCurrent = await _db.SongRequestQueue.AnyAsync(q => q.Id == itemId && q.UserId == config.UserId && q.Status == "playing", ct);
+            if (isCurrent)
+                await AdvanceAsync(config, endReason, ct);
+        }
+
+        /// <summary>Si no suena nada, la primera de la cola pasa a sonar.</summary>
+        public async Task StartNextIfIdleAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            if (await _db.SongRequestQueue.AnyAsync(q => q.UserId == config.UserId && q.Status == "playing", ct))
+                return;
+            var next = await QueuedQuery(config.UserId).FirstOrDefaultAsync(ct);
+            if (next == null)
+                return;
+            next.Status = "playing";
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+        }
+
+        /// <summary>Nuevo orden de la cola desde el dashboard. Los ids que no vengan quedan al final en su orden.</summary>
+        public async Task ReorderAsync(SongRequestConfig config, IReadOnlyList<long> orderedIds, CancellationToken ct = default)
+        {
+            var items = await QueuedQuery(config.UserId).ToListAsync(ct);
+            var rank = orderedIds.Select((id, i) => (id, i)).ToDictionary(x => x.id, x => x.i);
+            var ordered = items
+                .OrderBy(q => rank.TryGetValue(q.Id, out var r) ? r : int.MaxValue)
+                .ThenBy(q => q.Position).ThenBy(q => q.Id)
+                .ToList();
+            for (var i = 0; i < ordered.Count; i++)
+                ordered[i].Position = i + 1;
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+        }
+
+        public async Task<SongRequestQueueItem?> RemoveByIdAsync(SongRequestConfig config, long itemId, CancellationToken ct = default)
+        {
+            var item = await _db.SongRequestQueue.Include(q => q.Track)
+                .FirstOrDefaultAsync(q => q.Id == itemId && q.UserId == config.UserId && q.Status == "queued", ct);
+            if (item == null)
+                return null;
+            await RemoveAsync(config, item, ct);
+            return item;
+        }
+
+        public Task<SongRequestQueueItem?> GetItemAsync(long userId, long itemId, CancellationToken ct = default) =>
+            _db.SongRequestQueue.Include(q => q.Track).FirstOrDefaultAsync(q => q.Id == itemId && q.UserId == userId, ct);
+
         public Task<SongRequestQueueItem?> GetCurrentAsync(long userId, CancellationToken ct = default) =>
             _db.SongRequestQueue.Include(q => q.Track).AsNoTracking()
                 .FirstOrDefaultAsync(q => q.UserId == userId && q.Status == "playing", ct);
@@ -324,6 +394,8 @@ namespace Decatron.Services.SongRequest
                 enabled = config.Enabled,
                 requestsOpen = config.RequestsOpen,
                 paused = config.IsPaused,
+                volume = config.Volume,
+                playerConnected = _players.HasPlayer(config.ChannelName.ToLowerInvariant()),
                 current = current == null ? null : ToDto(current, 0),
                 queue = queued.Select((q, i) => ToDto(q, i + 1)).ToList(),
                 totalDurationSeconds = queued.Sum(q => q.Track?.DurationSeconds ?? 0)
@@ -345,6 +417,7 @@ namespace Decatron.Services.SongRequest
                 durationSeconds = track?.DurationSeconds,
                 thumbnailUrl = item.OriginThumbnailUrl ?? track?.ThumbnailUrl,
                 requestedBy = item.RequestedByName,
+                requestedByLogin = item.RequestedByLogin,
                 platform = item.RequestedPlatform,
                 originSource = item.OriginSource,
                 originUrl = item.OriginUrl
@@ -356,13 +429,25 @@ namespace Decatron.Services.SongRequest
             try
             {
                 var snapshot = await BuildSnapshotAsync(config, ct);
-                var channel = config.ChannelName.ToLowerInvariant();
-                await _hub.Clients.Groups($"overlay_{channel}", PublicGroup(channel)).SendAsync(UpdatedEvent, snapshot, ct);
+                await _hub.Clients.Group(SongRequestHub.Group(config.ChannelName)).SendAsync(UpdatedEvent, snapshot, ct);
             }
             catch (Exception ex)
             {
                 // Un aviso que no llega no puede tirar el pedido: el overlay y la página se ponen al día al recargar
                 _logger.LogWarning(ex, "[SongRequest] No se pudo avisar el cambio de cola de {Channel}", config.ChannelName);
+            }
+        }
+
+        /// <summary>El diseño cambió: los overlays lo vuelven a pedir.</summary>
+        public async Task NotifyConfigChangedAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            try
+            {
+                await _hub.Clients.Group(SongRequestHub.Group(config.ChannelName)).SendAsync(ConfigChangedEvent, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[SongRequest] No se pudo avisar el cambio de diseño de {Channel}", config.ChannelName);
             }
         }
 

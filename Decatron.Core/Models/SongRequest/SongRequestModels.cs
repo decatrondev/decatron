@@ -84,6 +84,14 @@ public class SongRequestConfig
     [Column("is_paused")]
     public bool IsPaused { get; set; }
 
+    /// <summary>Clave del overlay que suena (va en su URL). Se crea al pedirla y se puede regenerar.</summary>
+    [Column("player_key"), MaxLength(64)]
+    public string? PlayerKey { get; set; }
+
+    /// <summary>0-100</summary>
+    [Column("volume")]
+    public int Volume { get; set; } = 50;
+
     /// <summary>Filtros, límites, permisos y mensajes (JSON).</summary>
     [Column("settings", TypeName = "jsonb")]
     public string Settings { get; set; } = "{}";

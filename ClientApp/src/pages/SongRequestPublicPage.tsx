@@ -5,7 +5,7 @@ import * as signalR from '@microsoft/signalr';
 import api from '../services/api';
 
 // Cola pública de song request: /sr/:channelName (.dev/plans/SONG_REQUEST_PLAN.md, fase 1).
-// Se actualiza en vivo por SignalR (grupo songrequest_{canal}, sin contar como overlay).
+// Se actualiza en vivo por /hubs/songrequest (grupo sr_{canal}).
 
 interface QueueItem {
     id: number;
@@ -78,7 +78,7 @@ export default function SongRequestPublicPage() {
         };
 
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl('/hubs/overlay')
+            .withUrl('/hubs/songrequest')
             .withAutomaticReconnect([0, 2000, 5000, 10000, 20000, 30000])
             .configureLogging(signalR.LogLevel.None)
             .build();
@@ -93,7 +93,7 @@ export default function SongRequestPublicPage() {
         });
         connection.onreconnecting(() => setConnected(false));
         connection.onreconnected(async () => {
-            await connection.invoke('JoinSongRequestQueue', channel);
+            await connection.invoke('Watch', channel);
             setConnected(true);
             load(); // lo que cambió mientras no había conexión
         });
@@ -101,7 +101,7 @@ export default function SongRequestPublicPage() {
 
         load();
         connection.start()
-            .then(() => connection.invoke('JoinSongRequestQueue', channel))
+            .then(() => connection.invoke('Watch', channel))
             .then(() => { if (!cancelled) setConnected(true); })
             .catch(() => setConnected(false));
 

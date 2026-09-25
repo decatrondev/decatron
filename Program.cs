@@ -532,6 +532,7 @@ try
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongResolverService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestService>();
     builder.Services.AddSingleton<Decatron.Services.SongRequest.SongRequestChatHandler>();
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.SongRequestPlayerRegistry>();
     builder.Services.AddScoped<Decatron.Services.GameData.LiveOverlayService>();
     builder.Services.AddScoped<Decatron.Services.Pets.PetService>(); // Mascotas: config por canal + estímulos al overlay
     builder.Services.AddSingleton<Decatron.Services.Pets.PetEventBridge>(); // Mascotas: alertas, comandos y saludo → mascota
@@ -702,6 +703,7 @@ try
     app.MapControllers();
     app.MapHub<Decatron.Hubs.OverlayHub>("/hubs/overlay");
     app.MapHub<Decatron.Hubs.TranslationHub>("/hubs/translation"); // extensión del espectador
+    app.MapHub<Decatron.Services.SongRequest.SongRequestHub>("/hubs/songrequest"); // song request: reproductor, overlays, dashboard y cola pública
 
     Log.Information("API ready on https://localhost:7264");
     Log.Information("SignalR Overlay Hub disponible en /hubs/overlay");

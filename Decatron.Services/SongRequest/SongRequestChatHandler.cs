@@ -66,6 +66,18 @@ namespace Decatron.Services.SongRequest
 
         public static bool IsSongRequestCommand(string commandName) => Commands.ContainsKey(commandName);
 
+        /// <summary>Mensajes del bot que el streamer puede editar (Resources/bot-messages → songrequest).</summary>
+        public static readonly string[] MessageKeys =
+        {
+            "added", "usage", "closed", "already_queued", "user_limit", "queue_full", "banned_user", "banned_track", "banned_author",
+            "unsupported", "invalid_link", "not_found", "private", "live", "upcoming", "not_embeddable", "age_restricted", "no_match", "failed",
+            "wrongsong_removed", "no_requests", "queue_empty", "queue_list", "song_current", "song_none", "myqueue",
+            "skip_nothing", "skip_done", "skip_vote", "skip_voted_done", "remove_usage", "remove_invalid", "removed",
+            "opened", "closed_now", "paused", "resumed", "ban_user", "ban_track", "ban_nothing"
+        };
+
+        public static IEnumerable<string> CommandNames => Commands.Keys;
+
         /// <returns>true si el mensaje era de song request y el módulo está activo en el canal.</returns>
         public async Task<bool> TryHandleAsync(CommandContext context, IMessageSender sender)
         {

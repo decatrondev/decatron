@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat } from 'lucide-react';
+import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat, ListMusic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -129,6 +129,15 @@ export default function Overlays() {
             usage: '/overlay/now-playing?channel=tu_canal',
         },
         {
+            id: 'song-request',
+            name: t('overlays:overlays.songRequest.name'),
+            description: t('overlays:overlays.songRequest.description'),
+            status: 'active',
+            icon: <ListMusic className="w-6 h-6 text-[#2563eb]" />,
+            features: t('overlays:overlays.songRequest.features', { returnObjects: true } as any),
+            usage: t('overlays:overlays.songRequest.usage'),
+        },
+        {
             id: 'games',
             name: 'Game Overlays',
             description: 'Tu rango, W-L de la sesión y últimas partidas en pantalla, del juego que estás jugando. LoL con datos automáticos; TFT, Valorant, Marvel Rivals, CS2, Fortnite, Rocket League y Warzone con rango manual por ahora.',
@@ -197,6 +206,7 @@ export default function Overlays() {
             'sound-alerts': '/features/sound-alerts',
             'event-alerts': '/overlays/event-alerts',
             'now-playing': '/overlays/now-playing',
+            'song-request': '/overlays/song-request',
             'wheel': '/overlays/rueda',
             'pets': '/overlays/pets',
             'gacha': '/overlays/gacha'
