@@ -136,6 +136,8 @@ export default function Overlays() {
             icon: <ListMusic className="w-6 h-6 text-[#2563eb]" />,
             features: t('overlays:overlays.songRequest.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.songRequest.usage'),
+            // Kick vinculado usa la misma cola que Twitch (fase K del plan de song request)
+            kickReady: true,
         },
         {
             id: 'games',

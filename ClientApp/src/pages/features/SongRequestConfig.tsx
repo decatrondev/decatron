@@ -159,7 +159,7 @@ export default function SongRequestConfig() {
                             {tab === 'queue' && <QueueTab cfg={cfg} snapshot={live.snapshot} progress={live.progress} connected={live.connected} onDownload={sendToDownloads} />}
                             {tab === 'basic' && <BasicTab cfg={cfg} />}
                             {tab === 'filters' && <FiltersTab cfg={cfg} />}
-                            {tab === 'blacklist' && <BlacklistTab />}
+                            {tab === 'blacklist' && <BlacklistTab platforms={cfg.server?.platforms ?? ['twitch']} />}
                             {tab === 'fallback' && <FallbackTab cfg={cfg} />}
                             {tab === 'history' && <HistoryTab onDownload={sendToDownloads} />}
                             {tab === 'downloads' && <DownloadsTab initialInput={downloadInput} onInputConsumed={() => setDownloadInput(null)} />}

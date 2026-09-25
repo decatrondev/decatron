@@ -8,6 +8,7 @@ import { useSongRequestPlayer } from '../../hooks/useSongRequestHub';
 import { formatDuration } from '../../utils';
 import type { PlaybackProgress, QueueItem, QueueSnapshot } from '../../types';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
+import { PlatformIcon } from '../PlatformIcon';
 
 interface Props {
     cfg: SongRequestConfigState;
@@ -104,7 +105,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                         {current.thumbnailUrl && <img src={current.thumbnailUrl} alt="" className="w-full sm:w-48 3xl:w-56 aspect-video object-cover rounded-xl" />}
                         <div className="flex-1 min-w-0 space-y-1">
                             <a href={current.originUrl ?? current.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block font-bold text-[#1e293b] dark:text-[#f8fafc] text-base 3xl:text-lg hover:underline break-words">{current.title}</a>
-                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{current.artist} · {current.isFallback ? t('songRequest.overlayLabels.fallback') : t('songRequest.queue.requestedBy', { user: current.requestedBy })}</p>
+                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{current.artist} · {current.isFallback ? t('songRequest.overlayLabels.fallback') : <><PlatformIcon platform={current.platform} /> {t('songRequest.queue.requestedBy', { user: current.requestedBy })}</>}</p>
                             <ProgressBar progress={currentProgress} duration={current.durationSeconds} />
                         </div>
                     </div>
@@ -182,7 +183,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                                 {item.thumbnailUrl && <img src={item.thumbnailUrl} alt="" className="w-16 h-9 3xl:w-20 3xl:h-[45px] object-cover rounded shrink-0" />}
                                 <div className="flex-1 min-w-0">
                                     <a href={item.originUrl ?? item.url ?? undefined} target="_blank" rel="noopener noreferrer" className="block text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate hover:underline">{item.title}</a>
-                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{item.artist} · {t('songRequest.queue.requestedBy', { user: item.requestedBy })}</p>
+                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] truncate">{item.artist} · <PlatformIcon platform={item.platform} /> {t('songRequest.queue.requestedBy', { user: item.requestedBy })}</p>
                                 </div>
                                 <span className="font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0 hidden sm:inline">{formatDuration(item.durationSeconds)}</span>
                                 {onDownload && (item.originUrl ?? item.url) && (

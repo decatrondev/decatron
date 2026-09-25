@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as signalR from '@microsoft/signalr';
 import api from '../services/api';
+import { PlatformIcon } from './features/song-request-extension/components/PlatformIcon';
 
 // Cola pública de song request: /sr/:channelName (.dev/plans/SONG_REQUEST_PLAN.md, fase 1).
 // Se actualiza en vivo por /hubs/songrequest (grupo sr_{canal}).
@@ -217,6 +218,7 @@ export default function SongRequestPublicPage() {
                                                 <p className="text-xs 3xl:text-sm 4xl:text-base text-[#71717a] truncate">
                                                     {item.artist}
                                                     <span className="text-[#3f3f46]"> · </span>
+                                                    <PlatformIcon platform={item.platform} className="w-3.5 h-3.5 3xl:w-4 3xl:h-4 4xl:w-5 4xl:h-5" />{' '}
                                                     {t('songRequestPublic.requestedBy', { user: item.requestedBy })}
                                                 </p>
                                             </div>
@@ -292,6 +294,7 @@ function NowPlaying({ item, paused, openLabel, requestedBy }: { item: QueueItem;
                 <p className="text-white font-bold text-lg 3xl:text-xl 4xl:text-3xl leading-snug break-words">{item.title}</p>
                 <p className="text-sm 3xl:text-base 4xl:text-xl text-[#a1a1aa] truncate">{item.artist}</p>
                 <p className="text-xs 3xl:text-sm 4xl:text-base text-[#71717a]">
+                    {!item.isFallback && <><PlatformIcon platform={item.platform} className="w-3.5 h-3.5 3xl:w-4 3xl:h-4 4xl:w-5 4xl:h-5" />{' '}</>}
                     {requestedBy}
                     {item.durationSeconds ? ` · ${formatDuration(item.durationSeconds)}` : ''}
                 </p>

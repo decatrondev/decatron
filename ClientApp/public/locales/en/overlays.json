@@ -719,7 +719,8 @@
       "user": {
         "title": "Users ({{count}})",
         "description": "Viewers who can't request songs. Banning them removes their pending requests.",
-        "placeholder": "Twitch username"
+        "placeholder": "Chat username",
+        "platform": "User's chat"
       }
     },
     "fallback": {

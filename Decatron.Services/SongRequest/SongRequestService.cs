@@ -79,6 +79,47 @@ namespace Decatron.Services.SongRequest
         public Task<SongRequestConfig?> GetConfigAsync(long userId, CancellationToken ct = default) =>
             _db.SongRequestConfigs.FirstOrDefaultAsync(c => c.UserId == userId, ct);
 
+        /// <summary>
+        /// De qué canal es la cola. Un canal de Kick vinculado (misma cuenta) a uno de Twitch usa la
+        /// cola del de Twitch: una sola cola, un solo reproductor y una sola config para los dos chats.
+        /// Un canal de Kick sin Twitch vinculado tiene la suya.
+        /// </summary>
+        public async Task<long> GetQueueOwnerIdAsync(long userId, CancellationToken ct = default)
+        {
+            var row = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new { u.Login, u.KickId, u.AccountId })
+                .FirstOrDefaultAsync(ct);
+            // Un canal de Kick es su propia fila con login "kick_<id>" (ver KickAuthController)
+            if (row?.KickId == null || row.AccountId == null || row.Login != $"kick_{row.KickId}")
+                return userId;
+
+            var twitchId = await _db.Users.AsNoTracking()
+                .Where(u => u.AccountId == row.AccountId && u.IsActive && u.KickId == null
+                            && u.TwitchId != null && u.TwitchId != "")
+                .OrderBy(u => u.Id)
+                .Select(u => (long?)u.Id)
+                .FirstOrDefaultAsync(ct);
+            return twitchId ?? userId;
+        }
+
+        /// <summary>De qué chats llegan pedidos a la cola de este canal (ver <see cref="GetQueueOwnerIdAsync"/>).</summary>
+        public async Task<string[]> GetQueuePlatformsAsync(long ownerId, CancellationToken ct = default)
+        {
+            var owner = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == ownerId)
+                .Select(u => new { u.KickId, u.AccountId })
+                .FirstOrDefaultAsync(ct);
+            if (owner == null)
+                return Array.Empty<string>();
+            if (owner.KickId != null)
+                return new[] { "kick" };
+
+            var kickLinked = owner.AccountId != null && await _db.Users.AsNoTracking()
+                .AnyAsync(u => u.AccountId == owner.AccountId && u.IsActive && u.KickId != null, ct);
+            return kickLinked ? new[] { "twitch", "kick" } : new[] { "twitch" };
+        }
+
         public async Task<SongRequestConfig> GetOrCreateConfigAsync(long userId, string channelLogin, CancellationToken ct = default)
         {
             var config = await GetConfigAsync(userId, ct);

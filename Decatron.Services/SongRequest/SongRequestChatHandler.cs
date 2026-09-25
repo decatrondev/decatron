@@ -92,12 +92,12 @@ namespace Decatron.Services.SongRequest
                 var services = scope.ServiceProvider;
 
                 var channel = await services.GetRequiredService<ChatModeratorFactory>().ResolveAsync(context.Channel);
-                // Kick comparte la cola del canal de Twitch: llega en la fase K
-                if (channel == null || channel.IsKick)
+                if (channel == null)
                     return false;
 
+                // Kick vinculado a Twitch cae en la cola del canal de Twitch
                 var songs = services.GetRequiredService<SongRequestService>();
-                var config = await songs.GetConfigAsync(channel.UserId);
+                var config = await songs.GetConfigAsync(await songs.GetQueueOwnerIdAsync(channel.UserId));
                 if (config == null || !config.Enabled)
                     return false;
 
@@ -302,7 +302,7 @@ namespace Decatron.Services.SongRequest
 
             if (!string.IsNullOrEmpty(target))
             {
-                if (target == run.Channel.Key)
+                if (target == run.Channel.Key || await run.IsKickBroadcasterAsync(target))
                     return;
                 await run.Songs.BanAsync(run.Config.UserId, "user", $"{run.Channel.Platform}:{target}", target, by);
                 await run.Songs.RemoveAllByUserAsync(run.Config, run.Channel.Platform, target);
@@ -365,6 +365,18 @@ namespace Decatron.Services.SongRequest
 
             // El chat nos da el login, no el nombre visible
             public SongRequester Requester => new(Channel.Platform, Context.UserId, Context.Username, Context.Username);
+
+            /// <summary>En Kick la clave del canal es "kick_&lt;id&gt;": el nombre del streamer es otra columna.</summary>
+            public async Task<bool> IsKickBroadcasterAsync(string login)
+            {
+                if (!Channel.IsKick)
+                    return false;
+                var kickUsername = await Services.GetRequiredService<DecatronDbContext>().Users.AsNoTracking()
+                    .Where(u => u.Id == Channel.UserId)
+                    .Select(u => u.KickUsername)
+                    .FirstOrDefaultAsync();
+                return string.Equals(kickUsername, login, StringComparison.OrdinalIgnoreCase);
+            }
 
             public async Task<bool> HasControlTotalAsync() =>
                 _controlTotal ??= await ModerationPermissions.HasControlTotalAsync(Services, Channel, Context.UserId);

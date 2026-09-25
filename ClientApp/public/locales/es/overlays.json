@@ -719,7 +719,8 @@
       "user": {
         "title": "Usuarios ({{count}})",
         "description": "Viewers que no pueden pedir canciones. Al vetarlos se quitan sus pedidos pendientes.",
-        "placeholder": "Usuario de Twitch"
+        "placeholder": "Usuario del chat",
+        "platform": "Chat del usuario"
       }
     },
     "fallback": {

@@ -5,6 +5,7 @@ import api from '../../../../../services/api';
 import { Card, Field, NumberInput, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
+import { PlatformIcon, banPlatform } from '../PlatformIcon';
 
 interface TabProps { cfg: SongRequestConfigState }
 
@@ -98,7 +99,7 @@ export function FiltersTab({ cfg }: TabProps) {
 
 interface Ban { id: number; type: 'track' | 'author' | 'user'; value: string; label: string; createdBy: string | null; createdAt: string }
 
-export function BlacklistTab() {
+export function BlacklistTab({ platforms }: { platforms: string[] }) {
     const { t } = useTranslation('overlays');
     const errorText = useErrorText();
     const [bans, setBans] = useState<Ban[] | null>(null);
@@ -118,6 +119,7 @@ export function BlacklistTab() {
             bans={(bans ?? []).filter(b => b.type === type)}
             onChanged={load}
             errorText={errorText}
+            platforms={platforms}
         />
     );
 
@@ -131,9 +133,13 @@ export function BlacklistTab() {
     );
 }
 
-function BanSection({ type, bans, onChanged, errorText }: { type: Ban['type']; bans: Ban[]; onChanged: () => void; errorText: (e?: string | null) => string }) {
+function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban['type']; bans: Ban[]; onChanged: () => void; errorText: (e?: string | null) => string; platforms: string[] }) {
     const { t } = useTranslation('overlays');
     const [value, setValue] = useState('');
+    // Con Twitch y Kick en la misma cola hay que decir de qué chat es el usuario
+    const [platform, setPlatform] = useState(platforms[0] ?? 'twitch');
+    const platformsKey = platforms.join(',');
+    useEffect(() => { setPlatform(platformsKey.split(',')[0] || 'twitch'); }, [platformsKey]);
     const [busy, setBusy] = useState(false);
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -142,7 +148,7 @@ function BanSection({ type, bans, onChanged, errorText }: { type: Ban['type']; b
         setBusy(true);
         setResult(null);
         try {
-            const res = await api.post('/song-request/bans', { type, value: value.trim() });
+            const res = await api.post('/song-request/bans', { type, value: value.trim(), platform: type === 'user' ? platform : undefined });
             if (res.data.success) { setValue(''); onChanged(); }
             else setResult({ ok: false, text: errorText(res.data.error) });
         } catch { setResult({ ok: false, text: errorText('failed') }); }
@@ -152,6 +158,23 @@ function BanSection({ type, bans, onChanged, errorText }: { type: Ban['type']; b
     return (
         <Card title={t(`songRequest.blacklist.${type}.title`, { count: bans.length })} description={t(`songRequest.blacklist.${type}.description`)}>
             <form className="flex gap-2" onSubmit={e => { e.preventDefault(); add(); }}>
+                {type === 'user' && platforms.length > 1 && (
+                    <div className="flex shrink-0 rounded-lg border border-[#e2e8f0] dark:border-[#374151] overflow-hidden" role="radiogroup" aria-label={t('songRequest.blacklist.user.platform')}>
+                        {platforms.map(p => (
+                            <button
+                                key={p}
+                                type="button"
+                                role="radio"
+                                aria-checked={platform === p}
+                                title={p === 'kick' ? 'Kick' : 'Twitch'}
+                                onClick={() => setPlatform(p)}
+                                className={`px-3 flex items-center transition-colors ${platform === p ? 'bg-[#eff6ff] dark:bg-[#1e3a8a]/40' : 'opacity-50 hover:opacity-100'}`}
+                            >
+                                <PlatformIcon platform={p} className="w-4 h-4 3xl:w-5 3xl:h-5" />
+                            </button>
+                        ))}
+                    </div>
+                )}
                 <input value={value} onChange={e => setValue(e.target.value)} placeholder={t(`songRequest.blacklist.${type}.placeholder`)} className={inputClass} maxLength={500} />
                 <button type="submit" disabled={busy || !value.trim()} className={primaryBtn}>
                     {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {t('songRequest.blacklist.add')}
@@ -163,7 +186,7 @@ function BanSection({ type, bans, onChanged, errorText }: { type: Ban['type']; b
                     {bans.map(b => (
                         <div key={b.id} className="flex items-center gap-3 py-2">
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate">{type === 'user' ? `@${b.label}` : b.label || b.value}</p>
+                                <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc] truncate">{type === 'user' ? <><PlatformIcon platform={banPlatform(b.value)} /> @{b.label}</> : b.label || b.value}</p>
                                 <p className="text-xs 3xl:text-sm text-[#94a3b8] truncate">
                                     {b.createdBy ? t('songRequest.blacklist.by', { user: b.createdBy }) : ''} · {new Date(b.createdAt).toLocaleDateString()}
                                 </p>
@@ -377,7 +400,7 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
                                 <div className="hidden md:flex flex-col items-end shrink-0 w-56 3xl:w-64">
                                     <span className={`px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold ${reasonTone[item.endReason] ?? reasonTone.finished}`}>{t(`songRequest.history.reasons.${item.endReason}`, { defaultValue: item.endReason })}</span>
                                     <span className="text-[11px] 3xl:text-xs text-[#94a3b8] mt-0.5 truncate max-w-full">
-                                        {item.platform === 'fallback' ? t('songRequest.overlayLabels.fallback') : item.requestedBy} · {new Date(item.playedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                        {item.platform === 'fallback' ? t('songRequest.overlayLabels.fallback') : <><PlatformIcon platform={item.platform} /> {item.requestedBy}</>} · {new Date(item.playedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                     </span>
                                 </div>
                                 <button className={iconBtn} title={item.isFavorite ? t('songRequest.history.unfavorite') : t('songRequest.history.favorite')} onClick={() => toggleFavorite(item)}>

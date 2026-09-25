@@ -49,7 +49,7 @@ namespace Decatron.Controllers
         [RequirePermission("overlays")]
         public async Task<IActionResult> GetConfig(CancellationToken ct)
         {
-            var userId = this.GetChannelOwnerId();
+            var userId = await _songs.GetQueueOwnerIdAsync(this.GetChannelOwnerId(), ct);
             var channel = await ChannelResolver.ResolveChannelInfoByIdAsync(_db, userId);
             if (channel == null)
                 return NotFound(new { success = false });
@@ -63,6 +63,7 @@ namespace Decatron.Controllers
             {
                 success = true,
                 channel = channel.Login,
+                platforms = await _songs.GetQueuePlatformsAsync(userId, ct),
                 publicUrl = _songs.PublicQueueUrl(channel.Login),
                 playerKey = key,
                 enabled = config.Enabled,
@@ -90,7 +91,7 @@ namespace Decatron.Controllers
         [RequirePermission("overlays")]
         public async Task<IActionResult> SaveConfig([FromBody] SaveConfigRequest body, CancellationToken ct)
         {
-            var userId = this.GetChannelOwnerId();
+            var userId = await _songs.GetQueueOwnerIdAsync(this.GetChannelOwnerId(), ct);
             var channel = await ChannelResolver.ResolveChannelInfoByIdAsync(_db, userId);
             if (channel == null)
                 return NotFound(new { success = false });
@@ -412,6 +413,8 @@ namespace Decatron.Controllers
             public string Type { get; set; } = "";
             /// <summary>track/author: link o nombre de una canción; user: el usuario del chat.</summary>
             public string Value { get; set; } = "";
+            /// <summary>user: de qué chat es (twitch | kick). La cola es una sola para los dos.</summary>
+            public string? Platform { get; set; }
         }
 
         [HttpPost("api/song-request/bans")]
@@ -430,8 +433,9 @@ namespace Decatron.Controllers
                 var login = value.TrimStart('@').ToLowerInvariant();
                 if (login.Length > 50 || login.Contains(' '))
                     return Ok(new { success = false, error = "invalid_user" });
-                await _songs.BanAsync(config.UserId, "user", $"twitch:{login}", login, by, ct);
-                await _songs.RemoveAllByUserAsync(config, "twitch", login, ct);
+                var platform = body.Platform == "kick" ? "kick" : "twitch";
+                await _songs.BanAsync(config.UserId, "user", $"{platform}:{login}", login, by, ct);
+                await _songs.RemoveAllByUserAsync(config, platform, login, ct);
                 return Ok(new { success = true, error = (string?)null });
             }
 
@@ -578,7 +582,7 @@ namespace Decatron.Controllers
 
         private async Task<SongRequestConfig?> OwnConfigAsync(CancellationToken ct)
         {
-            var userId = this.GetChannelOwnerId();
+            var userId = await _songs.GetQueueOwnerIdAsync(this.GetChannelOwnerId(), ct);
             var channel = await ChannelResolver.ResolveChannelInfoByIdAsync(_db, userId);
             return channel == null ? null : await _songs.GetOrCreateConfigAsync(userId, channel.Login, ct);
         }
@@ -645,9 +649,19 @@ namespace Decatron.Controllers
         public async Task<IActionResult> GetPublicQueue(string channel, CancellationToken ct)
         {
             var login = channel.Trim().ToLowerInvariant();
+            // Un canal solo de Kick tiene login "kick_<id>": su cola se encuentra por el nombre guardado en la config
+            var configOwner = await _db.SongRequestConfigs.AsNoTracking()
+                .Where(c => c.ChannelName == login)
+                .Select(c => (long?)c.UserId)
+                .FirstOrDefaultAsync(ct);
             var user = await _db.Users.AsNoTracking()
-                .Where(u => u.IsActive && u.Login == login)
-                .Select(u => new { u.Id, u.Login, u.DisplayName, u.ProfileImageUrl })
+                .Where(u => u.IsActive && (configOwner != null ? u.Id == configOwner : u.Login == login))
+                .Select(u => new
+                {
+                    u.Id,
+                    DisplayName = u.KickId != null ? (u.KickUsername ?? u.DisplayName) : u.DisplayName,
+                    ProfileImageUrl = u.KickId != null ? (u.KickProfilePic ?? u.ProfileImageUrl) : u.ProfileImageUrl
+                })
                 .FirstOrDefaultAsync(ct);
             if (user == null)
                 return NotFound(new { success = false });

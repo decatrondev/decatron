@@ -5,6 +5,8 @@ import { DEFAULT_SETTINGS, defaultOverlayConfig, normalizeOverlayConfig } from '
 
 interface ServerConfig {
     channel: string;
+    /** De qué chats llegan pedidos: Twitch, Kick o los dos (misma cola). */
+    platforms: string[];
     publicUrl: string;
     playerKey: string;
     enabled: boolean;
@@ -30,7 +32,7 @@ export function useSongRequestConfig() {
             const res = await api.get('/song-request/config');
             const d = res.data;
             setServer({
-                channel: d.channel, publicUrl: d.publicUrl, playerKey: d.playerKey, enabled: d.enabled,
+                channel: d.channel, platforms: d.platforms ?? ['twitch'], publicUrl: d.publicUrl, playerKey: d.playerKey, enabled: d.enabled,
                 requestsOpen: d.requestsOpen, commands: d.commands ?? [], messageDefaults: d.messageDefaults ?? {},
             });
             setEnabled(!!d.enabled);
