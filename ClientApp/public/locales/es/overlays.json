@@ -100,7 +100,7 @@
       "name": "Song Request",
       "description": "Tus viewers piden canciones de YouTube con !sr y suenan en tu stream, con cola, votación y vetos.",
       "features": [
-        "!sr con link o nombre, sin API de YouTube",
+        "!sr con link de YouTube o Spotify, o el nombre",
         "Control remoto de la cola desde el dashboard",
         "Editor visual con temas, plantillas y animaciones",
         "Cola pública en vivo para tus viewers"
@@ -343,7 +343,7 @@
       "commandsTitle": "Comandos del chat"
     },
     "commandHelp": {
-      "sr": "Pide una canción con un link de YouTube o el nombre.",
+      "sr": "Pide una canción con un link de YouTube o Spotify, o con el nombre.",
       "wrongsong": "Quita el último pedido de quien lo escribe.",
       "queue": "Muestra las próximas canciones y el link a la cola pública.",
       "song": "Dice qué suena ahora, con el link.",
@@ -468,7 +468,7 @@
       "listenHere": "Escuchar aquí",
       "listenHereHint": "Este navegador pasa a ser el reproductor y el de OBS se calla. Al apagarlo, OBS vuelve a sonar solo.",
       "addTitle": "Agregar una canción",
-      "addPlaceholder": "Link de YouTube o nombre de la canción",
+      "addPlaceholder": "Link de YouTube o Spotify, o nombre de la canción",
       "adding": "Buscando…",
       "add": "Agregar",
       "added": "Agregada en la posición #{{position}}.",
@@ -500,8 +500,8 @@
       "banned_user": "Ese usuario está vetado.",
       "queue_full": "La cola está llena.",
       "user_limit": "Límite de pedidos alcanzado.",
-      "unsupported": "Por ahora solo se aceptan links de YouTube.",
-      "invalid_link": "Ese link no lleva a un video.",
+      "unsupported": "Por ahora se aceptan links de YouTube y Spotify.",
+      "invalid_link": "Ese link no lleva a una canción.",
       "not_found": "Ese video no existe o ya no está disponible.",
       "private": "Ese video es privado.",
       "live": "No se aceptan transmisiones en vivo.",
@@ -708,7 +708,7 @@
       "track": {
         "title": "Canciones ({{count}})",
         "description": "Una canción concreta.",
-        "placeholder": "Link de YouTube o nombre de la canción"
+        "placeholder": "Link de YouTube o Spotify, o nombre de la canción"
       },
       "author": {
         "title": "Artistas y canales ({{count}})",

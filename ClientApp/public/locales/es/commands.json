@@ -395,7 +395,7 @@
     "paused": "En pausa",
     "live": "En vivo",
     "howTo": "Pide una canción en el chat con",
-    "howToArg": "<link de YouTube o nombre>",
+    "howToArg": "<link de YouTube o Spotify, o nombre>",
     "nowPlaying": "Sonando ahora",
     "nothingPlaying": "No está sonando ninguna canción pedida.",
     "upNext": "A continuación",

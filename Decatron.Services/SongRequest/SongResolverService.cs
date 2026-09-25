@@ -90,7 +90,7 @@ namespace Decatron.Services.SongRequest
             }
 
             // Link de otro servicio (Spotify…): buscar la misma canción en la fuente
-            var query = string.IsNullOrWhiteSpace(info.Artist) ? info.Title : $"{info.Artist} - {info.Title}";
+            var query = BuildSearchQuery(info);
             return await SearchAndGetAsync(DefaultSourceKey, query, info.DurationSeconds, info, ct);
         }
 
@@ -243,11 +243,29 @@ namespace Decatron.Services.SongRequest
             return new SongResolveResult(track, origin, SongResolveError.None);
         }
 
+        /// <summary>
+        /// "Artista - Título" para buscar en la fuente. Solo el primer artista, y sin los agregados que
+        /// Spotify pone después de " - " ("Remastered 2011", "Radio Edit"…) y que YouTube no usa.
+        /// </summary>
+        private static string BuildSearchQuery(TrackInfo info)
+        {
+            var title = info.Title;
+            var dash = title.IndexOf(" - ", StringComparison.Ordinal);
+            if (dash > 0)
+                title = title[..dash];
+            var artist = info.Artist.Split(',')[0].Trim();
+            return string.IsNullOrWhiteSpace(artist) ? title : $"{artist} - {title}";
+        }
+
         /// <summary>Acepta links con o sin https:// ("youtu.be/xxx", "www.youtube.com/..."). El resto es texto.</summary>
         private static Uri? TryParseUrl(string input)
         {
             if (input.Contains(' '))
                 return null;
+
+            // spotify:track:ID (el "copiar URI" de la app de escritorio)
+            if (input.StartsWith("spotify:track:", StringComparison.OrdinalIgnoreCase))
+                input = "https://open.spotify.com/track/" + input["spotify:track:".Length..];
 
             var candidate = input;
             if (!candidate.StartsWith("http://", StringComparison.OrdinalIgnoreCase)

@@ -530,6 +530,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.IPlaylistSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.SpotifyTrackResolver>(); // fase 4: links de Spotify → misma canción en YouTube
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestLibraryService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongResolverService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestService>();

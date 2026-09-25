@@ -351,11 +351,11 @@
     "top_empty": "@{0}, todavía nadie tiene predicciones resueltas en este canal."
   },
   "songrequest": {
-    "usage": "🎵 @{user}, usa {command} <link de YouTube o nombre de la canción>.",
+    "usage": "🎵 @{user}, usa {command} <link de YouTube o Spotify, o el nombre de la canción>.",
     "closed": "🎵 @{user}, los pedidos de canciones están cerrados.",
     "added": "🎵 @{user} agregó «{title}» a la cola (#{position}).",
-    "unsupported": "🎵 @{user}, por ahora solo se aceptan links de YouTube.",
-    "invalid_link": "🎵 @{user}, ese link no lleva a un video.",
+    "unsupported": "🎵 @{user}, por ahora se aceptan links de YouTube y Spotify.",
+    "invalid_link": "🎵 @{user}, ese link no lleva a una canción.",
     "not_found": "🎵 @{user}, ese video no existe o ya no está disponible.",
     "private": "🎵 @{user}, ese video es privado.",
     "live": "🎵 @{user}, no se aceptan transmisiones en vivo.",

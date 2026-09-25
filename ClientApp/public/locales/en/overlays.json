@@ -100,7 +100,7 @@
       "name": "Song Request",
       "description": "Your viewers request YouTube songs with !sr and they play on your stream, with a queue, voting and bans.",
       "features": [
-        "!sr with a link or name, no YouTube API",
+        "!sr with a YouTube or Spotify link, or the name",
         "Remote control of the queue from the dashboard",
         "Visual editor with themes, templates and animations",
         "Live public queue for your viewers"
@@ -343,7 +343,7 @@
       "commandsTitle": "Chat commands"
     },
     "commandHelp": {
-      "sr": "Request a song with a YouTube link or its name.",
+      "sr": "Request a song with a YouTube or Spotify link, or its name.",
       "wrongsong": "Removes the sender's last request.",
       "queue": "Shows the next songs and the link to the public queue.",
       "song": "Says what's playing, with the link.",
@@ -468,7 +468,7 @@
       "listenHere": "Listen here",
       "listenHereHint": "This browser becomes the player and the OBS one goes quiet. When you turn it off, OBS plays again on its own.",
       "addTitle": "Add a song",
-      "addPlaceholder": "YouTube link or song name",
+      "addPlaceholder": "YouTube or Spotify link, or song name",
       "adding": "Searching…",
       "add": "Add",
       "added": "Added at position #{{position}}.",
@@ -500,8 +500,8 @@
       "banned_user": "That user is banned.",
       "queue_full": "The queue is full.",
       "user_limit": "Request limit reached.",
-      "unsupported": "Only YouTube links are accepted for now.",
-      "invalid_link": "That link doesn't point to a video.",
+      "unsupported": "Only YouTube and Spotify links are accepted for now.",
+      "invalid_link": "That link doesn't point to a song.",
       "not_found": "That video doesn't exist or is no longer available.",
       "private": "That video is private.",
       "live": "Live streams aren't accepted.",
@@ -708,7 +708,7 @@
       "track": {
         "title": "Songs ({{count}})",
         "description": "A specific song.",
-        "placeholder": "YouTube link or song name"
+        "placeholder": "YouTube or Spotify link, or song name"
       },
       "author": {
         "title": "Artists and channels ({{count}})",

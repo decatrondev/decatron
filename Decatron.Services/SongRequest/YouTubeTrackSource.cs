@@ -29,12 +29,22 @@ namespace Decatron.Services.SongRequest
         private static readonly TimeSpan GetTimeout = TimeSpan.FromSeconds(25);
         private static readonly TimeSpan SearchTimeout = TimeSpan.FromSeconds(25);
         private const int SearchCandidates = 5;
-        /// <summary>Diferencia de duración aceptada al buscar la canción de otro servicio.</summary>
-        private const int DurationToleranceSeconds = 5;
+        /// <summary>Con duración esperada (link de Spotify…) se miran más resultados.</summary>
+        private const int MatchCandidates = 10;
+        /// <summary>Diferencia de duración aceptada al buscar la canción de otro servicio: primero exacta, después más amplia.</summary>
+        private const int TightToleranceSeconds = 3;
+        private const int DurationToleranceSeconds = 8;
         /// <summary>Tras un bloqueo, cuánto tiempo no se intenta yt-dlp completo (cada intento son ~3 s perdidos).</summary>
         private static readonly TimeSpan BlockedCooldown = TimeSpan.FromMinutes(30);
 
         private DateTime _fullExtractionBlockedUntil = DateTime.MinValue;
+
+        /// <summary>
+        /// Lo último que se leyó de cada video (10 min): al verificar un candidato de YouTube Music y
+        /// después resolverlo, no se lee dos veces. La caché de verdad es la tabla song_request_tracks.
+        /// </summary>
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime At, SongTrack Track)> _recent = new();
+        private static readonly TimeSpan RecentTtl = TimeSpan.FromMinutes(10);
 
         private static readonly Regex VideoIdRegex = new("^[A-Za-z0-9_-]{11}$", RegexOptions.Compiled);
 
@@ -43,7 +53,8 @@ namespace Decatron.Services.SongRequest
         private static readonly string[] AlternateVersionWords =
         {
             "cover", "karaoke", "live", "en vivo", "8d", "slowed", "sped up", "nightcore",
-            "reverb", "remix", "instrumental", "tutorial", "reaction", "letra", "lyrics"
+            "reverb", "remix", "instrumental", "tutorial", "reaction", "letra", "lyrics",
+            "subtitulado", "subtitulada", "sub español", "traducida", "traducción", "traduccion", "lyric video"
         };
 
         private readonly YtDlpRunner _ytDlp;
@@ -115,6 +126,30 @@ namespace Decatron.Services.SongRequest
             if (!VideoIdRegex.IsMatch(sourceId))
                 return SourceTrackResult.Fail(SongResolveError.InvalidLink);
 
+            if (_recent.TryGetValue(sourceId, out var recent) && DateTime.UtcNow - recent.At < RecentTtl)
+                return SourceTrackResult.Ok(Copy(recent.Track));
+
+            var fetched = await FetchAsync(sourceId, ct);
+            if (fetched.Track != null)
+            {
+                if (_recent.Count > 500)
+                    foreach (var old in _recent.Where(kv => DateTime.UtcNow - kv.Value.At >= RecentTtl).Select(kv => kv.Key).ToList())
+                        _recent.TryRemove(old, out _);
+                _recent[sourceId] = (DateTime.UtcNow, Copy(fetched.Track));
+            }
+            return fetched;
+        }
+
+        /// <summary>Fila nueva sin guardar (EF no puede recibir dos veces la misma instancia).</summary>
+        private static SongTrack Copy(SongTrack t) => new()
+        {
+            Source = t.Source, SourceId = t.SourceId, Title = t.Title, Artist = t.Artist, AuthorId = t.AuthorId,
+            DurationSeconds = t.DurationSeconds, ViewCount = t.ViewCount, ThumbnailUrl = t.ThumbnailUrl,
+            Availability = t.Availability, LiveStatus = t.LiveStatus, IsEmbeddable = t.IsEmbeddable, AgeRestricted = t.AgeRestricted
+        };
+
+        private async Task<SourceTrackResult> FetchAsync(string sourceId, CancellationToken ct)
+        {
             if (DateTime.UtcNow >= _fullExtractionBlockedUntil)
             {
                 var result = await _ytDlp.RunAsync(new[]
@@ -218,7 +253,29 @@ namespace Decatron.Services.SongRequest
             if (query.Length > 200)
                 query = query[..200];
 
-            var candidates = await RunSearchAsync(query, ct);
+            List<SearchCandidate>? candidates;
+            if (expectedDurationSeconds is > 0)
+            {
+                // Canción de otro servicio: además del videoclip se busca la versión de audio (canal "Topic"
+                // u "Official Audio"), que suele durar exactamente lo mismo que en Spotify. En paralelo.
+                var video = RunSearchAsync(query, ct, MatchCandidates);
+                var audio = RunSearchAsync($"{query} audio", ct, MatchCandidates);
+                var music = RunMusicSearchAsync(query, ct);
+                await Task.WhenAll(video, audio, music);
+
+                // YouTube Music da la canción oficial (canal "Topic") pero sin duración: se verifica
+                // antes de elegirla, y si no calza se sigue con los resultados normales
+                var fromMusic = await PickMusicCandidateAsync(music.Result, query, expectedDurationSeconds.Value, ct);
+                if (fromMusic != null)
+                    return SourceSearchResult.Ok(fromMusic);
+
+                candidates = video.Result == null && audio.Result == null ? null
+                    : (video.Result ?? new()).Concat(audio.Result ?? new()).GroupBy(c => c.Id).Select(g => g.First()).ToList();
+            }
+            else
+            {
+                candidates = await RunSearchAsync(query, ct);
+            }
             if (candidates == null)
                 return SourceSearchResult.Fail(SongResolveError.Failed);
 
@@ -226,13 +283,58 @@ namespace Decatron.Services.SongRequest
             return picked != null ? SourceSearchResult.Ok(picked.Id) : SourceSearchResult.Fail(SongResolveError.NoMatch);
         }
 
+        /// <summary>Búsqueda de canciones de YouTube Music (id y título). Vacía si falla.</summary>
+        private async Task<List<(string Id, string Title)>> RunMusicSearchAsync(string query, CancellationToken ct)
+        {
+            var result = await _ytDlp.RunAsync(new[]
+            {
+                "--dump-json", "--flat-playlist", "--no-warnings", "--playlist-end", "5",
+                "--", $"https://music.youtube.com/search?q={Uri.EscapeDataString(query)}#songs"
+            }, SearchTimeout, ct);
+            var list = new List<(string, string)>();
+            if (!result.Success)
+                return list;
+            foreach (var line in result.Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    var id = GetString(doc.RootElement, "id");
+                    if (id != null && VideoIdRegex.IsMatch(id))
+                        list.Add((id, GetString(doc.RootElement, "title") ?? ""));
+                }
+                catch (JsonException) { /* línea que no es JSON */ }
+            }
+            return list;
+        }
+
+        /// <summary>El primer resultado de YouTube Music cuyo título coincide y cuya duración calza.</summary>
+        private async Task<string?> PickMusicCandidateAsync(List<(string Id, string Title)> results, string query, int expectedDuration, CancellationToken ct)
+        {
+            var dash = query.IndexOf(" - ", StringComparison.Ordinal);
+            var wanted = Normalize(dash > 0 ? query[(dash + 3)..] : query);
+            if (wanted.Length == 0)
+                return null;
+
+            foreach (var (id, title) in results.Take(3))
+            {
+                var t = Normalize(title);
+                if (t.Length == 0 || !(t == wanted || t.StartsWith(wanted) || wanted.StartsWith(t)))
+                    continue;
+                var check = await GetAsync(id, ct);
+                if (check.Track?.DurationSeconds is { } d && Math.Abs(d - expectedDuration) <= DurationToleranceSeconds)
+                    return id;
+            }
+            return null;
+        }
+
         /// <summary>Búsqueda plana (no pasa por el reproductor, así que el bloqueo no la afecta). null = falló.</summary>
-        private async Task<List<SearchCandidate>?> RunSearchAsync(string query, CancellationToken ct)
+        private async Task<List<SearchCandidate>?> RunSearchAsync(string query, CancellationToken ct, int count = SearchCandidates)
         {
             var result = await _ytDlp.RunAsync(new[]
             {
                 "--dump-json", "--skip-download", "--flat-playlist", "--no-warnings",
-                $"ytsearch{SearchCandidates}:{query}"
+                $"ytsearch{count}:{query}"
             }, SearchTimeout, ct);
 
             if (!result.Success)
@@ -278,12 +380,34 @@ namespace Decatron.Services.SongRequest
                 return playable.FirstOrDefault();
 
             var queryLower = query.ToLowerInvariant();
-            return playable
-                .Where(c => Math.Abs(c.DurationSeconds!.Value - expectedDuration.Value) <= DurationToleranceSeconds)
-                .Where(c => !IsAlternateVersion(c.Title, queryLower))
-                .OrderBy(c => c.Channel.EndsWith(" - Topic", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                .ThenBy(c => Math.Abs(c.DurationSeconds!.Value - expectedDuration.Value))
-                .FirstOrDefault();
+            var eligible = playable.Where(c => !IsAlternateVersion(c.Title, queryLower)).ToList();
+            var artist = Normalize(query.Split(" - ")[0]);
+            int Diff(SearchCandidate c) => Math.Abs(c.DurationSeconds!.Value - expectedDuration.Value);
+
+            // Qué tan "oficial" parece: canal Topic (audio oficial de YouTube Music) > canal del artista
+            // (o su VEVO) > título que dice audio/video oficial > cualquier otro
+            int Rank(SearchCandidate c)
+            {
+                if (c.Channel.EndsWith(" - Topic", StringComparison.OrdinalIgnoreCase)) return 0;
+                var channel = Normalize(c.Channel.Replace("VEVO", "", StringComparison.OrdinalIgnoreCase).Replace("Official", "", StringComparison.OrdinalIgnoreCase));
+                if (artist.Length > 0 && channel.Length > 0 && (channel.Contains(artist) || artist.Contains(channel))) return 1;
+                var title = c.Title.ToLowerInvariant();
+                if (title.Contains("official") || title.Contains("oficial")) return 2;
+                return 3;
+            }
+
+            // Casi exacta primero; si no hay, tolerancia más amplia. Dentro de cada una, lo más oficial.
+            return eligible.Where(c => Diff(c) <= TightToleranceSeconds).OrderBy(Rank).ThenBy(Diff).FirstOrDefault()
+                   ?? eligible.Where(c => Diff(c) <= DurationToleranceSeconds).OrderBy(Rank).ThenBy(Diff).FirstOrDefault();
+        }
+
+        /// <summary>Minúsculas, sin tildes ni signos: "Beyoncé" y "beyonce" son el mismo canal.</summary>
+        private static string Normalize(string text)
+        {
+            var decomposed = text.Normalize(System.Text.NormalizationForm.FormD);
+            var chars = decomposed.Where(ch => char.IsLetterOrDigit(ch)
+                && System.Globalization.CharUnicodeInfo.GetUnicodeCategory(ch) != System.Globalization.UnicodeCategory.NonSpacingMark);
+            return new string(chars.ToArray()).ToLowerInvariant();
         }
 
         private static bool IsAlternateVersion(string title, string queryLower)
