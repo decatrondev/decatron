@@ -395,7 +395,7 @@
     "paused": "Paused",
     "live": "Live",
     "howTo": "Request a song in chat with",
-    "howToArg": "<YouTube or Spotify link, or name>",
+    "howToArg": "<YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or name>",
     "nowPlaying": "Now playing",
     "nothingPlaying": "No requested song is playing.",
     "upNext": "Up next",

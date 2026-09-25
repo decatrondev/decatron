@@ -2,6 +2,15 @@ import { useEffect } from 'react';
 import type { ElementConfig, ElementId, OverlayLayout } from './types';
 import { TEXT_ELEMENTS } from './constants/defaults';
 
+/** Nombre para mostrar de cada servicio (origen del link o fuente del audio). */
+const SOURCE_NAMES: Record<string, string> = {
+    youtube: 'YouTube', spotify: 'Spotify', soundcloud: 'SoundCloud', deezer: 'Deezer', apple_music: 'Apple Music',
+};
+
+export function sourceName(key: string | null | undefined): string {
+    return SOURCE_NAMES[key ?? ''] ?? 'YouTube';
+}
+
 export function formatDuration(seconds: number | null | undefined): string {
     if (!seconds || seconds <= 0) return '';
     const total = Math.floor(seconds);

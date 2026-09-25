@@ -31,6 +31,9 @@ namespace Decatron.Services.SongRequest
     {
         public const string DefaultSourceKey = YouTubeTrackSource.SourceKey;
 
+        /// <summary>song_request_tracks.availability de un tema que fuera de su app suena solo 30 s (SoundCloud Go+).</summary>
+        public const string PreviewOnlyAvailability = "preview_only";
+
         /// <summary>Cuánto se confía en una fila guardada con datos completos.</summary>
         private static readonly TimeSpan TrackTtl = TimeSpan.FromDays(3);
         /// <summary>Filas sin duración (vinieron de oEmbed): se reintenta pronto con yt-dlp.</summary>
@@ -58,6 +61,11 @@ namespace Decatron.Services.SongRequest
         }
 
         public ITrackSource? GetSource(string key) => _sources.FirstOrDefault(s => s.Key == key);
+
+        /// <summary>Link público de una canción guardada, sin pasar por DI (mensajes del chat).</summary>
+        public static string PublicUrlFor(SongTrack track) => track.Source == SoundCloudTrackSource.SourceKey
+            ? SoundCloudTrackSource.PublicUrl(track.SourceId)
+            : $"https://youtu.be/{track.SourceId}";
 
         /// <summary>Lo que escribió el viewer después de !sr, o lo que se pegó en el dashboard.</summary>
         public async Task<SongResolveResult> ResolveAsync(string input, CancellationToken ct = default)
@@ -89,15 +97,15 @@ namespace Decatron.Services.SongRequest
                     : SongResolveResult.Fail(direct.Error);
             }
 
-            // Link de otro servicio (Spotify…): buscar la misma canción en la fuente
+            // Link de otro servicio (Spotify, Deezer, Apple Music): buscar la misma canción en la fuente
             var query = BuildSearchQuery(info);
             return await SearchAndGetAsync(DefaultSourceKey, query, info.DurationSeconds, info, ct);
         }
 
         /// <summary>
         /// Para el descargador (fase 5): qué URL se le pasa a yt-dlp en la PC del streamer.
-        /// YouTube y cualquier otro sitio van tal cual (yt-dlp soporta cientos); Spotify (sin audio propio)
-        /// y el texto se convierten en la canción de YouTube, igual que en !sr.
+        /// YouTube, SoundCloud y cualquier otro sitio van tal cual (yt-dlp soporta cientos); Spotify, Deezer y
+        /// Apple Music (sin audio propio) y el texto se convierten en la canción de YouTube, igual que en !sr.
         /// </summary>
         public async Task<(string? Url, TrackInfo? Origin, SongResolveError Error)> ResolveDownloadUrlAsync(string input, CancellationToken ct = default)
         {
@@ -263,6 +271,8 @@ namespace Decatron.Services.SongRequest
                 return SongResolveResult.Fail(SongResolveError.NotEmbeddable, origin);
             if (track.AgeRestricted)
                 return SongResolveResult.Fail(SongResolveError.AgeRestricted, origin);
+            if (track.Availability == PreviewOnlyAvailability)
+                return SongResolveResult.Fail(SongResolveError.PreviewOnly, origin);
             return new SongResolveResult(track, origin, SongResolveError.None);
         }
 

@@ -70,7 +70,7 @@ namespace Decatron.Services.SongRequest
         public static readonly string[] MessageKeys =
         {
             "added", "usage", "closed", "already_queued", "user_limit", "queue_full", "banned_user", "banned_track", "banned_author",
-            "unsupported", "invalid_link", "not_found", "private", "live", "upcoming", "not_embeddable", "age_restricted", "no_match", "failed",
+            "unsupported", "invalid_link", "not_found", "private", "live", "upcoming", "not_embeddable", "age_restricted", "preview_only", "no_match", "failed",
             "too_long", "unknown_duration", "too_few_views", "recently_played",
             "wrongsong_removed", "no_requests", "queue_empty", "queue_list", "song_current", "song_current_fallback", "song_none", "myqueue",
             "skip_nothing", "skip_done", "skip_vote", "skip_voted_done", "remove_usage", "remove_invalid", "removed",
@@ -346,7 +346,7 @@ namespace Decatron.Services.SongRequest
             vars["title"] = Short(DisplayTitle(item));
             vars["artist"] = item.OriginArtist ?? item.Track?.Artist ?? "";
             vars["requester"] = item.RequestedByName;
-            vars["url"] = item.OriginUrl ?? (item.Track == null ? "" : $"https://youtu.be/{item.Track.SourceId}");
+            vars["url"] = item.OriginUrl ?? (item.Track == null ? "" : SongResolverService.PublicUrlFor(item.Track));
             return vars;
         }
 

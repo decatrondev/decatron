@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import * as signalR from '@microsoft/signalr';
 import api from '../services/api';
 import { PlatformIcon } from './features/song-request-extension/components/PlatformIcon';
+import { sourceName } from './features/song-request-extension/utils';
 
 // Cola pública de song request: /sr/:channelName (.dev/plans/SONG_REQUEST_PLAN.md, fase 1).
 // Se actualiza en vivo por /hubs/songrequest (grupo sr_{canal}).
@@ -36,7 +37,6 @@ interface QueueState {
 
 type Status = 'loading' | 'ok' | 'disabled' | 'notfound' | 'error';
 
-const SOURCE_NAMES: Record<string, string> = { youtube: 'YouTube', spotify: 'Spotify' };
 
 function formatDuration(seconds: number | null | undefined): string {
     if (!seconds || seconds <= 0) return '';
@@ -177,7 +177,7 @@ export default function SongRequestPublicPage() {
                         {/* Sonando ahora */}
                         <SectionTitle>{t('songRequestPublic.nowPlaying')}</SectionTitle>
                         {current ? (
-                            <NowPlaying item={current} paused={state.paused} openLabel={t('songRequestPublic.openOn', { source: SOURCE_NAMES[current.originSource ?? current.source ?? ''] ?? 'YouTube' })} requestedBy={current.isFallback ? t('songRequestPublic.fromPlaylist') : t('songRequestPublic.requestedBy', { user: current.requestedBy })} />
+                            <NowPlaying item={current} paused={state.paused} openLabel={t('songRequestPublic.openOn', { source: sourceName(current.originSource ?? current.source) })} requestedBy={current.isFallback ? t('songRequestPublic.fromPlaylist') : t('songRequestPublic.requestedBy', { user: current.requestedBy })} />
                         ) : (
                             <p className="mb-10 text-sm 3xl:text-base 4xl:text-lg text-[#71717a]">{t('songRequestPublic.nothingPlaying')}</p>
                         )}

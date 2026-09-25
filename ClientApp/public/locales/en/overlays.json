@@ -100,7 +100,7 @@
       "name": "Song Request",
       "description": "Your viewers request YouTube songs with !sr and they play on your stream, with a queue, voting and bans.",
       "features": [
-        "!sr with a YouTube or Spotify link, or the name",
+        "!sr with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or the name",
         "Remote control of the queue from the dashboard",
         "Visual editor with themes, templates and animations",
         "Live public queue for your viewers"
@@ -344,7 +344,7 @@
       "commandsTitle": "Chat commands"
     },
     "commandHelp": {
-      "sr": "Request a song with a YouTube or Spotify link, or its name.",
+      "sr": "Request a song with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or its name.",
       "wrongsong": "Removes the sender's last request.",
       "queue": "Shows the next songs and the link to the public queue.",
       "song": "Says what's playing, with the link.",
@@ -412,13 +412,14 @@
       "banned_track": "Banned song",
       "banned_author": "Banned artist",
       "unsupported": "Unsupported link",
-      "invalid_link": "Link without a video",
+      "invalid_link": "Link without a song",
       "not_found": "Doesn't exist",
-      "private": "Private video",
+      "private": "Private",
       "live": "Live stream",
       "upcoming": "Not premiered yet",
-      "not_embeddable": "Can't play outside YouTube",
+      "not_embeddable": "Can't be played outside its site",
       "age_restricted": "Age-restricted",
+      "preview_only": "Preview only (SoundCloud Go+)",
       "no_match": "Not found",
       "failed": "Couldn't read the song",
       "wrongsong_removed": "!wrongsong: removed",
@@ -469,7 +470,7 @@
       "listenHere": "Listen here",
       "listenHereHint": "This browser becomes the player and the OBS one goes quiet. When you turn it off, OBS plays again on its own.",
       "addTitle": "Add a song",
-      "addPlaceholder": "YouTube or Spotify link, or song name",
+      "addPlaceholder": "YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or song name",
       "adding": "Searching…",
       "add": "Add",
       "added": "Added at position #{{position}}.",
@@ -501,14 +502,15 @@
       "banned_user": "That user is banned.",
       "queue_full": "The queue is full.",
       "user_limit": "Request limit reached.",
-      "unsupported": "Only YouTube and Spotify links are accepted for now.",
+      "unsupported": "YouTube, Spotify, SoundCloud, Deezer and Apple Music links are accepted.",
       "invalid_link": "That link doesn't point to a song.",
-      "not_found": "That video doesn't exist or is no longer available.",
-      "private": "That video is private.",
+      "not_found": "That song doesn't exist or is no longer available.",
+      "private": "That song is private.",
       "live": "Live streams aren't accepted.",
       "upcoming": "That video hasn't premiered yet.",
-      "not_embeddable": "That video can't be played outside YouTube.",
+      "not_embeddable": "That song can't be played outside its site.",
       "age_restricted": "That video is age-restricted.",
+      "preview_only": "That SoundCloud song only plays a preview outside the app (SoundCloud Go+).",
       "no_match": "Couldn't find that song.",
       "failed": "Couldn't read the song. Try again.",
       "banned_track": "That song is banned.",
@@ -585,7 +587,7 @@
       "time": "Elapsed time and length.",
       "next": "The next song in the queue.",
       "queue": "A list of the next songs.",
-      "source": "Where it comes from (YouTube, Spotify…)."
+      "source": "Where it comes from (YouTube, Spotify, SoundCloud…)."
     },
     "elementOptions": {
       "videoHint": "Without the video the player still plays: it just isn't shown.",
@@ -709,7 +711,7 @@
       "track": {
         "title": "Songs ({{count}})",
         "description": "A specific song.",
-        "placeholder": "YouTube or Spotify link, or song name"
+        "placeholder": "YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or song name"
       },
       "author": {
         "title": "Artists and channels ({{count}})",
@@ -764,8 +766,8 @@
     },
     "downloads": {
       "title": "Download video or audio",
-      "description": "Paste a YouTube, Spotify or other site link (or type a song name). It downloads to your PC with Decatron Desktop, using your connection.",
-      "placeholder": "YouTube, Spotify or other site link, or song name",
+      "description": "Paste a YouTube, Spotify, SoundCloud, Deezer, Apple Music or other site link (or type a song name). It downloads to your PC with Decatron Desktop, using your connection.",
+      "placeholder": "YouTube, Spotify, SoundCloud or other site link, or song name",
       "analyze": "Analyze",
       "analyzing": "Analyzing…",
       "firstTimeHint": "The first time, the app downloads yt-dlp and ffmpeg (about 100 MB on Windows); it may take a couple of minutes.",

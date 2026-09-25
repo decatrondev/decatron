@@ -534,6 +534,11 @@ try
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.IPlaylistSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.SpotifyTrackResolver>(); // fase 4: links de Spotify → misma canción en YouTube
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.DeezerTrackResolver>(); // fase 6: Deezer y Apple Music, igual que Spotify
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.AppleMusicTrackResolver>();
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.SoundCloudTrackSource>(); // fase 6: fuente propia (su reproductor y descarga)
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.SoundCloudTrackSource>());
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.SoundCloudTrackSource>());
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestLibraryService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongResolverService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestService>();

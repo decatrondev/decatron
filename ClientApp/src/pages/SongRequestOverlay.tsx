@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as signalR from '@microsoft/signalr';
 import SongOverlayRenderer, { type OverlayLabels } from './features/song-request-extension/components/SongOverlayRenderer';
-import YouTubePlayer from './features/song-request-extension/components/YouTubePlayer';
+import TrackPlayer from './features/song-request-extension/components/TrackPlayer';
 import { useSongRequestPlayer, useSongRequestWatch } from './features/song-request-extension/hooks/useSongRequestHub';
 import { normalizeOverlayConfig } from './features/song-request-extension/constants/defaults';
 import { useLayoutFonts } from './features/song-request-extension/utils';
@@ -77,8 +77,8 @@ function PlayerOverlay({ channel, playerKey }: { channel: string; playerKey: str
 
     const current = snapshot?.current ?? null;
     const item = useMemo(
-        () => (current?.sourceId ? { id: current.id, videoId: current.sourceId } : null),
-        [current?.id, current?.sourceId],
+        () => (current?.sourceId ? { id: current.id, source: current.source, sourceId: current.sourceId } : null),
+        [current?.id, current?.source, current?.sourceId],
     );
 
     if (status === 'invalid_key') {
@@ -88,7 +88,7 @@ function PlayerOverlay({ channel, playerKey }: { channel: string; playerKey: str
     if (status === 'replaced' || !layout) return null;
 
     const player = (
-        <YouTubePlayer
+        <TrackPlayer
             item={item}
             paused={snapshot?.paused ?? false}
             volume={snapshot?.volume ?? 50}

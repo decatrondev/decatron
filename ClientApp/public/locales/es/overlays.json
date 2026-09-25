@@ -100,7 +100,7 @@
       "name": "Song Request",
       "description": "Tus viewers piden canciones de YouTube con !sr y suenan en tu stream, con cola, votación y vetos.",
       "features": [
-        "!sr con link de YouTube o Spotify, o el nombre",
+        "!sr con link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o el nombre",
         "Control remoto de la cola desde el dashboard",
         "Editor visual con temas, plantillas y animaciones",
         "Cola pública en vivo para tus viewers"
@@ -344,7 +344,7 @@
       "commandsTitle": "Comandos del chat"
     },
     "commandHelp": {
-      "sr": "Pide una canción con un link de YouTube o Spotify, o con el nombre.",
+      "sr": "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre.",
       "wrongsong": "Quita el último pedido de quien lo escribe.",
       "queue": "Muestra las próximas canciones y el link a la cola pública.",
       "song": "Dice qué suena ahora, con el link.",
@@ -412,13 +412,14 @@
       "banned_track": "Canción vetada",
       "banned_author": "Artista vetado",
       "unsupported": "Link no soportado",
-      "invalid_link": "Link sin video",
+      "invalid_link": "Link sin canción",
       "not_found": "No existe",
-      "private": "Video privado",
+      "private": "Privada",
       "live": "Transmisión en vivo",
       "upcoming": "Todavía no se estrena",
-      "not_embeddable": "No se puede reproducir fuera de YouTube",
+      "not_embeddable": "No se puede reproducir fuera de su sitio",
       "age_restricted": "Restricción de edad",
+      "preview_only": "Solo un fragmento (SoundCloud Go+)",
       "no_match": "No se encontró",
       "failed": "Error al leer la canción",
       "wrongsong_removed": "!wrongsong: quitada",
@@ -469,7 +470,7 @@
       "listenHere": "Escuchar aquí",
       "listenHereHint": "Este navegador pasa a ser el reproductor y el de OBS se calla. Al apagarlo, OBS vuelve a sonar solo.",
       "addTitle": "Agregar una canción",
-      "addPlaceholder": "Link de YouTube o Spotify, o nombre de la canción",
+      "addPlaceholder": "Link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o nombre de la canción",
       "adding": "Buscando…",
       "add": "Agregar",
       "added": "Agregada en la posición #{{position}}.",
@@ -501,14 +502,15 @@
       "banned_user": "Ese usuario está vetado.",
       "queue_full": "La cola está llena.",
       "user_limit": "Límite de pedidos alcanzado.",
-      "unsupported": "Por ahora se aceptan links de YouTube y Spotify.",
+      "unsupported": "Se aceptan links de YouTube, Spotify, SoundCloud, Deezer y Apple Music.",
       "invalid_link": "Ese link no lleva a una canción.",
-      "not_found": "Ese video no existe o ya no está disponible.",
-      "private": "Ese video es privado.",
+      "not_found": "Esa canción no existe o ya no está disponible.",
+      "private": "Esa canción es privada.",
       "live": "No se aceptan transmisiones en vivo.",
       "upcoming": "Ese video todavía no se estrenó.",
-      "not_embeddable": "Ese video no se puede reproducir fuera de YouTube.",
+      "not_embeddable": "Esa canción no se puede reproducir fuera de su sitio.",
       "age_restricted": "Ese video tiene restricción de edad.",
+      "preview_only": "Esa canción de SoundCloud solo deja escuchar un fragmento fuera de la app (SoundCloud Go+).",
       "no_match": "No se encontró esa canción.",
       "failed": "No se pudo leer la canción. Intenta de nuevo.",
       "banned_track": "Esa canción está vetada.",
@@ -585,7 +587,7 @@
       "time": "Tiempo transcurrido y duración.",
       "next": "La próxima canción de la cola.",
       "queue": "Lista de las próximas canciones.",
-      "source": "De dónde viene (YouTube, Spotify…)."
+      "source": "De dónde viene (YouTube, Spotify, SoundCloud…)."
     },
     "elementOptions": {
       "videoHint": "Sin el video, el reproductor sigue sonando igual: solo no se ve.",
@@ -709,7 +711,7 @@
       "track": {
         "title": "Canciones ({{count}})",
         "description": "Una canción concreta.",
-        "placeholder": "Link de YouTube o Spotify, o nombre de la canción"
+        "placeholder": "Link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o nombre de la canción"
       },
       "author": {
         "title": "Artistas y canales ({{count}})",
@@ -764,8 +766,8 @@
     },
     "downloads": {
       "title": "Descargar video o audio",
-      "description": "Pega un link de YouTube, Spotify u otro sitio (o escribe el nombre de una canción). Se descarga en tu PC con Decatron Desktop, con tu conexión.",
-      "placeholder": "Link de YouTube, Spotify u otro sitio, o nombre de la canción",
+      "description": "Pega un link de YouTube, Spotify, SoundCloud, Deezer, Apple Music u otro sitio (o escribe el nombre de una canción). Se descarga en tu PC con Decatron Desktop, con tu conexión.",
+      "placeholder": "Link de YouTube, Spotify, SoundCloud u otro sitio, o nombre de la canción",
       "analyze": "Analizar",
       "analyzing": "Analizando…",
       "firstTimeHint": "La primera vez la app descarga yt-dlp y ffmpeg (unos 100 MB en Windows); puede tardar un par de minutos.",

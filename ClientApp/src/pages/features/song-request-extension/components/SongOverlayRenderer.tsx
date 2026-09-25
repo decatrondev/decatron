@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ElementConfig, OverlayLayout, PlaybackProgress, QueueItem, TextStyle } from '../types';
 import { ELEMENT_ORDER } from '../constants/defaults';
-import { formatDuration } from '../utils';
+import { formatDuration, sourceName } from '../utils';
 
 // Dibuja un overlay de song request a su tamaño real (layout.canvas). Lo usan el overlay de OBS,
 // la vista previa y el editor, así que los tres se ven idénticos. El que lo muestra más chico
@@ -132,7 +132,7 @@ export default function SongOverlayRenderer({ layout, current, queue, progress, 
 
     const requesterLabel = els.requester.options.label || labels.requestedBy;
     const nextLabel = els.next.options.label || labels.next;
-    const sourceName = (current?.originSource ?? current?.source) === 'spotify' ? 'Spotify' : 'YouTube';
+    const serviceName = sourceName(current?.originSource ?? current?.source);
     const fraction = duration > 0 ? Math.min(1, position / duration) : 0;
 
     return (
@@ -182,7 +182,7 @@ export default function SongOverlayRenderer({ layout, current, queue, progress, 
                     {current && textEl('requester', current.isFallback ? labels.fallback : requesterLabel.replace('{{user}}', current.requestedBy))}
                     {current && textEl('time', timeText)}
                     {next && textEl('next', `${nextLabel} ${next.title}`)}
-                    {current && textEl('source', sourceName)}
+                    {current && textEl('source', serviceName)}
 
                     {els.progress.enabled && current && (
                         <div style={{ ...box(els.progress), background: els.progress.options.track, borderRadius: els.progress.options.radius ?? 4, overflow: 'hidden' }}>

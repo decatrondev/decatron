@@ -597,6 +597,7 @@ namespace Decatron.Services.SongRequest
             SongResolveError.Upcoming => "upcoming",
             SongResolveError.NotEmbeddable => "not_embeddable",
             SongResolveError.AgeRestricted => "age_restricted",
+            SongResolveError.PreviewOnly => "preview_only",
             SongResolveError.NoMatch => "no_match",
             _ => "failed"
         };

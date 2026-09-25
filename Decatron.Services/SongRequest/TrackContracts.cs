@@ -23,6 +23,8 @@ namespace Decatron.Services.SongRequest
         Upcoming,
         NotEmbeddable,
         AgeRestricted,
+        /// <summary>Fuera de su app solo deja escuchar un fragmento (SoundCloud Go+).</summary>
+        PreviewOnly,
         /// <summary>La búsqueda no encontró una coincidencia confiable.</summary>
         NoMatch,
         /// <summary>La fuente bloqueó al server (ej. "confirm you're not a bot").</summary>
@@ -50,7 +52,7 @@ namespace Decatron.Services.SongRequest
         public static ResolverResult Fail(SongResolveError error) => new(null, error);
     }
 
-    /// <summary>Entiende los links de un servicio (YouTube, Spotify, luego Apple Music, Deezer…).</summary>
+    /// <summary>Entiende los links de un servicio (YouTube, Spotify, Deezer, Apple Music, SoundCloud).</summary>
     public interface ITrackResolver
     {
         /// <summary>youtube, spotify…</summary>
@@ -84,7 +86,7 @@ namespace Decatron.Services.SongRequest
         Task<(System.Collections.Generic.List<SongTrack> Tracks, SongResolveError Error)> ListPlaylistAsync(Uri url, int max, CancellationToken ct = default);
     }
 
-    /// <summary>De dónde sale el audio para reproducir y descargar (YouTube, luego SoundCloud…).</summary>
+    /// <summary>De dónde sale el audio para reproducir y descargar (YouTube, SoundCloud).</summary>
     public interface ITrackSource
     {
         /// <summary>Lo que se guarda en song_request_tracks.source.</summary>

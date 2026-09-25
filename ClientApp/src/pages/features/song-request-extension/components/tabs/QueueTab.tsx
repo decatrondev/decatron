@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pause, Play, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio, Download } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Toggle, inputClass } from '../ui';
-import YouTubePlayer from '../YouTubePlayer';
+import TrackPlayer from '../TrackPlayer';
 import { useSongRequestPlayer } from '../../hooks/useSongRequestHub';
 import { formatDuration } from '../../utils';
 import type { PlaybackProgress, QueueItem, QueueSnapshot } from '../../types';
@@ -278,7 +278,10 @@ function LocalPlayer({ channel, playerKey }: { channel: string; playerKey: strin
     const { t } = useTranslation('overlays');
     const { snapshot, status, reportEnded, reportError, reportProgress } = useSongRequestPlayer(channel, playerKey);
     const current = snapshot?.current ?? null;
-    const item = useMemo(() => (current?.sourceId ? { id: current.id, videoId: current.sourceId } : null), [current?.id, current?.sourceId]);
+    const item = useMemo(
+        () => (current?.sourceId ? { id: current.id, source: current.source, sourceId: current.sourceId } : null),
+        [current?.id, current?.source, current?.sourceId],
+    );
 
     return (
         <div className="mt-4 space-y-2">
@@ -288,7 +291,7 @@ function LocalPlayer({ channel, playerKey }: { channel: string; playerKey: strin
             </p>
             {status !== 'replaced' && (
                 <div className="w-full max-w-md aspect-video rounded-xl overflow-hidden bg-black">
-                    <YouTubePlayer item={item} paused={snapshot?.paused ?? false} volume={snapshot?.volume ?? 50} onEnded={reportEnded} onError={reportError} onProgress={reportProgress} />
+                    <TrackPlayer item={item} paused={snapshot?.paused ?? false} volume={snapshot?.volume ?? 50} onEnded={reportEnded} onError={reportError} onProgress={reportProgress} />
                 </div>
             )}
         </div>

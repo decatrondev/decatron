@@ -5,7 +5,7 @@ import { Download, FolderOpen, Loader2, Search, X, Monitor, RefreshCw, Trash2 } 
 import api from '../../../../../services/api';
 import { useDesktopDownload } from '../../../../../hooks/useDesktopDownload';
 import { Card, Field, Select, Toggle, inputClass } from '../ui';
-import { formatDuration } from '../../utils';
+import { formatDuration, sourceName } from '../../utils';
 
 // Descargas (.dev/plans/SONG_REQUEST_PLAN.md, fase 5): se piden acá y corren en Decatron Desktop,
 // en la PC del streamer. El estado se consulta cada 1,5 s mientras la pestaña está abierta.
@@ -191,7 +191,7 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                                 <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">
                                     {probe.origin ? probe.origin.artist : probe.info.uploader}
                                     {probe.info.duration ? ` · ${formatDuration(probe.info.duration)}` : ''}
-                                    {` · ${probe.origin ? 'Spotify → YouTube' : probe.info.extractor}`}
+                                    {` · ${probe.origin ? `${sourceName(probe.origin.source)} → YouTube` : probe.info.extractor}`}
                                 </p>
                                 <button className="text-xs 3xl:text-sm text-[#64748b] hover:text-red-600 flex items-center gap-1" onClick={() => setProbe(null)}><X className="w-3 h-3" /> {t('songRequest.downloads.discard')}</button>
                             </div>
