@@ -149,21 +149,16 @@ export default function SongOverlayRenderer({ layout, current, queue, progress, 
                     }} />
                 )}
 
-                {els.video.enabled && videoSlot && (
-                    <div style={{ ...box(els.video), borderRadius: theme.coverRadius, overflow: 'hidden', background: '#000' }}>
-                        {videoSlot}
-                    </div>
-                )}
-
                 <div key={songKey} style={{ position: 'absolute', inset: 0, animation: animName === 'none' ? undefined : `${animName} ${animations.durationMs}ms cubic-bezier(.2,.8,.2,1) both` }}>
-                    {els.video.enabled && !videoSlot && current?.thumbnailUrl && (
-                        <img src={current.thumbnailUrl} alt="" style={{ ...box(els.video), objectFit: 'cover', borderRadius: theme.coverRadius }} />
-                    )}
-
                     {els.cover.enabled && (
                         current?.thumbnailUrl
                             ? <img src={current.thumbnailUrl} alt="" style={{ ...box(els.cover), objectFit: 'cover', borderRadius: theme.coverRadius }} />
                             : <div style={{ ...box(els.cover), borderRadius: theme.coverRadius, background: `linear-gradient(135deg, ${theme.accent}33, transparent)` }} />
+                    )}
+
+                    {/* Sin reproductor (vista previa, editor): la miniatura ocupa el lugar del video, encima de la portada */}
+                    {els.video.enabled && !videoSlot && current?.thumbnailUrl && (
+                        <img src={current.thumbnailUrl} alt="" style={{ ...box(els.video), objectFit: 'cover', borderRadius: theme.coverRadius }} />
                     )}
 
                     {els.equalizer.enabled && current && (
@@ -205,6 +200,14 @@ export default function SongOverlayRenderer({ layout, current, queue, progress, 
                         </div>
                     )}
                 </div>
+
+                {/* El video real va encima (si comparte lugar con la portada, la tapaba) y fuera de la capa
+                    animada, así el iframe no se recarga en cada cambio de canción */}
+                {els.video.enabled && videoSlot && (
+                    <div style={{ ...box(els.video), borderRadius: theme.coverRadius, overflow: 'hidden', background: '#000' }}>
+                        {videoSlot}
+                    </div>
+                )}
             </div>
 
             <style>{OVERLAY_KEYFRAMES}</style>

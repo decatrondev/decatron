@@ -58,6 +58,8 @@ export default function SongRequestOverlay() {
     useEffect(() => {
         document.body.style.background = 'transparent';
         document.documentElement.style.background = 'transparent';
+        document.body.style.margin = '0';
+        document.body.style.overflow = 'hidden';
     }, []);
 
     if (!channel) return null;
