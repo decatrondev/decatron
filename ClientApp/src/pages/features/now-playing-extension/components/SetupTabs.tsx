@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, ExternalLink, Link as LinkIcon, Unlink, RefreshCw, Loader2, Sparkles } from 'lucide-react';
-import { Card, Field, Toggle, Slider, CopyButton, inputClass } from '../../../../components/overlay-editor/ui';
+import { Card, Field, Toggle, CopyButton, inputClass } from '../../../../components/overlay-editor/ui';
 import api from '../../../../services/api';
 import type { NowPlayingConfigState } from '../hooks/useNowPlayingConfig';
 
@@ -155,9 +155,7 @@ export function ConnectionTab({ cfg }: TabProps) {
             <Card title={t('nowPlaying.connection.statusTitle')}>
                 <div className="space-y-6">
                     <Toggle checked={s.isEnabled} onChange={v => cfg.update({ isEnabled: v })} label={t('nowPlaying.connection.enabled')} hint={t('nowPlaying.connection.enabledHint')} />
-                    <Field label={t('nowPlaying.connection.polling')} hint={t('nowPlaying.connection.pollingHint')}>
-                        <Slider value={s.pollingInterval} min={3} max={10} suffix=" s" onChange={v => cfg.update({ pollingInterval: v })} />
-                    </Field>
+                    <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('nowPlaying.connection.pollingFixed')}</p>
                 </div>
             </Card>
 

@@ -97,7 +97,7 @@ export default function NowPlayingDoc() {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <TabItem icon={<Settings className="w-4 h-4" />} title="Guía" description="Los pasos para empezar y el link para OBS" />
-                    <TabItem icon={<Radio className="w-4 h-4" />} title="Conexión" description="Activar, Last.fm o Spotify (con su cupo) y cada cuánto se consulta" />
+                    <TabItem icon={<Radio className="w-4 h-4" />} title="Conexión" description="Activar y conectar Last.fm o Spotify (con su cupo). La canción se consulta cada 3 segundos" />
                     <TabItem icon={<Palette className="w-4 h-4" />} title="Tema" description="Temas prearmados, fondo, borde, acento y plantillas guardadas" />
                     <TabItem icon={<Layout className="w-4 h-4" />} title="Elementos" description="Portada, título, artista, álbum, barra, tiempos, icono y ecualizador" />
                     <TabItem icon={<Type className="w-4 h-4" />} title="Tipografía" description="Fuente, tamaño, color y sombra de cada texto" />

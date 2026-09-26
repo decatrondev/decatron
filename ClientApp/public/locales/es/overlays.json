@@ -1099,8 +1099,6 @@
       "statusTitle": "Estado",
       "enabled": "Now Playing activo",
       "enabledHint": "Apagado, el overlay no muestra nada.",
-      "polling": "Cada cuánto se consulta la canción",
-      "pollingHint": "Menos segundos = el cambio de canción se ve antes.",
       "providerTitle": "De dónde sale la canción",
       "providerDescription": "Elige el servicio y conéctalo abajo.",
       "lastfm": "Last.fm",
@@ -1139,7 +1137,8 @@
       "cupoRequested": "Cupo pedido. Te avisaremos cuando esté activo.",
       "cupoFull": "Los {{total}} cupos están ocupados. Mientras tanto puedes usar Last.fm, que no tiene límite.",
       "cupoPending": "Tu cupo está pedido y pendiente de activación.",
-      "error": "Algo salió mal. Inténtalo de nuevo."
+      "error": "Algo salió mal. Inténtalo de nuevo.",
+      "pollingFixed": "La canción se consulta cada 3 segundos."
     },
     "preview": {
       "title": "Vista previa",

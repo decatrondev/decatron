@@ -25,79 +25,34 @@ namespace Decatron.Services
 
         private const int MaxSpotifyUsers = 5; // Limit for non-premium users in Spotify dashboard
 
-        // Tier limits for Now Playing
-        private static readonly Dictionary<string, NowPlayingTierLimits> TierLimits = new()
+        /// <summary>Cada cuánto se consulta la canción: igual para todos.</summary>
+        public const int PollingIntervalSeconds = 3;
+
+        // Now Playing es igual para todos los tiers (.dev/plans/NOW_PLAYING_REDESIGN_PLAN.md, fase 3).
+        // Lo único que depende del tier es el orden de la lista de espera de cupos de Spotify.
+        private static readonly NowPlayingTierLimits AllAllowed = new()
         {
-            ["free"] = new NowPlayingTierLimits
-            {
-                CanUseSpotify = true,
-                AllowVertical = false,
-                AllowToggleElements = true,
-                AllowGradient = false,
-                AllowTransparent = false,
-                AllowCustomColors = true,
-                AllowCustomOpacity = false,
-                AllowCustomFonts = true,
-                AllowFontSize = true,
-                AllowTextShadow = false,
-                AllowProgressBarColors = false,
-                AllowProgressBarAnimation = false,
-                AllowAnimationType = true,
-                AllowAnimationDetails = false,
-                AllowFreeMode = false,
-                AllowMoveCard = false,
-                AllowedCanvasPresets = new[] { "1920x1080" },
-                PollingInterval = 5,
-            },
-            ["supporter"] = new NowPlayingTierLimits
-            {
-                CanUseSpotify = true,
-                AllowVertical = true,
-                AllowToggleElements = true,
-                AllowGradient = false,
-                AllowTransparent = true,
-                AllowCustomColors = true,
-                AllowCustomOpacity = true,
-                AllowCustomFonts = false,
-                AllowFontSize = true,
-                AllowTextShadow = false,
-                AllowProgressBarColors = true,
-                AllowProgressBarAnimation = false,
-                AllowAnimationType = true,
-                AllowAnimationDetails = false,
-                AllowFreeMode = false,
-                AllowMoveCard = true,
-                AllowedCanvasPresets = new[] { "1920x1080", "1280x720" },
-                PollingInterval = 5,
-            },
-            ["premium"] = new NowPlayingTierLimits
-            {
-                CanUseSpotify = true,
-                AllowVertical = true,
-                AllowToggleElements = true,
-                AllowGradient = true,
-                AllowTransparent = true,
-                AllowCustomColors = true,
-                AllowCustomOpacity = true,
-                AllowCustomFonts = true,
-                AllowFontSize = true,
-                AllowTextShadow = true,
-                AllowProgressBarColors = true,
-                AllowProgressBarAnimation = true,
-                AllowAnimationType = true,
-                AllowAnimationDetails = true,
-                AllowFreeMode = true,
-                AllowMoveCard = true,
-                AllowedCanvasPresets = new[] { "1920x1080", "1280x720", "2560x1440", "3840x2160" },
-                PollingInterval = 3,
-            },
+            CanUseSpotify = true,
+            AllowVertical = true,
+            AllowToggleElements = true,
+            AllowGradient = true,
+            AllowTransparent = true,
+            AllowCustomColors = true,
+            AllowCustomOpacity = true,
+            AllowCustomFonts = true,
+            AllowFontSize = true,
+            AllowTextShadow = true,
+            AllowProgressBarColors = true,
+            AllowProgressBarAnimation = true,
+            AllowAnimationType = true,
+            AllowAnimationDetails = true,
+            AllowFreeMode = true,
+            AllowMoveCard = true,
+            AllowedCanvasPresets = new[] { "1920x1080", "1280x720", "2560x1440", "3840x2160" },
+            PollingInterval = PollingIntervalSeconds,
         };
 
-        public static NowPlayingTierLimits GetLimitsForTier(string tier)
-        {
-            if (tier is "fundador" or "admin") return TierLimits["premium"]; // Unlimited = same as premium
-            return TierLimits.GetValueOrDefault(tier, TierLimits["free"]);
-        }
+        public static NowPlayingTierLimits GetLimitsForTier(string tier) => AllAllowed;
 
         public NowPlayingService(
             DecatronDbContext context,
@@ -138,12 +93,7 @@ namespace Decatron.Services
         {
             var existing = await GetConfig(userId);
 
-            // Validate tier restrictions
-            var tier = await GetUserTier(userId);
-            var limits = GetLimitsForTier(tier);
             var requestedProvider = GetStringProperty(configData, "provider", existing?.Provider ?? "lastfm");
-            if (requestedProvider == "spotify" && !limits.CanUseSpotify)
-                requestedProvider = "lastfm"; // Force Last.fm if tier doesn't allow Spotify
 
             if (existing != null)
             {
@@ -151,7 +101,7 @@ namespace Decatron.Services
                 existing.IsEnabled = GetBoolProperty(configData, "isEnabled", existing.IsEnabled);
                 existing.Provider = requestedProvider;
                 existing.LastfmUsername = GetStringProperty(configData, "lastfmUsername", existing.LastfmUsername);
-                existing.PollingInterval = GetIntProperty(configData, "pollingInterval", existing.PollingInterval);
+                existing.PollingInterval = PollingIntervalSeconds;
 
                 if (configData.TryGetProperty("configJson", out var configJson))
                 {
@@ -175,7 +125,7 @@ namespace Decatron.Services
                     IsEnabled = GetBoolProperty(configData, "isEnabled", false),
                     Provider = GetStringProperty(configData, "provider", "lastfm"),
                     LastfmUsername = GetStringProperty(configData, "lastfmUsername", null),
-                    PollingInterval = GetIntProperty(configData, "pollingInterval", 5),
+                    PollingInterval = PollingIntervalSeconds,
                     ConfigJson = configData.TryGetProperty("configJson", out var cj) ? cj.GetRawText() : "{}",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow

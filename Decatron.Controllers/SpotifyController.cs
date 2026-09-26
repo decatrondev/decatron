@@ -60,11 +60,7 @@ namespace Decatron.Controllers
             if (channelOwnerId == 0)
                 return Unauthorized(new { success = false, message = "No autenticado" });
 
-            // Check tier — Spotify requires Supporter+
-            var tier = await _nowPlayingService.GetUserTierPublic(channelOwnerId);
-            var limits = NowPlayingService.GetLimitsForTier(tier);
-            if (!limits.CanUseSpotify)
-                return StatusCode(403, new { success = false, message = "Spotify requiere ser Supporter ($5/mes) o superior" });
+            // Spotify es para todos los tiers; el límite real son los cupos (se asignan a mano)
 
             // Generate cryptographic state token to prevent CSRF and forgery
             var stateToken = Guid.NewGuid().ToString("N");

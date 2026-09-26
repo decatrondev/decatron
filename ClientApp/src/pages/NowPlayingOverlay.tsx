@@ -97,12 +97,13 @@ export default function NowPlayingOverlay() {
         }
     }, [channel, handleUpdate]);
 
-    // Sin avisos en 30 s: se oculta
+    // Sin avisos en 30 s: se oculta. Solo con Spotify, que avisa en cada consulta; Last.fm avisa solo
+    // cuando cambia la canción (antes el overlay se ocultaba a los 30 s de cada canción con Last.fm)
     useEffect(() => {
-        if (hidden) return;
+        if (hidden || current?.source !== 'spotify') return;
         const id = setInterval(() => { if (Date.now() - lastUpdateRef.current > STALE_MS) stop(); }, 5000);
         return () => clearInterval(id);
-    }, [hidden, stop]);
+    }, [hidden, current, stop]);
 
     useEffect(() => {
         if (!channel) return;

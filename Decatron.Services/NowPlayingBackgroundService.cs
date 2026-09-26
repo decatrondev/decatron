@@ -91,10 +91,9 @@ namespace Decatron.Services
                     continue; // No overlay viewers — skip to save API calls
                 }
 
-                // Per-channel throttling based on tier
-                var intervalSeconds = await GetPollingInterval(config.UserId, nowPlayingService);
+                // Cada 3 s para todos (antes dependía del tier y en la práctica quedaba en 10-15 s)
                 if (_lastPollTime.TryGetValue(config.ChannelName, out var lastPoll)
-                    && (DateTime.UtcNow - lastPoll).TotalSeconds < intervalSeconds)
+                    && (DateTime.UtcNow - lastPoll).TotalSeconds < NowPlayingService.PollingIntervalSeconds)
                 {
                     continue; // Skip — not enough time since last poll
                 }
@@ -116,43 +115,6 @@ namespace Decatron.Services
                 {
                     _logger.LogDebug(ex, "Error polling now playing for channel {Channel}", config.ChannelName);
                 }
-            }
-        }
-
-        // Tier cache: userId -> (tier, cachedAt)
-        private readonly ConcurrentDictionary<long, (string tier, DateTime cachedAt)> _tierCache = new();
-
-        private async Task<int> GetPollingInterval(long userId, NowPlayingService nowPlayingService)
-        {
-            // Cache tier for 5 minutes to avoid DB spam
-            if (_tierCache.TryGetValue(userId, out var cached)
-                && (DateTime.UtcNow - cached.cachedAt).TotalMinutes < 5)
-            {
-                return cached.tier is "premium" or "fundador" or "admin" ? 10 : 15;
-            }
-
-            try
-            {
-                var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using var connection = new Npgsql.NpgsqlConnection(connectionString);
-                await connection.OpenAsync();
-
-                using var cmd = new Npgsql.NpgsqlCommand(@"
-                    SELECT tier FROM user_subscription_tiers
-                    WHERE user_id = @userId
-                    AND (tier_expires_at IS NULL OR tier_expires_at > NOW())
-                    LIMIT 1", connection);
-                cmd.Parameters.AddWithValue("@userId", userId);
-
-                var result = await cmd.ExecuteScalarAsync();
-                var tier = result?.ToString() ?? "free";
-
-                _tierCache[userId] = (tier, DateTime.UtcNow);
-                return tier is "premium" or "fundador" or "admin" ? 3 : 5;
-            }
-            catch
-            {
-                return 15; // Default to 15s on error
             }
         }
 
