@@ -435,6 +435,7 @@ namespace Decatron.Services
         {
             ["to_broadcaster_user_login"] = e.ToBroadcasterUserLogin,
             ["from_broadcaster_user_name"] = e.FromBroadcasterUserName,
+            ["from_broadcaster_user_login"] = e.FromBroadcasterUserLogin,
             ["viewers"] = e.Viewers
         };
 

@@ -1130,8 +1130,14 @@ namespace Decatron.Services
                 await _petEventBridge.OnAlertAsync(toBroadcasterUserName, "raid", fromBroadcasterUserName, amount: viewers); // mascota: nunca lanza
 
                 // Shoutout automático a quien hizo el raid (si el canal lo prendió): en segundo plano, con su demora
+                // El login; si no viene, el nombre visible en minúsculas (en Twitch solo difieren en mayúsculas)
                 var fromLogin = datosEvento["from_broadcaster_user_login"]?.ToString();
-                if (!string.IsNullOrEmpty(fromLogin))
+                if (string.IsNullOrEmpty(fromLogin)) fromLogin = fromBroadcasterUserName.ToLowerInvariant();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(fromLogin, "^[a-z0-9_]+$"))
+                {
+                    _logger.LogWarning("[SHOUTOUT] Raid sin login válido de {From}: no se hace el shoutout automático", fromBroadcasterUserName);
+                }
+                else
                 {
                     var shoutoutService = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<ShoutoutService>();
                     _ = Task.Run(() => shoutoutService.HandleRaidAsync(toBroadcasterUserName, fromLogin, viewers));
