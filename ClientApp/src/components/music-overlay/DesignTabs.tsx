@@ -6,7 +6,7 @@ import MusicCanvasEditor, { type CanvasSample } from './MusicCanvasEditor';
 import type { OverlayLabels } from './MusicOverlayRenderer';
 import { FONT_FAMILIES, TEXT_ELEMENTS, ELEMENT_ORDER } from './defaults';
 import { THEME_PRESETS, applyThemePreset } from './presets';
-import { toggleElement } from './utils';
+import { contentBounds, toggleElement } from './utils';
 import VideoCoverNotice from './VideoCoverNotice';
 import type { Direction, ElementConfig, ElementId, Easing, OverlayLayout, SavedTemplate, ShowHideAnimation, SongChangeAnimation, TextStyle } from './types';
 
@@ -391,7 +391,7 @@ export function EditorTab(props: DesignProps & { labels: OverlayLabels; sample: 
                             <button key={p.id} onClick={() => applyLayout(p.build)} className="p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left">
                                 <LayoutThumb layout={l} />
                                 <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mt-2">{t(`musicOverlay.editor.layouts.${p.id}`)}</p>
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{l.canvas.width}×{l.canvas.height}</p>
+                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{contentBounds(l).width}×{contentBounds(l).height}</p>
                             </button>
                         );
                     })}
@@ -404,14 +404,16 @@ export function EditorTab(props: DesignProps & { labels: OverlayLabels; sample: 
 
 /** Miniatura esquemática de un diseño (cajas de cada elemento). */
 function LayoutThumb({ layout }: { layout: OverlayLayout }) {
+    // Encuadra el widget (en Now Playing el lienzo es la pantalla entera y el widget ocupa una esquina)
+    const bb = contentBounds(layout);
     const w = 140;
-    const s = w / Math.max(layout.canvas.width, layout.canvas.height * 1.6);
+    const s = w / Math.max(bb.width, bb.height * 1.6);
     const colors: Partial<Record<ElementId, string>> = { panel: '#1f2937', cover: '#3b82f6', video: '#3b82f6', title: '#e5e7eb', artist: '#9ca3af', requester: '#39ff14', progress: '#39ff14', queue: '#6b7280' };
     return (
-        <div className="relative mx-auto rounded bg-[#0b0b10]" style={{ width: layout.canvas.width * s, height: layout.canvas.height * s }}>
+        <div className="relative mx-auto rounded bg-[#0b0b10] overflow-hidden" style={{ width: bb.width * s, height: bb.height * s }}>
             {ELEMENT_ORDER.filter(id => layout.elements[id].enabled && colors[id]).map(id => {
                 const e = layout.elements[id];
-                return <span key={id} className="absolute rounded-sm" style={{ left: e.x * s, top: e.y * s, width: Math.max(2, e.width * s), height: Math.max(2, id === 'title' || id === 'artist' || id === 'requester' ? Math.min(e.height * s, 5) : e.height * s), background: colors[id], opacity: id === 'panel' ? 1 : 0.9 }} />;
+                return <span key={id} className="absolute rounded-sm" style={{ left: (e.x - bb.x) * s, top: (e.y - bb.y) * s, width: Math.max(2, e.width * s), height: Math.max(2, id === 'title' || id === 'artist' || id === 'requester' ? Math.min(e.height * s, 5) : e.height * s), background: colors[id], opacity: id === 'panel' ? 1 : 0.9 }} />;
             })}
         </div>
     );

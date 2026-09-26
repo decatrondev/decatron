@@ -69,3 +69,14 @@ export function toggleElement(layout: OverlayLayout, id: ElementId, enabled: boo
     if (coverHidden) elements.cover = { ...elements.cover, enabled: false };
     return { layout: { ...layout, elements }, coverHidden };
 }
+
+/** La caja que ocupan los elementos visibles (el widget), con un margen. Sin elementos, el lienzo entero. */
+export function contentBounds(layout: OverlayLayout, margin = 0): { x: number; y: number; width: number; height: number } {
+    const on = Object.values(layout.elements).filter(e => e.enabled);
+    if (!on.length) return { x: 0, y: 0, width: layout.canvas.width, height: layout.canvas.height };
+    const x = Math.max(0, Math.min(...on.map(e => e.x)) - margin);
+    const y = Math.max(0, Math.min(...on.map(e => e.y)) - margin);
+    const r = Math.min(layout.canvas.width, Math.max(...on.map(e => e.x + e.width)) + margin);
+    const b = Math.min(layout.canvas.height, Math.max(...on.map(e => e.y + e.height)) + margin);
+    return { x, y, width: Math.max(1, r - x), height: Math.max(1, b - y) };
+}

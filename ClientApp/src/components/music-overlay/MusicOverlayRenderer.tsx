@@ -26,6 +26,8 @@ interface Props {
     videoSlot?: ReactNode;
     /** En el editor: siempre visible aunque no haya canción. */
     alwaysVisible?: boolean;
+    /** Ocultar (con la animación de salida) sin sacar la canción: se sigue viendo mientras sale. */
+    hidden?: boolean;
 }
 
 const SHADOWS: Record<TextStyle['shadow'], string> = {
@@ -146,9 +148,9 @@ function useShowHide(visible: boolean, enter: ShowHideAnimation, exit: ShowHideA
     return showHideCss(visible ? enter : exit, visible);
 }
 
-export default function MusicOverlayRenderer({ layout, current, queue, progress, paused, labels, videoSlot, alwaysVisible }: Props) {
+export default function MusicOverlayRenderer({ layout, current, queue, progress, paused, labels, videoSlot, alwaysVisible, hidden }: Props) {
     const { elements: els, theme, animations } = layout;
-    const visible = alwaysVisible || !!current || !animations.hideWhenIdle;
+    const visible = alwaysVisible || (!hidden && (!!current || !animations.hideWhenIdle));
     const running = !!current && !paused && (progress?.playing ?? false);
     const position = useLivePosition(progress && current && progress.itemId === current.id ? progress : null, running);
     const duration = (progress && current && progress.itemId === current.id && progress.duration) || current?.durationSeconds || 0;

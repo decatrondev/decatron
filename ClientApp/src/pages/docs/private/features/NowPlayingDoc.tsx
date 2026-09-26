@@ -1,4 +1,4 @@
-import { Music, Settings, Layout, Palette, Type, BarChart3, Sparkles, Monitor, ArrowRight, Headphones, Radio } from 'lucide-react';
+import { Music, Settings, Layout, Palette, Type, Sparkles, Monitor, ArrowRight, Headphones, Radio } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DocAlert from '../../../../components/docs/DocAlert';
 import DocSection from '../../../../components/docs/DocSection';
@@ -91,47 +91,40 @@ export default function NowPlayingDoc() {
             </DocSection>
 
             {/* Configuracion */}
-            <DocSection title="Tabs de configuracion">
+            <DocSection title="Pestañas de configuración">
                 <p className="mb-4">
-                    Now Playing tiene 8 tabs de configuracion para personalizar cada aspecto del overlay:
+                    La vista previa en vivo queda siempre a la derecha, con una canción de ejemplo o la que está sonando.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <TabItem icon={<Settings className="w-4 h-4" />} title="General" description="Fuente de musica (Spotify/Last.fm), conexion y activacion" />
-                    <TabItem icon={<Layout className="w-4 h-4" />} title="Layout" description="Disposicion del artwork, texto y barra de progreso" />
-                    <TabItem icon={<Palette className="w-4 h-4" />} title="Estilo" description="Colores de fondo, texto, acentos y bordes" />
-                    <TabItem icon={<Type className="w-4 h-4" />} title="Tipografia" description="Fuente, tamano y peso del texto" />
-                    <TabItem icon={<BarChart3 className="w-4 h-4" />} title="Progreso" description="Barra de progreso de la cancion" />
-                    <TabItem icon={<Sparkles className="w-4 h-4" />} title="Animaciones" description="Efectos de entrada, salida y transicion" />
-                    <TabItem icon={<Monitor className="w-4 h-4" />} title="Posicion" description="Ubicacion del overlay en pantalla" />
+                    <TabItem icon={<Settings className="w-4 h-4" />} title="Guía" description="Los pasos para empezar y el link para OBS" />
+                    <TabItem icon={<Radio className="w-4 h-4" />} title="Conexión" description="Activar, Last.fm o Spotify (con su cupo) y cada cuánto se consulta" />
+                    <TabItem icon={<Palette className="w-4 h-4" />} title="Tema" description="Temas prearmados, fondo, borde, acento y plantillas guardadas" />
+                    <TabItem icon={<Layout className="w-4 h-4" />} title="Elementos" description="Portada, título, artista, álbum, barra, tiempos, icono y ecualizador" />
+                    <TabItem icon={<Type className="w-4 h-4" />} title="Tipografía" description="Fuente, tamaño, color y sombra de cada texto" />
+                    <TabItem icon={<Sparkles className="w-4 h-4" />} title="Animaciones" description="Entrada, salida y cambio de canción" />
+                    <TabItem icon={<Monitor className="w-4 h-4" />} title="Editor" description="Diseños prearmados y lienzo para arrastrar cada elemento" />
                 </div>
             </DocSection>
 
             {/* Overlay en OBS */}
             <DocSection title="Agregar a OBS">
                 <div className="space-y-3">
-                    <StepItem number={1} text="Ve a la pagina de configuracion de Now Playing en el dashboard" />
-                    <StepItem number={2} text="Conecta tu cuenta de Spotify o configura Last.fm" />
-                    <StepItem number={3} text="Personaliza el estilo del overlay a tu gusto" />
-                    <StepItem number={4} text="Copia la URL del overlay desde la pagina de configuracion" />
-                    <StepItem number={5} text="En OBS, agrega una fuente de Navegador con esa URL" />
-                    <StepItem number={6} text="Dimensiones recomendadas: 800x200" />
+                    <StepItem number={1} text="Conecta Last.fm o Spotify en la pestaña Conexión" />
+                    <StepItem number={2} text="Copia el link del overlay desde la pestaña Guía" />
+                    <StepItem number={3} text="En OBS, agrega una fuente de Navegador con ese link" />
+                    <StepItem number={4} text="Ancho y alto: el tamaño del lienzo (1920×1080 salvo que lo cambies en el Editor)" />
                 </div>
-                <DocAlert type="info" title="Auto-hide">
-                    El overlay se oculta automaticamente cuando no hay musica sonando
-                    y reaparece cuando detecta una nueva cancion.
+                <DocAlert type="info" title="Se oculta solo">
+                    El overlay desaparece con la animación de salida cuando no suena nada y vuelve con la próxima canción.
+                    Si prefieres que quede a la vista, apaga «Ocultar cuando no suena nada» en Animaciones.
                 </DocAlert>
             </DocSection>
 
             {/* Tips */}
             <DocSection title="Consejos">
                 <div className="space-y-3">
-                    <DocAlert type="tip" title="Rendimiento">
-                        El sistema solo hace polling cuando el overlay tiene viewers activos.
-                        No consume recursos de la API cuando nadie esta viendo.
-                    </DocAlert>
-                    <DocAlert type="tip" title="Posicion">
-                        El overlay funciona mejor en una esquina inferior de tu stream.
-                        Usa la tab de Posicion para ajustar la ubicacion exacta.
+                    <DocAlert type="tip" title="Posición">
+                        Elige un diseño en el Editor y después arrastra cada elemento donde quieras: lo que ves es lo que sale en OBS.
                     </DocAlert>
                 </div>
             </DocSection>
