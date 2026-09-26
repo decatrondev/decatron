@@ -1178,6 +1178,7 @@
     "tabs": {
       "guide": "Guide",
       "general": "General",
+      "clip": "Clip",
       "theme": "Theme",
       "elements": "Elements",
       "text": "Text",
@@ -1208,7 +1209,7 @@
       "testing": "Sending...",
       "testSent": "Test shoutout sent to OBS.",
       "testFailed": "Could not send the test.",
-      "testHint": "Sends a test shoutout (no clip) to your OBS overlay.",
+      "testHint": "Sends a test shoutout to your OBS overlay with the data and a clip from your own channel.",
       "testUnsaved": "Save first: the test uses what you saved last.",
       "size": "Overlay size: {{width}}×{{height}}"
     },
@@ -1236,7 +1237,7 @@
     "general": {
       "timeTitle": "Timing",
       "duration": "Time on screen",
-      "durationHint": "If the clip ends earlier, it leaves when the clip ends. If the person has no clips, it stays 5 seconds at most.",
+      "durationHint": "If the clip ends earlier, it leaves when the clip ends. Without a clip, it stays as long as you choose in the Clip tab.",
       "cooldown": "Wait before repeating the same person",
       "cooldownHint": "How many seconds must pass before the same person can get another !so. 0 means no wait.",
       "debugTitle": "Countdown",
@@ -1346,6 +1347,7 @@
         "username": "the Twitch username (lowercase)",
         "game": "the last game or category",
         "title": "the last stream title",
+        "tags": "the channel tags",
         "followers": "the follower count",
         "clipTitle": "the clip title",
         "clipViews": "the clip views",
@@ -1443,6 +1445,48 @@
       "placeholder": "Twitch username",
       "add": "Add",
       "remove": "Remove"
+    },
+    "clip": {
+      "pickTitle": "Which clip is shown",
+      "pickDescription": "Picked each time someone uses !so.",
+      "modes": {
+        "random": "Random",
+        "top": "Most viewed",
+        "recent": "Most recent",
+        "days": "From the last days"
+      },
+      "modesHint": {
+        "random": "A random one among their 20 most viewed clips (as always).",
+        "top": "Always their most viewed clip.",
+        "recent": "The latest clip made of them.",
+        "days": "A random one from that range."
+      },
+      "days": "Range",
+      "daysSuffix": " d",
+      "fallback": "If there are no clips in that range, use any",
+      "fallbackHint": "Off: if there are none, the shoutout shows without a clip.",
+      "noClipTitle": "If the person has no clips",
+      "noClipDescription": "What goes in the clip's place and how long it stays.",
+      "noClipModes": {
+        "hide": "Nothing",
+        "avatar": "Their picture",
+        "offline": "Their offline image"
+      },
+      "noClipModesHint": {
+        "hide": "The space stays empty (as always).",
+        "avatar": "The profile picture takes the clip's place.",
+        "offline": "Their offline channel image; if they have none, their picture."
+      },
+      "noClipSeconds": "Time on screen without a clip",
+      "noClipSecondsHint": "At most the duration from the General tab.",
+      "noClipPreview": "To see it, choose “No clip” in the preview.",
+      "soundTitle": "Sound",
+      "volume": "Clip volume",
+      "volumeHint": "At 0 the clip plays muted.",
+      "hiddenWarning": "The clip is hidden in this layout.",
+      "showClip": "Show it",
+      "lookHint": "The clip's corners, border and shadow are changed in",
+      "goElements": "Elements"
     }
   }
 }

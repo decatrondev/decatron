@@ -12,7 +12,6 @@ import type { ShoutoutData, ShoutoutLayout } from '../components/shoutout-overla
 
 /** Con clip, cuánto más que la duración espera el cierre de seguridad (el viejo cortaba a los 30 s justos). */
 const SAFETY_EXTRA_MS = 5000;
-const NO_CLIP_MAX_S = 5;
 
 export default function ShoutoutOverlay() {
     const [searchParams] = useSearchParams();
@@ -28,6 +27,8 @@ export default function ShoutoutOverlay() {
     const layoutRef = useRef(layout);
     layoutRef.current = layout;
     const durationRef = useRef(10);
+    /** Sin clip, cuánto se queda como mucho (el de siempre: 5 s). */
+    const noClipRef = useRef(5);
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const timers = useRef<{ interval?: number; close?: number; safety?: number; exit?: number }>({});
@@ -74,7 +75,7 @@ export default function ShoutoutOverlay() {
 
     const show = (d: ShoutoutData) => {
         clearTimers();
-        const seconds = d.clipUrl ? durationRef.current : Math.min(durationRef.current, NO_CLIP_MAX_S);
+        const seconds = d.clipUrl ? durationRef.current : Math.min(durationRef.current, noClipRef.current);
         state.current = { visible: true, exiting: false };
         setData(d);
         setPhase('enter');
@@ -99,6 +100,7 @@ export default function ShoutoutOverlay() {
             const json = await res.json();
             if (json.success && json.config) {
                 durationRef.current = json.config.duration || 10;
+                noClipRef.current = json.config.settings?.noClipSeconds || 5;
                 setLayout(normalizeShoutoutLayout(json.config));
             }
         } catch (err) {
@@ -130,6 +132,9 @@ export default function ShoutoutOverlay() {
                 clipTitle: d.clipTitle,
                 clipViews: d.clipViews,
                 clipCreator: d.clipCreator,
+                clipThumbnailUrl: d.clipThumbnailUrl,
+                clipDuration: d.clipDuration,
+                offlineImageUrl: d.offlineImageUrl,
             }));
             connection.on('ConfigurationChanged', () => { loadConfiguration(); });
             connection.onreconnected(async () => {

@@ -10,6 +10,7 @@ import api from '../../../../services/api';
 interface Props {
     layout: ShoutoutLayout;
     duration: number;
+    noClipSeconds: number;
     dirty: boolean;
 }
 
@@ -17,7 +18,7 @@ interface Props {
 const HOLD_MS = 2500;
 
 /** Vista previa en vivo con el mismo renderer que OBS: quieta, o reproduciendo entrada y salida. */
-export default function ShoutoutPreview({ layout, duration, dirty }: Props) {
+export default function ShoutoutPreview({ layout, duration, noClipSeconds, dirty }: Props) {
     const { t } = useTranslation('overlays');
     const [withClip, setWithClip] = useState(true);
     const [phase, setPhase] = useState<Phase | 'hidden'>('static');
@@ -77,7 +78,7 @@ export default function ShoutoutPreview({ layout, duration, dirty }: Props) {
                             data={data}
                             phase={phase}
                             preview
-                            remaining={duration}
+                            remaining={withClip ? duration : Math.min(duration, noClipSeconds)}
                             durationSec={(inMs + HOLD_MS) / 1000}
                             labels={{ clip: t('shoutout.preview.sampleClip') }}
                         />

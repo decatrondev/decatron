@@ -1178,6 +1178,7 @@
     "tabs": {
       "guide": "Guía",
       "general": "General",
+      "clip": "Clip",
       "theme": "Tema",
       "elements": "Elementos",
       "text": "Texto",
@@ -1208,7 +1209,7 @@
       "testing": "Enviando...",
       "testSent": "Shoutout de prueba enviado a OBS.",
       "testFailed": "No se pudo enviar la prueba.",
-      "testHint": "Manda un shoutout de prueba (sin clip) a tu overlay de OBS.",
+      "testHint": "Manda un shoutout de prueba a tu overlay de OBS con los datos y un clip de tu propio canal.",
       "testUnsaved": "Guarda primero: la prueba usa lo último que guardaste.",
       "size": "Tamaño del overlay: {{width}}×{{height}}"
     },
@@ -1236,7 +1237,7 @@
     "general": {
       "timeTitle": "Tiempos",
       "duration": "Duración en pantalla",
-      "durationHint": "Si el clip termina antes, se va cuando termina. Si la persona no tiene clips, se queda como mucho 5 segundos.",
+      "durationHint": "Si el clip termina antes, se va cuando termina. Sin clip, se queda lo que elijas en la pestaña Clip.",
       "cooldown": "Espera para repetir a la misma persona",
       "cooldownHint": "Cuántos segundos tienen que pasar para volver a hacerle !so a la misma persona. En 0, sin espera.",
       "debugTitle": "Contador",
@@ -1346,6 +1347,7 @@
         "username": "el usuario de Twitch (en minúsculas)",
         "game": "el último juego o categoría",
         "title": "el título del último stream",
+        "tags": "las etiquetas del canal",
         "followers": "la cantidad de seguidores",
         "clipTitle": "el título del clip",
         "clipViews": "las vistas del clip",
@@ -1443,6 +1445,48 @@
       "placeholder": "usuario de Twitch",
       "add": "Agregar",
       "remove": "Quitar"
+    },
+    "clip": {
+      "pickTitle": "Qué clip se muestra",
+      "pickDescription": "Se elige cada vez que alguien usa !so.",
+      "modes": {
+        "random": "Al azar",
+        "top": "El más visto",
+        "recent": "El más reciente",
+        "days": "De los últimos días"
+      },
+      "modesHint": {
+        "random": "Uno al azar entre sus 20 clips más vistos (como siempre).",
+        "top": "Siempre su clip con más vistas.",
+        "recent": "El último clip que le hicieron.",
+        "days": "Uno al azar de los que tiene en ese rango."
+      },
+      "days": "Rango",
+      "daysSuffix": " d",
+      "fallback": "Si no hay clips en ese rango, usar cualquiera",
+      "fallbackHint": "Apagado: si no hay, el shoutout sale sin clip.",
+      "noClipTitle": "Si la persona no tiene clips",
+      "noClipDescription": "Qué va en el lugar del clip y cuánto se queda.",
+      "noClipModes": {
+        "hide": "Nada",
+        "avatar": "Su foto",
+        "offline": "Su imagen offline"
+      },
+      "noClipModesHint": {
+        "hide": "Queda el espacio vacío (como siempre).",
+        "avatar": "La foto de perfil ocupa el lugar del clip.",
+        "offline": "La imagen de canal offline; si no tiene, su foto."
+      },
+      "noClipSeconds": "Tiempo en pantalla sin clip",
+      "noClipSecondsHint": "Como mucho la duración de la pestaña General.",
+      "noClipPreview": "Para verlo, elige «Sin clip» en la vista previa.",
+      "soundTitle": "Sonido",
+      "volume": "Volumen del clip",
+      "volumeHint": "En 0 el clip se ve sin sonido.",
+      "hiddenWarning": "El clip está oculto en este diseño.",
+      "showClip": "Mostrarlo",
+      "lookHint": "Las esquinas, el borde y la sombra del clip se cambian en",
+      "goElements": "Elementos"
     }
   }
 }

@@ -132,11 +132,56 @@ namespace Decatron.Core.Models
         [Column("whitelist", TypeName = "jsonb")]
         public string Whitelist { get; set; } = "[]";
 
+        /// <summary>
+        /// Comportamiento que no es diseño (JSON): cómo se elige el clip y cuánto dura sin clip.
+        /// { clipMode: random|top|recent|days, clipDays, clipFallback, noClipSeconds }
+        /// </summary>
+        [Column("settings", TypeName = "jsonb")]
+        public string Settings { get; set; } = "{}";
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Settings de shoutout_configs.settings, con los valores de siempre por defecto.
+    /// </summary>
+    public class ShoutoutSettings
+    {
+        public string ClipMode { get; set; } = "random";
+        public int ClipDays { get; set; } = 30;
+        public bool ClipFallback { get; set; } = true;
+        /// <summary>Sin clip, cuánto se queda como mucho (el overlay viejo: 5 s).</summary>
+        public int NoClipSeconds { get; set; } = 5;
+
+        private static readonly System.Text.Json.JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+        public static readonly string[] ClipModes = { "random", "top", "recent", "days" };
+
+        public static ShoutoutSettings Parse(string? json)
+        {
+            try
+            {
+                var s = string.IsNullOrWhiteSpace(json) ? new ShoutoutSettings() : System.Text.Json.JsonSerializer.Deserialize<ShoutoutSettings>(json, Json) ?? new ShoutoutSettings();
+                return s.Normalized();
+            }
+            catch
+            {
+                return new ShoutoutSettings();
+            }
+        }
+
+        public ShoutoutSettings Normalized()
+        {
+            if (!ClipModes.Contains(ClipMode)) ClipMode = "random";
+            ClipDays = Math.Clamp(ClipDays, 1, 3650);
+            NoClipSeconds = Math.Clamp(NoClipSeconds, 3, 60);
+            return this;
+        }
+
+        public string ToJson() => System.Text.Json.JsonSerializer.Serialize(this, Json);
     }
 
     /// <summary>

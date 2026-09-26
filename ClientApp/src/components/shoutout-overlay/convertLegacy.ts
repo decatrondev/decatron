@@ -132,6 +132,19 @@ export function normalizeShoutoutLayout(config: any): ShoutoutLayout {
             } as ShoutoutLayout;
         })()
         : convertLegacyShoutout(config ?? {});
+    // Diseños guardados antes de que existieran la insignia y "en vivo": se agregan apagados
+    for (const kind of ['badge', 'live', 'progress'] as const) {
+        if (layout.elements.some(e => e.kind === kind)) continue;
+        const avatar = layout.elements.find(e => e.kind === 'avatar');
+        const clip = layout.elements.find(e => e.kind === 'clip');
+        const rect = kind === 'badge'
+            ? { x: (avatar?.x ?? 0) + (avatar?.width ?? 90) - 30, y: (avatar?.y ?? 0) + (avatar?.height ?? 90) - 30, width: 30, height: 30 }
+            : kind === 'live'
+                ? { x: (clip?.x ?? 0) + 12, y: (clip?.y ?? 0) + 12, width: 100, height: 30 }
+                : { x: 20, y: layout.canvas.height - 12, width: layout.canvas.width - 40, height: 6 };
+        const ti = layout.elements.findIndex(e => e.kind === 'timer');
+        layout.elements.splice(ti < 0 ? layout.elements.length : ti, 0, element(kind, kind, rect, { enabled: false }));
+    }
     // "Mostrar contador" se guarda en su columna (show_debug_timer): manda sobre el elemento
     const timer = layout.elements.find(e => e.kind === 'timer');
     if (timer) timer.enabled = !!config?.showDebugTimer;

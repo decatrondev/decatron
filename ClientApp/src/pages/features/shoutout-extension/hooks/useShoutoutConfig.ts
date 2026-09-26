@@ -10,7 +10,18 @@ export interface ShoutoutSettings {
     cooldown: number;
     blacklist: string[];
     whitelist: string[];
+    /** Cómo se elige el clip (backend). */
+    clipMode: ClipMode;
+    clipDays: number;
+    /** Si en el rango no hay clips, usar cualquiera. */
+    clipFallback: boolean;
+    /** Sin clip, cuánto se queda como mucho. */
+    noClipSeconds: number;
 }
+
+export type ClipMode = 'random' | 'top' | 'recent' | 'days';
+export const CLIP_MODES: ClipMode[] = ['random', 'top', 'recent', 'days'];
+export const NO_CLIP_RANGE = { min: 3, max: 60 };
 
 export const DURATION_RANGE = { min: 5, max: 60 };
 export const COOLDOWN_RANGE = { min: 0, max: 300 };
@@ -22,7 +33,7 @@ export function useShoutoutConfig() {
     const [error, setError] = useState<string | null>(null);
     const [dirty, setDirty] = useState(false);
     const [overlayUrl, setOverlayUrl] = useState('');
-    const [settings, setSettings] = useState<ShoutoutSettings>({ duration: 10, cooldown: 30, blacklist: [], whitelist: [] });
+    const [settings, setSettings] = useState<ShoutoutSettings>({ duration: 10, cooldown: 30, blacklist: [], whitelist: [], clipMode: 'random', clipDays: 30, clipFallback: true, noClipSeconds: 5 });
     const [layout, setLayout] = useState<ShoutoutLayout>(() => normalizeShoutoutLayout({}));
     // Lo que vino del backend: al guardar se reenvían tal cual las columnas viejas que la vista ya no edita
     const raw = useRef<any>({});
@@ -43,6 +54,10 @@ export function useShoutoutConfig() {
                 cooldown: c.cooldown ?? 30,
                 blacklist: Array.isArray(c.blacklist) ? c.blacklist : [],
                 whitelist: Array.isArray(c.whitelist) ? c.whitelist : [],
+                clipMode: CLIP_MODES.includes(c.settings?.clipMode) ? c.settings.clipMode : 'random',
+                clipDays: c.settings?.clipDays ?? 30,
+                clipFallback: c.settings?.clipFallback ?? true,
+                noClipSeconds: c.settings?.noClipSeconds ?? 5,
             });
             setLayout(normalizeShoutoutLayout(c));
             setDirty(false);
@@ -89,6 +104,7 @@ export function useShoutoutConfig() {
                 containerBorderWidth: c.containerBorderWidth ?? 3,
                 blacklist: settings.blacklist,
                 whitelist: settings.whitelist,
+                settings: { clipMode: settings.clipMode, clipDays: settings.clipDays, clipFallback: settings.clipFallback, noClipSeconds: settings.noClipSeconds },
             });
             raw.current = { ...c, duration: settings.duration, cooldown: settings.cooldown, layout, blacklist: settings.blacklist, whitelist: settings.whitelist };
             setDirty(false);

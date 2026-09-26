@@ -136,7 +136,13 @@ namespace Decatron.Default.Commands
                 _logger.LogInformation($"🔥 Procesando shoutout a {targetUser} en {channel}");
 
                 // 1. Obtener información del usuario desde Twitch API
-                var shoutoutData = await _twitchApiService.GetShoutoutDataAsync(targetUser);
+                var settings = await GetSettingsForChannel(channel);
+                var shoutoutData = await _twitchApiService.GetShoutoutDataAsync(targetUser, new Services.ShoutoutClipOptions
+                {
+                    Mode = settings.ClipMode,
+                    Days = settings.ClipDays,
+                    Fallback = settings.ClipFallback
+                });
                 if (shoutoutData == null)
                 {
                     // El usuario no existe en Twitch
@@ -357,6 +363,25 @@ namespace Decatron.Default.Commands
             {
                 _logger.LogError(ex, $"Error verificando si comando !so está habilitado para {channelLogin}");
                 return true;
+            }
+        }
+
+        private async Task<ShoutoutSettings> GetSettingsForChannel(string channel)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var json = await dbContext.ShoutoutConfigs
+                    .Where(c => c.Username == channel)
+                    .Select(c => c.Settings)
+                    .FirstOrDefaultAsync();
+                return ShoutoutSettings.Parse(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error obteniendo settings de shoutout para {channel}, usando los de siempre");
+                return new ShoutoutSettings();
             }
         }
 

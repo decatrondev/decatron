@@ -351,12 +351,16 @@ namespace Decatron.Services
         /// <summary>
         /// Obtiene los clips más recientes de un usuario (usa App Access Token)
         /// </summary>
-        public async Task<List<TwitchClipData>> GetClipsAsync(string broadcasterId, int first = 1)
+        public async Task<List<TwitchClipData>> GetClipsAsync(string broadcasterId, int first = 1, DateTime? startedAt = null, DateTime? endedAt = null)
         {
             try
             {
+                // Twitch los devuelve ordenados por vistas; sin ended_at el rango es de una semana desde started_at
+                var range = startedAt.HasValue
+                    ? $"&started_at={startedAt.Value.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}&ended_at={(endedAt ?? DateTime.UtcNow).ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}"
+                    : "";
                 var request = new HttpRequestMessage(HttpMethod.Get,
-                    $"{TwitchApiBaseUrl}/clips?broadcaster_id={broadcasterId}&first={first}");
+                    $"{TwitchApiBaseUrl}/clips?broadcaster_id={broadcasterId}&first={first}{range}");
                 var response = await SendWithAppTokenAsync(request);
 
                 if (!response.IsSuccessStatusCode)
@@ -441,7 +445,7 @@ namespace Decatron.Services
         /// <summary>
         /// Obtiene toda la información necesaria para un shoutout
         /// </summary>
-        public async Task<ShoutoutData?> GetShoutoutDataAsync(string targetUsername)
+        public async Task<ShoutoutData?> GetShoutoutDataAsync(string targetUsername, ShoutoutClipOptions? clipOptions = null)
         {
             try
             {
@@ -453,21 +457,15 @@ namespace Decatron.Services
                     return null;
                 }
 
-                // 2. Obtener canal para saber el juego
-                var channel = await GetChannelAsync(user.id);
-
-                // 3. Obtener varios clips y seleccionar uno aleatorio
-                var clips = await GetClipsAsync(user.id, 20); // Obtener 20 clips en lugar de 1
-                TwitchClipData? clip = null;
-
-                if (clips.Any())
-                {
-                    // Seleccionar clip aleatorio
-                    var random = new Random();
-                    var randomIndex = random.Next(clips.Count);
-                    clip = clips[randomIndex];
-                    _logger.LogInformation("Random clip selected: {Index}/{Total} - {ClipTitle}", randomIndex + 1, clips.Count, clip.title);
-                }
+                // 2. Canal (juego, título, etiquetas), si está en vivo, seguidores y el clip, en paralelo
+                var channelTask = GetChannelAsync(user.id);
+                var streamTask = GetStreamAsync(user.id);
+                var followersTask = GetFollowerTotalAsync(user.id);
+                var clipTask = PickShoutoutClipAsync(user.id, clipOptions ?? new ShoutoutClipOptions());
+                await Task.WhenAll(channelTask, streamTask, followersTask, clipTask);
+                var channel = channelTask.Result;
+                var stream = streamTask.Result;
+                var clip = clipTask.Result;
 
                 return new ShoutoutData
                 {
@@ -477,12 +475,100 @@ namespace Decatron.Services
                     ProfileImageUrl = user.profile_image_url,
                     GameName = channel?.game_name ?? "Sin categoría",
                     ClipUrl = clip?.url,
-                    ClipId = clip?.id
+                    ClipId = clip?.id,
+                    BroadcasterType = user.broadcaster_type ?? "",
+                    OfflineImageUrl = string.IsNullOrEmpty(user.offline_image_url) ? null : user.offline_image_url,
+                    Title = (stream != null && !string.IsNullOrEmpty(stream.title) ? stream.title : channel?.title) ?? "",
+                    Tags = channel?.tags ?? new List<string>(),
+                    IsLive = stream != null && stream.type == "live",
+                    Followers = followersTask.Result,
+                    ClipTitle = clip?.title,
+                    ClipViews = clip?.view_count,
+                    ClipCreator = clip?.creator_name,
+                    ClipThumbnailUrl = clip?.thumbnail_url,
+                    ClipDuration = clip?.duration
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetShoutoutDataAsync: {TargetUsername}", targetUsername);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Elige el clip del shoutout según la config del canal.
+        /// </summary>
+        private async Task<TwitchClipData?> PickShoutoutClipAsync(string broadcasterId, ShoutoutClipOptions options)
+        {
+            var random = Random.Shared;
+            switch (options.Mode)
+            {
+                case "top":
+                    return (await GetClipsAsync(broadcasterId, 1)).FirstOrDefault();
+
+                case "recent":
+                {
+                    // El más nuevo: se busca en rangos cada vez más largos (Twitch no ordena por fecha)
+                    foreach (var days in new[] { 7, 30, 90, 365 })
+                    {
+                        var inRange = await GetClipsAsync(broadcasterId, 100, DateTime.UtcNow.AddDays(-days));
+                        if (inRange.Any())
+                            return inRange.OrderByDescending(c => c.created_at).First();
+                    }
+                    if (!options.Fallback) return null;
+                    return (await GetClipsAsync(broadcasterId, 20)).OrderByDescending(c => c.created_at).FirstOrDefault();
+                }
+
+                case "days":
+                {
+                    var days = Math.Clamp(options.Days, 1, 3650);
+                    var inRange = await GetClipsAsync(broadcasterId, 20, DateTime.UtcNow.AddDays(-days));
+                    if (inRange.Any())
+                        return inRange[random.Next(inRange.Count)];
+                    if (!options.Fallback) return null;
+                    goto default;
+                }
+
+                default:
+                {
+                    // Como siempre: uno al azar entre los 20 más vistos
+                    var clips = await GetClipsAsync(broadcasterId, 20);
+                    if (!clips.Any()) return null;
+                    var clip = clips[random.Next(clips.Count)];
+                    _logger.LogInformation("Random clip selected: {Total} candidates - {ClipTitle}", clips.Count, clip.title);
+                    return clip;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Total de seguidores de cualquier canal. Con un token de usuario que no es del canal, Twitch devuelve solo el total.
+        /// </summary>
+        public async Task<int?> GetFollowerTotalAsync(string broadcasterId)
+        {
+            try
+            {
+                var token = await GetBotUserAccessTokenAsync();
+                if (string.IsNullOrEmpty(token)) return null;
+
+                var request = new HttpRequestMessage(HttpMethod.Get, $"{TwitchApiBaseUrl}/channels/followers?broadcaster_id={broadcasterId}&first=1");
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {token}");
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Error in GetFollowerTotalAsync ({StatusCode})", response.StatusCode);
+                    return null;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<TwitchFollowersResponse>(json);
+                return result?.total;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetFollowerTotalAsync: {BroadcasterId}", broadcasterId);
                 return null;
             }
         }
@@ -1220,6 +1306,8 @@ namespace Decatron.Services
         public string display_name { get; set; } = "";
         public string profile_image_url { get; set; } = "";
         public string created_at { get; set; } = ""; // Fecha de creación de la cuenta Twitch
+        public string broadcaster_type { get; set; } = ""; // partner, affiliate o vacío
+        public string offline_image_url { get; set; } = "";
     }
 
     public class TwitchClipData
@@ -1228,6 +1316,10 @@ namespace Decatron.Services
         public string url { get; set; } = "";
         public string title { get; set; } = "";
         public int view_count { get; set; }
+        public string creator_name { get; set; } = "";
+        public string created_at { get; set; } = "";
+        public string thumbnail_url { get; set; } = "";
+        public double duration { get; set; }
     }
 
     public class TwitchChannelData
@@ -1236,6 +1328,8 @@ namespace Decatron.Services
         public string broadcaster_name { get; set; } = "";
         public string game_name { get; set; } = "";
         public string game_id { get; set; } = "";
+        public string title { get; set; } = "";
+        public List<string>? tags { get; set; }
     }
 
     public class TwitchStreamData
@@ -1262,6 +1356,28 @@ namespace Decatron.Services
         public string GameName { get; set; } = "";
         public string? ClipUrl { get; set; }
         public string? ClipId { get; set; }
+        // Datos extra para el overlay (fase 2 del rediseño de Shoutout)
+        public string BroadcasterType { get; set; } = "";
+        public string? OfflineImageUrl { get; set; }
+        public string Title { get; set; } = "";
+        public List<string> Tags { get; set; } = new();
+        public bool IsLive { get; set; }
+        public int? Followers { get; set; }
+        public string? ClipTitle { get; set; }
+        public int? ClipViews { get; set; }
+        public string? ClipCreator { get; set; }
+        public string? ClipThumbnailUrl { get; set; }
+        public double? ClipDuration { get; set; }
+    }
+
+    /// <summary>Cómo se elige el clip del !so.</summary>
+    public class ShoutoutClipOptions
+    {
+        /// <summary>random (al azar entre los más vistos, como siempre), top (el más visto), recent (el más nuevo) o days (al azar de los últimos N días).</summary>
+        public string Mode { get; set; } = "random";
+        public int Days { get; set; } = 30;
+        /// <summary>days/recent: si no hay clips en el rango, usar cualquiera.</summary>
+        public bool Fallback { get; set; } = true;
     }
 
     public class TwitchChattersResponse

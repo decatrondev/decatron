@@ -7,20 +7,17 @@ import ShoutoutRenderer from '../../../../components/shoutout-overlay/ShoutoutRe
 import { FONT_OPTIONS, SAMPLE_SHOUTOUT, element, textBlock } from '../../../../components/shoutout-overlay/defaults';
 import { COLOR_THEMES, LAYOUT_PRESETS, applyColorTheme, applyLayoutPreset } from '../../../../components/shoutout-overlay/presets';
 import type { AnimationType, Direction, Easing, ElementKind, ShoutoutElement, ShoutoutLayout, ShowHideAnimation, TextBlock, TextLine } from '../../../../components/shoutout-overlay/types';
-import { COOLDOWN_RANGE, DURATION_RANGE, type ShoutoutConfigState } from '../hooks/useShoutoutConfig';
+import { CLIP_MODES, COOLDOWN_RANGE, DURATION_RANGE, NO_CLIP_RANGE, type ShoutoutConfigState } from '../hooks/useShoutoutConfig';
 
-export type ShoutoutTabId = 'guide' | 'general' | 'theme' | 'elements' | 'text' | 'animations' | 'editor' | 'permissions';
+export type ShoutoutTabId = 'guide' | 'general' | 'clip' | 'theme' | 'elements' | 'text' | 'animations' | 'editor' | 'permissions';
 
-/**
- * Lo que llega con los datos nuevos del shoutout (fase 2: insignia, en vivo, título, seguidores, datos del clip).
- * Mientras el backend no los mande, no se ofrecen.
- */
-const EXTRA_DATA = false;
+/** Lo que llega con los datos nuevos del shoutout (fase 2: insignia, en vivo, título, etiquetas, seguidores, datos del clip). */
+const EXTRA_DATA = true;
 const OFFERED: ElementKind[] = EXTRA_DATA
     ? ['panel', 'shape', 'clip', 'avatar', 'text', 'badge', 'live', 'progress', 'timer']
     : ['panel', 'shape', 'clip', 'avatar', 'text', 'progress', 'timer'];
 export const VARIABLES = EXTRA_DATA
-    ? ['@displayname', '@username', '@game', '@title', '@followers', '@clipTitle', '@clipViews', '@clipCreator']
+    ? ['@displayname', '@username', '@game', '@title', '@tags', '@followers', '@clipTitle', '@clipViews', '@clipCreator']
     : ['@displayname', '@username', '@game'];
 
 interface TabProps { cfg: ShoutoutConfigState }
@@ -130,6 +127,72 @@ export function GeneralTab({ cfg }: TabProps) {
             {timer && (
                 <Card title={t('shoutout.general.debugTitle')}>
                     <Toggle checked={timer.enabled} onChange={v => setElement(timer.id, { enabled: v })} label={t('shoutout.general.showTimer')} hint={t('shoutout.general.showTimerHint')} />
+                </Card>
+            )}
+        </div>
+    );
+}
+
+// ── Clip ───────────────────────────────────────────────────────────────────
+
+export function ClipTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: ShoutoutTabId) => void }) {
+    const { t } = useTranslation('overlays');
+    const { layout, setElement, setOptions } = useLayoutEdit(cfg);
+    const s = cfg.settings;
+    const clip = layout.elements.find(e => e.kind === 'clip');
+    return (
+        <div className="space-y-6">
+            <Card title={t('shoutout.clip.pickTitle')} description={t('shoutout.clip.pickDescription')}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
+                    {CLIP_MODES.map(m => (
+                        <button key={m} onClick={() => cfg.update({ clipMode: m })} className={`${choice(s.clipMode === m)} text-left`}>
+                            <span className="block">{t(`shoutout.clip.modes.${m}`)}</span>
+                            <span className="block text-xs 3xl:text-sm font-normal opacity-80 mt-0.5">{t(`shoutout.clip.modesHint.${m}`)}</span>
+                        </button>
+                    ))}
+                </div>
+                <div className="space-y-4">
+                    {s.clipMode === 'days' && (
+                        <Field label={t('shoutout.clip.days')}>
+                            <Slider value={s.clipDays} min={1} max={365} onChange={v => cfg.update({ clipDays: v })} suffix={t('shoutout.clip.daysSuffix')} />
+                        </Field>
+                    )}
+                    {(s.clipMode === 'days' || s.clipMode === 'recent') && (
+                        <Toggle checked={s.clipFallback} onChange={v => cfg.update({ clipFallback: v })} label={t('shoutout.clip.fallback')} hint={t('shoutout.clip.fallbackHint')} />
+                    )}
+                </div>
+            </Card>
+
+            {clip && (
+                <Card title={t('shoutout.clip.noClipTitle')} description={t('shoutout.clip.noClipDescription')}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-5">
+                        {(['hide', 'avatar', 'offline'] as const).map(m => (
+                            <button key={m} onClick={() => setOptions(clip.id, { noClip: m })} className={`${choice((clip.options.noClip ?? 'hide') === m)} text-left`}>
+                                <span className="block">{t(`shoutout.clip.noClipModes.${m}`)}</span>
+                                <span className="block text-xs 3xl:text-sm font-normal opacity-80 mt-0.5">{t(`shoutout.clip.noClipModesHint.${m}`)}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <Field label={t('shoutout.clip.noClipSeconds')} hint={t('shoutout.clip.noClipSecondsHint')}>
+                        <Slider value={s.noClipSeconds} min={NO_CLIP_RANGE.min} max={NO_CLIP_RANGE.max} onChange={v => cfg.update({ noClipSeconds: v })} suffix="s" />
+                    </Field>
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('shoutout.clip.noClipPreview')}</p>
+                </Card>
+            )}
+
+            {clip && (
+                <Card title={t('shoutout.clip.soundTitle')}>
+                    <div className="space-y-4">
+                        <Field label={t('shoutout.clip.volume')} hint={t('shoutout.clip.volumeHint')}>
+                            <Slider value={clip.options.volume ?? 100} min={0} max={100} step={5} onChange={v => setOptions(clip.id, { volume: v })} suffix="%" />
+                        </Field>
+                        {!clip.enabled && (
+                            <p className="text-sm 3xl:text-base text-amber-600 dark:text-amber-400">
+                                {t('shoutout.clip.hiddenWarning')} <button className="underline font-bold" onClick={() => setElement(clip.id, { enabled: true })}>{t('shoutout.clip.showClip')}</button>
+                            </p>
+                        )}
+                        <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.clip.lookHint')} <button className="underline text-[#2563eb]" onClick={() => onNavigate('elements')}>{t('shoutout.clip.goElements')}</button></p>
+                    </div>
                 </Card>
             )}
         </div>

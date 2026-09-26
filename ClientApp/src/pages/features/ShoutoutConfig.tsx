@@ -7,7 +7,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { useShoutoutConfig } from './shoutout-extension/hooks/useShoutoutConfig';
 import ShoutoutPreview from './shoutout-extension/components/ShoutoutPreview';
 import {
-    GuideTab, GeneralTab, ThemeTab, ElementsTab, TextTab, AnimationsTab, EditorTab, PermissionsTab, type ShoutoutTabId,
+    GuideTab, GeneralTab, ClipTab, ThemeTab, ElementsTab, TextTab, AnimationsTab, EditorTab, PermissionsTab, type ShoutoutTabId,
 } from './shoutout-extension/components/ShoutoutTabs';
 
 // Shoutout (.dev/plans/SHOUTOUT_REDESIGN_PLAN.md, fase 1): mismo patrón que /overlays/now-playing —
@@ -16,6 +16,7 @@ import {
 const TABS: { id: ShoutoutTabId; icon: string }[] = [
     { id: 'guide', icon: '📚' },
     { id: 'general', icon: '⚙️' },
+    { id: 'clip', icon: '🎬' },
     { id: 'theme', icon: '🎨' },
     { id: 'elements', icon: '🖼️' },
     { id: 'text', icon: '🔤' },
@@ -145,6 +146,7 @@ export default function ShoutoutConfig() {
                         <div>
                             {tab === 'guide' && <GuideTab cfg={cfg} onNavigate={setTab} />}
                             {tab === 'general' && <GeneralTab cfg={cfg} />}
+                            {tab === 'clip' && <ClipTab cfg={cfg} onNavigate={setTab} />}
                             {tab === 'theme' && <ThemeTab cfg={cfg} />}
                             {tab === 'elements' && <ElementsTab cfg={cfg} onNavigate={setTab} />}
                             {tab === 'text' && <TextTab cfg={cfg} />}
@@ -155,7 +157,7 @@ export default function ShoutoutConfig() {
                     </div>
 
                     <div className="xl:col-span-1 min-w-0">
-                        <ShoutoutPreview layout={cfg.layout} duration={cfg.settings.duration} dirty={cfg.dirty} />
+                        <ShoutoutPreview layout={cfg.layout} duration={cfg.settings.duration} noClipSeconds={cfg.settings.noClipSeconds} dirty={cfg.dirty} />
                     </div>
                 </div>
             </div>

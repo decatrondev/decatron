@@ -17,6 +17,10 @@ export interface ShoutoutData {
     clipTitle?: string;
     clipViews?: number | null;
     clipCreator?: string;
+    clipThumbnailUrl?: string | null;
+    clipDuration?: number | null;
+    /** Imagen de canal offline (se usa en lugar del clip si no hay). */
+    offlineImageUrl?: string | null;
 }
 
 export type ElementKind = 'panel' | 'clip' | 'avatar' | 'text' | 'badge' | 'live' | 'progress' | 'timer' | 'shape';
@@ -24,7 +28,7 @@ export type ElementKind = 'panel' | 'clip' | 'avatar' | 'text' | 'badge' | 'live
 export type TextShadow = 'none' | 'normal' | 'strong' | 'glow';
 
 export interface TextLine {
-    /** Con variables: @username, @displayname, @game, @title, @followers, @clipTitle, @clipViews, @clipCreator. */
+    /** Con variables: @username, @displayname, @game, @title, @tags, @followers, @clipTitle, @clipViews, @clipCreator. */
     text: string;
     fontSize: number;
     fontWeight: string;

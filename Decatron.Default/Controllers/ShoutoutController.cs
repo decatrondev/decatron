@@ -126,7 +126,8 @@ namespace Decatron.Default.Controllers
                         containerBorderColor = config.ContainerBorderColor,
                         containerBorderWidth = config.ContainerBorderWidth,
                         blacklist = ParseStringArray(config.Blacklist),
-                        whitelist = ParseStringArray(config.Whitelist)
+                        whitelist = ParseStringArray(config.Whitelist),
+                        settings = ShoutoutSettings.Parse(config.Settings)
                     }
                 };
 
@@ -183,7 +184,8 @@ namespace Decatron.Default.Controllers
                         textOutlineWidth = config.TextOutlineWidth,
                         containerBorderEnabled = config.ContainerBorderEnabled,
                         containerBorderColor = config.ContainerBorderColor,
-                        containerBorderWidth = config.ContainerBorderWidth
+                        containerBorderWidth = config.ContainerBorderWidth,
+                        settings = ShoutoutSettings.Parse(config.Settings)
                     }
                 };
 
@@ -256,6 +258,8 @@ namespace Decatron.Default.Controllers
                 config.ContainerBorderWidth = request.ContainerBorderWidth;
                 config.Blacklist = JsonSerializer.Serialize(request.Blacklist ?? new List<string>());
                 config.Whitelist = JsonSerializer.Serialize(request.Whitelist ?? new List<string>());
+                // Sin settings en el pedido (una vista vieja abierta) se conserva lo guardado
+                if (request.Settings != null) config.Settings = request.Settings.Normalized().ToJson();
                 config.UpdatedAt = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync();
@@ -291,7 +295,7 @@ namespace Decatron.Default.Controllers
         /// Envía un shoutout de prueba al overlay del canal activo
         /// </summary>
         [HttpPost("test")]
-        public async Task<IActionResult> TestShoutout()
+        public async Task<IActionResult> TestShoutout([FromQuery] bool withClip = true)
         {
             try
             {
@@ -305,9 +309,31 @@ namespace Decatron.Default.Controllers
 
                 _logger.LogInformation($"🧪 Shoutout de prueba solicitado para canal: {username} (ID: {channelOwnerId})");
 
-                // Enviar al overlay vía SignalR
                 var overlayNotificationService = HttpContext.RequestServices.GetRequiredService<OverlayNotificationService>();
-                await overlayNotificationService.SendShoutoutAsync(username, new Services.ShoutoutData
+
+                // Con los datos reales del propio canal (y uno de sus clips, elegido como en el !so);
+                // si Twitch falla, la prueba de siempre
+                var config = await _dbContext.ShoutoutConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.Username == username);
+                var settings = ShoutoutSettings.Parse(config?.Settings);
+                Services.ShoutoutData? data = null;
+                string? clipPath = null;
+                try
+                {
+                    var twitch = HttpContext.RequestServices.GetRequiredService<TwitchApiService>();
+                    data = await twitch.GetShoutoutDataAsync(username, new Services.ShoutoutClipOptions { Mode = settings.ClipMode, Days = settings.ClipDays, Fallback = settings.ClipFallback });
+                    if (data != null && withClip && !string.IsNullOrEmpty(data.ClipUrl))
+                    {
+                        var clipDownloadService = HttpContext.RequestServices.GetRequiredService<ClipDownloadService>();
+                        var download = await clipDownloadService.DownloadClipAsync(data.ClipUrl, data.Username);
+                        if (download.Success) clipPath = download.LocalPath;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Shoutout de prueba: no se pudieron traer los datos reales, se usa el de ejemplo");
+                }
+
+                await overlayNotificationService.SendShoutoutAsync(username, data ?? new Services.ShoutoutData
                 {
                     Username = username,
                     DisplayName = username.ToUpper(),
@@ -315,7 +341,7 @@ namespace Decatron.Default.Controllers
                     ProfileImageUrl = "https://static-cdn.jtvnw.net/user-default-pictures-uv/cdd517fe-def4-11e9-948e-784f43822e80-profile_image-300x300.png",
                     ClipUrl = "",
                     ClipId = ""
-                }, null);
+                }, clipPath);
 
                 return Ok(new
                 {
@@ -429,7 +455,8 @@ namespace Decatron.Default.Controllers
                 containerBorderColor = "#ffffff",
                 containerBorderWidth = 3,
                 blacklist = new string[] { },
-                whitelist = new string[] { }
+                whitelist = new string[] { },
+                settings = new ShoutoutSettings()
             };
         }
 
@@ -508,5 +535,6 @@ namespace Decatron.Default.Controllers
         public int ContainerBorderWidth { get; set; } = 3;
         public List<string>? Blacklist { get; set; }
         public List<string>? Whitelist { get; set; }
+        public ShoutoutSettings? Settings { get; set; }
     }
 }

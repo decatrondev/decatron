@@ -3,7 +3,7 @@ import type { ShoutoutData, ShoutoutElement, ShoutoutLayout, TextBlock, ElementK
 export const LAYOUT_VERSION = 2 as const;
 
 /** Variables que se reemplazan en las líneas de texto (en este orden: las más largas primero). */
-export const TEXT_VARIABLES = ['@displayname', '@username', '@game', '@title', '@followers', '@clipTitle', '@clipViews', '@clipCreator'] as const;
+export const TEXT_VARIABLES = ['@displayname', '@username', '@game', '@title', '@tags', '@followers', '@clipTitle', '@clipViews', '@clipCreator'] as const;
 
 export const FONT_OPTIONS = [
     'Inter', 'Poppins', 'Roboto', 'Montserrat', 'Open Sans', 'Lato', 'Nunito', 'Rubik', 'Oswald', 'Raleway',
@@ -29,7 +29,8 @@ export function textBlock(patch: Partial<TextBlock> = {}): TextBlock {
 /** Valores de fábrica de cada tipo de elemento (lo que no trae una config la completa con esto). */
 export const KIND_OPTIONS: Record<ElementKind, Record<string, any>> = {
     panel: {},
-    clip: { radius: 12, shadow: true, borderWidth: 0, borderColor: '#ffffff' },
+    /** noClip: qué va en su lugar si la persona no tiene clips (hide = nada, como siempre; avatar; offline = imagen de canal offline). volume 0-100. */
+    clip: { radius: 12, shadow: true, borderWidth: 0, borderColor: '#ffffff', noClip: 'hide', volume: 100 },
     avatar: { shape: 'circle', radius: 16, borderWidth: 4, borderColor: 'rgba(255, 255, 255, 0.4)', shadow: true },
     text: {},
     badge: { showAffiliate: true },

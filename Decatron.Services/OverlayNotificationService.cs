@@ -33,6 +33,17 @@ namespace Decatron.Services
                     profileImageUrl = shoutoutData.ProfileImageUrl,
                     clipUrl = clipLocalPath, // URL local del clip descargado
                     clipId = shoutoutData.ClipId,
+                    broadcasterType = shoutoutData.BroadcasterType,
+                    offlineImageUrl = shoutoutData.OfflineImageUrl,
+                    title = shoutoutData.Title,
+                    tags = shoutoutData.Tags,
+                    isLive = shoutoutData.IsLive,
+                    followers = shoutoutData.Followers,
+                    clipTitle = shoutoutData.ClipTitle,
+                    clipViews = shoutoutData.ClipViews,
+                    clipCreator = shoutoutData.ClipCreator,
+                    clipThumbnailUrl = shoutoutData.ClipThumbnailUrl,
+                    clipDuration = shoutoutData.ClipDuration,
                     timestamp = DateTime.UtcNow
                 };
 

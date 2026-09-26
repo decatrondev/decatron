@@ -63,6 +63,7 @@ export function fillVariables(text: string, d: ShoutoutData | null, noGame = 'Si
         '@username': d.targetUser,
         '@game': d.gameName || noGame,
         '@title': d.title ?? '',
+        '@tags': (d.tags ?? []).join(' · '),
         '@followers': fmtNumber(d.followers),
         '@clipTitle': d.clipTitle ?? '',
         '@clipViews': fmtNumber(d.clipViews),
@@ -174,10 +175,19 @@ export default function ShoutoutRenderer({ layout, data, phase, remaining = 0, d
                     boxShadow: o.shadow ? '0 4px 12px rgba(0, 0, 0, 0.3)' : undefined,
                     border: o.borderWidth ? `${o.borderWidth}px solid ${o.borderColor}` : undefined,
                 };
-                if (!data?.clipUrl) return null;
+                if (!data?.clipUrl) {
+                    // Sin clip: nada (como siempre), la foto o la imagen de canal offline en su lugar
+                    const src = o.noClip === 'avatar' ? data?.profileImageUrl : o.noClip === 'offline' ? data?.offlineImageUrl || data?.profileImageUrl : null;
+                    return src ? <img key={e.id} src={src} alt="" style={style} /> : null;
+                }
                 if (!preview) {
+                    const volume = Math.max(0, Math.min(100, Number(o.volume ?? 100))) / 100;
                     return (
-                        <video key={`${e.id}-${data.clipUrl}`} ref={videoRef} autoPlay playsInline style={style} onEnded={onVideoEnded}>
+                        <video
+                            key={`${e.id}-${data.clipUrl}`} ref={videoRef} autoPlay playsInline style={style} onEnded={onVideoEnded}
+                            poster={data.clipThumbnailUrl || undefined}
+                            onLoadedMetadata={ev => { ev.currentTarget.volume = volume; ev.currentTarget.muted = volume === 0; }}
+                        >
                             <source src={data.clipUrl} type="video/mp4" />
                         </video>
                     );
