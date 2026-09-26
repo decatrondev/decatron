@@ -1,623 +1,176 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import * as signalR from '@microsoft/signalr';
+import ShoutoutRenderer, { type Phase } from '../components/shoutout-overlay/ShoutoutRenderer';
+import { normalizeShoutoutLayout } from '../components/shoutout-overlay/convertLegacy';
+import { useGoogleFonts } from '../components/music-overlay/utils';
+import type { ShoutoutData, ShoutoutLayout } from '../components/shoutout-overlay/types';
 
-interface TextLine {
-    text: string;
-    fontSize: number;
-    fontWeight: string;
-    enabled: boolean;
-}
+// Overlay de OBS del !so (.dev/plans/SHOUTOUT_REDESIGN_PLAN.md, fase 1). Dibuja con el mismo renderer que la
+// vista previa y el editor. Tiempos como siempre: sin clip, como mucho 5 s; con clip, la duración configurada
+// o hasta que termina el clip; y un cierre de seguridad por si algo falla.
 
-interface StyleConfig {
-    fontFamily: string;
-    textColor: string;
-    textShadow: 'none' | 'normal' | 'strong' | 'glow';
-    backgroundType: 'gradient' | 'solid' | 'transparent';
-    gradientColor1: string;
-    gradientColor2: string;
-    gradientAngle: number;
-    solidColor: string;
-    backgroundOpacity: number;
-}
-
-interface LayoutConfig {
-    clip: { x: number; y: number; width: number; height: number };
-    text: { x: number; y: number; align: string };
-    profile: { x: number; y: number; size: number };
-}
-
-interface ShoutoutData {
-    targetUser: string;
-    clipUrl?: string;
-    gameName?: string;
-    profileImageUrl?: string;
-}
+/** Con clip, cuánto más que la duración espera el cierre de seguridad (el viejo cortaba a los 30 s justos). */
+const SAFETY_EXTRA_MS = 5000;
+const NO_CLIP_MAX_S = 5;
 
 export default function ShoutoutOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
 
-    const [isVisible, setIsVisible] = useState(false);
-    const [isExiting, setIsExiting] = useState(false);
-    const [shoutoutData, setShoutoutData] = useState<ShoutoutData | null>(null);
-    const [duration, setDuration] = useState(10);
-    const [showDebugTimer, setShowDebugTimer] = useState(false);
-    const [remainingTime, setRemainingTime] = useState(0);
+    const [layout, setLayout] = useState<ShoutoutLayout>(() => normalizeShoutoutLayout({}));
+    const [data, setData] = useState<ShoutoutData | null>(null);
+    const [phase, setPhase] = useState<Phase>('enter');
+    const [remaining, setRemaining] = useState(0);
+    const [effective, setEffective] = useState(0);
+    const [showId, setShowId] = useState(0);
 
-    // Animation & Effects state
-    const [animationType, setAnimationType] = useState('none');
-    const [animationSpeed, setAnimationSpeed] = useState('normal');
-    const [textOutlineEnabled, setTextOutlineEnabled] = useState(false);
-    const [textOutlineColor, setTextOutlineColor] = useState('#000000');
-    const [textOutlineWidth, setTextOutlineWidth] = useState(2);
-    const [containerBorderEnabled, setContainerBorderEnabled] = useState(false);
-    const [containerBorderColor, setContainerBorderColor] = useState('#ffffff');
-    const [containerBorderWidth, setContainerBorderWidth] = useState(3);
-    const [textLines, setTextLines] = useState<TextLine[]>([
-        { text: '🔥 ¡Sigan a @username! 🔥', fontSize: 32, fontWeight: 'bold', enabled: true },
-        { text: 'Jugando: @game', fontSize: 24, fontWeight: '600', enabled: true }
-    ]);
-    const [styles, setStyles] = useState<StyleConfig>({
-        fontFamily: 'Inter',
-        textColor: '#ffffff',
-        textShadow: 'normal',
-        backgroundType: 'gradient',
-        gradientColor1: '#667eea',
-        gradientColor2: '#764ba2',
-        gradientAngle: 135,
-        solidColor: '#8b5cf6',
-        backgroundOpacity: 100
-    });
-    const [layout, setLayout] = useState<LayoutConfig>({
-        clip: { x: 20, y: 20, width: 400, height: 260 },
-        text: { x: 699, y: 82, align: 'center' },
-        profile: { x: 660, y: 173, size: 90 }
-    });
-
+    const layoutRef = useRef(layout);
+    layoutRef.current = layout;
+    const durationRef = useRef(10);
     const connectionRef = useRef<signalR.HubConnection | null>(null);
-    const durationRef = useRef(10); // Ref para capturar el valor actual de duration en callbacks
-    const intervalRef = useRef<NodeJS.Timeout | null>(null); // Ref para limpiar interval anterior
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref para limpiar timeout anterior
-    const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Timeout absoluto de seguridad
-    const videoRef = useRef<HTMLVideoElement | null>(null); // Ref para controlar el video
-    const isExitingRef = useRef(false); // Ref para guard de closeShoutout (evita stale closure)
-    const isVisibleRef = useRef(false);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const timers = useRef<{ interval?: number; close?: number; safety?: number; exit?: number }>({});
+    const state = useRef({ visible: false, exiting: false });
 
-    useEffect(() => {
-        loadConfiguration();
-        setupSignalRConnection();
+    useGoogleFonts(layout.elements.map(e => e.text?.fontFamily), 'so-fonts');
 
-        return () => {
-            if (connectionRef.current) {
-                connectionRef.current.stop();
-            }
-        };
-    }, [channel]);
+    const clearTimers = () => {
+        const t = timers.current;
+        window.clearInterval(t.interval);
+        window.clearTimeout(t.close);
+        window.clearTimeout(t.safety);
+        window.clearTimeout(t.exit);
+        timers.current = {};
+    };
+
+    const stopVideo = () => {
+        if (videoRef.current) {
+            videoRef.current.pause();
+            videoRef.current.currentTime = 0;
+        }
+    };
+
+    const hide = () => {
+        clearTimers();
+        stopVideo();
+        state.current = { visible: false, exiting: false };
+        setData(null);
+        setRemaining(0);
+    };
+
+    const close = () => {
+        if (state.current.exiting || !state.current.visible) return;
+        const t = timers.current;
+        window.clearInterval(t.interval);
+        window.clearTimeout(t.close);
+        stopVideo();
+        state.current.exiting = true;
+        const exit = layoutRef.current.animations.exit;
+        const ms = exit.type === 'none' ? 0 : exit.durationMs;
+        setPhase('exit');
+        t.exit = window.setTimeout(hide, ms);
+    };
+
+    const show = (d: ShoutoutData) => {
+        clearTimers();
+        const seconds = d.clipUrl ? durationRef.current : Math.min(durationRef.current, NO_CLIP_MAX_S);
+        state.current = { visible: true, exiting: false };
+        setData(d);
+        setPhase('enter');
+        setShowId(n => n + 1);
+        setRemaining(seconds);
+        setEffective(seconds);
+        const t = timers.current;
+        t.interval = window.setInterval(() => setRemaining(r => {
+            if (r <= 1) { window.clearInterval(timers.current.interval); return 0; }
+            return r - 1;
+        }), 1000);
+        t.close = window.setTimeout(close, seconds * 1000);
+        // Por si el cierre normal falla: siempre se va
+        t.safety = window.setTimeout(hide, Math.max(30000, seconds * 1000 + SAFETY_EXTRA_MS));
+    };
 
     const loadConfiguration = async () => {
-        if (!channel) {
-            console.warn('No channel specified, using default configuration');
-            return;
-        }
-
+        if (!channel) return;
         try {
-            console.log(`Cargando configuración para canal: ${channel}`);
             const res = await fetch(`/api/shoutout/config/overlay/${channel}`);
-            if (res.ok) {
-                const data = await res.json();
-                console.log('Configuración cargada:', data);
-                if (data.success && data.config) {
-                    const config = data.config;
-                    const newDuration = config.duration || 10;
-                    setDuration(newDuration);
-                    durationRef.current = newDuration; // Actualizar ref para callbacks
-                    setShowDebugTimer(config.showDebugTimer || false);
-
-                    // Animation & Effects
-                    setAnimationType(config.animationType || 'none');
-                    setAnimationSpeed(config.animationSpeed || 'normal');
-                    setTextOutlineEnabled(config.textOutlineEnabled || false);
-                    setTextOutlineColor(config.textOutlineColor || '#000000');
-                    setTextOutlineWidth(config.textOutlineWidth || 2);
-                    setContainerBorderEnabled(config.containerBorderEnabled || false);
-                    setContainerBorderColor(config.containerBorderColor || '#ffffff');
-                    setContainerBorderWidth(config.containerBorderWidth || 3);
-
-                    if (config.textLines) setTextLines(config.textLines);
-                    if (config.styles) setStyles(prev => ({ ...prev, ...config.styles }));
-                    if (config.layout) setLayout(prev => ({ ...prev, ...config.layout }));
-                }
-            } else {
-                console.error('Error en respuesta del servidor:', res.status);
+            if (!res.ok) return;
+            const json = await res.json();
+            if (json.success && json.config) {
+                durationRef.current = json.config.duration || 10;
+                setLayout(normalizeShoutoutLayout(json.config));
             }
         } catch (err) {
             console.error('Error loading overlay config:', err);
         }
     };
 
-    const setupSignalRConnection = async () => {
-        if (!channel) {
-            return;
-        }
-
+    const connect = async () => {
+        if (!channel) return;
         try {
-            // Usar el origen actual para que funcione tanto en dev como en producción
-            const hubUrl = `${window.location.origin}/hubs/overlay`;
             const connection = new signalR.HubConnectionBuilder()
-                .withUrl(hubUrl, {
-                    withCredentials: false
-                })
+                .withUrl(`${window.location.origin}/hubs/overlay`, { withCredentials: false })
                 .withAutomaticReconnect()
-                .configureLogging(signalR.LogLevel.Information)
+                .configureLogging(signalR.LogLevel.Warning)
                 .build();
 
-            // CRÍTICO: Configurar listeners ANTES de conectar
-            connection.on('ShowShoutout', (data) => {
-                showShoutout({
-                    targetUser: data.targetUser,
-                    gameName: data.gameName,
-                    clipUrl: data.clipUrl,
-                    profileImageUrl: data.profileImageUrl
-                });
-            });
-
-            connection.on('ConfigurationChanged', () => {
-                loadConfiguration();
-            });
-
-            // Handler para cuando SignalR se reconecta automáticamente
-            connection.onreconnected(async (connectionId) => {
+            // Los listeners antes de conectar
+            connection.on('ShowShoutout', (d: any) => show({
+                targetUser: d.targetUser,
+                displayName: d.displayName,
+                gameName: d.gameName,
+                clipUrl: d.clipUrl,
+                profileImageUrl: d.profileImageUrl,
+                title: d.title,
+                tags: d.tags,
+                broadcasterType: d.broadcasterType,
+                isLive: d.isLive,
+                followers: d.followers,
+                clipTitle: d.clipTitle,
+                clipViews: d.clipViews,
+                clipCreator: d.clipCreator,
+            }));
+            connection.on('ConfigurationChanged', () => { loadConfiguration(); });
+            connection.onreconnected(async () => {
                 try {
-                    // Recargar configuración para obtener fuente y estilos actualizados
                     await loadConfiguration();
-
-                    // Re-unirse al grupo del canal
                     await connection.invoke('JoinChannel', channel);
                 } catch (err) {
-                    console.error('❌ [SHOUTOUT] Error al re-unirse al canal:', err);
+                    console.error('[SHOUTOUT] Error al re-unirse al canal:', err);
                 }
             });
-
-            // Handler para cuando se está reconectando
-            connection.onreconnecting((error) => {
-            });
-
-            // Handler para cuando se cierra la conexión
-            connection.onclose((error) => {
-                setTimeout(setupSignalRConnection, 5000);
-            });
+            connection.onclose(() => { window.setTimeout(connect, 5000); });
 
             await connection.start();
-            // Unirse al grupo del canal
             await connection.invoke('JoinChannel', channel);
-
             connectionRef.current = connection;
-        } catch (err) {
-            // Reintentar después de 5 segundos
-            setTimeout(setupSignalRConnection, 5000);
+        } catch {
+            window.setTimeout(connect, 5000);
         }
     };
 
-    const showShoutout = (data: ShoutoutData) => {
-        const hasClip = !!data.clipUrl;
-        // Si no hay clip, usar 5 segundos; si hay clip, usar la duración configurada
-        const effectiveDuration = hasClip ? durationRef.current : Math.min(durationRef.current, 5);
-
-        // Limpiar timers anteriores si existen
-        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-        if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
-        if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
-
-        setShoutoutData(data);
-        setIsVisible(true);
-        isVisibleRef.current = true;
-        setIsExiting(false);
-        isExitingRef.current = false;
-        setRemainingTime(effectiveDuration);
-
-        // Countdown timer
-        intervalRef.current = setInterval(() => {
-            setRemainingTime((prev) => {
-                if (prev <= 1) {
-                    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        // Timeout normal — cierra al cumplir la duración
-        timeoutRef.current = setTimeout(() => {
-            closeShoutout();
-        }, effectiveDuration * 1000);
-
-        // Timeout de seguridad absoluto — 30s máximo, SIEMPRE cierra
-        safetyTimeoutRef.current = setTimeout(() => {
-            forceClose();
-        }, 30000);
-    };
-
-    // Función centralizada para cerrar el shoutout
-    const closeShoutout = () => {
-        // Usar refs para el guard (evita stale closure con state)
-        if (isExitingRef.current || !isVisibleRef.current) return;
-
-        // Limpiar timers
-        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-        if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
-
-        // Pausar video inmediatamente para que no siga sonando
-        if (videoRef.current) {
-            videoRef.current.pause();
-            videoRef.current.currentTime = 0;
-        }
-
-        // Activar animación de salida
-        setIsExiting(true);
-        isExitingRef.current = true;
-
-        // Esperar a que la animación de salida termine antes de ocultar
-        const exitAnimationDuration = getAnimationDurationMs();
-        setTimeout(() => {
-            setIsVisible(false);
-            isVisibleRef.current = false;
-            setIsExiting(false);
-            isExitingRef.current = false;
-            setShoutoutData(null);
-            setRemainingTime(0);
-            if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
-        }, exitAnimationDuration);
-    };
-
-    // Cierre forzado — se ejecuta si todo lo demás falla (timeout de seguridad 30s)
-    const forceClose = () => {
-        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-        if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
-        if (safetyTimeoutRef.current) { clearTimeout(safetyTimeoutRef.current); safetyTimeoutRef.current = null; }
-        if (videoRef.current) { videoRef.current.pause(); videoRef.current.currentTime = 0; }
-        setIsVisible(false);
-        isVisibleRef.current = false;
-        setIsExiting(false);
-        isExitingRef.current = false;
-        setShoutoutData(null);
-        setRemainingTime(0);
-    };
-
-    // Cuando el clip termina (si dura menos que el tiempo configurado)
-    const handleVideoEnded = () => {
-        closeShoutout();
-    };
-
-    const hexToRgba = (hex: string, alpha: number): string => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    };
-
-    const getBackgroundStyle = (): React.CSSProperties => {
-        const opacity = styles.backgroundOpacity / 100;
-
-        if (styles.backgroundType === 'transparent') {
-            return { background: 'transparent' };
-        } else if (styles.backgroundType === 'solid') {
-            return {
-                background: hexToRgba(styles.solidColor, opacity)
-            };
-        } else {
-            // Para gradientes, necesitamos aplicar la opacidad a cada color
-            const color1 = hexToRgba(styles.gradientColor1, opacity);
-            const color2 = hexToRgba(styles.gradientColor2, opacity);
-            return {
-                background: `linear-gradient(${styles.gradientAngle}deg, ${color1}, ${color2})`
-            };
-        }
-    };
-
-    const getAnimationName = (entering: boolean): string => {
-        if (animationType === 'none') return entering ? 'fadeIn' : 'fadeOut';
-        if (animationType === 'slide') return entering ? 'slideIn' : 'slideOut';
-        if (animationType === 'bounce') return entering ? 'bounceIn' : 'bounceOut';
-        if (animationType === 'fade') return entering ? 'fadeIn' : 'fadeOut';
-        if (animationType === 'zoom') return entering ? 'zoomIn' : 'zoomOut';
-        if (animationType === 'rotate') return entering ? 'rotateIn' : 'rotateOut';
-        return entering ? 'fadeIn' : 'fadeOut';
-    };
-
-    const getAnimationDuration = (): string => {
-        if (animationSpeed === 'slow') return '1s';
-        if (animationSpeed === 'fast') return '0.3s';
-        return '0.5s'; // normal
-    };
-
-    const getAnimationDurationMs = (): number => {
-        if (animationSpeed === 'slow') return 1000;
-        if (animationSpeed === 'fast') return 300;
-        return 500; // normal
-    };
-
-    const getTextOutlineStyle = (): React.CSSProperties => {
-        if (!textOutlineEnabled) return {};
-        return {
-            WebkitTextStroke: `${textOutlineWidth}px ${textOutlineColor}`,
-            paintOrder: 'stroke fill'
+    useEffect(() => {
+        loadConfiguration();
+        connect();
+        return () => {
+            clearTimers();
+            connectionRef.current?.stop();
         };
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [channel]);
 
-    const getTextShadowStyle = (shadow: string): string => {
-        switch (shadow) {
-            case 'normal': return '2px 2px 4px rgba(0,0,0,0.5)';
-            case 'strong': return '3px 3px 6px rgba(0,0,0,0.8)';
-            case 'glow': return '0 0 10px rgba(255,255,255,0.8)';
-            default: return 'none';
-        }
-    };
-
-    const replaceVariables = (text: string): string => {
-        if (!shoutoutData) return text;
-        return text
-            .replace('@username', shoutoutData.targetUser)
-            .replace('@game', shoutoutData.gameName || 'Sin categoría');
-    };
-
+    if (!data) return null;
     return (
-        <div
-            style={{
-                width: '1000px',
-                height: '300px',
-                overflow: 'hidden',
-                position: 'relative',
-                fontFamily: styles.fontFamily
-            }}
-        >
-            {/* Shoutout Box */}
-            <div
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: (isVisible || isExiting) ? 'block' : 'none',
-                    borderRadius: '20px',
-                    border: containerBorderEnabled ? `${containerBorderWidth}px solid ${containerBorderColor}` : 'none',
-                    boxShadow: containerBorderEnabled ? '0 8px 24px rgba(0, 0, 0, 0.4)' : '0 4px 16px rgba(0, 0, 0, 0.2)',
-                    ...getBackgroundStyle(),
-                    animation: !isExiting
-                        ? `${getAnimationName(true)} ${getAnimationDuration()} ease-in-out`
-                        : `${getAnimationName(false)} ${getAnimationDuration()} ease-in-out`
-                }}
-            >
-                {/* Clip Video Element */}
-                {shoutoutData?.clipUrl && (
-                    <video
-                        ref={videoRef}
-                        key={shoutoutData.clipUrl}
-                        autoPlay
-                        playsInline
-                        style={{
-                            position: 'absolute',
-                            left: `${layout.clip.x}px`,
-                            top: `${layout.clip.y}px`,
-                            width: `${layout.clip.width}px`,
-                            height: `${layout.clip.height}px`,
-                            borderRadius: '12px',
-                            objectFit: 'cover',
-                            backgroundColor: '#000',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-                        }}
-                        onError={(e) => console.error('Error cargando video:', e)}
-                        onLoadedData={() => console.log('Video cargado:', shoutoutData.clipUrl)}
-                        onEnded={handleVideoEnded}
-                    >
-                        <source src={shoutoutData.clipUrl} type="video/mp4" />
-                    </video>
-                )}
-
-                {/* Profile Image */}
-                {shoutoutData?.profileImageUrl && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            left: `${layout.profile.x}px`,
-                            top: `${layout.profile.y}px`,
-                            width: `${layout.profile.size}px`,
-                            height: `${layout.profile.size}px`,
-                            borderRadius: '50%',
-                            overflow: 'hidden',
-                            border: '4px solid rgba(255, 255, 255, 0.4)',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-                        }}
-                    >
-                        <img
-                            src={shoutoutData.profileImageUrl}
-                            alt={shoutoutData.targetUser}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
-                            }}
-                        />
-                    </div>
-                )}
-
-                {/* Debug Timer */}
-                {showDebugTimer && isVisible && (
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '10px',
-                            backgroundColor: 'rgba(0,0,0,0.8)',
-                            color: '#fff',
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            fontSize: '20px',
-                            fontWeight: 'bold',
-                            fontFamily: 'monospace',
-                            border: '2px solid rgba(255,255,255,0.3)',
-                            zIndex: 9999
-                        }}
-                    >
-                        ⏱️ {remainingTime}s
-                    </div>
-                )}
-
-                {/* Text Lines */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: `${layout.text.x}px`,
-                        top: `${layout.text.y}px`,
-                        textAlign: (layout.text.align as 'left' | 'center' | 'right'),
-                        transform: layout.text.align === 'center' ? 'translateX(-50%)' : 'none'
-                    }}
-                >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {textLines.filter(l => l.enabled).map((line, idx) => (
-                            <p
-                                key={idx}
-                                style={{
-                                    fontSize: `${line.fontSize}px`,
-                                    fontWeight: line.fontWeight,
-                                    color: styles.textColor,
-                                    textShadow: getTextShadowStyle(styles.textShadow),
-                                    fontFamily: styles.fontFamily,
-                                    margin: 0,
-                                    lineHeight: 1.2,
-                                    whiteSpace: 'nowrap',
-                                    ...getTextOutlineStyle()
-                                }}
-                            >
-                                {replaceVariables(line.text)}
-                            </p>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* CSS Animations */}
-            <style>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                }
-
-                @keyframes fadeOut {
-                    from {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    to {
-                        opacity: 0;
-                        transform: scale(0.9);
-                    }
-                }
-
-                @keyframes slideIn {
-                    from {
-                        opacity: 0;
-                        transform: translateX(-100%);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
-
-                @keyframes slideOut {
-                    from {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                    to {
-                        opacity: 0;
-                        transform: translateX(100%);
-                    }
-                }
-
-                @keyframes bounceIn {
-                    0% {
-                        opacity: 0;
-                        transform: scale(0.3);
-                    }
-                    50% {
-                        opacity: 1;
-                        transform: scale(1.05);
-                    }
-                    70% {
-                        transform: scale(0.9);
-                    }
-                    100% {
-                        transform: scale(1);
-                    }
-                }
-
-                @keyframes bounceOut {
-                    0% {
-                        transform: scale(1);
-                    }
-                    50% {
-                        opacity: 1;
-                        transform: scale(1.1);
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: scale(0.3);
-                    }
-                }
-
-                @keyframes zoomIn {
-                    from {
-                        opacity: 0;
-                        transform: scale(0);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                }
-
-                @keyframes zoomOut {
-                    from {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    to {
-                        opacity: 0;
-                        transform: scale(0);
-                    }
-                }
-
-                @keyframes rotateIn {
-                    from {
-                        opacity: 0;
-                        transform: rotate(-200deg) scale(0);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: rotate(0) scale(1);
-                    }
-                }
-
-                @keyframes rotateOut {
-                    from {
-                        opacity: 1;
-                        transform: rotate(0) scale(1);
-                    }
-                    to {
-                        opacity: 0;
-                        transform: rotate(200deg) scale(0);
-                    }
-                }
-            `}</style>
-        </div>
+        <ShoutoutRenderer
+            key={showId}
+            layout={layout}
+            data={data}
+            phase={phase}
+            remaining={remaining}
+            durationSec={effective}
+            videoRef={videoRef}
+            onVideoEnded={close}
+        />
     );
 }

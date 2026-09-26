@@ -19,7 +19,7 @@ export interface ShoutoutData {
     clipCreator?: string;
 }
 
-export type ElementKind = 'panel' | 'clip' | 'avatar' | 'text' | 'badge' | 'live' | 'progress' | 'timer';
+export type ElementKind = 'panel' | 'clip' | 'avatar' | 'text' | 'badge' | 'live' | 'progress' | 'timer' | 'shape';
 
 export type TextShadow = 'none' | 'normal' | 'strong' | 'glow';
 

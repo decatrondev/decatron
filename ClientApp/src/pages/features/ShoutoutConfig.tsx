@@ -1,566 +1,163 @@
-import {
-    Save, ArrowLeft, Clock, Type, Palette, Layout as LayoutIcon,
-    AlertCircle, CheckCircle,
-    RotateCcw, Bug, Zap, Shield
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Save } from 'lucide-react';
+import { useGoogleFonts } from '../../components/music-overlay/utils';
 import { usePermissions } from '../../hooks/usePermissions';
-import { useState, useEffect, useRef } from 'react';
-import api from '../../services/api';
-import type { TextLine, StyleConfig, LayoutConfig, TabType, DragElement } from './shoutout-extension/types';
+import { useShoutoutConfig } from './shoutout-extension/hooks/useShoutoutConfig';
+import ShoutoutPreview from './shoutout-extension/components/ShoutoutPreview';
 import {
-    DEFAULT_DURATION, DEFAULT_COOLDOWN, DEFAULT_TEXT_LINES, DEFAULT_STYLES, DEFAULT_LAYOUT,
-    DEFAULT_ANIMATION_TYPE, DEFAULT_ANIMATION_SPEED,
-    DEFAULT_TEXT_OUTLINE_ENABLED, DEFAULT_TEXT_OUTLINE_COLOR, DEFAULT_TEXT_OUTLINE_WIDTH,
-    DEFAULT_CONTAINER_BORDER_ENABLED, DEFAULT_CONTAINER_BORDER_COLOR, DEFAULT_CONTAINER_BORDER_WIDTH
-} from './shoutout-extension/constants/defaults';
-import { BasicTab, TypographyTab, BackgroundTab, LayoutTab, AnimationsTab, ManagementTab, DebugTab } from './shoutout-extension/components/tabs';
-import { PreviewPanel } from './shoutout-extension/components/PreviewPanel';
+    GuideTab, GeneralTab, ThemeTab, ElementsTab, TextTab, AnimationsTab, EditorTab, PermissionsTab, type ShoutoutTabId,
+} from './shoutout-extension/components/ShoutoutTabs';
+
+// Shoutout (.dev/plans/SHOUTOUT_REDESIGN_PLAN.md, fase 1): mismo patrón que /overlays/now-playing —
+// pestañas a la izquierda (2/3), vista previa en vivo a la derecha (1/3), un solo renderer para todo.
+
+const TABS: { id: ShoutoutTabId; icon: string }[] = [
+    { id: 'guide', icon: '📚' },
+    { id: 'general', icon: '⚙️' },
+    { id: 'theme', icon: '🎨' },
+    { id: 'elements', icon: '🖼️' },
+    { id: 'text', icon: '🔤' },
+    { id: 'animations', icon: '✨' },
+    { id: 'editor', icon: '🖥️' },
+    { id: 'permissions', icon: '🛡️' },
+];
 
 export default function ShoutoutConfig() {
+    const { t } = useTranslation('overlays');
     const navigate = useNavigate();
-    const { t } = useTranslation('features');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [activeTab, setActiveTab] = useState<TabType>('basic');
-    const previewRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLDivElement>(null);
+    const cfg = useShoutoutConfig();
+    const [tab, setTab] = useState<ShoutoutTabId>(() => {
+        try { return (sessionStorage.getItem('so-tab') as ShoutoutTabId) || 'guide'; } catch { return 'guide'; }
+    });
+    const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+    useGoogleFonts(cfg.layout.elements.map(e => e.text?.fontFamily), 'so-fonts');
 
-    // Drag & Drop state
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragElement, setDragElement] = useState<DragElement>(null);
-    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    useEffect(() => { try { sessionStorage.setItem('so-tab', tab); } catch { /* sin storage */ } }, [tab]);
 
-    // Configuration state
-    const [duration, setDuration] = useState(DEFAULT_DURATION);
-    const [cooldown, setCooldown] = useState(DEFAULT_COOLDOWN);
-    const [showDebugTimer, setShowDebugTimer] = useState(false);
-    const [testing, setTesting] = useState(false);
-
-    // Animation & Effects state
-    const [animationType, setAnimationType] = useState(DEFAULT_ANIMATION_TYPE);
-    const [animationSpeed, setAnimationSpeed] = useState(DEFAULT_ANIMATION_SPEED);
-    const [textOutlineEnabled, setTextOutlineEnabled] = useState(DEFAULT_TEXT_OUTLINE_ENABLED);
-    const [textOutlineColor, setTextOutlineColor] = useState(DEFAULT_TEXT_OUTLINE_COLOR);
-    const [textOutlineWidth, setTextOutlineWidth] = useState(DEFAULT_TEXT_OUTLINE_WIDTH);
-    const [containerBorderEnabled, setContainerBorderEnabled] = useState(DEFAULT_CONTAINER_BORDER_ENABLED);
-    const [containerBorderColor, setContainerBorderColor] = useState(DEFAULT_CONTAINER_BORDER_COLOR);
-    const [containerBorderWidth, setContainerBorderWidth] = useState(DEFAULT_CONTAINER_BORDER_WIDTH);
-
-    // Lists state
-    const [blacklist, setBlacklist] = useState<string[]>([]);
-    const [whitelist, setWhitelist] = useState<string[]>([]);
-    const [textLines, setTextLines] = useState<TextLine[]>([...DEFAULT_TEXT_LINES]);
-    const [styles, setStyles] = useState<StyleConfig>({ ...DEFAULT_STYLES });
-    const [layout, setLayout] = useState<LayoutConfig>(JSON.parse(JSON.stringify(DEFAULT_LAYOUT)));
-
-    const [overlayUrl, setOverlayUrl] = useState('');
-
+    // Como antes: hace falta nivel de moderación en el canal
     useEffect(() => {
-        if (!permissionsLoading && hasMinimumLevel('moderation')) {
-            loadConfiguration();
-            loadFrontendInfo();
-        } else if (!permissionsLoading) {
-            navigate('/dashboard');
-        }
+        if (!permissionsLoading && !hasMinimumLevel('moderation')) navigate('/dashboard');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permissionsLoading]);
 
-    const loadConfiguration = async () => {
-        try {
-            setLoading(true);
-            const res = await api.get('/shoutout/config');
-            if (res.data.success && res.data.config) {
-                const config = res.data.config;
-                setDuration(config.duration || DEFAULT_DURATION);
-                setCooldown(config.cooldown || DEFAULT_COOLDOWN);
-                setShowDebugTimer(config.showDebugTimer || false);
+    useEffect(() => {
+        if (!cfg.dirty) return;
+        const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [cfg.dirty]);
 
-                // Animation & Effects
-                setAnimationType(config.animationType || DEFAULT_ANIMATION_TYPE);
-                setAnimationSpeed(config.animationSpeed || DEFAULT_ANIMATION_SPEED);
-                setTextOutlineEnabled(config.textOutlineEnabled || DEFAULT_TEXT_OUTLINE_ENABLED);
-                setTextOutlineColor(config.textOutlineColor || DEFAULT_TEXT_OUTLINE_COLOR);
-                setTextOutlineWidth(config.textOutlineWidth || DEFAULT_TEXT_OUTLINE_WIDTH);
-                setContainerBorderEnabled(config.containerBorderEnabled || DEFAULT_CONTAINER_BORDER_ENABLED);
-                setContainerBorderColor(config.containerBorderColor || DEFAULT_CONTAINER_BORDER_COLOR);
-                setContainerBorderWidth(config.containerBorderWidth || DEFAULT_CONTAINER_BORDER_WIDTH);
+    useEffect(() => {
+        if (!message) return;
+        const id = window.setTimeout(() => setMessage(null), 4000);
+        return () => window.clearTimeout(id);
+    }, [message]);
 
-                // Lists
-                setBlacklist(config.blacklist || []);
-                setWhitelist(config.whitelist || []);
-
-                if (config.textLines && Array.isArray(config.textLines)) {
-                    setTextLines(config.textLines);
-                }
-                if (config.styles) {
-                    setStyles({ ...styles, ...config.styles });
-                }
-                if (config.layout) {
-                    setLayout({ ...layout, ...config.layout });
-                }
-            }
-        } catch (error) {
-            console.error('Error loading shoutout configuration:', error);
-        } finally {
-            setLoading(false);
-        }
+    const save = async () => {
+        const err = await cfg.save();
+        setMessage({ ok: !err, text: err ? (err === 'save_failed' ? t('shoutout.saveFailed') : err) : t('shoutout.saved') });
     };
 
-    const loadFrontendInfo = async () => {
-        try {
-            const res = await api.get('/settings/frontend-info');
-            if (res.data.success) {
-                const { frontendUrl, channel } = res.data;
-                setOverlayUrl(`${frontendUrl}/overlay/shoutout?channel=${channel.login}`);
-            }
-        } catch (error) {
-            console.error('Error loading frontend info:', error);
-            // Fallback to default
-            setOverlayUrl(`${window.location.origin}/overlay/shoutout?channel=channel`);
-        }
+    const back = () => {
+        if (cfg.dirty && !window.confirm(t('shoutout.leaveConfirm'))) return;
+        navigate('/overlays');
     };
 
-    const handleSave = async () => {
-        if (duration < 5 || duration > 30) {
-            setSaveMessage({ type: 'error', text: t('shoutout.durationError') });
-            return;
-        }
-
-        if (cooldown < 10 || cooldown > 300) {
-            setSaveMessage({ type: 'error', text: t('shoutout.cooldownError') });
-            return;
-        }
-
-        try {
-            setSaving(true);
-            setSaveMessage(null);
-
-            await api.post('/shoutout/config', {
-                duration,
-                cooldown,
-                showDebugTimer,
-                textLines,
-                styles,
-                layout,
-                animationType,
-                animationSpeed,
-                textOutlineEnabled,
-                textOutlineColor,
-                textOutlineWidth,
-                containerBorderEnabled,
-                containerBorderColor,
-                containerBorderWidth,
-                blacklist,
-                whitelist
-            });
-
-            setSaveMessage({ type: 'success', text: t('shoutout.saveSuccess') });
-
-            setTimeout(() => {
-                setSaveMessage(null);
-            }, 3000);
-        } catch (error) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || t('shoutout.saveError')
-                : t('shoutout.saveError');
-            setSaveMessage({ type: 'error', text: message });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    // Helper para guardar solo las listas (auto-guardado)
-    const saveListsOnly = async (newBlacklist: string[], newWhitelist: string[]) => {
-        try {
-            await api.post('/shoutout/config', {
-                duration,
-                cooldown,
-                showDebugTimer,
-                textLines,
-                styles,
-                layout,
-                animationType,
-                animationSpeed,
-                textOutlineEnabled,
-                textOutlineColor,
-                textOutlineWidth,
-                containerBorderEnabled,
-                containerBorderColor,
-                containerBorderWidth,
-                blacklist: newBlacklist,
-                whitelist: newWhitelist
-            });
-        } catch (error) {
-            console.error('Error al auto-guardar listas:', error);
-            setSaveMessage({ type: 'error', text: t('shoutout.listSaveError') });
-            setTimeout(() => setSaveMessage(null), 3000);
-        }
-    };
-
-    // Funciones para manejar blacklist con auto-guardado
-    const addToBlacklist = async (username: string) => {
-        const newBlacklist = [...blacklist, username];
-        setBlacklist(newBlacklist);
-        await saveListsOnly(newBlacklist, whitelist);
-    };
-
-    const removeFromBlacklist = async (index: number) => {
-        const newBlacklist = blacklist.filter((_, i) => i !== index);
-        setBlacklist(newBlacklist);
-        await saveListsOnly(newBlacklist, whitelist);
-    };
-
-    // Funciones para manejar whitelist con auto-guardado
-    const addToWhitelist = async (username: string) => {
-        const newWhitelist = [...whitelist, username];
-        setWhitelist(newWhitelist);
-        await saveListsOnly(blacklist, newWhitelist);
-    };
-
-    const removeFromWhitelist = async (index: number) => {
-        const newWhitelist = whitelist.filter((_, i) => i !== index);
-        setWhitelist(newWhitelist);
-        await saveListsOnly(blacklist, newWhitelist);
-    };
-
-    const handleTestShoutout = async () => {
-        try {
-            setTesting(true);
-            await api.post('/shoutout/test');
-            setSaveMessage({ type: 'success', text: t('shoutout.testSuccess') });
-            setTimeout(() => setSaveMessage(null), 3000);
-        } catch (error) {
-            const message = error instanceof Error && 'response' in error
-                ? (error as { response?: { data?: { message?: string } } }).response?.data?.message || t('shoutout.testError')
-                : t('shoutout.testError');
-            setSaveMessage({ type: 'error', text: message });
-        } finally {
-            setTesting(false);
-        }
-    };
-
-    const handleReset = () => {
-        if (!confirm(t('shoutout.resetConfirm'))) return;
-
-        setDuration(DEFAULT_DURATION);
-        setCooldown(DEFAULT_COOLDOWN);
-        setShowDebugTimer(false);
-        setAnimationType(DEFAULT_ANIMATION_TYPE);
-        setAnimationSpeed(DEFAULT_ANIMATION_SPEED);
-        setTextOutlineEnabled(DEFAULT_TEXT_OUTLINE_ENABLED);
-        setTextOutlineColor(DEFAULT_TEXT_OUTLINE_COLOR);
-        setTextOutlineWidth(DEFAULT_TEXT_OUTLINE_WIDTH);
-        setContainerBorderEnabled(DEFAULT_CONTAINER_BORDER_ENABLED);
-        setContainerBorderColor(DEFAULT_CONTAINER_BORDER_COLOR);
-        setContainerBorderWidth(DEFAULT_CONTAINER_BORDER_WIDTH);
-        setBlacklist([]);
-        setWhitelist([]);
-        setTextLines([...DEFAULT_TEXT_LINES]);
-        setStyles({ ...DEFAULT_STYLES });
-        setLayout(JSON.parse(JSON.stringify(DEFAULT_LAYOUT)));
-    };
-
-    const handleCopyUrl = async () => {
-        try {
-            await navigator.clipboard.writeText(overlayUrl);
-            setSaveMessage({ type: 'success', text: t('shoutout.urlCopied') });
-            setTimeout(() => setSaveMessage(null), 2000);
-        } catch {
-            setSaveMessage({ type: 'error', text: t('shoutout.urlCopyError') });
-        }
-    };
-
-    const handleOpenBrowser = () => {
-        window.open(overlayUrl, '_blank');
-    };
-
-    const addTextLine = () => {
-        setTextLines([...textLines, { text: t('shoutout.newTextLine'), fontSize: 24, fontWeight: '600', enabled: true }]);
-    };
-
-    const updateTextLine = (index: number, field: keyof TextLine, value: TextLine[keyof TextLine]) => {
-        const newTextLines = [...textLines];
-        newTextLines[index] = { ...newTextLines[index], [field]: value };
-        setTextLines(newTextLines);
-    };
-
-    const removeTextLine = (index: number) => {
-        if (textLines.length <= 1) {
-            setSaveMessage({ type: 'error', text: t('shoutout.minTextLine') });
-            setTimeout(() => setSaveMessage(null), 2000);
-            return;
-        }
-        setTextLines(textLines.filter((_, i) => i !== index));
-    };
-
-    const toggleTextLine = (index: number) => {
-        updateTextLine(index, 'enabled', !textLines[index].enabled);
-    };
-
-    if (permissionsLoading || loading) {
-        return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.loading')}</div>;
+    if (cfg.loading || permissionsLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+            </div>
+        );
     }
 
-    if (!hasMinimumLevel('moderation')) {
-        navigate('/dashboard');
-        return null;
+    if (cfg.error) {
+        return (
+            <div className="p-8">
+                <div className="max-w-xl mx-auto p-6 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+                    {cfg.error === 'forbidden' ? t('shoutout.forbidden') : t('shoutout.loadFailed')}
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f1419] py-4 sm:py-6 lg:py-8">
-            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
-                {/* Header - Responsive */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8">
+            {/* panel-scale agranda todo en 2K/4K; el editor calcula el arrastre con el tamaño real en pantalla */}
+            <div className="panel-scale max-w-[1920px] mx-auto">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-4">
                         <button
-                            onClick={() => navigate('/overlays')}
-                            className="p-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] rounded-lg transition-colors"
+                            onClick={back}
+                            className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
                         </button>
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                {t('shoutout.title')}
-                            </h1>
-                            <p className="text-sm sm:text-base text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                {t('shoutout.subtitle')}
-                            </p>
+                            <h1 className="text-3xl 3xl:text-4xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('shoutout.title')}</h1>
+                            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] mt-1">{t('shoutout.subtitle')}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex items-center gap-3">
+                        {cfg.dirty && <span className="text-xs 3xl:text-sm font-bold text-amber-600 dark:text-amber-400">{t('shoutout.unsaved')}</span>}
                         <button
-                            onClick={handleReset}
-                            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
-                        >
-                            <RotateCcw className="w-4 h-4" />
-                            {t('shoutout.reset')}
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
+                            onClick={save}
+                            disabled={cfg.saving || !cfg.dirty}
+                            className={`px-6 py-3 rounded-xl transition-all flex items-center gap-2 font-bold shadow-lg ${cfg.saving || !cfg.dirty
+                                ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                                : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white'}`}
                         >
                             <Save className="w-5 h-5" />
-                            {saving ? t('shoutout.saving') : t('shoutout.save')}
+                            {cfg.saving ? t('shoutout.saving') : t('shoutout.save')}
                         </button>
                     </div>
                 </div>
 
-                {/* Save Message */}
-                {saveMessage && (
-                    <div className={`rounded-xl border p-4 ${
-                        saveMessage.type === 'success'
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                    }`}>
-                        <div className="flex items-start gap-3">
-                            {saveMessage.type === 'success' ? (
-                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                            ) : (
-                                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                            )}
-                            <p className={`font-bold ${
-                                saveMessage.type === 'success'
-                                    ? 'text-green-700 dark:text-green-300'
-                                    : 'text-red-700 dark:text-red-300'
-                            }`}>
-                                {saveMessage.text}
-                            </p>
-                        </div>
+                {message && (
+                    <div className={`mb-6 p-4 rounded-xl border ${message.ok
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'}`}>
+                        {message.text}
                     </div>
                 )}
 
-                {/* Main Content Grid - Responsive mejorado */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-                    {/* Left Column: Configuration - 2/3 en XL+, full en mobile/tablet */}
-                    <div className="xl:col-span-2 space-y-4 sm:space-y-6">
-                        {/* Tabs Navigation */}
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-2 shadow-lg">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div className="xl:col-span-2 space-y-6 min-w-0">
+                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
                             <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => setActiveTab('basic')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'basic'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Clock className="w-4 h-4" />
-                                {t('shoutout.tabs.basic')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('typography')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'typography'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Type className="w-4 h-4" />
-                                {t('shoutout.tabs.typography')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('background')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'background'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Palette className="w-4 h-4" />
-                                {t('shoutout.tabs.background')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('layout')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'layout'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <LayoutIcon className="w-4 h-4" />
-                                {t('shoutout.tabs.layout')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('animations')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'animations'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Zap className="w-4 h-4" />
-                                {t('shoutout.tabs.animations')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('management')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'management'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Shield className="w-4 h-4" />
-                                {t('shoutout.tabs.management')}
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('debug')}
-                                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
-                                    activeTab === 'debug'
-                                        ? 'bg-[#2563eb] text-white shadow-md'
-                                        : 'bg-transparent text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'
-                                }`}
-                            >
-                                <Bug className="w-4 h-4" />
-                                {t('shoutout.tabs.debug')}
-                            </button>
+                                {TABS.map(item => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => setTab(item.id)}
+                                        className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${tab === item.id
+                                            ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg'
+                                            : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'}`}
+                                    >
+                                        {item.icon} {t(`shoutout.tabs.${item.id}`)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            {tab === 'guide' && <GuideTab cfg={cfg} onNavigate={setTab} />}
+                            {tab === 'general' && <GeneralTab cfg={cfg} />}
+                            {tab === 'theme' && <ThemeTab cfg={cfg} />}
+                            {tab === 'elements' && <ElementsTab cfg={cfg} onNavigate={setTab} />}
+                            {tab === 'text' && <TextTab cfg={cfg} />}
+                            {tab === 'animations' && <AnimationsTab cfg={cfg} />}
+                            {tab === 'editor' && <EditorTab cfg={cfg} />}
+                            {tab === 'permissions' && <PermissionsTab cfg={cfg} />}
                         </div>
                     </div>
 
-                    {activeTab === 'basic' && (
-                        <BasicTab
-                            duration={duration}
-                            setDuration={setDuration}
-                            cooldown={cooldown}
-                            setCooldown={setCooldown}
-                            textLines={textLines}
-                            addTextLine={addTextLine}
-                            updateTextLine={updateTextLine}
-                            removeTextLine={removeTextLine}
-                            toggleTextLine={toggleTextLine}
-                        />
-                    )}
-
-                    {activeTab === 'typography' && (
-                        <TypographyTab styles={styles} setStyles={setStyles} />
-                    )}
-
-                    {activeTab === 'background' && (
-                        <BackgroundTab styles={styles} setStyles={setStyles} />
-                    )}
-
-                    {activeTab === 'layout' && (
-                        <LayoutTab
-                            layout={layout}
-                            setLayout={setLayout}
-                            canvasRef={canvasRef}
-                            isDragging={isDragging}
-                            setIsDragging={setIsDragging}
-                            dragElement={dragElement}
-                            setDragElement={setDragElement}
-                            dragOffset={dragOffset}
-                            setDragOffset={setDragOffset}
-                        />
-                    )}
-
-                    {activeTab === 'animations' && (
-                        <AnimationsTab
-                            animationType={animationType}
-                            setAnimationType={setAnimationType}
-                            animationSpeed={animationSpeed}
-                            setAnimationSpeed={setAnimationSpeed}
-                            textOutlineEnabled={textOutlineEnabled}
-                            setTextOutlineEnabled={setTextOutlineEnabled}
-                            textOutlineColor={textOutlineColor}
-                            setTextOutlineColor={setTextOutlineColor}
-                            textOutlineWidth={textOutlineWidth}
-                            setTextOutlineWidth={setTextOutlineWidth}
-                            containerBorderEnabled={containerBorderEnabled}
-                            setContainerBorderEnabled={setContainerBorderEnabled}
-                            containerBorderColor={containerBorderColor}
-                            setContainerBorderColor={setContainerBorderColor}
-                            containerBorderWidth={containerBorderWidth}
-                            setContainerBorderWidth={setContainerBorderWidth}
-                            testing={testing}
-                            handleTestShoutout={handleTestShoutout}
-                        />
-                    )}
-
-                    {activeTab === 'management' && (
-                        <ManagementTab
-                            blacklist={blacklist}
-                            whitelist={whitelist}
-                            addToBlacklist={addToBlacklist}
-                            removeFromBlacklist={removeFromBlacklist}
-                            addToWhitelist={addToWhitelist}
-                            removeFromWhitelist={removeFromWhitelist}
-                        />
-                    )}
-
-                    {activeTab === 'debug' && (
-                        <DebugTab
-                            showDebugTimer={showDebugTimer}
-                            setShowDebugTimer={setShowDebugTimer}
-                            testing={testing}
-                            handleTestShoutout={handleTestShoutout}
-                        />
-                    )}
+                    <div className="xl:col-span-1 min-w-0">
+                        <ShoutoutPreview layout={cfg.layout} duration={cfg.settings.duration} dirty={cfg.dirty} />
+                    </div>
                 </div>
-
-                {/* Right Column: Preview & Info */}
-                <PreviewPanel
-                    previewRef={previewRef}
-                    styles={styles}
-                    layout={layout}
-                    textLines={textLines}
-                    duration={duration}
-                    cooldown={cooldown}
-                    showDebugTimer={showDebugTimer}
-                    textOutlineEnabled={textOutlineEnabled}
-                    textOutlineColor={textOutlineColor}
-                    textOutlineWidth={textOutlineWidth}
-                    containerBorderEnabled={containerBorderEnabled}
-                    containerBorderColor={containerBorderColor}
-                    containerBorderWidth={containerBorderWidth}
-                    overlayUrl={overlayUrl}
-                    handleCopyUrl={handleCopyUrl}
-                    handleOpenBrowser={handleOpenBrowser}
-                />
-            </div>
             </div>
         </div>
     );

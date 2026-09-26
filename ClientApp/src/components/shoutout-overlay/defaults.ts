@@ -36,6 +36,8 @@ export const KIND_OPTIONS: Record<ElementKind, Record<string, any>> = {
     live: { label: 'EN VIVO', background: '#e91916', color: '#ffffff', pulse: true, radius: 6, fontSize: 18 },
     progress: { track: 'rgba(255, 255, 255, 0.2)', fill: '', radius: 4 },
     timer: {},
+    /** Franja o forma decorativa (fondo CSS: color o degradado). */
+    shape: { background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%)', radius: '0px' },
 };
 
 export function element(id: string, kind: ElementKind, rect: { x: number; y: number; width: number; height: number }, patch: Partial<ShoutoutElement> = {}): ShoutoutElement {
@@ -67,7 +69,8 @@ export const SAMPLE_SHOUTOUT: ShoutoutData = {
     displayName: 'Streamer_Amigo',
     gameName: 'Just Chatting',
     profileImageUrl: 'https://static-cdn.jtvnw.net/user-default-pictures-uv/cdd517fe-def4-11e9-948e-784f43822e80-profile_image-300x300.png',
-    clipUrl: null,
+    /** En la vista previa cualquier valor muestra el cuadro de ejemplo. */
+    clipUrl: 'sample',
     title: '¡Jugando con la comunidad! Pasa a saludar',
     tags: ['Español', 'Chill'],
     broadcasterType: 'affiliate',

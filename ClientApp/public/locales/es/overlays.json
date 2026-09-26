@@ -1163,5 +1163,286 @@
       "fit": "Ajustar al widget",
       "full": "Pantalla completa"
     }
+  },
+  "shoutout": {
+    "title": "Shoutout (!so)",
+    "subtitle": "Presenta a otro streamer con su clip, su foto y su juego cuando alguien usa !so",
+    "unsaved": "Cambios sin guardar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saved": "Cambios guardados. El overlay de OBS se actualiza solo.",
+    "saveFailed": "No se pudo guardar. Intenta de nuevo.",
+    "loadFailed": "No se pudo cargar la configuración del shoutout.",
+    "forbidden": "No tienes permiso para configurar el shoutout de este canal.",
+    "leaveConfirm": "Tienes cambios sin guardar. ¿Salir igual?",
+    "tabs": {
+      "guide": "Guía",
+      "general": "General",
+      "theme": "Tema",
+      "elements": "Elementos",
+      "text": "Texto",
+      "animations": "Animaciones",
+      "editor": "Editor",
+      "permissions": "Permisos"
+    },
+    "elements": {
+      "panel": "Fondo",
+      "shape": "Franja oscura",
+      "clip": "Clip",
+      "avatar": "Foto de perfil",
+      "text": "Texto",
+      "textN": "Texto {{n}}",
+      "badge": "Insignia",
+      "live": "En vivo",
+      "progress": "Barra de tiempo",
+      "timer": "Contador"
+    },
+    "preview": {
+      "title": "Vista previa",
+      "withClip": "Con clip",
+      "noClip": "Sin clip",
+      "sampleClip": "Clip de ejemplo",
+      "play": "Reproducir entrada y salida",
+      "playing": "Reproduciendo...",
+      "test": "Probar en OBS",
+      "testing": "Enviando...",
+      "testSent": "Shoutout de prueba enviado a OBS.",
+      "testFailed": "No se pudo enviar la prueba.",
+      "testHint": "Manda un shoutout de prueba (sin clip) a tu overlay de OBS.",
+      "testUnsaved": "Guarda primero: la prueba usa lo último que guardaste.",
+      "size": "Tamaño del overlay: {{width}}×{{height}}"
+    },
+    "guide": {
+      "title": "Cómo usarlo",
+      "description": "En cuatro pasos tienes el shoutout en tu stream.",
+      "step1Title": "Agrega el overlay a OBS",
+      "step1Body": "Copia este link y agrégalo como fuente de navegador.",
+      "copy": "Copiar",
+      "copied": "¡Copiado!",
+      "open": "Abrir",
+      "obs1": "En OBS: Fuentes → + → Navegador.",
+      "obs2": "Pega el link en URL.",
+      "obs3": "Pon de ancho {{width}} y de alto {{height}}, y ubícalo donde quieras en la escena.",
+      "step2Title": "Elige cómo se ve",
+      "step2Body": "Elige un diseño y un tema de color, y ajusta lo que quieras. La vista previa de la derecha se ve igual que en OBS.",
+      "goTheme": "Ir a Tema",
+      "step3Title": "Prueba",
+      "step3Body": "Guarda y toca «Probar en OBS» en la vista previa para ver un shoutout de prueba en tu escena.",
+      "step4Title": "Úsalo en el chat",
+      "step4Body": "Tú, tus moderadores y quienes agregues en Permisos pueden escribir:",
+      "step4Perms": "Puedes sumar personas que no son moderadores y bloquear canales.",
+      "goPermissions": "Ir a Permisos"
+    },
+    "general": {
+      "timeTitle": "Tiempos",
+      "duration": "Duración en pantalla",
+      "durationHint": "Si el clip termina antes, se va cuando termina. Si la persona no tiene clips, se queda como mucho 5 segundos.",
+      "cooldown": "Espera para repetir a la misma persona",
+      "cooldownHint": "Cuántos segundos tienen que pasar para volver a hacerle !so a la misma persona. En 0, sin espera.",
+      "debugTitle": "Contador",
+      "showTimer": "Mostrar el contador en el overlay",
+      "showTimerHint": "Muestra arriba a la derecha los segundos que faltan. Sirve para probar; normalmente va apagado."
+    },
+    "theme": {
+      "layoutsTitle": "Diseños",
+      "layoutsDescription": "Dónde va cada cosa. Se conservan tus colores, la fuente y las animaciones.",
+      "layoutConfirm": "Se cambia la ubicación de todos los elementos y el tamaño del overlay. Tus colores y la fuente se mantienen. ¿Seguir?",
+      "layouts": {
+        "classic": "Clásico",
+        "vertical": "Tarjeta vertical",
+        "clipTitle": "Clip con título encima",
+        "bar": "Barra inferior",
+        "textOnly": "Solo texto y foto"
+      },
+      "layoutsHint": {
+        "classic": "Clip a la izquierda, datos a la derecha",
+        "vertical": "Para el costado de la cámara",
+        "clipTitle": "Clip grande con franja abajo",
+        "bar": "Tira fina con mini clip",
+        "textOnly": "Sin clip en pantalla"
+      },
+      "colorsTitle": "Temas de color",
+      "colorsDescription": "Cambia el fondo, el borde y el color de los textos de una vez.",
+      "colors": {
+        "twitch": "Twitch",
+        "night": "Noche",
+        "neon": "Neón",
+        "sunset": "Atardecer",
+        "ice": "Hielo",
+        "glass": "Vidrio",
+        "transparent": "Transparente"
+      },
+      "panelTitle": "Fondo",
+      "bg": {
+        "gradient": "Degradado",
+        "solid": "Color sólido",
+        "transparent": "Transparente"
+      },
+      "color1": "Color 1",
+      "color2": "Color 2",
+      "angle": "Ángulo",
+      "solid": "Color",
+      "opacity": "Opacidad",
+      "radius": "Esquinas redondeadas",
+      "blur": "Desenfoque de lo que está detrás",
+      "blurHint": "Se nota con fondos semitransparentes (efecto vidrio).",
+      "shadow": "Sombra",
+      "shadows": {
+        "none": "Sin sombra",
+        "soft": "Suave",
+        "medium": "Media",
+        "strong": "Marcada",
+        "custom": "Personalizada"
+      },
+      "accent": "Color de acento",
+      "accentHint": "Se usa en la barra de tiempo si no le pones otro color.",
+      "border": "Borde",
+      "borderColor": "Color del borde",
+      "borderWidth": "Grosor del borde"
+    },
+    "elementsTab": {
+      "description": "Prende o apaga cada parte y ajusta cómo se ve. Para moverlas o cambiarles el tamaño, usa el",
+      "goEditor": "Editor",
+      "hidden": "Oculto.",
+      "hints": {
+        "panel": "La caja de fondo del overlay.",
+        "shape": "Degradado oscuro para que el texto se lea sobre el clip.",
+        "clip": "Un clip de la persona, elegido al azar entre los últimos.",
+        "avatar": "La foto de perfil de Twitch.",
+        "text": "Líneas con el nombre, el juego y lo que quieras.",
+        "badge": "Partner o Afiliado de Twitch.",
+        "live": "Aparece si la persona está en vivo en ese momento.",
+        "progress": "Se vacía en lo que dura el shoutout.",
+        "timer": ""
+      },
+      "radius": "Esquinas redondeadas",
+      "borderWidth": "Grosor del borde",
+      "borderColor": "Color del borde",
+      "shadow": "Sombra",
+      "shape": "Forma",
+      "shapes": {
+        "circle": "Círculo",
+        "rounded": "Redondeada",
+        "square": "Cuadrada"
+      },
+      "fill": "Color de la barra",
+      "fillHint": "Por defecto, el color de acento del tema.",
+      "track": "Color del fondo de la barra",
+      "darkness": "Oscuridad",
+      "darknessHint": "Qué tan oscura queda la parte de abajo.",
+      "liveLabel": "Texto",
+      "liveBackground": "Color de fondo",
+      "pulse": "Punto que late",
+      "showAffiliate": "Mostrar también a los afiliados",
+      "showAffiliateHint": "Si está apagado, solo se muestra a los partners.",
+      "textHint": "Los textos se editan en su pestaña.",
+      "goText": "Ir a Texto"
+    },
+    "text": {
+      "variablesTitle": "Variables",
+      "variablesDescription": "Se reemplazan por los datos de la persona. Toca una para agregarla a la línea que estás editando.",
+      "vars": {
+        "displayname": "el nombre como se ve en Twitch",
+        "username": "el usuario de Twitch (en minúsculas)",
+        "game": "el último juego o categoría",
+        "title": "el título del último stream",
+        "followers": "la cantidad de seguidores",
+        "clipTitle": "el título del clip",
+        "clipViews": "las vistas del clip",
+        "clipCreator": "quién creó el clip"
+      },
+      "newLine": "Texto nuevo {{n}}",
+      "linePlaceholder": "Escribe el texto (puedes usar variables)",
+      "hideLine": "Ocultar línea",
+      "showLine": "Mostrar línea",
+      "moveUp": "Subir",
+      "moveDown": "Bajar",
+      "removeLine": "Quitar línea",
+      "addLine": "Agregar línea",
+      "addBlock": "Agregar otro bloque de texto",
+      "removeBlock": "Quitar este bloque",
+      "removeBlockConfirm": "¿Quitar este bloque de texto?",
+      "size": "Tamaño (px)",
+      "weight": "Grosor",
+      "weights": {
+        "400": "Normal",
+        "500": "Medio",
+        "600": "Seminegrita",
+        "bold": "Negrita",
+        "800": "Extra negrita"
+      },
+      "font": "Fuente",
+      "color": "Color",
+      "align": "Alineación",
+      "aligns": {
+        "left": "Izquierda",
+        "center": "Centro",
+        "right": "Derecha"
+      },
+      "shadow": "Sombra del texto",
+      "shadows": {
+        "none": "Sin sombra",
+        "normal": "Normal",
+        "strong": "Fuerte",
+        "glow": "Brillo"
+      },
+      "gap": "Espacio entre líneas",
+      "letterSpacing": "Espacio entre letras",
+      "uppercase": "Todo en mayúsculas",
+      "outline": "Contorno",
+      "outlineColor": "Color del contorno",
+      "outlineWidth": "Grosor del contorno",
+      "anchorHint": "Este bloque viene de tu configuración anterior: no se corta aunque el texto sea largo, y se ubica desde su centro (o su borde izquierdo)."
+    },
+    "animations": {
+      "hint": "Toca «Reproducir entrada y salida» en la vista previa para verlas.",
+      "enterTitle": "Entrada",
+      "enterDescription": "Cómo aparece el shoutout.",
+      "exitTitle": "Salida",
+      "exitDescription": "Cómo se va.",
+      "names": {
+        "none": "Ninguna",
+        "fade": "Fundido",
+        "fade-scale": "Fundido con zoom",
+        "slide": "Deslizar",
+        "bounce": "Rebote",
+        "pop": "Salto",
+        "zoom": "Zoom",
+        "rotate": "Giro",
+        "flip": "Giro 3D",
+        "glitch": "Glitch"
+      },
+      "direction": "Dirección",
+      "directions": {
+        "left": "Desde / hacia la izquierda",
+        "right": "Desde / hacia la derecha",
+        "top": "Desde / hacia arriba",
+        "bottom": "Desde / hacia abajo"
+      },
+      "easing": "Suavizado",
+      "easings": {
+        "ease": "Suave",
+        "ease-out": "Frena al final",
+        "ease-in": "Acelera",
+        "ease-in-out": "Suave en ambos extremos",
+        "linear": "Constante"
+      },
+      "duration": "Duración"
+    },
+    "editor": {
+      "title": "Editor",
+      "description": "Arrastra cada elemento o cámbiale el tamaño desde las esquinas. El lienzo es el overlay tal como sale en OBS."
+    },
+    "permissions": {
+      "whitelistTitle": "Quiénes más pueden usar !so",
+      "whitelistDescription": "Tú y tus moderadores siempre pueden. Agrega aquí a otras personas (por ejemplo, VIPs de confianza).",
+      "whitelistEmpty": "Nadie más, por ahora.",
+      "blacklistTitle": "Canales bloqueados",
+      "blacklistDescription": "A estos canales no se les puede hacer !so; el bot responde con un mensaje en broma.",
+      "blacklistEmpty": "No hay canales bloqueados.",
+      "placeholder": "usuario de Twitch",
+      "add": "Agregar",
+      "remove": "Quitar"
+    }
   }
 }

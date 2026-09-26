@@ -33,10 +33,17 @@ const TEXT_SHADOWS: Record<string, string> = {
     glow: '0 0 10px rgba(255,255,255,0.8)',
 };
 
+/** Color con la opacidad del fondo encima de la suya (#rrggbb, #rrggbbaa o rgba()). */
 function hexToRgba(color: string, alpha: number): string {
-    if (!/^#[0-9a-f]{6}$/i.test(color)) return color;
-    const r = parseInt(color.slice(1, 3), 16), g = parseInt(color.slice(3, 5), 16), b = parseInt(color.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    if (/^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(color)) {
+        const r = parseInt(color.slice(1, 3), 16), g = parseInt(color.slice(3, 5), 16), b = parseInt(color.slice(5, 7), 16);
+        const own = color.length === 9 ? parseInt(color.slice(7, 9), 16) / 255 : 1;
+        // Mismo texto que el overlay viejo cuando el color no trae transparencia
+        return `rgba(${r}, ${g}, ${b}, ${color.length === 9 ? +(own * alpha).toFixed(3) : alpha})`;
+    }
+    const m = /^rgba?\(([^,]+),([^,]+),([^,)]+)(?:,([^)]+))?\)$/i.exec(color.replace(/\s/g, ''));
+    if (m) return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${+((m[4] ? Number(m[4]) : 1) * alpha).toFixed(3)})`;
+    return color;
 }
 
 export function backgroundCss(bg: Background): string {
@@ -167,8 +174,8 @@ export default function ShoutoutRenderer({ layout, data, phase, remaining = 0, d
                     boxShadow: o.shadow ? '0 4px 12px rgba(0, 0, 0, 0.3)' : undefined,
                     border: o.borderWidth ? `${o.borderWidth}px solid ${o.borderColor}` : undefined,
                 };
+                if (!data?.clipUrl) return null;
                 if (!preview) {
-                    if (!data?.clipUrl) return null;
                     return (
                         <video key={`${e.id}-${data.clipUrl}`} ref={videoRef} autoPlay playsInline style={style} onEnded={onVideoEnded}>
                             <source src={data.clipUrl} type="video/mp4" />
@@ -231,6 +238,8 @@ export default function ShoutoutRenderer({ layout, data, phase, remaining = 0, d
                     </div>
                 );
             }
+            case 'shape':
+                return <div key={e.id} style={{ ...box(e), background: o.background, borderRadius: o.radius }} />;
             case 'timer':
                 return (
                     <div key={e.id} style={{ ...box(e), display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', pointerEvents: 'none' }}>

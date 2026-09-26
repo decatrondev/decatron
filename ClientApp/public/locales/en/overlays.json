@@ -1163,5 +1163,286 @@
       "fit": "Fit to widget",
       "full": "Full screen"
     }
+  },
+  "shoutout": {
+    "title": "Shoutout (!so)",
+    "subtitle": "Introduce another streamer with their clip, picture and game when someone uses !so",
+    "unsaved": "Unsaved changes",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Changes saved. The OBS overlay updates by itself.",
+    "saveFailed": "Could not save. Please try again.",
+    "loadFailed": "Could not load the shoutout settings.",
+    "forbidden": "You don't have permission to configure this channel's shoutout.",
+    "leaveConfirm": "You have unsaved changes. Leave anyway?",
+    "tabs": {
+      "guide": "Guide",
+      "general": "General",
+      "theme": "Theme",
+      "elements": "Elements",
+      "text": "Text",
+      "animations": "Animations",
+      "editor": "Editor",
+      "permissions": "Permissions"
+    },
+    "elements": {
+      "panel": "Background",
+      "shape": "Dark strip",
+      "clip": "Clip",
+      "avatar": "Profile picture",
+      "text": "Text",
+      "textN": "Text {{n}}",
+      "badge": "Badge",
+      "live": "Live",
+      "progress": "Time bar",
+      "timer": "Countdown"
+    },
+    "preview": {
+      "title": "Preview",
+      "withClip": "With clip",
+      "noClip": "No clip",
+      "sampleClip": "Sample clip",
+      "play": "Play entrance and exit",
+      "playing": "Playing...",
+      "test": "Test in OBS",
+      "testing": "Sending...",
+      "testSent": "Test shoutout sent to OBS.",
+      "testFailed": "Could not send the test.",
+      "testHint": "Sends a test shoutout (no clip) to your OBS overlay.",
+      "testUnsaved": "Save first: the test uses what you saved last.",
+      "size": "Overlay size: {{width}}×{{height}}"
+    },
+    "guide": {
+      "title": "How to use it",
+      "description": "Four steps and the shoutout is on your stream.",
+      "step1Title": "Add the overlay to OBS",
+      "step1Body": "Copy this link and add it as a browser source.",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "open": "Open",
+      "obs1": "In OBS: Sources → + → Browser.",
+      "obs2": "Paste the link in URL.",
+      "obs3": "Set the width to {{width}} and the height to {{height}}, and place it anywhere in the scene.",
+      "step2Title": "Choose the look",
+      "step2Body": "Pick a layout and a color theme, then tweak whatever you want. The preview on the right looks exactly like OBS.",
+      "goTheme": "Go to Theme",
+      "step3Title": "Test it",
+      "step3Body": "Save and press “Test in OBS” in the preview to see a test shoutout in your scene.",
+      "step4Title": "Use it in chat",
+      "step4Body": "You, your moderators and anyone you add in Permissions can type:",
+      "step4Perms": "You can add people who aren't moderators and block channels.",
+      "goPermissions": "Go to Permissions"
+    },
+    "general": {
+      "timeTitle": "Timing",
+      "duration": "Time on screen",
+      "durationHint": "If the clip ends earlier, it leaves when the clip ends. If the person has no clips, it stays 5 seconds at most.",
+      "cooldown": "Wait before repeating the same person",
+      "cooldownHint": "How many seconds must pass before the same person can get another !so. 0 means no wait.",
+      "debugTitle": "Countdown",
+      "showTimer": "Show the countdown on the overlay",
+      "showTimerHint": "Shows the remaining seconds in the top right corner. Useful for testing; usually off."
+    },
+    "theme": {
+      "layoutsTitle": "Layouts",
+      "layoutsDescription": "Where everything goes. Your colors, font and animations are kept.",
+      "layoutConfirm": "This moves every element and changes the overlay size. Your colors and font are kept. Continue?",
+      "layouts": {
+        "classic": "Classic",
+        "vertical": "Vertical card",
+        "clipTitle": "Clip with title on top",
+        "bar": "Bottom bar",
+        "textOnly": "Text and picture only"
+      },
+      "layoutsHint": {
+        "classic": "Clip on the left, info on the right",
+        "vertical": "For the side of your camera",
+        "clipTitle": "Big clip with a strip below",
+        "bar": "Slim strip with a mini clip",
+        "textOnly": "No clip on screen"
+      },
+      "colorsTitle": "Color themes",
+      "colorsDescription": "Changes the background, border and text color at once.",
+      "colors": {
+        "twitch": "Twitch",
+        "night": "Night",
+        "neon": "Neon",
+        "sunset": "Sunset",
+        "ice": "Ice",
+        "glass": "Glass",
+        "transparent": "Transparent"
+      },
+      "panelTitle": "Background",
+      "bg": {
+        "gradient": "Gradient",
+        "solid": "Solid color",
+        "transparent": "Transparent"
+      },
+      "color1": "Color 1",
+      "color2": "Color 2",
+      "angle": "Angle",
+      "solid": "Color",
+      "opacity": "Opacity",
+      "radius": "Rounded corners",
+      "blur": "Blur what's behind",
+      "blurHint": "Visible with semi-transparent backgrounds (glass effect).",
+      "shadow": "Shadow",
+      "shadows": {
+        "none": "No shadow",
+        "soft": "Soft",
+        "medium": "Medium",
+        "strong": "Strong",
+        "custom": "Custom"
+      },
+      "accent": "Accent color",
+      "accentHint": "Used by the time bar unless you give it another color.",
+      "border": "Border",
+      "borderColor": "Border color",
+      "borderWidth": "Border width"
+    },
+    "elementsTab": {
+      "description": "Turn each part on or off and adjust how it looks. To move or resize them, use the",
+      "goEditor": "Editor",
+      "hidden": "Hidden.",
+      "hints": {
+        "panel": "The overlay's background box.",
+        "shape": "Dark gradient so the text is readable over the clip.",
+        "clip": "One of the person's clips, picked at random from the latest ones.",
+        "avatar": "Their Twitch profile picture.",
+        "text": "Lines with the name, the game and anything you want.",
+        "badge": "Twitch Partner or Affiliate.",
+        "live": "Shows up if the person is live right now.",
+        "progress": "Empties over the shoutout's duration.",
+        "timer": ""
+      },
+      "radius": "Rounded corners",
+      "borderWidth": "Border width",
+      "borderColor": "Border color",
+      "shadow": "Shadow",
+      "shape": "Shape",
+      "shapes": {
+        "circle": "Circle",
+        "rounded": "Rounded",
+        "square": "Square"
+      },
+      "fill": "Bar color",
+      "fillHint": "By default, the theme's accent color.",
+      "track": "Bar background color",
+      "darkness": "Darkness",
+      "darknessHint": "How dark the bottom gets.",
+      "liveLabel": "Text",
+      "liveBackground": "Background color",
+      "pulse": "Pulsing dot",
+      "showAffiliate": "Also show affiliates",
+      "showAffiliateHint": "When off, only partners get it.",
+      "textHint": "Texts are edited in their own tab.",
+      "goText": "Go to Text"
+    },
+    "text": {
+      "variablesTitle": "Variables",
+      "variablesDescription": "Replaced with the person's data. Tap one to add it to the line you're editing.",
+      "vars": {
+        "displayname": "the name as shown on Twitch",
+        "username": "the Twitch username (lowercase)",
+        "game": "the last game or category",
+        "title": "the last stream title",
+        "followers": "the follower count",
+        "clipTitle": "the clip title",
+        "clipViews": "the clip views",
+        "clipCreator": "who made the clip"
+      },
+      "newLine": "New text {{n}}",
+      "linePlaceholder": "Type the text (you can use variables)",
+      "hideLine": "Hide line",
+      "showLine": "Show line",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "removeLine": "Remove line",
+      "addLine": "Add line",
+      "addBlock": "Add another text block",
+      "removeBlock": "Remove this block",
+      "removeBlockConfirm": "Remove this text block?",
+      "size": "Size (px)",
+      "weight": "Weight",
+      "weights": {
+        "400": "Normal",
+        "500": "Medium",
+        "600": "Semibold",
+        "bold": "Bold",
+        "800": "Extra bold"
+      },
+      "font": "Font",
+      "color": "Color",
+      "align": "Alignment",
+      "aligns": {
+        "left": "Left",
+        "center": "Center",
+        "right": "Right"
+      },
+      "shadow": "Text shadow",
+      "shadows": {
+        "none": "No shadow",
+        "normal": "Normal",
+        "strong": "Strong",
+        "glow": "Glow"
+      },
+      "gap": "Line spacing",
+      "letterSpacing": "Letter spacing",
+      "uppercase": "All caps",
+      "outline": "Outline",
+      "outlineColor": "Outline color",
+      "outlineWidth": "Outline width",
+      "anchorHint": "This block comes from your previous settings: it isn't cut even when the text is long, and it's placed from its center (or its left edge)."
+    },
+    "animations": {
+      "hint": "Press “Play entrance and exit” in the preview to see them.",
+      "enterTitle": "Entrance",
+      "enterDescription": "How the shoutout appears.",
+      "exitTitle": "Exit",
+      "exitDescription": "How it leaves.",
+      "names": {
+        "none": "None",
+        "fade": "Fade",
+        "fade-scale": "Fade and zoom",
+        "slide": "Slide",
+        "bounce": "Bounce",
+        "pop": "Pop",
+        "zoom": "Zoom",
+        "rotate": "Spin",
+        "flip": "3D flip",
+        "glitch": "Glitch"
+      },
+      "direction": "Direction",
+      "directions": {
+        "left": "From / to the left",
+        "right": "From / to the right",
+        "top": "From / to the top",
+        "bottom": "From / to the bottom"
+      },
+      "easing": "Easing",
+      "easings": {
+        "ease": "Smooth",
+        "ease-out": "Slows at the end",
+        "ease-in": "Speeds up",
+        "ease-in-out": "Smooth at both ends",
+        "linear": "Constant"
+      },
+      "duration": "Duration"
+    },
+    "editor": {
+      "title": "Editor",
+      "description": "Drag each element or resize it from the corners. The canvas is the overlay exactly as it shows in OBS."
+    },
+    "permissions": {
+      "whitelistTitle": "Who else can use !so",
+      "whitelistDescription": "You and your moderators always can. Add other people here (for example, trusted VIPs).",
+      "whitelistEmpty": "Nobody else, for now.",
+      "blacklistTitle": "Blocked channels",
+      "blacklistDescription": "These channels can't get a !so; the bot replies with a joke.",
+      "blacklistEmpty": "No blocked channels.",
+      "placeholder": "Twitch username",
+      "add": "Add",
+      "remove": "Remove"
+    }
   }
 }
