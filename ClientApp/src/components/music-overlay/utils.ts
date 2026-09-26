@@ -26,15 +26,16 @@ const SINGLE_WEIGHT = ['Press Start 2P', 'Bebas Neue'];
 
 /** Carga de Google Fonts las fuentes que usan los layouts (una sola etiqueta <link>). */
 export function useLayoutFonts(layouts: (OverlayLayout | null | undefined)[]) {
-    const families = Array.from(new Set(
-        layouts.flatMap(l => l ? TEXT_ELEMENTS.map(id => l.elements[id]?.text?.fontFamily) : [])
-            .filter((f): f is string => !!f && f !== 'system-ui'),
-    )).sort();
+    useGoogleFonts(layouts.flatMap(l => l ? TEXT_ELEMENTS.map(id => l.elements[id]?.text?.fontFamily) : []), 'sr-fonts');
+}
+
+/** Carga de Google Fonts una lista de familias en una etiqueta <link> con ese id (la reemplaza si cambia). */
+export function useGoogleFonts(list: (string | null | undefined)[], id: string) {
+    const families = Array.from(new Set(list.filter((f): f is string => !!f && f !== 'system-ui'))).sort();
     const key = families.join('|');
 
     useEffect(() => {
         if (!families.length) return;
-        const id = 'sr-fonts';
         let link = document.getElementById(id) as HTMLLinkElement | null;
         if (!link) {
             link = document.createElement('link');
@@ -47,7 +48,7 @@ export function useLayoutFonts(layouts: (OverlayLayout | null | undefined)[]) {
             .map(f => `family=${encodeURIComponent(f).replace(/%20/g, '+')}${SINGLE_WEIGHT.includes(f) ? '' : ':wght@400;500;600;700;800'}`)
             .join('&')}&display=swap`;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [key]);
+    }, [key, id]);
 }
 
 const overlaps = (a: ElementConfig, b: ElementConfig) =>
