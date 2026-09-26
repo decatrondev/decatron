@@ -914,6 +914,8 @@
       "volumeHint": "Para todas las alertas. Cada archivo puede tener su propio volumen en Recompensas.",
       "duration": "Duración de las imágenes",
       "durationHint": "Cuánto tiempo se ve una imagen. Los sonidos y videos duran lo que dura el archivo.",
+      "cooldown": "Pausa entre alertas",
+      "cooldownHint": "Tiempo mínimo entre el final de una alerta y el comienzo de la siguiente. Los canjes que llegan mientras suena otra esperan en fila, en orden.",
       "resetTitle": "Restablecer el diseño",
       "resetDescription": "Vuelve textos, fondo, animación y posiciones a los valores por defecto. Tus archivos y recompensas no cambian.",
       "reset": "Restablecer diseño",

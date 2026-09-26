@@ -914,6 +914,8 @@
       "volumeHint": "For every alert. Each file can have its own volume in Rewards.",
       "duration": "Image duration",
       "durationHint": "How long an image stays on screen. Sounds and videos last as long as the file.",
+      "cooldown": "Pause between alerts",
+      "cooldownHint": "Minimum time between the end of one alert and the start of the next. Redemptions that arrive while another is playing wait in line, in order.",
       "resetTitle": "Reset design",
       "resetDescription": "Sets texts, background, animation and positions back to defaults. Your files and rewards don't change.",
       "reset": "Reset design",

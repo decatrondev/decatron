@@ -118,6 +118,9 @@ export function BasicTab({ cfg }: TabProps) {
                     <Field label={t('soundAlerts.basic.duration')} hint={t('soundAlerts.basic.durationHint')}>
                         <Slider value={s.duration} min={3} max={30} suffix=" s" onChange={v => cfg.update({ duration: v })} />
                     </Field>
+                    <Field label={t('soundAlerts.basic.cooldown')} hint={t('soundAlerts.basic.cooldownHint')}>
+                        <Slider value={s.cooldownMs / 1000} min={0} max={10} step={0.5} suffix=" s" onChange={v => cfg.update({ cooldownMs: Math.round(v * 1000) })} />
+                    </Field>
                 </div>
             </Card>
             <Card title={t('soundAlerts.basic.resetTitle')} description={t('soundAlerts.basic.resetDescription')}>

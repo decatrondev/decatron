@@ -93,14 +93,13 @@ export default function SoundAlertRenderer({ design, content, scale, videoRef, v
                 <video
                     ref={videoRef}
                     key={content.fileUrl}
+                    src={content.fileUrl}
                     autoPlay
                     playsInline
                     {...(previewMedia ? { muted: true, loop: true } : {})}
                     {...videoProps}
                     style={{ ...media, objectFit: 'scale-down' }}
-                >
-                    <source src={content.fileUrl} type="video/mp4" />
-                </video>
+                />
             )}
 
             {visual === 'image' && <img src={content.imageUrl!} alt="" style={{ ...media, objectFit: 'scale-down' }} />}

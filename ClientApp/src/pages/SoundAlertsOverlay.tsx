@@ -18,6 +18,9 @@ interface SoundAlertData extends AlertContent {
     textOutline: { enabled: boolean; color: string; width: number };
 }
 
+/** Tope de canjes en espera: evita juntar horas de alertas si el overlay estuvo trabado. */
+const MAX_QUEUE = 100;
+
 export default function SoundAlertsOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
@@ -46,6 +49,13 @@ export default function SoundAlertsOverlay() {
     const cleanupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Timeout de seguridad
     const timerStartedRef = useRef(false); // Flag para evitar múltiples llamadas a startExitTimer
+    // Cola: los canjes que llegan mientras suena otra alerta esperan su turno, con el
+    // cooldown como pausa mínima entre el final de una y el comienzo de la siguiente
+    const queueRef = useRef<SoundAlertData[]>([]);
+    const playingRef = useRef(false);
+    const lastEndRef = useRef(0);
+    const cooldownRef = useRef(500);
+    const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const [autoplayUnlocked, setAutoplayUnlocked] = useState(false);
@@ -95,6 +105,7 @@ export default function SoundAlertsOverlay() {
             if (connectionRef.current) {
                 connectionRef.current.stop();
             }
+            if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
             if (audioRef.current) {
                 audioRef.current.pause();
             }
@@ -120,8 +131,10 @@ export default function SoundAlertsOverlay() {
                     setDuration(newDuration);
                     durationRef.current = newDuration;
                     setGlobalVolume(config.globalVolume || 70);
+                    cooldownRef.current = typeof config.cooldownMs === 'number' ? Math.max(0, config.cooldownMs) : 500;
 
-                    setDesign(normalizeDesign(config));
+                    // Si una alerta está sonando, su diseño ya viene con el aviso; el nuevo se ve en la próxima
+                    if (!playingRef.current) setDesign(normalizeDesign(config));
                 }
             } else {
                 console.error('Error en respuesta del servidor:', res.status);
@@ -148,22 +161,7 @@ export default function SoundAlertsOverlay() {
                 .build();
 
             // CRÍTICO: Configurar listeners ANTES de conectar
-            connection.on('ShowSoundAlert', (data) => {
-
-                // Aplicar el diseño que viene con el aviso
-                setDesign(normalizeDesign(data));
-
-                if (data.volume !== undefined) {
-                    setGlobalVolume(data.volume);
-                }
-
-                if (data.duration !== undefined) {
-                    setDuration(data.duration);
-                    durationRef.current = data.duration;
-                }
-
-                showSoundAlert(data);
-            });
+            connection.on('ShowSoundAlert', (data) => enqueue(data));
 
             // Ignorar mensajes del timer para evitar warnings en consola
             connection.on('TimerTick', () => {});
@@ -203,6 +201,50 @@ export default function SoundAlertsOverlay() {
             console.error('❌ [SOUNDALERT] Error conectando SignalR:', err);
             setTimeout(setupSignalRConnection, 5000);
         }
+    };
+
+    const enqueue = (data: SoundAlertData) => {
+        if (queueRef.current.length >= MAX_QUEUE) {
+            console.warn(`⚠️ [SOUNDALERT] Cola llena (${MAX_QUEUE}), se descarta el canje de ${data.redeemer}`);
+            return;
+        }
+        queueRef.current.push(data);
+        scheduleNext();
+    };
+
+    /** Pasa a la siguiente alerta de la cola cuando termina la actual y se cumple el cooldown. */
+    const scheduleNext = () => {
+        if (playingRef.current || nextTimerRef.current || queueRef.current.length === 0) return;
+        const wait = Math.max(0, lastEndRef.current + cooldownRef.current - Date.now());
+        nextTimerRef.current = setTimeout(() => {
+            nextTimerRef.current = null;
+            const data = queueRef.current.shift();
+            if (!data) return;
+            playingRef.current = true;
+
+            // El diseño, el volumen y la duración de cada alerta vienen con su aviso
+            setDesign(normalizeDesign(data));
+            if (data.volume !== undefined) setGlobalVolume(data.volume);
+            if (data.duration !== undefined) {
+                setDuration(data.duration);
+                durationRef.current = data.duration;
+            }
+            showSoundAlert(data);
+        }, wait);
+    };
+
+    const finishAlert = () => {
+        playingRef.current = false;
+        lastEndRef.current = Date.now();
+        scheduleNext();
+    };
+
+    /** Un archivo que no carga termina la alerta enseguida para no trabar la cola. La limpieza vacía el src y
+     *  eso también dispara "error": ese se ignora. */
+    const onMediaError = (e: React.SyntheticEvent<HTMLMediaElement>) => {
+        if (!e.currentTarget.getAttribute('src')) return;
+        console.error('Error cargando el archivo de la alerta:', e.currentTarget.getAttribute('src'));
+        startExitTimer(0);
     };
 
     const showSoundAlert = (data: SoundAlertData) => {
@@ -294,7 +336,7 @@ export default function SoundAlertsOverlay() {
         setIsVisible(false);
         setIsExiting(false);
         timerStartedRef.current = false;
-
+        finishAlert();
     };
 
     const startExitTimer = (durationInSeconds: number) => {
@@ -304,6 +346,13 @@ export default function SoundAlertsOverlay() {
         }
 
         timerStartedRef.current = true;
+
+        // Ya se sabe cuánto dura: el timeout de seguridad pasa a esa duración (antes cortaba los videos de más de 30 s)
+        if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = setTimeout(() => {
+            console.warn('⚠️ [SEGURIDAD] La alerta no terminó sola - Forzando limpieza');
+            forceCleanup();
+        }, durationInSeconds * 1000 + 5000);
 
         // Limpiar timeouts anteriores si existen
         if (timeoutRef.current) {
@@ -376,7 +425,7 @@ export default function SoundAlertsOverlay() {
                 timeoutRef.current = null;
                 cleanupTimeoutRef.current = null;
                 timerStartedRef.current = false;
-
+                finishAlert();
             }, cleanupDelay);
         }, durationInSeconds * 1000);
     };
@@ -404,7 +453,8 @@ export default function SoundAlertsOverlay() {
                         videoRef={videoRef}
                         videoProps={{
                             muted: false,
-                            onError: (e) => console.error('Error cargando video:', e),
+                            // Si el archivo no carga, termina enseguida para no trabar la cola
+                            onError: onMediaError,
                             onCanPlay: () => {
                                 // Intentar reproducir cuando el video esté listo
                                 if (videoRef.current && videoRef.current.paused) {
@@ -428,9 +478,10 @@ export default function SoundAlertsOverlay() {
                             <audio
                                 ref={audioRef}
                                 key={alertData.fileUrl}
+                                src={alertData.fileUrl}
                                 autoPlay
                                 style={{ display: 'none' }}
-                                onError={(e) => console.error('Error cargando audio:', e)}
+                                onError={onMediaError}
                                 onCanPlay={() => {
                                     // Intentar reproducir cuando el audio esté listo
                                     if (audioRef.current && audioRef.current.paused) {
@@ -447,9 +498,7 @@ export default function SoundAlertsOverlay() {
                                         startExitTimer(audioDuration && isFinite(audioDuration) ? audioDuration : durationRef.current);
                                     }
                                 }}
-                            >
-                                <source src={alertData.fileUrl} type="audio/mpeg" />
-                            </audio>
+                            />
                         )}
                     </SoundAlertRenderer>
                 )}

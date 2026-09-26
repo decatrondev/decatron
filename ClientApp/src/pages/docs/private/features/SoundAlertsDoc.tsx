@@ -83,8 +83,10 @@ export default function SoundAlertsDoc() {
                     <DocItem label="Editor">Arrastra la imagen, cada línea de texto y el fondo, y cambia su tamaño desde las esquinas.</DocItem>
                     <DocItem label="Duración">Los sonidos y videos duran lo que dura el archivo; las imágenes, lo que elijas en Básico (3 a 30 s).</DocItem>
                 </ul>
-                <DocAlert type="warning" title="Una alerta a la vez">
-                    Si llega un canje mientras otra alerta se está mostrando, la nueva reemplaza a la anterior.
+                <DocAlert type="info" title="Cola de alertas">
+                    Si llega un canje mientras otra alerta se está mostrando, espera su turno y suena después, en el orden
+                    en que llegaron. La <strong>pausa entre alertas</strong> (en Básico) es el tiempo mínimo entre el final de
+                    una y el comienzo de la siguiente. La cola vive en el overlay: si recargas la fuente en OBS, se vacía.
                 </DocAlert>
             </DocSection>
 
