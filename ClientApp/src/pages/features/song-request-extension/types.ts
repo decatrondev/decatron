@@ -53,85 +53,15 @@ export interface QueueSnapshot {
     totalDurationSeconds: number;
 }
 
-export interface PlaybackProgress {
-    itemId: number;
-    position: number;
-    duration: number;
-    playing: boolean;
-}
-
-// ── Diseño de los overlays ───────────────────────────────────────────────
+// El diseño de los overlays es del motor compartido (components/music-overlay).
+import type { OverlayLayout, SavedTemplate } from '../../../components/music-overlay/types';
+export type {
+    PlaybackProgress, ElementId, TextShadow, TextStyle, ElementConfig, OverlayTheme, SongChangeAnimation,
+    OverlayAnimations, OverlayLayout, SavedTemplate, ShowHideAnimation, MusicTrack,
+} from '../../../components/music-overlay/types';
 
 /** Qué overlay se edita: el que suena (con el reproductor) o el que solo muestra. */
 export type OverlayKind = 'player' | 'nowPlaying';
-
-export type ElementId =
-    | 'panel' | 'video' | 'cover' | 'equalizer' | 'title' | 'artist' | 'requester'
-    | 'progress' | 'time' | 'next' | 'queue' | 'source';
-
-export type TextShadow = 'none' | 'soft' | 'strong' | 'glow';
-
-export interface TextStyle {
-    fontFamily: string;
-    fontSize: number;
-    fontWeight: string;
-    color: string;
-    align: 'left' | 'center' | 'right';
-    shadow: TextShadow;
-    uppercase: boolean;
-    letterSpacing: number;
-    /** Texto largo: se desplaza en vez de cortarse con "…". */
-    marquee: boolean;
-}
-
-export interface ElementConfig {
-    enabled: boolean;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    text?: TextStyle;
-    /** Propio de cada elemento (colores de la barra, cantidad de la cola, etiquetas…). */
-    options: Record<string, any>;
-}
-
-export interface OverlayTheme {
-    panelBackground: string;
-    panelBorderColor: string;
-    panelBorderWidth: number;
-    panelRadius: number;
-    panelBlur: number;
-    panelShadow: boolean;
-    accent: string;
-    coverRadius: number;
-}
-
-export type SongChangeAnimation = 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'flip';
-
-export interface OverlayAnimations {
-    songChange: SongChangeAnimation;
-    durationMs: number;
-    /** Sin canción: el overlay desaparece (con la misma animación). */
-    hideWhenIdle: boolean;
-    marqueeSpeed: number;
-    /** Ecualizador y barra quietos cuando está en pausa. */
-    freezeWhenPaused: boolean;
-}
-
-export interface OverlayLayout {
-    canvas: { width: number; height: number };
-    theme: OverlayTheme;
-    elements: Record<ElementId, ElementConfig>;
-    animations: OverlayAnimations;
-}
-
-export interface SavedTemplate {
-    id: string;
-    name: string;
-    icon: string;
-    layout: OverlayLayout;
-    createdAt: string;
-}
 
 export interface SongRequestOverlayConfig {
     player: OverlayLayout;

@@ -531,165 +531,6 @@
       "author_unknown": "Couldn't tell which channel that song is from.",
       "invalid_user": "That username isn't valid."
     },
-    "theme": {
-      "presetsTitle": "Themes",
-      "presetsDescription": "They change colors, fonts and the background. Element positions stay the same.",
-      "presets": {
-        "decatron": "Decatron",
-        "neon": "Neon",
-        "minimal": "Minimal light",
-        "vinyl": "Vinyl",
-        "glass": "Glass",
-        "arcade": "Arcade",
-        "transparent": "No background"
-      },
-      "panelTitle": "Background and colors",
-      "panelBackground": "Background color",
-      "panelBorder": "Border color",
-      "borderWidth": "Border width",
-      "radius": "Roundness",
-      "blur": "Background blur",
-      "blurHint": "Blurs what's behind the overlay (glass effect).",
-      "coverRadius": "Cover roundness",
-      "accent": "Accent color",
-      "accentHint": "Equalizer, bar and details.",
-      "shadow": "Shadow"
-    },
-    "templates": {
-      "title": "My templates",
-      "description": "Save the full design of the overlay you're editing to reuse it any time.",
-      "namePlaceholder": "Template name",
-      "save": "Save",
-      "empty": "You haven't saved any templates yet.",
-      "apply": "Apply",
-      "delete": "Delete",
-      "deleteConfirm": "Delete the “{{name}}” template?"
-    },
-    "elements": {
-      "panel": "Background",
-      "video": "Video",
-      "cover": "Cover",
-      "equalizer": "Equalizer",
-      "title": "Title",
-      "artist": "Artist",
-      "requester": "Requested by",
-      "progress": "Progress bar",
-      "time": "Time",
-      "next": "Up next",
-      "queue": "Queue",
-      "source": "Service"
-    },
-    "elementHints": {
-      "panel": "The card behind everything. Its color and shape are edited in Theme.",
-      "video": "The YouTube video on screen instead of just the cover.",
-      "cover": "The song thumbnail.",
-      "equalizer": "Bars that move with the music.",
-      "title": "The song name.",
-      "artist": "The artist or the channel that uploaded it.",
-      "requester": "The viewer who requested it.",
-      "progress": "How far the song is.",
-      "time": "Elapsed time and length.",
-      "next": "The next song in the queue.",
-      "queue": "A list of the next songs.",
-      "source": "Where it comes from (YouTube, Spotify, SoundCloud…)."
-    },
-    "elementOptions": {
-      "videoHint": "Without the video the player still plays: it just isn't shown.",
-      "label": "Text",
-      "requesterLabelHint": "Use {{user}} where the name goes.",
-      "queueCount": "Songs to show",
-      "showRequester": "Show who requested it",
-      "fill": "Progress color",
-      "track": "Background color",
-      "timeFormat": "Format",
-      "bars": "Number of bars",
-      "color": "Color"
-    },
-    "elementsTab": {
-      "title": "What's shown",
-      "description": "Turn on what you want in the overlay. Position and size are adjusted in Editor."
-    },
-    "typography": {
-      "title": "Typography per element",
-      "hiddenNote": "This element is hidden: turn it on in Elements to see it.",
-      "font": "Font",
-      "applyAll": "To all",
-      "applyAllHint": "Use this font for every text",
-      "color": "Color",
-      "size": "Size",
-      "weight": "Weight",
-      "weights": {
-        "400": "Regular",
-        "500": "Medium",
-        "600": "Semibold",
-        "700": "Bold",
-        "800": "Extra bold"
-      },
-      "align": "Alignment",
-      "aligns": {
-        "left": "Left",
-        "center": "Center",
-        "right": "Right"
-      },
-      "shadow": "Shadow",
-      "shadows": {
-        "none": "No shadow",
-        "soft": "Soft",
-        "strong": "Strong",
-        "glow": "Glow"
-      },
-      "letterSpacing": "Letter spacing",
-      "uppercase": "Uppercase",
-      "marquee": "Scroll when it doesn't fit",
-      "marqueeHint": "Long titles move instead of being cut with “…”."
-    },
-    "animations": {
-      "title": "Song change",
-      "description": "How the new song comes in.",
-      "names": {
-        "none": "No animation",
-        "fade": "Fade",
-        "slide-up": "Slide up",
-        "slide-left": "From the right",
-        "zoom": "Zoom",
-        "flip": "Flip"
-      },
-      "duration": "Duration",
-      "marqueeSpeed": "Scroll speed",
-      "marqueeSpeedHint": "For long texts with “Scroll when it doesn't fit”.",
-      "hideWhenIdle": "Hide when nothing is playing",
-      "hideWhenIdleHint": "The overlay disappears with an empty queue and comes back with the next song.",
-      "freezeWhenPaused": "Freeze while paused",
-      "previewHint": "Use the ⏭ button in the preview to see the animation."
-    },
-    "editor": {
-      "title": "Visual editor",
-      "description": "Drag each element and resize it from the corners. What you see is exactly what shows in OBS.",
-      "snap": "Grid",
-      "keyboardHint": "Click the canvas and use the arrow keys to move 1 px (10 px with Shift).",
-      "layers": "Elements",
-      "hide": "Hide",
-      "show": "Show",
-      "width": "Width",
-      "height": "Height",
-      "centerH": "Center horizontally",
-      "canvas": "Canvas",
-      "canvasHint": "The overlay size. Use the same one in the OBS browser source.",
-      "layoutsTitle": "Layouts",
-      "layoutsDescription": "A starting point. Keeps your colors and fonts; replaces the positions.",
-      "layouts": {
-        "card": "Card",
-        "bar": "Bar",
-        "vertical": "Vertical",
-        "video": "With video"
-      },
-      "layoutConfirm": "The position and size of every element will be replaced. Continue?"
-    },
-    "videoCover": {
-      "hidden": "The cover was hidden because it was in the same spot as the video. To see both, turn it on and move it in the Editor so they don't overlap.",
-      "overlap": "The video and the cover overlap: the video hides the cover. Move one of them in the Editor, or turn the cover off in Elements.",
-      "ok": "Got it"
-    },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
       "durationTitle": "Length",
@@ -1012,6 +853,202 @@
       "testHint": "Sends the selected alert to your OBS overlay, using what you have saved.",
       "testUnsaved": "You have unsaved changes: the OBS test uses what you last saved.",
       "size": "1920×1080 px canvas: use that size in the OBS source."
+    }
+  },
+  "musicOverlay": {
+    "theme": {
+      "presetsTitle": "Themes",
+      "presetsDescription": "They change colors, fonts and the background. Element positions stay the same.",
+      "presets": {
+        "decatron": "Decatron",
+        "neon": "Neon",
+        "minimal": "Minimal light",
+        "vinyl": "Vinyl",
+        "glass": "Glass",
+        "arcade": "Arcade",
+        "transparent": "No background"
+      },
+      "panelTitle": "Background and colors",
+      "panelBackground": "Background color",
+      "panelBorder": "Border color",
+      "borderWidth": "Border width",
+      "radius": "Roundness",
+      "blur": "Background blur",
+      "blurHint": "Blurs what's behind the overlay (glass effect).",
+      "coverRadius": "Cover roundness",
+      "accent": "Accent color",
+      "accentHint": "Equalizer, bar and details.",
+      "shadow": "Shadow"
+    },
+    "templates": {
+      "title": "My templates",
+      "description": "Save the full design of the overlay you're editing to reuse it any time.",
+      "namePlaceholder": "Template name",
+      "save": "Save",
+      "empty": "You haven't saved any templates yet.",
+      "apply": "Apply",
+      "delete": "Delete",
+      "deleteConfirm": "Delete the “{{name}}” template?"
+    },
+    "elements": {
+      "panel": "Background",
+      "video": "Video",
+      "cover": "Cover",
+      "equalizer": "Equalizer",
+      "title": "Title",
+      "artist": "Artist",
+      "album": "Album",
+      "requester": "Requested by",
+      "progress": "Progress bar",
+      "time": "Time",
+      "next": "Up next",
+      "queue": "Queue",
+      "source": "Service"
+    },
+    "elementHints": {
+      "panel": "The card behind everything. Its color and shape are edited in Theme.",
+      "video": "The YouTube video on screen instead of just the cover.",
+      "cover": "The song thumbnail.",
+      "equalizer": "Bars that move with the music.",
+      "title": "The song name.",
+      "artist": "The artist or the channel that uploaded it.",
+      "album": "The song's album (Spotify and Last.fm report it).",
+      "requester": "The viewer who requested it.",
+      "progress": "How far the song is.",
+      "time": "Elapsed time and length.",
+      "next": "The next song in the queue.",
+      "queue": "A list of the next songs.",
+      "source": "Where it comes from (YouTube, Spotify, SoundCloud…)."
+    },
+    "elementOptions": {
+      "videoHint": "Without the video the player still plays: it just isn't shown.",
+      "label": "Text",
+      "requesterLabelHint": "Use {{user}} where the name goes.",
+      "queueCount": "Songs to show",
+      "showRequester": "Show who requested it",
+      "fill": "Progress color",
+      "track": "Background color",
+      "timeFormat": "Format",
+      "bars": "Number of bars",
+      "color": "Color",
+      "sourceDisplay": "Display",
+      "sourceDisplayHint": "Icons exist for Spotify and Last.fm; other services show the name.",
+      "sourceDisplays": {
+        "text": "Name",
+        "icon": "Icon",
+        "both": "Icon and name"
+      }
+    },
+    "elementsTab": {
+      "title": "What's shown",
+      "description": "Turn on what you want in the overlay. Position and size are adjusted in Editor."
+    },
+    "typography": {
+      "title": "Typography per element",
+      "hiddenNote": "This element is hidden: turn it on in Elements to see it.",
+      "font": "Font",
+      "applyAll": "To all",
+      "applyAllHint": "Use this font for every text",
+      "color": "Color",
+      "size": "Size",
+      "weight": "Weight",
+      "weights": {
+        "400": "Regular",
+        "500": "Medium",
+        "600": "Semibold",
+        "700": "Bold",
+        "800": "Extra bold"
+      },
+      "align": "Alignment",
+      "aligns": {
+        "left": "Left",
+        "center": "Center",
+        "right": "Right"
+      },
+      "shadow": "Shadow",
+      "shadows": {
+        "none": "No shadow",
+        "soft": "Soft",
+        "strong": "Strong",
+        "glow": "Glow"
+      },
+      "letterSpacing": "Letter spacing",
+      "uppercase": "Uppercase",
+      "marquee": "Scroll when it doesn't fit",
+      "marqueeHint": "Long titles move instead of being cut with “…”."
+    },
+    "animations": {
+      "title": "Song change",
+      "description": "How the new song comes in.",
+      "names": {
+        "none": "No animation",
+        "fade": "Fade",
+        "slide-up": "Slide up",
+        "slide-left": "From the right",
+        "zoom": "Zoom",
+        "flip": "Flip"
+      },
+      "duration": "Duration",
+      "marqueeSpeed": "Scroll speed",
+      "marqueeSpeedHint": "For long texts with “Scroll when it doesn't fit”.",
+      "hideWhenIdle": "Hide when nothing is playing",
+      "hideWhenIdleHint": "The overlay disappears when nothing is playing and comes back with the next song.",
+      "freezeWhenPaused": "Freeze while paused",
+      "previewHint": "Use the ⏭ button in the preview to see the animation.",
+      "enterTitle": "Enter",
+      "enterDescription": "How the overlay appears when music starts playing.",
+      "exitTitle": "Exit",
+      "exitDescription": "How it disappears when nothing is playing (with “Hide when nothing is playing” on).",
+      "showHide": {
+        "none": "No animation",
+        "fade": "Fade",
+        "slide": "Slide",
+        "bounce": "Bounce",
+        "zoom": "Zoom"
+      },
+      "direction": "Direction",
+      "directions": {
+        "left": "Left",
+        "right": "Right",
+        "top": "Top",
+        "bottom": "Bottom"
+      },
+      "easing": "Easing",
+      "easings": {
+        "ease": "Smooth",
+        "ease-out": "Slows at the end",
+        "ease-in": "Starts slow",
+        "ease-in-out": "Slow start and end",
+        "linear": "Constant"
+      }
+    },
+    "editor": {
+      "title": "Visual editor",
+      "description": "Drag each element and resize it from the corners. What you see is exactly what shows in OBS.",
+      "snap": "Grid",
+      "keyboardHint": "Click the canvas and use the arrow keys to move 1 px (10 px with Shift).",
+      "layers": "Elements",
+      "hide": "Hide",
+      "show": "Show",
+      "width": "Width",
+      "height": "Height",
+      "centerH": "Center horizontally",
+      "canvas": "Canvas",
+      "canvasHint": "The overlay size. Use the same one in the OBS browser source.",
+      "layoutsTitle": "Layouts",
+      "layoutsDescription": "A starting point. Keeps your colors and fonts; replaces the positions.",
+      "layouts": {
+        "card": "Card",
+        "bar": "Bar",
+        "vertical": "Vertical",
+        "video": "With video"
+      },
+      "layoutConfirm": "The position and size of every element will be replaced. Continue?"
+    },
+    "videoCover": {
+      "hidden": "The cover was hidden because it was in the same spot as the video. To see both, turn it on and move it in the Editor so they don't overlap.",
+      "overlap": "The video and the cover overlap: the video hides the cover. Move one of them in the Editor, or turn the cover off in Elements.",
+      "ok": "Got it"
     }
   }
 }

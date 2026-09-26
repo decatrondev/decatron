@@ -531,165 +531,6 @@
       "author_unknown": "No se pudo saber de qué canal es esa canción.",
       "invalid_user": "Ese usuario no es válido."
     },
-    "theme": {
-      "presetsTitle": "Temas",
-      "presetsDescription": "Cambian colores, fuentes y el fondo. La posición de los elementos no se toca.",
-      "presets": {
-        "decatron": "Decatron",
-        "neon": "Neón",
-        "minimal": "Minimal claro",
-        "vinyl": "Vinilo",
-        "glass": "Cristal",
-        "arcade": "Arcade",
-        "transparent": "Sin fondo"
-      },
-      "panelTitle": "Fondo y colores",
-      "panelBackground": "Color del fondo",
-      "panelBorder": "Color del borde",
-      "borderWidth": "Grosor del borde",
-      "radius": "Redondeo",
-      "blur": "Desenfoque del fondo",
-      "blurHint": "Difumina lo que hay detrás del overlay (efecto cristal).",
-      "coverRadius": "Redondeo de la portada",
-      "accent": "Color de acento",
-      "accentHint": "Ecualizador, barra y detalles.",
-      "shadow": "Sombra"
-    },
-    "templates": {
-      "title": "Mis plantillas",
-      "description": "Guarda el diseño completo del overlay que estás editando para reutilizarlo cuando quieras.",
-      "namePlaceholder": "Nombre de la plantilla",
-      "save": "Guardar",
-      "empty": "Todavía no guardaste ninguna plantilla.",
-      "apply": "Aplicar",
-      "delete": "Borrar",
-      "deleteConfirm": "¿Borrar la plantilla «{{name}}»?"
-    },
-    "elements": {
-      "panel": "Fondo",
-      "video": "Video",
-      "cover": "Portada",
-      "equalizer": "Ecualizador",
-      "title": "Título",
-      "artist": "Artista",
-      "requester": "Quién la pidió",
-      "progress": "Barra de progreso",
-      "time": "Tiempo",
-      "next": "Siguiente",
-      "queue": "Cola",
-      "source": "Servicio"
-    },
-    "elementHints": {
-      "panel": "La tarjeta detrás de todo. Su color y forma se editan en Tema.",
-      "video": "El video de YouTube a la vista, en vez de solo la portada.",
-      "cover": "La miniatura de la canción.",
-      "equalizer": "Barras que se mueven con la música.",
-      "title": "El nombre de la canción.",
-      "artist": "El artista o el canal que la subió.",
-      "requester": "El viewer que la pidió.",
-      "progress": "Cuánto lleva la canción.",
-      "time": "Tiempo transcurrido y duración.",
-      "next": "La próxima canción de la cola.",
-      "queue": "Lista de las próximas canciones.",
-      "source": "De dónde viene (YouTube, Spotify, SoundCloud…)."
-    },
-    "elementOptions": {
-      "videoHint": "Sin el video, el reproductor sigue sonando igual: solo no se ve.",
-      "label": "Texto",
-      "requesterLabelHint": "Usa {{user}} donde va el nombre.",
-      "queueCount": "Canciones a mostrar",
-      "showRequester": "Mostrar quién la pidió",
-      "fill": "Color del avance",
-      "track": "Color de fondo",
-      "timeFormat": "Formato",
-      "bars": "Cantidad de barras",
-      "color": "Color"
-    },
-    "elementsTab": {
-      "title": "Qué se muestra",
-      "description": "Enciende lo que quieres ver en el overlay. La posición y el tamaño se ajustan en Editor."
-    },
-    "typography": {
-      "title": "Tipografía por elemento",
-      "hiddenNote": "Este elemento está oculto: actívalo en Elementos para verlo.",
-      "font": "Fuente",
-      "applyAll": "A todos",
-      "applyAllHint": "Usar esta fuente en todos los textos",
-      "color": "Color",
-      "size": "Tamaño",
-      "weight": "Grosor",
-      "weights": {
-        "400": "Normal",
-        "500": "Medio",
-        "600": "Semi negrita",
-        "700": "Negrita",
-        "800": "Extra negrita"
-      },
-      "align": "Alineación",
-      "aligns": {
-        "left": "Izquierda",
-        "center": "Centro",
-        "right": "Derecha"
-      },
-      "shadow": "Sombra",
-      "shadows": {
-        "none": "Sin sombra",
-        "soft": "Suave",
-        "strong": "Fuerte",
-        "glow": "Brillo"
-      },
-      "letterSpacing": "Espaciado",
-      "uppercase": "Mayúsculas",
-      "marquee": "Desplazar si no entra",
-      "marqueeHint": "Los títulos largos se mueven en vez de cortarse con «…»."
-    },
-    "animations": {
-      "title": "Cambio de canción",
-      "description": "Cómo entra la canción nueva.",
-      "names": {
-        "none": "Sin animación",
-        "fade": "Aparecer",
-        "slide-up": "Subir",
-        "slide-left": "Desde la derecha",
-        "zoom": "Zoom",
-        "flip": "Girar"
-      },
-      "duration": "Duración",
-      "marqueeSpeed": "Velocidad del desplazamiento",
-      "marqueeSpeedHint": "Para los textos largos con «Desplazar si no entra».",
-      "hideWhenIdle": "Ocultar cuando no suena nada",
-      "hideWhenIdleHint": "El overlay desaparece con la cola vacía y vuelve con la próxima canción.",
-      "freezeWhenPaused": "Congelar en pausa",
-      "previewHint": "Usa el botón ⏭ de la vista previa para ver la animación."
-    },
-    "editor": {
-      "title": "Editor visual",
-      "description": "Arrastra cada elemento y cambia su tamaño desde las esquinas. Lo que ves es exactamente lo que sale en OBS.",
-      "snap": "Cuadrícula",
-      "keyboardHint": "Haz clic en el lienzo y usa las flechas para mover 1 px (con Shift, 10 px).",
-      "layers": "Elementos",
-      "hide": "Ocultar",
-      "show": "Mostrar",
-      "width": "Ancho",
-      "height": "Alto",
-      "centerH": "Centrar horizontal",
-      "canvas": "Lienzo",
-      "canvasHint": "El tamaño del overlay. Usa el mismo en la fuente de navegador de OBS.",
-      "layoutsTitle": "Diseños",
-      "layoutsDescription": "Un punto de partida. Conserva tus colores y fuentes; reemplaza las posiciones.",
-      "layouts": {
-        "card": "Tarjeta",
-        "bar": "Barra",
-        "vertical": "Vertical",
-        "video": "Con video"
-      },
-      "layoutConfirm": "Se reemplazan las posiciones y el tamaño de todos los elementos. ¿Continuar?"
-    },
-    "videoCover": {
-      "hidden": "Se ocultó la portada porque ocupaba el mismo lugar que el video. Si quieres ver las dos, actívala y muévela en el Editor para que no se encimen.",
-      "overlap": "El video y la portada están encimados: el video tapa la portada. Mueve una de las dos en el Editor, o apaga la portada en Elementos.",
-      "ok": "Entendido"
-    },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
       "durationTitle": "Duración",
@@ -1012,6 +853,202 @@
       "testHint": "Manda la alerta elegida a tu overlay en OBS, con lo que tienes guardado.",
       "testUnsaved": "Tienes cambios sin guardar: la prueba en OBS usa lo último que guardaste.",
       "size": "Lienzo de 1920×1080 px: usa ese tamaño en la fuente de OBS."
+    }
+  },
+  "musicOverlay": {
+    "theme": {
+      "presetsTitle": "Temas",
+      "presetsDescription": "Cambian colores, fuentes y el fondo. La posición de los elementos no se toca.",
+      "presets": {
+        "decatron": "Decatron",
+        "neon": "Neón",
+        "minimal": "Minimal claro",
+        "vinyl": "Vinilo",
+        "glass": "Cristal",
+        "arcade": "Arcade",
+        "transparent": "Sin fondo"
+      },
+      "panelTitle": "Fondo y colores",
+      "panelBackground": "Color del fondo",
+      "panelBorder": "Color del borde",
+      "borderWidth": "Grosor del borde",
+      "radius": "Redondeo",
+      "blur": "Desenfoque del fondo",
+      "blurHint": "Difumina lo que hay detrás del overlay (efecto cristal).",
+      "coverRadius": "Redondeo de la portada",
+      "accent": "Color de acento",
+      "accentHint": "Ecualizador, barra y detalles.",
+      "shadow": "Sombra"
+    },
+    "templates": {
+      "title": "Mis plantillas",
+      "description": "Guarda el diseño completo del overlay que estás editando para reutilizarlo cuando quieras.",
+      "namePlaceholder": "Nombre de la plantilla",
+      "save": "Guardar",
+      "empty": "Todavía no guardaste ninguna plantilla.",
+      "apply": "Aplicar",
+      "delete": "Borrar",
+      "deleteConfirm": "¿Borrar la plantilla «{{name}}»?"
+    },
+    "elements": {
+      "panel": "Fondo",
+      "video": "Video",
+      "cover": "Portada",
+      "equalizer": "Ecualizador",
+      "title": "Título",
+      "artist": "Artista",
+      "album": "Álbum",
+      "requester": "Quién la pidió",
+      "progress": "Barra de progreso",
+      "time": "Tiempo",
+      "next": "Siguiente",
+      "queue": "Cola",
+      "source": "Servicio"
+    },
+    "elementHints": {
+      "panel": "La tarjeta detrás de todo. Su color y forma se editan en Tema.",
+      "video": "El video de YouTube a la vista, en vez de solo la portada.",
+      "cover": "La miniatura de la canción.",
+      "equalizer": "Barras que se mueven con la música.",
+      "title": "El nombre de la canción.",
+      "artist": "El artista o el canal que la subió.",
+      "album": "El disco de la canción (Spotify y Last.fm lo informan).",
+      "requester": "El viewer que la pidió.",
+      "progress": "Cuánto lleva la canción.",
+      "time": "Tiempo transcurrido y duración.",
+      "next": "La próxima canción de la cola.",
+      "queue": "Lista de las próximas canciones.",
+      "source": "De dónde viene (YouTube, Spotify, SoundCloud…)."
+    },
+    "elementOptions": {
+      "videoHint": "Sin el video, el reproductor sigue sonando igual: solo no se ve.",
+      "label": "Texto",
+      "requesterLabelHint": "Usa {{user}} donde va el nombre.",
+      "queueCount": "Canciones a mostrar",
+      "showRequester": "Mostrar quién la pidió",
+      "fill": "Color del avance",
+      "track": "Color de fondo",
+      "timeFormat": "Formato",
+      "bars": "Cantidad de barras",
+      "color": "Color",
+      "sourceDisplay": "Cómo se muestra",
+      "sourceDisplayHint": "El icono está para Spotify y Last.fm; los demás servicios muestran el nombre.",
+      "sourceDisplays": {
+        "text": "Nombre",
+        "icon": "Icono",
+        "both": "Icono y nombre"
+      }
+    },
+    "elementsTab": {
+      "title": "Qué se muestra",
+      "description": "Enciende lo que quieres ver en el overlay. La posición y el tamaño se ajustan en Editor."
+    },
+    "typography": {
+      "title": "Tipografía por elemento",
+      "hiddenNote": "Este elemento está oculto: actívalo en Elementos para verlo.",
+      "font": "Fuente",
+      "applyAll": "A todos",
+      "applyAllHint": "Usar esta fuente en todos los textos",
+      "color": "Color",
+      "size": "Tamaño",
+      "weight": "Grosor",
+      "weights": {
+        "400": "Normal",
+        "500": "Medio",
+        "600": "Semi negrita",
+        "700": "Negrita",
+        "800": "Extra negrita"
+      },
+      "align": "Alineación",
+      "aligns": {
+        "left": "Izquierda",
+        "center": "Centro",
+        "right": "Derecha"
+      },
+      "shadow": "Sombra",
+      "shadows": {
+        "none": "Sin sombra",
+        "soft": "Suave",
+        "strong": "Fuerte",
+        "glow": "Brillo"
+      },
+      "letterSpacing": "Espaciado",
+      "uppercase": "Mayúsculas",
+      "marquee": "Desplazar si no entra",
+      "marqueeHint": "Los títulos largos se mueven en vez de cortarse con «…»."
+    },
+    "animations": {
+      "title": "Cambio de canción",
+      "description": "Cómo entra la canción nueva.",
+      "names": {
+        "none": "Sin animación",
+        "fade": "Aparecer",
+        "slide-up": "Subir",
+        "slide-left": "Desde la derecha",
+        "zoom": "Zoom",
+        "flip": "Girar"
+      },
+      "duration": "Duración",
+      "marqueeSpeed": "Velocidad del desplazamiento",
+      "marqueeSpeedHint": "Para los textos largos con «Desplazar si no entra».",
+      "hideWhenIdle": "Ocultar cuando no suena nada",
+      "hideWhenIdleHint": "El overlay desaparece cuando no suena nada y vuelve con la próxima canción.",
+      "freezeWhenPaused": "Congelar en pausa",
+      "previewHint": "Usa el botón ⏭ de la vista previa para ver la animación.",
+      "enterTitle": "Entrada",
+      "enterDescription": "Cómo aparece el overlay cuando empieza a sonar música.",
+      "exitTitle": "Salida",
+      "exitDescription": "Cómo desaparece cuando no suena nada (con «Ocultar cuando no suena nada» activado).",
+      "showHide": {
+        "none": "Sin animación",
+        "fade": "Fundido",
+        "slide": "Deslizar",
+        "bounce": "Rebote",
+        "zoom": "Zoom"
+      },
+      "direction": "Dirección",
+      "directions": {
+        "left": "Izquierda",
+        "right": "Derecha",
+        "top": "Arriba",
+        "bottom": "Abajo"
+      },
+      "easing": "Suavizado",
+      "easings": {
+        "ease": "Suave",
+        "ease-out": "Frena al final",
+        "ease-in": "Arranca lento",
+        "ease-in-out": "Lento al inicio y al final",
+        "linear": "Constante"
+      }
+    },
+    "editor": {
+      "title": "Editor visual",
+      "description": "Arrastra cada elemento y cambia su tamaño desde las esquinas. Lo que ves es exactamente lo que sale en OBS.",
+      "snap": "Cuadrícula",
+      "keyboardHint": "Haz clic en el lienzo y usa las flechas para mover 1 px (con Shift, 10 px).",
+      "layers": "Elementos",
+      "hide": "Ocultar",
+      "show": "Mostrar",
+      "width": "Ancho",
+      "height": "Alto",
+      "centerH": "Centrar horizontal",
+      "canvas": "Lienzo",
+      "canvasHint": "El tamaño del overlay. Usa el mismo en la fuente de navegador de OBS.",
+      "layoutsTitle": "Diseños",
+      "layoutsDescription": "Un punto de partida. Conserva tus colores y fuentes; reemplaza las posiciones.",
+      "layouts": {
+        "card": "Tarjeta",
+        "bar": "Barra",
+        "vertical": "Vertical",
+        "video": "Con video"
+      },
+      "layoutConfirm": "Se reemplazan las posiciones y el tamaño de todos los elementos. ¿Continuar?"
+    },
+    "videoCover": {
+      "hidden": "Se ocultó la portada porque ocupaba el mismo lugar que el video. Si quieres ver las dos, actívala y muévela en el Editor para que no se encimen.",
+      "overlap": "El video y la portada están encimados: el video tapa la portada. Mueve una de las dos en el Editor, o apaga la portada en Elementos.",
+      "ok": "Entendido"
     }
   }
 }

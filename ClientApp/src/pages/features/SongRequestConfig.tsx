@@ -166,7 +166,7 @@ export default function SongRequestConfig() {
                             {tab === 'commands' && <CommandsTab cfg={cfg} />}
                             {tab === 'messages' && <MessagesTab cfg={cfg} />}
                             {tab === 'theme' && <ThemeTab {...designProps} />}
-                            {tab === 'elements' && <ElementsTab {...designProps} />}
+                            {tab === 'elements' && <ElementsTab {...designProps} labels={labels} />}
                             {tab === 'typography' && <TypographyTab {...designProps} />}
                             {tab === 'animations' && <AnimationsTab {...designProps} />}
                             {tab === 'editor' && <EditorTab {...designProps} labels={labels} />}
