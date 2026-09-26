@@ -46,7 +46,7 @@ export function textCss(t: TextStyle | undefined): CSSProperties {
         textShadow: SHADOWS[t.shadow] ?? 'none',
         textTransform: t.uppercase ? 'uppercase' : 'none',
         letterSpacing: t.letterSpacing,
-        lineHeight: 1.2,
+        lineHeight: t.lineHeight ?? 1.2,
     };
 }
 
@@ -76,7 +76,7 @@ function useLivePosition(progress: PlaybackProgress | null, running: boolean) {
     return Math.min(progress.duration || Infinity, base.current.position + elapsed);
 }
 
-function MarqueeText({ text, style, enabled, speed }: { text: string; style: CSSProperties; enabled: boolean; speed: number }) {
+function MarqueeText({ text, style, enabled, speed, loop, gap = 40 }: { text: string; style: CSSProperties; enabled: boolean; speed: number; loop?: boolean; gap?: number }) {
     const outer = useRef<HTMLDivElement>(null);
     const inner = useRef<HTMLSpanElement>(null);
     const [overflow, setOverflow] = useState(0);
@@ -88,6 +88,18 @@ function MarqueeText({ text, style, enabled, speed }: { text: string; style: CSS
     }, [text, enabled, style.fontSize, style.fontFamily, style.fontWeight]);
 
     const seconds = Math.max(4, (overflow + 80) / Math.max(10, speed)) * 2;
+    if (loop && overflow > 0) {
+        // Bucle continuo: el texto dos veces seguidas y se corre la mitad, sin salto
+        // Recorre medio ancho (un texto + el espacio) a `speed` px/s
+        const width = (inner.current?.scrollWidth ?? 0) + gap;
+        return (
+            <div ref={outer} style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+                <span ref={inner} style={{ display: 'inline-block', animation: `moMarqueeLoop ${Math.max(4, width / 2 / Math.max(10, speed))}s linear infinite` }}>
+                    {text}<span style={{ paddingLeft: gap }}>{text}</span>
+                </span>
+            </div>
+        );
+    }
     return (
         <div ref={outer} style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: style.textAlign === 'center' ? 'center' : style.textAlign === 'right' ? 'flex-end' : 'flex-start' }}>
             <span
@@ -100,6 +112,16 @@ function MarqueeText({ text, style, enabled, speed }: { text: string; style: CSS
             </span>
         </div>
     );
+}
+
+/** Recorte con la forma del panel por dentro del borde (solo con theme.clipToPanel). */
+function panelClip(layout: OverlayLayout): string | undefined {
+    const { theme, canvas, elements: { panel } } = layout;
+    if (!theme.clipToPanel || !panel.enabled) return undefined;
+    const b = theme.panelBorderWidth;
+    const top = panel.y + b, left = panel.x + b;
+    const right = canvas.width - (panel.x + panel.width) + b, bottom = canvas.height - (panel.y + panel.height) + b;
+    return `inset(${top}px ${right}px ${bottom}px ${left}px round ${Math.max(0, theme.panelRadius - b)}px)`;
 }
 
 /** Animación CSS de entrada o salida del overlay entero. */
@@ -141,6 +163,7 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
         if (!current) return '';
         if (fmt === 'remaining') return duration ? `-${formatDuration(Math.max(0, duration - position))}` : '';
         if (fmt === 'elapsed') return formatDuration(position) || '0:00';
+        if (fmt === 'split' || fmt === 'spaced') return '';
         return duration ? `${formatDuration(position) || '0:00'} / ${formatDuration(duration)}` : formatDuration(position) || '0:00';
     }, [els.time.options.format, current, duration, position]);
 
@@ -149,7 +172,7 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
         if (!e.enabled || !value) return null;
         return (
             <div key={id} style={box(e)}>
-                <MarqueeText text={value} style={textCss(e.text)} enabled={!!e.text?.marquee} speed={animations.marqueeSpeed} />
+                <MarqueeText text={value} style={textCss(e.text)} enabled={!!e.text?.marquee} speed={animations.marqueeSpeed} loop={animations.marqueeMode === 'loop'} gap={e.text?.marqueeGap} />
             </div>
         );
     };
@@ -161,25 +184,35 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
     const sourceDisplay: 'text' | 'icon' | 'both' = els.source.options.display ?? 'text';
     const fraction = duration > 0 ? Math.min(1, position / duration) : 0;
 
+    const panelNode = els.panel.enabled && (
+        <div style={{
+            ...box(els.panel),
+            background: theme.panelBackground,
+            border: `${theme.panelBorderWidth}px solid ${theme.panelBorderColor}`,
+            borderRadius: theme.panelRadius,
+            backdropFilter: theme.panelBlur ? `blur(${theme.panelBlur}px)` : undefined,
+            boxShadow: theme.panelShadow ? theme.panelShadowCss ?? '0 10px 30px rgba(0,0,0,0.35)' : undefined,
+            boxSizing: 'border-box',
+        }} />
+    );
+
     return (
         <div style={{ position: 'relative', width: layout.canvas.width, height: layout.canvas.height, overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', inset: 0, opacity: visible ? 1 : 0, animation: showHide }}>
-                {els.panel.enabled && (
-                    <div style={{
-                        ...box(els.panel),
-                        background: theme.panelBackground,
-                        border: `${theme.panelBorderWidth}px solid ${theme.panelBorderColor}`,
-                        borderRadius: theme.panelRadius,
-                        backdropFilter: theme.panelBlur ? `blur(${theme.panelBlur}px)` : undefined,
-                        boxShadow: theme.panelShadow ? '0 10px 30px rgba(0,0,0,0.35)' : undefined,
-                        boxSizing: 'border-box',
-                    }} />
-                )}
+            <div style={{
+                position: 'absolute', inset: 0, opacity: visible ? 1 : 0, animation: showHide,
+                // Deslizar y rebotar recorren el tamaño del panel y el zoom sale de su centro (no del lienzo entero)
+                ['--mo-w' as any]: `${els.panel.width}px`, ['--mo-h' as any]: `${els.panel.height}px`,
+                transformOrigin: `${els.panel.x + els.panel.width / 2}px ${els.panel.y + els.panel.height / 2}px`,
+            }}>
+                {!animations.songChangePanel && panelNode}
 
-                <div key={songKey} style={{ position: 'absolute', inset: 0, animation: animName === 'none' ? undefined : `${animName} ${animations.durationMs}ms cubic-bezier(.2,.8,.2,1) both` }}>
+                <div key={songKey} style={{ position: 'absolute', inset: 0, transformOrigin: `${els.panel.x + els.panel.width / 2}px ${els.panel.y + els.panel.height / 2}px`, animation: animName === 'none' ? undefined : `${animName} ${animations.durationMs}ms ${animations.songChange === 'crossfade' ? 'ease' : 'cubic-bezier(.2,.8,.2,1)'} both` }}>
+                    {/* El Now Playing viejo animaba la tarjeta entera, fondo incluido */}
+                    {animations.songChangePanel && panelNode}
+                    <div style={{ position: 'absolute', inset: 0, clipPath: panelClip(layout) }}>
                     {els.cover.enabled && (
                         current?.thumbnailUrl
-                            ? <img src={current.thumbnailUrl} alt="" style={{ ...box(els.cover), objectFit: 'cover', borderRadius: theme.coverRadius }} />
+                            ? <img src={current.thumbnailUrl} alt="" style={{ ...box(els.cover), objectFit: 'cover', borderRadius: theme.coverRadius, boxShadow: els.cover.options.shadow ? '0 4px 12px rgba(0,0,0,0.5)' : undefined }} />
                             : <div style={{ ...box(els.cover), borderRadius: theme.coverRadius, background: `linear-gradient(135deg, ${theme.accent}33, transparent)` }} />
                     )}
 
@@ -207,14 +240,23 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
                     {current && textEl('artist', current.artist)}
                     {current && current.album && textEl('album', current.album)}
                     {current && (current.isFallback || current.requestedBy) && textEl('requester', current.isFallback ? labels.fallback : requesterLabel.replace('{{user}}', current.requestedBy ?? ''))}
-                    {current && textEl('time', timeText)}
+                    {current && !['split', 'spaced'].includes(els.time.options.format) && textEl('time', timeText)}
+                    {current && els.time.enabled && ['split', 'spaced'].includes(els.time.options.format) && duration > 0 && (
+                        // Como el Now Playing viejo: split = transcurrido a la izquierda y total a la derecha;
+                        // spaced = "1:23 / 3:33" con 8 px entre las partes
+                        <div key="time" style={{ ...box(els.time), ...textCss(els.time.text), display: 'flex', alignItems: 'center', justifyContent: els.time.options.format === 'split' ? 'space-between' : 'flex-start', gap: els.time.options.format === 'spaced' ? 8 : undefined, whiteSpace: 'nowrap' }}>
+                            <span>{formatDuration(position) || '0:00'}</span>
+                            {els.time.options.format === 'spaced' && <span>/</span>}
+                            <span>{formatDuration(duration)}</span>
+                        </div>
+                    )}
                     {next && textEl('next', `${nextLabel} ${next.title}`)}
                     {current && els.source.enabled && (() => {
                         // Icono solo para los servicios que lo tienen; si no, el nombre
                         const icon = sourceDisplay !== 'text' && hasServiceIcon(serviceKey);
                         const style = textCss(els.source.text);
                         return (
-                            <div key="source" style={{ ...box(els.source), ...style, display: 'flex', alignItems: 'center', gap: 6, justifyContent: style.textAlign === 'center' ? 'center' : style.textAlign === 'right' ? 'flex-end' : 'flex-start', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                            <div key="source" style={{ ...box(els.source), ...style, opacity: els.source.options.opacity ?? 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: style.textAlign === 'center' ? 'center' : style.textAlign === 'right' ? 'flex-end' : 'flex-start', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                                 {icon && <ServiceIcon service={serviceKey} size={Math.min(els.source.height, els.source.width)} />}
                                 {(!icon || sourceDisplay === 'both') && <span>{serviceName}</span>}
                             </div>
@@ -237,6 +279,7 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
                             ))}
                         </div>
                     )}
+                    </div>
                 </div>
 
                 {/* El video real va encima (si comparte lugar con la portada, la tapaba) y fuera de la capa
@@ -260,15 +303,19 @@ export const OVERLAY_KEYFRAMES = `
 @keyframes srIn-slide-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 @keyframes srIn-slide-left { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
 @keyframes srIn-zoom { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes srIn-crossfade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 @keyframes srIn-flip { from { opacity: 0; transform: perspective(800px) rotateX(-70deg); } to { opacity: 1; transform: none; } }
+@keyframes moMarqueeLoop { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes mo-in-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mo-out-fade { from { opacity: 1; } to { opacity: 0; } }
 @keyframes mo-in-zoom { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
 @keyframes mo-out-zoom { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0); } }
 ${(['left', 'right', 'top', 'bottom'] as const).map(d => {
-    const off = { left: 'translateX(-100%)', right: 'translateX(100%)', top: 'translateY(-100%)', bottom: 'translateY(100%)' }[d];
-    const over = { left: 'translateX(10%)', right: 'translateX(-10%)', top: 'translateY(10%)', bottom: 'translateY(-10%)' }[d];
-    const back = { left: 'translateX(-5%)', right: 'translateX(5%)', top: 'translateY(-5%)', bottom: 'translateY(5%)' }[d];
+    const axis = d === 'left' || d === 'right' ? 'X' : 'Y';
+    const size = axis === 'X' ? 'var(--mo-w)' : 'var(--mo-h)';
+    const sign = d === 'left' || d === 'top' ? -1 : 1;
+    const at = (f: number) => `translate${axis}(calc(${size} * ${sign * f}))`;
+    const off = at(1), over = at(-0.1), back = at(0.05);
     return `@keyframes mo-in-slide-${d} { from { opacity: 0; transform: ${off}; } to { opacity: 1; transform: none; } }
 @keyframes mo-out-slide-${d} { from { opacity: 1; transform: none; } to { opacity: 0; transform: ${off}; } }
 @keyframes mo-in-bounce-${d} { 0% { opacity: 0; transform: ${off}; } 60% { opacity: 1; transform: ${over}; } 80% { transform: ${back}; } 100% { opacity: 1; transform: none; } }

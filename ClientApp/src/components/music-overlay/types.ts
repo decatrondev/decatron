@@ -43,6 +43,10 @@ export interface TextStyle {
     letterSpacing: number;
     /** Texto largo: se desplaza en vez de cortarse con "…". */
     marquee: boolean;
+    /** Alto de línea (por defecto 1.2). Las configs convertidas de Now Playing usan el suyo. */
+    lineHeight?: number;
+    /** Espacio entre las dos copias del texto en el desplazamiento continuo (por defecto 40). */
+    marqueeGap?: number;
 }
 
 export interface ElementConfig {
@@ -65,9 +69,13 @@ export interface OverlayTheme {
     panelShadow: boolean;
     accent: string;
     coverRadius: number;
+    /** Sombra exacta del panel (configs convertidas de Now Playing); sin esto, la de siempre. */
+    panelShadowCss?: string;
+    /** Lo que se sale del panel no se ve (recorta con sus esquinas), como la tarjeta del Now Playing viejo. */
+    clipToPanel?: boolean;
 }
 
-export type SongChangeAnimation = 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'flip';
+export type SongChangeAnimation = 'none' | 'fade' | 'slide-up' | 'slide-left' | 'zoom' | 'flip' | 'crossfade';
 
 export type Direction = 'left' | 'right' | 'top' | 'bottom';
 export type Easing = 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear';
@@ -89,6 +97,10 @@ export interface OverlayAnimations {
     marqueeSpeed: number;
     /** Ecualizador y barra quietos cuando está en pausa. */
     freezeWhenPaused: boolean;
+    /** Texto largo: va y vuelve (bounce, por defecto) o corre en bucle continuo (loop, el Now Playing viejo). */
+    marqueeMode?: 'bounce' | 'loop';
+    /** El cambio de canción también anima el panel (la tarjeta del Now Playing viejo). */
+    songChangePanel?: boolean;
     enter: ShowHideAnimation;
     exit: ShowHideAnimation;
 }
