@@ -61,6 +61,8 @@ export interface SpotifySlotRequest {
     slotAssignedAt: string | null;
     spotifyConnected: boolean;
     requestedAt: string;
+    /** Puesto en la lista de espera (null si ya tiene cupo). */
+    position: number | null;
 }
 
 export type TierDuration = { isPermanent: boolean; duration: number; unit: DurationUnit };

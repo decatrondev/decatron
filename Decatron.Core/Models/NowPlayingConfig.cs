@@ -53,6 +53,10 @@ namespace Decatron.Core.Models
         [Column("spotify_slot_assigned_at")]
         public DateTime? SpotifySlotAssignedAt { get; set; }
 
+        /// <summary>Cuándo pidió el cupo: ordena la lista de espera dentro de cada tier.</summary>
+        [Column("spotify_slot_requested_at")]
+        public DateTime? SpotifySlotRequestedAt { get; set; }
+
         [MaxLength(255)]
         [Column("spotify_slot_email")]
         public string? SpotifySlotEmail { get; set; }

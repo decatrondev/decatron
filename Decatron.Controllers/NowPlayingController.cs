@@ -63,8 +63,11 @@ namespace Decatron.Controllers
                 var tier = await _nowPlayingService.GetUserTierPublic(channelOwnerId);
                 var limits = NowPlayingService.GetLimitsForTier(tier);
 
-                // Get cupo info for non-premium
                 var cupoInfo = await _nowPlayingService.GetSpotifySlotsInfo();
+                // Si espera cupo de Spotify: en qué puesto está
+                var waiting = config.SpotifySlotRequested && !config.SpotifySlotAssigned
+                    ? await _nowPlayingService.GetWaitingPosition(channelOwnerId)
+                    : null;
 
                 return Ok(new
                 {
@@ -79,6 +82,8 @@ namespace Decatron.Controllers
                         spotifySlotRequested = config.SpotifySlotRequested,
                         spotifySlotAssigned = config.SpotifySlotAssigned,
                         spotifySlotEmail = config.SpotifySlotEmail,
+                        spotifyQueuePosition = waiting?.Position,
+                        spotifyQueueTotal = waiting?.Total,
                     },
                     cupos = cupoInfo,
                     tier,

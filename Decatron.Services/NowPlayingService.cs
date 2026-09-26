@@ -240,6 +240,7 @@ namespace Decatron.Services
             existing.SpotifyRefreshToken = null;
             existing.SpotifyTokenExpiresAt = null;
             existing.SpotifySlotRequested = false;
+            existing.SpotifySlotRequestedAt = null;
             existing.SpotifySlotAssigned = false;
             existing.SpotifySlotAssignedAt = null;
             existing.SpotifySlotEmail = null;
@@ -497,19 +498,21 @@ namespace Decatron.Services
             if (string.IsNullOrEmpty(config.SpotifySlotEmail) && string.IsNullOrWhiteSpace(spotifyEmail))
                 return (false, "Debes proporcionar tu email de Spotify");
 
-            // Check available slots (only non-premium count)
-            var usedSlots = await _context.NowPlayingConfigs.CountAsync(c => c.SpotifySlotAssigned);
-            if (usedSlots >= MaxSpotifyUsers)
-                return (false, $"No hay cupos disponibles ({usedSlots}/{MaxSpotifyUsers} ocupados)");
-
             if (!string.IsNullOrWhiteSpace(spotifyEmail))
                 config.SpotifySlotEmail = spotifyEmail.Trim();
 
+            // Sin cupo libre también se acepta: queda en la lista de espera (ordenada por tier y por fecha).
+            // Si ya lo había pedido, conserva su fecha y su lugar.
+            if (!config.SpotifySlotRequested || config.SpotifySlotRequestedAt == null)
+                config.SpotifySlotRequestedAt = DateTime.UtcNow;
             config.SpotifySlotRequested = true;
             config.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            return (true, "Solicitud enviada. El admin activará tu slot pronto.");
+            var usedSlots = await _context.NowPlayingConfigs.CountAsync(c => c.SpotifySlotAssigned);
+            return (true, usedSlots >= MaxSpotifyUsers
+                ? "Los cupos están ocupados: quedaste en la lista de espera."
+                : "Solicitud enviada. El admin activará tu cupo pronto.");
         }
 
         public async Task<(bool success, string message)> AssignSpotifySlot(long userId)
@@ -543,6 +546,7 @@ namespace Decatron.Services
                 return (false, "Este usuario no tiene un slot asignado");
 
             config.SpotifySlotRequested = false;
+            config.SpotifySlotRequestedAt = null;
             config.SpotifySlotAssigned = false;
             config.SpotifySlotAssignedAt = null;
             config.SpotifySlotEmail = null;
@@ -557,34 +561,68 @@ namespace Decatron.Services
             return (true, "Slot revocado exitosamente");
         }
 
+        /// <summary>
+        /// Orden de la lista de espera: primero el tier (el mismo orden que SupportersService), después
+        /// quién lo pidió antes. Es lo único de Now Playing que depende del tier.
+        /// </summary>
+        public static int TierRank(string? tier) => tier?.ToLowerInvariant() switch
+        {
+            "fundador" or "admin" => 3,
+            "premium" => 2,
+            "supporter" => 1,
+            _ => 0,
+        };
+
+        /// <summary>Los que esperan cupo, en el orden en que les toca.</summary>
+        private async Task<List<(Decatron.Core.Models.NowPlayingConfig Config, string Tier)>> GetWaitingList()
+        {
+            var waiting = await _context.NowPlayingConfigs
+                .Where(c => c.SpotifySlotRequested && !c.SpotifySlotAssigned)
+                .Include(c => c.User)
+                .ToListAsync();
+            var list = new List<(Decatron.Core.Models.NowPlayingConfig, string)>();
+            foreach (var c in waiting) list.Add((c, await GetUserTier(c.UserId)));
+            return list
+                .OrderByDescending(x => TierRank(x.Item2))
+                .ThenBy(x => x.Item1.SpotifySlotRequestedAt ?? x.Item1.UpdatedAt)
+                .ToList();
+        }
+
+        /// <summary>Puesto del usuario en la lista de espera (1 = el siguiente), o null si no espera.</summary>
+        public async Task<(int Position, int Total)?> GetWaitingPosition(long userId)
+        {
+            var list = await GetWaitingList();
+            var index = list.FindIndex(x => x.Config.UserId == userId);
+            return index < 0 ? null : (index + 1, list.Count);
+        }
+
         public async Task<object> GetSpotifySlotRequests()
         {
-            var configs = await _context.NowPlayingConfigs
-                .Where(c => c.SpotifySlotRequested || c.SpotifySlotAssigned)
+            var assigned = await _context.NowPlayingConfigs
+                .Where(c => c.SpotifySlotAssigned)
                 .Include(c => c.User)
-                .OrderByDescending(c => c.SpotifySlotAssigned)
-                .ThenBy(c => c.UpdatedAt)
+                .OrderBy(c => c.SpotifySlotAssignedAt)
                 .ToListAsync();
 
             var result = new List<object>();
-            foreach (var c in configs)
-            {
-                var tier = await GetUserTier(c.UserId);
-                result.Add(new
-                {
-                    userId = c.UserId,
-                    displayName = c.User?.DisplayName ?? c.ChannelName,
-                    login = c.User?.Login ?? c.ChannelName,
-                    spotifyEmail = c.SpotifySlotEmail,
-                    tier,
-                    slotAssigned = c.SpotifySlotAssigned,
-                    slotAssignedAt = c.SpotifySlotAssignedAt,
-                    spotifyConnected = c.SpotifyRefreshToken != null,
-                    requestedAt = c.UpdatedAt
-                });
-            }
-
+            foreach (var c in assigned) result.Add(Row(c, await GetUserTier(c.UserId), null));
+            var waiting = await GetWaitingList();
+            for (var i = 0; i < waiting.Count; i++) result.Add(Row(waiting[i].Config, waiting[i].Tier, i + 1));
             return result;
+
+            static object Row(Decatron.Core.Models.NowPlayingConfig c, string tier, int? position) => new
+            {
+                userId = c.UserId,
+                displayName = c.User?.DisplayName ?? c.ChannelName,
+                login = c.User?.Login ?? c.ChannelName,
+                spotifyEmail = c.SpotifySlotEmail,
+                tier,
+                slotAssigned = c.SpotifySlotAssigned,
+                slotAssignedAt = c.SpotifySlotAssignedAt,
+                spotifyConnected = c.SpotifyRefreshToken != null,
+                requestedAt = c.SpotifySlotRequestedAt ?? c.UpdatedAt,
+                position,
+            };
         }
 
         public async Task<string> GetUserTierPublic(long userId) => await GetUserTier(userId);

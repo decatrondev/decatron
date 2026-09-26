@@ -14,6 +14,9 @@ export interface NowPlayingSettings {
     spotifyConnected: boolean;
     spotifySlotRequested: boolean;
     spotifySlotAssigned: boolean;
+    /** En la lista de espera de cupos: puesto (1 = el siguiente) y cuántos esperan. */
+    spotifyQueuePosition: number | null;
+    spotifyQueueTotal: number | null;
 }
 
 /** Carga y guarda Now Playing: conexión (Last.fm / Spotify), cupo y el diseño del overlay. */
@@ -28,6 +31,7 @@ export function useNowPlayingConfig() {
     const [settings, setSettings] = useState<NowPlayingSettings>({
         isEnabled: false, provider: 'lastfm', lastfmUsername: null, pollingInterval: 5,
         spotifyConnected: false, spotifySlotRequested: false, spotifySlotAssigned: false,
+        spotifyQueuePosition: null, spotifyQueueTotal: null,
     });
     const [layout, setLayout] = useState<OverlayLayout>(() => normalizeNowPlayingLayout({}));
     const [templates, setTemplates] = useState<SavedTemplate[]>([]);
@@ -54,6 +58,8 @@ export function useNowPlayingConfig() {
                 spotifyConnected: !!spotify.data?.connected,
                 spotifySlotRequested: !!d?.spotifySlotRequested,
                 spotifySlotAssigned: !!d?.spotifySlotAssigned,
+                spotifyQueuePosition: d?.spotifyQueuePosition ?? null,
+                spotifyQueueTotal: d?.spotifyQueueTotal ?? null,
             });
             setLayout(normalizeNowPlayingLayout(raw));
             setTemplates(Array.isArray(raw?.templates) ? raw.templates : []);
@@ -71,6 +77,16 @@ export function useNowPlayingConfig() {
     const update = useCallback((patch: Partial<NowPlayingSettings>, markDirty = true) => {
         setSettings(prev => ({ ...prev, ...patch }));
         if (markDirty) setDirty(true);
+    }, []);
+
+    /** Vuelve a leer el cupo y el puesto en la lista de espera (sin tocar lo que se está editando). */
+    const refreshQueue = useCallback(async () => {
+        try {
+            const res = await api.get('/nowplaying/config');
+            const d = res.data?.config;
+            if (res.data?.cupos) setCupos(res.data.cupos);
+            setSettings(prev => ({ ...prev, spotifySlotRequested: !!d?.spotifySlotRequested, spotifySlotAssigned: !!d?.spotifySlotAssigned, spotifyQueuePosition: d?.spotifyQueuePosition ?? null, spotifyQueueTotal: d?.spotifyQueueTotal ?? null }));
+        } catch { /* queda lo que había */ }
     }, []);
 
     const updateLayout = useCallback((next: OverlayLayout) => {
@@ -105,7 +121,7 @@ export function useNowPlayingConfig() {
 
     return {
         loading, saving, error, dirty, channel, overlayUrl, cupos, settings, layout, templates,
-        update, updateLayout, updateTemplates, setCupos, save, reload: load,
+        update, updateLayout, updateTemplates, setCupos, refreshQueue, save, reload: load,
     };
 }
 

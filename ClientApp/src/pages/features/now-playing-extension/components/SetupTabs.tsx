@@ -133,7 +133,8 @@ export function ConnectionTab({ cfg }: TabProps) {
         const res = await api.post('/nowplaying/request-spotify-cupo', { spotifyEmail: email.trim() });
         if (!res.data?.success) throw { response: { data: { message: res.data?.message } } };
         cfg.update({ spotifySlotRequested: true }, false);
-        setMsg({ ok: true, text: t('nowPlaying.connection.cupoRequested') });
+        await cfg.refreshQueue();
+        setMsg({ ok: true, text: res.data?.message || t('nowPlaying.connection.cupoRequested') });
     });
 
     const providerCard = (id: 'lastfm' | 'spotify', color: string) => (
@@ -216,24 +217,25 @@ export function ConnectionTab({ cfg }: TabProps) {
                                     ))}
                                     <span className="text-xs 3xl:text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{cfg.cupos.used}/{cfg.cupos.total}</span>
                                 </div>
-                                {cfg.cupos.available > 0 ? (
-                                    <>
-                                        <Field label={t('nowPlaying.connection.cupoEmail')}>
-                                            <input type="email" className={inputClass} value={email} onChange={e => setEmail(e.target.value)} placeholder="tu-email@ejemplo.com" />
-                                        </Field>
-                                        <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-white`} onClick={requestCupo} disabled={!!busy || !email.trim()}>
-                                            {busy === 'cupo' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {t('nowPlaying.connection.cupoRequest')}
-                                        </button>
-                                    </>
-                                ) : (
+                                {cfg.cupos.available <= 0 && (
                                     <p className="text-sm 3xl:text-base text-amber-700 dark:text-amber-300">{t('nowPlaying.connection.cupoFull', { total: cfg.cupos.total })}</p>
                                 )}
+                                <Field label={t('nowPlaying.connection.cupoEmail')}>
+                                    <input type="email" className={inputClass} value={email} onChange={e => setEmail(e.target.value)} placeholder="tu-email@ejemplo.com" />
+                                </Field>
+                                <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-white`} onClick={requestCupo} disabled={!!busy || !email.trim()}>
+                                    {busy === 'cupo' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {cfg.cupos.available > 0 ? t('nowPlaying.connection.cupoRequest') : t('nowPlaying.connection.cupoJoinQueue')}
+                                </button>
                             </div>
                         )}
 
                         {spotifyStatus === 'pending' && (
                             <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-sm 3xl:text-base text-amber-800 dark:text-amber-200">
-                                {t('nowPlaying.connection.cupoPending')}
+                                <p>{t('nowPlaying.connection.cupoPending')}</p>
+                                {s.spotifyQueuePosition != null && (
+                                    <p className="mt-1 font-bold">{t('nowPlaying.connection.cupoPosition', { position: s.spotifyQueuePosition, total: s.spotifyQueueTotal ?? s.spotifyQueuePosition })}</p>
+                                )}
+                                {cfg.cupos.available <= 0 && <p className="mt-1">{t('nowPlaying.connection.cupoMeanwhile')}</p>}
                             </div>
                         )}
 

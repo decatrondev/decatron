@@ -1134,11 +1134,14 @@
       "cupoHint": "Escribe el correo de tu cuenta de Spotify y pide el cupo. Te avisaremos cuando esté activo.",
       "cupoEmail": "Correo de tu cuenta de Spotify",
       "cupoRequest": "Pedir cupo",
-      "cupoRequested": "Cupo pedido. Te avisaremos cuando esté activo.",
-      "cupoFull": "Los {{total}} cupos están ocupados. Mientras tanto puedes usar Last.fm, que no tiene límite.",
+      "cupoRequested": "Cupo pedido.",
+      "cupoFull": "Los {{total}} cupos están ocupados. Si lo pides igual, quedas en la lista de espera: primero por plan de supporter y después por fecha de pedido. Mientras tanto puedes usar Last.fm, que no tiene límite.",
       "cupoPending": "Tu cupo está pedido y pendiente de activación.",
       "error": "Algo salió mal. Inténtalo de nuevo.",
-      "pollingFixed": "La canción se consulta cada 3 segundos."
+      "pollingFixed": "La canción se consulta cada 3 segundos.",
+      "cupoJoinQueue": "Entrar a la lista de espera",
+      "cupoPosition": "Puesto {{position}} de {{total}} en la lista de espera.",
+      "cupoMeanwhile": "Mientras tanto puedes usar Last.fm, que no tiene límite."
     },
     "preview": {
       "title": "Vista previa",
