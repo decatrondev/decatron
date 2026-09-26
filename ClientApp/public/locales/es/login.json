@@ -26,5 +26,7 @@
   "featureRankCardsTitle": "Rank Cards",
   "featureRankCardsDescription": "Personaliza tu card y sube de nivel en tu comunidad",
   "featureMarketplaceTitle": "Marketplace",
-  "featureMarketplaceDescription": "Fondos, marcos y más para personalizar tu perfil"
+  "featureMarketplaceDescription": "Fondos, marcos y más para personalizar tu perfil",
+  "authenticating": "Autenticando...",
+  "redirecting": "Redirigiendo..."
 }

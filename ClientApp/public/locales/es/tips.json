@@ -30,5 +30,6 @@
   "securePaypal": "Pagos seguros procesados por PayPal",
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
-  "poweredBy": "Powered by Decatron"
+  "poweredBy": "Powered by Decatron",
+  "adBlockerDetected": "Tu bloqueador de anuncios impide que cargue PayPal. Desactívalo en esta página para poder donar."
 }
