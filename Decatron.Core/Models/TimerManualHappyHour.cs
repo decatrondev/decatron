@@ -37,12 +37,12 @@ namespace Decatron.Core.Models
         /// ver TimerDateTimeHelper.NowForDb). Para compararlo hay que normalizarlo a UTC.
         /// </summary>
         [Required]
+        [Column("expires_at")]
+        public DateTime ExpiresAt { get; set; }
+
         /// <summary>A qué eventos se aplica (JSON: ["sub","bits",...]). Null = a todos.</summary>
         [Column("event_types", TypeName = "jsonb")]
         public string? EventTypes { get; set; }
-
-        [Column("expires_at")]
-        public DateTime ExpiresAt { get; set; }
 
         [Required]
         [Column("created_at")]
