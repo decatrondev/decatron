@@ -1647,6 +1647,26 @@ namespace Decatron.Controllers
         // ========================================================================
         // HAPPY HOUR
         // ========================================================================
+
+        /// <summary>
+        /// Valida la lista de eventos y la deja lista para guardar: null (o todos) = se aplica a todos.
+        /// </summary>
+        private static (bool Ok, string? Json, string? Error) NormalizeHappyHourEvents(string[]? eventTypes)
+        {
+            if (eventTypes == null) return (true, null, null);
+            var known = Decatron.Services.TimerEventService.HappyHourEventTypes;
+            var list = eventTypes.Where(e => !string.IsNullOrWhiteSpace(e)).Select(e => e.Trim().ToLowerInvariant()).Distinct().ToArray();
+            if (list.Length == 0) return (false, null, "Elige al menos un evento");
+            if (list.Any(e => !known.Contains(e))) return (false, null, "Evento desconocido");
+            if (known.All(list.Contains)) return (true, null, null);
+            return (true, System.Text.Json.JsonSerializer.Serialize(list), null);
+        }
+
+        private static string[]? ParseHappyHourEvents(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try { return System.Text.Json.JsonSerializer.Deserialize<string[]>(json); } catch { return null; }
+        }
         [HttpGet("happyhour")]
         public async Task<IActionResult> GetHappyHours()
         {
@@ -1654,7 +1674,7 @@ namespace Decatron.Controllers
             {
                 var userId = GetChannelOwnerId();
                 var happyHours = await _dbContext.TimerHappyHours.Where(h => h.UserId == userId).OrderBy(h => h.StartTime).ToListAsync();
-                var dtos = happyHours.Select(h => new { h.Id, h.Name, h.Description, startTime = h.StartTime.ToString(@"hh\:mm"), endTime = h.EndTime.ToString(@"hh\:mm"), multiplier = h.Multiplier, daysOfWeek = h.DaysOfWeek, enabled = h.Enabled, createdAt = h.CreatedAt, updatedAt = h.UpdatedAt });
+                var dtos = happyHours.Select(h => new { h.Id, h.Name, h.Description, startTime = h.StartTime.ToString(@"hh\:mm"), endTime = h.EndTime.ToString(@"hh\:mm"), multiplier = h.Multiplier, daysOfWeek = h.DaysOfWeek, eventTypes = ParseHappyHourEvents(h.EventTypes), enabled = h.Enabled, createdAt = h.CreatedAt, updatedAt = h.UpdatedAt });
                 return Ok(new { success = true, happyHours = dtos });
             }
             catch (Exception ex) { return StatusCode(500, new { success = false, message = "An internal error occurred. Please try again later." }); }
@@ -1670,8 +1690,12 @@ namespace Decatron.Controllers
                 // Fix 5: Validate name is required
                 if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest(new { success = false, message = "Name is required" });
 
-                if (request.StartTime >= request.EndTime) return BadRequest(new { success = false, message = "Hora inicio debe ser menor a fin" });
+                // Un fin menor que el inicio cruza la medianoche (22:00 → 02:00): es válido
+                if (request.StartTime == request.EndTime) return BadRequest(new { success = false, message = "El inicio y el fin no pueden ser la misma hora" });
                 if (request.Multiplier < 1 || request.Multiplier > 10) return BadRequest(new { success = false, message = "Multiplicador inválido (1-10)" });
+                if (request.DaysOfWeek == null || !request.DaysOfWeek.Any(d => d)) return BadRequest(new { success = false, message = "Elige al menos un día" });
+                var events = NormalizeHappyHourEvents(request.EventTypes);
+                if (!events.Ok) return BadRequest(new { success = false, message = events.Error });
 
                 // Fix 4: Validate timezone is configured
                 var timerConfig = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == userId);
@@ -1711,6 +1735,7 @@ namespace Decatron.Controllers
                     EndTime = request.EndTime,
                     Multiplier = request.Multiplier,
                     DaysOfWeek = System.Text.Json.JsonSerializer.Serialize(request.DaysOfWeek),
+                    EventTypes = events.Json,
                     Enabled = request.Enabled,
                     CreatedAt = TimerDateTimeHelper.NowForDb(),
                     UpdatedAt = DateTime.UtcNow
@@ -1731,7 +1756,12 @@ namespace Decatron.Controllers
                 var happyHour = await _dbContext.TimerHappyHours.FirstOrDefaultAsync(h => h.Id == id && h.UserId == userId);
                 if (happyHour == null) return NotFound(new { success = false, message = "Happy Hour no encontrado" });
 
-                if (request.StartTime.HasValue && request.EndTime.HasValue && request.StartTime >= request.EndTime) return BadRequest(new { success = false, message = "Hora inicio debe ser menor a fin" });
+                var newStart = request.StartTime ?? happyHour.StartTime;
+                var newEnd = request.EndTime ?? happyHour.EndTime;
+                if (newStart == newEnd) return BadRequest(new { success = false, message = "El inicio y el fin no pueden ser la misma hora" });
+                if (request.DaysOfWeek != null && !request.DaysOfWeek.Any(d => d)) return BadRequest(new { success = false, message = "Elige al menos un día" });
+                var events = NormalizeHappyHourEvents(request.EventTypes);
+                if (request.EventTypes != null && !events.Ok) return BadRequest(new { success = false, message = events.Error });
                 if (request.Multiplier.HasValue && (request.Multiplier < 1 || request.Multiplier > 10)) return BadRequest(new { success = false, message = "Multiplicador inválido" });
 
                 if (!string.IsNullOrEmpty(request.Name)) happyHour.Name = request.Name;
@@ -1740,6 +1770,7 @@ namespace Decatron.Controllers
                 if (request.EndTime.HasValue) happyHour.EndTime = request.EndTime.Value;
                 if (request.Multiplier.HasValue) happyHour.Multiplier = request.Multiplier.Value;
                 if (request.DaysOfWeek != null) happyHour.DaysOfWeek = System.Text.Json.JsonSerializer.Serialize(request.DaysOfWeek);
+                if (request.EventTypes != null) happyHour.EventTypes = events.Json;
                 if (request.Enabled.HasValue) happyHour.Enabled = request.Enabled.Value;
 
                 happyHour.UpdatedAt = TimerDateTimeHelper.NowForDb();
@@ -1776,6 +1807,8 @@ namespace Decatron.Controllers
 
                 if (request.Multiplier < 1 || request.Multiplier > 10) return BadRequest(new { success = false, message = "Multiplicador inválido (1-10)" });
                 if (request.DurationMinutes < 1 || request.DurationMinutes > 1440) return BadRequest(new { success = false, message = "Duración inválida (1-1440 minutos)" });
+                var manualEvents = NormalizeHappyHourEvents(request.EventTypes);
+                if (!manualEvents.Ok) return BadRequest(new { success = false, message = manualEvents.Error });
 
                 // Una fila por canal: si ya había uno activo, se pisa.
                 var manual = await _dbContext.TimerManualHappyHours
@@ -1789,6 +1822,7 @@ namespace Decatron.Controllers
 
                 manual.UserId = userId;
                 manual.Multiplier = (double)request.Multiplier;
+                manual.EventTypes = manualEvents.Json;
                 manual.ExpiresAt = TimerDateTimeHelper.NowForDb().AddMinutes(request.DurationMinutes);
                 manual.CreatedAt = DateTime.UtcNow;
 
@@ -1847,7 +1881,7 @@ namespace Decatron.Controllers
                     var expiresAtUtc = TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt);
                     if (expiresAtUtc > DateTime.UtcNow)
                     {
-                        return Ok(new { success = true, active = true, multiplier = manual.Multiplier, expiresAt = expiresAtUtc.ToString("o") });
+                        return Ok(new { success = true, active = true, multiplier = manual.Multiplier, expiresAt = expiresAtUtc.ToString("o"), eventTypes = ParseHappyHourEvents(manual.EventTypes) });
                     }
 
                     _dbContext.TimerManualHappyHours.Remove(manual);
@@ -1865,6 +1899,8 @@ namespace Decatron.Controllers
     {
         public decimal Multiplier { get; set; } = 2.0m;
         public int DurationMinutes { get; set; } = 60;
+        /// <summary>A qué eventos se aplica; null = a todos.</summary>
+        public string[]? EventTypes { get; set; }
     }
 
     public class TimerConfigRequest
@@ -1966,6 +2002,8 @@ namespace Decatron.Controllers
         public TimeSpan EndTime { get; set; }
         public decimal Multiplier { get; set; } = 2.0m;
         public bool[] DaysOfWeek { get; set; } = new bool[7] { true, true, true, true, true, true, true };
+        /// <summary>A qué eventos se aplica; null = a todos.</summary>
+        public string[]? EventTypes { get; set; }
         public bool Enabled { get; set; } = true;
     }
 
@@ -1977,6 +2015,7 @@ namespace Decatron.Controllers
         public TimeSpan? EndTime { get; set; }
         public decimal? Multiplier { get; set; }
         public bool[]? DaysOfWeek { get; set; }
+        public string[]? EventTypes { get; set; }
         public bool? Enabled { get; set; }
     }
 }

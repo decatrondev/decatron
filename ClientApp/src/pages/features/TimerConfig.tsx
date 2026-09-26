@@ -451,6 +451,7 @@ const TimerConfig = () => {
                                     onAdvancedConfigChange={timerConfig.updateAdvancedConfig}
                                     timeZone={timerConfig.timeZone}
                                     onTimeZoneChange={timerConfig.setTimeZone}
+                                    eventsConfig={timerConfig.eventsConfig}
                                 />
                             )}
 

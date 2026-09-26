@@ -41,6 +41,10 @@ namespace Decatron.Core.Models
         public string DaysOfWeek { get; set; } = "[true,true,true,true,true,true,true]";
 
         [Required]
+        /// <summary>A qué eventos se aplica (JSON: ["sub","bits",...]). Null = a todos.</summary>
+        [Column("event_types", TypeName = "jsonb")]
+        public string? EventTypes { get; set; }
+
         [Column("enabled")]
         public bool Enabled { get; set; } = true;
 

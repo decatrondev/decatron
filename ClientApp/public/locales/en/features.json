@@ -1564,6 +1564,115 @@
     "templates": "Templates",
     "timeRange": "Time range",
     "timezone": "Time zone",
-    "timezoneDescription": "Sets the base time for the Auto-pause and Happy Hour features."
+    "timezoneDescription": "Sets the base time for the Auto-pause and Happy Hour features.",
+    "hh": {
+      "nowTitle": "Happy Hour now",
+      "nowDescription": "Turn it on instantly, for a while or until a set time, without scheduling anything.",
+      "scheduledDescription": "Turns on by itself on the days and times you pick, in the channel's time.",
+      "channelClock": "Channel time ({{city}}): {{time}}",
+      "yourClock": "your time: {{time}}",
+      "yourTime": "your time: {{time}}",
+      "noTimezone": "To schedule a Happy Hour, first set the channel's time zone.",
+      "goGeneral": "Go to General",
+      "q": {
+        "howMuch": "How much extra time?",
+        "howLong": "For how long?",
+        "whichEvents": "For which events?",
+        "when": "When?",
+        "name": "Name (optional)"
+      },
+      "other": "Other:",
+      "until": "Until",
+      "activateNow": "Turn on now",
+      "manualSummary": "x{{m}} on {{events}} for {{duration}}: ends at {{time}} (channel time)",
+      "activeNow": "On: x{{m}} on {{events}}",
+      "endsAt": "Ends at {{time}} ({{city}} time)",
+      "remaining": "{{time}} left",
+      "events": {
+        "all": "All",
+        "allLower": "all events",
+        "sub": "Subs",
+        "giftsub": "Gifted subs",
+        "bits": "Bits",
+        "tip": "Tips",
+        "raid": "Raids",
+        "hypetrain": "Hype train",
+        "follow": "Follows"
+      },
+      "example": {
+        "text": "Example: {{what}} adds {{before}} today; with x{{m}} it will add {{after}}.",
+        "sub": "a Tier 1 sub",
+        "giftsub": "each gifted sub",
+        "bits": "every {{n}} bits",
+        "tip": "every {{n}} {{currency}} tipped",
+        "raid": "a raid",
+        "hypetrain": "each hype train level",
+        "follow": "a follow"
+      },
+      "days": {
+        "all": "every day",
+        "weekend": "on weekends",
+        "weekdays": "Monday to Friday",
+        "allCap": "Every day",
+        "weekdaysCap": "Monday to Friday",
+        "weekendCap": "Weekends",
+        "short": {
+          "0": "Sun",
+          "1": "Mon",
+          "2": "Tue",
+          "3": "Wed",
+          "4": "Thu",
+          "5": "Fri",
+          "6": "Sat"
+        },
+        "long": {
+          "0": "on Sunday",
+          "1": "on Monday",
+          "2": "on Tuesday",
+          "3": "on Wednesday",
+          "4": "on Thursday",
+          "5": "on Friday",
+          "6": "on Saturday"
+        }
+      },
+      "and": "and",
+      "today": "today",
+      "tomorrow": "tomorrow",
+      "ranges": {
+        "allDay": "All day",
+        "afternoon": "Afternoon (14:00–20:00)",
+        "night": "Night (20:00–00:00)"
+      },
+      "from": "From",
+      "to": "to",
+      "crossesMidnight": "Crosses midnight: ends the next day at {{time}}.",
+      "nextDay": "ends the next day",
+      "nameHint": "If you leave it empty, the suggested name is used.",
+      "summary": "{{days}}, from {{start}} to {{end}} ({{city}} time): {{events}} add x{{m}} time.",
+      "nextStart": "Starts {{day}} at {{time}}.",
+      "wouldBeActive": "If you save it, it starts working right away.",
+      "overlap": "Overlaps with: {{names}}. When they coincide, the highest multiplier is used.",
+      "errorSameTime": "Start and end can't be the same time.",
+      "errorNoDays": "Pick at least one day.",
+      "newTitle": "🎉 New Happy Hour",
+      "editTitle": "✏️ Edit Happy Hour",
+      "create": "Create Happy Hour",
+      "empty": "No scheduled Happy Hours yet. Create one or use “Happy Hour now”.",
+      "statusActive": "On now",
+      "statusNext": "Next: {{day}} at {{time}}",
+      "turnOn": "Turn on",
+      "edit": "Edit",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "copySuffix": "(copy)",
+      "name": {
+        "double": "Double time",
+        "triple": "Triple time",
+        "times": "Time x{{m}}"
+      },
+      "sec": "{{n}} s",
+      "min": "{{n}} min",
+      "hours": "{{n}} h"
+    }
   }
 }

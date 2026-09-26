@@ -366,7 +366,7 @@ namespace Decatron.Services
                 if (secondsToAdd <= 0) return false;
 
                 // Happy Hour
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "bits");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -489,7 +489,7 @@ namespace Decatron.Services
                 if (secondsToAdd <= 0 && !isTest) return false; // Permitimos test incluso si es 0 para debug
 
                 // Happy Hour
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "sub");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -595,7 +595,7 @@ namespace Decatron.Services
                 // Nueva logic: Rules check (ej: 5 subs -> bonus).
                 int secondsToAdd = CalculateTimeWithRules(eventsConfig.giftSub, total, 1);
 
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "giftsub");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -730,7 +730,7 @@ namespace Decatron.Services
 
                 if (secondsToAdd <= 0) return false;
 
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "raid");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -829,7 +829,7 @@ namespace Decatron.Services
                 // Usamos 'level' como amount.
                 int secondsToAdd = CalculateTimeWithRules(eventsConfig.hypeTrain, level, 1);
 
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "hypetrain");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -949,7 +949,7 @@ namespace Decatron.Services
                 if (secondsToAdd <= 0 && !isTest) return false;
 
                 // Happy Hour
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "tip");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -1084,7 +1084,7 @@ namespace Decatron.Services
                 var cooldownSeconds = eventsConfig.follow.cooldown;
 
                 // 2.5 Aplicar multiplicador de Happy Hour
-                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower);
+                var happyHourMultiplier = await GetActiveHappyHourMultiplierAsync(channelLower, "follow");
                 if (happyHourMultiplier > 1.0)
                 {
                     secondsToAdd = (int)Math.Round(secondsToAdd * happyHourMultiplier);
@@ -1485,108 +1485,90 @@ namespace Decatron.Services
         /// </summary>
         /// <param name="channelName">Nombre del canal</param>
         /// <returns>Multiplicador (1.0 si no hay Happy Hour activo, o el multiplicador configurado)</returns>
-        private async Task<double> GetActiveHappyHourMultiplierAsync(string channelName)
+        /// <summary>Claves de evento que entiende el Happy Hour.</summary>
+        public static readonly string[] HappyHourEventTypes = { "sub", "giftsub", "bits", "tip", "raid", "hypetrain", "follow" };
+
+        /// <summary>Si el Happy Hour se aplica a ese evento. Sin lista (null) se aplica a todos.</summary>
+        private static bool HappyHourAppliesTo(string? eventTypesJson, string? eventType)
+        {
+            if (eventType == null || string.IsNullOrWhiteSpace(eventTypesJson)) return true;
+            try
+            {
+                var list = System.Text.Json.JsonSerializer.Deserialize<string[]>(eventTypesJson);
+                return list == null || list.Contains(eventType);
+            }
+            catch { return true; }
+        }
+
+        /// <summary>
+        /// Los Happy Hour programados que están en curso ahora en la zona horaria del canal, con la hora
+        /// (local) en que terminan. Un horario que cruza la medianoche (22:00 → 02:00) pertenece al día en
+        /// que empieza: la parte de después de las 00:00 mira el día anterior.
+        /// </summary>
+        private async Task<(List<(TimerHappyHour Hh, DateTime EndsAtLocal)> Active, TimeZoneInfo? Tz)> GetScheduledHappyHoursNowAsync(string channelName)
+        {
+            var result = new List<(TimerHappyHour, DateTime)>();
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login.ToLower() == channelName);
+            if (user == null) return (result, null);
+
+            var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == user.Id);
+            var now = TimerDateTimeHelper.NowForDb();
+            TimeZoneInfo? tz = null;
+            if (config != null && !string.IsNullOrEmpty(config.TimeZone))
+            {
+                try { tz = TimeZoneInfo.FindSystemTimeZoneById(config.TimeZone); now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz); } catch { }
+            }
+
+            var t = now.TimeOfDay;
+            var today = (int)now.DayOfWeek; // 0 = domingo
+            var yesterday = (today + 6) % 7;
+
+            var happyHours = await _dbContext.TimerHappyHours.Where(hh => hh.UserId == user.Id && hh.Enabled).ToListAsync();
+            foreach (var hh in happyHours)
+            {
+                bool[]? days;
+                try { days = System.Text.Json.JsonSerializer.Deserialize<bool[]>(hh.DaysOfWeek); } catch { continue; }
+                if (days == null || days.Length < 7) continue;
+
+                if (hh.EndTime > hh.StartTime)
+                {
+                    if (days[today] && t >= hh.StartTime && t <= hh.EndTime) result.Add((hh, now.Date.Add(hh.EndTime)));
+                }
+                else if (hh.EndTime < hh.StartTime)
+                {
+                    if (days[today] && t >= hh.StartTime) result.Add((hh, now.Date.AddDays(1).Add(hh.EndTime)));
+                    else if (days[yesterday] && t <= hh.EndTime) result.Add((hh, now.Date.Add(hh.EndTime)));
+                }
+            }
+            return (result, tz);
+        }
+
+        /// <summary>
+        /// Multiplicador para un evento. Primero el Happy Hour manual; si no, el mayor de los programados
+        /// en curso que se aplican a ese evento.
+        /// </summary>
+        private async Task<double> GetActiveHappyHourMultiplierAsync(string channelName, string eventType)
         {
             try
             {
-                // Check manual Happy Hour first
                 var manual = await GetVigentManualHappyHourAsync(channelName);
-                if (manual != null)
+                if (manual != null && HappyHourAppliesTo(manual.EventTypes, eventType))
                 {
-                    _logger.LogInformation($"[HAPPY HOUR] Manual Happy Hour activo para {channelName} con multiplicador {manual.Multiplier}x (expira {TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt):HH:mm:ss} UTC)");
+                    _logger.LogInformation($"[HAPPY HOUR] Manual activo para {channelName}: {manual.Multiplier}x en {eventType} (expira {TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt):HH:mm:ss} UTC)");
                     return manual.Multiplier;
                 }
 
-                // Obtener el UserId a partir del channelName
-                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login.ToLower() == channelName);
-                if (user == null)
-                {
-                    _logger.LogWarning($"[HAPPY HOUR] Usuario no encontrado para canal: {channelName}");
-                    return 1.0;
-                }
-
-                // Obtener configuración de Timer para la Zona Horaria
-                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == user.Id);
-                
-                var now = TimerDateTimeHelper.NowForDb();
-                if (config != null && !string.IsNullOrEmpty(config.TimeZone))
-                {
-                    try
-                    {
-                        var tz = TimeZoneInfo.FindSystemTimeZoneById(config.TimeZone);
-                        now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
-                    }
-                    catch 
-                    {
-                        // Fallback a UTC si falla la conversión
-                    }
-                }
-
-                var currentTime = now.TimeOfDay;
-                var currentDayOfWeek = (int)now.DayOfWeek; // 0 = Domingo, 6 = Sábado
-
-                // Buscar Happy Hours activos para este usuario
-                var activeHappyHours = await _dbContext.TimerHappyHours
-                    .Where(hh =>
-                        hh.UserId == user.Id &&
-                        hh.Enabled)
-                    .ToListAsync();
-
-                if (!activeHappyHours.Any())
-                {
-                    return 1.0; // Sin multiplicador
-                }
-
-                // Verificar cada Happy Hour
-                foreach (var hh in activeHappyHours)
-                {
-                    // Parsear días de la semana desde JSON
-                    bool[] daysOfWeek;
-                    try
-                    {
-                        daysOfWeek = System.Text.Json.JsonSerializer.Deserialize<bool[]>(hh.DaysOfWeek);
-                    }
-                    catch
-                    {
-                        _logger.LogWarning($"[HAPPY HOUR] Error parseando daysOfWeek para Happy Hour ID {hh.Id}");
-                        continue;
-                    }
-
-                    // Verificar si hoy está habilitado
-                    if (daysOfWeek == null || daysOfWeek.Length < 7 || !daysOfWeek[currentDayOfWeek])
-                    {
-                        continue;
-                    }
-
-                    // Verificar si la hora actual está dentro del rango
-                    var startTime = hh.StartTime;
-                    var endTime = hh.EndTime;
-
-                    bool isInTimeRange;
-                    if (endTime >= startTime)
-                    {
-                        // Rango normal (ej: 10:00 - 18:00)
-                        isInTimeRange = currentTime >= startTime && currentTime <= endTime;
-                    }
-                    else
-                    {
-                        // Rango que cruza medianoche (ej: 22:00 - 02:00)
-                        isInTimeRange = currentTime >= startTime || currentTime <= endTime;
-                    }
-
-                    if (isInTimeRange)
-                    {
-                        _logger.LogInformation($"[HAPPY HOUR] ✨ Happy Hour activo: '{hh.Name}' con multiplicador {hh.Multiplier}x");
-                        return (double)hh.Multiplier;
-                    }
-                }
-
-                return 1.0; // Sin multiplicador activo
+                var (active, _) = await GetScheduledHappyHoursNowAsync(channelName);
+                var applicable = active.Where(a => HappyHourAppliesTo(a.Hh.EventTypes, eventType)).ToList();
+                if (applicable.Count == 0) return 1.0;
+                var best = applicable.OrderByDescending(a => a.Hh.Multiplier).First().Hh;
+                _logger.LogInformation($"[HAPPY HOUR] ✨ '{best.Name}' activo para {channelName}: {best.Multiplier}x en {eventType}");
+                return (double)best.Multiplier;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[HAPPY HOUR] Error verificando Happy Hours activos");
-                return 1.0; // En caso de error, no aplicar multiplicador
+                return 1.0;
             }
         }
 
@@ -1594,63 +1576,16 @@ namespace Decatron.Services
         {
             try
             {
-                // Check manual Happy Hour first
                 var manual = await GetVigentManualHappyHourAsync(channelName);
                 if (manual != null)
                     return (true, manual.Multiplier, TimerDateTimeHelper.NormalizeToUtc(manual.ExpiresAt));
 
-                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Login.ToLower() == channelName);
-                if (user == null) return (false, 1.0, null);
-
-                var config = await _dbContext.TimerConfigs.FirstOrDefaultAsync(c => c.UserId == user.Id);
-                var now = TimerDateTimeHelper.NowForDb();
-                TimeZoneInfo? tz = null;
-                if (config != null && !string.IsNullOrEmpty(config.TimeZone))
-                {
-                    try { tz = TimeZoneInfo.FindSystemTimeZoneById(config.TimeZone); now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz); } catch { }
-                }
-
-                var currentTime = now.TimeOfDay;
-                var currentDayOfWeek = (int)now.DayOfWeek;
-
-                var activeHappyHours = await _dbContext.TimerHappyHours
-                    .Where(hh => hh.UserId == user.Id && hh.Enabled)
-                    .ToListAsync();
-
-                foreach (var hh in activeHappyHours)
-                {
-                    bool[] daysOfWeek;
-                    try { daysOfWeek = System.Text.Json.JsonSerializer.Deserialize<bool[]>(hh.DaysOfWeek); }
-                    catch { continue; }
-
-                    if (daysOfWeek == null || daysOfWeek.Length < 7 || !daysOfWeek[currentDayOfWeek]) continue;
-
-                    var startTime = hh.StartTime;
-                    var endTime = hh.EndTime;
-                    bool isInTimeRange = endTime >= startTime
-                        ? currentTime >= startTime && currentTime <= endTime
-                        : currentTime >= startTime || currentTime <= endTime;
-
-                    if (isInTimeRange)
-                    {
-                        // Calculate endsAt in UTC
-                        var todayLocal = now.Date;
-                        DateTime endsAtLocal;
-                        if (endTime >= startTime)
-                            endsAtLocal = todayLocal.Add(endTime);
-                        else
-                            endsAtLocal = todayLocal.AddDays(1).Add(endTime);
-
-                        // Sin timezone configurada, 'now' viene de NowForDb() (hora de Lima):
-                        // hay que normalizarla igual, si no el countdown del overlay sale corrido.
-                        var endsAtUtc = tz != null
-                            ? TimeZoneInfo.ConvertTimeToUtc(endsAtLocal, tz)
-                            : TimerDateTimeHelper.NormalizeToUtc(endsAtLocal);
-                        return (true, (double)hh.Multiplier, endsAtUtc);
-                    }
-                }
-
-                return (false, 1.0, null);
+                var (active, tz) = await GetScheduledHappyHoursNowAsync(channelName);
+                if (active.Count == 0) return (false, 1.0, null);
+                var best = active.OrderByDescending(a => a.Hh.Multiplier).First();
+                // Sin zona horaria, la hora local viene de NowForDb() (Lima): se normaliza igual para el countdown
+                var endsAtUtc = tz != null ? TimeZoneInfo.ConvertTimeToUtc(best.EndsAtLocal, tz) : TimerDateTimeHelper.NormalizeToUtc(best.EndsAtLocal);
+                return (true, (double)best.Hh.Multiplier, endsAtUtc);
             }
             catch (Exception ex)
             {

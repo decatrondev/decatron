@@ -1564,6 +1564,115 @@
     "templates": "Plantillas",
     "timeRange": "Rango de Horas",
     "timezone": "Zona Horaria",
-    "timezoneDescription": "Define la hora base para las funciones de Auto-Pausa y Happy Hour."
+    "timezoneDescription": "Define la hora base para las funciones de Auto-Pausa y Happy Hour.",
+    "hh": {
+      "nowTitle": "Happy Hour ahora",
+      "nowDescription": "Actívalo al instante, por un rato o hasta una hora, sin programar nada.",
+      "scheduledDescription": "Se activa solo en los días y horas que elijas, en la hora del canal.",
+      "channelClock": "Hora del canal ({{city}}): {{time}}",
+      "yourClock": "tu hora: {{time}}",
+      "yourTime": "tu hora: {{time}}",
+      "noTimezone": "Para programar Happy Hour, primero configura la zona horaria del canal.",
+      "goGeneral": "Ir a General",
+      "q": {
+        "howMuch": "¿Cuánto tiempo extra?",
+        "howLong": "¿Por cuánto tiempo?",
+        "whichEvents": "¿Para qué eventos?",
+        "when": "¿Cuándo?",
+        "name": "Nombre (opcional)"
+      },
+      "other": "Otro:",
+      "until": "Hasta las",
+      "activateNow": "Activar ahora",
+      "manualSummary": "x{{m}} en {{events}} durante {{duration}}: termina a las {{time}} (hora del canal)",
+      "activeNow": "Activo: x{{m}} en {{events}}",
+      "endsAt": "Termina a las {{time}} (hora de {{city}})",
+      "remaining": "quedan {{time}}",
+      "events": {
+        "all": "Todos",
+        "allLower": "todos los eventos",
+        "sub": "Subs",
+        "giftsub": "Subs regalados",
+        "bits": "Bits",
+        "tip": "Tips",
+        "raid": "Raids",
+        "hypetrain": "Hype train",
+        "follow": "Follows"
+      },
+      "example": {
+        "text": "Ejemplo: {{what}} hoy suma {{before}}; con x{{m}} sumará {{after}}.",
+        "sub": "un sub Tier 1",
+        "giftsub": "cada sub regalado",
+        "bits": "cada {{n}} bits",
+        "tip": "cada {{n}} {{currency}} de tip",
+        "raid": "un raid",
+        "hypetrain": "cada nivel del hype train",
+        "follow": "un follow"
+      },
+      "days": {
+        "all": "todos los días",
+        "weekend": "los fines de semana",
+        "weekdays": "de lunes a viernes",
+        "allCap": "Todos los días",
+        "weekdaysCap": "Lunes a viernes",
+        "weekendCap": "Fines de semana",
+        "short": {
+          "0": "Dom",
+          "1": "Lun",
+          "2": "Mar",
+          "3": "Mié",
+          "4": "Jue",
+          "5": "Vie",
+          "6": "Sáb"
+        },
+        "long": {
+          "0": "el domingo",
+          "1": "el lunes",
+          "2": "el martes",
+          "3": "el miércoles",
+          "4": "el jueves",
+          "5": "el viernes",
+          "6": "el sábado"
+        }
+      },
+      "and": "y",
+      "today": "hoy",
+      "tomorrow": "mañana",
+      "ranges": {
+        "allDay": "Todo el día",
+        "afternoon": "Tarde (14:00–20:00)",
+        "night": "Noche (20:00–00:00)"
+      },
+      "from": "De",
+      "to": "a",
+      "crossesMidnight": "Cruza la medianoche: termina al día siguiente a las {{time}}.",
+      "nextDay": "termina al día siguiente",
+      "nameHint": "Si lo dejas vacío, se usa el nombre sugerido.",
+      "summary": "{{days}}, de {{start}} a {{end}} (hora de {{city}}): {{events}} suman x{{m}} de tiempo.",
+      "nextStart": "Empieza {{day}} a las {{time}}.",
+      "wouldBeActive": "Si lo guardas, empieza a funcionar ya mismo.",
+      "overlap": "Se superpone con: {{names}}. Cuando coinciden, se usa el multiplicador más alto.",
+      "errorSameTime": "El inicio y el fin no pueden ser la misma hora.",
+      "errorNoDays": "Elige al menos un día.",
+      "newTitle": "🎉 Nuevo Happy Hour",
+      "editTitle": "✏️ Editar Happy Hour",
+      "create": "Crear Happy Hour",
+      "empty": "Todavía no hay Happy Hour programados. Crea uno o usa «Happy Hour ahora».",
+      "statusActive": "Activo ahora",
+      "statusNext": "Próximo: {{day}} a las {{time}}",
+      "turnOn": "Activar",
+      "edit": "Editar",
+      "duplicate": "Duplicar",
+      "delete": "Eliminar",
+      "copySuffix": "(copia)",
+      "name": {
+        "double": "Doble tiempo",
+        "triple": "Triple tiempo",
+        "times": "Tiempo x{{m}}"
+      },
+      "sec": "{{n}} s",
+      "min": "{{n}} min",
+      "hours": "{{n}} h"
+    }
   }
 }

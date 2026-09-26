@@ -8,17 +8,20 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../../../../../../services/api';
-import type { AdvancedConfig } from '../../../types';
+import type { AdvancedConfig, EventsConfig } from '../../../types';
 import { GeneralSection } from './GeneralSection';
 import { TemplatesSection, type CustomTemplate } from './TemplatesSection';
 import { SchedulesSection, type Schedule, type ScheduleFormData } from './SchedulesSection';
-import { HappyHourSection, type HappyHour, type HappyHourFormData } from './HappyHourSection';
+import { HappyHourSection, suggestHappyHourName, parseDays, type HappyHour, type HappyHourFormData } from './HappyHourSection';
+import { HH_EVENTS } from './happyHourUtils';
 
 interface AdvancedTabProps {
     advancedConfig: AdvancedConfig;
     onAdvancedConfigChange: (updates: Partial<AdvancedConfig>) => void;
     timeZone?: string;
     onTimeZoneChange: (tz: string) => void;
+    /** Para el ejemplo del Happy Hour ("un sub hoy suma 5 min…"). */
+    eventsConfig?: EventsConfig;
 }
 
 type AdvancedSection = 'general' | 'templates' | 'autoPause' | 'happyHour';
@@ -27,7 +30,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     advancedConfig,
     onAdvancedConfigChange,
     timeZone,
-    onTimeZoneChange
+    onTimeZoneChange,
+    eventsConfig
 }) => {
     const { t } = useTranslation('features');
     const [selectedSection, setSelectedSection] = useState<AdvancedSection>('general');
@@ -79,16 +83,20 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     const [happyHourForm, setHappyHourForm] = useState<HappyHourFormData>({
         name: '',
         description: '',
-        startTime: '00:00',
-        endTime: '23:59',
+        startTime: '20:00',
+        endTime: '23:00',
         multiplier: 2.0,
         daysOfWeek: [true, true, true, true, true, true, true],
+        eventTypes: [...HH_EVENTS],
         enabled: true
     });
 
     // Manual Happy Hour state
     const [manualMultiplier, setManualMultiplier] = useState(2.0);
     const [manualDuration, setManualDuration] = useState(60);
+    const [manualEvents, setManualEvents] = useState<string[]>([...HH_EVENTS]);
+    const [manualActiveEvents, setManualActiveEvents] = useState<string[] | null>(null);
+    const [manualActiveMultiplier, setManualActiveMultiplier] = useState(2);
     const [manualActive, setManualActive] = useState(false);
     const [manualExpiresAt, setManualExpiresAt] = useState<string | null>(null);
     const [manualCountdown, setManualCountdown] = useState('');
@@ -154,6 +162,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
             if (res.data.success) {
                 setManualActive(res.data.active);
                 setManualExpiresAt(res.data.active ? res.data.expiresAt : null);
+                if (res.data.active) { setManualActiveEvents(res.data.eventTypes ?? null); setManualActiveMultiplier(res.data.multiplier ?? 2); }
             }
         } catch (error) {
             console.error('Error loading manual HH status:', error);
@@ -164,12 +173,15 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         try {
             const res = await api.post('/timer/happy-hour/manual-activate', {
                 multiplier: manualMultiplier,
-                durationMinutes: manualDuration
+                durationMinutes: manualDuration,
+                eventTypes: manualEvents
             });
             if (res.data.success) {
                 showMessage('success', res.data.message);
                 setManualActive(true);
                 setManualExpiresAt(res.data.expiresAt);
+                setManualActiveEvents(manualEvents.length === HH_EVENTS.length ? null : manualEvents);
+                setManualActiveMultiplier(manualMultiplier);
             }
         } catch (error: any) {
             showMessage('error', error.response?.data?.message || t('timerAdvanced.errorManualActivate'));
@@ -441,25 +453,25 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
         setHappyHourForm({
             name: '',
             description: '',
-            startTime: '00:00',
-            endTime: '23:59',
+            startTime: '20:00',
+            endTime: '23:00',
             multiplier: 2.0,
             daysOfWeek: [true, true, true, true, true, true, true],
+            eventTypes: [...HH_EVENTS],
             enabled: true
         });
     };
 
+    /** Lo que se manda al servidor: sin nombre, el sugerido. */
+    const happyHourPayload = () => ({ ...happyHourForm, name: happyHourForm.name.trim() || suggestHappyHourName(happyHourForm, t) });
+
     const handleCreateHappyHour = async () => {
-        if (!happyHourForm.name.trim()) {
-            showMessage('error', t('timerAdvanced.nameRequired'));
-            return;
-        }
         if (!timeZone) {
             showMessage('error', t('timerAdvanced.configureTimezoneFirst'));
             return;
         }
         try {
-            const res = await api.post('/timer/happyhour', happyHourForm);
+            const res = await api.post('/timer/happyhour', happyHourPayload());
             if (res.data.success) {
                 showMessage('success', t('timerAdvanced.happyHourCreated'));
                 resetHappyHourForm();
@@ -471,12 +483,9 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     };
 
     const handleEditHappyHour = async () => {
-        if (!editingHappyHour || !happyHourForm.name.trim()) {
-            showMessage('error', t('timerAdvanced.nameRequired'));
-            return;
-        }
+        if (!editingHappyHour) return;
         try {
-            const res = await api.put(`/timer/happyhour/${editingHappyHour.id}`, happyHourForm);
+            const res = await api.put(`/timer/happyhour/${editingHappyHour.id}`, happyHourPayload());
             if (res.data.success) {
                 showMessage('success', t('timerAdvanced.happyHourUpdated'));
                 resetHappyHourForm();
@@ -537,21 +546,28 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
 
     const prepareEditHappyHour = (hh: HappyHour) => {
         setEditingHappyHour(hh);
-        const daysArray = JSON.parse(hh.daysOfWeek);
-        setHappyHourForm({
-            name: hh.name,
-            description: hh.description || '',
-            startTime: hh.startTime,
-            endTime: hh.endTime,
-            multiplier: hh.multiplier,
-            daysOfWeek: daysArray,
-            enabled: hh.enabled
-        });
+        setHappyHourForm(formFrom(hh));
         setIsEditingHappyHour(true);
         setShowCreateHappyHourModal(true);
+    };
 
-        // Scroll to form
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const formFrom = (hh: HappyHour): HappyHourFormData => ({
+        name: hh.name,
+        description: hh.description || '',
+        startTime: hh.startTime,
+        endTime: hh.endTime,
+        multiplier: Number(hh.multiplier),
+        daysOfWeek: parseDays(hh.daysOfWeek),
+        eventTypes: hh.eventTypes ?? [...HH_EVENTS],
+        enabled: hh.enabled
+    });
+
+    /** Duplicar: el mismo Happy Hour como uno nuevo, para cambiarle días u horas. */
+    const duplicateHappyHour = (hh: HappyHour) => {
+        setEditingHappyHour(null);
+        setIsEditingHappyHour(false);
+        setHappyHourForm({ ...formFrom(hh), name: `${hh.name} ${t('timerAdvanced.hh.copySuffix')}` });
+        setShowCreateHappyHourModal(true);
     };
 
     return (
@@ -656,19 +672,28 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                     loadingHappyHours={loadingHappyHours}
                     showCreateHappyHourModal={showCreateHappyHourModal}
                     isEditingHappyHour={isEditingHappyHour}
+                    editingId={editingHappyHour?.id ?? null}
                     happyHourForm={happyHourForm}
                     setHappyHourForm={setHappyHourForm}
                     timeZone={timeZone}
+                    eventsConfig={eventsConfig}
                     manualMultiplier={manualMultiplier}
                     setManualMultiplier={setManualMultiplier}
                     manualDuration={manualDuration}
                     setManualDuration={setManualDuration}
+                    manualEvents={manualEvents}
+                    setManualEvents={setManualEvents}
                     manualActive={manualActive}
+                    manualExpiresAt={manualExpiresAt}
+                    manualActiveEvents={manualActiveEvents}
+                    manualActiveMultiplier={manualActiveMultiplier}
                     manualCountdown={manualCountdown}
                     onManualActivate={handleManualActivate}
                     onManualDeactivate={handleManualDeactivate}
                     onPrepareCreate={prepareCreateHappyHour}
                     onPrepareEdit={prepareEditHappyHour}
+                    onDuplicate={duplicateHappyHour}
+                    onGoToGeneral={() => setSelectedSection('general')}
                     onCreateHappyHour={handleCreateHappyHour}
                     onEditHappyHour={handleEditHappyHour}
                     onDeleteHappyHour={handleDeleteHappyHour}

@@ -1,11 +1,18 @@
 /**
  * AdvancedTab - Happy Hour Section
  *
- * Happy hours grid, manual activation, and scheduled editor.
+ * "Happy Hour ahora" (manual), la lista de Happy Hour programados y el formulario guiado para crearlos.
+ * Todas las horas son las del canal (su zona horaria); si quien configura está en otra, se muestra también la suya.
  */
 
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, Zap, Clock, AlertTriangle } from 'lucide-react';
+import type { EventsConfig } from '../../../types';
+import {
+    HH_EVENTS, DAY_ORDER, type HHEvent, crossesMidnight, isActiveNow, nextStart, overlaps,
+    minutesUntil, nowIn, timeIn, tzCity, localTz, fromMinutes,
+} from './happyHourUtils';
 
 export interface HappyHour {
     id: number;
@@ -15,6 +22,8 @@ export interface HappyHour {
     endTime: string;
     multiplier: number;
     daysOfWeek: string; // JSON string
+    /** A qué eventos se aplica; null = a todos. */
+    eventTypes: string[] | null;
     enabled: boolean;
     createdAt: string;
     updatedAt: string;
@@ -27,6 +36,7 @@ export interface HappyHourFormData {
     endTime: string;
     multiplier: number;
     daysOfWeek: boolean[];
+    eventTypes: string[];
     enabled: boolean;
 }
 
@@ -35,16 +45,23 @@ interface HappyHourSectionProps {
     loadingHappyHours: boolean;
     showCreateHappyHourModal: boolean;
     isEditingHappyHour: boolean;
+    editingId: number | null;
     happyHourForm: HappyHourFormData;
     setHappyHourForm: (form: HappyHourFormData) => void;
     timeZone?: string;
+    eventsConfig?: EventsConfig;
 
-    // Manual Happy Hour
+    // Happy Hour manual
     manualMultiplier: number;
     setManualMultiplier: (v: number) => void;
     manualDuration: number;
     setManualDuration: (v: number) => void;
+    manualEvents: string[];
+    setManualEvents: (v: string[]) => void;
     manualActive: boolean;
+    manualExpiresAt: string | null;
+    manualActiveEvents: string[] | null;
+    manualActiveMultiplier: number;
     manualCountdown: string;
     onManualActivate: () => void;
     onManualDeactivate: () => void;
@@ -52,356 +69,379 @@ interface HappyHourSectionProps {
     // Handlers
     onPrepareCreate: () => void;
     onPrepareEdit: (hh: HappyHour) => void;
+    onDuplicate: (hh: HappyHour) => void;
     onCreateHappyHour: () => void;
     onEditHappyHour: () => void;
     onDeleteHappyHour: (id: number) => void;
     onToggleHappyHour: (id: number, enabled: boolean) => void;
     onResetForm: () => void;
+    onGoToGeneral: () => void;
 }
 
-const dayLabels = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MULTIPLIERS = [1.5, 2, 3];
+const DURATIONS = [30, 60, 120, 240, 480, 720];
 
-export const HappyHourSection: React.FC<HappyHourSectionProps> = ({
-    happyHours,
-    loadingHappyHours,
-    showCreateHappyHourModal,
-    isEditingHappyHour,
-    happyHourForm,
-    setHappyHourForm,
-    timeZone,
-    manualMultiplier,
-    setManualMultiplier,
-    manualDuration,
-    setManualDuration,
-    manualActive,
-    manualCountdown,
-    onManualActivate,
-    onManualDeactivate,
-    onPrepareCreate,
-    onPrepareEdit,
-    onCreateHappyHour,
-    onEditHappyHour,
-    onDeleteHappyHour,
-    onToggleHappyHour,
-    onResetForm
-}) => {
+const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg';
+const label = 'text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block';
+const chip = (active: boolean) => `px-3 py-2 rounded-xl text-sm font-bold border transition-all ${active
+    ? 'bg-purple-500 border-purple-500 text-white shadow-md'
+    : 'bg-white dark:bg-[#1a1a1a] border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#cbd5e1] hover:border-purple-300'}`;
+const input = 'px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-xl bg-white dark:bg-[#1a1a1a] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-purple-500 focus:outline-none';
+
+export const parseDays = (json: string): boolean[] => {
+    try { const d = JSON.parse(json); return Array.isArray(d) && d.length === 7 ? d : [true, true, true, true, true, true, true]; } catch { return [true, true, true, true, true, true, true]; }
+};
+
+/** Nombre sugerido si el streamer no escribe uno: "Doble tiempo fines de semana". */
+export function suggestHappyHourName(f: HappyHourFormData, t: (k: string, o?: any) => string): string {
+    const mult = f.multiplier === 2 ? t('timerAdvanced.hh.name.double') : f.multiplier === 3 ? t('timerAdvanced.hh.name.triple') : t('timerAdvanced.hh.name.times', { m: f.multiplier });
+    return `${mult} ${daysPhrase(f.daysOfWeek, t)}`.trim();
+}
+
+/** "todos los días", "fines de semana", "de lunes a viernes" o "lun, mié y vie". */
+function daysPhrase(days: boolean[], t: (k: string, o?: any) => string): string {
+    const on = DAY_ORDER.filter(d => days[d]);
+    if (on.length === 7) return t('timerAdvanced.hh.days.all');
+    if (on.length === 2 && days[0] && days[6]) return t('timerAdvanced.hh.days.weekend');
+    if (on.length === 5 && [1, 2, 3, 4, 5].every(d => days[d])) return t('timerAdvanced.hh.days.weekdays');
+    const names = on.map(d => t(`timerAdvanced.hh.days.short.${d}`));
+    return names.length > 1 ? `${names.slice(0, -1).join(', ')} ${t('timerAdvanced.hh.and')} ${names[names.length - 1]}` : names[0] ?? '';
+}
+
+const capitalize = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+
+function formatSeconds(sec: number, t: (k: string, o?: any) => string): string {
+    const s = Math.round(sec);
+    if (s < 60) return t('timerAdvanced.hh.sec', { n: s });
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+    return [h ? t('timerAdvanced.hh.hours', { n: h }) : '', m ? t('timerAdvanced.hh.min', { n: m }) : '', !h && r ? t('timerAdvanced.hh.sec', { n: r }) : ''].filter(Boolean).join(' ');
+}
+
+const formatDuration = (min: number, t: (k: string, o?: any) => string) => formatSeconds(min * 60, t);
+
+/** Ejemplo con los números reales del timer: "un sub Tier 1 hoy suma 5 min; con x2 sumará 10 min". */
+function example(events: string[], mult: number, cfg: EventsConfig | undefined, t: (k: string, o?: any) => string): string | null {
+    if (!cfg) return null;
+    const candidates: { ev: HHEvent; time?: number; what: string }[] = [
+        { ev: 'sub', time: cfg.subTier1?.enabled ? cfg.subTier1.time : undefined, what: t('timerAdvanced.hh.example.sub') },
+        { ev: 'giftsub', time: cfg.giftSub?.enabled ? cfg.giftSub.time : undefined, what: t('timerAdvanced.hh.example.giftsub') },
+        { ev: 'bits', time: cfg.bits?.enabled ? cfg.bits.time : undefined, what: t('timerAdvanced.hh.example.bits', { n: cfg.bits?.perBits || 100 }) },
+        { ev: 'tip', time: cfg.tips?.enabled ? cfg.tips.time : undefined, what: t('timerAdvanced.hh.example.tip', { n: cfg.tips?.perCurrency || 1, currency: cfg.tips?.currency || 'USD' }) },
+        { ev: 'raid', time: cfg.raid?.enabled ? cfg.raid.time : undefined, what: t('timerAdvanced.hh.example.raid') },
+        { ev: 'hypetrain', time: cfg.hypeTrain?.enabled ? cfg.hypeTrain.time : undefined, what: t('timerAdvanced.hh.example.hypetrain') },
+        { ev: 'follow', time: cfg.follow?.enabled ? cfg.follow.time : undefined, what: t('timerAdvanced.hh.example.follow') },
+    ];
+    const c = candidates.find(x => events.includes(x.ev) && x.time && x.time > 0);
+    if (!c) return null;
+    return t('timerAdvanced.hh.example.text', { what: c.what, before: formatSeconds(c.time!, t), m: mult, after: formatSeconds(c.time! * mult, t) });
+}
+
+function EventPicker({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
     const { t } = useTranslation('features');
+    const all = HH_EVENTS.every(e => value.includes(e));
+    return (
+        <div className="flex flex-wrap gap-2">
+            <button type="button" className={chip(all)} onClick={() => onChange([...HH_EVENTS])}>{t('timerAdvanced.hh.events.all')}</button>
+            {HH_EVENTS.map(e => (
+                <button
+                    key={e}
+                    type="button"
+                    className={chip(!all && value.includes(e))}
+                    onClick={() => {
+                        // Con "todos" marcado, tocar uno deja solo ese; si no, se suma o se quita
+                        if (all) return onChange([e]);
+                        const next = value.includes(e) ? value.filter(x => x !== e) : [...value, e];
+                        onChange(next.length ? next : [...HH_EVENTS]);
+                    }}
+                >
+                    {t(`timerAdvanced.hh.events.${e}`)}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function MultiplierPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+    const { t } = useTranslation('features');
+    const custom = !MULTIPLIERS.includes(value);
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            {MULTIPLIERS.map(m => <button key={m} type="button" className={chip(value === m)} onClick={() => onChange(m)}>x{m}</button>)}
+            <span className="flex items-center gap-2">
+                <span className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.other')}</span>
+                <input type="number" min={1.1} max={10} step={0.5} value={custom ? value : ''} placeholder="x5"
+                    onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) onChange(Math.min(10, Math.max(1.1, v))); }}
+                    className={`${input} w-24 ${custom ? 'ring-2 ring-purple-500' : ''}`} />
+            </span>
+        </div>
+    );
+}
+
+const eventsText = (events: string[] | null, t: (k: string, o?: any) => string) =>
+    !events || HH_EVENTS.every(e => events.includes(e)) ? t('timerAdvanced.hh.events.allLower') : events.map(e => t(`timerAdvanced.hh.events.${e}`).toLowerCase()).join(', ');
+
+export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
+    const { t } = useTranslation('features');
+    const tz = p.timeZone;
+    const myTz = localTz();
+    const otherTz = !!tz && tz !== myTz;
+    // Reloj que se actualiza cada 30 s: estados "activo ahora" y la hora del canal
+    const [, setTick] = useState(0);
+    useEffect(() => { const id = window.setInterval(() => setTick(x => x + 1), 30000); return () => window.clearInterval(id); }, []);
+
+    const channelNow = nowIn(tz);
+    const channelClock = fromMinutes(channelNow.minutes);
+    const myClock = timeIn(new Date(), myTz);
+    const f = p.happyHourForm;
+    const setF = (patch: Partial<HappyHourFormData>) => p.setHappyHourForm({ ...f, ...patch });
+
+    // Happy Hour manual: "hasta las…"
+    const [untilMode, setUntilMode] = useState(false);
+    const [untilTime, setUntilTime] = useState(() => fromMinutes(channelNow.minutes + 120));
+    const manualMinutes = untilMode ? minutesUntil(untilTime, tz) : p.manualDuration;
+    useEffect(() => { if (untilMode) p.setManualDuration(minutesUntil(untilTime, tz)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [untilMode, untilTime, tz]);
+    const manualEnd = new Date(Date.now() + manualMinutes * 60000);
+
+    const overlapping = useMemo(() => p.happyHours.filter(h => h.enabled && h.id !== p.editingId
+        && overlaps({ startTime: f.startTime, endTime: f.endTime, daysOfWeek: f.daysOfWeek }, { startTime: h.startTime, endTime: h.endTime, daysOfWeek: parseDays(h.daysOfWeek) })), [p.happyHours, p.editingId, f]);
+
+    const sameTime = f.startTime === f.endTime;
+    const noDays = !f.daysOfWeek.some(Boolean);
+    const next = !noDays && !sameTime ? nextStart(f, tz) : null;
+    const nextText = next ? (next.inDays === 0 ? t('timerAdvanced.hh.today') : next.inDays === 1 ? t('timerAdvanced.hh.tomorrow') : t(`timerAdvanced.hh.days.long.${next.dow}`)) : '';
+    const ex = example(f.eventTypes, f.multiplier, p.eventsConfig, t);
+
+    const tzLine = (
+        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            {t('timerAdvanced.hh.channelClock', { city: tzCity(tz), time: channelClock })}
+            {otherTz && <span>· {t('timerAdvanced.hh.yourClock', { time: myClock })}</span>}
+        </p>
+    );
+
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <div className="flex items-center justify-between mb-6">
+            {!tz && (
+                <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm">
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <div>{t('timerAdvanced.hh.noTimezone')} <button className="underline font-bold" onClick={p.onGoToGeneral}>{t('timerAdvanced.hh.goGeneral')}</button></div>
+                </div>
+            )}
+
+            {/* ── Happy Hour ahora ─────────────────────────────────────────── */}
+            <div className={card}>
+                <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+                    <div>
+                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Zap className="w-5 h-5 text-orange-500" /> {t('timerAdvanced.hh.nowTitle')}</h3>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{t('timerAdvanced.hh.nowDescription')}</p>
+                    </div>
+                    {tz && tzLine}
+                </div>
+
+                {p.manualActive ? (
+                    <div className="p-4 rounded-xl border-2 border-orange-400 bg-orange-50 dark:bg-orange-900/20 flex items-center justify-between gap-4 flex-wrap">
+                        <div>
+                            <p className="font-black text-orange-700 dark:text-orange-300">🔥 {t('timerAdvanced.hh.activeNow', { m: p.manualActiveMultiplier, events: eventsText(p.manualActiveEvents, t) })}</p>
+                            <p className="text-sm text-orange-700/80 dark:text-orange-300/80 mt-1">
+                                {p.manualExpiresAt && t('timerAdvanced.hh.endsAt', { time: timeIn(new Date(p.manualExpiresAt), tz), city: tzCity(tz) })}
+                                {otherTz && p.manualExpiresAt && ` (${t('timerAdvanced.hh.yourTime', { time: timeIn(new Date(p.manualExpiresAt), myTz) })})`}
+                                {p.manualCountdown && ` · ${t('timerAdvanced.hh.remaining', { time: p.manualCountdown })}`}
+                            </p>
+                        </div>
+                        <button onClick={p.onManualDeactivate} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm">{t('timerAdvanced.deactivate')}</button>
+                    </div>
+                ) : (
+                    <div className="space-y-5">
+                        <div>
+                            <span className={label}>{t('timerAdvanced.hh.q.howMuch')}</span>
+                            <MultiplierPicker value={p.manualMultiplier} onChange={p.setManualMultiplier} />
+                        </div>
+                        <div>
+                            <span className={label}>{t('timerAdvanced.hh.q.howLong')}</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                                {DURATIONS.map(d => (
+                                    <button key={d} type="button" className={chip(!untilMode && p.manualDuration === d)} onClick={() => { setUntilMode(false); p.setManualDuration(d); }}>
+                                        {formatDuration(d, t)}
+                                    </button>
+                                ))}
+                                <span className="flex items-center gap-2">
+                                    <button type="button" className={chip(untilMode)} onClick={() => setUntilMode(true)}>{t('timerAdvanced.hh.until')}</button>
+                                    <input type="time" value={untilTime} onChange={e => { setUntilTime(e.target.value); setUntilMode(true); }} className={`${input} ${untilMode ? 'ring-2 ring-purple-500' : ''}`} />
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <span className={label}>{t('timerAdvanced.hh.q.whichEvents')}</span>
+                            <EventPicker value={p.manualEvents} onChange={p.setManualEvents} />
+                        </div>
+                        <div className="flex items-center justify-between gap-4 flex-wrap p-4 rounded-xl bg-[#f8fafc] dark:bg-[#262626]">
+                            <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                {t('timerAdvanced.hh.manualSummary', { m: p.manualMultiplier, events: eventsText(p.manualEvents, t), duration: formatDuration(manualMinutes, t), time: timeIn(manualEnd, tz) })}
+                                {otherTz && ` (${t('timerAdvanced.hh.yourTime', { time: timeIn(manualEnd, myTz) })})`}
+                            </p>
+                            <button onClick={p.onManualActivate} className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl font-bold shadow-md">
+                                {t('timerAdvanced.hh.activateNow')}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* ── Programados ──────────────────────────────────────────────── */}
+            <div className={card}>
+                <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
                     <div>
                         <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.happyHourMultiplier')}</h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                            {t('timerAdvanced.happyHourDescription')}
-                        </p>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{t('timerAdvanced.hh.scheduledDescription')}</p>
                     </div>
-                    {!showCreateHappyHourModal && (
-                        <button
-                            onClick={onPrepareCreate}
-                            className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold transform hover:-translate-y-0.5"
-                        >
-                            <Plus className="w-5 h-5" />
-                            {t('timerAdvanced.newHappyHour')}
+                    {!p.showCreateHappyHourModal && (
+                        <button onClick={p.onPrepareCreate} disabled={!tz} className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white rounded-xl font-bold shadow-md">
+                            <Plus className="w-4 h-4" /> {t('timerAdvanced.newHappyHour')}
                         </button>
                     )}
                 </div>
 
-                {/* Manual Happy Hour Activation */}
-                <div className="mb-6 p-5 rounded-xl border-2 border-dashed border-yellow-400 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/10">
-                    <h4 className="text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                        {t('timerAdvanced.activateManualHH')}
-                    </h4>
-                    {manualActive ? (
+                {p.showCreateHappyHourModal && (
+                    <div className="mb-6 rounded-2xl border-2 border-purple-500/30 bg-[#f8fafc] dark:bg-[#262626] p-5 space-y-6">
+                        <div className="flex items-center justify-between gap-3">
+                            <h4 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">{p.isEditingHappyHour ? t('timerAdvanced.hh.editTitle') : t('timerAdvanced.hh.newTitle')}</h4>
+                            {tzLine}
+                        </div>
+
+                        <div>
+                            <span className={label}>1. {t('timerAdvanced.hh.q.howMuch')}</span>
+                            <MultiplierPicker value={f.multiplier} onChange={v => setF({ multiplier: v })} />
+                            {ex && <p className="text-sm text-purple-700 dark:text-purple-300 mt-2">{ex}</p>}
+                        </div>
+
+                        <div>
+                            <span className={label}>2. {t('timerAdvanced.hh.q.whichEvents')}</span>
+                            <EventPicker value={f.eventTypes} onChange={v => setF({ eventTypes: v })} />
+                        </div>
+
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-bold border border-green-200 dark:border-green-800 animate-pulse">
-                                    ACTIVO - {manualCountdown}
-                                </span>
+                            <span className={label}>3. {t('timerAdvanced.hh.q.when')}</span>
+                            <div className="flex flex-wrap gap-2">
+                                {[
+                                    { key: 'all', days: [true, true, true, true, true, true, true] },
+                                    { key: 'weekdays', days: [false, true, true, true, true, true, false] },
+                                    { key: 'weekend', days: [true, false, false, false, false, false, true] },
+                                ].map(s => (
+                                    <button key={s.key} type="button" className={chip(s.days.every((d, i) => d === f.daysOfWeek[i]))} onClick={() => setF({ daysOfWeek: s.days })}>
+                                        {t(`timerAdvanced.hh.days.${s.key}Cap`)}
+                                    </button>
+                                ))}
                             </div>
-                            <button
-                                onClick={onManualDeactivate}
-                                className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm transition-colors"
-                            >
-                                {t('timerAdvanced.deactivate')}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex flex-wrap items-end gap-4">
-                            <div>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">{t('timerAdvanced.multiplier')}</label>
-                                <input type="number" min={1} max={10} step={0.5} value={manualMultiplier} onChange={(e) => setManualMultiplier(parseFloat(e.target.value) || 2)} className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm" />
+                            <div className="grid grid-cols-7 gap-2">
+                                {DAY_ORDER.map(d => (
+                                    <button key={d} type="button" className={chip(f.daysOfWeek[d])}
+                                        onClick={() => { const days = [...f.daysOfWeek]; days[d] = !days[d]; setF({ daysOfWeek: days }); }}>
+                                        {t(`timerAdvanced.hh.days.short.${d}`)}
+                                    </button>
+                                ))}
                             </div>
-                            <div>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">{t('timerAdvanced.minutes')}</label>
-                                <input type="number" min={1} max={1440} value={manualDuration} onChange={(e) => setManualDuration(parseInt(e.target.value) || 60)} className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm" />
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {[
+                                    { key: 'allDay', start: '00:00', end: '23:59' },
+                                    { key: 'afternoon', start: '14:00', end: '20:00' },
+                                    { key: 'night', start: '20:00', end: '00:00' },
+                                ].map(s => (
+                                    <button key={s.key} type="button" className={chip(f.startTime === s.start && f.endTime === s.end)} onClick={() => setF({ startTime: s.start, endTime: s.end })}>
+                                        {t(`timerAdvanced.hh.ranges.${s.key}`)}
+                                    </button>
+                                ))}
                             </div>
-                            <button
-                                onClick={onManualActivate}
-                                className="px-5 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-bold text-sm shadow-md transition-all"
-                            >
-                                {t('timerAdvanced.activateManualHH')}
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Inline Create/Edit Form */}
-                {showCreateHappyHourModal && (
-                    <div className="mb-8 bg-[#f8fafc] dark:bg-[#262626] rounded-2xl border-2 border-purple-500/30 p-6 animate-fade-in-down">
-                        <div className="flex justify-between items-start mb-6">
-                            <h4 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                                {isEditingHappyHour ? '✏️ Editar Happy Hour' : '🎉 Configurar Nuevo Happy Hour'}
-                            </h4>
-                            <button
-                                onClick={onResetForm}
-                                className="text-[#64748b] hover:text-red-500 transition-colors text-sm font-bold"
-                            >
-                                Cancelar
-                            </button>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <label className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.from')}</label>
+                                <input type="time" value={f.startTime} onChange={e => setF({ startTime: e.target.value })} className={input} />
+                                <label className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.to')}</label>
+                                <input type="time" value={f.endTime} onChange={e => setF({ endTime: e.target.value })} className={input} />
+                            </div>
+                            {crossesMidnight(f) && !sameTime && (
+                                <p className="text-sm text-blue-700 dark:text-blue-300">🌙 {t('timerAdvanced.hh.crossesMidnight', { time: f.endTime })}</p>
+                            )}
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div className="space-y-5">
-                                {/* Inputs Básicos */}
-                                <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block">Nombre *</label>
-                                    <input
-                                        type="text"
-                                        value={happyHourForm.name}
-                                        onChange={(e) => setHappyHourForm({ ...happyHourForm, name: e.target.value })}
-                                        placeholder="Ej: Fin de Semana Salvaje"
-                                        className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-xl bg-white dark:bg-[#1a1a1a] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                                    />
-                                </div>
+                        <div>
+                            <span className={label}>4. {t('timerAdvanced.hh.q.name')}</span>
+                            <input type="text" value={f.name} onChange={e => setF({ name: e.target.value })} placeholder={suggestHappyHourName(f, t)} className={`${input} w-full`} maxLength={100} />
+                            <p className="text-xs text-[#94a3b8] mt-1">{t('timerAdvanced.hh.nameHint')}</p>
+                        </div>
 
-                                <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block">Multiplicador: <span className="text-purple-500 text-lg">{happyHourForm.multiplier}x</span></label>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="10"
-                                        step="0.5"
-                                        value={happyHourForm.multiplier}
-                                        onChange={(e) => setHappyHourForm({ ...happyHourForm, multiplier: Number(e.target.value) })}
-                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-purple-500"
-                                    />
-                                    <p className="text-xs text-[#64748b] mt-1">El tiempo añadido se multiplicará por este valor.</p>
-                                </div>
+                        {/* Resumen y avisos */}
+                        <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 space-y-2">
+                            {sameTime ? (
+                                <p className="text-sm font-bold text-red-600 dark:text-red-400">{t('timerAdvanced.hh.errorSameTime')}</p>
+                            ) : noDays ? (
+                                <p className="text-sm font-bold text-red-600 dark:text-red-400">{t('timerAdvanced.hh.errorNoDays')}</p>
+                            ) : (
+                                <>
+                                    <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                        {t('timerAdvanced.hh.summary', { days: capitalize(daysPhrase(f.daysOfWeek, t)), start: f.startTime, end: f.endTime, city: tzCity(tz), events: eventsText(f.eventTypes, t), m: f.multiplier })}
+                                    </p>
+                                    {next && <p className="text-sm font-bold text-purple-700 dark:text-purple-300">{isActiveNow(f, tz) ? t('timerAdvanced.hh.wouldBeActive') : t('timerAdvanced.hh.nextStart', { day: nextText, time: f.startTime })}</p>}
+                                </>
+                            )}
+                            {overlapping.length > 0 && (
+                                <p className="text-sm text-amber-700 dark:text-amber-300">⚠️ {t('timerAdvanced.hh.overlap', { names: overlapping.map(h => h.name).join(', ') })}</p>
+                            )}
+                        </div>
 
-                                {/* Horas */}
-                                <div className="p-4 bg-white dark:bg-[#1a1a1a] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-4 block text-center">Rango de Horas</label>
-                                    <div className="flex items-center justify-center gap-4">
-                                        <div className="text-center">
-                                            <input
-                                                type="time"
-                                                value={happyHourForm.startTime}
-                                                onChange={(e) => setHappyHourForm({ ...happyHourForm, startTime: e.target.value })}
-                                                className="text-2xl font-mono font-bold bg-transparent border-b-2 border-purple-500 text-[#1e293b] dark:text-[#f8fafc] focus:outline-none text-center w-32"
-                                            />
-                                            <p className="text-xs text-[#64748b] mt-1">Inicio</p>
-                                        </div>
-                                        <span className="text-[#64748b] font-bold">➜</span>
-                                        <div className="text-center">
-                                            <input
-                                                type="time"
-                                                value={happyHourForm.endTime}
-                                                onChange={(e) => setHappyHourForm({ ...happyHourForm, endTime: e.target.value })}
-                                                className="text-2xl font-mono font-bold bg-transparent border-b-2 border-pink-500 text-[#1e293b] dark:text-[#f8fafc] focus:outline-none text-center w-32"
-                                            />
-                                            <p className="text-xs text-[#64748b] mt-1">Fin</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Días */}
-                                <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-3 block">Días Activos</label>
-                                    <div className="flex justify-between gap-2">
-                                        {dayLabels.map((day, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => {
-                                                    const newDays = [...happyHourForm.daysOfWeek];
-                                                    newDays[index] = !newDays[index];
-                                                    setHappyHourForm({ ...happyHourForm, daysOfWeek: newDays });
-                                                }}
-                                                className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${
-                                                    happyHourForm.daysOfWeek[index]
-                                                        ? 'bg-purple-500 text-white shadow-lg transform -translate-y-1'
-                                                        : 'bg-white dark:bg-[#1a1a1a] text-gray-400 border border-[#e2e8f0] dark:border-[#374151] hover:border-purple-300'
-                                                }`}
-                                            >
-                                                {day.charAt(0)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Preview & Info */}
-                            <div className="flex flex-col h-full">
-                                <div className="flex-1 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-xl p-6 border border-purple-100 dark:border-purple-800/30 flex flex-col justify-center items-center text-center">
-                                    <span className="text-4xl mb-3">🚀</span>
-                                    <h5 className="text-sm font-bold text-purple-800 dark:text-purple-300 mb-2">Resumen de Happy Hour</h5>
-
-                                    {(() => {
-                                        const targetTimeZone = timeZone || 'UTC';
-                                        const now = new Date();
-                                        const options: Intl.DateTimeFormatOptions = { timeZone: targetTimeZone, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
-                                        const localDateString = new Intl.DateTimeFormat('en-US', options).format(now);
-                                        const nowInTz = new Date(localDateString);
-
-                                        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                                        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-                                        const [startH, startM] = happyHourForm.startTime.split(':').map(Number);
-                                        const [endH, endM] = happyHourForm.endTime.split(':').map(Number);
-
-                                        let foundDate: Date | null = null;
-                                        let status = "future";
-
-                                        for (let i = 0; i < 7; i++) {
-                                            const candidate = new Date(nowInTz);
-                                            candidate.setDate(candidate.getDate() + i);
-                                            candidate.setHours(startH, startM, 0, 0);
-
-                                            // Calculate End Time
-                                            const endCandidate = new Date(candidate);
-                                            endCandidate.setHours(endH, endM, 59, 999);
-                                            if (endCandidate <= candidate) endCandidate.setDate(endCandidate.getDate() + 1);
-
-                                            const dayIndex = candidate.getDay();
-
-                                            if (happyHourForm.daysOfWeek[dayIndex]) {
-                                                if (i === 0) {
-                                                    // Si es hoy y NO ha terminado, es válido
-                                                    if (nowInTz < endCandidate) {
-                                                        foundDate = candidate;
-                                                        // Si ya empezó, está activo
-                                                        if (nowInTz >= candidate) status = "active";
-                                                        break;
-                                                    }
-                                                } else {
-                                                    foundDate = candidate;
-                                                    break;
-                                                }
-                                            }
-                                        }
-
-                                        if (!foundDate) return <p className="text-sm text-gray-500">Selecciona al menos un día futuro.</p>;
-
-                                        return (
-                                            <div className="space-y-2">
-                                                <p className="text-lg leading-relaxed text-[#1e293b] dark:text-[#f8fafc]">
-                                                    El tiempo se multiplicará por <span className="font-black text-2xl text-purple-600 dark:text-purple-400">{happyHourForm.multiplier}x</span>
-                                                </p>
-                                                <div className={`py-3 px-4 rounded-lg border shadow-sm mt-4 ${status === 'active' ? 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' : 'bg-white dark:bg-[#1a1a1a] border-purple-200 dark:border-purple-800'}`}>
-                                                    <p className="text-xs uppercase font-bold text-gray-500 mb-1">
-                                                        {status === 'active' ? '🚀 ACTIVO AHORA' : `Próximo inicio (Hora ${targetTimeZone}):`}
-                                                    </p>
-                                                    <p className="text-base font-black text-[#1e293b] dark:text-[#f8fafc]">
-                                                        {days[foundDate.getDay()]}, {foundDate.getDate()} de {months[foundDate.getMonth()]}
-                                                    </p>
-                                                    <p className="text-xl font-mono text-purple-600 dark:text-purple-400">
-                                                        a las {happyHourForm.startTime} hs
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-
-                                <button
-                                    onClick={isEditingHappyHour ? onEditHappyHour : onCreateHappyHour}
-                                    className="mt-6 w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold shadow-lg hover:shadow-purple-500/25 transition-all transform active:scale-95"
-                                >
-                                    {isEditingHappyHour ? 'Guardar Cambios' : 'Activar Happy Hour'}
-                                </button>
-                            </div>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={p.onResetForm} className="px-4 py-2.5 rounded-xl font-bold text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={p.isEditingHappyHour ? p.onEditHappyHour : p.onCreateHappyHour} disabled={sameTime || noDays}
+                                className="px-5 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white rounded-xl font-bold shadow-md">
+                                {p.isEditingHappyHour ? t('timerAdvanced.saveChanges') : t('timerAdvanced.hh.create')}
+                            </button>
                         </div>
                     </div>
                 )}
 
-                {loadingHappyHours ? (
-                    <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">Cargando Happy Hours...</p>
-                    </div>
-                ) : happyHours.length === 0 ? (
-                    !showCreateHappyHourModal && (
-                        <div className="text-center py-12 bg-gray-50 dark:bg-[#262626] rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                            <span className="text-4xl block mb-3">🎉</span>
-                            <p className="text-[#64748b] dark:text-[#94a3b8] font-medium mb-4">
-                                No hay Happy Hours configurados
-                            </p>
-                            <button
-                                onClick={onPrepareCreate}
-                                className="text-purple-500 hover:text-purple-600 font-bold text-sm"
-                            >
-                                + Crear el primer Happy Hour
-                            </button>
+                {p.loadingHappyHours ? (
+                    <p className="text-sm text-[#94a3b8]">{t('timerAdvanced.loadingSchedules')}</p>
+                ) : p.happyHours.length === 0 ? (
+                    !p.showCreateHappyHourModal && (
+                        <div className="text-center py-10 rounded-xl border-2 border-dashed border-[#e2e8f0] dark:border-[#374151]">
+                            <p className="text-4xl mb-2">🎉</p>
+                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.empty')}</p>
                         </div>
                     )
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {happyHours.map((hh) => {
-                            let daysArray: boolean[] = [];
-                            try {
-                                daysArray = typeof hh.daysOfWeek === 'string' ? JSON.parse(hh.daysOfWeek) : hh.daysOfWeek;
-                            } catch (e) { daysArray = []; }
-
-                            // Fix 3: Detect if this Happy Hour is active now
-                            let isActiveNow = false;
-                            if (hh.enabled && daysArray.length >= 7) {
-                                try {
-                                    const targetTz = timeZone || 'UTC';
-                                    const nowStr = new Intl.DateTimeFormat('en-US', { timeZone: targetTz, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date());
-                                    const nowInTz = new Date(nowStr);
-                                    const currentDay = nowInTz.getDay();
-                                    if (daysArray[currentDay]) {
-                                        const [sH, sM] = hh.startTime.split(':').map(Number);
-                                        const [eH, eM] = hh.endTime.split(':').map(Number);
-                                        const currentMins = nowInTz.getHours() * 60 + nowInTz.getMinutes();
-                                        const startMins = sH * 60 + sM;
-                                        const endMins = eH * 60 + eM;
-                                        if (endMins >= startMins) {
-                                            isActiveNow = currentMins >= startMins && currentMins <= endMins;
-                                        } else {
-                                            isActiveNow = currentMins >= startMins || currentMins <= endMins;
-                                        }
-                                    }
-                                } catch { /* ignore timezone errors */ }
-                            }
-
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        {p.happyHours.map(h => {
+                            const days = parseDays(h.daysOfWeek);
+                            const sched = { startTime: h.startTime, endTime: h.endTime, daysOfWeek: days };
+                            const active = h.enabled && isActiveNow(sched, tz);
+                            const n = h.enabled && !active ? nextStart(sched, tz) : null;
+                            const nText = n ? (n.inDays === 0 ? t('timerAdvanced.hh.today') : n.inDays === 1 ? t('timerAdvanced.hh.tomorrow') : t(`timerAdvanced.hh.days.long.${n.dow}`)) : '';
                             return (
-                                <div key={hh.id} className={`p-5 rounded-xl border-2 transition-all group ${isActiveNow ? 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/10' : hh.enabled ? 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] hover:border-purple-400 dark:hover:border-purple-600' : 'border-transparent bg-gray-100 dark:bg-[#1a1a1a] opacity-70'}`}>
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-lg flex items-center gap-2">
-                                                {hh.name}
-                                                {isActiveNow && <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">ACTIVO AHORA</span>}
-                                                {!hh.enabled && <span className="text-xs bg-gray-200 text-gray-500 px-2 py-0.5 rounded">Inactivo</span>}
-                                            </h4>
-                                            <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg text-xs font-bold border border-purple-200 dark:border-purple-800">
-                                                Multiplicador: {hh.multiplier}x
-                                            </span>
+                                <div key={h.id} className={`p-4 rounded-xl border ${active ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626]'} ${h.enabled ? '' : 'opacity-60'}`}>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{h.name}</p>
+                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                                                <span className="font-black text-purple-600 dark:text-purple-400">x{h.multiplier}</span> · {daysPhrase(days, t)} · {h.startTime}–{h.endTime}{crossesMidnight(sched) ? ` (${t('timerAdvanced.hh.nextDay')})` : ''}
+                                            </p>
+                                            <p className="text-xs text-[#94a3b8] mt-0.5">{eventsText(h.eventTypes, t)}</p>
                                         </div>
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => onPrepareEdit(hh)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-purple-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                                            <button onClick={() => onDeleteHappyHour(hh.id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                                        <button
+                                            onClick={() => p.onToggleHappyHour(h.id, !h.enabled)}
+                                            title={h.enabled ? t('timerAdvanced.deactivate') : t('timerAdvanced.hh.turnOn')}
+                                            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${h.enabled ? 'bg-purple-500' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`}
+                                        >
+                                            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${h.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2 mt-3">
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${active ? 'bg-purple-500 text-white' : 'bg-[#e2e8f0] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                            {!h.enabled ? t('timerAdvanced.inactive') : active ? `🔥 ${t('timerAdvanced.hh.statusActive')}` : n ? t('timerAdvanced.hh.statusNext', { day: nText, time: h.startTime }) : '—'}
+                                        </span>
+                                        <div className="flex gap-1">
+                                            <button onClick={() => p.onPrepareEdit(h)} className="p-2 rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#64748b]" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onDuplicate(h)} className="p-2 rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#64748b]" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onDeleteHappyHour(h.id)} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500" title={t('timerAdvanced.hh.delete')}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-lg font-mono text-sm font-bold border border-purple-100 dark:border-purple-800">
-                                            {hh.startTime} - {hh.endTime}
-                                        </div>
-                                        <div className="text-xs text-[#64748b] dark:text-[#94a3b8] font-medium">
-                                            📅 {daysArray.map((active: boolean, i: number) => active ? dayLabels[i].charAt(0) : null).filter(Boolean).join(', ')}
-                                        </div>
-                                    </div>
-                                    <button onClick={() => onToggleHappyHour(hh.id, !hh.enabled)} className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${hh.enabled ? 'bg-gray-100 dark:bg-[#333] text-[#64748b] dark:text-[#94a3b8] hover:bg-red-50 hover:text-red-500' : 'bg-green-500 text-white hover:bg-green-600 shadow-md'}`}>{hh.enabled ? 'Desactivar' : 'Activar'}</button>
                                 </div>
                             );
                         })}
