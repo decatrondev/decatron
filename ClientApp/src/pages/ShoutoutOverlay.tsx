@@ -12,6 +12,9 @@ import type { ShoutoutData, ShoutoutLayout } from '../components/shoutout-overla
 
 /** Con clip, cuánto más que la duración espera el cierre de seguridad (el viejo cortaba a los 30 s justos). */
 const SAFETY_EXTRA_MS = 5000;
+/** Con cola: pausa entre un shoutout y el siguiente, y cuántos esperan como mucho. */
+const QUEUE_GAP_MS = 600;
+const QUEUE_MAX = 10;
 
 export default function ShoutoutOverlay() {
     const [searchParams] = useSearchParams();
@@ -29,9 +32,11 @@ export default function ShoutoutOverlay() {
     const durationRef = useRef(10);
     /** Sin clip, cuánto se queda como mucho (el de siempre: 5 s). */
     const noClipRef = useRef(5);
+    const queueEnabledRef = useRef(true);
+    const queue = useRef<ShoutoutData[]>([]);
     const connectionRef = useRef<signalR.HubConnection | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const timers = useRef<{ interval?: number; close?: number; safety?: number; exit?: number }>({});
+    const timers = useRef<{ interval?: number; close?: number; safety?: number; exit?: number; next?: number }>({});
     const state = useRef({ visible: false, exiting: false });
 
     useGoogleFonts(layout.elements.map(e => e.text?.fontFamily), 'so-fonts');
@@ -42,6 +47,7 @@ export default function ShoutoutOverlay() {
         window.clearTimeout(t.close);
         window.clearTimeout(t.safety);
         window.clearTimeout(t.exit);
+        window.clearTimeout(t.next);
         timers.current = {};
     };
 
@@ -58,6 +64,20 @@ export default function ShoutoutOverlay() {
         state.current = { visible: false, exiting: false };
         setData(null);
         setRemaining(0);
+        // El siguiente de la cola, después de una pausa corta
+        const next = queue.current.shift();
+        if (next) timers.current.next = window.setTimeout(() => show(next), QUEUE_GAP_MS);
+    };
+
+    /** Llega un shoutout: con cola, si hay uno en pantalla espera su turno; sin cola, lo reemplaza (como antes). */
+    const incoming = (d: ShoutoutData) => {
+        // Ocupado: hay uno en pantalla (o saliendo) o el siguiente está por entrar
+        const busy = state.current.visible || timers.current.next !== undefined;
+        if (queueEnabledRef.current && busy) {
+            if (queue.current.length < QUEUE_MAX) queue.current.push(d);
+            return;
+        }
+        show(d);
     };
 
     const close = () => {
@@ -101,6 +121,7 @@ export default function ShoutoutOverlay() {
             if (json.success && json.config) {
                 durationRef.current = json.config.duration || 10;
                 noClipRef.current = json.config.settings?.noClipSeconds || 5;
+                queueEnabledRef.current = json.config.settings?.queueEnabled ?? true;
                 setLayout(normalizeShoutoutLayout(json.config));
             }
         } catch (err) {
@@ -118,7 +139,7 @@ export default function ShoutoutOverlay() {
                 .build();
 
             // Los listeners antes de conectar
-            connection.on('ShowShoutout', (d: any) => show({
+            connection.on('ShowShoutout', (d: any) => incoming({
                 targetUser: d.targetUser,
                 displayName: d.displayName,
                 gameName: d.gameName,

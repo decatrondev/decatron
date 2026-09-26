@@ -113,10 +113,8 @@ namespace Decatron.Services
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var serviceProvider = scope.ServiceProvider;
-                var twitchApiService = serviceProvider.GetRequiredService<TwitchApiService>();
-                var clipDownloadService = serviceProvider.GetRequiredService<ClipDownloadService>();
-                var overlayNotificationService = serviceProvider.GetRequiredService<OverlayNotificationService>();
                 var messagesService = serviceProvider.GetRequiredService<ICommandMessagesService>();
+                var shoutoutService = serviceProvider.GetRequiredService<ShoutoutService>();
 
                 // Pasar IServiceProvider en vez de DbContext para que cree su propio scope
                 var shoutoutCommand = new ShoutoutCommand(
@@ -124,10 +122,8 @@ namespace Decatron.Services
                     _loggerFactory.CreateLogger<ShoutoutCommand>(),
                     _commandStateService,
                     _serviceScopeFactory.CreateScope().ServiceProvider,
-                    twitchApiService,
-                    clipDownloadService,
-                    overlayNotificationService,
-                    messagesService
+                    messagesService,
+                    shoutoutService
                 );
 
                 RegisterCommand(shoutoutCommand);

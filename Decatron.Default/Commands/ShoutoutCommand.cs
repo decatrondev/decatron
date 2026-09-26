@@ -17,14 +17,8 @@ namespace Decatron.Default.Commands
         private readonly ILogger<ShoutoutCommand> _logger;
         private readonly ICommandStateService _commandStateService;
         private readonly IServiceProvider _serviceProvider;
-        private readonly TwitchApiService _twitchApiService;
-        private readonly ClipDownloadService _clipDownloadService;
-        private readonly OverlayNotificationService _overlayNotificationService;
         private readonly ICommandMessagesService _messagesService;
-
-        // Cooldown: Canal -> TargetUser -> Timestamp del último shoutout
-        private static readonly Dictionary<string, Dictionary<string, DateTime>> _shoutoutCooldowns = new();
-        private const int DefaultCooldownSeconds = 30;
+        private readonly ShoutoutService _shoutoutService;
 
         public string Name => "!so";
         public string Description => "Hace shoutout a un usuario mostrando su último clip y perfil";
@@ -34,19 +28,15 @@ namespace Decatron.Default.Commands
             ILogger<ShoutoutCommand> logger,
             ICommandStateService commandStateService,
             IServiceProvider serviceProvider,
-            TwitchApiService twitchApiService,
-            ClipDownloadService clipDownloadService,
-            OverlayNotificationService overlayNotificationService,
-            ICommandMessagesService messagesService)
+            ICommandMessagesService messagesService,
+            ShoutoutService shoutoutService)
         {
             _configuration = configuration;
             _logger = logger;
             _commandStateService = commandStateService;
             _serviceProvider = serviceProvider;
-            _twitchApiService = twitchApiService;
-            _clipDownloadService = clipDownloadService;
-            _overlayNotificationService = overlayNotificationService;
             _messagesService = messagesService;
+            _shoutoutService = shoutoutService;
         }
 
         public async Task ExecuteAsync(CommandContext context, IMessageSender messageSender)
@@ -95,111 +85,9 @@ namespace Decatron.Default.Commands
                     return;
                 }
 
-                // Obtener el usuario target
+                // Lista negra, espera, clip, historial, chat, overlay y nativo: lo mismo que el shoutout por raid
                 var targetUser = args[1].TrimStart('@').ToLower();
-
-                // Verificar blacklist
-                var isBlacklisted = await IsUserBlacklisted(channel, targetUser);
-                if (isBlacklisted)
-                {
-                    _logger.LogInformation($"🚫 {targetUser} está en la blacklist de {channel}");
-
-                    // Enviar mensaje gracioso cuando intentan hacer shoutout a alguien en blacklist
-                    var blacklistMessages = new[]
-                    {
-                        _messagesService.GetMessage("so_cmd", "blacklist_1", lang, targetUser),
-                        _messagesService.GetMessage("so_cmd", "blacklist_2", lang, targetUser),
-                        _messagesService.GetMessage("so_cmd", "blacklist_3", lang, targetUser),
-                        _messagesService.GetMessage("so_cmd", "blacklist_4", lang, targetUser),
-                        _messagesService.GetMessage("so_cmd", "blacklist_5", lang, targetUser)
-                    };
-
-                    var random = new Random();
-                    var randomMessage = blacklistMessages[random.Next(blacklistMessages.Length)];
-                    await messageSender.SendMessageAsync(channel, randomMessage);
-                    return;
-                }
-
-                // Obtener cooldown configurado para el canal
-                var cooldownSeconds = await GetCooldownForChannel(channel);
-                var cooldownDuration = TimeSpan.FromSeconds(cooldownSeconds);
-
-                // Verificar cooldown
-                if (!IsShoutoutAllowed(channel, targetUser, cooldownDuration))
-                {
-                    var remainingCooldown = GetRemainingCooldown(channel, targetUser, cooldownDuration);
-                    await messageSender.SendMessageAsync(channel,
-                        _messagesService.GetMessage("so_cmd", "cooldown", lang, remainingCooldown.TotalSeconds.ToString("F0"), targetUser));
-                    return;
-                }
-
-                _logger.LogInformation($"🔥 Procesando shoutout a {targetUser} en {channel}");
-
-                // 1. Obtener información del usuario desde Twitch API
-                var settings = await GetSettingsForChannel(channel);
-                var shoutoutData = await _twitchApiService.GetShoutoutDataAsync(targetUser, new Services.ShoutoutClipOptions
-                {
-                    Mode = settings.ClipMode,
-                    Days = settings.ClipDays,
-                    Fallback = settings.ClipFallback
-                });
-                if (shoutoutData == null)
-                {
-                    // El usuario no existe en Twitch
-                    _logger.LogWarning($"⚠️ Usuario no encontrado en Twitch: {targetUser}");
-                    await messageSender.SendMessageAsync(channel, _messagesService.GetMessage("so_cmd", "user_not_found", lang, targetUser));
-                    return;
-                }
-
-                string? clipLocalPath = null;
-                bool hasClips = !string.IsNullOrEmpty(shoutoutData.ClipUrl);
-
-                // 2. Descargar clip si existe
-                if (hasClips)
-                {
-                    _logger.LogInformation($"📥 Descargando clip para {targetUser}: {shoutoutData.ClipUrl}");
-
-                    var downloadResult = await _clipDownloadService.DownloadClipAsync(
-                        shoutoutData.ClipUrl!,
-                        targetUser
-                    );
-
-                    if (downloadResult.Success)
-                    {
-                        clipLocalPath = downloadResult.LocalPath;
-                        _logger.LogInformation($"✅ Clip {'('+((downloadResult.WasDownloaded ? "descargado" : "ya existía"))+')'}: {clipLocalPath}");
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"⚠️ No se pudo descargar clip: {downloadResult.Error}");
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation($"ℹ️ {targetUser} no tiene clips disponibles");
-                }
-
-                // 3. Guardar en historial con toda la información
-                await SaveShoutoutHistory(
-                    channel,
-                    targetUser,
-                    username,
-                    shoutoutData,
-                    clipLocalPath,
-                    context.ChannelUserId
-                );
-
-                // 4. Enviar mensaje al chat
-                var shoutoutMessage = BuildShoutoutMessage(shoutoutData, hasClips, lang);
-                await messageSender.SendMessageAsync(channel, shoutoutMessage);
-
-                // 5. Emitir evento SignalR para overlay
-                await _overlayNotificationService.SendShoutoutAsync(channel, shoutoutData, clipLocalPath);
-
-                // 6. Registrar cooldown
-                RegisterShoutoutCooldown(channel, targetUser, cooldownDuration);
-
-                _logger.LogInformation($"✅ Shoutout completado: {targetUser} en {channel} (Clips: {(hasClips ? "Sí" : "No")})");
+                await _shoutoutService.RunAsync(channel, targetUser, username, ShoutoutService.Trigger.Command, context.ChannelUserId, lang);
             }
             catch (Exception ex)
             {
@@ -265,86 +153,6 @@ namespace Decatron.Default.Commands
             }
         }
 
-        private async Task<bool> IsUserBlacklisted(string channel, string targetUser)
-        {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-
-                var config = await dbContext.ShoutoutConfigs
-                    .FirstOrDefaultAsync(c => c.Username == channel.ToLower());
-
-                if (config == null || string.IsNullOrWhiteSpace(config.Blacklist) || config.Blacklist == "[]")
-                {
-                    return false;
-                }
-
-                var blacklist = System.Text.Json.JsonSerializer.Deserialize<List<string>>(config.Blacklist) ?? new List<string>();
-                return blacklist.Any(u => u.Equals(targetUser, StringComparison.OrdinalIgnoreCase));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error verificando blacklist para {channel}");
-                return false; // En caso de error, permitir el shoutout
-            }
-        }
-
-        private async Task SaveShoutoutHistory(
-            string channel,
-            string targetUser,
-            string executedBy,
-            Services.ShoutoutData shoutoutData,
-            string? clipLocalPath,
-            long? channelUserId)
-        {
-            try
-            {
-                if (channelUserId == null || channelUserId == 0)
-                {
-                    _logger.LogWarning("⚠️ No se pudo guardar historial de shoutout: ChannelUserId no disponible para {Channel}", channel);
-                    return;
-                }
-
-                // Crear un scope nuevo para el DbContext
-                using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-
-                var history = new Core.Models.ShoutoutHistory
-                {
-                    ChannelName = channel,
-                    TargetUser = targetUser,
-                    ExecutedBy = executedBy,
-                    ClipUrl = shoutoutData.ClipUrl,
-                    ClipId = shoutoutData.ClipId,
-                    ClipLocalPath = clipLocalPath,
-                    ProfileImageUrl = shoutoutData.ProfileImageUrl,
-                    GameName = shoutoutData.GameName,
-                    ExecutedAt = DateTime.UtcNow,
-                    UserId = channelUserId.Value
-                };
-
-                dbContext.Set<Core.Models.ShoutoutHistory>().Add(history);
-                await dbContext.SaveChangesAsync();
-
-                _logger.LogDebug($"Shoutout guardado en historial: {targetUser} en {channel}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error guardando historial de shoutout");
-            }
-        }
-
-        private string BuildShoutoutMessage(Services.ShoutoutData shoutoutData, bool hasClips, string lang)
-        {
-            if (!string.IsNullOrEmpty(shoutoutData.GameName) && shoutoutData.GameName != "Sin categoría")
-            {
-                return _messagesService.GetMessage("so_cmd", "message_with_game", lang, shoutoutData.Username, shoutoutData.GameName, shoutoutData.Username);
-            }
-
-            return _messagesService.GetMessage("so_cmd", "message_no_game", lang, shoutoutData.Username, shoutoutData.Username);
-        }
-
         private async Task<bool> IsCommandEnabledForChannel(string channelLogin, CommandContext context)
         {
             try
@@ -363,97 +171,6 @@ namespace Decatron.Default.Commands
             {
                 _logger.LogError(ex, $"Error verificando si comando !so está habilitado para {channelLogin}");
                 return true;
-            }
-        }
-
-        private async Task<ShoutoutSettings> GetSettingsForChannel(string channel)
-        {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-                var json = await dbContext.ShoutoutConfigs
-                    .Where(c => c.Username == channel)
-                    .Select(c => c.Settings)
-                    .FirstOrDefaultAsync();
-                return ShoutoutSettings.Parse(json);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error obteniendo settings de shoutout para {channel}, usando los de siempre");
-                return new ShoutoutSettings();
-            }
-        }
-
-        private async Task<int> GetCooldownForChannel(string channel)
-        {
-            try
-            {
-                using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-
-                var config = await dbContext.ShoutoutConfigs
-                    .FirstOrDefaultAsync(c => c.Username == channel);
-
-                return config?.Cooldown ?? DefaultCooldownSeconds;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error obteniendo cooldown para {channel}, usando default");
-                return DefaultCooldownSeconds;
-            }
-        }
-
-        private bool IsShoutoutAllowed(string channel, string targetUser, TimeSpan cooldownDuration)
-        {
-            lock (_shoutoutCooldowns)
-            {
-                if (!_shoutoutCooldowns.ContainsKey(channel))
-                {
-                    return true;
-                }
-
-                if (!_shoutoutCooldowns[channel].ContainsKey(targetUser))
-                {
-                    return true;
-                }
-
-                var lastShoutout = _shoutoutCooldowns[channel][targetUser];
-                var elapsed = DateTime.UtcNow - lastShoutout;
-
-                return elapsed >= cooldownDuration;
-            }
-        }
-
-        private TimeSpan GetRemainingCooldown(string channel, string targetUser, TimeSpan cooldownDuration)
-        {
-            lock (_shoutoutCooldowns)
-            {
-                if (!_shoutoutCooldowns.ContainsKey(channel) ||
-                    !_shoutoutCooldowns[channel].ContainsKey(targetUser))
-                {
-                    return TimeSpan.Zero;
-                }
-
-                var lastShoutout = _shoutoutCooldowns[channel][targetUser];
-                var elapsed = DateTime.UtcNow - lastShoutout;
-                var remaining = cooldownDuration - elapsed;
-
-                return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
-            }
-        }
-
-        private void RegisterShoutoutCooldown(string channel, string targetUser, TimeSpan cooldownDuration)
-        {
-            lock (_shoutoutCooldowns)
-            {
-                if (!_shoutoutCooldowns.ContainsKey(channel))
-                {
-                    _shoutoutCooldowns[channel] = new Dictionary<string, DateTime>();
-                }
-
-                _shoutoutCooldowns[channel][targetUser] = DateTime.UtcNow;
-                _logger.LogDebug($"Cooldown registrado: {channel} -> {targetUser} ({cooldownDuration.TotalSeconds}s)");
             }
         }
 

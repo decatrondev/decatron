@@ -7,7 +7,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { useShoutoutConfig } from './shoutout-extension/hooks/useShoutoutConfig';
 import ShoutoutPreview from './shoutout-extension/components/ShoutoutPreview';
 import {
-    GuideTab, GeneralTab, ClipTab, ThemeTab, ElementsTab, TextTab, AnimationsTab, EditorTab, PermissionsTab, type ShoutoutTabId,
+    GuideTab, GeneralTab, ClipTab, ThemeTab, ElementsTab, TextTab, AnimationsTab, EditorTab, AutoTab, PermissionsTab, type ShoutoutTabId,
 } from './shoutout-extension/components/ShoutoutTabs';
 
 // Shoutout (.dev/plans/SHOUTOUT_REDESIGN_PLAN.md, fase 1): mismo patrón que /overlays/now-playing —
@@ -22,6 +22,7 @@ const TABS: { id: ShoutoutTabId; icon: string }[] = [
     { id: 'text', icon: '🔤' },
     { id: 'animations', icon: '✨' },
     { id: 'editor', icon: '🖥️' },
+    { id: 'auto', icon: '🤖' },
     { id: 'permissions', icon: '🛡️' },
 ];
 
@@ -152,6 +153,7 @@ export default function ShoutoutConfig() {
                             {tab === 'text' && <TextTab cfg={cfg} />}
                             {tab === 'animations' && <AnimationsTab cfg={cfg} />}
                             {tab === 'editor' && <EditorTab cfg={cfg} />}
+                            {tab === 'auto' && <AutoTab cfg={cfg} />}
                             {tab === 'permissions' && <PermissionsTab cfg={cfg} />}
                         </div>
                     </div>

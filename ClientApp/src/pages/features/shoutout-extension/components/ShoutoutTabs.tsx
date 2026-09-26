@@ -1,15 +1,16 @@
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ExternalLink, Plus, Trash2, Eye, EyeOff, Shield, ChevronUp, ChevronDown } from 'lucide-react';
+import { ExternalLink, Plus, Trash2, Eye, EyeOff, Shield, ChevronUp, ChevronDown, CheckCircle2, AlertTriangle, RefreshCw, Info } from 'lucide-react';
 import { Card, ColorField, CopyButton, Field, NumberInput, Select, Slider, Toggle, ScaledCanvas, inputClass, CHECKER_BG } from '../../../../components/overlay-editor/ui';
 import OverlayCanvasEditor, { type Rect } from '../../../../components/overlay-editor/OverlayCanvasEditor';
-import ShoutoutRenderer from '../../../../components/shoutout-overlay/ShoutoutRenderer';
+import ShoutoutRenderer, { fillVariables } from '../../../../components/shoutout-overlay/ShoutoutRenderer';
+import api from '../../../../services/api';
 import { FONT_OPTIONS, SAMPLE_SHOUTOUT, element, textBlock } from '../../../../components/shoutout-overlay/defaults';
 import { COLOR_THEMES, LAYOUT_PRESETS, applyColorTheme, applyLayoutPreset } from '../../../../components/shoutout-overlay/presets';
 import type { AnimationType, Direction, Easing, ElementKind, ShoutoutElement, ShoutoutLayout, ShowHideAnimation, TextBlock, TextLine } from '../../../../components/shoutout-overlay/types';
 import { CLIP_MODES, COOLDOWN_RANGE, DURATION_RANGE, NO_CLIP_RANGE, type ShoutoutConfigState } from '../hooks/useShoutoutConfig';
 
-export type ShoutoutTabId = 'guide' | 'general' | 'clip' | 'theme' | 'elements' | 'text' | 'animations' | 'editor' | 'permissions';
+export type ShoutoutTabId = 'guide' | 'general' | 'clip' | 'theme' | 'elements' | 'text' | 'animations' | 'editor' | 'auto' | 'permissions';
 
 /** Lo que llega con los datos nuevos del shoutout (fase 2: insignia, en vivo, título, etiquetas, seguidores, datos del clip). */
 const EXTRA_DATA = true;
@@ -599,6 +600,126 @@ export function EditorTab({ cfg }: TabProps) {
         >
             <ShoutoutRenderer layout={layout} data={SAMPLE_SHOUTOUT} phase="static" preview remaining={cfg.settings.duration} labels={{ clip: t('shoutout.preview.sampleClip') }} />
         </OverlayCanvasEditor>
+    );
+}
+
+// ── Automático ─────────────────────────────────────────────────────────────
+
+interface NativeStatus {
+    tokenValid: boolean;
+    botLogin: string | null;
+    hasScope: boolean;
+    last: { at: string; ok: boolean; status: number; error: string | null; target: string } | null;
+}
+
+function NativeStatusBox() {
+    const { t } = useTranslation('overlays');
+    const [status, setStatus] = useState<NativeStatus | null>(null);
+    const [loading, setLoading] = useState(false);
+    const load = useCallback(async () => {
+        setLoading(true);
+        try { setStatus((await api.get('/shoutout/native-status')).data); } catch { setStatus(null); } finally { setLoading(false); }
+    }, []);
+    useEffect(() => { load(); }, [load]);
+
+    const row = (ok: boolean | 'info', text: string) => (
+        <li className="flex items-start gap-2">
+            {ok === 'info' ? <Info className="w-4 h-4 mt-0.5 text-[#64748b] shrink-0" /> : ok ? <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 shrink-0" /> : <AlertTriangle className="w-4 h-4 mt-0.5 text-amber-500 shrink-0" />}
+            <span>{text}</span>
+        </li>
+    );
+    const lastText = (l: NonNullable<NativeStatus['last']>) => {
+        if (l.ok) return t('shoutout.auto.native.lastOk', { user: l.target });
+        if (l.error === 'channel_cooldown' || l.error === 'target_cooldown') return t(`shoutout.auto.native.${l.error}`, { user: l.target });
+        return t('shoutout.auto.native.lastError', { user: l.target, error: l.error || l.status });
+    };
+
+    return (
+        <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 text-sm 3xl:text-base text-[#475569] dark:text-[#cbd5e1]">
+            <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('shoutout.auto.native.statusTitle')}</span>
+                <button onClick={load} disabled={loading} className="p-1.5 rounded-lg text-[#64748b] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] disabled:opacity-50" title={t('shoutout.auto.native.refresh')}>
+                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+            </div>
+            {!status ? (
+                <p className="text-[#94a3b8]">{loading ? t('shoutout.auto.native.checking') : t('shoutout.auto.native.unknown')}</p>
+            ) : (
+                <ul className="space-y-1.5">
+                    {row(status.tokenValid && status.hasScope, status.tokenValid && status.hasScope ? t('shoutout.auto.native.scopeOk', { bot: status.botLogin }) : t('shoutout.auto.native.scopeMissing'))}
+                    {row('info', t('shoutout.auto.native.modNote', { bot: status.botLogin || 'bot' }))}
+                    {row('info', t('shoutout.auto.native.liveNote'))}
+                    {status.last && row(status.last.ok, lastText(status.last))}
+                </ul>
+            )}
+        </div>
+    );
+}
+
+export function AutoTab({ cfg }: TabProps) {
+    const { t } = useTranslation('overlays');
+    const s = cfg.settings;
+    const inputRef = useRef<HTMLInputElement>(null);
+    const chatVars = [...VARIABLES, '@url'];
+    const sampleMessage = (tpl: string) => fillVariables(tpl, SAMPLE_SHOUTOUT).split('@url').join(`twitch.tv/${SAMPLE_SHOUTOUT.targetUser}`);
+    const insert = (v: string) => {
+        const el = inputRef.current;
+        const text = s.chatMessage;
+        const at = el?.selectionStart ?? text.length;
+        cfg.update({ chatMessage: `${text.slice(0, at)}${v}${text.slice(at)}`.slice(0, 400) });
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card title={t('shoutout.auto.queueTitle')}>
+                <Toggle checked={s.queueEnabled} onChange={v => cfg.update({ queueEnabled: v })} label={t('shoutout.auto.queue')} hint={t('shoutout.auto.queueHint')} />
+            </Card>
+
+            <Card title={t('shoutout.auto.chatTitle')} description={t('shoutout.auto.chatDescription')}>
+                <div className="space-y-4">
+                    <Toggle checked={s.chatEnabled} onChange={v => cfg.update({ chatEnabled: v })} label={t('shoutout.auto.chatEnabled')} />
+                    {s.chatEnabled && (
+                        <>
+                            <Field label={t('shoutout.auto.chatMessage')} hint={t('shoutout.auto.chatMessageHint')}>
+                                <input ref={inputRef} className={inputClass} value={s.chatMessage} maxLength={400} placeholder={t('shoutout.auto.chatPlaceholder')} onChange={e => cfg.update({ chatMessage: e.target.value })} />
+                            </Field>
+                            <div className="flex flex-wrap gap-2">
+                                {chatVars.map(v => (
+                                    <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-[#f1f5f9] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">{v}</button>
+                                ))}
+                            </div>
+                            <div className="rounded-xl bg-[#f8fafc] dark:bg-[#111] border border-[#e2e8f0] dark:border-[#374151] p-3 text-sm 3xl:text-base">
+                                <span className="text-xs 3xl:text-sm font-bold uppercase text-[#94a3b8] block mb-1">{t('shoutout.auto.chatPreview')}</span>
+                                <span className="text-[#1e293b] dark:text-[#f8fafc]">{sampleMessage(s.chatMessage.trim() || t('shoutout.auto.chatDefault'))}</span>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </Card>
+
+            <Card title={t('shoutout.auto.nativeTitle')} description={t('shoutout.auto.nativeDescription')}>
+                <div className="space-y-4">
+                    <Toggle checked={s.nativeEnabled} onChange={v => cfg.update({ nativeEnabled: v })} label={t('shoutout.auto.nativeEnabled')} hint={t('shoutout.auto.nativeHint')} />
+                    <NativeStatusBox />
+                </div>
+            </Card>
+
+            <Card title={t('shoutout.auto.raidTitle')} description={t('shoutout.auto.raidDescription')}>
+                <div className="space-y-4">
+                    <Toggle checked={s.raidEnabled} onChange={v => cfg.update({ raidEnabled: v })} label={t('shoutout.auto.raidEnabled')} />
+                    {s.raidEnabled && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Field label={t('shoutout.auto.raidMinViewers')} hint={t('shoutout.auto.raidMinViewersHint')}>
+                                <NumberInput value={s.raidMinViewers} min={1} max={100000} onChange={v => cfg.update({ raidMinViewers: v })} />
+                            </Field>
+                            <Field label={t('shoutout.auto.raidDelay')} hint={t('shoutout.auto.raidDelayHint')}>
+                                <Slider value={s.raidDelaySeconds} min={0} max={60} onChange={v => cfg.update({ raidDelaySeconds: v })} suffix="s" />
+                            </Field>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        </div>
     );
 }
 

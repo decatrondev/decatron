@@ -1128,6 +1128,14 @@ namespace Decatron.Services
                     _logger.LogError(alertEx, "[EventAlerts] Error triggering raid alert for {User}", fromBroadcasterUserName);
                 }
                 await _petEventBridge.OnAlertAsync(toBroadcasterUserName, "raid", fromBroadcasterUserName, amount: viewers); // mascota: nunca lanza
+
+                // Shoutout automático a quien hizo el raid (si el canal lo prendió): en segundo plano, con su demora
+                var fromLogin = datosEvento["from_broadcaster_user_login"]?.ToString();
+                if (!string.IsNullOrEmpty(fromLogin))
+                {
+                    var shoutoutService = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<ShoutoutService>();
+                    _ = Task.Run(() => shoutoutService.HandleRaidAsync(toBroadcasterUserName, fromLogin, viewers));
+                }
             }
             catch (Exception ex)
             {

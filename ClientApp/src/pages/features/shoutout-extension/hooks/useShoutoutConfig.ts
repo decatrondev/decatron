@@ -17,6 +17,16 @@ export interface ShoutoutSettings {
     clipFallback: boolean;
     /** Sin clip, cuánto se queda como mucho. */
     noClipSeconds: number;
+    /** Varios !so seguidos, uno detrás del otro. */
+    queueEnabled: boolean;
+    /** Además, el shoutout nativo de Twitch. */
+    nativeEnabled: boolean;
+    raidEnabled: boolean;
+    raidMinViewers: number;
+    raidDelaySeconds: number;
+    chatEnabled: boolean;
+    /** Vacío = el mensaje de siempre. */
+    chatMessage: string;
 }
 
 export type ClipMode = 'random' | 'top' | 'recent' | 'days';
@@ -33,7 +43,9 @@ export function useShoutoutConfig() {
     const [error, setError] = useState<string | null>(null);
     const [dirty, setDirty] = useState(false);
     const [overlayUrl, setOverlayUrl] = useState('');
-    const [settings, setSettings] = useState<ShoutoutSettings>({ duration: 10, cooldown: 30, blacklist: [], whitelist: [], clipMode: 'random', clipDays: 30, clipFallback: true, noClipSeconds: 5 });
+    const [settings, setSettings] = useState<ShoutoutSettings>({ duration: 10, cooldown: 30, blacklist: [], whitelist: [], clipMode: 'random', clipDays: 30, clipFallback: true, noClipSeconds: 5,
+        queueEnabled: true, nativeEnabled: false, raidEnabled: false, raidMinViewers: 1, raidDelaySeconds: 5, chatEnabled: true, chatMessage: '',
+    });
     const [layout, setLayout] = useState<ShoutoutLayout>(() => normalizeShoutoutLayout({}));
     // Lo que vino del backend: al guardar se reenvían tal cual las columnas viejas que la vista ya no edita
     const raw = useRef<any>({});
@@ -58,6 +70,13 @@ export function useShoutoutConfig() {
                 clipDays: c.settings?.clipDays ?? 30,
                 clipFallback: c.settings?.clipFallback ?? true,
                 noClipSeconds: c.settings?.noClipSeconds ?? 5,
+                queueEnabled: c.settings?.queueEnabled ?? true,
+                nativeEnabled: !!c.settings?.nativeEnabled,
+                raidEnabled: !!c.settings?.raidEnabled,
+                raidMinViewers: c.settings?.raidMinViewers ?? 1,
+                raidDelaySeconds: c.settings?.raidDelaySeconds ?? 5,
+                chatEnabled: c.settings?.chatEnabled ?? true,
+                chatMessage: c.settings?.chatMessage ?? '',
             });
             setLayout(normalizeShoutoutLayout(c));
             setDirty(false);
@@ -104,7 +123,12 @@ export function useShoutoutConfig() {
                 containerBorderWidth: c.containerBorderWidth ?? 3,
                 blacklist: settings.blacklist,
                 whitelist: settings.whitelist,
-                settings: { clipMode: settings.clipMode, clipDays: settings.clipDays, clipFallback: settings.clipFallback, noClipSeconds: settings.noClipSeconds },
+                settings: {
+                    clipMode: settings.clipMode, clipDays: settings.clipDays, clipFallback: settings.clipFallback, noClipSeconds: settings.noClipSeconds,
+                    queueEnabled: settings.queueEnabled, nativeEnabled: settings.nativeEnabled,
+                    raidEnabled: settings.raidEnabled, raidMinViewers: settings.raidMinViewers, raidDelaySeconds: settings.raidDelaySeconds,
+                    chatEnabled: settings.chatEnabled, chatMessage: settings.chatMessage,
+                },
             });
             raw.current = { ...c, duration: settings.duration, cooldown: settings.cooldown, layout, blacklist: settings.blacklist, whitelist: settings.whitelist };
             setDirty(false);

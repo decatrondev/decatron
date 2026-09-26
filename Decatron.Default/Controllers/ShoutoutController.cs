@@ -357,6 +357,39 @@ namespace Decatron.Default.Controllers
         }
 
         /// <summary>
+        /// ¿Puede el bot hacer el shoutout nativo de Twitch? Valida el token del bot (scope moderator:manage:shoutouts)
+        /// y devuelve el último intento en este canal (Twitch también exige que el bot sea moderador y el canal esté en vivo).
+        /// </summary>
+        [HttpGet("native-status")]
+        public async Task<IActionResult> GetNativeStatus()
+        {
+            try
+            {
+                var channelOwnerId = GetChannelOwnerId();
+                var username = await GetChannelUsernameAsync(channelOwnerId);
+                if (string.IsNullOrEmpty(username))
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var twitch = HttpContext.RequestServices.GetRequiredService<TwitchApiService>();
+                var (botLogin, scopes) = await twitch.ValidateBotTokenAsync();
+                var last = ShoutoutService.LastNativeResult(username);
+                return Ok(new
+                {
+                    success = true,
+                    tokenValid = scopes != null,
+                    botLogin,
+                    hasScope = scopes?.Contains("moderator:manage:shoutouts") ?? false,
+                    last = last == null ? null : new { at = last.At, ok = last.Ok, status = last.Status, error = last.Error, target = last.Target }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consultando el estado del shoutout nativo");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
         /// Obtiene el historial de shoutouts del canal activo
         /// </summary>
         [HttpGet("history")]

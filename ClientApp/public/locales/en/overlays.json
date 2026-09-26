@@ -1184,6 +1184,7 @@
       "text": "Text",
       "animations": "Animations",
       "editor": "Editor",
+      "auto": "Automatic",
       "permissions": "Permissions"
     },
     "elements": {
@@ -1487,6 +1488,44 @@
       "showClip": "Show it",
       "lookHint": "The clip's corners, border and shadow are changed in",
       "goElements": "Elements"
+    },
+    "auto": {
+      "queueTitle": "Several in a row",
+      "queue": "Show them one after another",
+      "queueHint": "If someone uses !so while another one is on screen, it waits its turn (up to 10). Off: the new one replaces the one on screen.",
+      "chatTitle": "Chat message",
+      "chatDescription": "What the bot writes in chat with each shoutout.",
+      "chatEnabled": "Send a chat message",
+      "chatMessage": "Message",
+      "chatMessageHint": "Leave it empty to use the usual one, in your channel's language. Tap a variable to add it at the cursor. To mention the person, add an @ before it: @@username.",
+      "chatPlaceholder": "Usual message",
+      "chatPreview": "Preview",
+      "chatDefault": "Show some love to @@username who was playing @game at @url",
+      "nativeTitle": "Twitch native shoutout",
+      "nativeDescription": "Twitch's /shoutout: shows a card in chat with a Follow button, and the person gets it on their dashboard.",
+      "nativeEnabled": "Also do the native shoutout",
+      "nativeHint": "Twitch allows one every 2 minutes in your channel and one per hour to the same person, and only while live. If it can't, your OBS shoutout and chat message still go out.",
+      "native": {
+        "statusTitle": "Status",
+        "refresh": "Check again",
+        "checking": "Checking...",
+        "unknown": "Could not check the status.",
+        "scopeOk": "The bot ({{bot}}) has Twitch's permission to do shoutouts.",
+        "scopeMissing": "The bot doesn't have Twitch's permission to do shoutouts yet (moderator:manage:shoutouts). Until it does, only your OBS shoutout goes out.",
+        "modNote": "{{bot}} must be a moderator in your channel (/mod {{bot}}).",
+        "liveNote": "It only works while your channel is live.",
+        "lastOk": "Last: native shoutout to {{user}} done.",
+        "lastError": "Last: Twitch didn't allow the shoutout to {{user}} ({{error}}).",
+        "channel_cooldown": "Last: no native shoutout to {{user}} because less than 2 minutes passed since the previous one.",
+        "target_cooldown": "Last: no native shoutout to {{user}} because they already got one in the last hour."
+      },
+      "raidTitle": "Automatic shoutout on raids",
+      "raidDescription": "When someone raids you, the bot gives them a shoutout by itself, without anyone typing !so.",
+      "raidEnabled": "Shout out whoever raids me",
+      "raidMinViewers": "Minimum viewers",
+      "raidMinViewersHint": "Raids with fewer viewers don't get an automatic shoutout.",
+      "raidDelay": "Wait before the shoutout",
+      "raidDelayHint": "So it doesn't overlap with the raid alert."
     }
   }
 }

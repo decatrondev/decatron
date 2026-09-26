@@ -505,6 +505,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.Platforms.Kick.KickConnector>();
     builder.Services.AddSingleton<IMessageSender, Decatron.Services.Platforms.MessageSenderRouter>();
     builder.Services.AddSingleton<TwitchApiService>();
+    builder.Services.AddSingleton<ShoutoutService>();
     builder.Services.AddSingleton<ClipDownloadService>();
     builder.Services.AddSingleton<TwitchBotService>();
     builder.Services.AddSingleton<Lazy<TwitchBotService>>(provider =>

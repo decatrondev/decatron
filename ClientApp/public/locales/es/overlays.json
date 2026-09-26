@@ -1184,6 +1184,7 @@
       "text": "Texto",
       "animations": "Animaciones",
       "editor": "Editor",
+      "auto": "Automático",
       "permissions": "Permisos"
     },
     "elements": {
@@ -1487,6 +1488,44 @@
       "showClip": "Mostrarlo",
       "lookHint": "Las esquinas, el borde y la sombra del clip se cambian en",
       "goElements": "Elementos"
+    },
+    "auto": {
+      "queueTitle": "Varios seguidos",
+      "queue": "Mostrarlos uno detrás del otro",
+      "queueHint": "Si alguien hace !so mientras hay otro en pantalla, espera su turno (hasta 10). Apagado: el nuevo reemplaza al que se está viendo.",
+      "chatTitle": "Mensaje en el chat",
+      "chatDescription": "Lo que el bot escribe en el chat con cada shoutout.",
+      "chatEnabled": "Mandar un mensaje en el chat",
+      "chatMessage": "Mensaje",
+      "chatMessageHint": "Déjalo vacío para usar el de siempre, en el idioma de tu canal. Toca una variable para agregarla donde está el cursor. Para mencionar a la persona, pon una @ antes: @@username.",
+      "chatPlaceholder": "Mensaje de siempre",
+      "chatPreview": "Así se vería",
+      "chatDefault": "Denle amor a @@username que estuvo jugando @game en @url",
+      "nativeTitle": "Shoutout nativo de Twitch",
+      "nativeDescription": "El /shoutout de Twitch: muestra una tarjeta en el chat con el botón Seguir, y a quien lo recibe le aparece en su panel.",
+      "nativeEnabled": "Hacer también el shoutout nativo",
+      "nativeHint": "Twitch permite uno cada 2 minutos en tu canal y uno por hora a la misma persona, y solo con el canal en vivo. Si no se puede, igual sale el tuyo en OBS y el mensaje del chat.",
+      "native": {
+        "statusTitle": "Estado",
+        "refresh": "Volver a revisar",
+        "checking": "Revisando...",
+        "unknown": "No se pudo revisar el estado.",
+        "scopeOk": "El bot ({{bot}}) tiene el permiso de Twitch para hacer shoutouts.",
+        "scopeMissing": "El bot todavía no tiene el permiso de Twitch para hacer shoutouts (moderator:manage:shoutouts). Hasta que lo tenga, solo sale tu shoutout en OBS.",
+        "modNote": "{{bot}} tiene que ser moderador de tu canal (/mod {{bot}}).",
+        "liveNote": "Solo funciona con tu canal en vivo.",
+        "lastOk": "Último: shoutout nativo a {{user}} hecho.",
+        "lastError": "Último: Twitch no dejó hacer el shoutout a {{user}} ({{error}}).",
+        "channel_cooldown": "Último: no se hizo el nativo a {{user}} porque pasaron menos de 2 minutos desde el anterior.",
+        "target_cooldown": "Último: no se hizo el nativo a {{user}} porque ya recibió uno en la última hora."
+      },
+      "raidTitle": "Shoutout automático al recibir un raid",
+      "raidDescription": "Cuando alguien te hace raid, el bot le hace el shoutout solo, sin que nadie escriba !so.",
+      "raidEnabled": "Hacer shoutout a quien me hace raid",
+      "raidMinViewers": "Mínimo de espectadores",
+      "raidMinViewersHint": "Los raids con menos espectadores no reciben shoutout automático.",
+      "raidDelay": "Espera antes del shoutout",
+      "raidDelayHint": "Para que no se encime con la alerta del raid."
     }
   }
 }

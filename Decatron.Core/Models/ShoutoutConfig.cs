@@ -134,7 +134,7 @@ namespace Decatron.Core.Models
 
         /// <summary>
         /// Comportamiento que no es diseño (JSON): cómo se elige el clip y cuánto dura sin clip.
-        /// { clipMode: random|top|recent|days, clipDays, clipFallback, noClipSeconds }
+        /// { clipMode, clipDays, clipFallback, noClipSeconds, queueEnabled, nativeEnabled, raidEnabled, raidMinViewers, raidDelaySeconds, chatEnabled, chatMessage }
         /// </summary>
         [Column("settings", TypeName = "jsonb")]
         public string Settings { get; set; } = "{}";
@@ -156,6 +156,19 @@ namespace Decatron.Core.Models
         public bool ClipFallback { get; set; } = true;
         /// <summary>Sin clip, cuánto se queda como mucho (el overlay viejo: 5 s).</summary>
         public int NoClipSeconds { get; set; } = 5;
+        /// <summary>Varios !so seguidos se muestran uno detrás del otro (antes, el segundo pisaba al primero).</summary>
+        public bool QueueEnabled { get; set; } = true;
+        /// <summary>Además, el shoutout nativo de Twitch (/shoutout) hecho por el bot.</summary>
+        public bool NativeEnabled { get; set; } = false;
+        /// <summary>Shoutout automático a quien hace raid.</summary>
+        public bool RaidEnabled { get; set; } = false;
+        public int RaidMinViewers { get; set; } = 1;
+        /// <summary>Segundos después del raid (para que se vea después de la alerta del raid).</summary>
+        public int RaidDelaySeconds { get; set; } = 5;
+        /// <summary>Mensaje en el chat.</summary>
+        public bool ChatEnabled { get; set; } = true;
+        /// <summary>Con variables (@displayname, @username, @game…). Vacío = el de siempre, en el idioma del canal.</summary>
+        public string ChatMessage { get; set; } = "";
 
         private static readonly System.Text.Json.JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true, PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
         public static readonly string[] ClipModes = { "random", "top", "recent", "days" };
@@ -178,6 +191,10 @@ namespace Decatron.Core.Models
             if (!ClipModes.Contains(ClipMode)) ClipMode = "random";
             ClipDays = Math.Clamp(ClipDays, 1, 3650);
             NoClipSeconds = Math.Clamp(NoClipSeconds, 3, 60);
+            RaidMinViewers = Math.Clamp(RaidMinViewers, 1, 100000);
+            RaidDelaySeconds = Math.Clamp(RaidDelaySeconds, 0, 120);
+            ChatMessage = (ChatMessage ?? "").Trim();
+            if (ChatMessage.Length > 400) ChatMessage = ChatMessage[..400];
             return this;
         }
 

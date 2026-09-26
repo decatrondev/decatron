@@ -543,6 +543,67 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Shoutout nativo de Twitch (/shoutout: la tarjeta con el botón Seguir en el chat), hecho por el bot como moderador.
+        /// Twitch lo limita a uno cada 2 minutos por canal y uno por hora a la misma persona, y solo con el canal en vivo.
+        /// Devuelve el código HTTP y el mensaje de Twitch si falla.
+        /// </summary>
+        public async Task<(bool Ok, int Status, string? Error)> SendNativeShoutoutAsync(string fromBroadcasterId, string toBroadcasterId)
+        {
+            try
+            {
+                var botTwitchId = await GetBotTwitchIdAsync();
+                var token = await GetBotUserAccessTokenAsync();
+                if (string.IsNullOrEmpty(botTwitchId) || string.IsNullOrEmpty(token))
+                    return (false, 0, "bot_token_missing");
+
+                var request = new HttpRequestMessage(HttpMethod.Post,
+                    $"{TwitchApiBaseUrl}/chat/shoutouts?from_broadcaster_id={fromBroadcasterId}&to_broadcaster_id={toBroadcasterId}&moderator_id={botTwitchId}");
+                request.Headers.Add("Client-ID", _twitchSettings.ClientId);
+                request.Headers.Add("Authorization", $"Bearer {token}");
+
+                var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode) return (true, (int)response.StatusCode, null);
+
+                var body = await response.Content.ReadAsStringAsync();
+                string? message = null;
+                try { message = JsonSerializer.Deserialize<JsonElement>(body).GetProperty("message").GetString(); } catch { message = body; }
+                _logger.LogWarning("Native shoutout failed ({StatusCode}): {Message}", (int)response.StatusCode, message);
+                return (false, (int)response.StatusCode, message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SendNativeShoutoutAsync");
+                return (false, 0, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Scopes del token de usuario del bot (id.twitch.tv/oauth2/validate). null si no se pudo validar.
+        /// </summary>
+        public async Task<(string? Login, List<string>? Scopes)> ValidateBotTokenAsync()
+        {
+            try
+            {
+                var token = await GetBotUserAccessTokenAsync();
+                if (string.IsNullOrEmpty(token)) return (null, null);
+                var request = new HttpRequestMessage(HttpMethod.Get, "https://id.twitch.tv/oauth2/validate");
+                request.Headers.Add("Authorization", $"OAuth {token}");
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode) return (null, null);
+                var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+                var scopes = json.TryGetProperty("scopes", out var sc) && sc.ValueKind == JsonValueKind.Array
+                    ? sc.EnumerateArray().Select(x => x.GetString() ?? "").ToList()
+                    : new List<string>();
+                return (json.TryGetProperty("login", out var l) ? l.GetString() : null, scopes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating bot token");
+                return (null, null);
+            }
+        }
+
+        /// <summary>
         /// Total de seguidores de cualquier canal. Con un token de usuario que no es del canal, Twitch devuelve solo el total.
         /// </summary>
         public async Task<int?> GetFollowerTotalAsync(string broadcasterId)
