@@ -1,0 +1,698 @@
+{
+  "global": {
+    "enabled": true,
+    "queueSettings": {
+      "enabled": true,
+      "maxQueueSize": 10,
+      "delayBetweenAlerts": 1000,
+      "showQueueCounter": false
+    },
+    "defaultStyle": {
+      "width": 600,
+      "height": 500,
+      "backgroundType": "color",
+      "backgroundColor": "rgba(0,0,0,0.85)",
+      "backgroundGradient": {
+        "color1": "#1a1a2e",
+        "color2": "#16213e",
+        "angle": 135
+      },
+      "backgroundImage": "",
+      "opacity": 100,
+      "borderEnabled": true,
+      "borderColor": "rgba(255,255,255,0.2)",
+      "borderWidth": 2,
+      "borderRadius": 24,
+      "padding": 30,
+      "mediaLayout": "top",
+      "mediaObjectFit": "contain",
+      "fontFamily": "Inter, sans-serif",
+      "fontSize": 26,
+      "fontWeight": "bold",
+      "textColor": "#ffffff",
+      "textShadow": "normal",
+      "textAlign": "center"
+    },
+    "overlayElements": {
+      "card": {
+        "x": 660,
+        "y": 290,
+        "width": 600,
+        "height": 500,
+        "enabled": true
+      },
+      "media": {
+        "x": 690,
+        "y": 320,
+        "width": 540,
+        "height": 220,
+        "enabled": true
+      },
+      "text": {
+        "x": 690,
+        "y": 560,
+        "width": 540,
+        "height": 200,
+        "enabled": true
+      }
+    },
+    "canvas": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "follow": {
+    "enabled": true,
+    "alert": {
+      "enabled": true,
+      "message": "¡Gracias {username} por el follow! ❤️",
+      "duration": 5,
+      "media": {
+        "enabled": true,
+        "mode": "advanced",
+        "advanced": {
+          "image": {
+            "url": "https://media.example.com/alertas/estrella.png"
+          }
+        }
+      },
+      "animation": {
+        "type": "fade",
+        "direction": "center",
+        "duration": 500,
+        "easing": "ease-in-out"
+      },
+      "sound": "",
+      "volume": 50,
+      "effects": {
+        "enabled": false,
+        "effects": []
+      },
+      "tts": {
+        "enabled": false
+      }
+    },
+    "cooldown": 0
+  },
+  "bits": {
+    "enabled": true,
+    "baseAlert": {
+      "enabled": true,
+      "message": "{username} dice: {message}",
+      "duration": 5,
+      "media": {
+        "enabled": true,
+        "mode": "advanced",
+        "advanced": {
+          "image": {
+            "url": "https://media.example.com/alertas/estrella.png"
+          }
+        }
+      },
+      "animation": {
+        "type": "fade",
+        "direction": "center",
+        "duration": 500,
+        "easing": "ease-in-out"
+      },
+      "sound": "",
+      "volume": 50,
+      "effects": {
+        "enabled": false,
+        "effects": []
+      },
+      "tts": {
+        "enabled": false
+      }
+    },
+    "tiers": [
+      {
+        "enabled": true,
+        "message": "¡{username} donó {amount} bits! Mensaje: {message}",
+        "duration": 5,
+        "media": {
+          "enabled": false,
+          "mode": "simple"
+        },
+        "animation": {
+          "type": "slide",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        },
+        "id": "bits-1",
+        "name": "Básico",
+        "condition": {
+          "type": "range",
+          "min": 1,
+          "max": 100
+        }
+      },
+      {
+        "enabled": true,
+        "message": "¡{username} donó {amount} bits! Mensaje: {message}",
+        "duration": 5,
+        "media": {
+          "enabled": false,
+          "mode": "simple"
+        },
+        "animation": {
+          "type": "zoom",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": true,
+          "effects": [
+            "glow",
+            "shake"
+          ]
+        },
+        "tts": {
+          "enabled": false
+        },
+        "id": "bits-2",
+        "name": "Medio",
+        "condition": {
+          "type": "range",
+          "min": 101,
+          "max": 500
+        }
+      },
+      {
+        "enabled": true,
+        "message": "¡{username} donó {amount} bits! Mensaje: {message}",
+        "duration": 5,
+        "media": {
+          "enabled": false,
+          "mode": "simple"
+        },
+        "animation": {
+          "type": "bounce",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": true,
+          "effects": [
+            "confetti"
+          ]
+        },
+        "tts": {
+          "enabled": false
+        },
+        "id": "bits-3",
+        "name": "Épico",
+        "condition": {
+          "type": "minimum",
+          "min": 501
+        }
+      }
+    ],
+    "cooldown": 0
+  },
+  "subs": {
+    "enabled": false,
+    "subTypes": {
+      "prime": {
+        "enabled": true,
+        "message": "¡Gracias {username} por la sub Prime! 👑",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "fade",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "tier1": {
+        "enabled": true,
+        "message": "¡Gracias {username} por la sub! ⭐",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/fiesta.gif"
+            }
+          }
+        },
+        "animation": {
+          "type": "slide",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "tier2": {
+        "enabled": true,
+        "message": "¡Gracias {username} por la sub Tier 2! ⭐⭐",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "zoom",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": true,
+          "effects": [
+            "pulse"
+          ]
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "tier3": {
+        "enabled": true,
+        "message": "¡GRACIAS {username} por la sub Tier 3! ⭐⭐⭐",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "bounce",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": true,
+          "effects": [
+            "float"
+          ]
+        },
+        "tts": {
+          "enabled": false
+        }
+      }
+    },
+    "cooldown": 0
+  },
+  "giftSubs": {
+    "enabled": false,
+    "baseAlert": {
+      "enabled": true,
+      "message": "¡{username} regaló {amount} subs! 🎁",
+      "duration": 5,
+      "media": {
+        "enabled": true,
+        "mode": "advanced",
+        "advanced": {
+          "image": {
+            "url": "https://media.example.com/alertas/estrella.png"
+          }
+        }
+      },
+      "animation": {
+        "type": "bounce",
+        "direction": "center",
+        "duration": 500,
+        "easing": "ease-in-out"
+      },
+      "sound": "",
+      "volume": 50,
+      "effects": {
+        "enabled": false,
+        "effects": []
+      },
+      "tts": {
+        "enabled": false
+      }
+    },
+    "tiers": [
+      {
+        "enabled": true,
+        "message": "💥 ¡{username} ÉPICO! {amount} subs regaladas! 💥",
+        "duration": 5,
+        "media": {
+          "enabled": false,
+          "mode": "simple"
+        },
+        "animation": {
+          "type": "zoom",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        },
+        "id": "gift-1",
+        "name": "Muchas",
+        "condition": {
+          "type": "minimum",
+          "min": 10
+        }
+      }
+    ],
+    "cooldown": 0
+  },
+  "raids": {
+    "enabled": false,
+    "baseAlert": {
+      "enabled": true,
+      "message": "¡{username} raideó con {viewers} viewers! 🚀",
+      "duration": 5,
+      "media": {
+        "enabled": true,
+        "mode": "advanced",
+        "advanced": {
+          "image": {
+            "url": "https://media.example.com/alertas/estrella.png"
+          }
+        }
+      },
+      "animation": {
+        "type": "slide",
+        "direction": "center",
+        "duration": 500,
+        "easing": "ease-in-out"
+      },
+      "sound": "",
+      "volume": 50,
+      "effects": {
+        "enabled": false,
+        "effects": []
+      },
+      "tts": {
+        "enabled": false
+      }
+    },
+    "tiers": [],
+    "cooldown": 0
+  },
+  "resubs": {
+    "enabled": true,
+    "baseAlert": {
+      "enabled": true,
+      "message": "¡{username} resub - {months} meses! 🎉",
+      "duration": 5,
+      "media": {
+        "enabled": true,
+        "mode": "advanced",
+        "advanced": {
+          "image": {
+            "url": "https://media.example.com/alertas/estrella.png"
+          }
+        }
+      },
+      "animation": {
+        "type": "fade",
+        "direction": "center",
+        "duration": 500,
+        "easing": "ease-in-out"
+      },
+      "sound": "",
+      "volume": 50,
+      "effects": {
+        "enabled": false,
+        "effects": []
+      },
+      "tts": {
+        "enabled": false
+      }
+    },
+    "tiers": [
+      {
+        "enabled": true,
+        "message": "¡{username} veterano - {months} meses! 🎉⭐",
+        "duration": 5,
+        "media": {
+          "enabled": false,
+          "mode": "simple"
+        },
+        "animation": {
+          "type": "bounce",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        },
+        "id": "resub-1",
+        "name": "Veterano",
+        "condition": {
+          "type": "exact",
+          "exact": 12
+        }
+      }
+    ],
+    "cooldown": 0
+  },
+  "hypeTrain": {
+    "enabled": false,
+    "levels": {
+      "1": {
+        "enabled": true,
+        "message": "🔥 ¡Hype Train nivel 1! 🔥",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "fade",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "2": {
+        "enabled": true,
+        "message": "🔥 ¡Hype Train nivel 2! 🔥",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "slide",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "3": {
+        "enabled": true,
+        "message": "🔥 ¡Hype Train nivel 3! 🔥",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "zoom",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "4": {
+        "enabled": true,
+        "message": "🔥 ¡Hype Train nivel 4! 🔥",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "bounce",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      },
+      "5": {
+        "enabled": true,
+        "message": "🔥 ¡Hype Train nivel 5! 🔥",
+        "duration": 5,
+        "media": {
+          "enabled": true,
+          "mode": "advanced",
+          "advanced": {
+            "image": {
+              "url": "https://media.example.com/alertas/estrella.png"
+            }
+          }
+        },
+        "animation": {
+          "type": "fade",
+          "direction": "center",
+          "duration": 500,
+          "easing": "ease-in-out"
+        },
+        "sound": "",
+        "volume": 50,
+        "effects": {
+          "enabled": false,
+          "effects": []
+        },
+        "tts": {
+          "enabled": false
+        }
+      }
+    },
+    "completionAlert": {
+      "enabled": true,
+      "message": "💥 ¡HYPE TRAIN COMPLETADO! 💥",
+      "duration": 5,
+      "media": {
+        "enabled": false,
+        "mode": "simple"
+      },
+      "animation": {
+        "type": "fade",
+        "direction": "center",
+        "duration": 500,
+        "easing": "ease-in-out"
+      },
+      "sound": "",
+      "volume": 50,
+      "effects": {
+        "enabled": false,
+        "effects": []
+      },
+      "tts": {
+        "enabled": false
+      }
+    },
+    "cooldown": 0
+  },
+  "_parity": {
+    "username": "UnNombreDeUsuarioMuyMuyLargoDePrueba_2026",
+    "userMessage": "Este es un mensaje bastante largo que escribió la persona al donar, para ver cómo se corta o se acomoda en varias líneas dentro de la tarjeta de la alerta."
+  }
+}
