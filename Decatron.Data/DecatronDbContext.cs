@@ -215,6 +215,11 @@ namespace Decatron.Data
         public DbSet<TournamentMatch> TournamentMatches { get; set; }
         public DbSet<TournamentGame> TournamentGames { get; set; }
         public DbSet<TournamentWinCondition> TournamentWinConditions { get; set; }
+        public DbSet<TournamentFortniteConfig> TournamentFortniteConfigs { get; set; }
+        public DbSet<TournamentFortniteGroup> TournamentFortniteGroups { get; set; }
+        public DbSet<TournamentFortniteGroupTeam> TournamentFortniteGroupTeams { get; set; }
+        public DbSet<TournamentFortniteSession> TournamentFortniteSessions { get; set; }
+        public DbSet<TournamentFortniteGame> TournamentFortniteGames { get; set; }
 
         // OAuth2 System (API Pública)
         public DbSet<OAuthApplication> OAuthApplications { get; set; }
@@ -1971,6 +1976,22 @@ namespace Decatron.Data
                 entity.HasIndex(e => e.TournamentEditionId).IsUnique().HasDatabaseName("uq_tournament_blue_shell_rules_edition");
                 entity.Property(e => e.CooldownByRank).HasColumnType("jsonb");
                 entity.Property(e => e.ReverseChanceByRank).HasColumnType("jsonb");
+            });
+
+            modelBuilder.Entity<TournamentFortniteConfig>(entity =>
+            {
+                entity.HasIndex(e => e.TournamentEditionId).IsUnique();
+                entity.Property(e => e.PlacementPoints).HasColumnType("jsonb");
+            });
+
+            modelBuilder.Entity<TournamentFortniteGroupTeam>(entity =>
+            {
+                entity.HasIndex(e => new { e.GroupId, e.TeamId }).IsUnique();
+            });
+
+            modelBuilder.Entity<TournamentFortniteGame>(entity =>
+            {
+                entity.HasIndex(e => new { e.SessionId, e.GameNumber }).IsUnique();
             });
 
             modelBuilder.Entity<TournamentWinCondition>(entity =>

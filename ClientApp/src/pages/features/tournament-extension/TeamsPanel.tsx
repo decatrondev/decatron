@@ -436,7 +436,7 @@ function FortniteTeamsView({
             </h2>
             <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
                 Los jugadores arman su equipo desde "Mi inscripción" en la página del torneo: uno crea el equipo y comparte el código con sus compañeros.
-                Cada equipo es de {teamSize}.
+                Cada equipo es de {teamSize}. Para sortear a los que se inscribieron solos y armar grupos, ve a la pestaña Formato.
             </p>
 
             {teams.length === 0 ? (
