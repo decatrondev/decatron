@@ -34,9 +34,9 @@ Sale con código 0 si todo es idéntico y 1 si algún cuadro difiere.
    evento/nivel/variante, `overlayElements`, media y animación). Prueba cada evento, cada tier de sub, cada nivel
    alcanzable de bits/gift subs/raids/resubs (y la alerta base), los 5 niveles del hype train y cada variante.
 3. Dibuja cada alerta con:
-   - `old`: el overlay viejo tal cual.
-   - `new`: el renderer nuevo con `normalizeEventAlertsDesign(config)` + `resolveAlertDesign` usando el `style` y
-     las posiciones que llegan en la alerta (lo que hará el overlay de OBS).
+   - `old`: el overlay de OBS anterior al rediseño (`legacy/EventAlertsOverlayLegacy.tsx`, copia fiel de git e554dc3).
+   - `new`: el overlay de OBS actual (`src/pages/EventAlertsOverlay.tsx`, con el renderer nuevo), que recibe la misma
+     alerta por el SignalR simulado.
    - `new-config`: igual, pero con el `style` parcial sacado de la config y las posiciones de la conversión (prueba
      la conversión sola, sin ayuda del payload).
 4. Cuadros: entrada a 0, 100, 200, 300, 450 y 1500 ms (con los efectos ya corriendo), salida a 0, 150, 300 y

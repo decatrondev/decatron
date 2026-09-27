@@ -11,6 +11,9 @@ import type {
   HypeTrainAlertConfig,
 } from '../types/index';
 import { DEFAULT_EVENT_ALERTS_CONFIG } from '../constants/defaults';
+import type { EventAlertsDesign } from '../../../../components/event-alert-overlay/types';
+import { defaultAlertDesign, normalizeEventAlertsDesign } from '../../../../components/event-alert-overlay/convertLegacy';
+import { DESIGN_VERSION } from '../../../../components/event-alert-overlay/defaults';
 
 /**
  * Hook principal para gestionar toda la configuración de Event Alerts
@@ -52,6 +55,10 @@ export const useEventAlertsConfig = () => {
   const [hypeTrainConfig, setHypeTrainConfig] = useState<HypeTrainAlertConfig>(
     DEFAULT_EVENT_ALERTS_CONFIG.hypeTrain
   );
+
+  // Diseño del overlay: se convierte de la config TAL COMO ESTÁ GUARDADA (sin los valores de fábrica de esta vista,
+  // que no son los del backend), así lo convertido se ve igual que en OBS
+  const [design, setDesign] = useState<EventAlertsDesign>(() => ({ version: DESIGN_VERSION, general: defaultAlertDesign(), events: {} }));
 
   // ============================================
   // MÉTODOS DE ACTUALIZACIÓN (Patrón Spread)
@@ -113,6 +120,7 @@ export const useEventAlertsConfig = () => {
 
   const getCompleteConfig = useCallback((): EventAlertsConfig => {
     return {
+      design,
       global: globalConfig,
       follow: followConfig,
       bits: bitsConfig,
@@ -131,6 +139,7 @@ export const useEventAlertsConfig = () => {
     raidsConfig,
     resubsConfig,
     hypeTrainConfig,
+    design,
   ]);
 
   // ============================================
@@ -138,6 +147,7 @@ export const useEventAlertsConfig = () => {
   // ============================================
 
   const loadConfig = useCallback((config: Partial<EventAlertsConfig>) => {
+    setDesign(normalizeEventAlertsDesign(config));
     if (config.global) {
       setGlobalConfig({
         ...DEFAULT_EVENT_ALERTS_CONFIG.global,
@@ -235,6 +245,7 @@ export const useEventAlertsConfig = () => {
     setRaidsConfig(DEFAULT_EVENT_ALERTS_CONFIG.raids);
     setResubsConfig(DEFAULT_EVENT_ALERTS_CONFIG.resubs);
     setHypeTrainConfig(DEFAULT_EVENT_ALERTS_CONFIG.hypeTrain);
+    setDesign({ version: DESIGN_VERSION, general: defaultAlertDesign(), events: {} });
   }, []);
 
   // ============================================
@@ -243,6 +254,8 @@ export const useEventAlertsConfig = () => {
 
   return {
     // Estados
+    design,
+    setDesign,
     globalConfig,
     followConfig,
     bitsConfig,

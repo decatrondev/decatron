@@ -572,6 +572,10 @@ namespace Decatron.Services
 
                 // Style (primero global, luego específico del evento)
                 var style = ExtractStyleConfig(configData, alertConfig);
+                // Rediseño (.dev/plans/EVENT_ALERTS_REDESIGN_PLAN.md): el diseño guardado (general y por evento) y el
+                // estilo propio del evento/nivel/variante por separado. Sin `design` el overlay dibuja con lo de siempre.
+                object? design = configData.TryGetProperty("design", out var designEl) && designEl.ValueKind == JsonValueKind.Object ? designEl : null;
+                object? partialStyle = alertConfig.TryGetProperty("style", out var partialEl) && partialEl.ValueKind == JsonValueKind.Object ? partialEl : null;
 
                 // overlayElements: posiciones independientes de CARD, MEDIA y TEXT
                 var overlayElements = ExtractOverlayElements(configData);
@@ -639,7 +643,9 @@ namespace Decatron.Services
                     position = new { x = posX, y = posY },
                     style,
                     overlayElements,
-                    queueSettings
+                    queueSettings,
+                    design,
+                    partialStyle
                 };
 
                 _logger.LogInformation("[EventAlerts] Sending alert: Type={EventType}, User={Username}, Channel={Channel}, MediaType={MediaType}, MediaUrl={MediaUrl}, SoundUrl={SoundUrl}",

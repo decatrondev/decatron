@@ -28,16 +28,19 @@ export const useEventAlertsPersistence = (options?: UseEventAlertsPersistenceOpt
     }
   };
 
-  const saveConfiguration = async (config: EventAlertsConfig) => {
+  /** Devuelve true si se guardó. */
+  const saveConfiguration = async (config: EventAlertsConfig): Promise<boolean> => {
     try {
       setSaving(true);
       setSaveMessage(null);
       await api.post('/eventalerts/config', { config });
       setSaveMessage({ type: 'success', text: 'Configuración guardada correctamente' });
       setTimeout(() => setSaveMessage(null), 3000);
+      return true;
     } catch (error) {
       console.error('[EventAlerts] Error saving configuration:', error);
       setSaveMessage({ type: 'error', text: 'Error al guardar la configuración' });
+      return false;
     } finally {
       setSaving(false);
     }

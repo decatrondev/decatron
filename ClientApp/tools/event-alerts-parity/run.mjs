@@ -193,7 +193,8 @@ async function main() {
                 await shoot(mode, 'enter', ENTER);
                 await shoot(mode, 'exit', EXIT);
                 await shoot(mode, 'rest', [REST]);
-                await shoot(mode, 'static', [0]);
+                // Quieto solo existe en el renderer (vista previa y editor); el overlay de OBS siempre anima
+                if (mode === 'new-config') await shoot(mode, 'static', [0]);
             }
 
             const row = { config: name, alert: item.label, frames: {} };
@@ -214,7 +215,7 @@ async function main() {
                 for (const t of ENTER) await compare(`${mode}|entrada|${t}`, `old|enter|${t}`, `${mode}|enter|${t}`);
                 for (const t of EXIT) await compare(`${mode}|salida|${t}`, `old|exit|${t}`, `${mode}|exit|${t}`);
                 await compare(`${mode}|reposo`, `old|rest|${REST}`, `${mode}|rest|${REST}`);
-                await compare(`${mode}|estatico`, `old|rest|${REST}`, `${mode}|static|0`);
+                if (mode === 'new-config') await compare(`${mode}|estatico`, `old|rest|${REST}`, `${mode}|static|0`);
             }
             const worst = Math.max(...Object.values(row.frames));
             results.push(row);

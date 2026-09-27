@@ -260,6 +260,7 @@ export interface AlertStyleConfig {
 // ============================================
 
 import type { AlertMediaConfig } from '../../../../types/timer-alerts';
+import type { EventAlertsDesign } from '../../../../components/event-alert-overlay/types';
 export type { AlertMediaConfig };
 // Alias para compatibilidad con el resto del código
 export type AlertMedia = AlertMediaConfig;
@@ -503,6 +504,8 @@ export interface HypeTrainAlertConfig {
 // ============================================
 
 export interface EventAlertsConfig {
+  /** Diseño del overlay (general y por evento). Ver components/event-alert-overlay. Sin él, se convierte al leer. */
+  design?: EventAlertsDesign;
   global: GlobalAlertsConfig;
   follow: FollowAlertConfig;
   bits: BitsAlertConfig;

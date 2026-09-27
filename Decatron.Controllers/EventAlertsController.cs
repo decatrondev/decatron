@@ -698,6 +698,10 @@ namespace Decatron.Controllers
                 // queueSettings: configuración de cola de alertas
                 var queueSettings = ExtractQueueSettings(configData);
 
+                // Rediseño: la prueba tiene que verse como la alerta real (mismo diseño y estilo propio del nivel)
+                object? design = configData.TryGetProperty("design", out var designEl) && designEl.ValueKind == JsonValueKind.Object ? designEl : null;
+                object? partialStyle = alertConfig.TryGetProperty("style", out var partialEl) && partialEl.ValueKind == JsonValueKind.Object ? partialEl : null;
+
                 // Effects
                 string[] effects = Array.Empty<string>();
                 if (alertConfig.TryGetProperty("effects", out var effectsCfg) &&
@@ -773,7 +777,9 @@ namespace Decatron.Controllers
                     position,
                     style,
                     overlayElements,
-                    queueSettings
+                    queueSettings,
+                    design,
+                    partialStyle
                 };
 
                 // Enviar via SignalR

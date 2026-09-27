@@ -269,3 +269,45 @@ export function resolveAlertDesign(
     // Lo que el estilo viejo no toca se conserva (textos agregados, animación de la alerta)
     return { ...out, texts: [...out.texts, ...d.texts.filter(t => t.id !== 'main')], animation: d.animation };
 }
+
+/**
+ * El `style` propio del evento, nivel o variante (el parcial, sin el global) sobre un diseño nuevo: fondo, opacidad,
+ * borde y esquinas de la tarjeta, ajuste de la media, y fuente, color y sombra de los textos. Los diseños que
+ * siguen el estilo de la alerta (configs viejas) ya lo traen aplicado.
+ */
+export function applyPartialStyle(d: AlertDesign, partial?: Partial<LegacyAlertStyle> | null): AlertDesign {
+    if (d.followAlertStyle || !isObj(partial)) return d;
+    const p = partial as Partial<LegacyAlertStyle>;
+    const bg = { ...d.card.background, gradient: { ...d.card.background.gradient } };
+    if (p.backgroundType) bg.type = p.backgroundType;
+    if (typeof p.backgroundColor === 'string') bg.color = p.backgroundColor;
+    if (isObj(p.backgroundGradient)) bg.gradient = { ...bg.gradient, ...p.backgroundGradient };
+    if (typeof p.backgroundImage === 'string') bg.image = p.backgroundImage;
+    return {
+        ...d,
+        card: {
+            ...d.card,
+            background: bg,
+            opacity: num(p.opacity) ? p.opacity! : d.card.opacity,
+            radius: num(p.borderRadius) ? p.borderRadius! : d.card.radius,
+            border: {
+                enabled: typeof p.borderEnabled === 'boolean' ? p.borderEnabled : d.card.border.enabled,
+                color: typeof p.borderColor === 'string' ? p.borderColor : d.card.border.color,
+                width: num(p.borderWidth) ? p.borderWidth! : d.card.border.width,
+            },
+        },
+        media: p.mediaObjectFit ? { ...d.media, fit: p.mediaObjectFit } : d.media,
+        texts: d.texts.map(t => ({
+            ...t,
+            fontFamily: typeof p.fontFamily === 'string' && p.fontFamily ? p.fontFamily : t.fontFamily,
+            color: typeof p.textColor === 'string' && p.textColor ? p.textColor : t.color,
+            shadow: p.textShadow ?? t.shadow,
+        })),
+    };
+}
+
+/** Cuánto dura la salida más larga del diseño (la alerta entera y cada elemento), para esperar antes de sacarla. */
+export function exitDurationMs(d: AlertDesign): number {
+    const steps = [d.animation.exit, d.card.animation.exit, d.media.animation.exit, ...d.texts.map(t => t.animation.exit)];
+    return Math.max(0, ...steps.filter(s => s.type !== 'none').map(s => s.durationMs + (s.delayMs || 0)));
+}

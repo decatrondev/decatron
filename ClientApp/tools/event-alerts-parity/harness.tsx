@@ -5,6 +5,7 @@ import '../../src/index.css';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import EventAlertsOverlay from '../../src/pages/EventAlertsOverlay';
+import EventAlertsOverlayLegacy from './legacy/EventAlertsOverlayLegacy';
 import EventAlertRenderer, { type Phase } from '../../src/components/event-alert-overlay/EventAlertRenderer';
 import { normalizeEventAlertsDesign, resolveAlertDesign } from '../../src/components/event-alert-overlay/convertLegacy';
 
@@ -46,10 +47,13 @@ async function settle() {
     (window as any).__parityResetHub();
     const key = ++renderCount;
 
-    if (mode === 'old') {
+    if (mode === 'old' || mode === 'new') {
+        // old: el overlay de OBS anterior al rediseño; new: el overlay de OBS actual (cola incluida). Los dos reciben
+        // la misma alerta por el SignalR simulado
+        const Overlay = mode === 'old' ? EventAlertsOverlayLegacy : EventAlertsOverlay;
         root.render(
             <MemoryRouter key={key} initialEntries={['/overlay/event-alerts?channel=paridad']}>
-                <EventAlertsOverlay />
+                <Overlay />
             </MemoryRouter>,
         );
         await sleep(50);
@@ -57,10 +61,9 @@ async function settle() {
         // Duración 0: pasa directo a la salida; larga: se queda en la entrada
         (window as any).__parityEmit('ShowEventAlert', { ...payload, duration: phase === 'exit' ? 0 : 3_600_000 });
     } else {
+        // new-config: el renderer solo, con el diseño convertido de la config y el `style` parcial de la config
         const design = normalizeEventAlertsDesign(config);
-        const resolved = mode === 'new'
-            ? resolveAlertDesign(design, payload, payload.style, payload.overlayElements)
-            : resolveAlertDesign(design, payload, partialStyle);
+        const resolved = resolveAlertDesign(design, payload, partialStyle);
         root.render(
             <div key={key} style={{ position: 'absolute', left: 0, top: 0 }}>
                 <EventAlertRenderer design={resolved} data={payload} phase={phase} fixed />
