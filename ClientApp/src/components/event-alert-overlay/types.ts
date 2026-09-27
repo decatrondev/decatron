@@ -53,6 +53,10 @@ export interface EventAlertData {
     /** fadeIn / slideIn / bounceIn / zoomIn (y sus Out). */
     animationIn?: string;
     animationOut?: string;
+    /** Dirección de la animación del evento (left/right/top/bottom; otra = la de siempre). */
+    animationDirection?: string;
+    /** Hype train: la alerta de "completado" (fin del hype train). */
+    hypeTrainCompleted?: boolean;
     /** shake, glow, float, pulse, confetti: solo cuenta el primero, como en el overlay viejo. */
     effects?: string[];
     /** global.defaultStyle combinado con el `style` del evento, nivel o variante. */

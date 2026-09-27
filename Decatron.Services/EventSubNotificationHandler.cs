@@ -148,6 +148,14 @@ namespace Decatron.Services
             {
                 await ManejarEventoHypeTrain(datosEvento);
             }
+            else if (tipoEvento == "channel.hype_train.progress")
+            {
+                await ManejarProgresoHypeTrain(datosEvento);
+            }
+            else if (tipoEvento == "channel.hype_train.end")
+            {
+                await ManejarFinHypeTrain(datosEvento);
+            }
             else if (tipoEvento == "stream.online")
             {
                 await ManejarStreamOnline(datosEvento);
@@ -1149,6 +1157,50 @@ namespace Decatron.Services
             }
         }
 
+        /// <summary>Último nivel avisado del hype train por canal (para alertar solo cuando sube).</summary>
+        private static readonly ConcurrentDictionary<string, int> _hypeTrainLevels = new();
+
+        /// <summary>
+        /// El hype train subió de nivel: la alerta de ese nivel (2 a 5). Twitch manda progress con cada aporte,
+        /// así que solo se alerta cuando el nivel es mayor al último avisado.
+        /// </summary>
+        private async Task ManejarProgresoHypeTrain(JObject datosEvento)
+        {
+            try
+            {
+                var channel = datosEvento["broadcaster_user_login"]?.ToString()?.ToLower();
+                var level = datosEvento["level"]?.ToObject<int>() ?? 0;
+                if (string.IsNullOrEmpty(channel) || level <= 0) return;
+                var last = _hypeTrainLevels.GetOrAdd(channel, 1);
+                if (level <= last) return;
+                _hypeTrainLevels[channel] = level;
+                _logger.LogInformation("🔥 [HYPE TRAIN] {Channel} subió al nivel {Level}", channel, level);
+                await _eventAlertsService.TriggerAlertAsync(channel, "hypeTrain", channel, level: Math.Min(level, 5));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[EventAlerts] Error en el progreso del hype train");
+            }
+        }
+
+        /// <summary>El hype train terminó: la alerta de "completado" con el nivel alcanzado.</summary>
+        private async Task ManejarFinHypeTrain(JObject datosEvento)
+        {
+            try
+            {
+                var channel = datosEvento["broadcaster_user_login"]?.ToString()?.ToLower();
+                var level = datosEvento["level"]?.ToObject<int>() ?? 1;
+                if (string.IsNullOrEmpty(channel)) return;
+                _hypeTrainLevels.TryRemove(channel, out _);
+                _logger.LogInformation("🏁 [HYPE TRAIN] Terminó en {Channel} - nivel {Level}", channel, level);
+                await _eventAlertsService.TriggerAlertAsync(channel, "hypeTrain", channel, level: level, hypeTrainCompleted: true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[EventAlerts] Error en el fin del hype train");
+            }
+        }
+
         private async Task ManejarEventoHypeTrain(JObject datosEvento)
         {
             try
@@ -1163,6 +1215,7 @@ namespace Decatron.Services
                 }
 
                 _logger.LogInformation($"🔥 [HYPE TRAIN] Iniciado en {broadcasterUserName} - Nivel: {level}");
+                _hypeTrainLevels[broadcasterUserName.ToLower()] = level;
 
                 await _timerEventService.ProcessHypeTrainEventAsync(broadcasterUserName, level);
 

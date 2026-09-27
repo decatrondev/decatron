@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { MESSAGE_TEMPLATES, TTS_TEMPLATES, EVENT_VARIABLES, CHAT_TEMPLATES } from '../../constants/defaults';
 import { ChatMessageSection } from '../../components/ChatMessageSection';
 import { VariantEditor } from '../../components/VariantEditor';
+import { EventSection } from '../EventSection';
 
 interface HypeTrainTabProps {
   config: HypeTrainAlertConfig;
@@ -75,10 +76,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
       </div>
 
       {/* Niveles 1-5 */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 block">🎯 Alertas por Nivel</label>
-
-        <div className="space-y-3">
+      <EventSection title="🎯 Alertas por Nivel" defaultOpen><div className="space-y-3">
           {[1, 2, 3, 4, 5].map(level => {
             const levelConfig = config.levels[level];
             if (!levelConfig) return null;
@@ -171,7 +169,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
             );
           })}
         </div>
-      </div>
+      </EventSection>
 
       {/* Alerta de Completado */}
       <div className="rounded-2xl border-2 border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-6 shadow-lg">
@@ -251,11 +249,9 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
       </div>
 
       {/* Cooldown */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2 block">⏱️ Cooldown</label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">Tiempo mínimo entre alertas de Hype Train (segundos)</p>
+      <EventSection title="⏱️ Cooldown" description="Tiempo mínimo entre alertas de Hype Train (segundos)">
         <input type="number" min="0" max="120" value={config.cooldown} onChange={e => onConfigChange({ cooldown: parseInt(e.target.value) || 10 })} className={inputClass} />
-      </div>
+      </EventSection>
     </div>
   );
 };

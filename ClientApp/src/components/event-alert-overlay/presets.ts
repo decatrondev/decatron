@@ -22,16 +22,20 @@ function text(id: string, rect: { x: number; y: number; width: number; height: n
 }
 
 /** Un diseño prearmado centrado en el lienzo, con la fuente, colores y tarjeta del diseño actual. */
-export function buildLayoutPreset(id: LayoutPresetId, current: AlertDesign): AlertDesign {
+export function buildLayoutPreset(id: LayoutPresetId, current: AlertDesign, anchor?: { x: number; y: number }): AlertDesign {
     const { width: W, height: H } = current.canvas;
+    // Centro del diseño: la "posición por defecto" de General (hasta 100 = % del lienzo; más = píxeles), o el centro
+    const ax = anchor ? (anchor.x <= 100 ? (anchor.x / 100) * W : anchor.x) : W / 2;
+    const ay = anchor ? (anchor.y <= 100 ? (anchor.y / 100) * H : anchor.y) : H / 2;
     const main = current.texts[0];
     const base = { fontFamily: main?.fontFamily ?? "'Inter', sans-serif", color: main?.color ?? '#ffffff', shadow: (main?.shadow ?? 'normal') as TextShadow };
     const card = (rect: { x: number; y: number; width: number; height: number }, patch: Partial<CardElement> = {}): CardElement =>
         ({ ...current.card, ...rect, enabled: true, animation: anim('slide-bounce', 'fade', 'bottom'), ...patch });
     const media = (rect: { x: number; y: number; width: number; height: number }, enabled = true) =>
         ({ ...current.media, ...rect, enabled, animation: anim('zoom', 'fade', 'bottom', 100) });
-    const cx = (w: number) => Math.round((W - w) / 2);
-    const cy = (h: number) => Math.round((H - h) / 2);
+    const clamp = (v: number, size: number, max: number) => Math.round(Math.max(0, Math.min(max - size, v)));
+    const cx = (w: number) => clamp(ax - w / 2, w, W);
+    const cy = (h: number) => clamp(ay - h / 2, h, H);
 
     switch (id) {
         case 'classic': {
@@ -47,7 +51,7 @@ export function buildLayoutPreset(id: LayoutPresetId, current: AlertDesign): Ale
             };
         }
         case 'banner': {
-            const w = 1100, h = 150, x = cx(w), y = H - h - 60;
+            const w = 1100, h = 150, x = cx(w), y = anchor ? cy(h) : H - h - 60;
             return {
                 ...current, followAlertStyle: false, animation: anim('none', 'none'),
                 card: card({ x, y, width: w, height: h }, { radius: 75, animation: anim('slide-bounce', 'slide', 'bottom') }),

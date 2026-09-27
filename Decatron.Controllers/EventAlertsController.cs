@@ -366,7 +366,15 @@ namespace Decatron.Controllers
                 string? ttsUrl = null;
                 int ttsVolume = 80;
 
-                if (alertConfig.TryGetProperty("tts", out var ttsConfig) &&
+                // Valores de General cuando la alerta no trae los suyos (igual que la alerta real)
+                var globalEl = configData.TryGetProperty("global", out var gEl) && gEl.ValueKind == JsonValueKind.Object ? gEl : default;
+                string? GlobalStr(string name) =>
+                    globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+                int GlobalInt(string name, int fallback) =>
+                    globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : fallback;
+                var ttsConfig = alertConfig.TryGetProperty("tts", out var ownTts) ? ownTts
+                    : globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty("tts", out var globalTtsCfg) ? globalTtsCfg : default;
+                if (ttsConfig.ValueKind == JsonValueKind.Object &&
                     ttsConfig.TryGetProperty("enabled", out var ttsEnabled) &&
                     ttsEnabled.GetBoolean())
                 {
@@ -652,15 +660,16 @@ namespace Decatron.Controllers
                 }
 
                 // Duración: config almacena en segundos → convertir a milisegundos para el overlay
-                var durationSeconds = alertConfig.TryGetProperty("duration", out var durProp) ? durProp.GetInt32() : 5;
+                var durationSeconds = alertConfig.TryGetProperty("duration", out var durProp) && durProp.ValueKind == JsonValueKind.Number ? durProp.GetInt32() : GlobalInt("defaultDuration", 5);
                 var duration = durationSeconds * 1000;
 
                 // Animación: config almacena tipo (fade/slide/bounce/zoom) → mapear a animationIn/Out
-                var animationType = "fade";
-                if (alertConfig.TryGetProperty("animation", out var animProp) &&
-                    animProp.TryGetProperty("type", out var animTypeProp))
+                var animationType = GlobalStr("defaultAnimation") ?? "fade";
+                var animationDirection = GlobalStr("defaultAnimationDirection") ?? "center";
+                if (alertConfig.TryGetProperty("animation", out var animProp))
                 {
-                    animationType = animTypeProp.GetString() ?? "fade";
+                    if (animProp.TryGetProperty("type", out var animTypeProp)) animationType = animTypeProp.GetString() ?? animationType;
+                    if (animProp.TryGetProperty("direction", out var animDirProp)) animationDirection = animDirProp.GetString() ?? animationDirection;
                 }
                 var animationIn = animationType switch
                 {
@@ -779,7 +788,8 @@ namespace Decatron.Controllers
                     overlayElements,
                     queueSettings,
                     design,
-                    partialStyle
+                    partialStyle,
+                    animationDirection
                 };
 
                 // Enviar via SignalR

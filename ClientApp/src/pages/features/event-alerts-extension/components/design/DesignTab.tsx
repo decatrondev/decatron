@@ -14,9 +14,9 @@ import type {
 // Editor del diseño de Event Alerts (fase 2 del rediseño): el general, uno propio por evento y, en el hype train,
 // uno propio por nivel. Todo lo que se edita acá es lo que sale en OBS (mismo renderer).
 
-export type DesignTarget = 'general' | AlertEventType | `hype-${'1' | '2' | '3' | '4' | '5'}`;
+export type DesignTarget = 'general' | AlertEventType | `hype-${'1' | '2' | '3' | '4' | '5' | 'completed'}`;
 
-export const HYPE_LEVELS: HypeTrainLevelKey[] = ['1', '2', '3', '4', '5'];
+export const HYPE_LEVELS: HypeTrainLevelKey[] = ['1', '2', '3', '4', '5', 'completed'];
 
 /** Partes de la pestaña Diseño (en vez de todo apilado). */
 type DesignSection = 'editor' | 'layouts' | 'colors' | 'animation';
@@ -290,9 +290,11 @@ interface Props {
     samples: Record<AlertEventType, EventAlertData>;
     target: DesignTarget;
     onTargetChange: (t: DesignTarget) => void;
+    /** "Posición por defecto" de General: donde se ubican los diseños prearmados. */
+    anchor?: { x: number; y: number };
 }
 
-export default function DesignTab({ design, onChange, canvas, onCanvasChange, samples, target, onTargetChange }: Props) {
+export default function DesignTab({ design, onChange, canvas, onCanvasChange, samples, target, onTargetChange, anchor }: Props) {
     const { t } = useTranslation('overlays');
     const designRef = useRef(design);
     designRef.current = design;
@@ -382,7 +384,10 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
     };
 
     const sample = samples[targetEvent(target)];
-    const sampleData = isHypeLevel ? { ...sample, level: Number(target.slice(5)), amount: Number(target.slice(5)) } : sample;
+    const hypeKey = isHypeLevel ? target.slice(5) : '';
+    const sampleData = isHypeLevel
+        ? (hypeKey === 'completed' ? { ...sample, level: 5, amount: 5, hypeTrainCompleted: true } : { ...sample, level: Number(hypeKey), amount: Number(hypeKey) })
+        : sample;
     const trainTarget = target === 'hypeTrain' || isHypeLevel;
     const subTabs: { id: DesignSection; icon: string }[] = [
         { id: 'editor', icon: '🖥️' }, { id: 'layouts', icon: '🧩' }, { id: 'colors', icon: '🎨' }, { id: 'animation', icon: '✨' },
@@ -405,7 +410,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                             <span className="block text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8] mb-1">{t('eventAlertsView.design.hypeLevels')}</span>
                             <select className={inputClass} value={target} onChange={e => onTargetChange(e.target.value as DesignTarget)}>
                                 <option value="hypeTrain">{t('eventAlertsView.design.allLevels')}</option>
-                                {HYPE_LEVELS.map(l => <option key={l} value={`hype-${l}`}>{t('eventAlertsView.design.level', { n: l })}{status(`hype-${l}` as DesignTarget)}</option>)}
+                                {HYPE_LEVELS.map(l => <option key={l} value={`hype-${l}`}>{l === 'completed' ? t('eventAlertsView.design.completed') : t('eventAlertsView.design.level', { n: l })}{status(`hype-${l}` as DesignTarget)}</option>)}
                             </select>
                         </label>
                     )}
@@ -446,11 +451,11 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                 <Card title={t('eventAlertsView.design.presetsTitle')} description={t('eventAlertsView.design.presetsDescription')}>
                     <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3">
                         {LAYOUT_PRESET_IDS.map(id => {
-                            const preview = buildLayoutPreset(id, { ...shown, canvas });
+                            const preview = buildLayoutPreset(id, { ...shown, canvas }, anchor);
                             const b = contentBox(preview);
                             return (
                                 <button key={id} className="p-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left"
-                                    onClick={() => { if (window.confirm(t('eventAlertsView.design.presetConfirm'))) { update(d => buildLayoutPreset(id, { ...d, canvas })); setSection('editor'); } }}>
+                                    onClick={() => { if (window.confirm(t('eventAlertsView.design.presetConfirm'))) { update(d => buildLayoutPreset(id, { ...d, canvas }, anchor)); setSection('editor'); } }}>
                                     {/* Encuadrada en la alerta (en la escena entera se vería diminuta) */}
                                     <div className="rounded-lg overflow-hidden pointer-events-none" style={{ background: CHECKER_BG }}>
                                         <ScaledCanvas width={b.width} height={b.height}>

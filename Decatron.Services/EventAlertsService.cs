@@ -120,7 +120,8 @@ namespace Decatron.Services
             int amount = 0,
             string? subTier = null,
             int? months = null,
-            int? level = null)
+            int? level = null,
+            bool hypeTrainCompleted = false)
         {
             try
             {
@@ -186,6 +187,12 @@ namespace Decatron.Services
                     if (!eventConfig.TryGetProperty("subTypes", out var subTypes) ||
                         !subTypes.TryGetProperty(tierKey, out alertConfig)) return;
                 }
+                else if (eventType == "hypeTrain" && hypeTrainCompleted)
+                {
+                    // Fin del hype train: la alerta de "completado" (si está prendida)
+                    if (!eventConfig.TryGetProperty("completionAlert", out alertConfig)) return;
+                    if (alertConfig.TryGetProperty("enabled", out var complOn) && complOn.ValueKind == JsonValueKind.False) return;
+                }
                 else if (eventType == "hypeTrain")
                 {
                     var levelKey = (level ?? 1).ToString();
@@ -233,6 +240,14 @@ namespace Decatron.Services
 
                 // TTS - Ahora separado en dos URLs: template y user message
                 string? ttsTemplateUrl = null;
+                // Valores de General (global): se usan cuando la alerta no trae los suyos
+                var globalEl = configData.TryGetProperty("global", out var gEl) && gEl.ValueKind == JsonValueKind.Object ? gEl : default;
+                int GlobalInt(string name, int fallback) =>
+                    globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetInt32() : fallback;
+                string? GlobalStr(string name) =>
+                    globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+                var defaultVolume = Math.Clamp(GlobalInt("defaultVolume", 80), 0, 100);
+
                 string? ttsUserMessageUrl = null;
                 int ttsTemplateVolume = 80;
                 int ttsUserMessageVolume = 80;
@@ -240,7 +255,10 @@ namespace Decatron.Services
                 string? ttsUrl = null;
                 int ttsVolume = 80;
 
-                if (alertConfig.TryGetProperty("tts", out var ttsCfg) &&
+                // Sin TTS propio, el TTS global de General
+                var ttsCfg = alertConfig.TryGetProperty("tts", out var ownTts) ? ownTts
+                    : globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty("tts", out var globalTts) ? globalTts : default;
+                if (ttsCfg.ValueKind == JsonValueKind.Object &&
                     ttsCfg.TryGetProperty("enabled", out var ttsOn) &&
                     ttsOn.GetBoolean())
                 {
@@ -300,7 +318,7 @@ namespace Decatron.Services
                 bool playVideoAudio = false;
                 int videoVolume = 80;
                 string? soundUrl = null;
-                int soundVolume = 80;
+                int soundVolume = defaultVolume;
 
                 // Helper para detectar tipo de media por URL
                 string DetectMediaType(string url)
@@ -385,7 +403,7 @@ namespace Decatron.Services
                             !string.IsNullOrEmpty(advAudioUrl.GetString()))
                         {
                             soundUrl = advAudioUrl.GetString();
-                            soundVolume = advAudio.TryGetProperty("volume", out var advAudioVol) ? advAudioVol.GetInt32() : 80;
+                            soundVolume = advAudio.TryGetProperty("volume", out var advAudioVol) ? advAudioVol.GetInt32() : defaultVolume;
                             _logger.LogInformation("[EventAlerts] Audio found ({Source}): URL={Url}", source, soundUrl);
                             // Audio-only con visual de fondo
                             if (string.IsNullOrEmpty(mediaUrl) &&
@@ -409,7 +427,7 @@ namespace Decatron.Services
                         {
                             mediaUrl = simpleCfg.TryGetProperty("url", out var simpleUrl) ? simpleUrl.GetString() : null;
                             mediaType = simpleCfg.TryGetProperty("type", out var simpleType) ? simpleType.GetString() : "image";
-                            var simpleVolume = simpleCfg.TryGetProperty("volume", out var simpleVol) ? simpleVol.GetInt32() : 80;
+                            var simpleVolume = simpleCfg.TryGetProperty("volume", out var simpleVol) ? simpleVol.GetInt32() : defaultVolume;
 
                             // Si es video, configurar audio del video
                             if (mediaType == "video")
@@ -461,7 +479,7 @@ namespace Decatron.Services
                         if (string.IsNullOrEmpty(soundUrl))
                         {
                             soundUrl = mediaCfg.TryGetProperty("soundUrl", out var sndP) ? sndP.GetString() : null;
-                            soundVolume = mediaCfg.TryGetProperty("soundVolume", out var sndVP) ? sndVP.GetInt32() : 80;
+                            soundVolume = mediaCfg.TryGetProperty("soundVolume", out var sndVP) ? sndVP.GetInt32() : defaultVolume;
                         }
                     }
                 }
@@ -509,13 +527,13 @@ namespace Decatron.Services
                                     !string.IsNullOrEmpty(url.GetString()))
                                 {
                                     soundUrl = url.GetString();
-                                    soundVolume = aud.TryGetProperty("volume", out var vol) ? vol.GetInt32() : 80;
+                                    soundVolume = aud.TryGetProperty("volume", out var vol) ? vol.GetInt32() : defaultVolume;
                                 }
                             }
                             else
                             {
                                 soundUrl = baseMediaCfg.TryGetProperty("soundUrl", out var url) ? url.GetString() : null;
-                                soundVolume = baseMediaCfg.TryGetProperty("soundVolume", out var vol) ? vol.GetInt32() : 80;
+                                soundVolume = baseMediaCfg.TryGetProperty("soundVolume", out var vol) ? vol.GetInt32() : defaultVolume;
                             }
                         }
 
@@ -540,14 +558,17 @@ namespace Decatron.Services
                 }
 
                 // Duration (seconds → ms)
-                var durationSec = alertConfig.TryGetProperty("duration", out var durP) ? durP.GetInt32() : 5;
+                var durationSec = alertConfig.TryGetProperty("duration", out var durP) && durP.ValueKind == JsonValueKind.Number ? durP.GetInt32() : GlobalInt("defaultDuration", 5);
                 var duration = durationSec * 1000;
 
                 // Animation type
-                var animType = "fade";
-                if (alertConfig.TryGetProperty("animation", out var animP) &&
-                    animP.TryGetProperty("type", out var animT))
-                    animType = animT.GetString() ?? "fade";
+                var animType = GlobalStr("defaultAnimation") ?? "fade";
+                var animDirection = GlobalStr("defaultAnimationDirection") ?? "center";
+                if (alertConfig.TryGetProperty("animation", out var animP))
+                {
+                    if (animP.TryGetProperty("type", out var animT)) animType = animT.GetString() ?? animType;
+                    if (animP.TryGetProperty("direction", out var animD)) animDirection = animD.GetString() ?? animDirection;
+                }
 
                 // Effects
                 string[] effects = Array.Empty<string>();
@@ -645,7 +666,10 @@ namespace Decatron.Services
                     overlayElements,
                     queueSettings,
                     design,
-                    partialStyle
+                    partialStyle,
+                    animationDirection = animDirection,
+                    hypeTrainCompleted,
+                    cooldownSettings = globalEl.ValueKind == JsonValueKind.Object && globalEl.TryGetProperty("cooldownSettings", out var cdsEl) && cdsEl.ValueKind == JsonValueKind.Object ? (object?)cdsEl : null
                 };
 
                 _logger.LogInformation("[EventAlerts] Sending alert: Type={EventType}, User={Username}, Channel={Channel}, MediaType={MediaType}, MediaUrl={MediaUrl}, SoundUrl={SoundUrl}",

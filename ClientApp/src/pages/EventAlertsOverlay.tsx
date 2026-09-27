@@ -80,6 +80,10 @@ interface EventAlertData {
     design?: unknown;
     /** El `style` propio del evento, nivel o variante (sin el global). */
     partialStyle?: Partial<LegacyAlertStyle> | null;
+    /** Cooldowns de General (segundos): tiempo mínimo entre alertas, esperado en la cola. */
+    cooldownSettings?: { globalCooldown?: number; perEventCooldown?: number };
+    /** Dirección de la animación del evento (left/right/top/bottom; 'center' = la de siempre). */
+    animationDirection?: string;
     queueSettings?: QueueSettings; // Configuración de cola
 }
 
@@ -106,6 +110,8 @@ export default function EventAlertsOverlay() {
     const isVisibleRef = useRef(false);
     // Identificador incremental para evitar que una alerta antigua interfiera con la nueva
     const alertIdRef = useRef(0);
+    /** Cuándo empezó la última alerta (cualquiera y por evento), para los cooldowns de General. */
+    const lastStartRef = useRef<{ any: number; byEvent: Record<string, number> }>({ any: 0, byEvent: {} });
 
     // Diseño de la alerta en pantalla: el guardado (el del evento o el general, con el estilo propio del nivel o
     // variante); sin diseño guardado, el de siempre armado con style y overlayElements (se resuelve al dibujar)
@@ -325,6 +331,19 @@ export default function EventAlertsOverlay() {
             setQueueCount(alertQueueRef.current.length);
 
             console.log('[Queue] Procesando alerta:', nextAlert.eventType, '| Restantes:', alertQueueRef.current.length);
+
+            // Cooldowns de General: tiempo mínimo entre el comienzo de dos alertas (cualquiera, y del mismo evento).
+            // Se esperan en la cola, así ninguna se pierde
+            const cds = nextAlert.cooldownSettings;
+            if (cds) {
+                const now = Date.now();
+                const sinceAny = now - lastStartRef.current.any;
+                const sinceSame = now - (lastStartRef.current.byEvent[nextAlert.eventType] ?? 0);
+                const wait = Math.max(0, (cds.globalCooldown ?? 0) * 1000 - sinceAny, (cds.perEventCooldown ?? 0) * 1000 - sinceSame);
+                if (wait > 0) await new Promise(resolve => setTimeout(resolve, wait));
+            }
+            lastStartRef.current.any = Date.now();
+            lastStartRef.current.byEvent[nextAlert.eventType] = Date.now();
 
             // Mostrar la alerta y esperar a que termine completamente
             await displayAlertAndWait(nextAlert);

@@ -21,6 +21,7 @@ namespace Decatron.Core.Interfaces
             int amount = 0,
             string? subTier = null,
             int? months = null,
-            int? level = null);
+            int? level = null,
+            bool hypeTrainCompleted = false);
     }
 }

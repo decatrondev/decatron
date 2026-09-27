@@ -24,6 +24,8 @@ interface Props {
      */
     fixed?: boolean;
     videoRef?: Ref<HTMLVideoElement>;
+    /** Vista previa reproduciendo: el video suena con este volumen (0-100); sin esto, mudo como siempre. */
+    videoVolume?: number;
 }
 
 const TEXT_SHADOWS: Record<string, string> = {
@@ -110,7 +112,10 @@ function animationCss(s: AnimationStep, entering: boolean, data: EventAlertData 
     const type = s.type === 'event' ? fromEventName(entering ? data?.animationIn : data?.animationOut, entering) : s.type;
     if (type === 'none') return undefined;
     const withDir = type === 'slide' || type === 'slide-bounce' || type === 'flip';
-    const name = `ea-${type}-${entering ? 'in' : 'out'}${withDir ? `-${s.direction}` : ''}`;
+    // La del evento con dirección configurada (General o el evento): entra y sale por ese lado
+    const eventDir = s.type === 'event' && ['left', 'right', 'top', 'bottom'].includes(data?.animationDirection ?? '') ? data!.animationDirection! : null;
+    const dir = eventDir ?? s.direction;
+    const name = `ea-${type}-${entering ? 'in' : 'out'}${withDir ? `-${dir}` : ''}`;
     // La entrada no se queda aplicada al terminar (como el viejo); la salida sí, para que no reaparezca
     const fill = entering ? (s.delayMs > 0 ? 'backwards' : 'none') : 'forwards';
     return `${name} ${s.durationMs}ms ${s.easing} ${s.delayMs}ms ${fill}`;
@@ -162,14 +167,67 @@ function Text({ t, values, animation, position }: { t: TextElement; values: Reco
     );
 }
 
-export default function EventAlertRenderer({ design, data, phase, preview, fixed, videoRef }: Props) {
+/** Dónde caen las partículas: la tarjeta, o lo que ocupe la alerta si no hay tarjeta. */
+function particleArea(d: AlertDesign): { x: number; y: number; width: number; height: number } {
+    const rects = (d.card.enabled ? [d.card] : [d.media, ...d.texts]).filter(r => r.enabled);
+    if (!rects.length) return { x: 0, y: 0, width: d.canvas.width, height: d.canvas.height };
+    const x = Math.min(...rects.map(r => r.x)), y = Math.min(...rects.map(r => r.y));
+    return { x, y, width: Math.max(...rects.map(r => r.x + r.width)) - x, height: Math.max(...rects.map(r => r.y + r.height)) - y };
+}
+
+/** Pseudoazar fijo (el mismo dibujo en OBS, la vista previa y el editor). */
+const rand = (i: number, salt: number) => { const v = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453; return v - Math.floor(v); };
+const CONFETTI_COLORS = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#facc15', '#14b8a6'];
+const FIREWORK_COLORS = ['#fde047', '#f472b6', '#60a5fa', '#34d399', '#fb923c'];
+
+/** Confeti que cae sobre la alerta y fuegos artificiales alrededor (arrancan con los efectos, a los 0,7 s). */
+function Particles({ kinds, area, position, still }: { kinds: ('confetti' | 'fireworks')[]; area: { x: number; y: number; width: number; height: number }; position: 'absolute' | 'fixed'; still: boolean }) {
+    const pad = 120;
+    const box = { left: area.x - pad, top: area.y - pad, width: area.width + pad * 2, height: area.height + pad * 2 };
+    const play = still ? 'paused' : 'running';
+    return (
+        <div style={{ position, ...box, pointerEvents: 'none', overflow: 'hidden' }}>
+            {kinds.includes('confetti') && Array.from({ length: 48 }, (_, i) => {
+                const w = 6 + rand(i, 1) * 6;
+                return (
+                    <span key={`c${i}`} style={{
+                        position: 'absolute', left: `${rand(i, 2) * 100}%`, top: -20, width: w, height: w * 0.45 + 4,
+                        background: CONFETTI_COLORS[i % CONFETTI_COLORS.length], borderRadius: 2, opacity: 0,
+                        ['--ea-drift' as any]: `${(rand(i, 3) - 0.5) * 160}px`, ['--ea-fall' as any]: `${box.height + 40}px`, ['--ea-spin' as any]: `${360 + rand(i, 4) * 720}deg`,
+                        animation: `ea-confetti-fall ${2.2 + rand(i, 5) * 1.8}s linear ${0.7 + rand(i, 6) * 2.4}s infinite`, animationPlayState: play,
+                    }} />
+                );
+            })}
+            {kinds.includes('fireworks') && Array.from({ length: 5 }, (_, b) => {
+                const cx = 10 + rand(b, 7) * 80, cy = 8 + rand(b, 8) * 45, color = FIREWORK_COLORS[b % FIREWORK_COLORS.length], delay = 0.7 + b * 0.55;
+                return Array.from({ length: 22 }, (_, i) => {
+                    const ang = (i / 22) * Math.PI * 2, dist = 90 + rand(b * 22 + i, 9) * 70;
+                    return (
+                        <span key={`f${b}-${i}`} style={{
+                            position: 'absolute', left: `${cx}%`, top: `${cy}%`, width: 8, height: 8, borderRadius: '50%', background: color,
+                            boxShadow: `0 0 10px 2px ${color}`, opacity: 0,
+                            ['--ea-dx' as any]: `${Math.cos(ang) * dist}px`, ['--ea-dy' as any]: `${Math.sin(ang) * dist}px`,
+                            animation: `ea-firework 1.4s cubic-bezier(.15,.7,.3,1) ${delay}s infinite`, animationPlayState: play,
+                        }} />
+                    );
+                });
+            })}
+        </div>
+    );
+}
+
+export default function EventAlertRenderer({ design, data, phase, preview, fixed, videoRef, videoVolume }: Props) {
     const { canvas, card, media, texts } = design;
     const values = variableValues(data);
     const anim = (a: { enter: AnimationStep; exit: AnimationStep }) =>
         phase === 'static' ? undefined : phase === 'enter' ? animationCss(a.enter, true, data) : animationCss(a.exit, false, data);
     const position = fixed ? 'fixed' : 'absolute';
     // Quieto, el efecto queda en su primer cuadro (igual que el viejo antes de arrancar el efecto)
-    const effect = phase === 'exit' ? undefined : EFFECTS[data?.effects?.[0] ?? ''];
+    // Efectos (todos los elegidos): uno de movimiento (sacudida, flotar o pulso), el brillo y las partículas
+    const chosen = phase === 'exit' ? [] : (data?.effects ?? []);
+    const motion = chosen.find(e => e === 'shake' || e === 'float' || e === 'pulse');
+    const effect = [motion && EFFECTS[motion], chosen.includes('glow') && EFFECTS.glow].filter(Boolean).join(', ') || undefined;
+    const particles = chosen.filter((e): e is 'confetti' | 'fireworks' => e === 'confetti' || e === 'fireworks');
     const hasMedia = !!(data?.mediaUrl && media.enabled);
     const mediaStyle: CSSProperties = { width: '100%', height: '100%', objectFit: media.fit };
 
@@ -204,7 +262,8 @@ export default function EventAlertRenderer({ design, data, phase, preview, fixed
                         animation: anim(media.animation),
                     }}>
                         {data!.mediaType === 'video' ? (
-                            <video key={data!.mediaUrl} ref={preview ? undefined : videoRef} src={data!.mediaUrl} autoPlay loop muted style={mediaStyle} />
+                            <video key={data!.mediaUrl} ref={preview ? undefined : videoRef} src={data!.mediaUrl} autoPlay loop muted={!videoVolume}
+                                onLoadedMetadata={videoVolume ? e => { e.currentTarget.volume = Math.min(1, videoVolume / 100); } : undefined} style={mediaStyle} />
                         ) : (
                             <img src={data!.mediaUrl} alt="" style={mediaStyle} />
                         )}
@@ -220,6 +279,8 @@ export default function EventAlertRenderer({ design, data, phase, preview, fixed
                 )}
 
                 {texts.map(t => t.enabled && <Text key={t.id} t={t} values={values} animation={anim(t.animation)} position={position} />)}
+
+                {particles.length > 0 && <Particles kinds={particles} area={particleArea(design)} position={position} still={phase === 'static'} />}
             </div>
             <style>{EVENT_ALERT_KEYFRAMES}</style>
         </div>
@@ -241,6 +302,8 @@ export const EVENT_ALERT_KEYFRAMES = `
 @keyframes ea-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 @keyframes ea-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes ea-confetti { 0% { background-position: 0% 0%; } 100% { background-position: 0% 200%; } }
+@keyframes ea-confetti-fall { 0% { opacity: 1; transform: translate(0, 0) rotate(0deg); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--ea-drift), var(--ea-fall)) rotate(var(--ea-spin)); } }
+@keyframes ea-firework { 0% { opacity: 0; transform: translate(0, 0) scale(0.6); } 8% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--ea-dx), calc(var(--ea-dy) + 30px)) scale(0.3); } }
 @keyframes ea-rotate-in { from { opacity: 0; transform: rotate(-200deg) scale(0); } to { opacity: 1; transform: rotate(0) scale(1); } }
 @keyframes ea-rotate-out { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(200deg) scale(0); } }
 @keyframes ea-glitch-in {

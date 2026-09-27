@@ -5,7 +5,7 @@ import EventAlertRenderer, { type Phase } from '../../../../components/event-ale
 import { ScaledCanvas, CHECKER_BG } from '../../../../components/overlay-editor/ui';
 import { EVENT_TYPES } from '../../../../components/event-alert-overlay/defaults';
 import { applyPartialStyle, exitDurationMs, resolveAlertDesign } from '../../../../components/event-alert-overlay/convertLegacy';
-import { listCases, payloadFor } from '../../../../components/event-alert-overlay/fromConfig';
+import { audioFor, listCases, payloadFor } from '../../../../components/event-alert-overlay/fromConfig';
 import type { AlertEventType, EventAlertsDesign } from '../../../../components/event-alert-overlay/types';
 import api from '../../../../services/api';
 
@@ -18,8 +18,8 @@ interface Props {
     /** Evento que se está editando (la vista previa lo sigue). */
     eventType: AlertEventType;
     onEventTypeChange: (e: AlertEventType) => void;
-    /** Nivel del hype train que se está editando en el Diseño, si hay. */
-    hypeLevel?: number;
+    /** Nivel del hype train que se está editando en el Diseño ('completed' = el fin), si hay. */
+    hypeLevel?: number | 'completed';
 }
 
 /** Tiempo en pantalla al reproducir en la vista previa (la alerta real usa su duración). */
@@ -39,7 +39,7 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
 
     // Al cambiar de evento (o de nivel del hype train en el Diseño), el primer caso o el nivel elegido
     useEffect(() => {
-        setCaseKey(eventType === 'hypeTrain' && hypeLevel ? `level-${hypeLevel}` : '');
+        setCaseKey(eventType === 'hypeTrain' && hypeLevel ? (hypeLevel === 'completed' ? 'completed' : `level-${hypeLevel}`) : '');
     }, [eventType, hypeLevel]);
 
     // Si el elegido no existe (otro evento, o se borró el nivel), el primero
@@ -51,7 +51,10 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
         return { ...applyPartialStyle(resolved, built.partialStyle), canvas };
     }, [built, design, canvas]);
 
-    const clear = () => { timers.current.forEach(id => window.clearTimeout(id)); timers.current = []; };
+    const audio = useMemo(() => (current ? audioFor(config, current) : null), [config, current]);
+    const soundRef = useRef<HTMLAudioElement | null>(null);
+    const stopSound = () => { soundRef.current?.pause(); soundRef.current = null; };
+    const clear = () => { timers.current.forEach(id => window.clearTimeout(id)); timers.current = []; stopSound(); };
     useEffect(() => clear, []);
 
     const play = () => {
@@ -59,6 +62,13 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
         clear();
         setRun(r => r + 1);
         setPhase('enter');
+        // El sonido de la alerta, como en OBS (la voz no: generarla gasta créditos; se escucha con "Probar en OBS")
+        if (audio?.soundUrl) {
+            const snd = new Audio(audio.soundUrl);
+            snd.volume = Math.min(1, audio.soundVolume / 100);
+            snd.play().catch(() => { /* el navegador puede bloquearlo hasta que haya un clic */ });
+            soundRef.current = snd;
+        }
         const outMs = exitDurationMs(alertDesign);
         timers.current.push(window.setTimeout(() => setPhase('exit'), HOLD_MS));
         timers.current.push(window.setTimeout(() => setPhase('hidden'), HOLD_MS + outMs));
@@ -103,7 +113,7 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
                 <select className={selectClass} value={current?.key ?? ''} onChange={e => setCaseKey(e.target.value)} disabled={cases.length < 2} aria-label={t('eventAlertsView.preview.level')}>
                     {cases.map(c => (
                         <option key={c.key} value={c.key}>
-                            {c.key === 'base' || c.key === 'follow' ? t('eventAlertsView.preview.base') : c.eventType === 'hypeTrain' ? t('eventAlertsView.design.level', { n: c.level }) : c.name}
+                            {c.key === 'base' || c.key === 'follow' ? t('eventAlertsView.preview.base') : c.key === 'completed' ? t('eventAlertsView.design.completed') : c.eventType === 'hypeTrain' ? t('eventAlertsView.design.level', { n: c.level }) : c.name}
                         </option>
                     ))}
                 </select>
@@ -113,7 +123,7 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
                 {alertDesign && built ? (
                     <ScaledCanvas width={box.width} height={box.height} maxScale={1}>
                         <div style={{ position: 'absolute', left: -box.x, top: -box.y }}>
-                            {phase !== 'hidden' && <EventAlertRenderer key={`${run}-${current?.key}`} design={alertDesign} data={built.data} phase={phase} preview />}
+                            {phase !== 'hidden' && <EventAlertRenderer key={`${run}-${current?.key}`} design={alertDesign} data={built.data} phase={phase} preview videoVolume={phase === 'static' ? undefined : audio?.videoVolume} />}
                         </div>
                     </ScaledCanvas>
                 ) : (
@@ -132,6 +142,7 @@ export default function EventAlertsPreview({ config, design, canvas, dirty, even
                 <button onClick={test} disabled={testing || !current} className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs 3xl:text-sm font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50">
                     <Send className="w-4 h-4" /> {testing ? t('eventAlertsView.preview.testing') : t('eventAlertsView.preview.test')}
                 </button>
+                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('eventAlertsView.preview.soundHint')}</p>
                 <p className="text-xs 3xl:text-sm text-[#94a3b8]">{testMsg ?? (dirty ? t('eventAlertsView.preview.testUnsaved') : t('eventAlertsView.preview.testHint'))}</p>
                 <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('eventAlertsView.preview.size', { width: canvas.width, height: canvas.height })}</p>
             </div>

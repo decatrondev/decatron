@@ -9,3 +9,4 @@ export { ResubsTab } from './ResubsTab';
 export { HypeTrainTab } from './HypeTrainTab';
 export { TestingTab } from './TestingTab';
 export { MediaTab } from './MediaTab';
+export { default as StyleTab } from './StyleTab';

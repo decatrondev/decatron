@@ -13,6 +13,7 @@ import { ChatMessageSection } from '../../components/ChatMessageSection';
 import { VariantEditor } from '../../components/VariantEditor';
 import type { AlertMediaConfig } from '../../../../../types/timer-alerts';
 import { MESSAGE_TEMPLATES, TTS_TEMPLATES, EVENT_VARIABLES, CHAT_TEMPLATES } from '../../constants/defaults';
+import { EventSection } from '../EventSection';
 
 interface FollowTabProps {
   config: FollowAlertConfig;
@@ -110,12 +111,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
       </div>
 
       {/* Duración y Volumen */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
-          ⏱️ Duración y Volumen
-        </label>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <EventSection title="⏱️ Duración y Volumen" defaultOpen><div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
               Duración (segundos)
@@ -158,16 +154,10 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
             />
           </div>
         </div>
-      </div>
+      </EventSection>
 
       {/* Media (Audio / Video / Imagen) */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-2">
-          🎬 Multimedia de Alerta
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Audio, video o imagen que se reproducirá con la alerta
-        </p>
+      <EventSection title="🎬 Multimedia de Alerta" description="Audio, video o imagen que se reproducirá con la alerta">
         <MediaEditor
           config={config.alert.media as AlertMediaConfig}
           onChange={(media) =>
@@ -179,16 +169,10 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
             emoji: '❤️',
           }}
         />
-      </div>
+      </EventSection>
 
       {/* TTS */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-2">
-          🗣️ Text-to-Speech
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Reproduce un mensaje de voz cuando alguien haga follow
-        </p>
+      <EventSection title="🗣️ Text-to-Speech" description="Reproduce un mensaje de voz cuando alguien haga follow">
         <TtsSection
           config={config.alert.tts}
           onChange={(updates) => onConfigChange({ alert: { ...config.alert, tts: { ...config.alert.tts, ...updates } } })}
@@ -197,32 +181,20 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
           suggestedTemplate={TTS_TEMPLATES.follow}
           eventType="follow"
         />
-      </div>
+      </EventSection>
 
       {/* Mensaje en Chat */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
-          💬 Mensaje del Bot en Chat
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          El bot enviará un mensaje en el chat cuando alguien haga follow
-        </p>
+      <EventSection title="💬 Mensaje del Bot en Chat" description="El bot enviará un mensaje en el chat cuando alguien haga follow">
         <ChatMessageSection
           config={config.alert.chatMessage}
           onChange={(chatMessage) => onConfigChange({ alert: { ...config.alert, chatMessage } })}
           messageVariables={EVENT_VARIABLES.follow}
           suggestedTemplate={CHAT_TEMPLATES.follow}
         />
-      </div>
+      </EventSection>
 
       {/* Variantes */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-2">
-          🎲 Variantes de Alerta
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Configura múltiples variantes que se reproducen aleatoriamente
-        </p>
+      <EventSection title="🎲 Variantes de Alerta" description="Configura múltiples variantes que se reproducen aleatoriamente">
         <VariantEditor
           config={config.alert.variants}
           onChange={(variants: VariantsConfig) => onConfigChange({ alert: { ...config.alert, variants } })}
@@ -231,16 +203,10 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
           hasUserMessage={false}
           eventType="follow"
         />
-      </div>
+      </EventSection>
 
       {/* Cooldown */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
-          ⏱️ Cooldown Global
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Tiempo mínimo entre cualquier alerta de follow (segundos)
-        </p>
+      <EventSection title="⏱️ Cooldown Global" description="Tiempo mínimo entre cualquier alerta de follow (segundos)">
 
         <input
           type="number"
@@ -256,7 +222,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
             💡 <strong>Recomendación:</strong> 5 segundos es ideal para evitar spam sin perder alertas
           </p>
         </div>
-      </div>
+      </EventSection>
 
       {/* Anti-Spam por Usuario */}
       <div className="rounded-2xl border-2 border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20 p-6 shadow-lg">

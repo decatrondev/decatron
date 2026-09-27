@@ -15,6 +15,7 @@ import { VariantEditor } from '../../components/VariantEditor';
 import type { AlertMediaConfig } from '../../../../../types/timer-alerts';
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { MESSAGE_TEMPLATES, TTS_TEMPLATES, EVENT_VARIABLES, CHAT_TEMPLATES } from '../../constants/defaults';
+import { EventSection } from '../EventSection';
 
 interface BitsTabProps {
   config: BitsAlertConfig;
@@ -23,6 +24,8 @@ interface BitsTabProps {
 
 export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
+  // La alerta base arranca plegada (el interruptor queda en el encabezado)
+  const [baseOpen, setBaseOpen] = useState(false);
 
   const addTier = () => {
     const tierIndex = config.tiers.length;
@@ -140,8 +143,12 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
             />
             <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
           </label>
+          <button type="button" onClick={() => setBaseOpen(o => !o)} aria-expanded={baseOpen} className="ml-3 p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-blue-100 dark:hover:bg-blue-900/40" title={baseOpen ? 'Plegar' : 'Desplegar'}>
+            <ChevronDown className={`w-5 h-5 transition-transform ${baseOpen ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
+        {baseOpen && (
         <div className="space-y-4 mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
           {/* Mensaje Base */}
           <div>
@@ -283,6 +290,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
             eventType="bits"
           />
         </div>
+        )}
       </div>
 
       {/* Tiers Específicos */}
@@ -616,13 +624,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
       </div>
 
       {/* Cooldown */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
-          ⏱️ Cooldown
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Tiempo mínimo entre alertas de bits (segundos)
-        </p>
+      <EventSection title="⏱️ Cooldown" description="Tiempo mínimo entre alertas de bits (segundos)" defaultOpen>
 
         <input
           type="number"
@@ -632,7 +634,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
           onChange={(e) => onConfigChange({ cooldown: parseInt(e.target.value) || 5 })}
           className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
         />
-      </div>
+      </EventSection>
     </div>
   );
 };

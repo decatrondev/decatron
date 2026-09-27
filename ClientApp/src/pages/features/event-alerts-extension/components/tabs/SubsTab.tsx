@@ -14,6 +14,7 @@ import { VariantEditor } from '../../components/VariantEditor';
 import type { AlertMediaConfig } from '../../../../../types/timer-alerts';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { MESSAGE_TEMPLATES, TTS_TEMPLATES, EVENT_VARIABLES, CHAT_TEMPLATES } from '../../constants/defaults';
+import { EventSection } from '../EventSection';
 
 interface SubsTabProps {
   config: SubsAlertConfig;
@@ -71,13 +72,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
       </div>
 
       {/* Configuración por Tier */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
-          🎯 Configuración por Tier
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Personaliza la alerta para cada tipo de subscripción
-        </p>
+      <EventSection title="🎯 Configuración por Tier" description="Personaliza la alerta para cada tipo de subscripción" defaultOpen>
 
         <div className="space-y-3">
           {(Object.keys(tierInfo) as SubTier[]).map((tier) => {
@@ -284,16 +279,10 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
             );
           })}
         </div>
-      </div>
+      </EventSection>
 
       {/* Cooldown */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
-          ⏱️ Cooldown
-        </label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
-          Tiempo mínimo entre alertas de subscripciones (segundos)
-        </p>
+      <EventSection title="⏱️ Cooldown" description="Tiempo mínimo entre alertas de subscripciones (segundos)">
 
         <input
           type="number"
@@ -303,7 +292,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
           onChange={(e) => onConfigChange({ cooldown: parseInt(e.target.value) || 5 })}
           className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none"
         />
-      </div>
+      </EventSection>
     </div>
   );
 };

@@ -1543,6 +1543,7 @@
       "general": "General",
       "events": "Eventos",
       "design": "Diseño",
+      "advanced": "Avanzado",
       "media": "Media",
       "testing": "Pruebas"
     },
@@ -1592,7 +1593,8 @@
       "testFailed": "No se pudo enviar la prueba.",
       "testHint": "Manda esta alerta a tu overlay de OBS, con su sonido y su voz.",
       "testUnsaved": "Guarda primero: la prueba usa lo último que guardaste.",
-      "size": "Tamaño del overlay: {{width}}×{{height}}"
+      "size": "Tamaño del overlay: {{width}}×{{height}}",
+      "soundHint": "«Reproducir» suena con el sonido y el video de la alerta. La voz (TTS) se escucha con «Probar en OBS»."
     },
     "design": {
       "targetTitle": "¿Qué diseño editas?",
@@ -1777,7 +1779,8 @@
       },
       "themesHint": "Se aplican al diseño que estás editando. Después puedes ajustar cada color en el Editor.",
       "elementAnimHint": "Cada elemento (tarjeta, media, textos) tiene además su propia animación en el Editor.",
-      "elementAnim": "Animación de este elemento"
+      "elementAnim": "Animación de este elemento",
+      "completed": "Completado"
     }
   }
 }

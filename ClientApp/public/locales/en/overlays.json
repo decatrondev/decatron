@@ -1543,6 +1543,7 @@
       "general": "General",
       "events": "Events",
       "design": "Design",
+      "advanced": "Advanced",
       "media": "Media",
       "testing": "Tests"
     },
@@ -1592,7 +1593,8 @@
       "testFailed": "Could not send the test.",
       "testHint": "Sends this alert to your OBS overlay, with its sound and voice.",
       "testUnsaved": "Save first: the test uses what you saved last.",
-      "size": "Overlay size: {{width}}×{{height}}"
+      "size": "Overlay size: {{width}}×{{height}}",
+      "soundHint": "“Play” includes the alert sound and video audio. The voice (TTS) plays with “Test in OBS”."
     },
     "design": {
       "targetTitle": "Which design are you editing?",
@@ -1777,7 +1779,8 @@
       },
       "themesHint": "They apply to the design you're editing. Then you can fine-tune each color in the Editor.",
       "elementAnimHint": "Each element (card, media, texts) also has its own animation in the Editor.",
-      "elementAnim": "This element's animation"
+      "elementAnim": "This element's animation",
+      "completed": "Completed"
     }
   }
 }

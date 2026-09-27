@@ -12,6 +12,7 @@ import { ChatMessageSection } from './ChatMessageSection';
 import { VariantEditor } from './VariantEditor';
 import type { AlertMediaConfig } from '../../../../types/timer-alerts';
 import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { EventSection } from './EventSection';
 
 interface TierTemplates {
   base: string;
@@ -65,6 +66,8 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
   userTier = 'free',
 }) => {
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
+  // La alerta base arranca plegada (el interruptor queda en el encabezado)
+  const [baseOpen, setBaseOpen] = useState(false);
 
   // Helpers para obtener templates según índice
   const getMessageTemplate = (index: number) => {
@@ -158,8 +161,12 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
             <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Se reproduce siempre. Los tiers pueden sobrescribirla.</p>
           </div>
           <Toggle checked={baseAlert.enabled} onChange={v => onBaseAlertChange({ enabled: v })} />
+          <button type="button" onClick={() => setBaseOpen(o => !o)} aria-expanded={baseOpen} className="ml-3 p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-blue-100 dark:hover:bg-blue-900/40" title={baseOpen ? 'Plegar' : 'Desplegar'}>
+            <ChevronDown className={`w-5 h-5 transition-transform ${baseOpen ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
+        {baseOpen && (
         <div className="space-y-4 pt-4 border-t border-blue-200 dark:border-blue-800">
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -236,6 +243,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
             eventType={eventType}
           />
         </div>
+        )}
       </div>
 
       {/* Tiers */}
@@ -401,12 +409,10 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
       </div>
 
       {/* Cooldown */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-2">⏱️ Cooldown</label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">Tiempo mínimo entre alertas (segundos)</p>
+      <EventSection title="⏱️ Cooldown" description="Tiempo mínimo entre alertas (segundos)" defaultOpen>
         <input type="number" min="0" max="60" value={cooldown}
           onChange={e => onCooldownChange(parseInt(e.target.value) || 5)} className={inputClass} />
-      </div>
+      </EventSection>
     </div>
   );
 };

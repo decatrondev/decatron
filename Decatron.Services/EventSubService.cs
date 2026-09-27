@@ -386,6 +386,30 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Registra channel.hype_train.progress o channel.hype_train.end (versión 2, como el begin). Sin progress las
+        /// alertas de los niveles 2 a 5 nunca salían; sin end, la de "hype train completado" tampoco.
+        /// </summary>
+        public async Task<EventSubSubscriptionResult> EnsureHypeTrainStageSubscriptionAsync(
+            string broadcasterUserId,
+            string stage,
+            EventSubTransportMode transportMode = EventSubTransportMode.Webhook,
+            string conduitId = null)
+        {
+            var type = $"channel.hype_train.{stage}";
+            try
+            {
+                if (await HasActiveSubscriptionAsync(broadcasterUserId, type))
+                    return new EventSubSubscriptionResult { Success = true, Message = $"Suscripción {type} ya existe", ResponseBody = null };
+                return await CreateSubscriptionAsync(type, "2", new { broadcaster_user_id = broadcasterUserId }, transportMode, conduitId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error asegurando suscripción {type} para broadcaster {broadcasterUserId}");
+                return new EventSubSubscriptionResult { Success = false, Message = ex.Message, ResponseBody = null };
+            }
+        }
+
+        /// <summary>
         /// Lista todas las suscripciones EventSub activas, recorriendo la paginación de Helix.
         /// Sin esto solo se ven las primeras 100 (el máximo por página) de las 400+ que ya
         /// existen — bug detectado el 6 de agosto de 2026, ver roadmap sección 2.1.

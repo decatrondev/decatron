@@ -239,6 +239,10 @@ namespace Decatron.Services
                 DespacharEvento(shardId, "channel.raid", BuildRaidJObject(e.Payload.Event));
             client.ChannelHypeTrainBeginV2 += (_, e) =>
                 DespacharEvento(shardId, "channel.hype_train.begin", BuildHypeTrainJObject(e.Payload.Event));
+            client.ChannelHypeTrainProgressV2 += (_, e) =>
+                DespacharEvento(shardId, "channel.hype_train.progress", new JObject { ["broadcaster_user_login"] = e.Payload.Event.BroadcasterUserLogin, ["level"] = e.Payload.Event.Level });
+            client.ChannelHypeTrainEndV2 += (_, e) =>
+                DespacharEvento(shardId, "channel.hype_train.end", new JObject { ["broadcaster_user_login"] = e.Payload.Event.BroadcasterUserLogin, ["level"] = e.Payload.Event.Level });
             client.StreamOnline += (_, e) =>
                 DespacharEvento(shardId, "stream.online", BuildStreamOnlineJObject(e.Payload.Event));
             client.StreamOffline += (_, e) =>

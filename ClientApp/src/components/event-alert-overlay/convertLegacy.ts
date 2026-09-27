@@ -311,3 +311,39 @@ export function exitDurationMs(d: AlertDesign): number {
     const steps = [d.animation.exit, d.card.animation.exit, d.media.animation.exit, ...d.texts.map(t => t.animation.exit)];
     return Math.max(0, ...steps.filter(s => s.type !== 'none').map(s => s.durationMs + (s.delayMs || 0)));
 }
+
+/**
+ * La pestaña Avanzado edita el estilo global viejo (global.defaultStyle). Los diseños que siguen ese estilo ya lo
+ * toman solos; a uno editado se le aplica solo lo que cambió (tarjeta y textos), así la pestaña sigue sirviendo.
+ */
+export function applyStyleChanges(d: AlertDesign, prev: Partial<LegacyAlertStyle>, next: Partial<LegacyAlertStyle>): AlertDesign {
+    if (d.followAlertStyle) return d;
+    const changed = (k: keyof LegacyAlertStyle) => JSON.stringify(prev[k]) !== JSON.stringify(next[k]) && next[k] !== undefined;
+    const card = { ...d.card, background: { ...d.card.background, gradient: { ...d.card.background.gradient } }, border: { ...d.card.border } };
+    if (changed('backgroundType')) card.background.type = next.backgroundType!;
+    if (changed('backgroundColor')) card.background.color = next.backgroundColor!;
+    if (changed('backgroundGradient')) card.background.gradient = { ...card.background.gradient, ...next.backgroundGradient! };
+    if (changed('backgroundImage')) card.background.image = next.backgroundImage!;
+    if (changed('opacity')) card.opacity = next.opacity!;
+    if (changed('borderEnabled')) card.border.enabled = next.borderEnabled!;
+    if (changed('borderColor')) card.border.color = next.borderColor!;
+    if (changed('borderWidth')) card.border.width = next.borderWidth!;
+    if (changed('borderRadius')) card.radius = next.borderRadius!;
+    const media = changed('mediaObjectFit') ? { ...d.media, fit: next.mediaObjectFit! } : d.media;
+    const texts = d.texts.map(t => {
+        const out = { ...t };
+        if (changed('fontFamily')) out.fontFamily = next.fontFamily!;
+        if (changed('textColor')) out.color = next.textColor!;
+        if (changed('textShadow')) out.shadow = next.textShadow!;
+        if (changed('textAlign')) out.align = next.textAlign!;
+        if (changed('padding')) out.padding = next.padding!;
+        // El texto principal: la primera línea es el título (tamaño y grosor) y el mensaje va 4 px más chico
+        if (t.id === 'main' && (changed('fontSize') || changed('fontWeight'))) {
+            out.lines = t.lines.map((l, i) => i === 0
+                ? { ...l, fontSize: next.fontSize ?? l.fontSize, fontWeight: next.fontWeight ?? l.fontWeight }
+                : l.requires === 'message' && changed('fontSize') ? { ...l, fontSize: Math.max((next.fontSize ?? l.fontSize) - 4, 12) } : l);
+        }
+        return out;
+    });
+    return { ...d, card, media, texts };
+}

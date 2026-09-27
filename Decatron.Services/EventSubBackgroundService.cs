@@ -299,6 +299,21 @@ namespace Decatron.Services
                                 errorCount++;
                             }
 
+                            // Progreso y fin del hype train: las alertas de los niveles 2 a 5 y la de "completado"
+                            foreach (var stage in new[] { "progress", "end" })
+                            {
+                                var stageResult = await eventSubService.EnsureHypeTrainStageSubscriptionAsync(user.TwitchId, stage, transportMode, conduitId);
+                                if (!stageResult.Success)
+                                {
+                                    _logger.LogError($"❌ {user.Login}: Error al registrar suscripción Hype Train {stage} - {stageResult.Message}");
+                                    errorCount++;
+                                }
+                                else if (!stageResult.Message.Contains("ya existe"))
+                                {
+                                    registeredCount++;
+                                }
+                            }
+
                             // Suscribir a stream.online
                             var streamOnlineResult = await eventSubService.EnsureStreamOnlineSubscriptionAsync(user.TwitchId, transportMode, conduitId);
                             if (streamOnlineResult.Success)

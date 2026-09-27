@@ -10,7 +10,10 @@ import { listCases, payloadFor } from '../../components/event-alert-overlay/from
 import type { AlertEventType, EventAlertData, EventAlertsDesign } from '../../components/event-alert-overlay/types';
 import { useEventAlertsConfig } from './event-alerts-extension/hooks/useEventAlertsConfig';
 import { useEventAlertsPersistence } from './event-alerts-extension/hooks/useEventAlertsPersistence';
-import { GlobalTab, FollowTab, BitsTab, SubsTab, GiftSubsTab, RaidsTab, ResubsTab, HypeTrainTab, MediaTab, TestingTab } from './event-alerts-extension/components/tabs';
+import { GlobalTab, FollowTab, BitsTab, SubsTab, GiftSubsTab, RaidsTab, ResubsTab, HypeTrainTab, MediaTab, TestingTab, StyleTab } from './event-alerts-extension/components/tabs';
+import { applyStyleChanges } from '../../components/event-alert-overlay/convertLegacy';
+import type { GlobalAlertsConfig } from './event-alerts-extension/types/index';
+import { GlobalDefaultsContext } from './event-alerts-extension/globalDefaults';
 import DesignTab, { firstFamily, targetEvent, type DesignTarget } from './event-alerts-extension/components/design/DesignTab';
 import EventAlertsPreview from './event-alerts-extension/components/EventAlertsPreview';
 
@@ -18,13 +21,14 @@ import EventAlertsPreview from './event-alerts-extension/components/EventAlertsP
 // pestañas a la izquierda (2/3), vista previa en vivo a la derecha (1/3), un solo renderer para OBS, vista previa
 // y editor. Las pestañas de cada evento (niveles, variantes, TTS, chat) son las de siempre.
 
-type TabId = 'guide' | 'general' | 'events' | 'design' | 'media' | 'testing';
+type TabId = 'guide' | 'general' | 'events' | 'design' | 'advanced' | 'media' | 'testing';
 
 const TABS: { id: TabId; icon: string }[] = [
     { id: 'guide', icon: '📚' },
     { id: 'general', icon: '⚙️' },
     { id: 'events', icon: '🎉' },
     { id: 'design', icon: '🎨' },
+    { id: 'advanced', icon: '⚡' },
     { id: 'media', icon: '📁' },
     { id: 'testing', icon: '🧪' },
 ];
@@ -135,10 +139,20 @@ export default function EventAlertsConfig() {
         try { await api.post('/eventalerts/test', { eventType, ...data }); } catch { setMessage({ ok: false, text: t('eventAlertsView.preview.testFailed') }); }
     };
 
+    // Avanzado edita el estilo global viejo: también se aplica al diseño general si ya fue editado
+    const onAdvancedChange = (updates: Partial<GlobalAlertsConfig>) => {
+        if (updates.defaultStyle) {
+            const prev = cfg.globalConfig.defaultStyle, next = updates.defaultStyle;
+            cfg.setDesign(d => ({ ...d, general: applyStyleChanges(d.general, prev, next) }));
+        }
+        cfg.updateGlobalConfig(updates);
+    };
+
     // La vista previa sigue al evento que se edita
     const onDesignTarget = (target: DesignTarget) => { setDesignTarget(target); setPreviewEvent(targetEvent(target)); };
     const onEventTab = (ev: AlertEventType) => { setEventTab(ev); setPreviewEvent(ev); };
-    const hypeLevel = designTarget.startsWith('hype-') ? Number(designTarget.slice(5)) : undefined;
+    const hypeKey = designTarget.startsWith('hype-') ? designTarget.slice(5) : '';
+    const hypeLevel = hypeKey === 'completed' ? 'completed' as const : hypeKey ? Number(hypeKey) : undefined;
 
     if (loading) {
         return (
@@ -160,6 +174,12 @@ export default function EventAlertsConfig() {
     const link = (to: TabId, label: string) => <button className="underline text-[#2563eb]" onClick={() => setTab(to)}>{label}</button>;
 
     return (
+        <GlobalDefaultsContext.Provider value={{
+            duration: cfg.globalConfig.defaultDuration || 5,
+            animation: cfg.globalConfig.defaultAnimation || 'fade',
+            direction: cfg.globalConfig.defaultAnimationDirection || 'center',
+            volume: cfg.globalConfig.defaultVolume ?? 80,
+        }}>
         <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8">
             {/* panel-scale agranda todo en 2K/4K; el editor calcula el arrastre con el tamaño real en pantalla */}
             <div className="panel-scale max-w-[1920px] mx-auto">
@@ -272,9 +292,11 @@ export default function EventAlertsConfig() {
                                 samples={samples}
                                 target={designTarget}
                                 onTargetChange={onDesignTarget}
+                                anchor={cfg.globalConfig.defaultPosition}
                             />
                         )}
 
+                        {tab === 'advanced' && <StyleTab globalConfig={cfg.globalConfig} onGlobalConfigChange={onAdvancedChange} />}
                         {tab === 'media' && <MediaTab />}
                         {tab === 'testing' && <TestingTab onTest={test} />}
                     </div>
@@ -293,5 +315,6 @@ export default function EventAlertsConfig() {
                 </div>
             </div>
         </div>
+        </GlobalDefaultsContext.Provider>
     );
 }

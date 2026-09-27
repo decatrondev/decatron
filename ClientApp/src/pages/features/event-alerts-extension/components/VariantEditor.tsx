@@ -12,6 +12,7 @@ import { MediaEditor } from '../../timer-extension/components/MediaEditor';
 import { TtsSection } from './TtsSection';
 import { ChatMessageSection } from './ChatMessageSection';
 import type { AlertMediaConfig } from '../../../../types/timer-alerts';
+import { useGlobalDefaults, type GlobalAlertDefaults } from '../globalDefaults';
 
 interface VariantEditorProps {
   config?: VariantsConfig;
@@ -37,18 +38,18 @@ const defaultVariantsConfig: VariantsConfig = {
   variants: [],
 };
 
-const createDefaultVariant = (index: number): AlertVariant => ({
+const createDefaultVariant = (index: number, defaults: GlobalAlertDefaults): AlertVariant => ({
   id: `variant-${Date.now()}-${index}`,
   name: `Variante ${index + 1}`,
   weight: 100,
   media: { enabled: false, mode: 'simple' as const },
   sound: '',
-  volume: 80,
+  volume: defaults.volume,
   message: '',
-  duration: 5,
+  duration: defaults.duration,
   animation: {
-    type: 'fade',
-    direction: 'center',
+    type: defaults.animation,
+    direction: defaults.direction,
     duration: 500,
     easing: 'ease-in-out',
   },
@@ -78,6 +79,7 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
   hasUserMessage = false,
   eventType = '',
 }) => {
+  const globalDefaults = useGlobalDefaults();
   const [expandedVariant, setExpandedVariant] = useState<string | null>(null);
 
   const currentConfig = config || defaultVariantsConfig;
@@ -94,7 +96,7 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
 
   const addVariant = () => {
     if (!canAddMore) return;
-    const newVariant = createDefaultVariant(variantCount);
+    const newVariant = createDefaultVariant(variantCount, globalDefaults);
     updateConfig({ variants: [...currentConfig.variants, newVariant] });
     setExpandedVariant(newVariant.id);
   };

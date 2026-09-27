@@ -20,6 +20,8 @@ export interface AlertCase {
     amount: number;
     tier?: string;
     level?: number;
+    /** Hype train: la alerta de "completado". */
+    completed?: boolean;
 }
 
 const SUB_KEYS = ['prime', 'tier1', 'tier2', 'tier3'] as const;
@@ -43,7 +45,9 @@ export function listCases(config: any, eventType: AlertEventType): AlertCase[] {
         return SUB_KEYS.filter(k => isObj(ev.subTypes?.[k])).map(k => ({ key: k, eventType, name: SUB_LABELS[k], alertConfig: ev.subTypes[k], eventConfig: ev, amount: 1, tier: SUB_LABELS[k] }));
     }
     if (eventType === 'hypeTrain') {
-        return [1, 2, 3, 4, 5].filter(l => isObj(ev.levels?.[String(l)])).map(l => ({ key: `level-${l}`, eventType, name: String(l), alertConfig: ev.levels[String(l)], eventConfig: ev, amount: l, level: l }));
+        const levels: AlertCase[] = [1, 2, 3, 4, 5].filter(l => isObj(ev.levels?.[String(l)])).map(l => ({ key: `level-${l}`, eventType, name: String(l), alertConfig: ev.levels[String(l)], eventConfig: ev, amount: l, level: l }));
+        // El fin del hype train (se dispara con el nivel alcanzado)
+        return isObj(ev.completionAlert) ? [...levels, { key: 'completed', eventType, name: 'completed', alertConfig: ev.completionAlert, eventConfig: ev, amount: 5, level: 5, completed: true }] : levels;
     }
     const base: AlertCase = { key: 'base', eventType, name: 'base', alertConfig: ev.baseAlert, eventConfig: ev, amount: eventType === 'raids' ? 10 : eventType === 'resubs' ? 3 : 1 };
     const tiers = (Array.isArray(ev.tiers) ? ev.tiers : []).filter((t: any) => isObj(t) && t.enabled !== false);
@@ -88,6 +92,41 @@ function extractMedia(cfg: any, out: { mediaUrl: string | null; mediaType: strin
     out.mediaType = m.type || (m.url ? detectMediaType(m.url) : null) || 'image';
 }
 
+/** El sonido de la alerta y el volumen del audio del video, como los elige el backend (ExtractMediaFromConfig). */
+export interface AlertAudio { soundUrl: string | null; soundVolume: number; videoVolume: number }
+
+function extractAudio(cfg: any, out: AlertAudio, dv: number) {
+    const m = cfg?.media;
+    if (!isObj(m) || m.enabled !== true) return;
+    if ((m.mode ?? 'simple') === 'advanced' && isObj(m.advanced)) {
+        const adv = m.advanced;
+        if (adv.video?.url) out.videoVolume = num(adv.video.volume) ? adv.video.volume : 80;
+        if (adv.audio?.url) { out.soundUrl = adv.audio.url; out.soundVolume = num(adv.audio.volume) ? adv.audio.volume : dv; }
+        return;
+    }
+    if (isObj(m.simple)) {
+        const vol = num(m.simple.volume) ? m.simple.volume : dv;
+        if (m.simple.type === 'video') out.videoVolume = vol;
+        else if (m.simple.type === 'audio' && m.simple.url) { out.soundUrl = m.simple.url; out.soundVolume = vol; }
+    }
+    if (!out.soundUrl && typeof m.soundUrl === 'string' && m.soundUrl) { out.soundUrl = m.soundUrl; out.soundVolume = num(m.soundVolume) ? m.soundVolume : dv; }
+}
+
+/** Sonido y audio del video de una alerta (para escucharlos en la vista previa). */
+export function audioFor(config: any, c: AlertCase): AlertAudio {
+    const dv = num(config?.global?.defaultVolume) ? config.global.defaultVolume : 80;
+    const out: AlertAudio = { soundUrl: null, soundVolume: dv, videoVolume: 0 };
+    const cfg = c.alertConfig ?? {};
+    extractAudio(cfg, out, dv);
+    if (!out.soundUrl && typeof cfg.sound === 'string' && cfg.sound) { out.soundUrl = cfg.sound; if (num(cfg.volume)) out.soundVolume = cfg.volume; }
+    const base = c.eventConfig?.baseAlert;
+    if (!out.soundUrl && isObj(base)) {
+        extractAudio({ media: base.media }, out, dv);
+        if (!out.soundUrl && typeof base.sound === 'string' && base.sound) { out.soundUrl = base.sound; if (num(base.volume)) out.soundVolume = base.volume; }
+    }
+    return out;
+}
+
 /** Lo que mandaría el backend para esa alerta: los datos que se dibujan, el estilo combinado y el propio. */
 export function payloadFor(config: any, c: AlertCase, username = 'StreamFan99', userMessage = '¡Qué buen stream!'): {
     data: EventAlertData; style: LegacyAlertStyle; partialStyle: Partial<LegacyAlertStyle> | null; overlayElements: LegacyOverlayElements;
@@ -100,7 +139,10 @@ export function payloadFor(config: any, c: AlertCase, username = 'StreamFan99', 
     extractMedia(cfg, media);
     if (!media.mediaUrl && isObj(c.eventConfig?.baseAlert)) extractMedia(c.eventConfig.baseAlert, media);
     if (media.mediaUrl && /\.(mp4|webm|mov)$/i.test(media.mediaUrl)) media.mediaType = 'video';
-    const animType = cfg.animation?.type ?? 'fade';
+    // Lo que la alerta no trae sale de General, como en el backend
+    const g = config?.global ?? {};
+    const animType = cfg.animation?.type ?? g.defaultAnimation ?? 'fade';
+    const animationDirection = cfg.animation?.direction ?? g.defaultAnimationDirection ?? 'center';
     const anim = ({ slide: 'slide', bounce: 'bounce', zoom: 'zoom' } as Record<string, string>)[animType] ?? 'fade';
     const partialStyle = isObj(cfg.style) ? (cfg.style as Partial<LegacyAlertStyle>) : null;
     return {
@@ -115,9 +157,11 @@ export function payloadFor(config: any, c: AlertCase, username = 'StreamFan99', 
             message,
             mediaType: (media.mediaType ?? undefined) as EventAlertData['mediaType'],
             mediaUrl: media.mediaUrl ?? '',
-            duration: (num(cfg.duration) ? cfg.duration : 5) * 1000,
+            duration: (num(cfg.duration) ? cfg.duration : num(g.defaultDuration) ? g.defaultDuration : 5) * 1000,
             animationIn: `${anim}In`,
             animationOut: `${anim}Out`,
+            animationDirection,
+            hypeTrainCompleted: c.completed || undefined,
             effects: cfg.effects?.enabled && Array.isArray(cfg.effects.effects) ? cfg.effects.effects.filter(Boolean) : [],
         },
         style: mergeLegacyStyle(mergeLegacyStyle(BACKEND_STYLE_DEFAULTS, config?.global?.defaultStyle), partialStyle),
