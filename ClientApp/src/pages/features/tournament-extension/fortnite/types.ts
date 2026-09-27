@@ -17,6 +17,7 @@ export interface FortniteConfig {
     proofMode: string;
     reportWindowMinutes: number;
     missingReportZero: boolean;
+    publicScreenshots: boolean;
 }
 
 export const PROOF_MODE_LABELS: Record<string, { label: string; help: string }> = {

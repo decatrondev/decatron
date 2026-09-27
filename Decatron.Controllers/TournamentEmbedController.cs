@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Decatron.Core.Models.Tournament;
 using Decatron.Data;
 using Decatron.Services.Tournament;
@@ -102,6 +103,34 @@ namespace Decatron.Controllers
                 e.ChannelOwnerId == user.Id && e.Slug == editionSlug && e.Status != "draft");
             if (edition == null)
                 return NotFound(new { success = false, message = "Torneo no encontrado" });
+
+            // Fortnite: tabla por puntos (final si existe, si no el lobby unico, si no el
+            // primer grupo). valueText es lo que muestra el widget a la derecha.
+            if (edition.Game == TournamentGames.Fortnite)
+            {
+                var standings = HttpContext.RequestServices.GetRequiredService<TournamentFortniteStandingsService>();
+                var scopes = await standings.ComputeAsync(_dbContext, edition);
+                var scope = scopes.FirstOrDefault(s => s.IsFinal && s.Rows.Count > 0)
+                    ?? scopes.FirstOrDefault(s => s.Key == "all")
+                    ?? scopes.FirstOrDefault();
+                return Ok(new
+                {
+                    success = true,
+                    editionName = edition.Name,
+                    scopeName = scope?.Name,
+                    theme = theme == "light" ? "light" : "dark",
+                    ranking = (scope?.Rows ?? new List<TournamentFortniteStandingsService.Row>())
+                        .Take(Math.Clamp(limit, 1, 50))
+                        .Select(r => new
+                        {
+                            rank = r.Rank,
+                            displayName = r.TeamName,
+                            currentLp = (int?)null,
+                            valueText = $"{r.Points} pts",
+                            badge = r.Champion ? "Campeón" : r.MatchPoint ? "Match point" : null,
+                        }),
+                });
+            }
 
             var participants = await _dbContext.TournamentParticipants
                 .Where(p => p.TournamentEditionId == edition.Id && p.Status == "approved")

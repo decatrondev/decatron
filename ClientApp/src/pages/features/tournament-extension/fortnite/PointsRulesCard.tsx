@@ -303,6 +303,16 @@ export default function PointsRulesCard({
                             className={inputClass}
                         />
                     </div>
+                    <label className="flex items-start gap-2 text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc] cursor-pointer md:col-span-2">
+                        <input type="checkbox" checked={config.publicScreenshots} onChange={(e) => set({ publicScreenshots: e.target.checked })} className="mt-1" />
+                        <span>
+                            Mostrar las capturas en la página pública
+                            <span className="block text-[11px] 4xl:text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                Cualquiera puede ver, en el detalle de cada equipo, las capturas de sus resultados aprobados. Si está apagado solo las ves tú y
+                                cada equipo las suyas.
+                            </span>
+                        </span>
+                    </label>
                     <label className="flex items-start gap-2 text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc] cursor-pointer self-end">
                         <input type="checkbox" checked={config.missingReportZero} onChange={(e) => set({ missingReportZero: e.target.checked })} className="mt-1" />
                         <span>

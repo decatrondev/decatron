@@ -25,12 +25,14 @@ namespace Decatron.Controllers
         private readonly TournamentFortniteFormatService _format;
         private readonly TournamentFortniteMatchdayService _matchday;
         private readonly TournamentFortniteResultsService _results;
+        private readonly TournamentFortniteStandingsService _standings;
 
         public TournamentFortniteAdminController(
             DecatronDbContext dbContext, TournamentFortniteFormatService format, TournamentFortniteMatchdayService matchday,
-            TournamentFortniteResultsService results, IPermissionService permissionService)
+            TournamentFortniteResultsService results, TournamentFortniteStandingsService standings, IPermissionService permissionService)
             : base(dbContext, permissionService)
         {
+            _standings = standings;
             _dbContext = dbContext;
             _format = format;
             _matchday = matchday;
@@ -140,6 +142,7 @@ namespace Decatron.Controllers
             c.ProofMode,
             c.ReportWindowMinutes,
             c.MissingReportZero,
+            c.PublicScreenshots,
         };
 
         // ─── Tabla de puntos y reglas ──────────────────────────────────────────
@@ -155,6 +158,7 @@ namespace Decatron.Controllers
             public string ProofMode { get; set; } = "always";
             public int ReportWindowMinutes { get; set; } = 30;
             public bool MissingReportZero { get; set; } = true;
+            public bool PublicScreenshots { get; set; }
         }
 
         [HttpPut("config")]
@@ -192,6 +196,7 @@ namespace Decatron.Controllers
             config.ProofMode = request.ProofMode;
             config.ReportWindowMinutes = request.ReportWindowMinutes;
             config.MissingReportZero = request.MissingReportZero;
+            config.PublicScreenshots = request.PublicScreenshots;
             config.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
 
@@ -722,6 +727,27 @@ namespace Decatron.Controllers
             var (edition, error) = await ResolveAsync(editionId, write: false);
             if (error != null) return error;
             return Ok(new { success = true, entries = await TournamentFortniteAuditQuery.ListAsync(_dbContext, editionId) });
+        }
+
+        // ─── Clasificacion (F5) ────────────────────────────────────────────────
+
+        [HttpGet("standings")]
+        public async Task<IActionResult> GetStandings(long editionId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: false);
+            if (error != null) return error;
+            return Ok(new { success = true, scopes = await _standings.ComputeAsync(_dbContext, edition!) });
+        }
+
+        [HttpPost("groups/final/fill")]
+        public async Task<IActionResult> FillFinal(long editionId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (added, fillError) = await _standings.FillFinalAsync(_dbContext, edition!);
+            if (fillError != null) return BadRequest(new { success = false, message = fillError });
+            return Ok(new { success = true, added });
         }
 }
 }

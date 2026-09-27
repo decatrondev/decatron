@@ -141,7 +141,9 @@ export default function DashboardPanel({
             )}
 
             {/* El widget embebible muestra el ranking (LP) — no aplica a ARAM, que no tiene ranking individual. */}
-            {channelName && edition.mode === 'solo_q_climb' && <EmbedSnippet channelName={channelName} editionSlug={edition.slug} />}
+            {channelName && (edition.mode === 'solo_q_climb' || isFortnite) && (
+                <EmbedSnippet channelName={channelName} editionSlug={edition.slug} isFortnite={isFortnite} />
+            )}
         </div>
     );
 }
@@ -172,24 +174,40 @@ function PublicLinkCard({ channelName, editionSlug }: { channelName: string; edi
                 >
                     {url}
                 </a>
-                <button onClick={copy} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
+                <button onClick={() => copy(snippet)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
                     <Copy className="w-4 h-4" />
                 </button>
-                {copied && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+                {copied === snippet && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
             </div>
+            {isFortnite && (
+                <>
+                    <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-3 mb-2">
+                        Para OBS: agrega una fuente de navegador con este link (fondo transparente, top 10, se actualiza solo).
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <code className="text-[10px] px-2 py-1.5 rounded bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] flex-1 truncate">{obsUrl}</code>
+                        <button onClick={() => copy(obsUrl)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
+                            <Copy className="w-4 h-4" />
+                        </button>
+                        {copied === obsUrl && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
 
-function EmbedSnippet({ channelName, editionSlug }: { channelName: string; editionSlug: string }) {
-    const [copied, setCopied] = useState(false);
+function EmbedSnippet({ channelName, editionSlug, isFortnite = false }: { channelName: string; editionSlug: string; isFortnite?: boolean }) {
+    const [copied, setCopied] = useState<string | null>(null);
     const url = `${window.location.origin}/embed/torneo/${channelName}/${editionSlug}/ranking`;
     const snippet = `<iframe src="${url}" width="360" height="500" frameborder="0"></iframe>`;
+    // Para OBS: fuente de navegador con fondo transparente, se actualiza sola.
+    const obsUrl = `${url}?bg=transparent&limit=10`;
 
-    const copy = () => {
-        navigator.clipboard.writeText(snippet);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+    const copy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(text);
+        setTimeout(() => setCopied(null), 1500);
     };
 
     return (

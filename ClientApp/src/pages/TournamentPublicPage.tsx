@@ -11,6 +11,7 @@ import BracketSection from './tournament-public/BracketSection';
 import TeamsSection from './tournament-public/TeamsSection';
 import PlayersSection from './tournament-public/PlayersSection';
 import InfoSection from './tournament-public/InfoSection';
+import FortniteStandingsSection from './tournament-public/FortniteStandingsSection';
 import MyTournamentModal from './tournament-public/MyTournamentModal';
 import RulesModal from './tournament-public/RulesModal';
 
@@ -21,8 +22,9 @@ const TEAM_MODE_TABS = [
     { id: 'info', label: 'Info' },
 ] as const;
 
-// Fortnite: sin bracket (se juega por puntos). La tabla de puntos llega en F5.
+// Fortnite: sin bracket, se juega por puntos (clasificación en F5).
 const FORTNITE_TABS = [
+    { id: 'standings', label: 'Clasificación' },
     { id: 'players', label: 'Jugadores' },
     { id: 'teams', label: 'Equipos' },
     { id: 'info', label: 'Info' },
@@ -84,8 +86,27 @@ export default function TournamentPublicPage() {
     }, { replace: true });
 
     const countdown = useCountdown(edition?.endsAt || null);
-    // El podio sale del LP de LoL; en Fortnite vuelve con la tabla de puntos (F5).
-    const top3 = useMemo(() => (edition?.game === 'fortnite' ? [] : ranking.slice(0, 3)), [ranking, edition?.game]);
+    // Podio: LP en LoL; puntos de la tabla principal en Fortnite (la final si ya
+    // tiene equipos, si no la primera), solo cuando ya hay partidas con resultado.
+    const [fortniteTop, setFortniteTop] = useState<{ id: number; displayName: string; points: number }[]>([]);
+    useEffect(() => {
+        if (edition?.game !== 'fortnite') return;
+        api.get(`/public/tournament/${channelName}/${editionSlug}/fortnite/standings`)
+            .then((res) => {
+                const scopes = res.data.scopes || [];
+                const main = scopes.find((sc: any) => sc.isFinal && sc.rows.length > 0) || scopes[0];
+                if (!main || main.gamesWithResults === 0) return;
+                setFortniteTop(main.rows.slice(0, 3).map((r: any) => ({ id: r.teamId, displayName: r.teamName, points: r.points })));
+            })
+            .catch(() => {});
+    }, [edition?.game, channelName, editionSlug]);
+    const top3 = useMemo(
+        () =>
+            edition?.game === 'fortnite'
+                ? fortniteTop.map((t) => ({ id: t.id, displayName: t.displayName, currentLp: null as number | null, valueText: `${t.points} pts` }))
+                : ranking.slice(0, 3).map((r) => ({ ...r, valueText: null as string | null })),
+        [ranking, edition?.game, fortniteTop],
+    );
     const bannerSponsors = useMemo(() => sponsors.filter(s => s.slots.includes('home-banner')), [sponsors]);
     const footerSponsors = useMemo(() => sponsors.filter(s => s.slots.includes('footer')), [sponsors]);
 
@@ -225,12 +246,12 @@ export default function TournamentPublicPage() {
                                 const heights = ['h-24', 'h-32', 'h-20'];
                                 const isFirst = rank === 1;
                                 return (
-                                    <button key={p.id} onClick={() => toggleExpand(p.id)}
+                                    <button key={p.id} onClick={() => (isFortnite ? setActiveTab('standings') : toggleExpand(p.id))}
                                         className="flex-1 flex flex-col items-center group">
                                         <div className="mb-2 flex flex-col items-center text-center gap-1.5">
                                             <NameAvatar name={p.displayName} size={isFirst ? 40 : 32} />
                                             <p className={`font-display font-bold text-sm truncate max-w-[110px] ${isFirst ? 'text-[#E8B04B]' : 'text-[#EDF0F7]'}`}>{p.displayName}</p>
-                                            <p className="font-mono text-xs text-[#7C8AA6]">{p.currentLp != null ? `${p.currentLp} LP` : '—'}</p>
+                                            <p className="font-mono text-xs text-[#7C8AA6]">{p.valueText ?? (p.currentLp != null ? `${p.currentLp} LP` : '—')}</p>
                                         </div>
                                         <div className={`w-full ${heights[visualIdx]} rounded-t-md border-t-2 flex items-start justify-center pt-2 transition-transform group-hover:-translate-y-1 ${
                                             isFirst
@@ -340,6 +361,14 @@ export default function TournamentPublicPage() {
                 </section>
                 )}
 
+                {activeTab === 'standings' && (
+                    <FortniteStandingsSection
+                        channelName={channelName!}
+                        editionSlug={editionSlug!}
+                        teamSize={edition.teamSize || 1}
+                        live={edition.status === 'in_progress' || edition.status === 'check_in'}
+                    />
+                )}
                 {activeTab === 'teams' && <TeamsSection channelName={channelName!} editionSlug={editionSlug!} />}
                 {activeTab === 'bracket' && <BracketSection channelName={channelName!} editionSlug={editionSlug!} />}
                 {activeTab === 'players' && <PlayersSection channelName={channelName!} editionSlug={editionSlug!} />}

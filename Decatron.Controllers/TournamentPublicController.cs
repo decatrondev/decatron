@@ -1,3 +1,4 @@
+using Decatron.Core.Models.Tournament;
 using Decatron.Data;
 using Decatron.Services.Tournament;
 using Microsoft.AspNetCore.Mvc;
@@ -310,6 +311,100 @@ namespace Decatron.Controllers
             }).OrderBy(p => p.TeamName == null ? 1 : 0).ThenBy(p => p.TeamName).ThenByDescending(p => p.IsCaptain);
 
             return Ok(new { success = true, participants = result });
+        }
+
+        // ─── Fortnite (F5) ──────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Tabla de posiciones de Fortnite y como se cuentan los puntos. Se calcula
+        /// al vuelo desde los resultados aprobados; nunca incluye codigos de partida.
+        /// </summary>
+        [HttpGet("{channelName}/{editionSlug}/fortnite/standings")]
+        public async Task<IActionResult> GetFortniteStandings(string channelName, string editionSlug,
+            [FromServices] TournamentFortniteStandingsService standings, [FromServices] TournamentFortniteFormatService format)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null || edition.Game != TournamentGames.Fortnite)
+                return NotFound(new { success = false, message = "Torneo no encontrado" });
+
+            var config = await format.GetOrCreateConfigAsync(_dbContext, edition);
+            return Ok(new
+            {
+                success = true,
+                scopes = await standings.ComputeAsync(_dbContext, edition),
+                rules = new
+                {
+                    placementPoints = TournamentFortniteFormatService.ParsePlacement(config.PlacementPoints),
+                    config.PointsPerElimination,
+                    config.Tiebreakers,
+                    config.MatchPointThreshold,
+                    config.PublicScreenshots,
+                },
+            });
+        }
+
+        /// <summary>Partida por partida de un equipo (y sus capturas si el streamer las hace publicas).</summary>
+        [HttpGet("{channelName}/{editionSlug}/fortnite/teams/{teamId}")]
+        public async Task<IActionResult> GetFortniteTeam(string channelName, string editionSlug, long teamId,
+            [FromServices] TournamentFortniteStandingsService standings, [FromServices] TournamentFortniteFormatService format)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null || edition.Game != TournamentGames.Fortnite)
+                return NotFound(new { success = false, message = "Torneo no encontrado" });
+            if (!await _dbContext.TournamentTeams.AnyAsync(t => t.Id == teamId && t.TournamentEditionId == edition.Id))
+                return NotFound(new { success = false, message = "Equipo no encontrado" });
+
+            var history = await standings.TeamHistoryAsync(_dbContext, edition, teamId);
+            var config = await format.GetOrCreateConfigAsync(_dbContext, edition);
+
+            var screenshots = new Dictionary<long, List<long>>();
+            if (config.PublicScreenshots)
+            {
+                var approvedGames = history.Where(h => h.Status == "approved").Select(h => h.GameId).ToList();
+                screenshots = (await _dbContext.TournamentFortniteReports
+                        .Where(r => r.TeamId == teamId && approvedGames.Contains(r.GameId) && r.ScreenshotFileId != null)
+                        .Select(r => new { r.GameId, FileId = r.ScreenshotFileId!.Value })
+                        .ToListAsync())
+                    .GroupBy(x => x.GameId)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.FileId).ToList());
+            }
+
+            return Ok(new
+            {
+                success = true,
+                games = history.Select(h => new
+                {
+                    h.SessionName,
+                    h.GameNumber,
+                    h.Status,
+                    h.Placement,
+                    h.Eliminations,
+                    h.Points,
+                    screenshotFileIds = screenshots.GetValueOrDefault(h.GameId) ?? new List<long>(),
+                }),
+            });
+        }
+
+        /// <summary>Capturas publicas: solo si el streamer lo activo y el resultado del equipo esta aprobado.</summary>
+        [HttpGet("{channelName}/{editionSlug}/fortnite/files/{fileId}")]
+        public async Task<IActionResult> GetFortnitePublicFile(string channelName, string editionSlug, long fileId,
+            [FromServices] TournamentFortniteFormatService format, [FromServices] TournamentFortniteResultsService results)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null || edition.Game != TournamentGames.Fortnite) return NotFound();
+            var config = await format.GetOrCreateConfigAsync(_dbContext, edition);
+            if (!config.PublicScreenshots) return NotFound();
+
+            var file = await _dbContext.TournamentFortniteFiles.FirstOrDefaultAsync(f => f.Id == fileId && f.TournamentEditionId == edition.Id && f.Kind == "screenshot");
+            if (file == null) return NotFound();
+            var approved = await _dbContext.TournamentFortniteReports.AnyAsync(r =>
+                r.ScreenshotFileId == fileId && r.TeamId != null &&
+                _dbContext.TournamentFortniteResults.Any(x => x.GameId == r.GameId && x.TeamId == r.TeamId && x.Status == "approved"));
+            if (!approved) return NotFound();
+
+            var path = results.PathFor(file);
+            if (!System.IO.File.Exists(path)) return NotFound();
+            return PhysicalFile(path, file.ContentType);
         }
 
         [HttpGet("{channelName}/{editionSlug}/prizes")]

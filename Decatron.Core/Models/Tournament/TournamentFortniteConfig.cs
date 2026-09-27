@@ -50,6 +50,10 @@ public class TournamentFortniteConfig
     [Column("missing_report_zero")]
     public bool MissingReportZero { get; set; } = true;
 
+    // true = las capturas de los resultados aprobados se ven en la pagina publica (F5).
+    [Column("public_screenshots")]
+    public bool PublicScreenshots { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

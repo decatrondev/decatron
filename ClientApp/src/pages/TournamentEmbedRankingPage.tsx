@@ -6,33 +6,47 @@ import api from '../services/api';
 // para <iframe src="..."> en la web de un tercero — sin nav, sin auth, CORS abierto
 // del lado del backend (TournamentEmbedController).
 
-interface RankingRow { rank: number; displayName: string; currentLp: number | null; }
+// Fortnite (F5): valueText trae los puntos ("42 pts") y badge "Campeón"/"Match
+// point". ?bg=transparent sirve como fuente de navegador en OBS; se refresca solo.
+interface RankingRow { rank: number; displayName: string; currentLp: number | null; valueText?: string | null; badge?: string | null; }
 
 export default function TournamentEmbedRankingPage() {
     const { channelName, editionSlug } = useParams<{ channelName: string; editionSlug: string }>();
     const [searchParams] = useSearchParams();
     const theme = searchParams.get('theme') === 'light' ? 'light' : 'dark';
     const limit = searchParams.get('limit') || '20';
+    const transparent = searchParams.get('bg') === 'transparent';
 
     const [editionName, setEditionName] = useState('');
     const [ranking, setRanking] = useState<RankingRow[]>([]);
     const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
 
     useEffect(() => {
-        (async () => {
+        const load = async () => {
             try {
                 const res = await api.get(`/embed/torneo/${channelName}/${editionSlug}/ranking?theme=${theme}&limit=${limit}`);
                 if (res.data?.success) {
                     setEditionName(res.data.editionName);
                     setRanking(res.data.ranking || []);
                     setStatus('ok');
-                } else setStatus('error');
-            } catch { setStatus('error'); }
-        })();
+                } else setStatus((prev) => (prev === 'ok' ? prev : 'error'));
+            } catch { setStatus((prev) => (prev === 'ok' ? prev : 'error')); }
+        };
+        load();
+        const t = setInterval(load, 30000);
+        return () => clearInterval(t);
     }, [channelName, editionSlug, theme, limit]);
 
+    useEffect(() => {
+        if (!transparent) return;
+        const prev = document.body.style.background;
+        document.body.style.background = 'transparent';
+        document.documentElement.style.background = 'transparent';
+        return () => { document.body.style.background = prev; };
+    }, [transparent]);
+
     const isDark = theme === 'dark';
-    const bg = isDark ? '#0B1120' : '#ffffff';
+    const bg = transparent ? 'rgba(11,17,32,0.72)' : isDark ? '#0B1120' : '#ffffff';
     const fg = isDark ? '#EDF0F7' : '#1e293b';
     const mist = isDark ? '#7C8AA6' : '#64748b';
     const line = isDark ? '#232C42' : '#e2e8f0';
@@ -51,8 +65,9 @@ export default function TournamentEmbedRankingPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontFamily: '"JetBrains Mono", monospace', color: r.rank === 1 ? gold : mist, fontWeight: 700, width: 16 }}>{r.rank}</span>
                         <span>{r.displayName}</span>
+                        {r.badge && <span style={{ fontSize: 9.5, color: gold, fontWeight: 700 }}>{r.badge}</span>}
                     </div>
-                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontWeight: 700 }}>{r.currentLp != null ? `${r.currentLp} LP` : '—'}</span>
+                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontWeight: 700 }}>{r.valueText ?? (r.currentLp != null ? `${r.currentLp} LP` : '—')}</span>
                 </div>
             ))}
             <div style={{ fontSize: 9, color: mist, marginTop: 8, textAlign: 'right' }}>via Decatron</div>
