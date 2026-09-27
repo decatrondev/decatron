@@ -564,6 +564,7 @@ try
     builder.Services.AddScoped<Decatron.Services.Tournament.TournamentTeamService>();
     builder.Services.AddScoped<Decatron.Services.Tournament.TournamentFortniteFormatService>();
     builder.Services.AddScoped<Decatron.Services.Tournament.TournamentFortniteMatchdayService>();
+    builder.Services.AddScoped<Decatron.Services.Tournament.TournamentFortniteResultsService>();
     builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.SingleEliminationBracketGenerator>();
     builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.RoundRobinBracketGenerator>();
     builder.Services.AddScoped<Decatron.Services.Tournament.BracketGenerators.DoubleEliminationBracketGenerator>();

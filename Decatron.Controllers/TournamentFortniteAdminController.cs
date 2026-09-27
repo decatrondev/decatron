@@ -24,14 +24,17 @@ namespace Decatron.Controllers
         private readonly DecatronDbContext _dbContext;
         private readonly TournamentFortniteFormatService _format;
         private readonly TournamentFortniteMatchdayService _matchday;
+        private readonly TournamentFortniteResultsService _results;
 
         public TournamentFortniteAdminController(
-            DecatronDbContext dbContext, TournamentFortniteFormatService format, TournamentFortniteMatchdayService matchday, IPermissionService permissionService)
+            DecatronDbContext dbContext, TournamentFortniteFormatService format, TournamentFortniteMatchdayService matchday,
+            TournamentFortniteResultsService results, IPermissionService permissionService)
             : base(dbContext, permissionService)
         {
             _dbContext = dbContext;
             _format = format;
             _matchday = matchday;
+            _results = results;
         }
 
         private async Task<(TournamentEdition? edition, IActionResult? error)> ResolveAsync(long editionId, bool write)
@@ -134,6 +137,9 @@ namespace Decatron.Controllers
             c.MaxPlayersPerLobby,
             c.FillSolosRandomly,
             c.MatchPointThreshold,
+            c.ProofMode,
+            c.ReportWindowMinutes,
+            c.MissingReportZero,
         };
 
         // ─── Tabla de puntos y reglas ──────────────────────────────────────────
@@ -146,6 +152,9 @@ namespace Decatron.Controllers
             public short MaxPlayersPerLobby { get; set; } = 100;
             public bool FillSolosRandomly { get; set; } = true;
             public int? MatchPointThreshold { get; set; }
+            public string ProofMode { get; set; } = "always";
+            public int ReportWindowMinutes { get; set; } = 30;
+            public bool MissingReportZero { get; set; } = true;
         }
 
         [HttpPut("config")]
@@ -164,6 +173,11 @@ namespace Decatron.Controllers
             if (request.MatchPointThreshold is <= 0)
                 return BadRequest(new { success = false, message = "El match point tiene que ser mayor que 0" });
 
+            if (!TournamentFortniteResultsService.ProofModes.Contains(request.ProofMode))
+                return BadRequest(new { success = false, message = "Modo de pruebas no válido" });
+            if (request.ReportWindowMinutes < 5 || request.ReportWindowMinutes > 24 * 60)
+                return BadRequest(new { success = false, message = "El tiempo para reportar va de 5 minutos a 24 horas" });
+
             var tiebreakers = request.Tiebreakers.Distinct().ToList();
             if (tiebreakers.Any(t => !TournamentFortniteFormatService.ValidTiebreakers.Contains(t)))
                 return BadRequest(new { success = false, message = "Desempate no válido" });
@@ -175,6 +189,9 @@ namespace Decatron.Controllers
             config.MaxPlayersPerLobby = request.MaxPlayersPerLobby;
             config.FillSolosRandomly = request.FillSolosRandomly;
             config.MatchPointThreshold = request.MatchPointThreshold;
+            config.ProofMode = request.ProofMode;
+            config.ReportWindowMinutes = request.ReportWindowMinutes;
+            config.MissingReportZero = request.MissingReportZero;
             config.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
 
@@ -543,11 +560,168 @@ namespace Decatron.Controllers
             var transitionError = _matchday.ValidateGameTransition(game, request.Status);
             if (transitionError != null) return BadRequest(new { success = false, message = transitionError });
 
+            if (request.Status == "closed")
+            {
+                var config = await _format.GetOrCreateConfigAsync(_dbContext, edition!);
+                var closeError = await _results.PrepareCloseAsync(_dbContext, editionId, config, session!, game);
+                if (closeError != null) return BadRequest(new { success = false, message = closeError });
+            }
+
             _matchday.ApplyGameStatus(game, request.Status);
             if (request.Status != "waiting" && session!.Status is "scheduled" or "check_in")
                 session.Status = "in_progress";
             await _dbContext.SaveChangesAsync();
             return Ok(new { success = true });
         }
-    }
+    
+        // ─── Resultados (F4) ───────────────────────────────────────────────────
+
+        [HttpGet("games/{gameId}/review")]
+        public async Task<IActionResult> GetReview(long editionId, long gameId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: false);
+            if (error != null) return error;
+
+            var (session, game) = await GetGameAsync(editionId, gameId);
+            if (game == null) return NotFound(new { success = false, message = "Partida no encontrada" });
+
+            var config = await _format.GetOrCreateConfigAsync(_dbContext, edition!);
+            var review = await _results.BuildReviewAsync(_dbContext, config, session!, game);
+
+            return Ok(new
+            {
+                success = true,
+                game = new { game.Id, game.GameNumber, game.Status },
+                proofMode = config.ProofMode,
+                review.Deadline,
+                review.GameFlags,
+                teams = review.Teams.Select(t => new
+                {
+                    t.TeamId,
+                    t.TeamName,
+                    t.Members,
+                    t.ReportedPlacement,
+                    t.ReportedEliminations,
+                    t.Flags,
+                    t.Points,
+                    result = t.Result == null ? null : new { t.Result.Status, t.Result.Placement, t.Result.Eliminations, t.Result.Source },
+                }),
+            });
+        }
+
+        private async Task<(TournamentFortniteResultsService.GameReview? review, TournamentFortniteGame? game, IActionResult? error)> LoadReviewAsync(
+            TournamentEdition edition, long gameId)
+        {
+            var (session, game) = await GetGameAsync(edition.Id, gameId);
+            if (game == null) return (null, null, NotFound(new { success = false, message = "Partida no encontrada" }));
+            var config = await _format.GetOrCreateConfigAsync(_dbContext, edition);
+            return (await _results.BuildReviewAsync(_dbContext, config, session!, game), game, null);
+        }
+
+        [HttpPost("games/{gameId}/results/{teamId}/approve")]
+        public async Task<IActionResult> ApproveResult(long editionId, long gameId, long teamId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (review, game, loadError) = await LoadReviewAsync(edition!, gameId);
+            if (loadError != null) return loadError;
+
+            var team = review!.Teams.FirstOrDefault(t => t.TeamId == teamId);
+            if (team == null) return NotFound(new { success = false, message = "Ese equipo no juega esta partida" });
+
+            var approveError = await _results.ApproveAsync(_dbContext, editionId, game!, team, GetUserId());
+            if (approveError != null) return BadRequest(new { success = false, message = approveError });
+            return Ok(new { success = true });
+        }
+
+        /// <summary>Aprueba de una vez todos los equipos que reportaron sin ninguna alerta.</summary>
+        [HttpPost("games/{gameId}/results/approve-clean")]
+        public async Task<IActionResult> ApproveClean(long editionId, long gameId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (review, game, loadError) = await LoadReviewAsync(edition!, gameId);
+            if (loadError != null) return loadError;
+
+            var approved = 0;
+            foreach (var team in review!.Teams.Where(t => t.Result == null && t.Flags.Count == 0 && t.ReportedPlacement != null))
+            {
+                if (await _results.ApproveAsync(_dbContext, editionId, game!, team, GetUserId()) == null) approved++;
+            }
+            return Ok(new { success = true, approved });
+        }
+
+        /// <summary>
+        /// Carga, correccion, rechazo o reapertura por parte del organizador.
+        /// multipart: rows (JSON de StaffRow[]), reason, files (justificantes).
+        /// </summary>
+        [HttpPost("games/{gameId}/results/staff")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(60 * 1024 * 1024)]
+        public async Task<IActionResult> StaffSetResults(long editionId, long gameId, [FromForm] string rows, [FromForm] string? reason, [FromForm] List<IFormFile>? files)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (review, game, loadError) = await LoadReviewAsync(edition!, gameId);
+            if (loadError != null) return loadError;
+            if (game!.Status is "waiting" or "revealed")
+                return BadRequest(new { success = false, message = "La partida todavía no se jugó" });
+            if (game.Status == "closed")
+                return BadRequest(new { success = false, message = "La partida está cerrada: vuelve a abrir el reporte para cambiar resultados" });
+
+            List<TournamentFortniteResultsService.StaffRow>? parsedRows;
+            try { parsedRows = JsonSerializer.Deserialize<List<TournamentFortniteResultsService.StaffRow>>(rows, Json); }
+            catch { parsedRows = null; }
+            if (parsedRows == null) return BadRequest(new { success = false, message = "Filas inválidas" });
+
+            // Validaciones baratas antes de guardar archivos, para no dejar justificantes
+            // sueltos si el cambio igual se va a rechazar.
+            if (string.IsNullOrWhiteSpace(reason))
+                return BadRequest(new { success = false, message = "Escribe el motivo del cambio" });
+            if (parsedRows.Any(r => r.Status == "approved") && (files?.Count ?? 0) == 0)
+                return BadRequest(new { success = false, message = "Para cargar o corregir un resultado sube al menos un justificante (captura)" });
+            if ((files?.Count ?? 0) > 10)
+                return BadRequest(new { success = false, message = "Máximo 10 justificantes por cambio" });
+
+            var evidenceIds = new List<long>();
+            foreach (var f in files ?? new List<IFormFile>())
+            {
+                var (jpeg, imageError) = await TournamentImageProcessor.ToJpegAsync(f);
+                if (jpeg == null) return BadRequest(new { success = false, message = imageError });
+                var saved = await _results.StoreJpegAsync(_dbContext, editionId, jpeg, "evidence", GetUserId());
+                evidenceIds.Add(saved.Id);
+            }
+
+            var validTeams = review!.Teams.Select(t => t.TeamId).ToHashSet();
+            var setError = await _results.StaffSetAsync(_dbContext, editionId, game, parsedRows, reason, evidenceIds, GetUserId(), validTeams);
+            if (setError != null) return BadRequest(new { success = false, message = setError });
+            return Ok(new { success = true });
+        }
+
+        /// <summary>Capturas y justificantes de la edicion (solo organizador).</summary>
+        [HttpGet("files/{fileId}")]
+        public async Task<IActionResult> GetFile(long editionId, long fileId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: false);
+            if (error != null) return error;
+
+            var file = await _dbContext.TournamentFortniteFiles.FirstOrDefaultAsync(f => f.Id == fileId && f.TournamentEditionId == editionId);
+            if (file == null) return NotFound();
+            var path = _results.PathFor(file);
+            if (!System.IO.File.Exists(path)) return NotFound();
+            return PhysicalFile(path, file.ContentType);
+        }
+
+        /// <summary>Historial de cambios del organizador en la edicion.</summary>
+        [HttpGet("audit")]
+        public async Task<IActionResult> GetAudit(long editionId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: false);
+            if (error != null) return error;
+            return Ok(new { success = true, entries = await TournamentFortniteAuditQuery.ListAsync(_dbContext, editionId) });
+        }
+}
 }

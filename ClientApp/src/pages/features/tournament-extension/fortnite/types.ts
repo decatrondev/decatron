@@ -14,7 +14,41 @@ export interface FortniteConfig {
     maxPlayersPerLobby: number;
     fillSolosRandomly: boolean;
     matchPointThreshold: number | null;
+    proofMode: string;
+    reportWindowMinutes: number;
+    missingReportZero: boolean;
 }
+
+export const PROOF_MODE_LABELS: Record<string, { label: string; help: string }> = {
+    always: { label: 'Captura obligatoria', help: 'Cada jugador sube su captura de la pantalla final; sin captura no se cuenta el reporte.' },
+    on_conflict: { label: 'Captura solo si hay algo raro', help: 'Se reporta sin captura; se pide cuando el sistema marca una alerta en el equipo.' },
+    staff_only: { label: 'Carga el organizador', help: 'Los jugadores no reportan: tú cargas los resultados de cada partida con tu justificante.' },
+};
+
+export const RESULT_FLAG_LABELS: Record<string, string> = {
+    no_report: 'Sin reporte',
+    placement_mismatch: 'Puestos distintos',
+    missing_member_reports: 'Faltan reportes de jugadores',
+    duplicate_placement: 'Puesto repetido',
+    placement_out_of_range: 'Puesto fuera de rango',
+    screenshot_needed: 'Falta captura',
+    too_many_eliminations: 'Más eliminaciones que jugadores',
+};
+
+export const RESULT_STATUS_LABELS: Record<string, string> = {
+    approved: 'Aprobado',
+    rejected: 'Rechazado (0 pts)',
+    no_report: 'Sin reporte (0 pts)',
+};
+
+export const AUDIT_ACTION_LABELS: Record<string, string> = {
+    approve: 'Aprobó lo reportado',
+    staff_load: 'Cargó el resultado',
+    correct: 'Corrigió el resultado',
+    reject: 'Rechazó el resultado',
+    reopen: 'Reabrió la revisión',
+    no_report: 'Sin reporte al cerrar',
+};
 
 export interface PointsPreset {
     id: string;

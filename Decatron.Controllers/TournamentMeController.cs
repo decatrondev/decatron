@@ -43,6 +43,8 @@ namespace Decatron.Controllers
         private readonly RiotApiClient _riotClient;
         private readonly TournamentTeamService _teamService;
         private readonly TournamentFortniteMatchdayService _matchday;
+        private readonly TournamentFortniteResultsService _results;
+        private readonly TournamentFortniteFormatService _format;
 
         private static readonly string[] ValidWidgets = { "lp-actual", "shell-inventory", "castigo-activo", "racha" };
 
@@ -54,9 +56,11 @@ namespace Decatron.Controllers
 
         public TournamentMeController(
             DecatronDbContext dbContext, TournamentRegistrationService registrationService, RiotApiClient riotClient, TournamentTeamService teamService,
-            TournamentFortniteMatchdayService matchday)
+            TournamentFortniteMatchdayService matchday, TournamentFortniteResultsService results, TournamentFortniteFormatService format)
         {
             _matchday = matchday;
+            _results = results;
+            _format = format;
             _dbContext = dbContext;
             _registrationService = registrationService;
             _riotClient = riotClient;
@@ -537,11 +541,65 @@ namespace Decatron.Controllers
                 .OrderBy(g => g.GameNumber)
                 .ToListAsync();
 
+            var config = await _format.GetOrCreateConfigAsync(_dbContext, edition);
+            var gameIds = games.Select(g => g.Id).ToList();
+            var myReports = await _dbContext.TournamentFortniteReports
+                .Where(r => r.ParticipantId == participant.Id && gameIds.Contains(r.GameId))
+                .ToDictionaryAsync(r => r.GameId);
+            var teamResults = participant.TeamId == null
+                ? new Dictionary<long, TournamentFortniteResult>()
+                : await _dbContext.TournamentFortniteResults
+                    .Where(r => r.TeamId == participant.TeamId && gameIds.Contains(r.GameId))
+                    .ToDictionaryAsync(r => r.GameId);
+            var ranges = TournamentFortniteFormatService.ParsePlacement(config.PlacementPoints);
+
             var result = new List<object>();
             foreach (var session in sessions)
             {
                 if (!await _matchday.IsEligibleAsync(_dbContext, session, participant)) continue;
                 var checkedIn = myCheckins.Contains(session.Id);
+                var sessionGames = new List<object>();
+                foreach (var g in games.Where(g => g.SessionId == session.Id))
+                {
+                    myReports.TryGetValue(g.Id, out var report);
+                    teamResults.TryGetValue(g.Id, out var teamResult);
+                    string? cannotReport = null;
+                    var needsScreenshot = false;
+                    if (checkedIn && g.Status is "playing" or "reporting")
+                    {
+                        cannotReport = await _results.CanReportAsync(_dbContext, config, session, g, participant);
+                        // Modo "solo si hay conflicto": se pide captura cuando el equipo tiene alertas.
+                        if (cannotReport == null && config.ProofMode == "on_conflict" && report != null && report.ScreenshotFileId == null)
+                        {
+                            var review = await _results.BuildReviewAsync(_dbContext, config, session, g);
+                            needsScreenshot = review.Teams.Any(t => t.TeamId == participant.TeamId && t.Flags.Contains("screenshot_needed"));
+                        }
+                    }
+
+                    sessionGames.Add(new
+                    {
+                        g.Id,
+                        g.GameNumber,
+                        g.Status,
+                        code = checkedIn && TournamentFortniteMatchdayService.CodeVisibleStatuses.Contains(g.Status) ? g.CustomCode : null,
+                        canReport = checkedIn && cannotReport == null && g.Status is "playing" or "reporting",
+                        cannotReportReason = checkedIn && g.Status is "playing" or "reporting" ? cannotReport : null,
+                        deadline = TournamentFortniteResultsService.ReportDeadline(g, config),
+                        needsScreenshot,
+                        myReport = report == null ? null : new { report.Placement, report.Eliminations, hasScreenshot = report.ScreenshotFileId != null, report.ScreenshotFileId },
+                        teamResult = teamResult == null ? null : new
+                        {
+                            teamResult.Status,
+                            teamResult.Placement,
+                            teamResult.Eliminations,
+                            teamResult.Source,
+                            points = teamResult.Status == "approved" && teamResult.Placement != null
+                                ? TournamentFortniteFormatService.PointsFor(ranges, config.PointsPerElimination, teamResult.Placement.Value, teamResult.Eliminations)
+                                : 0,
+                        },
+                    });
+                }
+
                 result.Add(new
                 {
                     session.Id,
@@ -550,16 +608,11 @@ namespace Decatron.Controllers
                     session.ScheduledAt,
                     checkedIn,
                     canCheckIn = session.Status == "check_in" && !checkedIn,
-                    games = games.Where(g => g.SessionId == session.Id).Select(g => new
-                    {
-                        g.GameNumber,
-                        g.Status,
-                        code = checkedIn && TournamentFortniteMatchdayService.CodeVisibleStatuses.Contains(g.Status) ? g.CustomCode : null,
-                    }),
+                    games = sessionGames,
                 });
             }
 
-            return Ok(new { success = true, sessions = result });
+            return Ok(new { success = true, proofMode = config.ProofMode, teamSize = edition.TeamSize ?? 1, sessions = result });
         }
 
         // Sin el rate limit de inscripcion (5 cada 10 min por IP): varios jugadores
@@ -581,6 +634,83 @@ namespace Decatron.Controllers
             if (error != null) return BadRequest(new { success = false, message = error });
 
             return Ok(new { success = true });
+        }
+
+        /// <summary>
+        /// Fortnite: mi reporte de una partida (puesto de mi equipo, MIS eliminaciones y
+        /// captura). Se puede corregir hasta que el organizador revise el resultado del
+        /// equipo o se termine el tiempo. multipart: placement, eliminations, screenshot.
+        /// </summary>
+        [HttpPost("{channelName}/{editionSlug}/games/{gameId}/report")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(12 * 1024 * 1024)]
+        public async Task<IActionResult> SubmitReport(string channelName, string editionSlug, long gameId,
+            [FromForm] int placement, [FromForm] int eliminations, [FromForm] IFormFile? screenshot)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
+
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null)
+                return NotFound(new { success = false, message = "Todavía no estás inscrito en este torneo" });
+
+            var game = await _dbContext.TournamentFortniteGames.FirstOrDefaultAsync(g => g.Id == gameId);
+            var session = game == null ? null : await _dbContext.TournamentFortniteSessions.FirstOrDefaultAsync(s => s.Id == game.SessionId && s.TournamentEditionId == edition.Id);
+            if (game == null || session == null) return NotFound(new { success = false, message = "Partida no encontrada" });
+
+            var config = await _format.GetOrCreateConfigAsync(_dbContext, edition);
+            var cannot = await _results.CanReportAsync(_dbContext, config, session, game, participant);
+            if (cannot != null) return BadRequest(new { success = false, message = cannot });
+
+            TournamentFortniteFile? file = null;
+            if (screenshot != null)
+            {
+                var (jpeg, imageError) = await TournamentImageProcessor.ToJpegAsync(screenshot);
+                if (jpeg == null) return BadRequest(new { success = false, message = imageError });
+                file = await _results.StoreJpegAsync(_dbContext, edition.Id, jpeg, "screenshot", GetUserId());
+            }
+
+            var error = await _results.SubmitReportAsync(_dbContext, config, game, participant, placement, eliminations, file);
+            if (error != null) return BadRequest(new { success = false, message = error });
+            return Ok(new { success = true });
+        }
+
+        /// <summary>
+        /// Archivos que puede ver un participante: las capturas de su equipo y los
+        /// justificantes del historial de cambios del organizador.
+        /// </summary>
+        [HttpGet("{channelName}/{editionSlug}/files/{fileId}")]
+        public async Task<IActionResult> GetFile(string channelName, string editionSlug, long fileId)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound();
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null || participant.Status != "approved") return NotFound();
+
+            var file = await _dbContext.TournamentFortniteFiles.FirstOrDefaultAsync(f => f.Id == fileId && f.TournamentEditionId == edition.Id);
+            if (file == null) return NotFound();
+
+            var allowed = file.Kind == "evidence"
+                ? await _dbContext.TournamentFortniteResultAudits.AnyAsync(a => a.TournamentEditionId == edition.Id && a.EvidenceFileIds.Contains(fileId))
+                : participant.TeamId != null && await _dbContext.TournamentFortniteReports.AnyAsync(r => r.ScreenshotFileId == fileId && r.TeamId == participant.TeamId);
+            if (!allowed) return NotFound();
+
+            var path = _results.PathFor(file);
+            if (!System.IO.File.Exists(path)) return NotFound();
+            return PhysicalFile(path, file.ContentType);
+        }
+
+        /// <summary>Historial de cambios del organizador, visible para los participantes aprobados.</summary>
+        [HttpGet("{channelName}/{editionSlug}/audit")]
+        public async Task<IActionResult> GetAudit(string channelName, string editionSlug)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null || participant.Status != "approved")
+                return NotFound(new { success = false, message = "Solo para participantes aprobados" });
+
+            return Ok(new { success = true, entries = await TournamentFortniteAuditQuery.ListAsync(_dbContext, edition.Id) });
         }
 
         public class UpdateOverlayRequest

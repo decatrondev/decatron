@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Radio, Loader2, AlertTriangle, Check, Eye, EyeOff, Save, Send, Play, Flag, Lock, RotateCcw, UserCheck, UserX } from 'lucide-react';
+import { Radio, Loader2, AlertTriangle, Check, Eye, EyeOff, Save, Send, Play, Flag, Lock, RotateCcw, UserCheck, UserX, ClipboardCheck } from 'lucide-react';
 import api from '../../../../services/api';
 import { EditionPicker } from '../shared';
 import type { TournamentEdition } from '../shared';
 import type { FortniteSession } from './types';
 import { SESSION_STATUS_LABELS, inputClass, labelClass, cardClass, primaryButton, secondaryButton } from './types';
+import ResultsReview from './ResultsReview';
+import AuditList from './AuditList';
 
 // Pestaña "Día de partida" de Fortnite (.dev/torneos/15-fortnite.md F3): abrir el
 // check-in de una sesion, ver quien lo hizo (y marcarlo a mano), poner el codigo de
@@ -39,7 +41,7 @@ export const GAME_STATUS_LABELS: Record<string, string> = {
     waiting: 'Esperando',
     revealed: 'Código revelado',
     playing: 'En juego',
-    reporting: 'Terminada',
+    reporting: 'Reportando resultados',
     closed: 'Cerrada',
 };
 
@@ -269,11 +271,14 @@ function SessionMatchday({ editionId, sessionId }: { editionId: number; sessionI
                                 run={run}
                                 announce={announce}
                                 sendDm={sendDm}
+                                reload={load}
                             />
                         ))}
                     </div>
                 </section>
             </div>
+
+            <AuditList base={base} />
         </div>
     );
 }
@@ -286,6 +291,7 @@ function GameRow({
     run,
     announce,
     sendDm,
+    reload,
 }: {
     game: MatchdayGame;
     previousCode: string;
@@ -294,10 +300,14 @@ function GameRow({
     run: (key: string, fn: () => Promise<string | void>) => Promise<void>;
     announce: boolean;
     sendDm: boolean;
+    reload: () => void;
 }) {
     // Si la partida no tiene codigo, se sugiere el de la anterior (suele repetirse).
     const [code, setCode] = useState(game.customCode ?? previousCode);
     const [showCode, setShowCode] = useState(false);
+    const played = game.status === 'playing' || game.status === 'reporting' || game.status === 'closed';
+    // La revision se abre sola cuando la partida pasa a "reportando".
+    const [showResults, setShowResults] = useState(game.status === 'reporting');
     const lastServerCode = useRef(game.customCode);
 
     useEffect(() => {
@@ -394,6 +404,11 @@ function GameRow({
                         <Lock className="w-4 h-4" /> Cerrar partida
                     </button>
                 )}
+                {played && (
+                    <button type="button" onClick={() => setShowResults((v) => !v)} className={secondaryButton}>
+                        <ClipboardCheck className="w-4 h-4" /> {showResults ? 'Ocultar resultados' : 'Resultados'}
+                    </button>
+                )}
                 {game.status !== 'waiting' && (
                     <button
                         type="button"
@@ -409,6 +424,7 @@ function GameRow({
                     </button>
                 )}
             </div>
+            {played && showResults && <ResultsReview base={base} gameId={game.id} onChanged={reload} />}
         </div>
     );
 }

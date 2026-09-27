@@ -221,6 +221,10 @@ namespace Decatron.Data
         public DbSet<TournamentFortniteSession> TournamentFortniteSessions { get; set; }
         public DbSet<TournamentFortniteGame> TournamentFortniteGames { get; set; }
         public DbSet<TournamentFortniteSessionCheckin> TournamentFortniteSessionCheckins { get; set; }
+        public DbSet<TournamentFortniteFile> TournamentFortniteFiles { get; set; }
+        public DbSet<TournamentFortniteReport> TournamentFortniteReports { get; set; }
+        public DbSet<TournamentFortniteResult> TournamentFortniteResults { get; set; }
+        public DbSet<TournamentFortniteResultAudit> TournamentFortniteResultAudits { get; set; }
 
         // OAuth2 System (API Pública)
         public DbSet<OAuthApplication> OAuthApplications { get; set; }
@@ -1988,6 +1992,22 @@ namespace Decatron.Data
             modelBuilder.Entity<TournamentFortniteGroupTeam>(entity =>
             {
                 entity.HasIndex(e => new { e.GroupId, e.TeamId }).IsUnique();
+            });
+
+            modelBuilder.Entity<TournamentFortniteReport>(entity =>
+            {
+                entity.HasIndex(e => new { e.GameId, e.ParticipantId }).IsUnique();
+            });
+
+            modelBuilder.Entity<TournamentFortniteResult>(entity =>
+            {
+                entity.HasIndex(e => new { e.GameId, e.TeamId }).IsUnique();
+            });
+
+            modelBuilder.Entity<TournamentFortniteResultAudit>(entity =>
+            {
+                entity.Property(e => e.BeforeJson).HasColumnType("jsonb");
+                entity.Property(e => e.AfterJson).HasColumnType("jsonb");
             });
 
             modelBuilder.Entity<TournamentFortniteSessionCheckin>(entity =>

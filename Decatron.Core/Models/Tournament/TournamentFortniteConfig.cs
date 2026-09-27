@@ -37,6 +37,19 @@ public class TournamentFortniteConfig
     [Column("match_point_threshold")]
     public int? MatchPointThreshold { get; set; }
 
+    // Pruebas (F4): "always" = captura obligatoria | "on_conflict" = solo si hay
+    // algo raro | "staff_only" = carga el organizador.
+    [Column("proof_mode")]
+    public string ProofMode { get; set; } = "always";
+
+    // Minutos para reportar desde que termina la partida.
+    [Column("report_window_minutes")]
+    public int ReportWindowMinutes { get; set; } = 30;
+
+    // true = el equipo que no reporta suma 0 al cerrar la partida.
+    [Column("missing_report_zero")]
+    public bool MissingReportZero { get; set; } = true;
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

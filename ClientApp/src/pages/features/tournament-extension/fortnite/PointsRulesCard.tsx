@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, ArrowUp, ArrowDown, Check, Loader2, AlertTriangle, Calculator } from 'lucide-react';
 import api from '../../../../services/api';
 import type { FortniteConfig, PointsPreset } from './types';
-import { TIEBREAKER_LABELS, pointsFor, inputClass, labelClass, cardClass, primaryButton, secondaryButton } from './types';
+import { TIEBREAKER_LABELS, PROOF_MODE_LABELS, pointsFor, inputClass, labelClass, cardClass, primaryButton, secondaryButton } from './types';
 
 // Reglas de puntos de una edicion de Fortnite: tabla por puesto, puntos por
 // eliminacion, desempates, match point, tamaño del lobby y sorteo de solos. Se
@@ -266,6 +266,54 @@ export default function PointsRulesCard({
                     )}
                 </section>
             </div>
+
+            {/* Pruebas y reportes (F4) */}
+            <section className={cardClass}>
+                <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc] 4xl:text-lg">Pruebas y reportes</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 4xl:gap-5">
+                    {Object.entries(PROOF_MODE_LABELS).map(([id, m]) => (
+                        <label
+                            key={id}
+                            className={`p-3 4xl:p-4 rounded-lg border cursor-pointer ${
+                                config.proofMode === id ? 'border-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151]'
+                            }`}
+                        >
+                            <span className="flex items-center gap-2 font-bold text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc]">
+                                <input type="radio" name="proofMode" checked={config.proofMode === id} onChange={() => set({ proofMode: id })} />
+                                {m.label}
+                                {id === 'always' && <span className="text-[10px] font-normal text-[#64748b]">(por defecto)</span>}
+                            </span>
+                            <span className="block text-[11px] 4xl:text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{m.help}</span>
+                        </label>
+                    ))}
+                </div>
+                <p className="text-[11px] 4xl:text-xs text-[#64748b] dark:text-[#94a3b8]">
+                    En dúo, trío o escuadra cada jugador reporta sus propias eliminaciones; el puesto es del equipo. Si cargas o corriges un resultado a nombre de
+                    un equipo, tienes que dejar el motivo y un justificante, y queda en un historial que ven los participantes.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 4xl:gap-5">
+                    <div className="max-w-xs">
+                        <label className={labelClass}>Minutos para reportar (desde que termina la partida)</label>
+                        <input
+                            type="number"
+                            min={5}
+                            max={1440}
+                            value={config.reportWindowMinutes}
+                            onChange={(e) => set({ reportWindowMinutes: Number(e.target.value) })}
+                            className={inputClass}
+                        />
+                    </div>
+                    <label className="flex items-start gap-2 text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc] cursor-pointer self-end">
+                        <input type="checkbox" checked={config.missingReportZero} onChange={(e) => set({ missingReportZero: e.target.checked })} className="mt-1" />
+                        <span>
+                            Quien no reporta a tiempo suma 0
+                            <span className="block text-[11px] 4xl:text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                Si lo apagas, antes de cerrar la partida tienes que cargar o rechazar a mano a los equipos que no reportaron.
+                            </span>
+                        </span>
+                    </label>
+                </div>
+            </section>
 
             <div className="flex items-center gap-3 flex-wrap">
                 <button type="button" onClick={save} disabled={saving} className={primaryButton}>
