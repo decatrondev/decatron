@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Loader2, Check, AlertTriangle, Monitor, Copy, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
 import { REGION_LABELS } from './shared';
+import { EpicAccountSelect, EpicAccountCard, type EpicAccountOption } from './FortniteEpicAccount';
 
 // Contenido de "Mi inscripcion" — extraido de MyTournamentPage.tsx el 24-08-2026
 // para poder montarlo tanto en la pagina completa /mi-panel (deep link, destino del
@@ -13,6 +14,7 @@ import { REGION_LABELS } from './shared';
 export interface MyStatus {
     registered: boolean;
     registrationOpen?: boolean;
+    game?: string;
     region?: string;
     mode?: string;
     teamSize?: number | null;
@@ -24,7 +26,10 @@ export interface MyStatus {
         riotTagLine: string | null;
         linkedRiotAccountId: number | null;
         smurfFlagNote: string | null;
+        gameAccountName?: string | null;
+        gameAccountVerified?: boolean;
     };
+    epicAccounts?: EpicAccountOption[] | null;
     eligibleRiotAccounts?: { id: number; riotId: string; riotTagLine: string }[];
     group?: { id: number; name: string; joinCode: string | null; roster: string[]; full: boolean } | null;
     overlay?: { url: string; enabledWidgets: string[]; theme: string } | null;
@@ -57,8 +62,10 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
 
-    const load = async () => {
-        setLoading(true);
+    // silent = refrescar sin tapar el panel con el spinner (ej. al vincular una
+    // cuenta de Epic a mitad del formulario, para no perder lo escrito).
+    const load = async (silent = false) => {
+        if (!silent) setLoading(true);
         setLoadError('');
         try {
             const res = await api.get(`/me/tournament/${channelName}/${editionSlug}`);
@@ -116,10 +123,13 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
             {!status.registered ? (
                 <RegisterForm
                     registrationOpen={!!status.registrationOpen}
+                    game={status.game}
                     mode={status.mode}
                     region={status.region || ''}
                     eligibleRiotAccounts={status.eligibleRiotAccounts || []}
-                    onRegistered={load}
+                    epicAccounts={status.epicAccounts || []}
+                    onRegistered={() => load()}
+                    onAccountsChanged={() => load(true)}
                 />
             ) : (
                 <div className="space-y-8">
@@ -130,29 +140,41 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
                         </p>
                     </div>
 
-                    {status.mode === 'aram_teams' && (status.teamSize || 1) > 1 && (
+                    {status.game === 'fortnite' && (
+                        <EpicAccountCard
+                            channelName={channelName}
+                            editionSlug={editionSlug}
+                            current={status.participant!.gameAccountName || null}
+                            verified={!!status.participant!.gameAccountVerified}
+                            accounts={status.epicAccounts || []}
+                            onChanged={() => load(true)}
+                        />
+                    )}
+
+                    {(status.mode === 'aram_teams' || status.game === 'fortnite') && (status.teamSize || 1) > 1 && (
                         <GroupSection
                             channelName={channelName}
                             editionSlug={editionSlug}
                             teamSize={status.teamSize!}
+                            isFortnite={status.game === 'fortnite'}
                             group={status.group || null}
-                            onChanged={load}
+                            onChanged={() => load()}
                         />
                     )}
 
-                    {status.mode !== 'aram_teams' && (
+                    {status.mode !== 'aram_teams' && status.game !== 'fortnite' && (
                         <RiotAccountPicker
                             channelName={channelName}
                             editionSlug={editionSlug}
                             region={status.region || ''}
                             participant={status.participant!}
                             eligibleAccounts={status.eligibleRiotAccounts || []}
-                            onChanged={load}
+                            onChanged={() => load()}
                         />
                     )}
 
-                    {status.mode !== 'aram_teams' && (
-                        <OverlaySection channelName={channelName} editionSlug={editionSlug} overlay={status.overlay || null} onChanged={load} />
+                    {status.mode !== 'aram_teams' && status.game !== 'fortnite' && (
+                        <OverlaySection channelName={channelName} editionSlug={editionSlug} overlay={status.overlay || null} onChanged={() => load()} />
                     )}
                 </div>
             )}
@@ -162,21 +184,28 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
 
 function RegisterForm({
     registrationOpen,
+    game,
     mode,
     region,
     eligibleRiotAccounts,
+    epicAccounts,
     onRegistered,
+    onAccountsChanged,
 }: {
     registrationOpen: boolean;
+    game?: string;
     mode?: string;
     region: string;
     eligibleRiotAccounts: { id: number; riotId: string; riotTagLine: string }[];
+    epicAccounts: EpicAccountOption[];
     onRegistered: () => void;
+    onAccountsChanged: () => void;
 }) {
     const { channelName, editionSlug } = useParams<{ channelName: string; editionSlug: string }>();
     const [displayName, setDisplayName] = useState('');
     const [primaryRole, setPrimaryRole] = useState('');
     const [userRiotAccountId, setUserRiotAccountId] = useState<number | null>(eligibleRiotAccounts[0]?.id ?? null);
+    const [gameAccountId, setGameAccountId] = useState<number | null>(epicAccounts[0]?.id ?? null);
     const [saving, setSaving] = useState(false);
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -184,12 +213,13 @@ function RegisterForm({
         return <p className="font-mono text-sm text-[#7C8AA6]">Las inscripciones no están abiertas para este torneo todavía.</p>;
     }
 
+    const isFortnite = game === 'fortnite';
     const needsRiotAccount = mode === 'aram_teams';
     // ARAM es random/blind pick, no hay seleccion de linea — pedir el rol ahi no
     // cumple ninguna funcion (el sorteo de equipos es puro random, no balancea por
     // rol). Se mantiene para otros modos por si a futuro importa. Pedido del
     // usuario 24-08-2026.
-    const showRole = mode !== 'aram_teams';
+    const showRole = mode !== 'aram_teams' && !isFortnite;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -200,6 +230,7 @@ function RegisterForm({
                 displayName,
                 primaryRole: showRole ? (primaryRole || null) : null,
                 userRiotAccountId: needsRiotAccount ? userRiotAccountId : null,
+                gameAccountId: isFortnite ? gameAccountId : null,
             });
             onRegistered();
         } catch (err: any) {
@@ -234,6 +265,14 @@ function RegisterForm({
                     className="w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm"
                 />
             </div>
+            {isFortnite && (
+                <EpicAccountSelect
+                    accounts={epicAccounts}
+                    value={gameAccountId}
+                    onChange={setGameAccountId}
+                    onAccountsChanged={onAccountsChanged}
+                />
+            )}
             {needsRiotAccount && (
                 <div>
                     <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">Cuenta de Riot ({(REGION_LABELS[region] || region.toUpperCase())})</label>
@@ -268,11 +307,11 @@ function RegisterForm({
                     </select>
                 </div>
             )}
-            {!needsRiotAccount && <p className="text-[10px] text-[#7C8AA6]">Después de inscribirte vas a poder vincular tu cuenta de Riot desde acá mismo.</p>}
+            {!needsRiotAccount && !isFortnite && <p className="text-[10px] text-[#7C8AA6]">Después de inscribirte vas a poder vincular tu cuenta de Riot desde acá mismo.</p>}
             {result && !result.ok && <p className="text-sm text-[#E8677A]">{result.text}</p>}
             <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || (isFortnite && gameAccountId == null)}
                 className="w-full py-2.5 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
@@ -286,12 +325,14 @@ function GroupSection({
     channelName,
     editionSlug,
     teamSize,
+    isFortnite,
     group,
     onChanged,
 }: {
     channelName: string;
     editionSlug: string;
     teamSize: number;
+    isFortnite: boolean;
     group: NonNullable<MyStatus['group']> | null;
     onChanged: () => void;
 }) {
@@ -336,11 +377,17 @@ function GroupSection({
 
     return (
         <section className="space-y-3">
-            <h2 className="font-display font-bold">Mi dúo / grupo</h2>
+            <h2 className="font-display font-bold">{isFortnite ? 'Mi equipo' : 'Mi dúo / grupo'}</h2>
+            {isFortnite ? (
+                <p className="text-xs text-[#7C8AA6]">
+                    Los equipos son de {teamSize}. Uno de ustedes crea el equipo y comparte el código; los demás se unen con ese código.
+                </p>
+            ) : (
             <p className="text-xs text-[#7C8AA6]">
                 Por defecto te anotás solo y el sistema te sortea un equipo de {teamSize} al azar. Si querés jugar con alguien puntual, armá un grupo acá y
                 compartile el código — el resto de los solos se sortea igual para completar lo que falte.
             </p>
+            )}
 
             {group ? (
                 <div className="p-4 rounded-lg border border-[#3ED6C4]/40 bg-[#132A2A] space-y-2">
@@ -357,7 +404,9 @@ function GroupSection({
                             {copied && <span className="text-[10px] text-[#3ED6C4]">copiado</span>}
                         </div>
                     )}
-                    {group.full && <p className="text-xs text-[#7C8AA6]">Grupo completo — listo para el sorteo del bracket.</p>}
+                    {group.full && (
+                        <p className="text-xs text-[#7C8AA6]">{isFortnite ? 'Equipo completo.' : 'Grupo completo — listo para el sorteo del bracket.'}</p>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -367,7 +416,7 @@ function GroupSection({
                         disabled={saving}
                         className="w-full py-2.5 rounded-lg bg-[#131B2E] border border-[#232C42] text-[#EDF0F7] font-bold text-sm hover:border-[#3ED6C4]/50 disabled:opacity-50"
                     >
-                        Armar grupo nuevo
+                        {isFortnite ? 'Crear equipo' : 'Armar grupo nuevo'}
                     </button>
                     <form onSubmit={handleJoin} className="flex items-center gap-2">
                         <input

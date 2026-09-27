@@ -94,4 +94,18 @@ public class TournamentParticipant
     // de producto 15-08-2026: "elige el participante, con aviso").
     [Column("smurf_flag_note")]
     public string? SmurfFlagNote { get; set; }
+
+    // Cuenta de juego para juegos que no son de Riot (hoy Fortnite): que fila de
+    // linked_game_accounts eligio y copia del nombre al momento de inscribirse, igual
+    // criterio que RiotId/RiotTagLine arriba. Ver .dev/torneos/15-fortnite.md.
+    [Column("game_account_id")]
+    public long? GameAccountId { get; set; }
+
+    [Column("game_account_name")]
+    public string? GameAccountName { get; set; }
+
+    // true solo si la cuenta se verifico con el login oficial de Epic; mientras
+    // tanto se permite sin verificar, con aviso al organizador (decision 27-09-2026).
+    [Column("game_account_verified")]
+    public bool GameAccountVerified { get; set; }
 }

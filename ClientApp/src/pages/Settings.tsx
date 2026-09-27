@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../components/LanguageSelector';
 import RiotAccountsSettings from './settings/RiotAccountsSettings';
+import EpicAccountsSettings from './settings/EpicAccountsSettings';
 import DesktopAppSettings from './settings/DesktopAppSettings';
 
 function parseJwt(token: string | null): Record<string, string> {
@@ -956,6 +957,7 @@ export default function Settings() {
                             <DiscordIntegration />
                             <DesktopAppSettings />
                             <RiotAccountsSettings />
+                            <EpicAccountsSettings />
                             <IntegrationCard icon={<Music className="w-6 h-6" />} name={t("settings:integrations.spotify")} status={t("settings:integrations.comingSoon")} color="bg-green-600" />
                             <IntegrationCard icon={<Gamepad2 className="w-6 h-6" />} name={t("settings:integrations.steam")} status={t("settings:integrations.comingSoon")} color="bg-blue-600" />
                             <IntegrationCard icon={<Youtube className="w-6 h-6" />} name={t("settings:integrations.youtube")} status={t("settings:integrations.comingSoon")} color="bg-red-600" />

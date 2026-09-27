@@ -1,3 +1,4 @@
+using Decatron.Core.Models.Tournament;
 using Decatron.Data;
 using Decatron.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -73,11 +74,13 @@ namespace Decatron.Controllers
             var alerts = new List<string>();
             if (unfulfilledCount > 0)
                 alerts.Add($"{unfulfilledCount} castigo(s) sin marcar como cumplido hace mas de 24h");
-            if (riotConfig == null)
+            // La Riot API solo importa en ediciones de LoL.
+            var isLol = edition.Game == TournamentGames.Lol;
+            if (isLol && riotConfig == null)
                 alerts.Add("No hay Riot API key configurada para este canal");
-            else if (riotConfig.LastErrorAt != null && riotConfig.LastErrorAt > DateTime.UtcNow.AddHours(-1))
+            else if (isLol && riotConfig!.LastErrorAt != null && riotConfig.LastErrorAt > DateTime.UtcNow.AddHours(-1))
                 alerts.Add($"Riot API con error reciente: {riotConfig.LastErrorMessage}");
-            else if (!riotConfig.IsActive)
+            else if (isLol && !riotConfig!.IsActive)
                 alerts.Add("Riot API key desactivada");
 
             var daysUntilEnd = edition.EndsAt.HasValue ? (edition.EndsAt.Value - DateTime.UtcNow).TotalDays : (double?)null;

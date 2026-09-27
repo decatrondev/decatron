@@ -59,6 +59,8 @@ export default function DashboardPanel({
         return <EditionPicker editions={editions} onSelectEdition={onSelectEdition} />;
     }
 
+    const isFortnite = edition.game === 'fortnite';
+
     if (loading || !data) {
         return <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">Cargando...</p>;
     }
@@ -84,22 +86,29 @@ export default function DashboardPanel({
                 </div>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 4xl:gap-5">
+            <div className={`grid grid-cols-2 ${isFortnite ? "" : "md:grid-cols-4"} gap-3 4xl:gap-5`}>
                 <StatCard
                     icon={<Clock className="w-5 h-5 4xl:w-6 4xl:h-6" />}
                     label="Dias restantes"
                     value={data.daysUntilEnd != null ? Math.max(0, Math.floor(data.daysUntilEnd)) : '—'}
                 />
                 <StatCard icon={<Swords className="w-5 h-5 4xl:w-6 4xl:h-6" />} label="Participantes" value={data.totalParticipants} />
-                <StatCard icon={<Swords className="w-5 h-5 4xl:w-6 4xl:h-6" />} label="Partidas trackeadas" value={data.totalMatchesTracked} />
-                <StatCard
-                    icon={<Trophy className="w-5 h-5 4xl:w-6 4xl:h-6" />}
-                    label="Lider actual"
-                    value={data.currentLeaderName ? `${data.currentLeaderName} (${data.currentLeaderLp} LP)` : 'Sin datos'}
-                    small
-                />
+                {/* Partidas trackeadas y lider por LP salen de la Riot API: en Fortnite
+                    llegan con las sesiones por puntos (F2-F5). */}
+                {!isFortnite && (
+                    <StatCard icon={<Swords className="w-5 h-5 4xl:w-6 4xl:h-6" />} label="Partidas trackeadas" value={data.totalMatchesTracked} />
+                )}
+                {!isFortnite && (
+                    <StatCard
+                        icon={<Trophy className="w-5 h-5 4xl:w-6 4xl:h-6" />}
+                        label="Lider actual"
+                        value={data.currentLeaderName ? `${data.currentLeaderName} (${data.currentLeaderLp} LP)` : 'Sin datos'}
+                        small
+                    />
+                )}
             </div>
 
+            {!isFortnite && (
             <div className="p-4 4xl:p-6 rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
                 <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">Estado de Riot API</h3>
                 <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
@@ -108,7 +117,9 @@ export default function DashboardPanel({
                         : 'No hay Riot API key configurada para este canal.'}
                 </p>
             </div>
+            )}
 
+            {!isFortnite && (
             <div>
                 <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
                     Ultimos eventos ({data.unfulfilledPunishments} sin marcar cumplidos hace +24h)
@@ -127,6 +138,7 @@ export default function DashboardPanel({
                     </div>
                 )}
             </div>
+            )}
 
             {/* El widget embebible muestra el ranking (LP) — no aplica a ARAM, que no tiene ranking individual. */}
             {channelName && edition.mode === 'solo_q_climb' && <EmbedSnippet channelName={channelName} editionSlug={edition.slug} />}

@@ -28,5 +28,8 @@ public static class GameProviders
     public const string MarvelRivalsApi = "marvelrivalsapi";
     public const string Faceit = "faceit";
     public const string FortniteApi = "fortniteapi";
+    // Cuenta de Epic verificada con el login oficial (Epic Account Services). Todavia
+    // sin implementar: espera la aprobacion de la app en Epic (.dev/torneos/15-fortnite.md §6).
+    public const string Epic = "epic";
     public const string Manual = "manual";
 }

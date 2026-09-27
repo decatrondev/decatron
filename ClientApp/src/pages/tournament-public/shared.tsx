@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 export interface EditionInfo {
     name: string;
     slug: string;
+    game?: string;
     mode: string;
     region: string;
     status: string;
@@ -90,7 +91,25 @@ export const REGIONS = [
     { value: 'tr1', label: 'TR — Turquia' },
     { value: 'ru', label: 'RU — Rusia' },
 ];
-export const REGION_LABELS: Record<string, string> = Object.fromEntries(REGIONS.map((r) => [r.value, r.label.split(' — ')[0]]));
+// Regiones de servidor de Fortnite (las del selector del juego). Los codigos no
+// chocan con los de Riot, asi que comparten REGION_LABELS.
+export const FORTNITE_REGIONS = [
+    { value: 'nae', label: 'NA Este' },
+    { value: 'nac', label: 'NA Centro' },
+    { value: 'naw', label: 'NA Oeste' },
+    { value: 'eu', label: 'Europa' },
+    { value: 'br', label: 'Brasil' },
+    { value: 'asia', label: 'Asia' },
+    { value: 'me', label: 'Medio Oriente' },
+    { value: 'oce', label: 'Oceanía' },
+];
+export const REGION_LABELS: Record<string, string> = {
+    ...Object.fromEntries(REGIONS.map((r) => [r.value, r.label.split(' — ')[0]])),
+    ...Object.fromEntries(FORTNITE_REGIONS.map((r) => [r.value, r.label])),
+};
+
+// Solo / Dúo / Trío / Escuadra para ediciones de Fortnite.
+export const FORTNITE_TEAM_SIZE_LABELS: Record<number, string> = { 1: 'Solo', 2: 'Dúo', 3: 'Trío', 4: 'Escuadra' };
 
 export const BRACKET_FORMAT_LABELS: Record<string, string> = {
     single_elimination: 'Eliminación simple',

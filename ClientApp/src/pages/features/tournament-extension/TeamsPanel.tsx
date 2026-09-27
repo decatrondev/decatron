@@ -123,6 +123,10 @@ export default function TeamsPanel({
 
     if (!edition) return <EditionPicker editions={editions} onSelectEdition={onSelectEdition} />;
 
+    if (edition.game === 'fortnite') {
+        return <FortniteTeamsView teamSize={edition.teamSize || 1} teams={teams} participants={participants} loading={loading} />;
+    }
+
     if (!edition.mode || edition.mode === 'solo_q_climb') {
         return (
             <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">
@@ -393,6 +397,83 @@ export default function TeamsPanel({
                         )}
                     </div>
                 </>
+            )}
+        </div>
+    );
+}
+
+// Fortnite no tiene bracket: se juega por puntos en partidas personalizadas. Los
+// equipos (duo/trio/escuadra) los arman los propios jugadores con un codigo desde
+// "Mi inscripción"; aca el organizador solo los ve. Las sesiones y la tabla de
+// puntos llegan en F2 (.dev/torneos/15-fortnite.md).
+function FortniteTeamsView({
+    teamSize,
+    teams,
+    participants,
+    loading,
+}: {
+    teamSize: number;
+    teams: Team[];
+    participants: Participant[];
+    loading: boolean;
+}) {
+    if (loading) return <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">Cargando...</p>;
+
+    if (teamSize === 1) {
+        return (
+            <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">
+                Esta edición es Solo: cada jugador compite por su cuenta, no hay equipos que armar.
+            </p>
+        );
+    }
+
+    const withoutTeam = participants.filter((p) => p.teamId == null && p.status !== 'rejected' && p.status !== 'withdrawn');
+
+    return (
+        <div className="space-y-4 4xl:space-y-6">
+            <h2 className="text-lg 4xl:text-xl font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                <UsersRound className="w-5 h-5 text-[#2563eb]" /> Equipos
+            </h2>
+            <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
+                Los jugadores arman su equipo desde "Mi inscripción" en la página del torneo: uno crea el equipo y comparte el código con sus compañeros.
+                Cada equipo es de {teamSize}.
+            </p>
+
+            {teams.length === 0 ? (
+                <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">Todavía no hay equipos armados.</p>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3 4xl:gap-4">
+                    {teams.map((t) => {
+                        const full = t.roster.length >= teamSize;
+                        return (
+                            <div key={t.id} className="p-3 4xl:p-5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] space-y-1.5">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{t.name}</span>
+                                    <span
+                                        className={`text-xs px-2 py-0.5 rounded-full ${
+                                            full
+                                                ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400'
+                                                : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400'
+                                        }`}
+                                    >
+                                        {t.roster.length}/{teamSize}
+                                    </span>
+                                </div>
+                                <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    {t.roster.length > 0 ? t.roster.map((m) => m.displayName).join(', ') : 'Sin jugadores'}
+                                </p>
+                                {!full && t.joinCode && <p className="text-[11px] font-mono text-[#64748b] dark:text-[#94a3b8]">Código: {t.joinCode}</p>}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {withoutTeam.length > 0 && (
+                <div className="space-y-1.5">
+                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Sin equipo ({withoutTeam.length})</h3>
+                    <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{withoutTeam.map((p) => p.displayName).join(', ')}</p>
+                </div>
             )}
         </div>
     );

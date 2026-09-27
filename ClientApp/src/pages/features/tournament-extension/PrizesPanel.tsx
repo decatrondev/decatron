@@ -120,6 +120,7 @@ export default function PrizesPanel({
                     initial={null}
                     availableMetrics={availableMetrics}
                     isAram={edition.mode === 'aram_teams'}
+                    isFortnite={edition.game === 'fortnite'}
                     onDone={() => {
                         setShowForm(false);
                         load(edition.id);
@@ -142,6 +143,7 @@ export default function PrizesPanel({
                                 initial={p}
                                 availableMetrics={availableMetrics}
                                 isAram={edition.mode === 'aram_teams'}
+                    isFortnite={edition.game === 'fortnite'}
                                 onDone={() => {
                                     setEditingId(null);
                                     load(edition.id);
@@ -195,8 +197,8 @@ export default function PrizesPanel({
 }
 
 function PrizeForm({
-    editionId, initial, availableMetrics, isAram, onDone, onCancel,
-}: { editionId: number; initial: Prize | null; availableMetrics: Record<string, string>; isAram: boolean; onDone: () => void; onCancel: () => void }) {
+    editionId, initial, availableMetrics, isAram, isFortnite, onDone, onCancel,
+}: { editionId: number; initial: Prize | null; availableMetrics: Record<string, string>; isAram: boolean; isFortnite: boolean; onDone: () => void; onCancel: () => void }) {
     const [name, setName] = useState(initial?.name || '');
     const [description, setDescription] = useState(initial?.description || '');
     const [amount, setAmount] = useState(initial?.amount != null ? String(initial.amount) : '');
@@ -266,8 +268,10 @@ function PrizeForm({
                         className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                     >
                         <option value="by_rank">Por puesto en el ranking</option>
-                        {!isAram && <option value="by_role">Por rol</option>}
-                        <option value="by_metric">Por metrica (mas kills, racha, etc.)</option>
+                        {!isAram && !isFortnite && <option value="by_role">Por rol</option>}
+                        {/* Las metricas de hoy salen de las partidas de LoL; las de Fortnite
+                            llegan con el ranking por puntos (F5). */}
+                        {(!isFortnite || initial?.scope === 'by_metric') && <option value="by_metric">Por metrica (mas kills, racha, etc.)</option>}
                         <option value="custom">Libre — yo decido a mano quién gana</option>
                     </select>
                 </div>

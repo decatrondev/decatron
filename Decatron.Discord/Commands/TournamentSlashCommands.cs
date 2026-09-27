@@ -66,6 +66,10 @@ public class TournamentSlashCommands
         if (edition == null)
             return ErrorEmbed("No hay ningún torneo con inscripciones abiertas en este canal ahora mismo.");
 
+        // Fortnite exige elegir la cuenta de Epic vinculada, y eso se hace en la web.
+        if (edition.Game == TournamentGames.Fortnite)
+            return ErrorEmbed($"**{edition.Name}** es de Fortnite: inscríbete desde la página del torneo en la web, con tu cuenta de Epic vinculada.");
+
         // El caller puede o no tener una cuenta de Decatron vinculada a su Discord —
         // si la tiene, se linkea por AccountId (misma persona en web y Discord); si
         // no, queda solo el DiscordUserId (fase 5, seccion 2).

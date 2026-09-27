@@ -94,6 +94,25 @@ namespace Decatron.Controllers
         private IQueryable<LinkedGameAccount> LolAccounts =>
             _dbContext.LinkedGameAccounts.Where(a => a.Game == GameIds.Lol && a.Provider == GameProviders.Riot);
 
+        // Cuentas de Fortnite vinculadas por la persona (Settings o Game Overlays).
+        // Verificada = login oficial de Epic; las manuales quedan sin verificar.
+        private async Task<List<EpicAccountOption>> GetMyEpicAccountsAsync(long accountId) =>
+            (await _dbContext.LinkedGameAccounts
+                .Where(a => a.AccountId == accountId && a.Game == GameIds.Fortnite)
+                .OrderBy(a => a.SortOrder).ThenBy(a => a.Id)
+                .ToListAsync())
+            .Select(a => new EpicAccountOption { Id = a.Id, Name = a.ExternalName, Verified = IsEpicVerified(a) })
+            .ToList();
+
+        private static bool IsEpicVerified(LinkedGameAccount a) => a.Provider == GameProviders.Epic && a.VerifiedAt != null;
+
+        public class EpicAccountOption
+        {
+            public long Id { get; set; }
+            public string Name { get; set; } = "";
+            public bool Verified { get; set; }
+        }
+
         private async Task<TournamentParticipant?> GetMyParticipantAsync(long editionId)
         {
             var effectiveAccountId = await GetEffectiveAccountIdAsync();
@@ -121,9 +140,12 @@ namespace Decatron.Controllers
                     success = true,
                     registered = false,
                     registrationOpen = edition.Status == "registration_open",
+                    game = edition.Game,
                     region = edition.Region,
                     mode = edition.Mode,
+                    teamSize = edition.TeamSize,
                     eligibleRiotAccounts = eligibleAccountsPreRegister,
+                    epicAccounts = edition.Game == TournamentGames.Fortnite ? await GetMyEpicAccountsAsync(effectiveAccountId) : null,
                 });
             }
 
@@ -153,6 +175,7 @@ namespace Decatron.Controllers
             {
                 success = true,
                 registered = true,
+                game = edition.Game,
                 region = edition.Region,
                 mode = edition.Mode,
                 teamSize = edition.TeamSize,
@@ -165,6 +188,8 @@ namespace Decatron.Controllers
                     participant.RiotTagLine,
                     participant.LinkedRiotAccountId,
                     participant.SmurfFlagNote,
+                    participant.GameAccountName,
+                    participant.GameAccountVerified,
                 },
                 eligibleRiotAccounts = eligibleAccounts,
                 group,
@@ -186,6 +211,8 @@ namespace Decatron.Controllers
             public string? KickChannel { get; set; }
             public string? TwitterHandle { get; set; }
             public long? UserRiotAccountId { get; set; }
+            // Fortnite: id de linked_game_accounts (game = fortnite) de la persona.
+            public long? GameAccountId { get; set; }
         }
 
         /// <summary>
@@ -241,6 +268,28 @@ namespace Decatron.Controllers
                 linkedRiotAccountId = chosen.Id;
             }
 
+            long? gameAccountId = null;
+            string? gameAccountName = null;
+            var gameAccountVerified = false;
+
+            // Fortnite: la cuenta de Epic es obligatoria desde la inscripcion. Se
+            // permite sin verificar mientras Epic no apruebe el login oficial; el
+            // organizador lo ve marcado (decision 27-09-2026).
+            if (edition.Game == TournamentGames.Fortnite)
+            {
+                if (request.GameAccountId == null)
+                    return BadRequest(new { success = false, message = "Elige tu cuenta de Epic para inscribirte" });
+
+                var chosen = await _dbContext.LinkedGameAccounts.FirstOrDefaultAsync(a =>
+                    a.Id == request.GameAccountId && a.AccountId == effectiveAccountId && a.Game == GameIds.Fortnite);
+                if (chosen == null)
+                    return NotFound(new { success = false, message = "Cuenta de Epic no encontrada" });
+
+                gameAccountId = chosen.Id;
+                gameAccountName = chosen.ExternalName;
+                gameAccountVerified = IsEpicVerified(chosen);
+            }
+
             var result = await _registrationService.RegisterAsync(_dbContext, edition, new RegisterParticipantRequest
             {
                 DisplayName = request.DisplayName,
@@ -254,6 +303,9 @@ namespace Decatron.Controllers
                 RiotTagLine = riotTagLine,
                 RiotPuuid = riotPuuid,
                 LinkedRiotAccountId = linkedRiotAccountId,
+                GameAccountId = gameAccountId,
+                GameAccountName = gameAccountName,
+                GameAccountVerified = gameAccountVerified,
             }, source: "web");
 
             if (!result.Success)
@@ -316,6 +368,48 @@ namespace Decatron.Controllers
             await _dbContext.SaveChangesAsync();
 
             return Ok(new { success = true, smurfFlagNote = participant.SmurfFlagNote });
+        }
+
+        public class PickEpicAccountRequest
+        {
+            public long GameAccountId { get; set; }
+        }
+
+        /// <summary>
+        /// Fortnite: cambia la cuenta de Epic de mi inscripcion (por ejemplo, cuando
+        /// despues la verifico con el login oficial de Epic).
+        /// </summary>
+        [HttpPost("{channelName}/{editionSlug}/epic-account")]
+        [EnableRateLimiting("tournament-register")]
+        public async Task<IActionResult> PickEpicAccount(string channelName, string editionSlug, [FromBody] PickEpicAccountRequest request)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
+            if (edition.Game != TournamentGames.Fortnite)
+                return BadRequest(new { success = false, message = "Este torneo no es de Fortnite" });
+
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null)
+                return NotFound(new { success = false, message = "Todavía no estás inscrito en este torneo" });
+
+            var accountId = await GetEffectiveAccountIdAsync();
+            var chosen = await _dbContext.LinkedGameAccounts.FirstOrDefaultAsync(a =>
+                a.Id == request.GameAccountId && a.AccountId == accountId && a.Game == GameIds.Fortnite);
+            if (chosen == null)
+                return NotFound(new { success = false, message = "Cuenta de Epic no encontrada" });
+
+            var chosenName = chosen.ExternalName.ToLower();
+            var taken = await _dbContext.TournamentParticipants.AnyAsync(p =>
+                p.TournamentEditionId == edition.Id && p.Id != participant.Id && p.GameAccountName != null && p.GameAccountName.ToLower() == chosenName);
+            if (taken)
+                return BadRequest(new { success = false, message = "Esa cuenta de Epic ya está inscrita en este torneo con otro participante" });
+
+            participant.GameAccountId = chosen.Id;
+            participant.GameAccountName = chosen.ExternalName;
+            participant.GameAccountVerified = IsEpicVerified(chosen);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true });
         }
 
         /// <summary>

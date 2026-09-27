@@ -77,13 +77,17 @@ export default function TournamentConfig() {
 
     const selectedEdition = editions.find((e) => e.id === selectedEditionId) || null;
     const isAram = selectedEdition?.mode === 'aram_teams';
+    // Fortnite (.dev/torneos/15-fortnite.md): sin Riot API, sin LP y sin condicion
+    // de victoria ARAM. Castigos/Suerte vuelve en F6 con condiciones propias.
+    const isFortnite = selectedEdition?.game === 'fortnite';
 
     // Ranking (LP de SoloQ Climb) y Castigos/Suerte (motor atado a snapshots de LP,
     // que ARAM no genera — resultados se cargan a mano) no aplican a ARAM N vs N.
     useEffect(() => {
-        if (isAram && (activeTab === 'ranking' || activeTab === 'blueshell')) setActiveTab('dashboard');
-        if (!isAram && activeTab === 'wincondition') setActiveTab('dashboard');
-    }, [isAram, activeTab]);
+        if ((isAram || isFortnite) && (activeTab === 'ranking' || activeTab === 'blueshell')) setActiveTab('dashboard');
+        if ((!isAram || isFortnite) && activeTab === 'wincondition') setActiveTab('dashboard');
+        if (isFortnite && activeTab === 'riot') setActiveTab('dashboard');
+    }, [isAram, isFortnite, activeTab]);
 
     return (
         <div className="max-w-[1800px] 4xl:max-w-[2200px] 5xl:max-w-[2800px] mx-auto space-y-6 4xl:space-y-8">
@@ -92,7 +96,7 @@ export default function TournamentConfig() {
                     <Trophy className="w-7 h-7 4xl:w-9 4xl:h-9 text-[#2563eb]" />
                     Torneos
                 </h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-1 4xl:text-lg">Torneos de ARAM N vs N y SoloQ Climb.</p>
+                <p className="text-[#64748b] dark:text-[#94a3b8] mt-1 4xl:text-lg">Torneos de League of Legends (ARAM N vs N y SoloQ Climb) y Fortnite.</p>
             </div>
 
             <div className="flex gap-1.5 4xl:gap-2 flex-wrap">
@@ -100,19 +104,19 @@ export default function TournamentConfig() {
                     [
                         { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'editions', label: 'Ediciones', icon: <Trophy className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
-                        !isAram && { id: 'ranking', label: 'Ranking', icon: <ArrowUp className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
+                        !isAram && !isFortnite && { id: 'ranking', label: 'Ranking', icon: <ArrowUp className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'participants', label: 'Participantes', icon: <Users className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'teams', label: 'Equipos', icon: <UsersRound className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
-                        !isAram && {
+                        !isAram && !isFortnite && {
                             id: 'blueshell',
                             label: selectedEdition ? `${selectedEdition.shellItemName}s` : 'Castigos',
                             icon: <Shield className="w-4 h-4 4xl:w-5 4xl:h-5" />,
                         },
-                        isAram && { id: 'wincondition', label: 'Condición de victoria', icon: <Swords className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
+                        isAram && !isFortnite && { id: 'wincondition', label: 'Condición de victoria', icon: <Swords className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'prizes', label: 'Premios', icon: <DollarSign className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'rules', label: 'Normas', icon: <FileText className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'sponsors', label: 'Sponsors', icon: <Handshake className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
-                        { id: 'riot', label: 'Riot API', icon: <KeyRound className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
+                        !isFortnite && { id: 'riot', label: 'Riot API', icon: <KeyRound className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                     ].filter(Boolean) as { id: TabId; label: string; icon: React.ReactNode }[]
                 ).map((tab) => (
                     <button

@@ -189,10 +189,15 @@ namespace Decatron.Services.Tournament
         /// sin aprobacion del organizador, y AutoAssignRandomTeamsAsync completa lo
         /// que falte con los que vinieron solos al generar el bracket.
         /// </summary>
+        // ARAM N vs N y Fortnite (duo/trio/escuadra) dejan que los jugadores armen su
+        // propio equipo con codigo.
+        private static bool AllowsSelfServiceGroups(TournamentEdition edition) =>
+            (edition.Mode == "aram_teams" || edition.Mode == TournamentGames.FortniteMode) && edition.TeamSize is >= 2;
+
         public async Task<TeamActionResult> CreateGroupAsync(DecatronDbContext db, TournamentEdition edition, long participantId, CancellationToken ct = default)
         {
-            if (edition.Mode != "aram_teams" || edition.TeamSize is null or < 2)
-                return new TeamActionResult { Success = false, Error = "Esta edición no admite armar grupos (solo ARAM N vs N con equipos de 2 o más)" };
+            if (!AllowsSelfServiceGroups(edition))
+                return new TeamActionResult { Success = false, Error = "Esta edición no admite armar grupos (solo ediciones por equipos de 2 o más)" };
 
             var participant = await db.TournamentParticipants.FirstOrDefaultAsync(p => p.Id == participantId && p.TournamentEditionId == edition.Id, ct);
             if (participant == null)
@@ -203,7 +208,7 @@ namespace Decatron.Services.Tournament
             var team = new TournamentTeam
             {
                 TournamentEditionId = edition.Id,
-                Name = $"Grupo de {participant.DisplayName}",
+                Name = edition.Mode == TournamentGames.FortniteMode ? $"Equipo de {participant.DisplayName}" : $"Grupo de {participant.DisplayName}",
                 JoinCode = await GenerateUniqueJoinCodeAsync(db, ct),
             };
             db.TournamentTeams.Add(team);
@@ -217,8 +222,8 @@ namespace Decatron.Services.Tournament
 
         public async Task<TeamActionResult> JoinGroupAsync(DecatronDbContext db, TournamentEdition edition, long participantId, string joinCode, CancellationToken ct = default)
         {
-            if (edition.Mode != "aram_teams" || edition.TeamSize is null or < 2)
-                return new TeamActionResult { Success = false, Error = "Esta edición no admite armar grupos (solo ARAM N vs N con equipos de 2 o más)" };
+            if (!AllowsSelfServiceGroups(edition))
+                return new TeamActionResult { Success = false, Error = "Esta edición no admite armar grupos (solo ediciones por equipos de 2 o más)" };
 
             var participant = await db.TournamentParticipants.FirstOrDefaultAsync(p => p.Id == participantId && p.TournamentEditionId == edition.Id, ct);
             if (participant == null)

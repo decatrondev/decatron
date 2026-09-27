@@ -25,6 +25,11 @@ namespace Decatron.Services.Tournament
         /// </summary>
         public string? RiotPuuid { get; set; }
         public long? LinkedRiotAccountId { get; set; }
+
+        // Fortnite: cuenta de Epic elegida de las vinculadas (linked_game_accounts).
+        public long? GameAccountId { get; set; }
+        public string? GameAccountName { get; set; }
+        public bool GameAccountVerified { get; set; }
     }
 
     public class RegisterParticipantResult
@@ -76,6 +81,15 @@ namespace Decatron.Services.Tournament
                     return new RegisterParticipantResult { Success = false, Error = "Ya estás inscripto en este torneo" };
             }
 
+            if (!string.IsNullOrWhiteSpace(request.GameAccountName))
+            {
+                var gameAccountName = request.GameAccountName.Trim().ToLower();
+                var alreadyByGameAccount = await db.TournamentParticipants.AnyAsync(p =>
+                    p.TournamentEditionId == edition.Id && p.GameAccountName != null && p.GameAccountName.ToLower() == gameAccountName, ct);
+                if (alreadyByGameAccount)
+                    return new RegisterParticipantResult { Success = false, Error = "Esa cuenta de Epic ya está inscrita en este torneo" };
+            }
+
             string? resolvedPuuid = request.RiotPuuid;
             if (resolvedPuuid != null)
             {
@@ -123,6 +137,9 @@ namespace Decatron.Services.Tournament
                 AccountId = request.AccountId,
                 DiscordUserId = request.DiscordUserId,
                 LinkedRiotAccountId = request.LinkedRiotAccountId,
+                GameAccountId = request.GameAccountId,
+                GameAccountName = request.GameAccountName?.Trim(),
+                GameAccountVerified = request.GameAccountVerified,
                 Status = "pending_approval",
                 RegisteredVia = source,
             };

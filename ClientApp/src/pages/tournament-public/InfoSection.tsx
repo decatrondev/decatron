@@ -1,4 +1,4 @@
-import { SectionLabel, EmptyState, EDITION_STATUS_LABELS, BRACKET_FORMAT_LABELS, REGION_LABELS } from './shared';
+import { SectionLabel, EmptyState, EDITION_STATUS_LABELS, BRACKET_FORMAT_LABELS, REGION_LABELS, FORTNITE_TEAM_SIZE_LABELS } from './shared';
 import type { EditionInfo, Prize } from './shared';
 
 // Tab "Info" — fusiona lo que antes vivia repartido en el rail lateral ("El
@@ -13,9 +13,19 @@ export default function InfoSection({ edition, prizes }: { edition: EditionInfo;
                 <SectionLabel title="El torneo" accent="#E8B04B" />
                 <dl className="border border-[#232C42] rounded-lg bg-[#0F1729] divide-y divide-[#232C42] overflow-hidden">
                     {[
-                        ['Formato', BRACKET_FORMAT_LABELS[edition.bracketFormat || ''] || (edition.mode === 'solo_q_climb' ? 'Climb SoloQ' : '—')],
+                        edition.game === 'fortnite' ? ['Juego', 'Fortnite'] : null,
+                        [
+                            'Formato',
+                            edition.game === 'fortnite'
+                                ? 'Por puntos en partidas personalizadas'
+                                : BRACKET_FORMAT_LABELS[edition.bracketFormat || ''] || (edition.mode === 'solo_q_climb' ? 'Climb SoloQ' : '—'),
+                        ],
                         ['Región', REGION_LABELS[edition.region] || edition.region.toUpperCase()],
-                        edition.teamSize ? ['Tamaño de equipo', edition.teamSize === 1 ? '1 vs 1' : `${edition.teamSize} vs ${edition.teamSize}`] : null,
+                        edition.game === 'fortnite' && edition.teamSize
+                            ? ['Modalidad', FORTNITE_TEAM_SIZE_LABELS[edition.teamSize] || `${edition.teamSize}`]
+                            : edition.teamSize
+                              ? ['Tamaño de equipo', edition.teamSize === 1 ? '1 vs 1' : `${edition.teamSize} vs ${edition.teamSize}`]
+                              : null,
                         ['Estado', EDITION_STATUS_LABELS[edition.status] || edition.status],
                     ].filter((row): row is [string, string] => row != null).map(([label, value]) => (
                         <div key={label} className="px-4 4xl:px-5 py-3 4xl:py-4 flex items-center justify-between gap-3">

@@ -169,6 +169,7 @@ namespace Decatron.Controllers
             public string Name { get; set; } = "";
             public string Slug { get; set; } = "";
             public string? ShortLabel { get; set; }
+            public string Game { get; set; } = TournamentGames.Lol;
             public string Mode { get; set; } = "solo_q_climb";
             public string Region { get; set; } = "euw1";
             public DateTime? StartsAt { get; set; }
@@ -192,12 +193,16 @@ namespace Decatron.Controllers
             if (slugTaken)
                 return Conflict(new { success = false, message = "Ya existe una edicion con ese slug en este canal" });
 
+            if (!TournamentGames.IsKnown(request.Game))
+                return BadRequest(new { success = false, message = "Juego no soportado" });
+
             var edition = new TournamentEdition
             {
                 ChannelOwnerId = channelOwnerId,
                 Name = request.Name.Trim(),
                 Slug = request.Slug.Trim().ToLowerInvariant(),
                 ShortLabel = request.ShortLabel,
+                Game = request.Game,
                 Mode = request.Mode,
                 Region = request.Region,
                 StartsAt = request.StartsAt,
@@ -206,6 +211,20 @@ namespace Decatron.Controllers
                 BracketFormat = request.Mode == "solo_q_climb" ? null : (request.BracketFormat ?? "single_elimination"),
                 Status = "draft"
             };
+
+            // Fortnite: un solo modo (puntos en partidas personalizadas), sin bracket
+            // A contra B, equipos de 1 a 4 y region de servidor de Fortnite.
+            if (request.Game == TournamentGames.Fortnite)
+            {
+                if (request.TeamSize is null or < 1 or > TournamentGames.FortniteMaxTeamSize)
+                    return BadRequest(new { success = false, message = "Elige solo, dúo, trío o escuadra" });
+                if (Array.IndexOf(TournamentGames.FortniteRegions, request.Region) < 0)
+                    return BadRequest(new { success = false, message = "Región de Fortnite no válida" });
+
+                edition.Mode = TournamentGames.FortniteMode;
+                edition.TeamSize = request.TeamSize;
+                edition.BracketFormat = null;
+            }
 
             _dbContext.TournamentEditions.Add(edition);
             await _dbContext.SaveChangesAsync();
@@ -363,6 +382,8 @@ namespace Decatron.Controllers
             public string? Nationality { get; set; }
             public string? TwitchChannel { get; set; }
             public string? KickChannel { get; set; }
+            // Fortnite: nombre de Epic. Por alta manual queda sin verificar.
+            public string? GameAccountName { get; set; }
         }
 
         [HttpPost("editions/{editionId}/participants")]
@@ -378,6 +399,9 @@ namespace Decatron.Controllers
 
             if (string.IsNullOrWhiteSpace(request.DisplayName))
                 return BadRequest(new { success = false, message = "DisplayName es requerido" });
+
+            if (edition.Game == TournamentGames.Fortnite)
+                return await AddFortniteParticipantAsync(edition, request);
 
             // Sin esto se podia cargar la misma cuenta de Riot dos veces por alta
             // manual siempre que el puuid no llegara a resolverse (sin key activa, o
@@ -458,6 +482,42 @@ namespace Decatron.Controllers
                 RiotTagLine = request.RiotTagLine,
                 RiotPuuid = resolvedPuuid,
                 PrimaryRole = request.PrimaryRole,
+                Nationality = request.Nationality,
+                TwitchChannel = request.TwitchChannel,
+                KickChannel = request.KickChannel,
+                Status = "approved",
+                RegisteredVia = "web",
+                ApprovedAt = DateTime.UtcNow
+            };
+
+            _dbContext.TournamentParticipants.Add(participant);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true, participant });
+        }
+
+        /// <summary>
+        /// Alta manual en una edicion de Fortnite: nombre de Epic opcional, sin
+        /// verificar (no hay forma de probar la propiedad desde el panel del
+        /// organizador). Entra aprobado, igual que el alta manual de LoL.
+        /// </summary>
+        private async Task<IActionResult> AddFortniteParticipantAsync(TournamentEdition edition, AddParticipantRequest request)
+        {
+            var epicName = string.IsNullOrWhiteSpace(request.GameAccountName) ? null : request.GameAccountName.Trim();
+            if (epicName != null)
+            {
+                var taken = await _dbContext.TournamentParticipants.AnyAsync(p =>
+                    p.TournamentEditionId == edition.Id && p.GameAccountName != null && p.GameAccountName.ToLower() == epicName.ToLower());
+                if (taken)
+                    return BadRequest(new { success = false, message = $"La cuenta de Epic '{epicName}' ya está inscrita en este torneo" });
+            }
+
+            var participant = new TournamentParticipant
+            {
+                TournamentEditionId = edition.Id,
+                DisplayName = request.DisplayName.Trim(),
+                GameAccountName = epicName,
+                GameAccountVerified = false,
                 Nationality = request.Nationality,
                 TwitchChannel = request.TwitchChannel,
                 KickChannel = request.KickChannel,

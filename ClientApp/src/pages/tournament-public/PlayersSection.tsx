@@ -11,6 +11,8 @@ interface Player {
     displayName: string;
     riotId: string | null;
     riotTagLine: string | null;
+    gameAccountName: string | null;
+    gameAccountVerified: boolean;
     primaryRole: string | null;
     nationality: string | null;
     twitchChannel: string | null;
@@ -57,7 +59,13 @@ export default function PlayersSection({ channelName, editionSlug }: { channelNa
                                     {p.isCaptain && <span className="font-mono text-[10px] text-[#E8B04B]">(C)</span>}
                                     {p.isSubstitute && <span className="font-mono text-[10px] text-[#7C8AA6]">suplente</span>}
                                 </div>
-                                <p className="font-mono text-[11px] text-[#7C8AA6] truncate">{p.riotId ? `${p.riotId}#${p.riotTagLine}` : 'sin cuenta vinculada'}</p>
+                                <p className="font-mono text-[11px] text-[#7C8AA6] truncate">
+                                    {p.gameAccountName
+                                        ? `Epic: ${p.gameAccountName}${p.gameAccountVerified ? '' : ' (sin verificar)'}`
+                                        : p.riotId
+                                          ? `${p.riotId}#${p.riotTagLine}`
+                                          : 'sin cuenta vinculada'}
+                                </p>
                             </div>
                             <p className="font-mono text-[11px] text-[#7C8AA6] text-right flex-shrink-0">{p.teamName || 'sin equipo'}</p>
                         </div>

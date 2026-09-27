@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Check, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import api from '../../../services/api';
 import type { TournamentEdition } from './shared';
-import { REGIONS, REGION_LABELS } from '../../tournament-public/shared';
+import { REGIONS, REGION_LABELS, FORTNITE_REGIONS, FORTNITE_TEAM_SIZE_LABELS } from '../../tournament-public/shared';
 
 // Pestaña "Ediciones" — crear/listar/borrar, cambiar estado. Separado de
 // TournamentConfig.tsx (que ya pasaba las 800 líneas) el 15-08-2026.
@@ -15,7 +15,12 @@ const MODES = [
     { value: 'aram_teams', label: 'ARAM N vs N (equipos al azar al generar el bracket)', disabled: false },
     { value: 'clash_5v5', label: 'Grieta 5v5 (Próximamente)', disabled: true },
 ];
-export const MODE_LABELS: Record<string, string> = Object.fromEntries(MODES.map((m) => [m.value, m.label.replace(/ \(.+\)/, '')]));
+export const MODE_LABELS: Record<string, string> = {
+    ...Object.fromEntries(MODES.map((m) => [m.value, m.label.replace(/ \(.+\)/, '')])),
+    fortnite_points: 'Por puntos',
+};
+
+export const GAME_LABELS: Record<string, string> = { lol: 'League of Legends', fortnite: 'Fortnite' };
 
 export const EDITION_STATUS_LABELS: Record<string, string> = {
     draft: 'Borrador',
@@ -44,6 +49,7 @@ export default function EditionsPanel({
     onCreated: () => Promise<void>;
 }) {
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newGame, setNewGame] = useState<'lol' | 'fortnite'>('lol');
     const [newName, setNewName] = useState('');
     const [newSlug, setNewSlug] = useState('');
     const [newMode, setNewMode] = useState('aram_teams');
@@ -57,12 +63,14 @@ export default function EditionsPanel({
         setCreateError('');
         setCreating(true);
         try {
+            const isFortnite = newGame === 'fortnite';
             await api.post('/admin/tournament/editions', {
                 name: newName,
                 slug: newSlug,
-                mode: newMode,
+                game: newGame,
+                mode: isFortnite ? 'fortnite_points' : newMode,
                 region: newRegion,
-                teamSize: newMode === 'aram_teams' ? newTeamSize : null,
+                teamSize: isFortnite || newMode === 'aram_teams' ? newTeamSize : null,
             });
             setNewName('');
             setNewSlug('');
@@ -114,6 +122,43 @@ export default function EditionsPanel({
                             />
                         </div>
                         <div>
+                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Juego</label>
+                            <select
+                                value={newGame}
+                                onChange={(e) => {
+                                    const game = e.target.value as 'lol' | 'fortnite';
+                                    setNewGame(game);
+                                    // Cada juego tiene sus propias regiones y tamaños de equipo.
+                                    setNewRegion(game === 'fortnite' ? 'nae' : 'euw1');
+                                    setNewTeamSize(game === 'fortnite' ? 1 : 5);
+                                }}
+                                className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                            >
+                                <option value="lol">League of Legends</option>
+                                <option value="fortnite">Fortnite</option>
+                            </select>
+                        </div>
+                        {newGame === 'fortnite' ? (
+                            <div>
+                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Modalidad</label>
+                                <select
+                                    value={newTeamSize}
+                                    onChange={(e) => setNewTeamSize(Number(e.target.value))}
+                                    className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                >
+                                    {[1, 2, 3, 4].map((n) => (
+                                        <option key={n} value={n}>
+                                            {FORTNITE_TEAM_SIZE_LABELS[n]}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-[11px] text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                    Por puntos en tus partidas personalizadas (puesto y eliminaciones).
+                                </p>
+                            </div>
+                        ) : (
+                        <>
+                        <div>
                             <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Modo</label>
                             <select
                                 value={newMode}
@@ -143,14 +188,18 @@ export default function EditionsPanel({
                                 </select>
                             </div>
                         )}
+                        </>
+                        )}
                         <div>
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Region (una sola, no se puede mezclar)</label>
+                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                                {newGame === 'fortnite' ? 'Región del servidor' : 'Region (una sola, no se puede mezclar)'}
+                            </label>
                             <select
                                 value={newRegion}
                                 onChange={(e) => setNewRegion(e.target.value)}
                                 className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                             >
-                                {REGIONS.map((r) => (
+                                {(newGame === 'fortnite' ? FORTNITE_REGIONS : REGIONS).map((r) => (
                                     <option key={r.value} value={r.value}>
                                         {r.label}
                                     </option>
@@ -216,9 +265,11 @@ export default function EditionsPanel({
                                 </button>
                             </div>
                             <div className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
-                                /{ed.slug} · {MODE_LABELS[ed.mode] || ed.mode} · {REGION_LABELS[ed.region] || ed.region}
+                                /{ed.slug} · {GAME_LABELS[ed.game] || ed.game} · {MODE_LABELS[ed.mode] || ed.mode}
+                                {ed.game === 'fortnite' && ed.teamSize ? ` · ${FORTNITE_TEAM_SIZE_LABELS[ed.teamSize] || ed.teamSize}` : ''} ·{' '}
+                                {REGION_LABELS[ed.region] || ed.region}
                             </div>
-                            {ed.status !== 'in_progress' && (
+                            {ed.game !== 'fortnite' && ed.status !== 'in_progress' && (
                                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
                                     <AlertTriangle className="w-3.5 h-3.5" /> El poller de Riot API solo trackea ediciones "En curso"
                                 </p>

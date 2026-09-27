@@ -11,8 +11,35 @@ interface TournamentParticipant {
     displayName: string;
     riotId: string | null;
     riotTagLine: string | null;
+    gameAccountName: string | null;
+    gameAccountVerified: boolean;
     primaryRole: string | null;
     status: string;
+}
+
+// Cuenta del participante: Riot ID en LoL, nombre de Epic en Fortnite (marcado si
+// todavia no esta verificado con el login oficial de Epic).
+function AccountLabel({ p }: { p: TournamentParticipant }) {
+    if (p.gameAccountName) {
+        return (
+            <span className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] ml-2">
+                Epic: {p.gameAccountName}
+                {!p.gameAccountVerified && (
+                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400 text-[10px] font-bold">
+                        sin verificar
+                    </span>
+                )}
+            </span>
+        );
+    }
+    if (p.riotId) {
+        return (
+            <span className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] ml-2">
+                {p.riotId}#{p.riotTagLine}
+            </span>
+        );
+    }
+    return null;
 }
 
 const PARTICIPANT_STATUS_LABELS: Record<string, string> = {
@@ -48,6 +75,7 @@ export default function ParticipantsPanel({
     const [displayName, setDisplayName] = useState('');
     const [riotId, setRiotId] = useState('');
     const [riotTagLine, setRiotTagLine] = useState('');
+    const [epicName, setEpicName] = useState('');
     const [primaryRole, setPrimaryRole] = useState('');
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -98,18 +126,26 @@ export default function ParticipantsPanel({
         return <EditionPicker editions={editions} onSelectEdition={onSelectEdition} />;
     }
 
+    const isFortnite = edition.game === 'fortnite';
+
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setSaving(true);
         try {
-            await api.post(`/admin/tournament/editions/${edition.id}/participants`, {
-                displayName,
-                riotId: riotId || null,
-                riotTagLine: riotTagLine || null,
-                primaryRole: primaryRole || null,
-            });
+            await api.post(
+                `/admin/tournament/editions/${edition.id}/participants`,
+                isFortnite
+                    ? { displayName, gameAccountName: epicName || null }
+                    : {
+                          displayName,
+                          riotId: riotId || null,
+                          riotTagLine: riotTagLine || null,
+                          primaryRole: primaryRole || null,
+                      },
+            );
             setDisplayName('');
+            setEpicName('');
             setRiotId('');
             setRiotTagLine('');
             setPrimaryRole('');
@@ -171,11 +207,19 @@ export default function ParticipantsPanel({
 
             {seedMessage && <p className="text-xs 4xl:text-sm text-[#2563eb]">{seedMessage}</p>}
 
+            {isFortnite ? (
+                <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    El botón "Agregar" es alta manual y entra directo como aprobado. Las inscripciones del formulario público quedan abajo, pendientes de tu
+                    aprobación: cada jugador se inscribe con su cuenta del bot y elige su cuenta de Epic. Mientras Epic no apruebe el inicio de sesión
+                    oficial, las cuentas de Epic aparecen como "sin verificar".
+                </p>
+            ) : (
             <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
                 El botón "Agregar" es alta manual — entra directo como aprobado. Las inscripciones que llegan del formulario público quedan abajo, pendientes de
                 tu aprobación. Desde esta sesión, cada participante se inscribe con su propia cuenta y vincula/verifica su Riot y genera su overlay desde su
                 propio panel ("Mi inscripción" en la web pública) — el overlay que armás acá abajo sigue funcionando como respaldo para quien lo necesite.
             </p>
+            )}
 
             {pending.length > 0 && (
                 <div className="space-y-2">
@@ -187,11 +231,7 @@ export default function ParticipantsPanel({
                         >
                             <div>
                                 <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm">{p.displayName}</span>
-                                {p.riotId && (
-                                    <span className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] ml-2">
-                                        {p.riotId}#{p.riotTagLine}
-                                    </span>
-                                )}
+                                <AccountLabel p={p} />
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
@@ -224,6 +264,19 @@ export default function ParticipantsPanel({
                                 className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                             />
                         </div>
+                        {isFortnite ? (
+                            <div>
+                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Nombre de Epic (opcional)</label>
+                                <input
+                                    value={epicName}
+                                    onChange={(e) => setEpicName(e.target.value)}
+                                    className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    placeholder="Nombre en Fortnite"
+                                />
+                                <p className="text-[11px] text-[#64748b] dark:text-[#94a3b8] mt-1">Por alta manual queda sin verificar.</p>
+                            </div>
+                        ) : (
+                        <>
                         <div>
                             <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Rol principal</label>
                             <select
@@ -257,6 +310,8 @@ export default function ParticipantsPanel({
                                 placeholder="KR1"
                             />
                         </div>
+                        </>
+                        )}
                     </div>
                     {error && (
                         <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
@@ -285,11 +340,7 @@ export default function ParticipantsPanel({
                             <div className="flex items-center justify-between">
                                 <div>
                                     <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{p.displayName}</span>
-                                    {p.riotId && (
-                                        <span className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] ml-2">
-                                            {p.riotId}#{p.riotTagLine}
-                                        </span>
-                                    )}
+                                    <AccountLabel p={p} />
                                 </div>
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8]">
                                     {PARTICIPANT_STATUS_LABELS[p.status] || p.status}

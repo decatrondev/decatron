@@ -21,6 +21,13 @@ const TEAM_MODE_TABS = [
     { id: 'info', label: 'Info' },
 ] as const;
 
+// Fortnite: sin bracket (se juega por puntos). La tabla de puntos llega en F5.
+const FORTNITE_TABS = [
+    { id: 'players', label: 'Jugadores' },
+    { id: 'teams', label: 'Equipos' },
+    { id: 'info', label: 'Info' },
+] as const;
+
 const SOLO_Q_TABS = [
     { id: 'ranking', label: 'Ranking' },
     { id: 'info', label: 'Info' },
@@ -63,7 +70,10 @@ export default function TournamentPublicPage() {
     // En 1 vs 1 (teamSize 1) "Equipos" y "Jugadores" muestran lo mismo — un jugador
     // por equipo — asi que se saca "Equipos" para no duplicar tabs (pedido del
     // usuario 24-08-2026).
-    const tabs = isTeamMode
+    const isFortnite = edition?.game === 'fortnite';
+    const tabs = isFortnite
+        ? (edition?.teamSize === 1 ? FORTNITE_TABS.filter(t => t.id !== 'teams') : FORTNITE_TABS)
+        : isTeamMode
         ? (edition?.teamSize === 1 ? TEAM_MODE_TABS.filter(t => t.id !== 'teams') : TEAM_MODE_TABS)
         : SOLO_Q_TABS;
     const activeTab = tabs.find(t => t.id === searchParams.get('tab'))?.id || tabs[0].id;
@@ -74,7 +84,8 @@ export default function TournamentPublicPage() {
     }, { replace: true });
 
     const countdown = useCountdown(edition?.endsAt || null);
-    const top3 = useMemo(() => ranking.slice(0, 3), [ranking]);
+    // El podio sale del LP de LoL; en Fortnite vuelve con la tabla de puntos (F5).
+    const top3 = useMemo(() => (edition?.game === 'fortnite' ? [] : ranking.slice(0, 3)), [ranking, edition?.game]);
     const bannerSponsors = useMemo(() => sponsors.filter(s => s.slots.includes('home-banner')), [sponsors]);
     const footerSponsors = useMemo(() => sponsors.filter(s => s.slots.includes('footer')), [sponsors]);
 
@@ -143,10 +154,14 @@ export default function TournamentPublicPage() {
                 mas una secuencia de entrada escalonada (fade-in-up, reusa la animacion
                 ya definida en index.css) para que la pagina no se sienta estatica. */}
             <header className="relative overflow-hidden border-b border-[#232C42]">
-                <div
-                    className="absolute inset-0 bg-cover bg-[position:50%_20%] opacity-[0.16]"
-                    style={{ backgroundImage: 'url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg)' }}
-                />
+                {/* El splash de LoL solo en ediciones de LoL; Fortnite queda con el fondo
+                    de gradientes (sin assets de Epic). */}
+                {!isFortnite && (
+                    <div
+                        className="absolute inset-0 bg-cover bg-[position:50%_20%] opacity-[0.16]"
+                        style={{ backgroundImage: 'url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg)' }}
+                    />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/85 to-[#0B1120]/40" />
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(232,176,75,0.14),transparent)]" />
                 <div className="relative max-w-[1400px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-5 4xl:px-8 pt-12 4xl:pt-20 pb-10 4xl:pb-16">

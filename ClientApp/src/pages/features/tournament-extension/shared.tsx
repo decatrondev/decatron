@@ -7,7 +7,10 @@ export interface TournamentEdition {
     id: number;
     name: string;
     slug: string;
+    // "lol" | "fortnite"
+    game: string;
     mode: string;
+    teamSize: number | null;
     bracketFormat: string | null;
     region: string;
     status: string;
