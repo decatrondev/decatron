@@ -658,8 +658,9 @@ namespace Decatron.Services
                     waitForSound,
 
                     duration,
-                    animationIn = animType switch { "slide" => "slideIn", "bounce" => "bounceIn", "zoom" => "zoomIn", _ => "fadeIn" },
-                    animationOut = animType switch { "slide" => "slideOut", "bounce" => "bounceOut", "zoom" => "zoomOut", _ => "fadeOut" },
+                    // Las de siempre y las nuevas del rediseño (slide-bounce, flip, rotate, glitch); otra = fundido
+                    animationIn = (EventAnimationTypes.Contains(animType) ? animType : "fade") + "In",
+                    animationOut = (EventAnimationTypes.Contains(animType) ? animType : "fade") + "Out",
                     effects,
                     position = new { x = posX, y = posY },
                     style,
@@ -968,6 +969,9 @@ namespace Decatron.Services
         /// Checks if an alert is on cooldown. If not on cooldown, records the current time.
         /// Also periodically cleans up stale entries older than 24 hours to prevent unbounded memory growth.
         /// </summary>
+        /// <summary>Animaciones de alerta que entiende el overlay.</summary>
+        internal static readonly HashSet<string> EventAnimationTypes = new() { "fade", "slide", "bounce", "zoom", "slide-bounce", "flip", "rotate", "glitch" };
+
         private static bool IsOnCooldown(string channelName, string eventType, int cooldownSeconds)
         {
             var key = $"{channelName.ToLower()}:{eventType}";

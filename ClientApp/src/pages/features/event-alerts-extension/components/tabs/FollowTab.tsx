@@ -5,6 +5,7 @@
  * Diseño idéntico al Timer Extensible
  */
 
+import { AnimationEffectsSection } from '../AnimationEffectsSection';
 import React from 'react';
 import type { FollowAlertConfig, VariantsConfig } from '../../types/index';
 import { MediaEditor } from '../../../timer-extension/components/MediaEditor';
@@ -27,10 +28,10 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
       <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
               ❤️ Alertas de Follow
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
               Configura las alertas que aparecen cuando alguien te sigue
             </p>
           </div>
@@ -42,7 +43,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
               className="sr-only peer"
             />
             <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6]"></div>
-            <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+            <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
               {config.enabled ? 'Activado' : 'Desactivado'}
             </span>
           </label>
@@ -52,19 +53,19 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
       {/* Mensaje de la Alerta */}
       <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
-          <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+          <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
             💬 Mensaje de la Alerta
           </label>
           {!config.alert.message && (
             <button
               onClick={() => onConfigChange({ alert: { ...config.alert, message: MESSAGE_TEMPLATES.follow } })}
-              className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 font-bold"
+              className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 font-bold 3xl:text-sm"
             >
               ✨ Usar predefinido
             </button>
           )}
         </div>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
+        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4 3xl:text-sm">
           Variables: <code className="bg-[#f8fafc] dark:bg-[#262626] px-2 py-1 rounded text-blue-600">{EVENT_VARIABLES.follow}</code>
         </p>
 
@@ -91,10 +92,10 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
             onClick={() => onConfigChange({ alert: { ...config.alert, message: MESSAGE_TEMPLATES.follow } })}
             className="mt-2 w-full p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-left group hover:border-blue-400 transition-all"
           >
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
               <span className="font-bold text-blue-600 dark:text-blue-400">💡 Sugerido:</span>
             </p>
-            <p className="text-sm text-blue-700 dark:text-blue-300 font-mono mt-1">
+            <p className="text-sm text-blue-700 dark:text-blue-300 font-mono mt-1 3xl:text-base">
               "{MESSAGE_TEMPLATES.follow}"
             </p>
           </button>
@@ -103,7 +104,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
         {/* Preview cuando hay mensaje */}
         {config.alert.message && (
           <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <p className="text-xs text-[#1e293b] dark:text-blue-300">
+            <p className="text-xs text-[#1e293b] dark:text-blue-300 3xl:text-sm">
               <strong>📺 Se verá:</strong> {config.alert.message.replace('{username}', 'NombreEjemplo')}
             </p>
           </div>
@@ -113,7 +114,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
       {/* Duración y Volumen */}
       <EventSection title="⏱️ Duración y Volumen" defaultOpen><div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
               Duración (segundos)
             </label>
             <input
@@ -134,7 +135,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
           </div>
 
           <div>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
               Volumen (0-100)
             </label>
             <input
@@ -169,6 +170,12 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
             emoji: '❤️',
           }}
         />
+      </EventSection>
+
+      {/* Animación y efectos */}
+      <EventSection title="✨ Animación y efectos" description="Cómo entra y sale la alerta, y los efectos sobre la tarjeta">
+        <AnimationEffectsSection animation={config.alert.animation} effects={config.alert.effects}
+          onChange={patch => onConfigChange({ alert: { ...config.alert, ...patch } })} />
       </EventSection>
 
       {/* TTS */}
@@ -218,7 +225,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
         />
 
         <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <p className="text-xs text-[#1e293b] dark:text-yellow-300">
+          <p className="text-xs text-[#1e293b] dark:text-yellow-300 3xl:text-sm">
             💡 <strong>Recomendación:</strong> 5 segundos es ideal para evitar spam sin perder alertas
           </p>
         </div>
@@ -228,10 +235,10 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
       <div className="rounded-2xl border-2 border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/20 p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 3xl:text-base">
               🛡️ Anti-Spam por Usuario
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
               Evita que el mismo usuario dispare múltiples alertas de follow
             </p>
           </div>
@@ -245,7 +252,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
               className="sr-only peer"
             />
             <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-orange-600"></div>
-            <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+            <span className="ml-3 text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
               {config.antiSpam?.enabled !== false ? 'Activado' : 'Desactivado'}
             </span>
           </label>
@@ -254,7 +261,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
         {config.antiSpam?.enabled !== false && (
           <div className="pt-4 border-t border-orange-200 dark:border-orange-800 space-y-4">
             <div>
-              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2 3xl:text-sm">
                 Cooldown por usuario (segundos)
               </label>
               <div className="flex items-center gap-4">
@@ -271,31 +278,31 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
                 <div className="flex gap-2">
                   <button
                     onClick={() => onConfigChange({ antiSpam: { ...config.antiSpam, enabled: true, perUserCooldown: 3600 } })}
-                    className="px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg text-xs font-bold hover:bg-orange-200"
+                    className="px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg text-xs font-bold hover:bg-orange-200 3xl:text-sm"
                   >
                     1h
                   </button>
                   <button
                     onClick={() => onConfigChange({ antiSpam: { ...config.antiSpam, enabled: true, perUserCooldown: 86400 } })}
-                    className="px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg text-xs font-bold hover:bg-orange-200"
+                    className="px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg text-xs font-bold hover:bg-orange-200 3xl:text-sm"
                   >
                     24h
                   </button>
                   <button
                     onClick={() => onConfigChange({ antiSpam: { ...config.antiSpam, enabled: true, perUserCooldown: 604800 } })}
-                    className="px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg text-xs font-bold hover:bg-orange-200"
+                    className="px-3 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 rounded-lg text-xs font-bold hover:bg-orange-200 3xl:text-sm"
                   >
                     7d
                   </button>
                 </div>
               </div>
-              <p className="mt-2 text-xs text-[#64748b] dark:text-[#94a3b8]">
+              <p className="mt-2 text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
                 = {Math.floor((config.antiSpam?.perUserCooldown ?? 86400) / 3600)} horas / {Math.floor((config.antiSpam?.perUserCooldown ?? 86400) / 86400)} días
               </p>
             </div>
 
             <div className="p-3 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg">
-              <p className="text-xs text-orange-700 dark:text-orange-300">
+              <p className="text-xs text-orange-700 dark:text-orange-300 3xl:text-sm">
                 ⚠️ <strong>Importante:</strong> Un usuario que haga follow y luego unfollow solo disparará la alerta una vez durante este período, evitando abuso.
               </p>
             </div>

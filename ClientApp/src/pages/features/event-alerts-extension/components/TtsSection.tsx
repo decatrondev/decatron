@@ -175,11 +175,11 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
         <div className="flex items-center gap-3">
           <span className="text-xl">🗣️</span>
           <div>
-            <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+            <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
               Text-to-Speech
             </div>
             {config.enabled && (
-              <div className="text-xs text-purple-600 dark:text-purple-400 mt-0.5">
+              <div className="text-xs text-purple-600 dark:text-purple-400 mt-0.5 3xl:text-sm">
                 {usingStandard
                   ? `🆓 ${voiceCatalog.standard.voices.find(v => v.id === config.standardVoice)?.name ?? 'Voz automática'} · estándar · ${config.languageCode}`
                   : `🎙️ ${voiceCatalog.premium.voices.find(v => v.id === config.voice)?.name ?? config.voice} · ${config.engine === 'neural' ? 'alta calidad' : 'normal'} · ${languageLabel(voiceCatalog, config.languageCode)}`}
@@ -189,7 +189,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
         </div>
         <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
           <Toggle checked={config.enabled} onChange={v => onChange({ enabled: v })} />
-          <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+          <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
             {config.enabled ? 'Activo' : 'Inactivo'}
           </span>
           <button
@@ -222,8 +222,8 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                       : 'bg-white dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-green-300'
                   }`}
                 >
-                  <div className="text-sm font-bold">🆓 Voz estándar</div>
-                  <div className="text-xs mt-0.5 opacity-80">Incluida en tu plan. Suena en cualquier OBS.</div>
+                  <div className="text-sm font-bold 3xl:text-base">🆓 Voz estándar</div>
+                  <div className="text-xs mt-0.5 opacity-80 3xl:text-sm">Incluida en tu plan. Suena en cualquier OBS.</div>
                 </button>
                 <button
                   onClick={() => onChange({ provider: 'polly' })}
@@ -233,13 +233,13 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                       : 'bg-white dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-purple-300'
                   }`}
                 >
-                  <div className="text-sm font-bold">🎙️ Voz premium</div>
-                  <div className="text-xs mt-0.5 opacity-80">Gasta créditos premium. Más idiomas, incluido japonés.</div>
+                  <div className="text-sm font-bold 3xl:text-base">🎙️ Voz premium</div>
+                  <div className="text-xs mt-0.5 opacity-80 3xl:text-sm">Gasta créditos premium. Más idiomas, incluido japonés.</div>
                 </button>
               </div>
 
               {!usingStandard && (
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2 3xl:text-sm">
                   Si te quedas sin créditos premium la alerta no se queda muda: se lee con
                   tu voz estándar{voiceCatalog.standard.voices.length > 0 && voicesForThisLanguage.length === 0
                     ? ', y como este idioma no existe en voz estándar sonará en español'
@@ -261,7 +261,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                   <option value="neural">Alta calidad · 4 créditos por carácter</option>
                 </select>
                 {config.engine === 'neural' && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 3xl:text-sm">
                     Suena bastante mejor, pero gasta cuatro veces más. Con el saldo
                     agotado, la alerta cae a voz estándar en vez de quedarse muda.
                   </p>
@@ -273,7 +273,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 idioma pueden no cuadrar. El filtro nuevo impide crearlas, no arregla las
                 que ya están, así que hay que decirlo. */}
             {!usingStandard && voiceMismatch && (
-              <div className="mb-4 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-700 dark:text-amber-300">
+              <div className="mb-4 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-700 dark:text-amber-300 3xl:text-sm">
                 ⚠️ {voiceMismatch}
               </div>
             )}
@@ -291,11 +291,11 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 ))}
               </select>
               {usingStandard ? (
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
                   El japonés y el coreano solo están en voz premium.
                 </p>
               ) : (
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
                   Solo los idiomas con voces en la calidad elegida. Algunos existen en una
                   y no en la otra.
                 </p>
@@ -326,7 +326,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 3xl:text-sm">
                     ⚠️ No hay voces estándar para este idioma. Cambia de idioma o usa voz premium.
                   </p>
                 )}
@@ -354,12 +354,12 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 3xl:text-sm">
                   ⚠️ No hay voces para este idioma en calidad {config.engine === 'neural' ? 'alta' : 'normal'}. Prueba con la otra.
                 </p>
               )}
               {!currentVoiceCompatible && compatibleVoices.length > 0 && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 3xl:text-sm">
                   Voz "{config.voice}" no compatible. Se usará {compatibleVoices[0].name}.
                 </p>
               )}
@@ -400,7 +400,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 {suggestedTemplate && !config.template && (
                   <button
                     onClick={applyTemplate}
-                    className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 font-bold transition-all"
+                    className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 font-bold transition-all 3xl:text-sm"
                   >
                     ✨ Usar predefinido
                   </button>
@@ -431,13 +431,13 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                   onClick={applyTemplate}
                   className="mt-2 w-full p-2 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-800 text-left group hover:border-purple-400 transition-all"
                 >
-                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
                     <span className="font-bold text-purple-600 dark:text-purple-400">💡 Sugerido:</span>
                   </p>
-                  <p className="text-sm text-purple-700 dark:text-purple-300 font-mono mt-1 group-hover:text-purple-900 dark:group-hover:text-purple-100">
+                  <p className="text-sm text-purple-700 dark:text-purple-300 font-mono mt-1 group-hover:text-purple-900 dark:group-hover:text-purple-100 3xl:text-base">
                     "{suggestedTemplate}"
                   </p>
-                  <p className="text-xs text-purple-500 dark:text-purple-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-xs text-purple-500 dark:text-purple-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity 3xl:text-sm">
                     Click para usar este template
                   </p>
                 </button>
@@ -446,7 +446,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
               {/* Preview cuando hay template */}
               {config.template && (
                 <div className="mt-2 p-2 bg-white dark:bg-[#1B1C1D] rounded-lg border border-purple-200 dark:border-purple-800">
-                  <p className="text-xs text-purple-700 dark:text-purple-300">
+                  <p className="text-xs text-purple-700 dark:text-purple-300 3xl:text-sm">
                     <strong>🔊 Se leerá:</strong> "{
                       config.template
                         .replace('{userName}', 'StreamerEjemplo')
@@ -473,7 +473,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
             <div className="mb-4">
               <div className="flex justify-between mb-2">
                 <label className={labelClass + ' mb-0'}>Volumen del Template</label>
-                <span className="text-xs font-mono text-purple-600 dark:text-purple-400">{config.templateVolume ?? 80}%</span>
+                <span className="text-xs font-mono text-purple-600 dark:text-purple-400 3xl:text-sm">{config.templateVolume ?? 80}%</span>
               </div>
               <input
                 type="range"
@@ -483,7 +483,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                 onChange={e => onChange({ templateVolume: Number(e.target.value) })}
                 className="w-full accent-purple-500"
               />
-              <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+              <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
                 Volumen del texto configurado arriba
               </p>
             </div>
@@ -493,10 +493,10 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
               <div className="p-3 bg-white dark:bg-[#1B1C1D] rounded-lg border border-purple-200 dark:border-purple-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                    <div className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-sm">
                       💬 Leer mensaje del usuario
                     </div>
-                    <div className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                    <div className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5 3xl:text-sm">
                       Leer el mensaje que escribió el usuario con la donación/sub
                     </div>
                   </div>
@@ -512,7 +512,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                     <div>
                       <div className="flex justify-between mb-2">
                         <label className={labelClass + ' mb-0'}>Volumen del Mensaje</label>
-                        <span className="text-xs font-mono text-purple-600 dark:text-purple-400">{config.userMessageVolume ?? 80}%</span>
+                        <span className="text-xs font-mono text-purple-600 dark:text-purple-400 3xl:text-sm">{config.userMessageVolume ?? 80}%</span>
                       </div>
                       <input
                         type="range"
@@ -537,11 +537,11 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                           onChange={e => onChange({ maxChars: Number(e.target.value) })}
                           className="flex-1 accent-purple-500"
                         />
-                        <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400 w-12 text-right">
+                        <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400 w-12 text-right 3xl:text-sm">
                           {config.maxChars}
                         </span>
                       </div>
-                      <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                      <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">
                         Si el mensaje supera este límite, se truncará
                       </p>
                     </div>
@@ -552,14 +552,14 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
 
             {/* Info orden de audio */}
             <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-3">
-              <p className="text-xs text-amber-700 dark:text-amber-300">
+              <p className="text-xs text-amber-700 dark:text-amber-300 3xl:text-sm">
                 🔊 <strong>Orden de audio:</strong> 1. Sonido de alerta → 2. Audio del video → 3. TTS template → 4. TTS mensaje usuario
               </p>
             </div>
 
             {/* Info cache */}
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-xs text-blue-700 dark:text-blue-300">
+              <p className="text-xs text-blue-700 dark:text-blue-300 3xl:text-sm">
                 💡 <strong>Cache activo:</strong> Los audios generados se guardan localmente.
                 Textos idénticos se reutilizan automáticamente.
               </p>

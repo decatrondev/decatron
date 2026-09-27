@@ -671,20 +671,9 @@ namespace Decatron.Controllers
                     if (animProp.TryGetProperty("type", out var animTypeProp)) animationType = animTypeProp.GetString() ?? animationType;
                     if (animProp.TryGetProperty("direction", out var animDirProp)) animationDirection = animDirProp.GetString() ?? animationDirection;
                 }
-                var animationIn = animationType switch
-                {
-                    "slide" => "slideIn",
-                    "bounce" => "bounceIn",
-                    "zoom" => "zoomIn",
-                    _ => "fadeIn"
-                };
-                var animationOut = animationType switch
-                {
-                    "slide" => "slideOut",
-                    "bounce" => "bounceOut",
-                    "zoom" => "zoomOut",
-                    _ => "fadeOut"
-                };
+                var knownAnimation = new[] { "fade", "slide", "bounce", "zoom", "slide-bounce", "flip", "rotate", "glitch" }.Contains(animationType) ? animationType : "fade";
+                var animationIn = knownAnimation + "In";
+                var animationOut = knownAnimation + "Out";
 
                 // Posición (legado)
                 var position = new { x = 50, y = 50 };

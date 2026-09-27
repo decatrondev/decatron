@@ -143,7 +143,7 @@ export function payloadFor(config: any, c: AlertCase, username = 'StreamFan99', 
     const g = config?.global ?? {};
     const animType = cfg.animation?.type ?? g.defaultAnimation ?? 'fade';
     const animationDirection = cfg.animation?.direction ?? g.defaultAnimationDirection ?? 'center';
-    const anim = ({ slide: 'slide', bounce: 'bounce', zoom: 'zoom' } as Record<string, string>)[animType] ?? 'fade';
+    const anim = ['fade', 'slide', 'bounce', 'zoom', 'slide-bounce', 'flip', 'rotate', 'glitch'].includes(animType) ? animType : 'fade';
     const partialStyle = isObj(cfg.style) ? (cfg.style as Partial<LegacyAlertStyle>) : null;
     return {
         data: {

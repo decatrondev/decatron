@@ -1781,6 +1781,37 @@
       "elementAnimHint": "Each element (card, media, texts) also has its own animation in the Editor.",
       "elementAnim": "This element's animation",
       "completed": "Completed"
+    },
+    "animFx": {
+      "animation": "Entrance and exit animation",
+      "direction": "Where it comes from",
+      "effectsLabel": "Effects (they combine; only one of shake, float and pulse)",
+      "hint": "In Design, each element can use this animation (“The event's”) or its own.",
+      "types": {
+        "fade": "Fade",
+        "slide": "Slide",
+        "slide-bounce": "Slide with bounce",
+        "bounce": "Bounce",
+        "zoom": "Zoom",
+        "rotate": "Spin",
+        "flip": "3D flip",
+        "glitch": "Glitch"
+      },
+      "directions": {
+        "center": "The usual",
+        "left": "Left",
+        "right": "Right",
+        "top": "Top",
+        "bottom": "Bottom"
+      },
+      "effects": {
+        "glow": "✨ Glow",
+        "shake": "📳 Shake",
+        "float": "🎈 Float",
+        "pulse": "💓 Pulse",
+        "confetti": "🎊 Confetti",
+        "fireworks": "🎆 Fireworks"
+      }
     }
   }
 }

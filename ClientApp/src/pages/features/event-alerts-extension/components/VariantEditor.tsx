@@ -3,6 +3,7 @@
  * Permite configurar múltiples variantes de una alerta (video, sonido, mensaje, etc.)
  */
 
+import { AnimationEffectsSection } from './AnimationEffectsSection';
 import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import React, { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronUp, Shuffle, ListOrdered, Percent, RefreshCw } from 'lucide-react';
@@ -138,16 +139,16 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
         <div className="flex items-center gap-3">
           <span className="text-xl">🎲</span>
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
               Variantes de Alerta
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
               Múltiples opciones que se seleccionan automáticamente
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-purple-600 dark:text-purple-400 font-bold">
+          <span className="text-xs text-purple-600 dark:text-purple-400 font-bold 3xl:text-sm">
             {variantCount}/{maxVariants}
           </span>
           <Toggle
@@ -215,15 +216,15 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
                   onClick={() => setExpandedVariant(expandedVariant === variant.id ? null : variant.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">
+                    <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center 3xl:text-sm">
                       {index + 1}
                     </span>
                     <div>
-                      <span className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                      <span className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">
                         {variant.name}
                       </span>
                       {currentConfig.mode === 'weighted' && (
-                        <span className="ml-2 text-xs text-purple-600 dark:text-purple-400">
+                        <span className="ml-2 text-xs text-purple-600 dark:text-purple-400 3xl:text-sm">
                           ({variant.weight}%)
                         </span>
                       )}
@@ -322,6 +323,12 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
                       />
                     </div>
 
+                    {/* Animación y efectos */}
+                    <div>
+                      <label className={labelClass}>Animación y efectos</label>
+                      <AnimationEffectsSection animation={variant.animation} effects={variant.effects} onChange={patch => updateVariant(variant.id, patch)} />
+                    </div>
+
                     {/* TTS */}
                     <div>
                       <label className={labelClass}>Text-to-Speech</label>
@@ -353,18 +360,18 @@ export const VariantEditor: React.FC<VariantEditorProps> = ({
           {canAddMore ? (
             <button
               onClick={addVariant}
-              className="w-full py-3 border-2 border-dashed border-purple-300 dark:border-purple-700 rounded-lg text-purple-600 dark:text-purple-400 font-bold text-sm hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 border-2 border-dashed border-purple-300 dark:border-purple-700 rounded-lg text-purple-600 dark:text-purple-400 font-bold text-sm hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors flex items-center justify-center gap-2 3xl:text-base"
             >
               <Plus className="w-4 h-4" />
               Agregar Variante ({variantCount}/{maxVariants})
             </button>
           ) : (
             <div className="w-full py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-center">
-              <p className="text-sm text-amber-700 dark:text-amber-400 font-bold">
+              <p className="text-sm text-amber-700 dark:text-amber-400 font-bold 3xl:text-base">
                 Has alcanzado el límite de {maxVariants} variantes
               </p>
               {userTier === 'free' && (
-                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
+                <p className="text-xs text-amber-600 dark:text-amber-500 mt-1 3xl:text-sm">
                   Actualiza a Supporter para más variantes
                 </p>
               )}

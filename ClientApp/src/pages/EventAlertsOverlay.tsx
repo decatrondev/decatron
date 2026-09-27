@@ -567,22 +567,21 @@ export default function EventAlertsOverlay() {
      * Compatibilidad: si ttsUrl existe pero no hay ttsTemplateUrl, usa ttsUrl (legacy).
      */
     const playAudioSequence = async (data: EventAlertData, alertId: number): Promise<void> => {
-        // [1/4] Sonido de alerta
-        if (data.soundUrl && alertIdRef.current === alertId) {
-            console.log('[EventAlertsOverlay] [1/4] #' + alertId + ' soundUrl...');
-            await playAudio(data.soundUrl, data.soundVolume ?? 80);
-            console.log('[EventAlertsOverlay] [1/4] #' + alertId + ' soundUrl terminado');
-        }
-
-        // [2/4] Audio del video
-        console.log('[EventAlertsOverlay] [2/4] Check: playVideoAudio=' + data.playVideoAudio + ', mediaType=' + data.mediaType + ', videoVolume=' + data.videoVolume);
-        if (data.playVideoAudio && data.mediaType === 'video' && alertIdRef.current === alertId) {
-            console.log('[EventAlertsOverlay] [2/4] #' + alertId + ' videoAudio starting...');
-            await playVideoAudio(data.videoVolume ?? 80);
-            console.log('[EventAlertsOverlay] [2/4] #' + alertId + ' videoAudio terminado');
-        } else {
-            console.log('[EventAlertsOverlay] [2/4] SKIPPED - condition not met');
-        }
+        // [1/4] Sonido de alerta y [2/4] audio del video. Con "esperar al sonido" apagado (waitForSound: false) la voz
+        // arranca a la vez; si no, en orden, como siempre
+        const sounds = (async () => {
+            if (data.soundUrl && alertIdRef.current === alertId) {
+                console.log('[EventAlertsOverlay] [1/4] #' + alertId + ' soundUrl...');
+                await playAudio(data.soundUrl, data.soundVolume ?? 80);
+                console.log('[EventAlertsOverlay] [1/4] #' + alertId + ' soundUrl terminado');
+            }
+            if (data.playVideoAudio && data.mediaType === 'video' && alertIdRef.current === alertId) {
+                console.log('[EventAlertsOverlay] [2/4] #' + alertId + ' videoAudio starting...');
+                await playVideoAudio(data.videoVolume ?? 80);
+                console.log('[EventAlertsOverlay] [2/4] #' + alertId + ' videoAudio terminado');
+            }
+        })();
+        if (data.waitForSound !== false) await sounds;
 
         // [3/4] TTS del template
         const templateUrl = data.ttsTemplateUrl || data.ttsUrl; // fallback a legacy
@@ -599,6 +598,8 @@ export default function EventAlertsOverlay() {
             await playAudio(data.ttsUserMessageUrl, data.ttsUserMessageVolume ?? 80);
             console.log('[EventAlertsOverlay] [4/4] #' + alertId + ' ttsUserMessage terminado');
         }
+        // La alerta no termina antes que el sonido
+        await sounds;
     };
 
     // ============================================================================

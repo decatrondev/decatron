@@ -9,6 +9,11 @@ import { MESSAGE_TEMPLATES, TTS_TEMPLATES, EVENT_VARIABLES, CHAT_TEMPLATES } fro
 import { ChatMessageSection } from '../../components/ChatMessageSection';
 import { VariantEditor } from '../../components/VariantEditor';
 import { EventSection } from '../EventSection';
+import { AnimationEffectsSection } from '../AnimationEffectsSection';
+import { TtsSection } from '../TtsSection';
+import { MediaEditor } from '../../../timer-extension/components/MediaEditor';
+import MediaInputWithSelector from '../../../../../components/timer/MediaInputWithSelector';
+import type { AlertMediaConfig } from '../../../../../types/timer-alerts';
 
 interface HypeTrainTabProps {
   config: HypeTrainAlertConfig;
@@ -65,12 +70,12 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
       <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🔥 Alertas de Hype Train</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Configura alertas para cada nivel del Hype Train</p>
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">🔥 Alertas de Hype Train</label>
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">Configura alertas para cada nivel del Hype Train</p>
           </div>
           <div className="flex items-center gap-3">
             <Toggle checked={config.enabled} onChange={v => onConfigChange({ enabled: v })} />
-            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{config.enabled ? 'Activado' : 'Desactivado'}</span>
+            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">{config.enabled ? 'Activado' : 'Desactivado'}</span>
           </div>
         </div>
       </div>
@@ -88,7 +93,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                     <span className="text-xl">{levelEmojis[level - 1]}</span>
                     <div>
                       <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Nivel {level}</div>
-                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">{levelConfig.message.substring(0, 50)}</div>
+                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">{levelConfig.message.substring(0, 50)}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -108,7 +113,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                         {!levelConfig.message && getMessageTemplate(level) && (
                           <button
                             onClick={() => updateLevel(level, 'message', getMessageTemplate(level))}
-                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold"
+                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold 3xl:text-sm"
                           >
                             ✨ Usar predefinido
                           </button>
@@ -122,8 +127,8 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                           onClick={() => updateLevel(level, 'message', getMessageTemplate(level))}
                           className="mt-2 w-full p-2 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-800 text-left group hover:border-orange-400 transition-all"
                         >
-                          <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">💡 <span className="font-bold text-orange-600 dark:text-orange-400">Sugerido:</span></p>
-                          <p className="text-sm text-orange-700 dark:text-orange-300 font-mono mt-1">"{getMessageTemplate(level)}"</p>
+                          <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">💡 <span className="font-bold text-orange-600 dark:text-orange-400">Sugerido:</span></p>
+                          <p className="text-sm text-orange-700 dark:text-orange-300 font-mono mt-1 3xl:text-base">"{getMessageTemplate(level)}"</p>
                         </button>
                       )}
                     </div>
@@ -137,13 +142,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                         <input type="number" min="0" max="100" value={levelConfig.volume} onChange={e => updateLevel(level, 'volume', parseInt(e.target.value) || 50)} className={inputClass} />
                       </div>
                     </div>
-                    <div>
-                      <label className={labelClass}>Sonido</label>
-                      <div className="flex gap-2">
-                        <input type="text" value={levelConfig.sound} onChange={e => updateLevel(level, 'sound', e.target.value)} placeholder="https://ejemplo.com/sonido.mp3" className={inputClass + " font-mono text-sm"} />
-                        <button className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-lg font-bold text-sm">📁</button>
-                      </div>
-                    </div>
+                    <MediaInputWithSelector label="Sonido" value={levelConfig.sound} onChange={v => updateLevel(level, 'sound', v)} placeholder="https://ejemplo.com/sonido.mp3" allowedTypes={['audio']} />
                     <div>
                       <label className={labelClass}>Mensaje del Bot en Chat</label>
                       <ChatMessageSection
@@ -152,6 +151,23 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                         messageVariables={EVENT_VARIABLES.hypeTrain}
                         suggestedTemplate={getChatTemplate(level)}
                       />
+                    </div>
+
+                    {/* Multimedia, voz, animación y efectos (el backend ya los usaba; faltaban en la vista) */}
+                    <div>
+                      <label className={labelClass}>Multimedia (audio, video o imagen)</label>
+                      <MediaEditor config={levelConfig.media as AlertMediaConfig} onChange={media => updateLevel(level, 'media', media)}
+                        alertContext={{ message: levelConfig.message, duration: levelConfig.duration, emoji: '🔥' }} />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Text-to-Speech</label>
+                      <TtsSection config={levelConfig.tts} onChange={updates => updateLevel(level, 'tts', { ...levelConfig.tts, ...updates })}
+                        messageVariables={EVENT_VARIABLES.hypeTrain} hasUserMessage={false} suggestedTemplate={getTtsTemplate(level)} eventType="hypeTrain" />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Animación y efectos</label>
+                      <AnimationEffectsSection animation={levelConfig.animation} effects={levelConfig.effects}
+                        onChange={patch => { onConfigChange({ levels: { ...config.levels, [level]: { ...config.levels[level], ...patch } } }); }} />
                     </div>
 
                     {/* Variantes */}
@@ -175,8 +191,8 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
       <div className="rounded-2xl border-2 border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setShowCompletion(!showCompletion)}>
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🏆 Alerta de Hype Train Completado</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Alerta especial cuando se completa el Hype Train</p>
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">🏆 Alerta de Hype Train Completado</label>
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">Alerta especial cuando se completa el Hype Train</p>
           </div>
           {showCompletion ? <ChevronUp className="w-5 h-5 text-[#64748b]" /> : <ChevronDown className="w-5 h-5 text-[#64748b]" />}
         </div>
@@ -189,7 +205,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                 {!config.completionAlert.message && (
                   <button
                     onClick={() => updateCompletion('message', MESSAGE_TEMPLATES.hypeTrain.completed)}
-                    className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-300 rounded-lg hover:bg-yellow-200 font-bold"
+                    className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-300 rounded-lg hover:bg-yellow-200 font-bold 3xl:text-sm"
                   >
                     ✨ Usar predefinido
                   </button>
@@ -203,8 +219,8 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                   onClick={() => updateCompletion('message', MESSAGE_TEMPLATES.hypeTrain.completed)}
                   className="mt-2 w-full p-2 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 text-left group hover:border-yellow-400 transition-all"
                 >
-                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">💡 <span className="font-bold text-yellow-600 dark:text-yellow-400">Sugerido:</span></p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-300 font-mono mt-1">"{MESSAGE_TEMPLATES.hypeTrain.completed}"</p>
+                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">💡 <span className="font-bold text-yellow-600 dark:text-yellow-400">Sugerido:</span></p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 font-mono mt-1 3xl:text-base">"{MESSAGE_TEMPLATES.hypeTrain.completed}"</p>
                 </button>
               )}
             </div>
@@ -218,13 +234,7 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                 <input type="number" min="0" max="100" value={config.completionAlert.volume} onChange={e => updateCompletion('volume', parseInt(e.target.value) || 80)} className={inputClass} />
               </div>
             </div>
-            <div>
-              <label className={labelClass}>Sonido</label>
-              <div className="flex gap-2">
-                <input type="text" value={config.completionAlert.sound} onChange={e => updateCompletion('sound', e.target.value)} placeholder="https://ejemplo.com/epico.mp3" className={inputClass + " font-mono text-sm"} />
-                <button className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-lg font-bold text-sm">📁</button>
-              </div>
-            </div>
+            <MediaInputWithSelector label="Sonido" value={config.completionAlert.sound} onChange={v => updateCompletion('sound', v)} placeholder="https://ejemplo.com/epico.mp3" allowedTypes={['audio']} />
             <div>
               <label className={labelClass}>Mensaje del Bot en Chat</label>
               <ChatMessageSection
@@ -233,6 +243,23 @@ export const HypeTrainTab: React.FC<HypeTrainTabProps> = ({ config, onConfigChan
                 messageVariables={EVENT_VARIABLES.hypeTrain}
                 suggestedTemplate={CHAT_TEMPLATES.hypeTrain.completed}
               />
+            </div>
+
+            {/* Multimedia, voz, animación y efectos */}
+            <div>
+              <label className={labelClass}>Multimedia (audio, video o imagen)</label>
+              <MediaEditor config={config.completionAlert.media as AlertMediaConfig} onChange={media => updateCompletion('media', media)}
+                alertContext={{ message: config.completionAlert.message, duration: config.completionAlert.duration, emoji: '🏆' }} />
+            </div>
+            <div>
+              <label className={labelClass}>Text-to-Speech</label>
+              <TtsSection config={config.completionAlert.tts} onChange={updates => updateCompletion('tts', { ...config.completionAlert.tts, ...updates })}
+                messageVariables={EVENT_VARIABLES.hypeTrain} hasUserMessage={false} suggestedTemplate={TTS_TEMPLATES.hypeTrain.completed ?? ''} eventType="hypeTrain" />
+            </div>
+            <div>
+              <label className={labelClass}>Animación y efectos</label>
+              <AnimationEffectsSection animation={config.completionAlert.animation} effects={config.completionAlert.effects}
+                onChange={patch => onConfigChange({ completionAlert: { ...config.completionAlert, ...patch } })} />
             </div>
 
             {/* Variantes */}

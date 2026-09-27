@@ -19,7 +19,11 @@ export type AnimationType =
   | 'zoom'
   | 'bounce'
   | 'rotate'
-  | 'none';
+  | 'none'
+  // Nuevas (rediseño): deslizar con rebote, giro 3D y glitch
+  | 'slide-bounce'
+  | 'flip'
+  | 'glitch';
 
 // Dirección de animación
 export type AnimationDirection =

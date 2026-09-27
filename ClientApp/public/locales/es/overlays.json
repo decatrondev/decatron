@@ -1781,6 +1781,37 @@
       "elementAnimHint": "Cada elemento (tarjeta, media, textos) tiene además su propia animación en el Editor.",
       "elementAnim": "Animación de este elemento",
       "completed": "Completado"
+    },
+    "animFx": {
+      "animation": "Animación de entrada y salida",
+      "direction": "Desde dónde entra",
+      "effectsLabel": "Efectos (se combinan; de sacudida, flotar y pulso va uno solo)",
+      "hint": "En el Diseño, cada elemento puede usar esta animación («La del evento») o una propia.",
+      "types": {
+        "fade": "Fundido",
+        "slide": "Deslizar",
+        "slide-bounce": "Deslizar con rebote",
+        "bounce": "Rebote",
+        "zoom": "Zoom",
+        "rotate": "Giro",
+        "flip": "Giro 3D",
+        "glitch": "Glitch"
+      },
+      "directions": {
+        "center": "La de siempre",
+        "left": "Izquierda",
+        "right": "Derecha",
+        "top": "Arriba",
+        "bottom": "Abajo"
+      },
+      "effects": {
+        "glow": "✨ Brillo",
+        "shake": "📳 Sacudida",
+        "float": "🎈 Flotar",
+        "pulse": "💓 Pulso",
+        "confetti": "🎊 Confeti",
+        "fireworks": "🎆 Fuegos artificiales"
+      }
     }
   }
 }

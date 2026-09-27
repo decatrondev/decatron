@@ -105,7 +105,7 @@ function fromEventName(name: string | undefined, entering: boolean): AnimationSt
     const suffix = entering ? 'In' : 'Out';
     if (!n.endsWith(suffix)) return 'none';
     const base = n.slice(0, -suffix.length);
-    return base === 'fade' || base === 'slide' || base === 'bounce' || base === 'zoom' ? base : 'none';
+    return (['fade', 'slide', 'bounce', 'zoom', 'slide-bounce', 'flip', 'rotate', 'glitch'] as const).find(t => t === base) ?? 'none';
 }
 
 function animationCss(s: AnimationStep, entering: boolean, data: EventAlertData | null): string | undefined {

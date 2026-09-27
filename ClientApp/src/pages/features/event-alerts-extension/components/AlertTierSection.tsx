@@ -3,6 +3,7 @@
  * Usado por GiftSubsTab, RaidsTab, ResubsTab
  */
 
+import { AnimationEffectsSection } from './AnimationEffectsSection';
 import { DEFAULT_PREMIUM_VOICE } from '../../../../components/tts/voiceDefaults';
 import React, { useState } from 'react';
 import type { AlertTier, TtsConfig, VariantsConfig } from '../types/index';
@@ -143,12 +144,12 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
       <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{eventEmoji} {eventTitle}</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{eventDescription}</p>
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">{eventEmoji} {eventTitle}</label>
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">{eventDescription}</p>
           </div>
           <div className="flex items-center gap-3">
             <Toggle checked={enabled} onChange={onEnabledChange} />
-            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{enabled ? 'Activado' : 'Desactivado'}</span>
+            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">{enabled ? 'Activado' : 'Desactivado'}</span>
           </div>
         </div>
       </div>
@@ -157,11 +158,11 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
       <div className="rounded-2xl border-2 border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🔔 Alerta BASE (suena SIEMPRE)</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Se reproduce siempre. Los tiers pueden sobrescribirla.</p>
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">🔔 Alerta BASE (suena SIEMPRE)</label>
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">Se reproduce siempre. Los tiers pueden sobrescribirla.</p>
           </div>
           <Toggle checked={baseAlert.enabled} onChange={v => onBaseAlertChange({ enabled: v })} />
-          <button type="button" onClick={() => setBaseOpen(o => !o)} aria-expanded={baseOpen} className="ml-3 p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-blue-100 dark:hover:bg-blue-900/40" title={baseOpen ? 'Plegar' : 'Desplegar'}>
+          <button type="button" onClick={() => setBaseOpen(o => !o)} aria-expanded={baseOpen} className="ml-3 p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-blue-100 dark:hover:bg-blue-900/40" aria-label={baseOpen ? '−' : '+'}>
             <ChevronDown className={`w-5 h-5 transition-transform ${baseOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
@@ -174,7 +175,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
               {!baseAlert.message && messageTemplates?.base && (
                 <button
                   onClick={() => onBaseAlertChange({ message: messageTemplates.base })}
-                  className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold"
+                  className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold 3xl:text-sm"
                 >
                   ✨ Usar predefinido
                 </button>
@@ -188,8 +189,8 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                 onClick={() => onBaseAlertChange({ message: messageTemplates.base })}
                 className="mt-2 w-full p-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-left group hover:border-blue-400 transition-all"
               >
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">💡 <span className="font-bold text-blue-600 dark:text-blue-400">Sugerido:</span></p>
-                <p className="text-sm text-blue-700 dark:text-blue-300 font-mono mt-1">"{messageTemplates.base}"</p>
+                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">💡 <span className="font-bold text-blue-600 dark:text-blue-400">Sugerido:</span></p>
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-mono mt-1 3xl:text-base">"{messageTemplates.base}"</p>
               </button>
             )}
           </div>
@@ -211,6 +212,10 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
               config={baseAlert.media as AlertMediaConfig}
               onChange={(media) => onBaseAlertChange({ media })}
             />
+          </div>
+          <div>
+            <label className={labelClass}>Animación y efectos</label>
+            <AnimationEffectsSection animation={baseAlert.animation} effects={baseAlert.effects} onChange={patch => onBaseAlertChange(patch)} />
           </div>
           <div>
             <label className={labelClass}>Text-to-Speech</label>
@@ -250,11 +255,11 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
       <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🎯 Tiers Específicos</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Alertas diferentes según {tierUnitLabel}</p>
+            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">🎯 Tiers Específicos</label>
+            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1 3xl:text-sm">Alertas diferentes según {tierUnitLabel}</p>
           </div>
           <button onClick={addTier}
-            className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white rounded-lg font-bold text-sm flex items-center gap-2">
+            className="px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white rounded-lg font-bold text-sm flex items-center gap-2 3xl:text-base">
             <Plus className="w-4 h-4" /> Agregar Tier
           </button>
         </div>
@@ -273,7 +278,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                     <span className="text-2xl">{index === 0 ? '🥉' : index === 1 ? '🥈' : index === 2 ? '🥇' : '💎'}</span>
                     <div>
                       <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{tier.name}</div>
-                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">
                         {tier.condition.type === 'range' && `${tier.condition.min} - ${tier.condition.max} ${tierUnitLabel}`}
                         {tier.condition.type === 'minimum' && `${tier.condition.min}+ ${tierUnitLabel}`}
                         {tier.condition.type === 'exact' && `Exactamente ${tier.condition.exact} ${tierUnitLabel}`}
@@ -298,7 +303,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                       </div>
                       <div className="flex items-center gap-2 mt-6">
                         <Toggle checked={tier.enabled} onChange={v => updateTier(tier.id, { enabled: v })} />
-                        <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">{tier.enabled ? 'Activo' : 'Inactivo'}</span>
+                        <span className="text-sm text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">{tier.enabled ? 'Activo' : 'Inactivo'}</span>
                       </div>
                     </div>
 
@@ -307,7 +312,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                       <div className="grid grid-cols-3 gap-3">
                         <select value={tier.condition.type}
                           onChange={e => updateTier(tier.id, { condition: { ...tier.condition, type: e.target.value as any } })}
-                          className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                          className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base">
                           <option value="range">Rango</option>
                           <option value="minimum">Mínimo</option>
                           <option value="exact">Exacto</option>
@@ -315,20 +320,20 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                         {tier.condition.type === 'range' && (<>
                           <input type="number" min="0" value={tier.condition.min ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, min: parseInt(e.target.value) || 0 } })}
-                            placeholder="Mínimo" className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                            placeholder="Mínimo" className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base" />
                           <input type="number" min="0" value={tier.condition.max ?? 100}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, max: parseInt(e.target.value) || 100 } })}
-                            placeholder="Máximo" className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                            placeholder="Máximo" className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base" />
                         </>)}
                         {tier.condition.type === 'minimum' && (
                           <input type="number" min="0" value={tier.condition.min ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, min: parseInt(e.target.value) || 0 } })}
-                            placeholder="Cantidad mínima" className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                            placeholder="Cantidad mínima" className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base" />
                         )}
                         {tier.condition.type === 'exact' && (
                           <input type="number" min="0" value={tier.condition.exact ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, exact: parseInt(e.target.value) || 0 } })}
-                            placeholder="Cantidad exacta" className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                            placeholder="Cantidad exacta" className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm 3xl:text-base" />
                         )}
                       </div>
                     </div>
@@ -339,7 +344,7 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                         {!tier.message && getMessageTemplate(index) && (
                           <button
                             onClick={() => updateTier(tier.id, { message: getMessageTemplate(index) })}
-                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold"
+                            className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg hover:bg-blue-200 font-bold 3xl:text-sm"
                           >
                             ✨ Usar predefinido
                           </button>
@@ -369,6 +374,10 @@ export const AlertTierSection: React.FC<AlertTierSectionProps> = ({
                         config={tier.media as AlertMediaConfig}
                         onChange={(media) => updateTier(tier.id, { media })}
                       />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Animación y efectos</label>
+                      <AnimationEffectsSection animation={tier.animation} effects={tier.effects} onChange={patch => updateTier(tier.id, patch)} />
                     </div>
                     <div>
                       <label className={labelClass}>Text-to-Speech</label>

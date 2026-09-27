@@ -71,13 +71,13 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
         <div className="flex items-center gap-3">
           <span className="text-xl">🧪</span>
           <div>
-            <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Testing de Alertas</div>
-            <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">Simula eventos para probar tus alertas</div>
+            <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] 3xl:text-base">Testing de Alertas</div>
+            <div className="text-xs text-[#64748b] dark:text-[#94a3b8] 3xl:text-sm">Simula eventos para probar tus alertas</div>
           </div>
         </div>
         {queue.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold">
+            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-bold 3xl:text-sm">
               {queue.length} en cola
             </span>
             <button onClick={clearQueue} className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg text-red-500">
@@ -159,7 +159,7 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
               placeholder="Ej: ¡Gracias por el stream!"
               className={inputClass}
             />
-            <p className="text-xs text-[#94a3b8] mt-1">
+            <p className="text-xs text-[#94a3b8] mt-1 3xl:text-sm">
               Este mensaje se leerá con TTS si está configurado
             </p>
           </div>
@@ -182,7 +182,7 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
 
       {/* Info compacta */}
       <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-        <p className="text-xs text-blue-700 dark:text-blue-300">
+        <p className="text-xs text-blue-700 dark:text-blue-300 3xl:text-sm">
           💡 Asegúrate de tener el overlay abierto en OBS o en otra ventana para ver las alertas.
         </p>
       </div>
