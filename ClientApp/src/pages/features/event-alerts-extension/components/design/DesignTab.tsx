@@ -18,6 +18,9 @@ export type DesignTarget = 'general' | AlertEventType | `hype-${'1' | '2' | '3' 
 
 export const HYPE_LEVELS: HypeTrainLevelKey[] = ['1', '2', '3', '4', '5'];
 
+/** Partes de la pestaña Diseño (en vez de todo apilado). */
+type DesignSection = 'editor' | 'layouts' | 'colors' | 'animation';
+
 const FONTS = ['Inter', 'Poppins', 'Roboto', 'Montserrat', 'Open Sans', 'Lato', 'Nunito', 'Rubik', 'Oswald', 'Raleway', 'Bebas Neue', 'Anton', 'Bangers', 'Press Start 2P', 'Orbitron', 'Russo One', 'Fredoka', 'Comfortaa', 'Pacifico', 'Permanent Marker'];
 
 /** Primera familia de una pila CSS ("Inter, sans-serif" → "Inter"). */
@@ -31,7 +34,6 @@ const SHADOWS = [
 ];
 
 const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
-const chip = (active: boolean) => `px-3 py-2 rounded-xl text-sm 3xl:text-base font-bold border transition-colors ${active ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#2563eb] dark:text-[#93c5fd]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#2563eb]'}`;
 const btnGray = 'px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors flex items-center gap-2 bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] disabled:opacity-40';
 
 /** El diseño propio de un destino, o null si usa otro (el general o el del hype train). */
@@ -119,13 +121,23 @@ function StepEditor({ label, value, onChange }: { label: string; value: Animatio
     );
 }
 
-function AnimationEditor({ value, onChange }: { value: ElementAnimation; onChange: (a: ElementAnimation) => void }) {
+function AnimationEditor({ value, onChange, collapsible }: { value: ElementAnimation; onChange: (a: ElementAnimation) => void; collapsible?: boolean }) {
     const { t } = useTranslation('overlays');
-    return (
-        <div className="space-y-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+    const body = (
+        <div className="space-y-4 pt-4">
             <StepEditor label={t('eventAlertsView.design.anim.enter')} value={value.enter} onChange={enter => onChange({ ...value, enter })} />
             <StepEditor label={t('eventAlertsView.design.anim.exit')} value={value.exit} onChange={exit => onChange({ ...value, exit })} />
         </div>
+    );
+    if (!collapsible) return <div className="border-t border-[#e2e8f0] dark:border-[#374151]">{body}</div>;
+    // En el panel del elemento va plegada: casi siempre se usa la del evento
+    return (
+        <details className="border-t border-[#e2e8f0] dark:border-[#374151] pt-3 group">
+            <summary className="cursor-pointer text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] select-none">
+                ✨ {t('eventAlertsView.design.elementAnim')} <span className="font-normal text-xs 3xl:text-sm text-[#94a3b8]">({t(`eventAlertsView.design.anim.${value.enter.type}`)})</span>
+            </summary>
+            {body}
+        </details>
     );
 }
 
@@ -285,6 +297,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
     const designRef = useRef(design);
     designRef.current = design;
     const [copyTo, setCopyTo] = useState<AlertEventType | ''>('');
+    const [section, setSection] = useState<DesignSection>('editor');
 
     const own = ownDesign(design, target);
     const shown = effectiveDesign(design, target);
@@ -348,13 +361,13 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
         if (id === 'card') return (
             <div className="space-y-4">
                 <CardProps d={shown} set={patch => update(d => ({ ...d, card: { ...d.card, ...patch } }))} />
-                <AnimationEditor value={shown.card.animation} onChange={a => update(d => ({ ...d, card: { ...d.card, animation: a } }))} />
+                <AnimationEditor collapsible value={shown.card.animation} onChange={a => update(d => ({ ...d, card: { ...d.card, animation: a } }))} />
             </div>
         );
         if (id === 'media') return (
             <div className="space-y-4">
                 <MediaProps d={shown} set={patch => update(d => ({ ...d, media: { ...d.media, ...patch } }))} />
-                <AnimationEditor value={shown.media.animation} onChange={a => update(d => ({ ...d, media: { ...d.media, animation: a } }))} />
+                <AnimationEditor collapsible value={shown.media.animation} onChange={a => update(d => ({ ...d, media: { ...d.media, animation: a } }))} />
             </div>
         );
         const text = shown.texts.find(x => `text:${x.id}` === id);
@@ -363,100 +376,88 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
         return (
             <div className="space-y-4">
                 <TextProps text={text} set={setText} onRemove={() => { if (window.confirm(t('eventAlertsView.design.removeTextConfirm'))) update(d => ({ ...d, texts: d.texts.filter(x => x.id !== text.id) })); }} />
-                <AnimationEditor value={text.animation} onChange={a => setText({ animation: a })} />
+                <AnimationEditor collapsible value={text.animation} onChange={a => setText({ animation: a })} />
             </div>
         );
     };
 
-    const targets: DesignTarget[] = ['general', ...EVENT_TYPES];
     const sample = samples[targetEvent(target)];
     const sampleData = isHypeLevel ? { ...sample, level: Number(target.slice(5)), amount: Number(target.slice(5)) } : sample;
+    const trainTarget = target === 'hypeTrain' || isHypeLevel;
+    const subTabs: { id: DesignSection; icon: string }[] = [
+        { id: 'editor', icon: '🖥️' }, { id: 'layouts', icon: '🧩' }, { id: 'colors', icon: '🎨' }, { id: 'animation', icon: '✨' },
+    ];
+    const status = (tg: DesignTarget) => (tg === 'general' ? '' : ownDesign(design, tg) ? ` · ${t('eventAlertsView.design.own')}` : ` · ${t('eventAlertsView.design.inherits')}`);
 
     return (
-        <div className="space-y-6">
-            <Card title={t('eventAlertsView.design.targetTitle')} description={t('eventAlertsView.design.targetDescription')}>
-                <div className="flex flex-wrap gap-2">
-                    {targets.map(tg => {
-                        const hasOwn = tg !== 'general' && !!ownDesign(design, tg);
-                        const active = target === tg || (tg === 'hypeTrain' && isHypeLevel);
-                        return (
-                            <button key={tg} className={chip(active)} onClick={() => onTargetChange(tg)}>
-                                {t(`eventAlertsView.events.${tg}`)}
-                                {tg !== 'general' && <span className="ml-1.5 text-[11px] 3xl:text-xs font-semibold opacity-70">{hasOwn ? t('eventAlertsView.design.own') : t('eventAlertsView.design.inherits')}</span>}
-                            </button>
-                        );
-                    })}
-                </div>
-                {(target === 'hypeTrain' || isHypeLevel) && design.events.hypeTrain && (
-                    <div className="mt-4">
-                        <p className="text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8] mb-2">{t('eventAlertsView.design.hypeLevels')}</p>
-                        <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
-                            <button className={seg(target === 'hypeTrain')} onClick={() => onTargetChange('hypeTrain')}>{t('eventAlertsView.design.allLevels')}</button>
-                            {HYPE_LEVELS.map(l => (
-                                <button key={l} className={seg(target === `hype-${l}`)} onClick={() => onTargetChange(`hype-${l}` as DesignTarget)}>
-                                    {t('eventAlertsView.design.level', { n: l })}{design.events.hypeTrain?.levels?.[l] ? ' ★' : ''}
-                                </button>
-                            ))}
-                        </div>
+        <div className="space-y-4">
+            {/* Qué se edita y sus acciones, en una sola barra */}
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg space-y-3">
+                <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+                    <label className="flex-1 min-w-0">
+                        <span className="block text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8] mb-1">{t('eventAlertsView.design.targetTitle')}</span>
+                        <select className={inputClass} value={isHypeLevel ? 'hypeTrain' : target} onChange={e => onTargetChange(e.target.value as DesignTarget)}>
+                            {(['general', ...EVENT_TYPES] as DesignTarget[]).map(tg => <option key={tg} value={tg}>{t(`eventAlertsView.events.${tg}`)}{status(tg)}</option>)}
+                        </select>
+                    </label>
+                    {trainTarget && design.events.hypeTrain && (
+                        <label className="lg:w-56">
+                            <span className="block text-xs 3xl:text-sm font-bold uppercase text-[#64748b] dark:text-[#94a3b8] mb-1">{t('eventAlertsView.design.hypeLevels')}</span>
+                            <select className={inputClass} value={target} onChange={e => onTargetChange(e.target.value as DesignTarget)}>
+                                <option value="hypeTrain">{t('eventAlertsView.design.allLevels')}</option>
+                                {HYPE_LEVELS.map(l => <option key={l} value={`hype-${l}`}>{t('eventAlertsView.design.level', { n: l })}{status(`hype-${l}` as DesignTarget)}</option>)}
+                            </select>
+                        </label>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {inherits ? (
+                            <button className="px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white" onClick={createOwn}>{t('eventAlertsView.design.createOwn')}</button>
+                        ) : (
+                            <>
+                                {target !== 'general' && (
+                                    <button className={btnGray} onClick={removeOwn}><RotateCcw className="w-4 h-4" /> {isHypeLevel ? t('eventAlertsView.design.useTrain') : t('eventAlertsView.design.useGeneral')}</button>
+                                )}
+                                {!isHypeLevel && (
+                                    <>
+                                        <select className={`${inputClass} !w-auto`} value={copyTo} onChange={e => setCopyTo(e.target.value as AlertEventType)} aria-label={t('eventAlertsView.design.copyTo')}>
+                                            <option value="">{t('eventAlertsView.design.copyTo')}</option>
+                                            {EVENT_TYPES.filter(e => e !== target).map(e => <option key={e} value={e}>{t(`eventAlertsView.events.${e}`)}</option>)}
+                                        </select>
+                                        <button className={btnGray} onClick={doCopy} disabled={!copyTo}><Copy className="w-4 h-4" /> {t('eventAlertsView.design.copy')}</button>
+                                    </>
+                                )}
+                            </>
+                        )}
                     </div>
-                )}
-            </Card>
-
-            {inherits && (
-                <div className="p-4 rounded-xl border border-[#bfdbfe] dark:border-[#1e3a8a] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                    <p className="text-sm 3xl:text-base text-[#1e3a8a] dark:text-[#bfdbfe]">
+                </div>
+                {inherits && (
+                    <p className="text-sm 3xl:text-base text-[#1e3a8a] dark:text-[#bfdbfe] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 rounded-lg px-3 py-2">
                         {isHypeLevel ? t('eventAlertsView.design.inheritsTrain') : t('eventAlertsView.design.inheritsGeneral', { event: t(`eventAlertsView.events.${target}`) })}
                     </p>
-                    <button className="px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white shrink-0" onClick={createOwn}>
-                        {t('eventAlertsView.design.createOwn')}
-                    </button>
-                </div>
-            )}
+                )}
+                {!inherits && (
+                    <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                        {subTabs.map(st => <button key={st.id} className={seg(section === st.id)} onClick={() => setSection(st.id)}>{st.icon} {t(`eventAlertsView.design.sections.${st.id}`)}</button>)}
+                    </div>
+                )}
+            </div>
 
-            {!inherits && target !== 'general' && (
-                <div className="flex flex-wrap items-center gap-2">
-                    <button className={btnGray} onClick={removeOwn}><RotateCcw className="w-4 h-4" /> {isHypeLevel ? t('eventAlertsView.design.useTrain') : t('eventAlertsView.design.useGeneral')}</button>
-                    {!isHypeLevel && (
-                        <>
-                            <select className={`${inputClass} !w-auto`} value={copyTo} onChange={e => setCopyTo(e.target.value as AlertEventType)}>
-                                <option value="">{t('eventAlertsView.design.copyTo')}</option>
-                                {EVENT_TYPES.filter(e => e !== target).map(e => <option key={e} value={e}>{t(`eventAlertsView.events.${e}`)}</option>)}
-                            </select>
-                            <button className={btnGray} onClick={doCopy} disabled={!copyTo}><Copy className="w-4 h-4" /> {t('eventAlertsView.design.copy')}</button>
-                        </>
-                    )}
-                </div>
-            )}
-            {!inherits && target === 'general' && (
-                <div className="flex flex-wrap items-center gap-2">
-                    <select className={`${inputClass} !w-auto`} value={copyTo} onChange={e => setCopyTo(e.target.value as AlertEventType)}>
-                        <option value="">{t('eventAlertsView.design.copyTo')}</option>
-                        {EVENT_TYPES.map(e => <option key={e} value={e}>{t(`eventAlertsView.events.${e}`)}</option>)}
-                    </select>
-                    <button className={btnGray} onClick={doCopy} disabled={!copyTo}><Copy className="w-4 h-4" /> {t('eventAlertsView.design.copy')}</button>
-                </div>
-            )}
-
-            {!inherits && (
+            {!inherits && section === 'layouts' && (
                 <Card title={t('eventAlertsView.design.presetsTitle')} description={t('eventAlertsView.design.presetsDescription')}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3">
                         {LAYOUT_PRESET_IDS.map(id => {
                             const preview = buildLayoutPreset(id, { ...shown, canvas });
+                            const b = contentBox(preview);
                             return (
-                                <button key={id} className="p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left"
-                                    onClick={() => { if (window.confirm(t('eventAlertsView.design.presetConfirm'))) update(d => buildLayoutPreset(id, { ...d, canvas })); }}>
+                                <button key={id} className="p-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left"
+                                    onClick={() => { if (window.confirm(t('eventAlertsView.design.presetConfirm'))) { update(d => buildLayoutPreset(id, { ...d, canvas })); setSection('editor'); } }}>
+                                    {/* Encuadrada en la alerta (en la escena entera se vería diminuta) */}
                                     <div className="rounded-lg overflow-hidden pointer-events-none" style={{ background: CHECKER_BG }}>
-                                        {(() => {
-                                            // Encuadrada en la alerta (en la escena entera se vería diminuta)
-                                            const b = contentBox(preview);
-                                            return (
-                                                <ScaledCanvas width={b.width} height={b.height}>
-                                                    <div style={{ position: 'absolute', left: -b.x, top: -b.y }}>
-                                                        <EventAlertRenderer design={preview} data={sampleData} phase="static" preview />
-                                                    </div>
-                                                </ScaledCanvas>
-                                            );
-                                        })()}
+                                        <ScaledCanvas width={b.width} height={b.height}>
+                                            <div style={{ position: 'absolute', left: -b.x, top: -b.y }}>
+                                                <EventAlertRenderer design={preview} data={sampleData} phase="static" preview />
+                                            </div>
+                                        </ScaledCanvas>
                                     </div>
                                     <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mt-2">{t(`eventAlertsView.design.presets.${id}`)}</p>
                                     <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`eventAlertsView.design.presetsHint.${id}`)}</p>
@@ -467,9 +468,9 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                 </Card>
             )}
 
-            {!inherits && (
+            {!inherits && section === 'colors' && (
                 <Card title={t('eventAlertsView.design.themesTitle')} description={t('eventAlertsView.design.themesDescription')}>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 2xl:grid-cols-7 gap-3">
                         {COLOR_THEMES.map(c => (
                             <button key={c.id} onClick={() => update(d => applyColorTheme(d, c))} className="text-left p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all">
                                 <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-black/10">
@@ -479,31 +480,35 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                             </button>
                         ))}
                     </div>
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('eventAlertsView.design.themesHint')}</p>
                 </Card>
             )}
 
-            <div className={inherits ? 'opacity-60 pointer-events-none select-none' : ''}>
-                <OverlayCanvasEditor
-                    key={target}
-                    canvas={canvas}
-                    elements={elements}
-                    onRectChange={onRectChange}
-                    onToggle={inherits ? undefined : onToggle}
-                    title={t('eventAlertsView.design.editorTitle')}
-                    description={t('eventAlertsView.design.editorDescription')}
-                    initialSelected={shown.texts[0] ? `text:${shown.texts[0].id}` : 'card'}
-                    selectedExtra={selectedExtra}
-                    layersActions={inherits ? undefined : <button className={btnGray} onClick={addText}><Plus className="w-4 h-4" /> {t('eventAlertsView.design.addText')}</button>}
-                    onCanvasChange={inherits ? undefined : onCanvasChange}
-                >
-                    <EventAlertRenderer design={{ ...shown, canvas }} data={sampleData} phase="static" preview />
-                </OverlayCanvasEditor>
-            </div>
-
-            {!inherits && (
+            {!inherits && section === 'animation' && (
                 <Card title={t('eventAlertsView.design.alertAnimTitle')} description={t('eventAlertsView.design.alertAnimDescription')}>
                     <AnimationEditor value={shown.animation} onChange={a => update(d => ({ ...d, animation: a }))} />
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('eventAlertsView.design.elementAnimHint')}</p>
                 </Card>
+            )}
+
+            {(inherits || section === 'editor') && (
+                <div className={inherits ? 'opacity-60 pointer-events-none select-none' : ''}>
+                    <OverlayCanvasEditor
+                        key={target}
+                        canvas={canvas}
+                        elements={elements}
+                        onRectChange={onRectChange}
+                        onToggle={inherits ? undefined : onToggle}
+                        title={t('eventAlertsView.design.editorTitle')}
+                        description={t('eventAlertsView.design.editorDescription')}
+                        initialSelected={shown.texts[0] ? `text:${shown.texts[0].id}` : 'card'}
+                        selectedExtra={selectedExtra}
+                        layersActions={inherits ? undefined : <button className={btnGray} onClick={addText}><Plus className="w-4 h-4" /> {t('eventAlertsView.design.addText')}</button>}
+                        onCanvasChange={inherits ? undefined : onCanvasChange}
+                    >
+                        <EventAlertRenderer design={{ ...shown, canvas }} data={sampleData} phase="static" preview />
+                    </OverlayCanvasEditor>
+                </div>
             )}
         </div>
     );

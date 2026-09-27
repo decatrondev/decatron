@@ -483,6 +483,17 @@ namespace Decatron.Controllers
         }
 
         /// <summary>
+        /// La web pública para los links de overlays: twitch.decatron.net quedó como dominio legado (redirige a
+        /// decatron.net salvo /overlay/, que sigue sirviéndose para las escenas de OBS ya guardadas), así que los links
+        /// nuevos se dan con decatron.net. FrontendUrl no se cambia porque lo usan otros flujos (login).
+        /// </summary>
+        private static string PublicFrontendUrl(string? configured)
+        {
+            var url = (configured ?? "").TrimEnd('/');
+            return url.Replace("://twitch.decatron.net", "://decatron.net", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// Obtiene información del frontend y canal para overlays
         /// </summary>
         [HttpGet("frontend-info")]
@@ -505,7 +516,7 @@ namespace Decatron.Controllers
                 return Ok(new
                 {
                     success = true,
-                    frontendUrl = _twitchSettings.FrontendUrl,
+                    frontendUrl = PublicFrontendUrl(_twitchSettings.FrontendUrl),
                     channel = new
                     {
                         login = channelUser.Login,

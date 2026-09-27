@@ -1768,7 +1768,16 @@
         "ice": "Ice",
         "glass": "Glass",
         "transparent": "Transparent"
-      }
+      },
+      "sections": {
+        "editor": "Editor",
+        "layouts": "Ready-made layouts",
+        "colors": "Colors",
+        "animation": "Animation"
+      },
+      "themesHint": "They apply to the design you're editing. Then you can fine-tune each color in the Editor.",
+      "elementAnimHint": "Each element (card, media, texts) also has its own animation in the Editor.",
+      "elementAnim": "This element's animation"
     }
   }
 }

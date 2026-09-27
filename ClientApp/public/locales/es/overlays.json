@@ -1768,7 +1768,16 @@
         "ice": "Hielo",
         "glass": "Vidrio",
         "transparent": "Transparente"
-      }
+      },
+      "sections": {
+        "editor": "Editor",
+        "layouts": "Diseños prearmados",
+        "colors": "Colores",
+        "animation": "Animación"
+      },
+      "themesHint": "Se aplican al diseño que estás editando. Después puedes ajustar cada color en el Editor.",
+      "elementAnimHint": "Cada elemento (tarjeta, media, textos) tiene además su propia animación en el Editor.",
+      "elementAnim": "Animación de este elemento"
     }
   }
 }
