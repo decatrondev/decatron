@@ -5,7 +5,7 @@ export const DESIGN_VERSION = 2 as const;
 export const EVENT_TYPES: AlertEventType[] = ['follow', 'bits', 'subs', 'giftSubs', 'raids', 'resubs', 'hypeTrain'];
 
 /** Variables de las plantillas de texto (se aceptan también los alias del backend: {userName}, {user}, {bits}…). */
-export const TEXT_VARIABLES = ['username', 'amount', 'tier', 'months', 'viewers', 'level', 'message', 'emoji', 'title'] as const;
+export const TEXT_VARIABLES = ['username', 'amount', 'tier', 'months', 'viewers', 'level', 'message', 'emoji', 'title', 'event', 'time', 'date'] as const;
 
 /** Emoji de cada evento (el que iba delante del título en el overlay viejo). */
 export const EVENT_EMOJIS: Record<AlertEventType, string> = {

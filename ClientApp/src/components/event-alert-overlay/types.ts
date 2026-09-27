@@ -65,11 +65,13 @@ export type Direction = 'left' | 'right' | 'top' | 'bottom';
 export type Easing = 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear';
 
 /** 'event' = la animación configurada en el evento (la que llega en la alerta); 'bounce' es el rebote por escala del viejo. */
-export type AnimationType = 'event' | 'none' | 'fade' | 'slide' | 'bounce' | 'zoom';
+export type AnimationType = 'event' | 'none' | 'fade' | 'slide' | 'bounce' | 'zoom'
+    /** Nuevas (fase 3): deslizar con rebote y giro 3D (con dirección), giro y glitch. */
+    | 'slide-bounce' | 'flip' | 'rotate' | 'glitch';
 
 export interface AnimationStep {
     type: AnimationType;
-    /** Solo para slide: de dónde entra o hacia dónde sale. */
+    /** slide, slide-bounce y flip: de dónde entra o hacia dónde sale. */
     direction: Direction;
     durationMs: number;
     easing: Easing;

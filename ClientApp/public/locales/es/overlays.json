@@ -1663,7 +1663,10 @@
         "level": "el nivel del hype train",
         "message": "el mensaje de la alerta",
         "emoji": "el emoji del evento",
-        "title": "el título del evento (ej. «¡Fulano te siguió!»)"
+        "title": "el título del evento (ej. «¡Fulano te siguió!»)",
+        "event": "el nombre del evento (Follow, Raid…)",
+        "time": "la hora",
+        "date": "la fecha"
       },
       "linePlaceholder": "Texto con variables, ej. {username}",
       "moveUp": "Subir",
@@ -1732,7 +1735,39 @@
           "linear": "Constante"
         },
         "duration": "Duración",
-        "delay": "Espera antes de empezar"
+        "delay": "Espera antes de empezar",
+        "slide-bounce": "Deslizar con rebote",
+        "rotate": "Giro",
+        "flip": "Giro 3D",
+        "glitch": "Glitch"
+      },
+      "presetsTitle": "Diseños prearmados",
+      "presetsDescription": "Cambian dónde va cada cosa. Se conservan tu fuente, tus colores y la tarjeta.",
+      "presetConfirm": "Se cambia la ubicación de todos los elementos de este diseño. ¿Seguir?",
+      "presets": {
+        "classic": "Clásico",
+        "banner": "Banner inferior",
+        "side": "Media al costado",
+        "bigText": "Texto grande",
+        "corner": "Esquina"
+      },
+      "presetsHint": {
+        "classic": "Tarjeta al centro con media arriba",
+        "banner": "Franja abajo con foto y mensaje",
+        "side": "Media a la izquierda, datos a la derecha",
+        "bigText": "El nombre enorme, sin tarjeta",
+        "corner": "Chica, arriba a la derecha"
+      },
+      "themesTitle": "Temas de color",
+      "themesDescription": "Pintan la tarjeta y los textos de una vez.",
+      "themes": {
+        "twitch": "Twitch",
+        "night": "Noche",
+        "neon": "Neón",
+        "sunset": "Atardecer",
+        "ice": "Hielo",
+        "glass": "Vidrio",
+        "transparent": "Transparente"
       }
     }
   }

@@ -1663,7 +1663,10 @@
         "level": "the hype train level",
         "message": "the alert message",
         "emoji": "the event emoji",
-        "title": "the event title (e.g. “Someone followed you!”)"
+        "title": "the event title (e.g. “Someone followed you!”)",
+        "event": "the event name (Follow, Raid…)",
+        "time": "the time",
+        "date": "the date"
       },
       "linePlaceholder": "Text with variables, e.g. {username}",
       "moveUp": "Move up",
@@ -1732,7 +1735,39 @@
           "linear": "Constant"
         },
         "duration": "Duration",
-        "delay": "Wait before starting"
+        "delay": "Wait before starting",
+        "slide-bounce": "Slide with bounce",
+        "rotate": "Spin",
+        "flip": "3D flip",
+        "glitch": "Glitch"
+      },
+      "presetsTitle": "Ready-made layouts",
+      "presetsDescription": "They change where everything goes. Your font, colors and card are kept.",
+      "presetConfirm": "Every element of this design is moved. Continue?",
+      "presets": {
+        "classic": "Classic",
+        "banner": "Bottom banner",
+        "side": "Media on the side",
+        "bigText": "Big text",
+        "corner": "Corner"
+      },
+      "presetsHint": {
+        "classic": "Centered card with media on top",
+        "banner": "Bottom strip with picture and message",
+        "side": "Media on the left, info on the right",
+        "bigText": "Huge name, no card",
+        "corner": "Small, top right"
+      },
+      "themesTitle": "Color themes",
+      "themesDescription": "They paint the card and texts at once.",
+      "themes": {
+        "twitch": "Twitch",
+        "night": "Night",
+        "neon": "Neon",
+        "sunset": "Sunset",
+        "ice": "Ice",
+        "glass": "Glass",
+        "transparent": "Transparent"
       }
     }
   }

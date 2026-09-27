@@ -57,6 +57,11 @@ export function eventTitle(d: EventAlertData): string {
     }
 }
 
+/** Nombre de cada evento para {event}. */
+const EVENT_NAMES: Record<AlertEventType, string> = {
+    follow: 'Follow', bits: 'Bits', subs: 'Sub', giftSubs: 'Subs regaladas', raids: 'Raid', resubs: 'Resub', hypeTrain: 'Hype Train',
+};
+
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
 /** Valor de cada variable (con los alias que acepta el backend en las plantillas). */
@@ -73,6 +78,9 @@ function variableValues(d: EventAlertData | null): Record<string, string> {
         message: str(d.message),
         emoji: EVENT_EMOJIS[d.eventType as AlertEventType] ?? '🎉',
         title: eventTitle(d),
+        event: EVENT_NAMES[d.eventType as AlertEventType] ?? '',
+        time: new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toLocaleDateString('es'),
     };
 }
 
@@ -101,7 +109,8 @@ function fromEventName(name: string | undefined, entering: boolean): AnimationSt
 function animationCss(s: AnimationStep, entering: boolean, data: EventAlertData | null): string | undefined {
     const type = s.type === 'event' ? fromEventName(entering ? data?.animationIn : data?.animationOut, entering) : s.type;
     if (type === 'none') return undefined;
-    const name = `ea-${type}-${entering ? 'in' : 'out'}${type === 'slide' ? `-${s.direction}` : ''}`;
+    const withDir = type === 'slide' || type === 'slide-bounce' || type === 'flip';
+    const name = `ea-${type}-${entering ? 'in' : 'out'}${withDir ? `-${s.direction}` : ''}`;
     // La entrada no se queda aplicada al terminar (como el viejo); la salida sí, para que no reaparezca
     const fill = entering ? (s.delayMs > 0 ? 'backwards' : 'none') : 'forwards';
     return `${name} ${s.durationMs}ms ${s.easing} ${s.delayMs}ms ${fill}`;
@@ -232,10 +241,34 @@ export const EVENT_ALERT_KEYFRAMES = `
 @keyframes ea-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 @keyframes ea-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
 @keyframes ea-confetti { 0% { background-position: 0% 0%; } 100% { background-position: 0% 200%; } }
+@keyframes ea-rotate-in { from { opacity: 0; transform: rotate(-200deg) scale(0); } to { opacity: 1; transform: rotate(0) scale(1); } }
+@keyframes ea-rotate-out { from { opacity: 1; transform: rotate(0) scale(1); } to { opacity: 0; transform: rotate(200deg) scale(0); } }
+@keyframes ea-glitch-in {
+  0% { opacity: 0; transform: translate(-12px, 0) skewX(12deg); clip-path: inset(40% 0 35% 0); filter: hue-rotate(90deg); }
+  15% { opacity: 1; transform: translate(10px, -2px) skewX(-8deg); clip-path: inset(10% 0 60% 0); }
+  30% { transform: translate(-8px, 2px); clip-path: inset(70% 0 5% 0); filter: hue-rotate(-60deg); }
+  45% { transform: translate(6px, 0) skewX(4deg); clip-path: inset(25% 0 30% 0); }
+  60% { transform: translate(-4px, 1px); clip-path: inset(0 0 0 0); filter: hue-rotate(30deg); }
+  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
+}
+@keyframes ea-glitch-out {
+  0% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
+  40% { transform: translate(-6px, 1px) skewX(6deg); clip-path: inset(25% 0 30% 0); }
+  55% { transform: translate(8px, -2px); clip-path: inset(70% 0 5% 0); filter: hue-rotate(-60deg); }
+  70% { opacity: 1; transform: translate(-10px, 2px) skewX(-8deg); clip-path: inset(10% 0 60% 0); }
+  100% { opacity: 0; transform: translate(12px, 0) skewX(12deg); clip-path: inset(45% 0 45% 0); filter: hue-rotate(90deg); }
+}
 ${DIRS.map(d => {
     const axis = d === 'left' || d === 'right' ? 'X' : 'Y';
     const off = `translate${axis}(${d === 'left' || d === 'top' ? '-' : ''}100%)`;
+    const sign = d === 'left' || d === 'top' ? '-' : '';
+    const over = `translate${axis}(${sign ? '' : '-'}8%)`, back = `translate${axis}(${sign}3%)`;
+    const flip = axis === 'X' ? `perspective(1200px) rotateY(${sign ? '-' : ''}90deg)` : `perspective(1200px) rotateX(${sign ? '' : '-'}90deg)`;
     return `@keyframes ea-slide-in-${d} { from { opacity: 0; transform: ${off}; } to { opacity: 1; transform: translate${axis}(0); } }
-@keyframes ea-slide-out-${d} { from { opacity: 1; transform: translate${axis}(0); } to { opacity: 0; transform: ${off}; } }`;
+@keyframes ea-slide-out-${d} { from { opacity: 1; transform: translate${axis}(0); } to { opacity: 0; transform: ${off}; } }
+@keyframes ea-slide-bounce-in-${d} { 0% { opacity: 0; transform: ${off}; } 60% { opacity: 1; transform: ${over}; } 80% { transform: ${back}; } 100% { opacity: 1; transform: none; } }
+@keyframes ea-slide-bounce-out-${d} { 0% { opacity: 1; transform: none; } 20% { transform: ${back}; } 40% { opacity: 1; transform: ${over}; } 100% { opacity: 0; transform: ${off}; } }
+@keyframes ea-flip-in-${d} { from { opacity: 0; transform: ${flip}; } to { opacity: 1; transform: none; } }
+@keyframes ea-flip-out-${d} { from { opacity: 1; transform: none; } to { opacity: 0; transform: ${flip}; } }`;
 }).join('\n')}
 `;

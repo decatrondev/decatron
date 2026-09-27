@@ -2,7 +2,8 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Copy, RotateCcw, ChevronUp, ChevronDown } from 'lucide-react';
 import OverlayCanvasEditor, { type Rect } from '../../../../../components/overlay-editor/OverlayCanvasEditor';
-import { Card, ColorField, Field, NumberInput, Select, Slider, Toggle, inputClass } from '../../../../../components/overlay-editor/ui';
+import { COLOR_THEMES, LAYOUT_PRESET_IDS, applyColorTheme, buildLayoutPreset } from '../../../../../components/event-alert-overlay/presets';
+import { Card, ColorField, Field, NumberInput, Select, Slider, Toggle, inputClass, ScaledCanvas, CHECKER_BG } from '../../../../../components/overlay-editor/ui';
 import EventAlertRenderer from '../../../../../components/event-alert-overlay/EventAlertRenderer';
 import { EVENT_TYPES, TEXT_VARIABLES, step } from '../../../../../components/event-alert-overlay/defaults';
 import type {
@@ -70,9 +71,23 @@ function setOwn(design: EventAlertsDesign, target: DesignTarget, d: AlertDesign 
     return { ...design, events };
 }
 
+/** La caja que ocupan los elementos visibles de un diseño, con margen y proporción 16:9 como mínimo de alto. */
+function contentBox(d: AlertDesign): { x: number; y: number; width: number; height: number } {
+    const rects = [d.card, d.media, ...d.texts].filter(r => r.enabled);
+    if (!rects.length) return { x: 0, y: 0, width: d.canvas.width, height: d.canvas.height };
+    const m = 30;
+    const x = Math.max(0, Math.min(...rects.map(r => r.x)) - m), y = Math.max(0, Math.min(...rects.map(r => r.y)) - m);
+    const r = Math.min(d.canvas.width, Math.max(...rects.map(r => r.x + r.width)) + m), b = Math.min(d.canvas.height, Math.max(...rects.map(r => r.y + r.height)) + m);
+    const width = Math.max(1, r - x);
+    // Las miniaturas quedan del mismo alto aunque el diseño sea una franja
+    const height = Math.max(b - y, Math.round(width * 9 / 16));
+    return { x, y: Math.max(0, Math.min(y, d.canvas.height - height)), width, height: Math.min(height, d.canvas.height) };
+}
+
 // ── Animaciones ──────────────────────────────────────────────────────────────
 
-const ANIM_TYPES: AnimationType[] = ['event', 'none', 'fade', 'slide', 'bounce', 'zoom'];
+const ANIM_TYPES: AnimationType[] = ['event', 'none', 'fade', 'slide', 'slide-bounce', 'bounce', 'zoom', 'rotate', 'flip', 'glitch'];
+const WITH_DIRECTION: AnimationType[] = ['slide', 'slide-bounce', 'flip'];
 const DIRECTIONS: Direction[] = ['left', 'right', 'top', 'bottom'];
 const EASINGS: Easing[] = ['ease', 'ease-out', 'ease-in', 'ease-in-out', 'linear'];
 
@@ -87,7 +102,7 @@ function StepEditor({ label, value, onChange }: { label: string; value: Animatio
             </div>
             {value.type !== 'none' && value.type !== 'event' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {value.type === 'slide' && (
+                    {WITH_DIRECTION.includes(value.type) && (
                         <Field label={t('eventAlertsView.design.anim.direction')}>
                             <Select value={value.direction} onChange={v => set({ direction: v })} options={DIRECTIONS.map(d => ({ value: d, label: t(`eventAlertsView.design.anim.directions.${d}`) }))} />
                         </Field>
@@ -420,6 +435,51 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                     </select>
                     <button className={btnGray} onClick={doCopy} disabled={!copyTo}><Copy className="w-4 h-4" /> {t('eventAlertsView.design.copy')}</button>
                 </div>
+            )}
+
+            {!inherits && (
+                <Card title={t('eventAlertsView.design.presetsTitle')} description={t('eventAlertsView.design.presetsDescription')}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {LAYOUT_PRESET_IDS.map(id => {
+                            const preview = buildLayoutPreset(id, { ...shown, canvas });
+                            return (
+                                <button key={id} className="p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left"
+                                    onClick={() => { if (window.confirm(t('eventAlertsView.design.presetConfirm'))) update(d => buildLayoutPreset(id, { ...d, canvas })); }}>
+                                    <div className="rounded-lg overflow-hidden pointer-events-none" style={{ background: CHECKER_BG }}>
+                                        {(() => {
+                                            // Encuadrada en la alerta (en la escena entera se vería diminuta)
+                                            const b = contentBox(preview);
+                                            return (
+                                                <ScaledCanvas width={b.width} height={b.height}>
+                                                    <div style={{ position: 'absolute', left: -b.x, top: -b.y }}>
+                                                        <EventAlertRenderer design={preview} data={sampleData} phase="static" preview />
+                                                    </div>
+                                                </ScaledCanvas>
+                                            );
+                                        })()}
+                                    </div>
+                                    <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mt-2">{t(`eventAlertsView.design.presets.${id}`)}</p>
+                                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`eventAlertsView.design.presetsHint.${id}`)}</p>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </Card>
+            )}
+
+            {!inherits && (
+                <Card title={t('eventAlertsView.design.themesTitle')} description={t('eventAlertsView.design.themesDescription')}>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {COLOR_THEMES.map(c => (
+                            <button key={c.id} onClick={() => update(d => applyColorTheme(d, c))} className="text-left p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all">
+                                <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-black/10">
+                                    {c.swatch.map((sw, i) => <span key={i} className="flex-1" style={{ background: sw === '#00000000' ? 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 10px 10px' : sw }} />)}
+                                </div>
+                                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t(`eventAlertsView.design.themes.${c.id}`)}</p>
+                            </button>
+                        ))}
+                    </div>
+                </Card>
             )}
 
             <div className={inherits ? 'opacity-60 pointer-events-none select-none' : ''}>
