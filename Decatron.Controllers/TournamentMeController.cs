@@ -42,6 +42,7 @@ namespace Decatron.Controllers
         private readonly TournamentRegistrationService _registrationService;
         private readonly RiotApiClient _riotClient;
         private readonly TournamentTeamService _teamService;
+        private readonly TournamentFortniteMatchdayService _matchday;
 
         private static readonly string[] ValidWidgets = { "lp-actual", "shell-inventory", "castigo-activo", "racha" };
 
@@ -52,8 +53,10 @@ namespace Decatron.Controllers
         private static readonly string[] RankOrder = { "IV", "III", "II", "I" };
 
         public TournamentMeController(
-            DecatronDbContext dbContext, TournamentRegistrationService registrationService, RiotApiClient riotClient, TournamentTeamService teamService)
+            DecatronDbContext dbContext, TournamentRegistrationService registrationService, RiotApiClient riotClient, TournamentTeamService teamService,
+            TournamentFortniteMatchdayService matchday)
         {
+            _matchday = matchday;
             _dbContext = dbContext;
             _registrationService = registrationService;
             _riotClient = riotClient;
@@ -499,6 +502,83 @@ namespace Decatron.Controllers
             var result = await _teamService.JoinGroupAsync(_dbContext, edition, participant.Id, request.JoinCode);
             if (!result.Success)
                 return BadRequest(new { success = false, message = result.Error });
+
+            return Ok(new { success = true });
+        }
+
+        /// <summary>
+        /// Fortnite: mis sesiones (las que juego), si hice check-in y las partidas.
+        /// El codigo de la personalizada solo viaja si hice check-in y la partida
+        /// esta revelada o en juego (F3).
+        /// </summary>
+        [HttpGet("{channelName}/{editionSlug}/matchday")]
+        public async Task<IActionResult> GetMatchday(string channelName, string editionSlug)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
+            if (edition.Game != TournamentGames.Fortnite)
+                return BadRequest(new { success = false, message = "Este torneo no es de Fortnite" });
+
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null)
+                return NotFound(new { success = false, message = "Todavía no estás inscrito en este torneo" });
+
+            var sessions = await _dbContext.TournamentFortniteSessions
+                .Where(s => s.TournamentEditionId == edition.Id)
+                .OrderBy(s => s.SortOrder)
+                .ToListAsync();
+            var myCheckins = await _dbContext.TournamentFortniteSessionCheckins
+                .Where(c => c.ParticipantId == participant.Id)
+                .Select(c => c.SessionId)
+                .ToListAsync();
+            var sessionIds = sessions.Select(s => s.Id).ToList();
+            var games = await _dbContext.TournamentFortniteGames
+                .Where(g => sessionIds.Contains(g.SessionId))
+                .OrderBy(g => g.GameNumber)
+                .ToListAsync();
+
+            var result = new List<object>();
+            foreach (var session in sessions)
+            {
+                if (!await _matchday.IsEligibleAsync(_dbContext, session, participant)) continue;
+                var checkedIn = myCheckins.Contains(session.Id);
+                result.Add(new
+                {
+                    session.Id,
+                    session.Name,
+                    session.Status,
+                    session.ScheduledAt,
+                    checkedIn,
+                    canCheckIn = session.Status == "check_in" && !checkedIn,
+                    games = games.Where(g => g.SessionId == session.Id).Select(g => new
+                    {
+                        g.GameNumber,
+                        g.Status,
+                        code = checkedIn && TournamentFortniteMatchdayService.CodeVisibleStatuses.Contains(g.Status) ? g.CustomCode : null,
+                    }),
+                });
+            }
+
+            return Ok(new { success = true, sessions = result });
+        }
+
+        // Sin el rate limit de inscripcion (5 cada 10 min por IP): varios jugadores
+        // pueden compartir IP y el check-in requiere sesion propia de todas formas.
+        [HttpPost("{channelName}/{editionSlug}/sessions/{sessionId}/checkin")]
+        public async Task<IActionResult> CheckIn(string channelName, string editionSlug, long sessionId)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
+
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null)
+                return NotFound(new { success = false, message = "Todavía no estás inscrito en este torneo" });
+
+            var session = await _dbContext.TournamentFortniteSessions.FirstOrDefaultAsync(s => s.Id == sessionId && s.TournamentEditionId == edition.Id);
+            if (session == null) return NotFound(new { success = false, message = "Sesión no encontrada" });
+
+            var error = await _matchday.SelfCheckInAsync(_dbContext, session, participant);
+            if (error != null) return BadRequest(new { success = false, message = error });
 
             return Ok(new { success = true });
         }

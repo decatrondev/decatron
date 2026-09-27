@@ -69,6 +69,7 @@ export const TIEBREAKER_LABELS: Record<string, string> = {
 
 export const SESSION_STATUS_LABELS: Record<string, string> = {
     scheduled: 'Programada',
+    check_in: 'Check-in abierto',
     in_progress: 'En juego',
     finished: 'Terminada',
 };

@@ -4,6 +4,7 @@ import { Loader2, Check, AlertTriangle, Monitor, Copy, ShieldCheck } from 'lucid
 import api from '../../services/api';
 import { REGION_LABELS } from './shared';
 import { EpicAccountSelect, EpicAccountCard, type EpicAccountOption } from './FortniteEpicAccount';
+import FortniteMatchday from './FortniteMatchday';
 
 // Contenido de "Mi inscripcion" — extraido de MyTournamentPage.tsx el 24-08-2026
 // para poder montarlo tanto en la pagina completa /mi-panel (deep link, destino del
@@ -139,6 +140,10 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
                             {PARTICIPANT_STATUS_LABELS[status.participant!.status] || status.participant!.status}
                         </p>
                     </div>
+
+                    {status.game === 'fortnite' && status.participant!.status === 'approved' && (
+                        <FortniteMatchday channelName={channelName} editionSlug={editionSlug} />
+                    )}
 
                     {status.game === 'fortnite' && (
                         <EpicAccountCard

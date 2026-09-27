@@ -23,12 +23,15 @@ namespace Decatron.Controllers
 
         private readonly DecatronDbContext _dbContext;
         private readonly TournamentFortniteFormatService _format;
+        private readonly TournamentFortniteMatchdayService _matchday;
 
-        public TournamentFortniteAdminController(DecatronDbContext dbContext, TournamentFortniteFormatService format, IPermissionService permissionService)
+        public TournamentFortniteAdminController(
+            DecatronDbContext dbContext, TournamentFortniteFormatService format, TournamentFortniteMatchdayService matchday, IPermissionService permissionService)
             : base(dbContext, permissionService)
         {
             _dbContext = dbContext;
             _format = format;
+            _matchday = matchday;
         }
 
         private async Task<(TournamentEdition? edition, IActionResult? error)> ResolveAsync(long editionId, bool write)
@@ -377,6 +380,172 @@ namespace Decatron.Controllers
                 return BadRequest(new { success = false, message = "La sesión ya empezó: no se puede borrar" });
 
             _dbContext.TournamentFortniteSessions.Remove(session);
+            await _dbContext.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        // ─── Dia de partida (F3) ───────────────────────────────────────────────
+
+        private Task<TournamentFortniteSession?> GetSessionAsync(long editionId, long sessionId) =>
+            _dbContext.TournamentFortniteSessions.FirstOrDefaultAsync(s => s.Id == sessionId && s.TournamentEditionId == editionId);
+
+        private async Task<(TournamentFortniteSession? session, TournamentFortniteGame? game)> GetGameAsync(long editionId, long gameId)
+        {
+            var game = await _dbContext.TournamentFortniteGames.FirstOrDefaultAsync(g => g.Id == gameId);
+            if (game == null) return (null, null);
+            var session = await GetSessionAsync(editionId, game.SessionId);
+            return session == null ? (null, null) : (session, game);
+        }
+
+        [HttpGet("sessions/{sessionId}/matchday")]
+        public async Task<IActionResult> GetMatchday(long editionId, long sessionId)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: false);
+            if (error != null) return error;
+
+            var session = await GetSessionAsync(editionId, sessionId);
+            if (session == null) return NotFound(new { success = false, message = "Sesión no encontrada" });
+
+            var players = await _matchday.GetEligibleParticipantsAsync(_dbContext, session);
+            var checkins = await _dbContext.TournamentFortniteSessionCheckins
+                .Where(c => c.SessionId == sessionId)
+                .ToDictionaryAsync(c => c.ParticipantId);
+            var teamNames = await _dbContext.TournamentTeams
+                .Where(t => t.TournamentEditionId == editionId)
+                .ToDictionaryAsync(t => t.Id, t => t.Name);
+            var games = await _dbContext.TournamentFortniteGames
+                .Where(g => g.SessionId == sessionId)
+                .OrderBy(g => g.GameNumber)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                success = true,
+                session = new { session.Id, session.Name, session.Status, session.ScheduledAt, session.GroupId },
+                players = players.Select(p => new
+                {
+                    p.Id,
+                    p.DisplayName,
+                    p.GameAccountName,
+                    p.TeamId,
+                    teamName = p.TeamId != null ? teamNames.GetValueOrDefault(p.TeamId.Value) : null,
+                    checkedIn = checkins.ContainsKey(p.Id),
+                    checkedInBy = checkins.TryGetValue(p.Id, out var c) ? c.CheckedInBy : null,
+                }),
+                games = games.Select(g => new { g.Id, g.GameNumber, g.Status, g.CustomCode, g.RevealedAt, g.StartedAt, g.EndedAt }),
+            });
+        }
+
+        public class StatusRequest
+        {
+            public string Status { get; set; } = "";
+        }
+
+        [HttpPost("sessions/{sessionId}/status")]
+        public async Task<IActionResult> SetSessionStatus(long editionId, long sessionId, [FromBody] StatusRequest request)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var session = await GetSessionAsync(editionId, sessionId);
+            if (session == null) return NotFound(new { success = false, message = "Sesión no encontrada" });
+
+            var transitionError = _matchday.ValidateSessionTransition(session.Status, request.Status);
+            if (transitionError != null) return BadRequest(new { success = false, message = transitionError });
+
+            session.Status = request.Status;
+            await _dbContext.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        public class CheckInRequest
+        {
+            public bool CheckedIn { get; set; }
+        }
+
+        [HttpPost("sessions/{sessionId}/checkins/{participantId}")]
+        public async Task<IActionResult> SetCheckIn(long editionId, long sessionId, long participantId, [FromBody] CheckInRequest request)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var session = await GetSessionAsync(editionId, sessionId);
+            if (session == null) return NotFound(new { success = false, message = "Sesión no encontrada" });
+
+            var participant = await _dbContext.TournamentParticipants.FirstOrDefaultAsync(p => p.Id == participantId && p.TournamentEditionId == editionId);
+            if (participant == null) return NotFound(new { success = false, message = "Jugador no encontrado" });
+            if (request.CheckedIn && !await _matchday.IsEligibleAsync(_dbContext, session, participant))
+                return BadRequest(new { success = false, message = "Ese jugador no juega en esta sesión" });
+
+            await _matchday.SetCheckInAsync(_dbContext, sessionId, participantId, request.CheckedIn, "staff");
+            return Ok(new { success = true });
+        }
+
+        public class CodeRequest
+        {
+            public string Code { get; set; } = "";
+        }
+
+        [HttpPut("games/{gameId}/code")]
+        public async Task<IActionResult> SetGameCode(long editionId, long gameId, [FromBody] CodeRequest request)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (session, game) = await GetGameAsync(editionId, gameId);
+            if (game == null) return NotFound(new { success = false, message = "Partida no encontrada" });
+
+            var code = request.Code.Trim();
+            if (code.Length is 0 or > 60)
+                return BadRequest(new { success = false, message = "El código tiene entre 1 y 60 caracteres" });
+            if (game.Status is "reporting" or "closed")
+                return BadRequest(new { success = false, message = "Esa partida ya terminó" });
+
+            game.CustomCode = code;
+            await _dbContext.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        public class RevealRequest
+        {
+            public bool AnnounceInChat { get; set; } = true;
+            public bool SendDiscordDm { get; set; } = true;
+        }
+
+        [HttpPost("games/{gameId}/reveal")]
+        public async Task<IActionResult> RevealGame(long editionId, long gameId, [FromBody] RevealRequest request)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (session, game) = await GetGameAsync(editionId, gameId);
+            if (game == null) return NotFound(new { success = false, message = "Partida no encontrada" });
+            if (string.IsNullOrWhiteSpace(game.CustomCode))
+                return BadRequest(new { success = false, message = "Primero pon el código de la partida personalizada" });
+            if (session!.Status == "finished")
+                return BadRequest(new { success = false, message = "La sesión ya terminó" });
+            if (game.Status is "reporting" or "closed")
+                return BadRequest(new { success = false, message = "Esa partida ya terminó" });
+
+            var result = await _matchday.RevealAsync(_dbContext, edition!, session, game, request.AnnounceInChat, request.SendDiscordDm);
+            return Ok(new { success = true, result });
+        }
+
+        [HttpPost("games/{gameId}/status")]
+        public async Task<IActionResult> SetGameStatus(long editionId, long gameId, [FromBody] StatusRequest request)
+        {
+            var (edition, error) = await ResolveAsync(editionId, write: true);
+            if (error != null) return error;
+
+            var (session, game) = await GetGameAsync(editionId, gameId);
+            if (game == null) return NotFound(new { success = false, message = "Partida no encontrada" });
+
+            var transitionError = _matchday.ValidateGameTransition(game, request.Status);
+            if (transitionError != null) return BadRequest(new { success = false, message = transitionError });
+
+            _matchday.ApplyGameStatus(game, request.Status);
+            if (request.Status != "waiting" && session!.Status is "scheduled" or "check_in")
+                session.Status = "in_progress";
             await _dbContext.SaveChangesAsync();
             return Ok(new { success = true });
         }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, Users, UsersRound, KeyRound, ArrowUp, Shield, DollarSign, LayoutDashboard, FileText, Handshake, Swords, Settings2 } from 'lucide-react';
+import { Trophy, Users, UsersRound, KeyRound, ArrowUp, Shield, DollarSign, LayoutDashboard, FileText, Handshake, Swords, Settings2, Radio } from 'lucide-react';
 import api from '../../../services/api';
 import type { TournamentEdition } from './shared';
 import EditionsPanel from './EditionsPanel';
@@ -14,6 +14,7 @@ import SponsorsPanel from './SponsorsPanel';
 import TeamsPanel from './TeamsPanel';
 import WinConditionPanel from './WinConditionPanel';
 import FortniteFormatPanel from './fortnite/FortniteFormatPanel';
+import MatchdayPanel from './fortnite/MatchdayPanel';
 
 // Milestone 0/1 del modulo de Torneos — UI minima para no seguir probando a mano
 // contra la API. Cubre lo que ya existe en el backend: crear/listar ediciones,
@@ -25,7 +26,7 @@ import FortniteFormatPanel from './fortnite/FortniteFormatPanel';
 // ParticipantsPanel, RiotConfigPanel, BlueShellPanel, ...) — este archivo es
 // solo el shell de tabs + el estado compartido de "que edicion esta seleccionada".
 
-type TabId = 'dashboard' | 'editions' | 'ranking' | 'participants' | 'teams' | 'format' | 'blueshell' | 'wincondition' | 'prizes' | 'rules' | 'sponsors' | 'riot';
+type TabId = 'dashboard' | 'editions' | 'ranking' | 'participants' | 'teams' | 'format' | 'matchday' | 'blueshell' | 'wincondition' | 'prizes' | 'rules' | 'sponsors' | 'riot';
 
 export default function TournamentConfig() {
     const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -88,7 +89,7 @@ export default function TournamentConfig() {
         if ((isAram || isFortnite) && (activeTab === 'ranking' || activeTab === 'blueshell')) setActiveTab('dashboard');
         if ((!isAram || isFortnite) && activeTab === 'wincondition') setActiveTab('dashboard');
         if (isFortnite && activeTab === 'riot') setActiveTab('dashboard');
-        if (!isFortnite && activeTab === 'format') setActiveTab('dashboard');
+        if (!isFortnite && (activeTab === 'format' || activeTab === 'matchday')) setActiveTab('dashboard');
     }, [isAram, isFortnite, activeTab]);
 
     return (
@@ -110,6 +111,7 @@ export default function TournamentConfig() {
                         { id: 'participants', label: 'Participantes', icon: <Users className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'teams', label: 'Equipos', icon: <UsersRound className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         isFortnite && { id: 'format', label: 'Formato', icon: <Settings2 className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
+                        isFortnite && { id: 'matchday', label: 'Día de partida', icon: <Radio className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         !isAram && !isFortnite && {
                             id: 'blueshell',
                             label: selectedEdition ? `${selectedEdition.shellItemName}s` : 'Castigos',
@@ -159,6 +161,10 @@ export default function TournamentConfig() {
 
             {activeTab === 'format' && (
                 <FortniteFormatPanel edition={selectedEdition} editions={editions} onSelectEdition={(id) => onSelectEdition(id, false)} />
+            )}
+
+            {activeTab === 'matchday' && (
+                <MatchdayPanel edition={selectedEdition} editions={editions} onSelectEdition={(id) => onSelectEdition(id, false)} />
             )}
 
             {activeTab === 'blueshell' && (

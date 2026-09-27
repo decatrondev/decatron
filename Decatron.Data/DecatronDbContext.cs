@@ -220,6 +220,7 @@ namespace Decatron.Data
         public DbSet<TournamentFortniteGroupTeam> TournamentFortniteGroupTeams { get; set; }
         public DbSet<TournamentFortniteSession> TournamentFortniteSessions { get; set; }
         public DbSet<TournamentFortniteGame> TournamentFortniteGames { get; set; }
+        public DbSet<TournamentFortniteSessionCheckin> TournamentFortniteSessionCheckins { get; set; }
 
         // OAuth2 System (API Pública)
         public DbSet<OAuthApplication> OAuthApplications { get; set; }
@@ -1987,6 +1988,11 @@ namespace Decatron.Data
             modelBuilder.Entity<TournamentFortniteGroupTeam>(entity =>
             {
                 entity.HasIndex(e => new { e.GroupId, e.TeamId }).IsUnique();
+            });
+
+            modelBuilder.Entity<TournamentFortniteSessionCheckin>(entity =>
+            {
+                entity.HasIndex(e => new { e.SessionId, e.ParticipantId }).IsUnique();
             });
 
             modelBuilder.Entity<TournamentFortniteGame>(entity =>
