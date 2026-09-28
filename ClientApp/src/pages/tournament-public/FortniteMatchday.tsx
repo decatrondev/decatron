@@ -72,6 +72,7 @@ function formatDate(iso: string | null): string {
 export default function FortniteMatchday({ channelName, editionSlug }: { channelName: string; editionSlug: string }) {
     const [sessions, setSessions] = useState<MatchdaySession[] | null>(null);
     const [proofMode, setProofMode] = useState('always');
+    const [aiReading, setAiReading] = useState(false);
     const [teamSize, setTeamSize] = useState(1);
     const base = `/me/tournament/${channelName}/${editionSlug}`;
     const [error, setError] = useState('');
@@ -82,6 +83,7 @@ export default function FortniteMatchday({ channelName, editionSlug }: { channel
             const res = await api.get(`/me/tournament/${channelName}/${editionSlug}/matchday`);
             setSessions(res.data.sessions || []);
             setProofMode(res.data.proofMode || 'always');
+            setAiReading(!!res.data.aiReading);
             setTeamSize(res.data.teamSize || 1);
         } catch (err: any) {
             setError(err?.response?.data?.message || 'Error cargando tus partidas');
@@ -158,7 +160,7 @@ export default function FortniteMatchday({ channelName, editionSlug }: { channel
                     {s.checkedIn && s.games.length > 0 && (
                         <div className="space-y-1.5">
                             {s.games.map((g) => (
-                                <GameLine key={g.id} game={g} base={base} proofMode={proofMode} teamSize={teamSize} onReported={load} />
+                                <GameLine key={g.id} game={g} base={base} proofMode={proofMode} aiReading={aiReading} teamSize={teamSize} onReported={load} />
                             ))}
                         </div>
                     )}
@@ -173,12 +175,14 @@ function GameLine({
     game,
     base,
     proofMode,
+    aiReading,
     teamSize,
     onReported,
 }: {
     game: MatchdayGame;
     base: string;
     proofMode: string;
+    aiReading: boolean;
     teamSize: number;
     onReported: () => void;
 }) {
@@ -227,7 +231,7 @@ function GameLine({
                 Tu reporte: puesto {game.myReport.placement} · {game.myReport.eliminations} elim. — esperando revisión del organizador.
             </p>
         )}
-        {game.canReport && <ReportForm game={game} base={base} proofMode={proofMode} teamSize={teamSize} onReported={onReported} />}
+        {game.canReport && <ReportForm game={game} base={base} proofMode={proofMode} aiReading={aiReading} teamSize={teamSize} onReported={onReported} />}
         {!game.canReport && !game.teamResult && game.cannotReportReason && proofMode !== 'staff_only' && (
             <p className="px-3 text-[11px] text-[#7C8AA6]">{game.cannotReportReason}</p>
         )}
@@ -241,24 +245,64 @@ function ReportForm({
     game,
     base,
     proofMode,
+    aiReading,
     teamSize,
     onReported,
 }: {
     game: MatchdayGame;
     base: string;
     proofMode: string;
+    aiReading: boolean;
     teamSize: number;
     onReported: () => void;
 }) {
     const [placement, setPlacement] = useState(game.myReport?.placement?.toString() ?? '');
     const [eliminations, setEliminations] = useState(game.myReport?.eliminations?.toString() ?? '0');
     const [file, setFile] = useState<File | null>(null);
+    // La captura se sube apenas se elige (y la lee la IA si el streamer lo activó);
+    // el reporte despues solo manda su id.
+    const [fileId, setFileId] = useState<number | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [aiInfo, setAiInfo] = useState<{ ok: boolean; text: string } | null>(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [done, setDone] = useState(false);
 
     const screenshotRequired = proofMode === 'always' && !game.myReport?.hasScreenshot;
     const deadline = parseDate(game.deadline);
+
+    const pickFile = async (picked: File | null) => {
+        setFile(picked);
+        setFileId(null);
+        setAiInfo(null);
+        setError('');
+        if (!picked) return;
+        setUploading(true);
+        try {
+            const form = new FormData();
+            form.append('screenshot', picked);
+            const res = await api.post(`${base}/games/${game.id}/screenshot`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+            setFileId(res.data.fileId);
+            const ai = res.data.ai;
+            if (ai) {
+                if (ai.placement != null) setPlacement(String(ai.placement));
+                if (ai.eliminations != null) setEliminations(String(ai.eliminations));
+                setAiInfo({
+                    ok: !ai.note,
+                    text: ai.note
+                        ? `La IA avisa: ${ai.note}. Revisa los números.`
+                        : `La IA leyó puesto ${ai.placement} y ${ai.eliminations} eliminaciones. Revisa y confirma.`,
+                });
+            } else if (res.data.aiError) {
+                setAiInfo({ ok: false, text: res.data.aiError });
+            }
+        } catch (err: any) {
+            setFile(null);
+            setError(err?.response?.data?.message || 'No se pudo subir la captura');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -269,9 +313,11 @@ function ReportForm({
             const form = new FormData();
             form.append('placement', placement);
             form.append('eliminations', eliminations || '0');
-            if (file) form.append('screenshot', file);
+            if (fileId != null) form.append('screenshotFileId', String(fileId));
             await api.post(`${base}/games/${game.id}/report`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
             setFile(null);
+            setFileId(null);
+            setAiInfo(null);
             setDone(true);
             onReported();
         } catch (err: any) {
@@ -322,17 +368,23 @@ function ReportForm({
                 <label className="flex items-center gap-1.5 text-xs text-[#3ED6C4] font-bold cursor-pointer">
                     <Paperclip className="w-3.5 h-3.5" />
                     {file ? file.name : game.myReport?.hasScreenshot ? 'Cambiar captura' : `Captura de la pantalla final${screenshotRequired ? ' (obligatoria)' : ' (opcional)'}`}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] || null)} />
                 </label>
+                {uploading && (
+                    <span className="flex items-center gap-1 text-[11px] text-[#7C8AA6]">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> {aiReading ? 'Subiendo y leyendo…' : 'Subiendo…'}
+                    </span>
+                )}
                 {game.myReport?.screenshotFileId && !file && (
                     <AuthImage url={`${base}/files/${game.myReport.screenshotFileId}`} alt="Tu captura" className="w-14 h-9" />
                 )}
             </div>
+            {aiInfo && <p className={`text-xs ${aiInfo.ok ? 'text-[#3ED6C4]' : 'text-[#E8B04B]'}`}>{aiInfo.text}</p>}
             {error && <p className="text-xs text-[#E8677A]">{error}</p>}
             {done && <p className="text-xs text-[#3ED6C4]">Reporte enviado.</p>}
             <button
                 type="submit"
-                disabled={saving || !placement || (screenshotRequired && !file)}
+                disabled={saving || uploading || !placement || (screenshotRequired && fileId == null)}
                 className="w-full py-2 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}

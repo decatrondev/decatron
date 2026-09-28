@@ -45,6 +45,7 @@ namespace Decatron.Controllers
         private readonly TournamentFortniteMatchdayService _matchday;
         private readonly TournamentFortniteResultsService _results;
         private readonly TournamentFortniteFormatService _format;
+        private readonly TournamentFortniteScreenshotAiService _screenshotAi;
 
         private static readonly string[] ValidWidgets = { "lp-actual", "shell-inventory", "castigo-activo", "racha" };
 
@@ -56,8 +57,10 @@ namespace Decatron.Controllers
 
         public TournamentMeController(
             DecatronDbContext dbContext, TournamentRegistrationService registrationService, RiotApiClient riotClient, TournamentTeamService teamService,
-            TournamentFortniteMatchdayService matchday, TournamentFortniteResultsService results, TournamentFortniteFormatService format)
+            TournamentFortniteMatchdayService matchday, TournamentFortniteResultsService results, TournamentFortniteFormatService format,
+            TournamentFortniteScreenshotAiService screenshotAi)
         {
+            _screenshotAi = screenshotAi;
             _matchday = matchday;
             _results = results;
             _format = format;
@@ -612,7 +615,7 @@ namespace Decatron.Controllers
                 });
             }
 
-            return Ok(new { success = true, proofMode = config.ProofMode, teamSize = edition.TeamSize ?? 1, sessions = result });
+            return Ok(new { success = true, proofMode = config.ProofMode, aiReading = config.AiScreenshotReading, teamSize = edition.TeamSize ?? 1, sessions = result });
         }
 
         // Sin el rate limit de inscripcion (5 cada 10 min por IP): varios jugadores
@@ -641,11 +644,53 @@ namespace Decatron.Controllers
         /// captura). Se puede corregir hasta que el organizador revise el resultado del
         /// equipo o se termine el tiempo. multipart: placement, eliminations, screenshot.
         /// </summary>
+        /// <summary>
+        /// Fortnite F8: sube la captura antes de enviar el reporte. Si el streamer activo
+        /// la lectura con IA, la lee y devuelve el puesto y las eliminaciones para
+        /// prellenar el formulario (el jugador confirma). Devuelve el id del archivo para
+        /// usarlo en el reporte sin volver a subirlo.
+        /// </summary>
+        [HttpPost("{channelName}/{editionSlug}/games/{gameId}/screenshot")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(12 * 1024 * 1024)]
+        public async Task<IActionResult> UploadScreenshot(string channelName, string editionSlug, long gameId, [FromForm] IFormFile screenshot)
+        {
+            var edition = await ResolveEditionAsync(channelName, editionSlug);
+            if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
+
+            var participant = await GetMyParticipantAsync(edition.Id);
+            if (participant == null)
+                return NotFound(new { success = false, message = "Todavía no estás inscrito en este torneo" });
+
+            var game = await _dbContext.TournamentFortniteGames.FirstOrDefaultAsync(g => g.Id == gameId);
+            var session = game == null ? null : await _dbContext.TournamentFortniteSessions.FirstOrDefaultAsync(s => s.Id == game.SessionId && s.TournamentEditionId == edition.Id);
+            if (game == null || session == null) return NotFound(new { success = false, message = "Partida no encontrada" });
+
+            var config = await _format.GetOrCreateConfigAsync(_dbContext, edition);
+            var cannot = await _results.CanReportAsync(_dbContext, config, session, game, participant);
+            if (cannot != null) return BadRequest(new { success = false, message = cannot });
+
+            var (jpeg, imageError) = await TournamentImageProcessor.ToJpegAsync(screenshot);
+            if (jpeg == null) return BadRequest(new { success = false, message = imageError });
+            var file = await _results.StoreJpegAsync(_dbContext, edition.Id, jpeg, "screenshot", GetUserId());
+
+            object? ai = null;
+            string? aiError = null;
+            if (config.AiScreenshotReading)
+            {
+                var (reading, readError) = await _screenshotAi.ReadAsync(_dbContext, edition, file, jpeg, GetUserId());
+                ai = reading == null ? null : new { reading.Placement, reading.Eliminations, reading.Note };
+                aiError = readError;
+            }
+
+            return Ok(new { success = true, fileId = file.Id, ai, aiError });
+        }
+
         [HttpPost("{channelName}/{editionSlug}/games/{gameId}/report")]
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(12 * 1024 * 1024)]
         public async Task<IActionResult> SubmitReport(string channelName, string editionSlug, long gameId,
-            [FromForm] int placement, [FromForm] int eliminations, [FromForm] IFormFile? screenshot)
+            [FromForm] int placement, [FromForm] int eliminations, [FromForm] IFormFile? screenshot, [FromForm] long? screenshotFileId)
         {
             var edition = await ResolveEditionAsync(channelName, editionSlug);
             if (edition == null) return NotFound(new { success = false, message = "Torneo no encontrado" });
@@ -663,7 +708,15 @@ namespace Decatron.Controllers
             if (cannot != null) return BadRequest(new { success = false, message = cannot });
 
             TournamentFortniteFile? file = null;
-            if (screenshot != null)
+            if (screenshotFileId != null)
+            {
+                // Captura ya subida con /screenshot: tiene que ser mia y de este torneo.
+                var userId = GetUserId();
+                file = await _dbContext.TournamentFortniteFiles.FirstOrDefaultAsync(f =>
+                    f.Id == screenshotFileId && f.TournamentEditionId == edition.Id && f.Kind == "screenshot" && f.UploadedByUserId == userId);
+                if (file == null) return BadRequest(new { success = false, message = "Captura no encontrada: vuelve a subirla" });
+            }
+            else if (screenshot != null)
             {
                 var (jpeg, imageError) = await TournamentImageProcessor.ToJpegAsync(screenshot);
                 if (jpeg == null) return BadRequest(new { success = false, message = imageError });

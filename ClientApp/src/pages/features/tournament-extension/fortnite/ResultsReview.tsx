@@ -16,6 +16,9 @@ interface ReviewMember {
     placement: number | null;
     eliminations: number | null;
     screenshotFileId: number | null;
+    aiPlacement: number | null;
+    aiEliminations: number | null;
+    aiNote: string | null;
 }
 
 interface ReviewTeam {
@@ -220,6 +223,19 @@ export default function ResultsReview({ base, gameId, onChanged }: { base: strin
                                             </span>
                                         ) : (
                                             <span className="italic">no reportó</span>
+                                        )}
+                                        {(m.aiPlacement != null || m.aiEliminations != null || m.aiNote) && (
+                                            <span
+                                                className={
+                                                    m.reported && ((m.aiPlacement != null && m.aiPlacement !== m.placement) || (m.aiEliminations != null && m.aiEliminations !== m.eliminations))
+                                                        ? 'text-amber-600 dark:text-amber-400 font-bold'
+                                                        : 'text-[#94a3b8]'
+                                                }
+                                                title={m.aiNote || undefined}
+                                            >
+                                                · IA: {m.aiPlacement != null ? `#${m.aiPlacement}` : '?'} · {m.aiEliminations ?? '?'} elim.
+                                                {m.aiNote ? ' (!)' : ''}
+                                            </span>
                                         )}
                                     </div>
                                 ))}

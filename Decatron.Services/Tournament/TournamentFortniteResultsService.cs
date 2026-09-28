@@ -143,6 +143,10 @@ namespace Decatron.Services.Tournament
             public int? Placement { get; set; }
             public int? Eliminations { get; set; }
             public long? ScreenshotFileId { get; set; }
+            // F8: lo que leyo la IA en su captura, si se leyo.
+            public int? AiPlacement { get; set; }
+            public int? AiEliminations { get; set; }
+            public string? AiNote { get; set; }
         }
 
         public class ReviewTeam
@@ -188,6 +192,8 @@ namespace Decatron.Services.Tournament
                 .Select(p => new { p.Id, p.DisplayName, p.GameAccountName, p.TeamId })
                 .ToListAsync(ct);
             var checkedIn = players.Select(p => p.ParticipantId).ToHashSet();
+            var screenshotIds = reports.Where(r => r.ScreenshotFileId != null).Select(r => r.ScreenshotFileId!.Value).ToList();
+            var aiReads = await db.TournamentFortniteFiles.Where(f => screenshotIds.Contains(f.Id) && f.AiReadAt != null).ToDictionaryAsync(f => f.Id, ct);
 
             var ranges = TournamentFortniteFormatService.ParsePlacement(config.PlacementPoints);
             var review = new GameReview { Deadline = ReportDeadline(game, config) };
@@ -198,8 +204,12 @@ namespace Decatron.Services.Tournament
                 foreach (var m in members.Where(m => m.TeamId == teamId && (checkedIn.Contains(m.Id) || reports.Any(r => r.ParticipantId == m.Id))))
                 {
                     var r = reports.FirstOrDefault(x => x.ParticipantId == m.Id);
+                    var ai = r?.ScreenshotFileId != null ? aiReads.GetValueOrDefault(r.ScreenshotFileId.Value) : null;
                     team.Members.Add(new ReviewMember
                     {
+                        AiPlacement = ai?.AiPlacement,
+                        AiEliminations = ai?.AiEliminations,
+                        AiNote = ai?.AiNote,
                         ParticipantId = m.Id,
                         DisplayName = m.DisplayName,
                         GameAccountName = m.GameAccountName,
@@ -225,6 +235,9 @@ namespace Decatron.Services.Tournament
                 {
                     if (placements.Count > 1) team.Flags.Add("placement_mismatch");
                     if (teamReports.Count < team.Members.Count) team.Flags.Add("missing_member_reports");
+                    // F8: lo reportado no coincide con lo que leyo la IA en la captura.
+                    if (teamReports.Any(m => (m.AiPlacement != null && m.AiPlacement != m.Placement) || (m.AiEliminations != null && m.AiEliminations != m.Eliminations)))
+                        team.Flags.Add("ai_mismatch");
                 }
                 review.Teams.Add(team);
             }

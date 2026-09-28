@@ -18,6 +18,7 @@ export interface FortniteConfig {
     reportWindowMinutes: number;
     missingReportZero: boolean;
     publicScreenshots: boolean;
+    aiScreenshotReading: boolean;
 }
 
 export const PROOF_MODE_LABELS: Record<string, { label: string; help: string }> = {
@@ -34,6 +35,7 @@ export const RESULT_FLAG_LABELS: Record<string, string> = {
     placement_out_of_range: 'Puesto fuera de rango',
     screenshot_needed: 'Falta captura',
     too_many_eliminations: 'Más eliminaciones que jugadores',
+    ai_mismatch: 'No coincide con lo que leyó la IA',
 };
 
 export const RESULT_STATUS_LABELS: Record<string, string> = {

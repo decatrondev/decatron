@@ -54,6 +54,10 @@ public class TournamentFortniteConfig
     [Column("public_screenshots")]
     public bool PublicScreenshots { get; set; }
 
+    // F8: leer las capturas con IA para prellenar el reporte (cobra creditos del canal).
+    [Column("ai_screenshot_reading")]
+    public bool AiScreenshotReading { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

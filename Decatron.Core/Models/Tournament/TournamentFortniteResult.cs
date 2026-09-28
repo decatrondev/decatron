@@ -28,6 +28,19 @@ public class TournamentFortniteFile
     [Column("uploaded_by_user_id")]
     public long UploadedByUserId { get; set; }
 
+    // F8: lo que leyo la IA en la captura (null si no se leyo o no se pudo).
+    [Column("ai_placement")]
+    public short? AiPlacement { get; set; }
+
+    [Column("ai_eliminations")]
+    public short? AiEliminations { get; set; }
+
+    [Column("ai_note")]
+    public string? AiNote { get; set; }
+
+    [Column("ai_read_at")]
+    public DateTime? AiReadAt { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

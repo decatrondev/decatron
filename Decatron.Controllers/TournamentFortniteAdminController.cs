@@ -146,6 +146,7 @@ namespace Decatron.Controllers
             c.ReportWindowMinutes,
             c.MissingReportZero,
             c.PublicScreenshots,
+            c.AiScreenshotReading,
         };
 
         // ─── Tabla de puntos y reglas ──────────────────────────────────────────
@@ -162,6 +163,7 @@ namespace Decatron.Controllers
             public int ReportWindowMinutes { get; set; } = 30;
             public bool MissingReportZero { get; set; } = true;
             public bool PublicScreenshots { get; set; }
+            public bool AiScreenshotReading { get; set; }
         }
 
         [HttpPut("config")]
@@ -200,6 +202,7 @@ namespace Decatron.Controllers
             config.ReportWindowMinutes = request.ReportWindowMinutes;
             config.MissingReportZero = request.MissingReportZero;
             config.PublicScreenshots = request.PublicScreenshots;
+            config.AiScreenshotReading = request.AiScreenshotReading;
             config.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync();
 

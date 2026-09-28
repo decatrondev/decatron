@@ -304,6 +304,22 @@ export default function PointsRulesCard({
                         />
                     </div>
                     <label className="flex items-start gap-2 text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc] cursor-pointer md:col-span-2">
+                        <input
+                            type="checkbox"
+                            checked={config.aiScreenshotReading}
+                            onChange={(e) => set({ aiScreenshotReading: e.target.checked })}
+                            className="mt-1"
+                        />
+                        <span>
+                            Leer las capturas con IA
+                            <span className="block text-[11px] 4xl:text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                Al subir su captura, la IA lee el puesto y las eliminaciones y le prellena el reporte al jugador, que confirma. Tú ves una alerta si
+                                lo reportado no coincide con lo leído. Cada lectura gasta créditos de tu canal (unas decenas por captura, según el modelo); sin créditos, el jugador escribe
+                                los números a mano.
+                            </span>
+                        </span>
+                    </label>
+                    <label className="flex items-start gap-2 text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc] cursor-pointer md:col-span-2">
                         <input type="checkbox" checked={config.publicScreenshots} onChange={(e) => set({ publicScreenshots: e.target.checked })} className="mt-1" />
                         <span>
                             Mostrar las capturas en la página pública

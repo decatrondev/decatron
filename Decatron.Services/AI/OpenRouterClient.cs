@@ -56,9 +56,41 @@ namespace Decatron.Services.AI
         /// <paramref name="reasoning"/> va en false por defecto: los modelos "thinking" (Qwen 3.8, DeepSeek V4)
         /// gastan todo el max_tokens pensando y devuelven contenido vacío. Solo activarlo para análisis largos.
         /// </summary>
-        public async Task<OpenRouterCompletion> ChatAsync(
+        public Task<OpenRouterCompletion> ChatAsync(
             string model, string systemPrompt, string userPrompt, AiCallContext ctx,
             int maxTokens = 256, double temperature = 0.7, TimeSpan? timeout = null, bool reasoning = false, CancellationToken ct = default)
+            => SendAsync(model, new object[]
+            {
+                new { role = "system", content = systemPrompt },
+                new { role = "user", content = userPrompt },
+            }, ctx, maxTokens, temperature, timeout, reasoning, ct);
+
+        /// <summary>
+        /// Igual que <see cref="ChatAsync"/> pero el mensaje del usuario lleva una imagen
+        /// (JPEG). Solo sirve con modelos que aceptan imágenes: los de respaldo del admin
+        /// también tienen que aceptarlas (hoy Qwen 3.8 Flash, GPT-6 Luna y DeepSeek V4.1
+        /// Flash las aceptan, verificado en /models de OpenRouter el 27-09-2026).
+        /// </summary>
+        public Task<OpenRouterCompletion> ChatWithImageAsync(
+            string model, string systemPrompt, string userPrompt, byte[] jpeg, AiCallContext ctx,
+            int maxTokens = 200, double temperature = 0, TimeSpan? timeout = null, CancellationToken ct = default)
+            => SendAsync(model, new object[]
+            {
+                new { role = "system", content = systemPrompt },
+                new
+                {
+                    role = "user",
+                    content = new object[]
+                    {
+                        new { type = "text", text = userPrompt },
+                        new { type = "image_url", image_url = new { url = "data:image/jpeg;base64," + Convert.ToBase64String(jpeg) } },
+                    },
+                },
+            }, ctx, maxTokens, temperature, timeout ?? TimeSpan.FromSeconds(45), false, ct);
+
+        private async Task<OpenRouterCompletion> SendAsync(
+            string model, object[] messages, AiCallContext ctx,
+            int maxTokens, double temperature, TimeSpan? timeout, bool reasoning, CancellationToken ct)
         {
             if (!IsConfigured) throw new InvalidOperationException("API Key de OpenRouter no configurada");
             await _settings.EnsureFreshAsync();
@@ -76,11 +108,7 @@ namespace Decatron.Services.AI
                 max_tokens = maxTokens,
                 temperature,
                 reasoning = new { enabled = reasoning },
-                messages = new object[]
-                {
-                    new { role = "system", content = systemPrompt },
-                    new { role = "user", content = userPrompt },
-                },
+                messages,
             };
 
             using var req = NewRequest(HttpMethod.Post, "/chat/completions");
