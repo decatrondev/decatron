@@ -3,6 +3,7 @@ import { Shield, Sparkles, Check, AlertTriangle, Loader2, Zap, Pencil } from 'lu
 import api from '../../../services/api';
 import { EditionPicker } from './shared';
 import type { TournamentEdition } from './shared';
+import BlueShellCatalogEditor, { type CatalogPunishment, type CatalogTrigger } from './BlueShellCatalogEditor';
 
 // Milestone 1 — motor de castigos/suerte (nombre interno de desarrollo; cada canal le
 // pone su propio nombre a la mecanica via edition.shellItemName/aegisMechanicName, no
@@ -11,20 +12,8 @@ import type { TournamentEdition } from './shared';
 // El "lanzar" de acá es admin-only (no hay login de participante real todavia, fase 5) —
 // pensado para pruebas y para que el organizador pueda operar el sistema manualmente.
 
-interface PunishmentType {
-    id: number;
-    name: string;
-    allowsReverse: boolean;
-}
-
-interface ShellTrigger {
-    id: number;
-    name: string;
-    conditionType: string;
-    thresholdValue: number;
-    shellsGranted: number;
-    isActive: boolean;
-}
+type PunishmentType = CatalogPunishment;
+type ShellTrigger = CatalogTrigger;
 
 interface BlueShellRules {
     maxInventory: number;
@@ -137,12 +126,14 @@ export default function BlueShellPanel({
     };
 
     const hasCatalogs = punishments.length > 0 && triggers.length > 0 && rules != null;
+    // Fortnite (F6): fichas por equipo, condiciones propias y sin factor suerte.
+    const isFortnite = edition.game === 'fortnite';
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-lg 4xl:text-xl font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-[#2563eb]" /> {edition.shellItemName}s / {edition.aegisMechanicName} — {edition.name}
+                    <Shield className="w-5 h-5 text-[#2563eb]" /> {edition.shellItemName}s{isFortnite ? '' : ` / ${edition.aegisMechanicName}`} — {edition.name}
                 </h2>
                 {!hasCatalogs && (
                     <button
@@ -156,7 +147,7 @@ export default function BlueShellPanel({
                 )}
             </div>
 
-            <MechanicNamesForm edition={edition} onSaved={onEditionsChanged} />
+            <MechanicNamesForm edition={edition} isFortnite={isFortnite} onSaved={onEditionsChanged} />
 
             {message && (
                 <p className={`text-sm flex items-center gap-1 ${message.ok ? 'text-[#2563eb]' : 'text-red-600 dark:text-red-400'}`}>
@@ -167,8 +158,9 @@ export default function BlueShellPanel({
 
             {!hasCatalogs && !loading && (
                 <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">
-                    Esta edicion todavia no tiene catalogo de castigos, triggers ni reglas — apreta "Sembrar valores por defecto" para cargar un set inicial (9
-                    castigos, 8 triggers, cooldowns y reverse por rango de posicion) que despues podes editar o borrar libremente.
+                    {isFortnite
+                        ? 'Esta edición todavía no tiene castigos ni condiciones. Aprieta "Sembrar valores por defecto" para cargar ejemplos de Fortnite (castigos que se pueden cumplir en una personalizada y las condiciones de victoria, eliminaciones, racha de top y remontada) y después edítalos o bórralos.'
+                        : 'Esta edicion todavia no tiene catalogo de castigos, triggers ni reglas — apreta "Sembrar valores por defecto" para cargar un set inicial (9 castigos, 8 triggers, cooldowns y reverse por rango de posicion) que despues podes editar o borrar libremente.'}
                 </p>
             )}
 
@@ -183,13 +175,21 @@ export default function BlueShellPanel({
                             <ThrowShellForm
                                 editionId={edition.id}
                                 itemName={edition.shellItemName}
+                                isFortnite={isFortnite}
                                 participants={inventory}
-                                punishments={punishments}
+                                punishments={punishments.filter((p) => p.isActive)}
                                 onDone={() => loadAll(edition.id)}
                             />
                         )}
-                        <EventsLog events={events} onFulfill={handleFulfill} />
-                        <TriggersList triggers={triggers} />
+                        <EventsLog events={events} onFulfill={handleFulfill} isFortnite={isFortnite} />
+                        <BlueShellCatalogEditor
+                            editionId={edition.id}
+                            isFortnite={isFortnite}
+                            itemName={edition.shellItemName}
+                            punishments={punishments}
+                            triggers={triggers}
+                            onChanged={() => loadAll(edition.id)}
+                        />
                     </>
                 )
             )}
@@ -247,12 +247,14 @@ function InventoryTable({ rows }: { rows: InventoryRow[] }) {
 function ThrowShellForm({
     editionId,
     itemName,
+    isFortnite,
     participants,
     punishments,
     onDone,
 }: {
     editionId: number;
     itemName: string;
+    isFortnite: boolean;
     participants: InventoryRow[];
     punishments: PunishmentType[];
     onDone: () => void;
@@ -286,7 +288,8 @@ function ThrowShellForm({
     return (
         <form onSubmit={handleThrow} className="p-4 4xl:p-6 rounded-xl border border-[#e2e8f0] dark:border-[#374151] space-y-3">
             <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-[#2563eb]" /> Lanzar {itemName} (admin — sin login de participante todavia)
+                <Zap className="w-4 h-4 text-[#2563eb]" /> Lanzar {itemName}
+                {isFortnite ? ' (de un equipo a otro)' : ' (admin — sin login de participante todavia)'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <select
@@ -294,7 +297,7 @@ function ThrowShellForm({
                     onChange={(e) => setSourceId(Number(e.target.value) || '')}
                     className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                 >
-                    <option value="">Quien lanza...</option>
+                    <option value="">{isFortnite ? 'Equipo que lanza...' : 'Quien lanza...'}</option>
                     {participants.map((p) => (
                         <option key={p.participantId} value={p.participantId} disabled={p.count <= 0}>
                             {p.displayName} ({p.count})
@@ -306,7 +309,7 @@ function ThrowShellForm({
                     onChange={(e) => setTargetId(Number(e.target.value) || '')}
                     className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                 >
-                    <option value="">A quien...</option>
+                    <option value="">{isFortnite ? 'A qué equipo...' : 'A quien...'}</option>
                     {participants.map((p) => (
                         <option key={p.participantId} value={p.participantId}>
                             {p.displayName}
@@ -344,13 +347,15 @@ function ThrowShellForm({
     );
 }
 
-function EventsLog({ events, onFulfill }: { events: ShellEvent[]; onFulfill: (id: number) => void }) {
+function EventsLog({ events, onFulfill, isFortnite }: { events: ShellEvent[]; onFulfill: (id: number) => void; isFortnite: boolean }) {
     return (
         <div>
             <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">Log de eventos</h3>
             {events.length === 0 ? (
                 <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">
-                    Sin eventos todavia — se generan solos cuando el poller trackea partidas que cumplen algun trigger.
+                    {isFortnite
+                        ? 'Sin eventos todavía: se generan al cerrar partidas y terminar sesiones que cumplen alguna condición.'
+                        : 'Sin eventos todavia — se generan solos cuando el poller trackea partidas que cumplen algun trigger.'}
                 </p>
             ) : (
                 <div className="space-y-1.5">
@@ -386,7 +391,7 @@ function EventsLog({ events, onFulfill }: { events: ShellEvent[]; onFulfill: (id
     );
 }
 
-function MechanicNamesForm({ edition, onSaved }: { edition: TournamentEdition; onSaved: () => void }) {
+function MechanicNamesForm({ edition, isFortnite, onSaved }: { edition: TournamentEdition; isFortnite: boolean; onSaved: () => void }) {
     const [editing, setEditing] = useState(false);
     const [shellItemName, setShellItemName] = useState(edition.shellItemName);
     const [aegisMechanicName, setAegisMechanicName] = useState(edition.aegisMechanicName);
@@ -417,7 +422,10 @@ function MechanicNamesForm({ edition, onSaved }: { edition: TournamentEdition; o
                 onClick={() => setEditing(true)}
                 className="flex items-center gap-1.5 text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb]"
             >
-                <Pencil className="w-3.5 h-3.5" /> Esta mecanica es tuya — ponele tu propio nombre en vez de "Ficha de Castigo" / "Factor Suerte"
+                <Pencil className="w-3.5 h-3.5" />
+                {isFortnite
+                    ? 'Esta mecánica es tuya: ponle tu propio nombre en vez de "Ficha de Castigo"'
+                    : 'Esta mecanica es tuya — ponele tu propio nombre en vez de "Ficha de Castigo" / "Factor Suerte"'}
             </button>
         );
     }
@@ -437,6 +445,7 @@ function MechanicNamesForm({ edition, onSaved }: { edition: TournamentEdition; o
                         className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                     />
                 </div>
+                {!isFortnite && (
                 <div>
                     <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Nombre de la mecanica de suerte de LP</label>
                     <input
@@ -446,6 +455,7 @@ function MechanicNamesForm({ edition, onSaved }: { edition: TournamentEdition; o
                         className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
                     />
                 </div>
+                )}
             </div>
             <div className="flex items-center gap-2">
                 <button
@@ -465,20 +475,5 @@ function MechanicNamesForm({ edition, onSaved }: { edition: TournamentEdition; o
                 </button>
             </div>
         </form>
-    );
-}
-
-function TriggersList({ triggers }: { triggers: ShellTrigger[] }) {
-    return (
-        <details className="text-sm">
-            <summary className="cursor-pointer font-bold text-[#1e293b] dark:text-[#f8fafc]">Triggers de obtencion ({triggers.length})</summary>
-            <div className="mt-2 space-y-1 text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
-                {triggers.map((t) => (
-                    <div key={t.id}>
-                        {t.name} — otorga {t.shellsGranted} ficha(s){!t.isActive && ' (inactivo)'}
-                    </div>
-                ))}
-            </div>
-        </details>
     );
 }

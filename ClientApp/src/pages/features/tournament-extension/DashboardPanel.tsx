@@ -119,7 +119,6 @@ export default function DashboardPanel({
             </div>
             )}
 
-            {!isFortnite && (
             <div>
                 <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
                     Ultimos eventos ({data.unfulfilledPunishments} sin marcar cumplidos hace +24h)
@@ -138,7 +137,6 @@ export default function DashboardPanel({
                     </div>
                 )}
             </div>
-            )}
 
             {/* El widget embebible muestra el ranking (LP) — no aplica a ARAM, que no tiene ranking individual. */}
             {channelName && (edition.mode === 'solo_q_climb' || isFortnite) && (

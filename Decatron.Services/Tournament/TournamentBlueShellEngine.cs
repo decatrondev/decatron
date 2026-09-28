@@ -148,7 +148,9 @@ namespace Decatron.Services.Tournament
                 e.TargetParticipantId == participantId && e.Type == "received" && e.FulfilledAt == null, ct);
         }
 
-        private async Task GrantShellAsync(
+        // Publico para que Fortnite (TournamentFortniteShellService) otorgue fichas con
+        // la misma logica de inventario lleno y evento.
+        public async Task GrantShellAsync(
             DecatronDbContext db, TournamentEdition edition, long participantId, TournamentShellTrigger trigger, short maxInventory, CancellationToken ct)
         {
             var inventory = await db.TournamentShellInventories

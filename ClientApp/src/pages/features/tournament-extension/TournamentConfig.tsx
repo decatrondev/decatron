@@ -87,7 +87,8 @@ export default function TournamentConfig() {
     // Ranking (LP de SoloQ Climb) y Castigos/Suerte (motor atado a snapshots de LP,
     // que ARAM no genera — resultados se cargan a mano) no aplican a ARAM N vs N.
     useEffect(() => {
-        if ((isAram || isFortnite) && (activeTab === 'ranking' || activeTab === 'blueshell')) setActiveTab('dashboard');
+        if (isAram && (activeTab === 'ranking' || activeTab === 'blueshell')) setActiveTab('dashboard');
+        if (isFortnite && activeTab === 'ranking') setActiveTab('dashboard');
         if ((!isAram || isFortnite) && activeTab === 'wincondition') setActiveTab('dashboard');
         if (isFortnite && activeTab === 'riot') setActiveTab('dashboard');
         if (!isFortnite && (activeTab === 'format' || activeTab === 'matchday' || activeTab === 'standings')) setActiveTab('dashboard');
@@ -114,7 +115,7 @@ export default function TournamentConfig() {
                         isFortnite && { id: 'format', label: 'Formato', icon: <Settings2 className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         isFortnite && { id: 'matchday', label: 'Día de partida', icon: <Radio className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         isFortnite && { id: 'standings', label: 'Clasificación', icon: <ArrowUp className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
-                        !isAram && !isFortnite && {
+                        !isAram && {
                             id: 'blueshell',
                             label: selectedEdition ? `${selectedEdition.shellItemName}s` : 'Castigos',
                             icon: <Shield className="w-4 h-4 4xl:w-5 4xl:h-5" />,

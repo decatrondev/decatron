@@ -25,6 +25,10 @@ public class TournamentShellTrigger
     [Column("threshold_value")]
     public decimal ThresholdValue { get; set; }
 
+    // Fortnite fn_top_streak: cuantas partidas seguidas (threshold_value es el top N).
+    [Column("streak_length")]
+    public short? StreakLength { get; set; }
+
     [Column("shells_granted")]
     public short ShellsGranted { get; set; } = 1;
 

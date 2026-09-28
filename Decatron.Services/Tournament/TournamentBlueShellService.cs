@@ -30,12 +30,20 @@ namespace Decatron.Services.Tournament
     public class TournamentBlueShellService
     {
         private readonly TournamentStandingsService _standings;
+        private readonly TournamentFortniteShellService _fortnite;
         private static readonly Random _random = new();
 
-        public TournamentBlueShellService(TournamentStandingsService standings)
+        public TournamentBlueShellService(TournamentStandingsService standings, TournamentFortniteShellService fortnite)
         {
             _standings = standings;
+            _fortnite = fortnite;
         }
+
+        // Puesto para cooldown/reverse: LP en LoL; tabla por puntos del equipo en Fortnite (F6).
+        private Task<int?> RankAsync(DecatronDbContext db, TournamentEdition edition, long participantId, CancellationToken ct) =>
+            edition.Game == TournamentGames.Fortnite
+                ? _fortnite.ParticipantRankAsync(db, edition, participantId, ct)
+                : _standings.GetRankAsync(db, edition.Id, participantId, ct);
 
         public async Task<ThrowShellResult> ThrowShellAsync(
             DecatronDbContext db, TournamentEdition edition, long sourceParticipantId, long targetParticipantId, long punishmentTypeId, CancellationToken ct = default)
@@ -74,7 +82,7 @@ namespace Decatron.Services.Tournament
             if (punishment == null)
                 return new ThrowShellResult { Success = false, Error = "Tipo de castigo invalido" };
 
-            var targetRank = await _standings.GetRankAsync(db, edition.Id, targetParticipantId, ct);
+            var targetRank = await RankAsync(db, edition, targetParticipantId, ct);
             if (targetRank.HasValue)
             {
                 var cooldownHours = FindRankValue(rules.CooldownByRank, targetRank.Value, r => r.CooldownHours) ?? 12;
@@ -88,7 +96,7 @@ namespace Decatron.Services.Tournament
                     return new ThrowShellResult { Success = false, Error = $"El objetivo esta en cooldown de recepcion ({cooldownHours}h por su puesto #{targetRank})" };
             }
 
-            var sourceRank = await _standings.GetRankAsync(db, edition.Id, sourceParticipantId, ct);
+            var sourceRank = await RankAsync(db, edition, sourceParticipantId, ct);
             var reverseChance = sourceRank.HasValue
                 ? FindRankValue(rules.ReverseChanceByRank, sourceRank.Value, r => r.ReverseChancePercent.HasValue ? (int?)r.ReverseChancePercent.Value : null) ?? 15
                 : 15;
@@ -141,7 +149,10 @@ namespace Decatron.Services.Tournament
         private static int? FindRankValue(string rangesJson, int rank, Func<RankRange, int?> selector)
         {
             List<RankRange>? ranges;
-            try { ranges = JsonSerializer.Deserialize<List<RankRange>>(rangesJson); }
+            // Web = sin distinguir mayusculas: el JSON guardado usa "minRank" y la clase
+            // MinRank. Antes se leia con las opciones por defecto y ningun tramo
+            // coincidia, asi que siempre se usaban los valores de respaldo (12h / 15%).
+            try { ranges = JsonSerializer.Deserialize<List<RankRange>>(rangesJson, new JsonSerializerOptions(JsonSerializerDefaults.Web)); }
             catch { return null; }
 
             var match = ranges?.FirstOrDefault(r => rank >= r.MinRank && rank <= r.MaxRank);

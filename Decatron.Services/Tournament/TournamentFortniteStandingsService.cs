@@ -74,7 +74,9 @@ namespace Decatron.Services.Tournament
             public string SessionName { get; set; } = "";
         }
 
-        public async Task<List<Scope>> ComputeAsync(DecatronDbContext db, TournamentEdition edition, CancellationToken ct = default)
+        /// <param name="excludeSessionId">Calcula la tabla como si esa sesion no se hubiera
+        /// jugado (para la remontada de F6: puesto antes vs. despues de la sesion).</param>
+        public async Task<List<Scope>> ComputeAsync(DecatronDbContext db, TournamentEdition edition, CancellationToken ct = default, long? excludeSessionId = null)
         {
             var config = await _format.GetOrCreateConfigAsync(db, edition, ct);
             var ranges = TournamentFortniteFormatService.ParsePlacement(config.PlacementPoints);
@@ -87,6 +89,7 @@ namespace Decatron.Services.Tournament
                     var s = sessions.First(x => x.Id == g.SessionId);
                     return new GameInfo { Id = g.Id, SessionId = s.Id, GameNumber = g.GameNumber, SessionOrder = s.SortOrder, GroupId = s.GroupId, SessionName = s.Name };
                 })
+                .Where(g => excludeSessionId == null || g.SessionId != excludeSessionId)
                 .OrderBy(g => g.SessionOrder).ThenBy(g => g.SessionId).ThenBy(g => g.GameNumber)
                 .ToList();
             var gameIds = games.Select(g => g.Id).ToList();
@@ -219,6 +222,22 @@ namespace Decatron.Services.Tournament
                 };
             }
             return ordered.ThenBy(r => r.TeamName);
+        }
+
+        /// <summary>
+        /// Puesto actual de un equipo: en la final si ya esta ahi y se jugo algo, si no
+        /// en el ambito donde tiene mas partidas (su grupo o el lobby unico).
+        /// </summary>
+        public async Task<int?> TeamRankAsync(DecatronDbContext db, TournamentEdition edition, long teamId, CancellationToken ct = default)
+        {
+            var scopes = await ComputeAsync(db, edition, ct);
+            var final = scopes.FirstOrDefault(s => s.IsFinal && s.GamesWithResults > 0 && s.Rows.Any(r => r.TeamId == teamId));
+            if (final != null) return final.Rows.First(r => r.TeamId == teamId).Rank;
+            return scopes
+                .Select(s => s.Rows.FirstOrDefault(r => r.TeamId == teamId))
+                .Where(r => r != null)
+                .OrderByDescending(r => r!.GamesPlayed)
+                .FirstOrDefault()?.Rank;
         }
 
         /// <summary>Partida por partida de un equipo, en orden.</summary>

@@ -31,6 +31,10 @@ public class TournamentFortniteSession
     [Column("sort_order")]
     public short SortOrder { get; set; }
 
+    // F6: cuando se evaluaron las condiciones de castigo de la sesion (remontada).
+    [Column("shells_evaluated_at")]
+    public DateTime? ShellsEvaluatedAt { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
@@ -68,6 +72,10 @@ public class TournamentFortniteGame
 
     [Column("ended_at")]
     public DateTime? EndedAt { get; set; }
+
+    // F6: cuando se evaluaron las condiciones de castigo de la partida (al cerrarla).
+    [Column("shells_evaluated_at")]
+    public DateTime? ShellsEvaluatedAt { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

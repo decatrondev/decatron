@@ -26,12 +26,15 @@ namespace Decatron.Controllers
         private readonly TournamentFortniteMatchdayService _matchday;
         private readonly TournamentFortniteResultsService _results;
         private readonly TournamentFortniteStandingsService _standings;
+        private readonly TournamentFortniteShellService _shells;
 
         public TournamentFortniteAdminController(
             DecatronDbContext dbContext, TournamentFortniteFormatService format, TournamentFortniteMatchdayService matchday,
-            TournamentFortniteResultsService results, TournamentFortniteStandingsService standings, IPermissionService permissionService)
+            TournamentFortniteResultsService results, TournamentFortniteStandingsService standings, TournamentFortniteShellService shells,
+            IPermissionService permissionService)
             : base(dbContext, permissionService)
         {
+            _shells = shells;
             _standings = standings;
             _dbContext = dbContext;
             _format = format;
@@ -477,6 +480,11 @@ namespace Decatron.Controllers
 
             session.Status = request.Status;
             await _dbContext.SaveChangesAsync();
+
+            // F6: al terminar la sesion se evalua la remontada (una sola vez).
+            if (request.Status == "finished")
+                await _shells.EvaluateSessionAsync(_dbContext, edition!, session);
+
             return Ok(new { success = true });
         }
 
@@ -576,6 +584,12 @@ namespace Decatron.Controllers
             if (request.Status != "waiting" && session!.Status is "scheduled" or "check_in")
                 session.Status = "in_progress";
             await _dbContext.SaveChangesAsync();
+
+            // F6: al cerrar la partida (resultados definitivos) se evaluan victoria,
+            // eliminaciones y rachas. Una sola vez aunque se reabra y se vuelva a cerrar.
+            if (request.Status == "closed")
+                await _shells.EvaluateGameAsync(_dbContext, edition!, game);
+
             return Ok(new { success = true });
         }
     
