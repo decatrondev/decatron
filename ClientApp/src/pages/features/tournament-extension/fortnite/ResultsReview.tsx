@@ -267,6 +267,18 @@ function StaffEditForm({
 }) {
     const [reason, setReason] = useState('');
     const [files, setFiles] = useState<File[]>([]);
+    // Justificantes: elegir, arrastrar o pegar con Ctrl+V (mientras se escribe el motivo).
+    const addFiles = (list: File[]) => setFiles((prev) => [...prev, ...list.filter((f) => f.type.startsWith('image/'))].slice(0, 10));
+    const onPaste = (e: React.ClipboardEvent) => {
+        const imgs = Array.from(e.clipboardData.items)
+            .filter((i) => i.kind === 'file' && i.type.startsWith('image/'))
+            .map((i) => i.getAsFile())
+            .filter((f): f is File => !!f)
+            .map((f) => new File([f], `justificante-${Date.now()}.png`, { type: f.type }));
+        if (imgs.length === 0) return;
+        e.preventDefault();
+        addFiles(imgs);
+    };
     const name = (id: number) => teams.find((t) => t.teamId === id)?.teamName || `Equipo ${id}`;
     const hasResult = (id: number) => !!teams.find((t) => t.teamId === id)?.result;
 
@@ -296,7 +308,16 @@ function StaffEditForm({
     };
 
     return (
-        <form onSubmit={submit} className="p-3 4xl:p-5 rounded-lg bg-[#f8fafc] dark:bg-[#262626] space-y-3">
+        <form
+            onSubmit={submit}
+            onPaste={onPaste}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+                e.preventDefault();
+                addFiles(Array.from(e.dataTransfer.files || []));
+            }}
+            className="p-3 4xl:p-5 rounded-lg bg-[#f8fafc] dark:bg-[#262626] space-y-3"
+        >
             <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
                 Quita de la lista los equipos que no quieres tocar. Cargar o corregir pide un justificante (captura); rechazar o reabrir solo el motivo. Todo queda en
                 el historial que ven los participantes.
@@ -355,8 +376,16 @@ function StaffEditForm({
                 <label className="mt-1 flex items-center gap-2 text-sm text-[#2563eb] font-bold cursor-pointer">
                     <Paperclip className="w-4 h-4" />
                     {files.length > 0 ? `${files.length} archivo(s)` : 'Elegir imágenes'}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => setFiles(Array.from(e.target.files || []).slice(0, 10))} />
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => addFiles(Array.from(e.target.files || []))} />
                 </label>
+                <p className="text-[11px] text-[#64748b] dark:text-[#94a3b8] mt-1">
+                    También puedes pegarlas con Ctrl+V mientras escribes el motivo, o arrastrarlas a este formulario.
+                    {files.length > 0 && (
+                        <button type="button" onClick={() => setFiles([])} className="ml-2 text-red-600 hover:underline">
+                            Quitar todas
+                        </button>
+                    )}
+                </p>
             </div>
             <div className="flex gap-2">
                 <button type="submit" disabled={busy != null || !reason.trim()} className={primaryButton}>

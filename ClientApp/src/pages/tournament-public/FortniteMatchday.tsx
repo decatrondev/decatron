@@ -241,6 +241,23 @@ function GameLine({
 
 // Reporte del jugador: puesto de su equipo, SUS eliminaciones y la captura de la
 // pantalla final. Se puede corregir hasta que el organizador lo revise.
+// Pegar con Ctrl+V: el pegado es global (se hace Win+Shift+S y Ctrl+V sin hacer clic
+// en ningun lado), asi que si hay varios formularios abiertos lo toma el ultimo con el
+// que se interactuo (o el ultimo que aparecio).
+let pasteOwner: number | null = null;
+
+function imageFromClipboard(e: ClipboardEvent): File | null {
+    const items = e.clipboardData?.items;
+    if (!items) return null;
+    for (const item of Array.from(items)) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+            const f = item.getAsFile();
+            if (f) return new File([f], f.name && f.name !== 'image.png' ? f.name : `captura-${Date.now()}.png`, { type: f.type });
+        }
+    }
+    return null;
+}
+
 function ReportForm({
     game,
     base,
@@ -268,10 +285,28 @@ function ReportForm({
     const [error, setError] = useState('');
     const [done, setDone] = useState(false);
 
+    const [dragging, setDragging] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+
     const screenshotRequired = proofMode === 'always' && !game.myReport?.hasScreenshot;
     const deadline = parseDate(game.deadline);
 
+    // Vista previa de la captura elegida o pegada.
+    useEffect(() => {
+        if (!file) {
+            setPreview(null);
+            return;
+        }
+        const url = URL.createObjectURL(file);
+        setPreview(url);
+        return () => URL.revokeObjectURL(url);
+    }, [file]);
+
     const pickFile = async (picked: File | null) => {
+        if (picked && !picked.type.startsWith('image/')) {
+            setError('Eso no es una imagen: usa PNG, JPG o WEBP');
+            return;
+        }
         setFile(picked);
         setFileId(null);
         setAiInfo(null);
@@ -304,6 +339,25 @@ function ReportForm({
         }
     };
 
+    // Ctrl+V en cualquier parte de la pagina (salvo escribiendo en un campo de texto).
+    const pickRef = React.useRef(pickFile);
+    pickRef.current = pickFile;
+    useEffect(() => {
+        pasteOwner = game.id;
+        const onPaste = (e: ClipboardEvent) => {
+            if (pasteOwner !== game.id) return;
+            const img = imageFromClipboard(e);
+            if (!img) return;
+            e.preventDefault();
+            pickRef.current(img);
+        };
+        document.addEventListener('paste', onPaste);
+        return () => {
+            document.removeEventListener('paste', onPaste);
+            if (pasteOwner === game.id) pasteOwner = null;
+        };
+    }, [game.id]);
+
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -328,7 +382,12 @@ function ReportForm({
     };
 
     return (
-        <form onSubmit={submit} className="p-3 rounded-md border border-[#232C42] bg-[#0B1120] space-y-2">
+        <form
+            onSubmit={submit}
+            onMouseEnter={() => (pasteOwner = game.id)}
+            onFocus={() => (pasteOwner = game.id)}
+            className="p-3 rounded-md border border-[#232C42] bg-[#0B1120] space-y-2"
+        >
             <p className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">
                 {game.myReport ? 'Tu reporte (puedes corregirlo)' : 'Reporta tu resultado'}
                 {deadline && ` · hasta las ${deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
@@ -364,21 +423,42 @@ function ReportForm({
                     />
                 </div>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
-                <label className="flex items-center gap-1.5 text-xs text-[#3ED6C4] font-bold cursor-pointer">
-                    <Paperclip className="w-3.5 h-3.5" />
-                    {file ? file.name : game.myReport?.hasScreenshot ? 'Cambiar captura' : `Captura de la pantalla final${screenshotRequired ? ' (obligatoria)' : ' (opcional)'}`}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] || null)} />
-                </label>
+            {/* Captura: elegir, arrastrar o pegar con Ctrl+V */}
+            <label
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    setDragging(false);
+                    pickFile(e.dataTransfer.files?.[0] || null);
+                }}
+                className={`flex items-center gap-3 p-3 rounded-md border border-dashed cursor-pointer transition-colors ${
+                    dragging ? 'border-[#3ED6C4] bg-[#132A2A]' : 'border-[#232C42] hover:border-[#3ED6C4]/60'
+                }`}
+            >
+                {preview ? (
+                    <img src={preview} alt="Captura elegida" className="w-20 h-12 rounded object-cover flex-shrink-0" />
+                ) : game.myReport?.screenshotFileId ? (
+                    <AuthImage url={`${base}/files/${game.myReport.screenshotFileId}`} alt="Tu captura" className="w-20 h-12" />
+                ) : (
+                    <Paperclip className="w-5 h-5 text-[#3ED6C4] flex-shrink-0" />
+                )}
+                <span className="min-w-0">
+                    <span className="block text-xs text-[#3ED6C4] font-bold truncate">
+                        {file ? file.name : game.myReport?.hasScreenshot ? 'Cambiar captura' : `Captura de la pantalla final${screenshotRequired ? ' (obligatoria)' : ' (opcional)'}`}
+                    </span>
+                    <span className="block text-[11px] text-[#7C8AA6]">Pégala con Ctrl+V, arrástrala aquí o toca para elegirla</span>
+                </span>
                 {uploading && (
-                    <span className="flex items-center gap-1 text-[11px] text-[#7C8AA6]">
+                    <span className="ml-auto flex items-center gap-1 text-[11px] text-[#7C8AA6] flex-shrink-0">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" /> {aiReading ? 'Subiendo y leyendo…' : 'Subiendo…'}
                     </span>
                 )}
-                {game.myReport?.screenshotFileId && !file && (
-                    <AuthImage url={`${base}/files/${game.myReport.screenshotFileId}`} alt="Tu captura" className="w-14 h-9" />
-                )}
-            </div>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] || null)} />
+            </label>
             {aiInfo && <p className={`text-xs ${aiInfo.ok ? 'text-[#3ED6C4]' : 'text-[#E8B04B]'}`}>{aiInfo.text}</p>}
             {error && <p className="text-xs text-[#E8677A]">{error}</p>}
             {done && <p className="text-xs text-[#3ED6C4]">Reporte enviado.</p>}
