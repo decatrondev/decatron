@@ -55,6 +55,12 @@ namespace Decatron.Controllers
         private string ClientSecret => _config["EpicSettings:ClientSecret"] ?? "";
         private string RedirectUri => _config["EpicSettings:RedirectUri"] ?? "https://decatron.net/api/auth/epic/callback";
 
+        // Tienen que ser TODOS los permisos activados en la app del portal de Epic: si se
+        // pide menos, Epic corta el canje del codigo con SCOPE_CONSENT (visto el
+        // 2026-09-29 con la app que tiene amigos, pais y presencia activados). Decatron
+        // solo usa el id y el nombre; los demas no se leen ni se guardan.
+        private string Scopes => _config["EpicSettings:Scopes"] ?? "basic_profile friends_list country presence";
+
         // Mientras el secreto no este cargado (o siga el texto de ejemplo) el boton no se ofrece.
         private bool IsConfigured =>
             !string.IsNullOrWhiteSpace(ClientId) && !string.IsNullOrWhiteSpace(ClientSecret) && !ClientSecret.StartsWith("PEGAR_AQUI");
@@ -84,7 +90,7 @@ namespace Decatron.Controllers
             _cache.Set("epic-oauth:" + state, new PendingLogin(userId, SafeReturnTo(returnTo)), StateTtl);
 
             var url = $"{AuthorizeUrl}?client_id={Uri.EscapeDataString(ClientId)}&redirect_uri={Uri.EscapeDataString(RedirectUri)}" +
-                      $"&response_type=code&scope=basic_profile&state={state}";
+                      $"&response_type=code&scope={Uri.EscapeDataString(Scopes)}&state={state}";
             return Ok(new { success = true, url });
         }
 
@@ -191,6 +197,7 @@ namespace Decatron.Controllers
                     "DISPLAY_NAME_UPDATE" => "elegir tu nombre visible",
                     "EULA_ACCEPTANCE" => "aceptar el acuerdo de licencia",
                     "EMAIL_VERIFICATION" or "VERIFY_EMAIL" => "verificar tu correo",
+                    "SCOPE_CONSENT" => "aceptar los permisos que pide Decatron",
                     _ => null,
                 };
                 return step != null
