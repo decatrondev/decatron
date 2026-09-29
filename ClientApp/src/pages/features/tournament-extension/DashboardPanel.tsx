@@ -172,25 +172,11 @@ function PublicLinkCard({ channelName, editionSlug }: { channelName: string; edi
                 >
                     {url}
                 </a>
-                <button onClick={() => copy(snippet)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
+                <button onClick={copy} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
                     <Copy className="w-4 h-4" />
                 </button>
-                {copied === snippet && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+                {copied && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
             </div>
-            {isFortnite && (
-                <>
-                    <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-3 mb-2">
-                        Para OBS: agrega una fuente de navegador con este link (fondo transparente, top 10, se actualiza solo).
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                        <code className="text-[10px] px-2 py-1.5 rounded bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] flex-1 truncate">{obsUrl}</code>
-                        <button onClick={() => copy(obsUrl)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
-                            <Copy className="w-4 h-4" />
-                        </button>
-                        {copied === obsUrl && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
-                    </div>
-                </>
-            )}
         </div>
     );
 }
@@ -220,11 +206,25 @@ function EmbedSnippet({ channelName, editionSlug, isFortnite = false }: { channe
                 <code className="text-[10px] px-2 py-1.5 rounded bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] flex-1 truncate">
                     {snippet}
                 </code>
-                <button onClick={copy} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
+                <button onClick={() => copy(snippet)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
                     <Copy className="w-4 h-4" />
                 </button>
-                {copied && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+                {copied === snippet && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
             </div>
+            {isFortnite && (
+                <>
+                    <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-3 mb-2">
+                        Para OBS: agrega una fuente de navegador con este link (fondo transparente, top 10, se actualiza solo).
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <code className="text-[10px] px-2 py-1.5 rounded bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] flex-1 truncate">{obsUrl}</code>
+                        <button onClick={() => copy(obsUrl)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
+                            <Copy className="w-4 h-4" />
+                        </button>
+                        {copied === obsUrl && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
