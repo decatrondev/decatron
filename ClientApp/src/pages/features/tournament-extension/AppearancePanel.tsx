@@ -165,6 +165,16 @@ export default function AppearancePanel({
 
                 <section className="space-y-2 xl:sticky xl:top-4">
                     <p className={label}>Vista previa</p>
+                    {(() => {
+                        const tk = buildTokens({ primaryColor: primary, secondaryColor: secondary, theme });
+                        return tk.primaryAdjusted ? (
+                            <p className="text-xs 4xl:text-sm text-amber-700 dark:text-amber-400">
+                                Tu color principal casi no se distingue del fondo {theme === 'dark' ? 'oscuro' : 'claro'}: en barras y botones se usa una versión{' '}
+                                {theme === 'dark' ? 'más clara' : 'más oscura'} ({tk.primary}) para que se vea. Si quieres que se vea tal cual, elige un color más{' '}
+                                {theme === 'dark' ? 'claro' : 'oscuro'} o cambia el fondo.
+                            </p>
+                        ) : null;
+                    })()}
                     <Preview
                         name={edition.name}
                         appearance={{ ...appearance, primaryColor: primary, secondaryColor: secondary, theme }}
@@ -325,7 +335,7 @@ function Preview({ name, appearance, isFortnite }: { name: string; appearance: A
 
     return (
         <div style={{ ...cssVars(t), background: 'var(--t-bg)', color: 'var(--t-ink)' }} className="rounded-xl overflow-hidden font-barlow border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="relative h-40 4xl:h-56 overflow-hidden" style={{ background: `linear-gradient(120deg, ${t.primary}, ${t.secondary})` }}>
+            <div className="relative h-40 4xl:h-56 overflow-hidden" style={{ background: `linear-gradient(120deg, ${t.brandPrimary}, ${t.brandSecondary})` }}>
                 {appearance.bannerUrl && <img src={appearance.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />}
                 <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${t.bg} 4%, transparent 70%)` }} />
                 <div className="absolute left-4 right-4 bottom-3 flex items-end gap-3">

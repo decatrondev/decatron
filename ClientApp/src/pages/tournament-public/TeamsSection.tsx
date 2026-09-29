@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { SectionLabel, EmptyState, NameAvatar } from './shared';
+import { NameAvatar } from './shared';
+import { SectionTitle, EmptyBlock } from './broadcast';
 
-// Separado de BracketSection.tsx el 24-08-2026 — equipos y bracket eran una sola
-// tab, ahora son tabs distintas (ver reestructuracion en TournamentPublicPage.tsx).
-// Sigue reusando el mismo endpoint /bracket (ya trae teams + matches juntos), solo
-// se reparte el render.
+// Tab "Equipos" (rediseño de transmisión, 16-rediseno-publico.md): una placa por
+// equipo con su plantel. Usa el endpoint /bracket, que ya trae los equipos.
 
 interface Team {
     id: number;
@@ -15,50 +14,49 @@ interface Team {
 }
 
 export default function TeamsSection({ channelName, editionSlug }: { channelName: string; editionSlug: string }) {
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [teams, setTeams] = useState<Team[] | null>(null);
 
     useEffect(() => {
-        (async () => {
-            try {
-                const res = await api.get(`/public/tournament/${channelName}/${editionSlug}/bracket`);
-                if (res.data?.success) setTeams(res.data.teams || []);
-            } catch (err) {
-                console.error('Error cargando equipos', err);
-            } finally {
-                setLoading(false);
-            }
-        })();
+        api.get(`/public/tournament/${channelName}/${editionSlug}/bracket`)
+            .then((res) => setTeams(res.data?.teams || []))
+            .catch(() => setTeams([]));
     }, [channelName, editionSlug]);
 
-    if (loading) return null;
+    if (teams == null) return null;
 
     return (
         <section>
-            <SectionLabel title="Equipos" />
+            <SectionTitle meta={teams.length > 0 ? `${teams.length} ${teams.length === 1 ? 'equipo' : 'equipos'}` : undefined}>Equipos</SectionTitle>
             {teams.length === 0 ? (
-                <EmptyState text="Todavía no hay equipos cargados." />
+                <EmptyBlock>Los equipos aparecen aquí cuando se arman.</EmptyBlock>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 4xl:grid-cols-4 5xl:grid-cols-5 gap-2.5 4xl:gap-4">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 4xl:grid-cols-4 5xl:grid-cols-5 gap-2 4xl:gap-3">
                     {teams.map((t) => (
-                        <div key={t.id} className="p-3 4xl:p-4 rounded-lg border border-[#232C42] bg-[#0F1729] hover:border-[#3ED6C4]/50 hover:-translate-y-0.5 transition-all">
-                            <div className="flex items-center gap-2 mb-1.5">
-                                <NameAvatar name={t.name} size={24} />
-                                <p className="font-display font-bold text-sm 4xl:text-base text-[#EDF0F7] truncate">{t.name}</p>
+                        <li key={t.id} className="p-4 4xl:p-5" style={{ background: 'var(--t-surface)', boxShadow: 'inset 3px 0 0 var(--t-secondary), inset 0 0 0 1px var(--t-line)' }}>
+                            <div className="flex items-center gap-2.5">
+                                <NameAvatar name={t.name} size={30} />
+                                <p className="font-scoreboard font-black text-2xl 4xl:text-3xl leading-none truncate">{t.name}</p>
                             </div>
-                            <div className="space-y-0.5">
+                            <ul className="mt-3 space-y-1">
                                 {t.roster.map((m, i) => (
-                                    <p key={i} className="font-mono text-[11px] 4xl:text-xs text-[#7C8AA6]">
-                                        {m.displayName}
-                                        {m.isCaptain ? ' (C)' : ''}
-                                        {m.isSubstitute ? ' · suplente' : ''}
-                                    </p>
+                                    <li key={i} className="flex items-center justify-between gap-2 text-base 4xl:text-lg">
+                                        <span className="truncate">{m.displayName}</span>
+                                        {(m.isCaptain || m.isSubstitute) && (
+                                            <span className="text-sm flex-shrink-0" style={{ color: 'var(--t-muted)' }}>
+                                                {m.isCaptain ? 'Capitán' : 'Suplente'}
+                                            </span>
+                                        )}
+                                    </li>
                                 ))}
-                                {t.roster.length === 0 && <p className="font-mono text-[11px] text-[#7C8AA6]">Sin roster todavía</p>}
-                            </div>
-                        </div>
+                                {t.roster.length === 0 && (
+                                    <li className="text-sm" style={{ color: 'var(--t-muted)' }}>
+                                        Sin jugadores todavía
+                                    </li>
+                                )}
+                            </ul>
+                        </li>
                     ))}
-                </div>
+                </ul>
             )}
         </section>
     );

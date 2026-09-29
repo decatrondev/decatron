@@ -366,3 +366,13 @@ body.dark-mode {
 @media (min-width: 1920px) { .panel-scale { zoom: 1.1; } }
 @media (min-width: 2560px) { .panel-scale { zoom: 1.3; } }
 @media (min-width: 3200px) { .panel-scale { zoom: 1.65; } }
+
+/* Vista publica de torneos (rediseño de transmision): en 2K y 4K todo escala junto
+   subiendo el tamaño base (todo esta en rem). Solo mientras la pagina del torneo esta
+   abierta: TournamentPublicPage agrega/quita la clase. */
+@media (min-width: 2560px) {
+    html.t-scale { font-size: 19px; }
+}
+@media (min-width: 3840px) {
+    html.t-scale { font-size: 26px; }
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { SectionLabel, EmptyState, BRACKET_FORMAT_LABELS } from './shared';
+import { BRACKET_FORMAT_LABELS } from './shared';
+import { SectionTitle, EmptyBlock } from './broadcast';
 import BracketTree from '../../components/tournament/BracketTree';
 
 // Separado de TournamentPublicPage.tsx el 15-08-2026. Arbol real (components/
@@ -69,62 +70,53 @@ export default function BracketSection({ channelName, editionSlug }: { channelNa
 
     return (
         <section>
-            <SectionLabel title="Bracket" />
+            <SectionTitle meta={bracketFormat ? BRACKET_FORMAT_LABELS[bracketFormat] || bracketFormat : undefined}>Bracket</SectionTitle>
             {matches.length === 0 || !bracketFormat ? (
-                <EmptyState text="Todavía no hay bracket generado." />
-            ) : (
-                <div>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-[#3ED6C4] mb-3">
-                        {BRACKET_FORMAT_LABELS[bracketFormat] || bracketFormat}
-                    </p>
-
-                    {bracketFormat === 'double_elimination' ? (
-                        <div className="space-y-8">
-                            <div>
-                                <p className="text-xs font-bold text-[#3ED6C4] mb-2 font-mono uppercase tracking-wide">Winners</p>
-                                <BracketTree matches={toBracketNodes(matches.filter((m) => m.bracketSide === 'winners'))} />
+                <EmptyBlock>El bracket aparece aquí cuando el organizador lo genera.</EmptyBlock>
+            ) : bracketFormat === 'double_elimination' ? (
+                <div className="space-y-10">
+                    <div>
+                        <h3 className="font-scoreboard font-extrabold text-2xl mb-6">Winners</h3>
+                        <BracketTree matches={toBracketNodes(matches.filter((m) => m.bracketSide === 'winners'))} />
+                    </div>
+                    <div>
+                        <h3 className="font-scoreboard font-extrabold text-2xl mb-6" style={{ color: 'var(--t-muted)' }}>Losers</h3>
+                        <BracketTree matches={toBracketNodes(matches.filter((m) => m.bracketSide === 'losers'))} finalLabel="Final del losers" />
+                    </div>
+                    {matches.some((m) => m.bracketSide === 'grand_final') && (
+                        <div>
+                            <h3 className="font-scoreboard font-extrabold text-2xl mb-3" style={{ color: 'var(--t-gold)' }}>Gran final</h3>
+                            <div className="space-y-1.5 max-w-md">
+                                {matches
+                                    .filter((m) => m.bracketSide === 'grand_final')
+                                    .sort((a, b) => a.roundNumber - b.roundNumber)
+                                    .map((m) => (
+                                        <PlainMatchRow key={m.id} match={m} />
+                                    ))}
                             </div>
-                            <div>
-                                <p className="text-xs font-bold text-[#7C8AA6] mb-2 font-mono uppercase tracking-wide">Losers</p>
-                                <BracketTree
-                                    matches={toBracketNodes(matches.filter((m) => m.bracketSide === 'losers'))}
-                                    finalLabel="Final del losers"
-                                />
-                            </div>
-                            {matches.some((m) => m.bracketSide === 'grand_final') && (
-                                <div>
-                                    <p className="text-xs font-bold text-[#E8B04B] mb-2 font-mono uppercase tracking-wide">Gran final</p>
-                                    <div className="space-y-1.5 max-w-md">
-                                        {matches
-                                            .filter((m) => m.bracketSide === 'grand_final')
-                                            .sort((a, b) => a.roundNumber - b.roundNumber)
-                                            .map((m) => (
-                                                <PlainMatchRow key={m.id} match={m} />
-                                            ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : isTree ? (
-                        <BracketTree matches={toBracketNodes(matches)} />
-                    ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 4xl:grid-cols-3 gap-x-8 4xl:gap-x-12 gap-y-6">
-                            {rounds.map((round) => (
-                                <div key={round}>
-                                    <p className="font-mono text-[10px] uppercase tracking-widest text-[#7C8AA6] mb-1.5">
-                                        {bracketFormat === 'round_robin' ? `Jornada ${round}` : `Ronda ${round}`}
-                                    </p>
-                                    <div className="space-y-1.5">
-                                        {matches
-                                            .filter((m) => m.roundNumber === round)
-                                            .map((m) => (
-                                                <PlainMatchRow key={m.id} match={m} />
-                                            ))}
-                                    </div>
-                                </div>
-                            ))}
                         </div>
                     )}
+                </div>
+            ) : isTree ? (
+                <div className="pt-6">
+                    <BracketTree matches={toBracketNodes(matches)} />
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 4xl:grid-cols-3 gap-x-8 4xl:gap-x-12 gap-y-6">
+                    {rounds.map((round) => (
+                        <div key={round}>
+                            <h3 className="font-scoreboard font-extrabold text-xl 4xl:text-2xl mb-2">
+                                {bracketFormat === 'round_robin' ? `Jornada ${round}` : `Ronda ${round}`}
+                            </h3>
+                            <div className="space-y-1.5">
+                                {matches
+                                    .filter((m) => m.roundNumber === round)
+                                    .map((m) => (
+                                        <PlainMatchRow key={m.id} match={m} />
+                                    ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </section>
@@ -132,13 +124,19 @@ export default function BracketSection({ channelName, editionSlug }: { channelNa
 }
 
 function PlainMatchRow({ match }: { match: BracketMatch }) {
-    return (
-        <div className="px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] flex items-center gap-2 text-sm font-mono">
-            <span className={match.winnerName === match.teamAName ? 'font-bold text-[#3ED6C4]' : 'text-[#EDF0F7]'}>{match.teamAName || 'TBD'}</span>
-            <span className="text-[#7C8AA6] text-xs">vs</span>
-            <span className={match.winnerName === match.teamBName ? 'font-bold text-[#3ED6C4]' : 'text-[#EDF0F7]'}>
-                {match.teamBName || (match.status === 'walkover' ? '(bye)' : 'TBD')}
+    const side = (name: string | null, fallback: string) => {
+        const won = !!name && match.winnerName === name;
+        return (
+            <span className={`flex-1 truncate ${won ? 'font-bold' : ''}`} style={{ color: won ? 'var(--t-accent)' : 'var(--t-ink)' }}>
+                {name || fallback}
             </span>
+        );
+    };
+    return (
+        <div className="px-3 4xl:px-4 py-2.5 flex items-center gap-3 text-base 4xl:text-lg" style={{ background: 'var(--t-surface)', boxShadow: 'inset 0 0 0 1px var(--t-line)' }}>
+            {side(match.teamAName, 'Por definir')}
+            <span className="font-scoreboard font-black text-sm" style={{ color: 'var(--t-muted)' }}>vs</span>
+            {side(match.teamBName, match.status === 'walkover' ? 'Pasa directo' : 'Por definir')}
         </div>
     );
 }

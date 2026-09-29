@@ -8,6 +8,9 @@ export interface EditionInfo {
     name: string;
     slug: string;
     game?: string;
+    bannerUrl?: string | null;
+    secondaryColor?: string | null;
+    theme?: string;
     mode: string;
     region: string;
     status: string;

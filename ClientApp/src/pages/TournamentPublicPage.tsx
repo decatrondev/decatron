@@ -1,389 +1,282 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Crown, Tv } from 'lucide-react';
 import api from '../services/api';
-import {
-    EDITION_STATUS_LABELS, REGION_LABELS, normalizeUrl, useCountdown, AscentLine, SectionLabel, EmptyState, Reveal, RoleBadge, NameAvatar,
-} from './tournament-public/shared';
+import { REGION_LABELS, FORTNITE_TEAM_SIZE_LABELS, BRACKET_FORMAT_LABELS, normalizeUrl, useCountdown, AscentLine, RoleBadge } from './tournament-public/shared';
 import type { EditionInfo, RankingRow, ParticipantDetail, Sponsor, Prize } from './tournament-public/shared';
 import ParticipantDetailView from './tournament-public/ParticipantDetailView';
 import BracketSection from './tournament-public/BracketSection';
 import TeamsSection from './tournament-public/TeamsSection';
 import PlayersSection from './tournament-public/PlayersSection';
 import InfoSection from './tournament-public/InfoSection';
-import FortniteStandingsSection from './tournament-public/FortniteStandingsSection';
+import FortniteStandingsSection, { useFortniteStandings, mainScope } from './tournament-public/FortniteStandingsSection';
 import MyTournamentModal from './tournament-public/MyTournamentModal';
 import RulesModal from './tournament-public/RulesModal';
+import { TournamentThemeRoot, BroadcastButton, StatusBug, Chip, SectionTitle, EmptyBlock, PointsBars, CUT, type BarRow } from './tournament-public/broadcast';
+import { mix, buildTokens } from './tournament-public/theme';
 
-const TEAM_MODE_TABS = [
-    { id: 'bracket', label: 'Bracket' },
-    { id: 'teams', label: 'Equipos' },
-    { id: 'players', label: 'Jugadores' },
-    { id: 'info', label: 'Info' },
-] as const;
-
-// Fortnite: sin bracket, se juega por puntos (clasificación en F5).
-const FORTNITE_TABS = [
-    { id: 'standings', label: 'Clasificación' },
-    { id: 'players', label: 'Jugadores' },
-    { id: 'teams', label: 'Equipos' },
-    { id: 'info', label: 'Info' },
-] as const;
-
-const SOLO_Q_TABS = [
-    { id: 'ranking', label: 'Ranking' },
-    { id: 'info', label: 'Info' },
-] as const;
-
-// Milestone 1 — frontend publico del modulo de Torneos. Ver
-// .dev/torneos/11-frontend-publico.md. Diseno propio ("La Escalada" — ver nota de
-// diseno en el PR/conversacion): el ranking se lee como una linea de ascenso, no
-// como un dashboard generico. Pagina fija en modo oscuro (no sigue el toggle del
-// resto del sitio) — se piensa como grafico de transmision en vivo.
+// Vista publica de un torneo — rediseño "gráfico de transmisión" (2026-09-29, ver
+// .dev/torneos/16-rediseno-publico.md). Lleva la marca del streamer (logo, portada,
+// colores y fondo claro/oscuro de la pestaña Apariencia) y lo primero que se ve
+// cambia segun el estado: inscripciones abiertas → cómo inscribirse y cuándo
+// empieza; en curso → en qué va y la clasificación; terminado → el campeón.
 //
-// "Inscribirme"/"Mi inscripción" abren MyTournamentModal (mismo contenido de
-// MyTournamentPage/mi-panel, que exige login con la cuenta de Twitch propia del
-// participante — no la del streamer — antes de dejar inscribirse o vincular Riot,
-// decision de producto 15-08-2026, ver ESTADO.md). Volvio a ser modal el
-// 24-08-2026 — la pagina /mi-panel aparte se veia perdida en pantallas 2K/4K;
-// sigue existiendo como deep link (destino del redirect de login).
-//
-// Las secciones grandes (BracketSection, ParticipantDetailView) y las piezas
-// compartidas (tipos, AscentLine, SectionLabel, EmptyState, etc.) viven
-// en ./tournament-public/ — separado de este archivo (que pasaba las 640 líneas)
-// el 15-08-2026.
+// "Inscribirme"/"Mi inscripción" abren MyTournamentModal (el panel del jugador, con
+// su propia sesion). Las normas van en RulesModal.
+
+type TabId = 'standings' | 'ranking' | 'bracket' | 'teams' | 'players' | 'info';
+
+interface FortniteMatchday {
+    sessionName: string;
+    sessionStatus: string;
+    scheduledAt: string | null;
+    gameNumber?: number | null;
+    gameStatus?: string | null;
+    gamesTotal?: number;
+}
+
+const GAME_STATUS_TEXT: Record<string, string> = {
+    waiting: 'Por empezar',
+    revealed: 'Entrando a la partida',
+    playing: 'En juego',
+    reporting: 'Reportando resultados',
+    closed: 'Terminada',
+};
 
 export default function TournamentPublicPage() {
     const { channelName, editionSlug } = useParams<{ channelName: string; editionSlug: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [edition, setEdition] = useState<EditionInfo | null>(null);
+    const [edition, setEdition] = useState<(EditionInfo & { bannerUrl?: string | null; secondaryColor?: string | null; theme?: string }) | null>(null);
     const [ranking, setRanking] = useState<RankingRow[]>([]);
     const [prizes, setPrizes] = useState<Prize[]>([]);
     const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+    const [matchday, setMatchday] = useState<FortniteMatchday | null>(null);
     const [status, setStatus] = useState<'loading' | 'ok' | 'notfound'>('loading');
     const [isLive, setIsLive] = useState(false);
-    const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [expandedId, setExpandedId] = useState<string | number | null>(null);
     const [detail, setDetail] = useState<ParticipantDetail | null>(null);
-    const [detailLoading, setDetailLoading] = useState(false);
+    const [bracketChampion, setBracketChampion] = useState<string | null>(null);
     const [showPanelModal, setShowPanelModal] = useState(false);
     const [showRulesModal, setShowRulesModal] = useState(false);
 
-    const isTeamMode = edition != null && edition.mode !== 'solo_q_climb';
-    // En 1 vs 1 (teamSize 1) "Equipos" y "Jugadores" muestran lo mismo — un jugador
-    // por equipo — asi que se saca "Equipos" para no duplicar tabs (pedido del
-    // usuario 24-08-2026).
+    const running = edition?.status === 'in_progress' || edition?.status === 'check_in';
     const isFortnite = edition?.game === 'fortnite';
-    const tabs = isFortnite
-        ? (edition?.teamSize === 1 ? FORTNITE_TABS.filter(t => t.id !== 'teams') : FORTNITE_TABS)
-        : isTeamMode
-        ? (edition?.teamSize === 1 ? TEAM_MODE_TABS.filter(t => t.id !== 'teams') : TEAM_MODE_TABS)
-        : SOLO_Q_TABS;
-    const activeTab = tabs.find(t => t.id === searchParams.get('tab'))?.id || tabs[0].id;
-    const setActiveTab = (tab: string) => setSearchParams(prev => {
-        const next = new URLSearchParams(prev);
-        next.set('tab', tab);
-        return next;
-    }, { replace: true });
 
-    const countdown = useCountdown(edition?.endsAt || null);
-    // Podio: LP en LoL; puntos de la tabla principal en Fortnite (la final si ya
-    // tiene equipos, si no la primera), solo cuando ya hay partidas con resultado.
-    const [fortniteTop, setFortniteTop] = useState<{ id: number; displayName: string; points: number }[]>([]);
+    // Datos de la portada; mientras el torneo corre se refrescan (en vivo, en qué partida va).
     useEffect(() => {
-        if (edition?.game !== 'fortnite') return;
-        api.get(`/public/tournament/${channelName}/${editionSlug}/fortnite/standings`)
-            .then((res) => {
-                const scopes = res.data.scopes || [];
-                const main = scopes.find((sc: any) => sc.isFinal && sc.rows.length > 0) || scopes[0];
-                if (!main || main.gamesWithResults === 0) return;
-                setFortniteTop(main.rows.slice(0, 3).map((r: any) => ({ id: r.teamId, displayName: r.teamName, points: r.points })));
-            })
-            .catch(() => {});
-    }, [edition?.game, channelName, editionSlug]);
-    const top3 = useMemo(
-        () =>
-            edition?.game === 'fortnite'
-                ? fortniteTop.map((t) => ({ id: t.id, displayName: t.displayName, currentLp: null as number | null, valueText: `${t.points} pts` }))
-                : ranking.slice(0, 3).map((r) => ({ ...r, valueText: null as string | null })),
-        [ranking, edition?.game, fortniteTop],
-    );
-    const bannerSponsors = useMemo(() => sponsors.filter(s => s.slots.includes('home-banner')), [sponsors]);
-    const footerSponsors = useMemo(() => sponsors.filter(s => s.slots.includes('footer')), [sponsors]);
-
-    useEffect(() => {
-        (async () => {
+        const load = async (first: boolean) => {
             try {
                 const [homeRes, prizesRes] = await Promise.all([
                     api.get(`/public/tournament/${channelName}/${editionSlug}`),
-                    api.get(`/public/tournament/${channelName}/${editionSlug}/prizes`),
+                    first ? api.get(`/public/tournament/${channelName}/${editionSlug}/prizes`) : Promise.resolve(null),
                 ]);
-                if (homeRes.data?.success) {
-                    setEdition(homeRes.data.edition);
-                    setIsLive(!!homeRes.data.isLive);
-                    setRanking(homeRes.data.ranking || []);
-                    setSponsors(homeRes.data.sponsors || []);
-                    setPrizes(prizesRes.data?.prizes || []);
-                    setStatus('ok');
-                } else {
-                    setStatus('notfound');
+                if (!homeRes.data?.success) {
+                    if (first) setStatus('notfound');
+                    return;
                 }
+                setEdition(homeRes.data.edition);
+                setIsLive(!!homeRes.data.isLive);
+                setRanking(homeRes.data.ranking || []);
+                setSponsors(homeRes.data.sponsors || []);
+                setMatchday(homeRes.data.matchday || null);
+                if (prizesRes) setPrizes(prizesRes.data?.prizes || []);
+                setStatus('ok');
             } catch {
-                setStatus('notfound');
+                if (first) setStatus('notfound');
             }
-        })();
+        };
+        load(true);
+        const t = setInterval(() => load(false), 30000);
+        return () => clearInterval(t);
     }, [channelName, editionSlug]);
 
-    const toggleExpand = async (participantId: number) => {
-        if (expandedId === participantId) { setExpandedId(null); return; }
-        setExpandedId(participantId);
+    useEffect(() => {
+        if (edition?.name) document.title = `${edition.name} — Torneo`;
+    }, [edition?.name]);
+
+    // En 2K/4K la pagina escala entera (ver html.t-scale en index.css).
+    useEffect(() => {
+        document.documentElement.classList.add('t-scale');
+        return () => document.documentElement.classList.remove('t-scale');
+    }, []);
+
+    const fortnite = useFortniteStandings(channelName!, editionSlug!, isFortnite && running);
+
+    // Campeon de un torneo de bracket terminado: ganador de la gran final o de la ultima ronda.
+    useEffect(() => {
+        if (!edition || edition.game === 'fortnite' || edition.mode === 'solo_q_climb') return;
+        if (edition.status !== 'finished' && edition.status !== 'archived') return;
+        api.get(`/public/tournament/${channelName}/${editionSlug}/bracket`)
+            .then((res) => {
+                const matches: { roundNumber: number; bracketSide: string | null; winnerName: string | null }[] = res.data?.matches || [];
+                const pool = matches.some((m) => m.bracketSide === 'grand_final') ? matches.filter((m) => m.bracketSide === 'grand_final') : matches;
+                const last = [...pool].sort((a, b) => b.roundNumber - a.roundNumber).find((m) => m.winnerName);
+                setBracketChampion(last?.winnerName ?? null);
+            })
+            .catch(() => {});
+    }, [edition?.status, edition?.game, edition?.mode, channelName, editionSlug]);
+
+    const tabs = useMemo((): { id: TabId; label: string }[] => {
+        if (!edition) return [];
+        const single = edition.teamSize === 1;
+        if (isFortnite)
+            return [
+                { id: 'standings', label: 'Clasificación' },
+                ...(single ? [] : [{ id: 'teams' as TabId, label: 'Equipos' }]),
+                { id: 'players', label: 'Jugadores' },
+                { id: 'info', label: 'Info' },
+            ];
+        if (edition.mode === 'solo_q_climb')
+            return [
+                { id: 'ranking', label: 'Clasificación' },
+                { id: 'info', label: 'Info' },
+            ];
+        return [
+            { id: 'bracket', label: 'Bracket' },
+            ...(single ? [] : [{ id: 'teams' as TabId, label: 'Equipos' }]),
+            { id: 'players', label: 'Jugadores' },
+            { id: 'info', label: 'Info' },
+        ];
+    }, [edition, isFortnite]);
+
+    const activeTab = tabs.find((t) => t.id === searchParams.get('tab'))?.id || tabs[0]?.id;
+    const setActiveTab = (tab: string) =>
+        setSearchParams(
+            (prev) => {
+                const next = new URLSearchParams(prev);
+                next.set('tab', tab);
+                return next;
+            },
+            { replace: true },
+        );
+
+    const bannerSponsors = sponsors.filter((s) => s.slots.includes('home-banner'));
+    const footerSponsors = sponsors.filter((s) => s.slots.includes('footer'));
+
+    const toggleExpand = async (key: string | number) => {
+        if (expandedId === key) {
+            setExpandedId(null);
+            return;
+        }
+        setExpandedId(key);
         setDetail(null);
-        setDetailLoading(true);
         try {
-            const res = await api.get(`/public/tournament/${channelName}/${editionSlug}/participants/${participantId}`);
+            const res = await api.get(`/public/tournament/${channelName}/${editionSlug}/participants/${key}`);
             setDetail(res.data);
-        } catch (err) {
-            console.error('Error cargando detalle', err);
-        } finally {
-            setDetailLoading(false);
+        } catch {
+            /* la fila queda abierta sin detalle */
         }
     };
 
-    if (status === 'loading') {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0B1120]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#3ED6C4]" />
-            </div>
-        );
-    }
-
+    if (status === 'loading') return <div className="min-h-screen bg-[#080B12]" />;
     if (status === 'notfound' || !edition) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0B1120] text-center px-4">
+            <div className="min-h-screen bg-[#080B12] text-[#F2F5FA] font-barlow flex items-center justify-center px-6 text-center">
                 <div>
-                    <p className="font-mono text-xs tracking-[0.3em] text-[#7C8AA6] mb-3">404 — RUTA PERDIDA</p>
-                    <h1 className="font-display text-3xl font-bold text-[#EDF0F7]">Este torneo no existe</h1>
-                    <p className="text-[#7C8AA6] mt-2">Revisá el link — puede que todavía no esté publicado.</p>
+                    <p className="font-scoreboard font-black text-5xl">Torneo no encontrado</p>
+                    <p className="mt-2 text-[#9AA4B6]">Revisa el link: puede que el torneo todavía no esté publicado.</p>
                 </div>
             </div>
         );
     }
 
+    // Campeon para la cabecera de un torneo terminado.
+    const finished = edition.status === 'finished' || edition.status === 'archived';
+    const fortniteMain = fortnite.scopes ? mainScope(fortnite.scopes) : undefined;
+    const champion: { name: string; detail?: string } | null = !finished
+        ? null
+        : isFortnite
+          ? (() => {
+                const r = fortniteMain?.rows.find((x) => x.champion) || fortniteMain?.rows[0];
+                return r && r.points > 0 ? { name: r.teamName, detail: `${r.points} puntos${r.members.length > 1 ? ` · ${r.members.join(', ')}` : ''}` } : null;
+            })()
+          : edition.mode === 'solo_q_climb'
+            ? ranking[0]
+                ? { name: ranking[0].displayName, detail: ranking[0].currentLp != null ? `${ranking[0].currentLp} LP` : undefined }
+                : null
+            : bracketChampion
+              ? { name: bracketChampion }
+              : null;
+
+    const appearance = { primaryColor: edition.primaryColor, secondaryColor: edition.secondaryColor, theme: edition.theme, logoUrl: edition.logoUrl, bannerUrl: edition.bannerUrl };
+
     return (
-        <div className="min-h-screen bg-[#0B1120] text-[#EDF0F7] selection:bg-[#3ED6C4] selection:text-[#0B1120]">
-            {/* HERO — splash art de fondo (Data Dragon, asset publico y estable, sin
-                key ni llamado a la Riot API) para anclar visualmente "esto es LoL",
-                mas una secuencia de entrada escalonada (fade-in-up, reusa la animacion
-                ya definida en index.css) para que la pagina no se sienta estatica. */}
-            <header className="relative overflow-hidden border-b border-[#232C42]">
-                {/* El splash de LoL solo en ediciones de LoL; Fortnite queda con el fondo
-                    de gradientes (sin assets de Epic). */}
-                {!isFortnite && (
-                    <div
-                        className="absolute inset-0 bg-cover bg-[position:50%_20%] opacity-[0.16]"
-                        style={{ backgroundImage: 'url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg)' }}
-                    />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/85 to-[#0B1120]/40" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(232,176,75,0.14),transparent)]" />
-                <div className="relative max-w-[1400px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-5 4xl:px-8 pt-12 4xl:pt-20 pb-10 4xl:pb-16">
-                    <div className="flex items-center gap-2 mb-4 animate-fade-in-up">
-                        <span className="relative flex w-2 h-2">
-                            <span className="absolute inline-flex h-full w-full rounded-full bg-[#3ED6C4] opacity-75 animate-ping" />
-                            <span className="relative inline-flex rounded-full w-2 h-2 bg-[#3ED6C4]" />
-                        </span>
-                        <p className="font-mono text-[11px] tracking-[0.25em] text-[#7C8AA6] uppercase">
-                            {EDITION_STATUS_LABELS[edition.status] || edition.status} · {REGION_LABELS[edition.region] || edition.region.toUpperCase()}
-                        </p>
-                    </div>
+        <TournamentThemeRoot appearance={appearance} className="min-h-screen">
+            <Hero
+                edition={edition}
+                isLive={isLive}
+                matchday={matchday}
+                champion={champion}
+                registeredCount={ranking.length}
+                onRegister={() => setShowPanelModal(true)}
+                onRules={() => setShowRulesModal(true)}
+            />
 
-                    <h1
-                        className="font-display font-extrabold text-4xl md:text-6xl 4xl:text-7xl 5xl:text-8xl leading-[0.95] tracking-tight text-[#EDF0F7] animate-fade-in-up"
-                        style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
-                    >
-                        {edition.name}
-                    </h1>
-
-                    <div
-                        className="mt-6 flex items-end justify-between flex-wrap gap-6 animate-fade-in-up"
-                        style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
-                    >
-                        {countdown && (
-                            <div>
-                                <p className="font-mono text-[10px] tracking-[0.25em] text-[#7C8AA6] uppercase mb-1.5">Cierra en</p>
-                                <div className="font-mono font-bold text-2xl md:text-3xl 4xl:text-4xl text-[#EDF0F7] flex items-baseline gap-1.5">
-                                    <span>{countdown.d}<span className="text-sm text-[#7C8AA6]">d</span></span>
-                                    <span>{String(countdown.h).padStart(2, '0')}<span className="text-sm text-[#7C8AA6]">h</span></span>
-                                    <span>{String(countdown.m).padStart(2, '0')}<span className="text-sm text-[#7C8AA6]">m</span></span>
-                                </div>
-                            </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                            {edition.status === 'registration_open' && (
-                                <button onClick={() => setShowPanelModal(true)}
-                                    className="font-mono text-xs tracking-wider uppercase px-4 py-2.5 rounded bg-[#3ED6C4] text-[#0B1120] font-bold hover:bg-[#5EE8D8] hover:shadow-[0_0_20px_-2px_rgba(62,214,196,0.6)] transition-all">
-                                    Inscribirme
-                                </button>
-                            )}
-                            <button onClick={() => setShowPanelModal(true)}
-                                className="font-mono text-xs tracking-wider uppercase px-4 py-2.5 rounded border border-[#232C42] text-[#7C8AA6] hover:text-[#EDF0F7] hover:border-[#3ED6C4]/50 transition-colors">
-                                Mi inscripción
-                            </button>
-                            <button onClick={() => setShowRulesModal(true)}
-                                className="font-mono text-xs tracking-wider uppercase px-4 py-2.5 rounded border border-[#232C42] text-[#7C8AA6] hover:text-[#EDF0F7] hover:border-[#3ED6C4]/50 transition-colors">
-                                Ver normas
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Podio top 3 — plataformas escalonadas */}
-                    {top3.length > 0 && (
-                        <div
-                            className="mt-10 flex items-end gap-3 md:gap-4 animate-fade-in-up"
-                            style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
-                        >
-                            {[top3[1], top3[0], top3[2]].filter(Boolean).map((p, visualIdx) => {
-                                const rank = top3.indexOf(p) + 1;
-                                const heights = ['h-24', 'h-32', 'h-20'];
-                                const isFirst = rank === 1;
-                                return (
-                                    <button key={p.id} onClick={() => (isFortnite ? setActiveTab('standings') : toggleExpand(p.id))}
-                                        className="flex-1 flex flex-col items-center group">
-                                        <div className="mb-2 flex flex-col items-center text-center gap-1.5">
-                                            <NameAvatar name={p.displayName} size={isFirst ? 40 : 32} />
-                                            <p className={`font-display font-bold text-sm truncate max-w-[110px] ${isFirst ? 'text-[#E8B04B]' : 'text-[#EDF0F7]'}`}>{p.displayName}</p>
-                                            <p className="font-mono text-xs text-[#7C8AA6]">{p.valueText ?? (p.currentLp != null ? `${p.currentLp} LP` : '—')}</p>
-                                        </div>
-                                        <div className={`w-full ${heights[visualIdx]} rounded-t-md border-t-2 flex items-start justify-center pt-2 transition-transform group-hover:-translate-y-1 ${
-                                            isFirst
-                                                ? 'bg-gradient-to-b from-[#E8B04B]/25 to-[#E8B04B]/5 border-[#E8B04B] shadow-[0_0_24px_-8px_rgba(232,176,75,0.7)]'
-                                                : 'bg-[#131B2E] border-[#232C42]'
-                                        }`}>
-                                            <span className={`font-mono font-bold text-lg ${isFirst ? 'text-[#E8B04B]' : 'text-[#7C8AA6]'}`}>{rank}</span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-            </header>
+            {edition.status === 'registration_open' && <HowToJoin isFortnite={!!isFortnite} />}
 
             {bannerSponsors.length > 0 && (
-                <div className="border-b border-[#232C42] bg-[#0F1729]">
-                    <div className="max-w-[1400px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-5 4xl:px-8 py-4 4xl:py-6 flex items-center gap-8 4xl:gap-10 overflow-x-auto">
-                        <span className="font-mono text-[10px] tracking-[0.2em] text-[#7C8AA6] uppercase flex-shrink-0">Con el apoyo de</span>
+                <div style={{ background: 'var(--t-surface)', borderBottom: '1px solid var(--t-line)' }}>
+                    <div className="max-w-[1440px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-4 md:px-8 py-4 flex items-center gap-8 overflow-x-auto">
+                        <span className="text-sm flex-shrink-0" style={{ color: 'var(--t-muted)' }}>
+                            Con el apoyo de
+                        </span>
                         {bannerSponsors.map((s, i) => (
-                            <a key={i} href={normalizeUrl(s.ctaUrl)} target="_blank" rel="noreferrer"
-                                className="flex items-center gap-2.5 flex-shrink-0 text-[#EDF0F7] hover:text-[#E8B04B] transition-colors group">
-                                {s.logoUrl && <img src={s.logoUrl} alt={s.name} className="h-8 4xl:h-10 w-auto transition-transform group-hover:scale-105" />}
-                                <span className="font-display font-bold text-base 4xl:text-lg">{s.name}</span>
+                            <a key={i} href={normalizeUrl(s.ctaUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 flex-shrink-0 hover:opacity-80 transition-opacity">
+                                {s.logoUrl && <img src={s.logoUrl} alt={s.name} className="h-8 4xl:h-10 w-auto" />}
+                                <span className="font-scoreboard font-extrabold text-lg 4xl:text-xl">{s.name}</span>
                             </a>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/*
-              Rail lateral (24-08-2026): antes premios/ranking/bracket iban todos
-              apilados en una sola columna, y esa columna nunca superaba ~1280px de
-              ancho real aunque el contenedor creciera en 2K/4K — pedido del usuario:
-              "mucho espacio no se usa los lados, que no sea una landing todo en uno".
-              Ahora el contenido en vivo (ranking o bracket, lo que sea largo/variable)
-              ocupa la columna principal ancha, y lo auxiliar (premios, datos fijos del
-              torneo) corre en paralelo en un rail angosto — deja de ser una lista
-              unica de secciones apiladas y usa el ancho real de la pantalla.
-            */}
-            <main className="max-w-[1400px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-5 4xl:px-8 py-10 4xl:py-16">
-                <div className={`grid grid-cols-1 gap-10 4xl:gap-16 items-start ${isLive ? 'lg:grid-cols-[1fr_320px] 4xl:grid-cols-[1fr_440px]' : ''}`}>
-                <div className="min-w-0 space-y-8 4xl:space-y-10">
-                {/* NAV DE TABS — reestructuracion 24-08-2026: antes ranking/equipos/bracket
-                    vivian apilados en la misma vista larga, pedido del usuario fue separar
-                    en secciones navegables por boton en vez de una landing de scroll unico. */}
-                <div className="flex items-center gap-1.5 border-b border-[#232C42] overflow-x-auto">
-                    {tabs.map((t) => (
-                        <button
-                            key={t.id}
-                            onClick={() => setActiveTab(t.id)}
-                            className={`font-mono text-xs uppercase tracking-wider px-4 py-3 border-b-2 whitespace-nowrap transition-colors ${
-                                activeTab === t.id
-                                    ? 'border-[#3ED6C4] text-[#EDF0F7]'
-                                    : 'border-transparent text-[#7C8AA6] hover:text-[#EDF0F7]'
-                            }`}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
+            {/* Pestañas fijas arriba al bajar */}
+            <nav className="sticky top-0 z-30 backdrop-blur-md" style={{ background: 'color-mix(in srgb, var(--t-bg) 88%, transparent)', borderBottom: '1px solid var(--t-line)' }}>
+                <div className="max-w-[1440px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-4 md:px-8 flex items-center gap-1 overflow-x-auto" role="tablist">
+                    {tabs.map((t) => {
+                        const on = activeTab === t.id;
+                        return (
+                            <button
+                                key={t.id}
+                                role="tab"
+                                aria-selected={on}
+                                onClick={() => setActiveTab(t.id)}
+                                className="relative px-4 4xl:px-6 py-4 4xl:py-5 font-scoreboard font-extrabold text-xl 4xl:text-2xl whitespace-nowrap transition-colors"
+                                style={{ color: on ? 'var(--t-ink)' : 'var(--t-muted)' }}
+                            >
+                                {t.label}
+                                {on && <span className="absolute left-3 right-3 bottom-0 h-1" style={{ background: 'var(--t-primary)' }} />}
+                            </button>
+                        );
+                    })}
+                    <button
+                        onClick={() => setShowRulesModal(true)}
+                        className="ml-auto px-4 py-4 font-scoreboard font-extrabold text-xl 4xl:text-2xl whitespace-nowrap"
+                        style={{ color: 'var(--t-muted)' }}
+                    >
+                        Normas
+                    </button>
                 </div>
+            </nav>
 
-                <Reveal key={activeTab}>
-                {activeTab === 'ranking' && (
-                <section>
-                    <SectionLabel title="Ranking" />
-                    {ranking.length === 0 ? (
-                        <EmptyState text="Todavía no hay participantes cargados." />
-                    ) : (
-                        <div className="border border-[#232C42] rounded-lg overflow-hidden divide-y divide-[#232C42]">
-                            {ranking.map((row, idx) => (
-                                <div key={row.id} className="bg-[#0F1729]">
-                                    <button onClick={() => toggleExpand(row.id)}
-                                        className="w-full text-left px-4 4xl:px-6 py-3.5 4xl:py-5 flex items-center gap-4 4xl:gap-6 hover:bg-[#131B2E] transition-colors">
-                                        <span className={`font-mono font-bold text-sm w-6 text-right ${idx === 0 ? 'text-[#E8B04B]' : 'text-[#7C8AA6]'}`}>{idx + 1}</span>
-                                        <NameAvatar name={row.displayName} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-display font-bold text-[#EDF0F7] truncate 4xl:text-lg">{row.displayName}</span>
-                                                {row.primaryRole && <RoleBadge role={row.primaryRole} />}
-                                            </div>
-                                            <p className="font-mono text-[11px] text-[#7C8AA6] truncate">{row.riotId ? `${row.riotId}#${row.riotTagLine}` : 'sin cuenta vinculada'}</p>
-                                        </div>
-                                        <AscentLine form={row.recentForm} />
-                                        <div className="text-right w-24 flex-shrink-0">
-                                            <p className="font-mono font-bold text-[#EDF0F7]">{row.currentLp != null ? row.currentLp : '—'}<span className="text-[10px] text-[#7C8AA6] ml-1">LP</span></p>
-                                            <p className="font-mono text-[11px] text-[#7C8AA6]">
-                                                <span className="text-[#3ED6C4]">{row.wins}V</span> — <span className="text-[#E8677A]">{row.losses}D</span>
-                                            </p>
-                                        </div>
-                                    </button>
+            <main className="max-w-[1440px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-4 md:px-8 py-8 md:py-12 4xl:py-16">
+                <div className={`grid grid-cols-1 gap-10 4xl:gap-14 items-start ${isLive ? 'lg:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_420px] 4xl:grid-cols-[minmax(0,1fr)_560px]' : ''}`}>
+                    <div className="min-w-0">
+                        {activeTab === 'standings' && (
+                            <FortniteStandingsSection channelName={channelName!} editionSlug={editionSlug!} teamSize={edition.teamSize || 1} live={running} />
+                        )}
+                        {activeTab === 'ranking' && (
+                            <LolRanking ranking={ranking} expandedId={expandedId} detail={detail} shellName={edition.shellItemName} onToggle={toggleExpand} />
+                        )}
+                        {activeTab === 'bracket' && <BracketSection channelName={channelName!} editionSlug={editionSlug!} />}
+                        {activeTab === 'teams' && <TeamsSection channelName={channelName!} editionSlug={editionSlug!} />}
+                        {activeTab === 'players' && <PlayersSection channelName={channelName!} editionSlug={editionSlug!} />}
+                        {activeTab === 'info' && <InfoSection edition={edition} prizes={prizes} />}
+                    </div>
 
-                                    {expandedId === row.id && (
-                                        <div className="border-t border-[#232C42] px-4 py-4 bg-[#0B1120]">
-                                            {detailLoading ? (
-                                                <p className="font-mono text-xs text-[#7C8AA6]">Cargando...</p>
-                                            ) : detail ? (
-                                                <ParticipantDetailView detail={detail} shellName={edition.shellItemName} />
-                                            ) : null}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </section>
-                )}
-
-                {activeTab === 'standings' && (
-                    <FortniteStandingsSection
-                        channelName={channelName!}
-                        editionSlug={editionSlug!}
-                        teamSize={edition.teamSize || 1}
-                        live={edition.status === 'in_progress' || edition.status === 'check_in'}
-                    />
-                )}
-                {activeTab === 'teams' && <TeamsSection channelName={channelName!} editionSlug={editionSlug!} />}
-                {activeTab === 'bracket' && <BracketSection channelName={channelName!} editionSlug={editionSlug!} />}
-                {activeTab === 'players' && <PlayersSection channelName={channelName!} editionSlug={editionSlug!} />}
-                {activeTab === 'info' && <InfoSection edition={edition} prizes={prizes} />}
-                </Reveal>
-                </div>
-
-                {/* RAIL — solo canal en vivo (24-08-2026: "El torneo" y "Premios" se
-                    fusionaron en la tab Info para no duplicar la misma info en dos lugares) */}
-                {isLive && (
-                <aside className="lg:sticky lg:top-10">
-                    <Reveal>
-                        <section>
-                            <SectionLabel title="En vivo" accent="#E8677A" />
-                            <div className="rounded-lg overflow-hidden border border-[#232C42] bg-black aspect-video">
+                    {isLive && (
+                        <aside id="stream" className="lg:sticky lg:top-24">
+                            <div className="aspect-video bg-black" style={{ boxShadow: '0 0 0 1px var(--t-line)' }}>
                                 <iframe
                                     src={`https://player.twitch.tv/?channel=${channelName}&parent=${window.location.hostname}&muted=true&autoplay=false`}
                                     title={`${channelName} en Twitch`}
@@ -395,37 +288,371 @@ export default function TournamentPublicPage() {
                                 href={`https://twitch.tv/${channelName}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="mt-2 flex items-center justify-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-[#7C8AA6] hover:text-[#E8677A] transition-colors"
+                                className="mt-2 flex items-center justify-center gap-2 py-2 text-sm 4xl:text-base font-semibold hover:underline"
+                                style={{ color: 'var(--t-muted)' }}
                             >
-                                Ver en twitch.tv/{channelName} →
+                                <Tv className="w-4 h-4" /> Abrir en twitch.tv/{channelName}
                             </a>
-                        </section>
-                    </Reveal>
-                </aside>
-                )}
+                        </aside>
+                    )}
                 </div>
             </main>
 
-            <footer className="border-t border-[#232C42] py-8 space-y-4">
-                {footerSponsors.length > 0 && (
-                    <div className="flex items-center justify-center gap-6 flex-wrap px-5">
+            <footer style={{ borderTop: '1px solid var(--t-line)' }}>
+                <div className="max-w-[1440px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-5 flex-wrap justify-center">
                         {footerSponsors.map((s, i) => (
-                            <a key={i} href={normalizeUrl(s.ctaUrl)} target="_blank" rel="noreferrer"
-                                className="text-[#7C8AA6] hover:text-[#EDF0F7] transition-colors font-mono text-xs">
+                            <a key={i} href={normalizeUrl(s.ctaUrl)} target="_blank" rel="noreferrer" className="text-sm font-semibold hover:underline" style={{ color: 'var(--t-muted)' }}>
                                 {s.name}
                             </a>
                         ))}
                     </div>
-                )}
-                <p className="text-center font-mono text-[10px] tracking-[0.2em] text-[#7C8AA6] uppercase">Torneo powered by Decatron</p>
+                    <a href="https://decatron.net" className="text-sm hover:underline" style={{ color: 'var(--t-muted)' }}>
+                        Torneo organizado con Decatron
+                    </a>
+                </div>
             </footer>
 
-            {showPanelModal && (
-                <MyTournamentModal channelName={channelName!} editionSlug={editionSlug!} onClose={() => setShowPanelModal(false)} />
-            )}
+            {showPanelModal && <MyTournamentModal channelName={channelName!} editionSlug={editionSlug!} onClose={() => setShowPanelModal(false)} />}
             {showRulesModal && (
                 <RulesModal channelName={channelName!} editionSlug={editionSlug!} shellItemName={edition.shellItemName} onClose={() => setShowRulesModal(false)} />
             )}
+        </TournamentThemeRoot>
+    );
+}
+
+// ─── Cabecera ────────────────────────────────────────────────────────────────
+
+function Hero({
+    edition,
+    isLive,
+    matchday,
+    champion,
+    registeredCount,
+    onRegister,
+    onRules,
+}: {
+    edition: EditionInfo & { bannerUrl?: string | null; secondaryColor?: string | null; theme?: string };
+    isLive: boolean;
+    matchday: FortniteMatchday | null;
+    champion: { name: string; detail?: string } | null;
+    registeredCount: number;
+    onRegister: () => void;
+    onRules: () => void;
+}) {
+    const t = buildTokens({ primaryColor: edition.primaryColor, secondaryColor: edition.secondaryColor, theme: edition.theme });
+    const isFortnite = edition.game === 'fortnite';
+    const open = edition.status === 'registration_open';
+    const running = edition.status === 'in_progress' || edition.status === 'check_in';
+    const tall = open || !!champion;
+
+    // Con inscripciones abiertas se cuenta hasta el inicio; en curso, hasta el cierre.
+    const countdown = useCountdown(open ? edition.startsAt : running ? edition.endsAt : null);
+
+    const facts: ReactNode[] = [
+        isFortnite ? 'Fortnite' : 'League of Legends',
+        isFortnite && edition.teamSize
+            ? FORTNITE_TEAM_SIZE_LABELS[edition.teamSize]
+            : edition.mode === 'solo_q_climb'
+              ? 'Climb SoloQ'
+              : BRACKET_FORMAT_LABELS[edition.bracketFormat || ''] || null,
+        REGION_LABELS[edition.region] || edition.region.toUpperCase(),
+    ].filter(Boolean);
+
+    // Portada del streamer o, sin portada, sus colores en diagonal con lineas de velocidad.
+    const backdrop: CSSProperties = edition.bannerUrl
+        ? {}
+        : {
+              background: `repeating-linear-gradient(115deg, transparent 0 22px, ${t.isDark ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.035)'} 22px 24px), linear-gradient(115deg, ${mix(
+                  t.brandPrimary,
+                  t.bg,
+                  t.isDark ? 0.35 : 0.2,
+              )} 0%, ${mix(t.brandSecondary, t.bg, t.isDark ? 0.55 : 0.45)} 55%, ${t.bg} 100%)`,
+          };
+
+    return (
+        <header className="relative overflow-hidden" style={{ borderBottom: '1px solid var(--t-line)' }}>
+            <div className="absolute inset-0" style={backdrop}>
+                {edition.bannerUrl && <img src={edition.bannerUrl} alt="" className="w-full h-full object-cover" />}
+            </div>
+            {/* Oscurece (o aclara) hacia abajo y a la izquierda para que el texto se lea sobre cualquier portada */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: `linear-gradient(to top, ${t.bg} 2%, ${hexA(t.bg, 0.55)} 45%, ${hexA(t.bg, edition.bannerUrl ? 0.15 : 0)} 100%), linear-gradient(to right, ${hexA(t.bg, 0.8)} 0%, ${hexA(
+                        t.bg,
+                        0,
+                    )} 70%)`,
+                }}
+            />
+
+            <div
+                className={`relative max-w-[1440px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-4 md:px-8 flex flex-col lg:flex-row lg:items-end justify-between gap-8 ${
+                    tall ? 'pt-24 md:pt-36 4xl:pt-48 pb-10 md:pb-14' : 'pt-16 md:pt-24 4xl:pt-32 pb-8 md:pb-10'
+                }`}
+            >
+                <div className="min-w-0 max-w-4xl 4xl:max-w-6xl motion-safe:animate-fade-in-up">
+                    <div className="flex items-center gap-4 mb-5">
+                        {edition.logoUrl ? (
+                            <img
+                                src={edition.logoUrl}
+                                alt=""
+                                className="w-16 h-16 md:w-24 md:h-24 4xl:w-32 4xl:h-32 object-contain p-1.5"
+                                style={{ background: 'var(--t-surface)', boxShadow: '0 0 0 1px var(--t-line)' }}
+                            />
+                        ) : null}
+                        <StatusBug status={edition.status} isLive={isLive} />
+                    </div>
+                    <h1 className="font-scoreboard font-black uppercase leading-[0.88] tracking-tight text-5xl sm:text-6xl md:text-7xl xl:text-8xl 4xl:text-9xl 5xl:text-[10rem] break-words">
+                        {edition.name}
+                    </h1>
+                    <div className="mt-5 flex flex-wrap gap-1.5">
+                        {facts.map((f, i) => (
+                            <Chip key={i}>{f}</Chip>
+                        ))}
+                    </div>
+                    <div className="mt-6 flex flex-wrap gap-2">
+                        {open ? (
+                            <BroadcastButton size="lg" onClick={onRegister}>
+                                Inscribirme
+                            </BroadcastButton>
+                        ) : (
+                            <BroadcastButton size="lg" variant={running ? 'primary' : 'secondary'} onClick={onRegister}>
+                                Mi inscripción
+                            </BroadcastButton>
+                        )}
+                        {open && (
+                            <BroadcastButton size="lg" variant="secondary" onClick={onRegister}>
+                                Ya me inscribí
+                            </BroadcastButton>
+                        )}
+                        <BroadcastButton size="lg" variant="ghost" onClick={onRules}>
+                            Normas
+                        </BroadcastButton>
+                    </div>
+                </div>
+
+                <HeroPanel
+                    edition={edition}
+                    isLive={isLive}
+                    matchday={matchday}
+                    champion={champion}
+                    countdown={countdown}
+                    registeredCount={registeredCount}
+                />
+            </div>
+        </header>
+    );
+}
+
+/** Lo que cambia segun el estado: cuenta regresiva, en que va el torneo, o el campeon. */
+function HeroPanel({
+    edition,
+    isLive,
+    matchday,
+    champion,
+    countdown,
+    registeredCount,
+}: {
+    edition: EditionInfo;
+    isLive: boolean;
+    matchday: FortniteMatchday | null;
+    champion: { name: string; detail?: string } | null;
+    countdown: { d: number; h: number; m: number } | null;
+    registeredCount: number;
+}) {
+    const box = 'w-full lg:w-auto lg:min-w-[340px] 4xl:min-w-[460px] p-5 4xl:p-7 backdrop-blur-md';
+    const boxStyle: CSSProperties = { background: 'color-mix(in srgb, var(--t-surface) 82%, transparent)', boxShadow: '0 0 0 1px var(--t-line)' };
+
+    if (champion) {
+        return (
+            <div className={box} style={{ ...boxStyle, boxShadow: 'inset 0 4px 0 var(--t-gold), 0 0 0 1px var(--t-line)' }}>
+                <p className="flex items-center gap-2 font-scoreboard font-extrabold text-xl 4xl:text-2xl" style={{ color: 'var(--t-gold)' }}>
+                    <Crown className="w-5 h-5 4xl:w-6 4xl:h-6" /> Campeón
+                </p>
+                <p className="font-scoreboard font-black text-5xl 4xl:text-7xl leading-none mt-2 break-words">{champion.name}</p>
+                {champion.detail && (
+                    <p className="mt-2 text-base 4xl:text-lg" style={{ color: 'var(--t-muted)' }}>
+                        {champion.detail}
+                    </p>
+                )}
+            </div>
+        );
+    }
+
+    if (edition.status === 'registration_open') {
+        return (
+            <div className={box} style={boxStyle}>
+                <p className="font-scoreboard font-extrabold text-xl 4xl:text-2xl" style={{ color: 'var(--t-muted)' }}>
+                    {countdown ? 'Empieza en' : 'Fecha por anunciar'}
+                </p>
+                {countdown && <CountdownDigits parts={countdown} />}
+                <p className="mt-4 text-base 4xl:text-lg">
+                    <span className="font-scoreboard font-black text-3xl 4xl:text-4xl">{registeredCount}</span>{' '}
+                    <span style={{ color: 'var(--t-muted)' }}>{registeredCount === 1 ? 'inscrito aprobado' : 'inscritos aprobados'}</span>
+                </p>
+            </div>
+        );
+    }
+
+    if (edition.status === 'in_progress' || edition.status === 'check_in') {
+        const fortniteLine =
+            matchday && matchday.sessionStatus !== 'scheduled'
+                ? matchday.sessionStatus === 'check_in'
+                    ? 'Check-in abierto'
+                    : matchday.gameNumber
+                      ? `Partida ${matchday.gameNumber} de ${matchday.gamesTotal}`
+                      : null
+                : null;
+        return (
+            <div className={box} style={boxStyle}>
+                {matchday && (
+                    <p className="font-scoreboard font-extrabold text-xl 4xl:text-2xl" style={{ color: 'var(--t-muted)' }}>
+                        {matchday.sessionName}
+                    </p>
+                )}
+                <p className="font-scoreboard font-black text-5xl 4xl:text-7xl leading-none mt-1">{fortniteLine ?? (edition.status === 'check_in' ? 'Check-in' : 'En curso')}</p>
+                {matchday?.gameStatus && matchday.sessionStatus === 'in_progress' && (
+                    <p className="mt-2 text-base 4xl:text-lg" style={{ color: 'var(--t-muted)' }}>
+                        {GAME_STATUS_TEXT[matchday.gameStatus] || matchday.gameStatus}
+                    </p>
+                )}
+                {matchday?.sessionStatus === 'scheduled' && matchday.scheduledAt && (
+                    <p className="mt-2 text-base 4xl:text-lg" style={{ color: 'var(--t-muted)' }}>
+                        Próxima sesión: {new Date(matchday.scheduledAt.endsWith('Z') ? matchday.scheduledAt : matchday.scheduledAt + 'Z').toLocaleString()}
+                    </p>
+                )}
+                {!matchday && countdown && (
+                    <>
+                        <p className="mt-3 text-base" style={{ color: 'var(--t-muted)' }}>
+                            Termina en
+                        </p>
+                        <CountdownDigits parts={countdown} />
+                    </>
+                )}
+                {isLive && (
+                    <a
+                        href="#stream"
+                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 font-scoreboard font-extrabold text-lg"
+                        style={{ background: 'var(--t-live)', color: '#fff', clipPath: CUT }}
+                    >
+                        <Tv className="w-4 h-4" /> Ver la transmisión
+                    </a>
+                )}
+            </div>
+        );
+    }
+
+    return null;
+}
+
+function CountdownDigits({ parts }: { parts: { d: number; h: number; m: number } }) {
+    const cells: [number, string][] = [
+        [parts.d, parts.d === 1 ? 'día' : 'días'],
+        [parts.h, 'horas'],
+        [parts.m, 'min'],
+    ];
+    return (
+        <div className="mt-2 flex gap-2" aria-live="polite">
+            {cells.map(([v, label]) => (
+                <div key={label} className="px-3 4xl:px-4 py-2 text-center min-w-[4.5rem] 4xl:min-w-[6rem]" style={{ background: 'var(--t-surface-raised)' }}>
+                    <span className="block font-scoreboard font-black text-4xl 4xl:text-6xl leading-none tabular-nums">{String(v).padStart(2, '0')}</span>
+                    <span className="block text-sm mt-1" style={{ color: 'var(--t-muted)' }}>
+                        {label}
+                    </span>
+                </div>
+            ))}
         </div>
     );
+}
+
+/** Pasos para inscribirse (es un proceso en orden, por eso va numerado). */
+function HowToJoin({ isFortnite }: { isFortnite: boolean }) {
+    const steps = [
+        { title: 'Inicia sesión', text: 'Con tu cuenta de Twitch, Kick o Discord en Decatron.' },
+        isFortnite
+            ? { title: 'Vincula tu cuenta de Epic', text: 'Desde Settings o al inscribirte. Con el login de Epic queda verificada.' }
+            : { title: 'Vincula tu cuenta de Riot', text: 'En Settings, y verifícala con el ícono que te pide.' },
+        { title: 'Inscríbete', text: 'Toca Inscribirme y espera a que el organizador te apruebe.' },
+    ];
+    return (
+        <section style={{ background: 'var(--t-surface)', borderBottom: '1px solid var(--t-line)' }}>
+            <ol className="max-w-[1440px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto px-4 md:px-8 py-6 4xl:py-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                {steps.map((s, i) => (
+                    <li key={s.title} className="flex gap-4">
+                        <span className="font-scoreboard font-black text-5xl 4xl:text-6xl leading-none" style={{ color: 'var(--t-accent)' }}>
+                            {i + 1}
+                        </span>
+                        <span>
+                            <span className="block font-scoreboard font-extrabold text-2xl 4xl:text-3xl leading-tight">{s.title}</span>
+                            <span className="block text-base 4xl:text-lg" style={{ color: 'var(--t-muted)' }}>
+                                {s.text}
+                            </span>
+                        </span>
+                    </li>
+                ))}
+            </ol>
+        </section>
+    );
+}
+
+// ─── Clasificacion de LoL (SoloQ Climb) ─────────────────────────────────────
+
+function LolRanking({
+    ranking,
+    expandedId,
+    detail,
+    shellName,
+    onToggle,
+}: {
+    ranking: RankingRow[];
+    expandedId: string | number | null;
+    detail: ParticipantDetail | null;
+    shellName: string;
+    onToggle: (key: string | number) => void;
+}) {
+    const rows: BarRow[] = ranking.map((r, i) => ({
+        key: r.id,
+        rank: i + 1,
+        name: r.displayName,
+        sub: (
+            <span className="inline-flex items-center gap-2">
+                <span>{r.riotId ? `${r.riotId}#${r.riotTagLine}` : 'Sin cuenta vinculada'}</span>
+                <span>
+                    {r.wins}V · {r.losses}D
+                </span>
+                <AscentLine form={r.recentForm} />
+            </span>
+        ),
+        value: r.currentLp,
+        valueText: r.currentLp != null ? `${r.currentLp}` : '—',
+        badges: r.primaryRole ? <RoleBadge role={r.primaryRole} /> : undefined,
+        detail:
+            expandedId === r.id ? (
+                detail ? (
+                    <ParticipantDetailView detail={detail} shellName={shellName} />
+                ) : (
+                    <p className="pt-4 text-sm" style={{ color: 'var(--t-muted)' }}>
+                        Cargando…
+                    </p>
+                )
+            ) : (
+                <span />
+            ),
+    }));
+
+    return (
+        <section>
+            <SectionTitle meta="Puntos de liga (LP) en SoloQ">Clasificación</SectionTitle>
+            {rows.length === 0 ? <EmptyBlock>Los jugadores aparecen aquí cuando el organizador aprueba su inscripción.</EmptyBlock> : <PointsBars rows={rows} expandedKey={expandedId} onToggle={onToggle} />}
+        </section>
+    );
+}
+
+/** #RRGGBB con transparencia. */
+function hexA(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
 }

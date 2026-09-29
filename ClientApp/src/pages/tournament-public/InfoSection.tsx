@@ -1,61 +1,86 @@
-import { SectionLabel, EmptyState, EDITION_STATUS_LABELS, BRACKET_FORMAT_LABELS, REGION_LABELS, FORTNITE_TEAM_SIZE_LABELS } from './shared';
+import { BRACKET_FORMAT_LABELS, REGION_LABELS, FORTNITE_TEAM_SIZE_LABELS } from './shared';
 import type { EditionInfo, Prize } from './shared';
+import { SectionTitle, EmptyBlock } from './broadcast';
 
-// Tab "Info" — fusiona lo que antes vivia repartido en el rail lateral ("El
-// torneo" + "Premios"), para no duplicar la misma informacion en dos lugares
-// distintos de la pagina (reestructuracion 24-08-2026). Las normas volvieron a
-// ser un modal aparte (RulesModal.tsx) — pedido del usuario, no van en esta tab.
+// Tab "Info" (rediseño de transmisión): la ficha del torneo y los premios. Los
+// premios por puesto van primero y en orden, como una escalera.
+
+export function editionFacts(edition: EditionInfo): [string, string][] {
+    const isFortnite = edition.game === 'fortnite';
+    const facts: ([string, string] | null)[] = [
+        ['Juego', isFortnite ? 'Fortnite' : 'League of Legends'],
+        [
+            'Formato',
+            isFortnite
+                ? 'Por puntos en partidas personalizadas'
+                : BRACKET_FORMAT_LABELS[edition.bracketFormat || ''] || (edition.mode === 'solo_q_climb' ? 'Climb SoloQ' : '—'),
+        ],
+        isFortnite && edition.teamSize
+            ? ['Modalidad', FORTNITE_TEAM_SIZE_LABELS[edition.teamSize] || `${edition.teamSize}`]
+            : edition.teamSize
+              ? ['Equipos', edition.teamSize === 1 ? '1 contra 1' : `${edition.teamSize} contra ${edition.teamSize}`]
+              : null,
+        ['Región', REGION_LABELS[edition.region] || edition.region.toUpperCase()],
+    ];
+    return facts.filter((f): f is [string, string] => f != null);
+}
+
+function prizeAmount(p: Prize): string | null {
+    if (p.amountHidden) return '???';
+    if (p.amount == null) return null;
+    return `$${p.amount.toLocaleString()}`;
+}
 
 export default function InfoSection({ edition, prizes }: { edition: EditionInfo; prizes: Prize[] }) {
+    const ranked = prizes.filter((p) => p.scope === 'by_rank' && p.rank != null).sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+    const others = prizes.filter((p) => !(p.scope === 'by_rank' && p.rank != null));
+
     return (
-        <div className="space-y-10 4xl:space-y-14">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-8 4xl:gap-12 items-start">
             <section>
-                <SectionLabel title="El torneo" accent="#E8B04B" />
-                <dl className="border border-[#232C42] rounded-lg bg-[#0F1729] divide-y divide-[#232C42] overflow-hidden">
-                    {[
-                        edition.game === 'fortnite' ? ['Juego', 'Fortnite'] : null,
-                        [
-                            'Formato',
-                            edition.game === 'fortnite'
-                                ? 'Por puntos en partidas personalizadas'
-                                : BRACKET_FORMAT_LABELS[edition.bracketFormat || ''] || (edition.mode === 'solo_q_climb' ? 'Climb SoloQ' : '—'),
-                        ],
-                        ['Región', REGION_LABELS[edition.region] || edition.region.toUpperCase()],
-                        edition.game === 'fortnite' && edition.teamSize
-                            ? ['Modalidad', FORTNITE_TEAM_SIZE_LABELS[edition.teamSize] || `${edition.teamSize}`]
-                            : edition.teamSize
-                              ? ['Tamaño de equipo', edition.teamSize === 1 ? '1 vs 1' : `${edition.teamSize} vs ${edition.teamSize}`]
-                              : null,
-                        ['Estado', EDITION_STATUS_LABELS[edition.status] || edition.status],
-                    ].filter((row): row is [string, string] => row != null).map(([label, value]) => (
-                        <div key={label} className="px-4 4xl:px-5 py-3 4xl:py-4 flex items-center justify-between gap-3">
-                            <dt className="font-mono text-[11px] 4xl:text-xs uppercase tracking-wide text-[#7C8AA6]">{label}</dt>
-                            <dd className="font-display font-bold text-sm 4xl:text-base text-[#EDF0F7] text-right">{value}</dd>
+                <SectionTitle>El torneo</SectionTitle>
+                <dl className="grid grid-cols-2 gap-1.5">
+                    {editionFacts(edition).map(([label, value]) => (
+                        <div key={label} className="px-4 4xl:px-5 py-3 4xl:py-4" style={{ background: 'var(--t-surface)', boxShadow: 'inset 0 0 0 1px var(--t-line)' }}>
+                            <dt className="text-sm 4xl:text-base" style={{ color: 'var(--t-muted)' }}>{label}</dt>
+                            <dd className="font-scoreboard font-black text-xl 4xl:text-2xl leading-tight mt-0.5">{value}</dd>
                         </div>
                     ))}
                 </dl>
             </section>
 
             <section>
-                <SectionLabel title="Premios" accent="#E8B04B" />
+                <SectionTitle>Premios</SectionTitle>
                 {prizes.length === 0 ? (
-                    <EmptyState text="Todavía no hay premios cargados." />
+                    <EmptyBlock>El organizador todavía no publicó los premios.</EmptyBlock>
                 ) : (
-                    <div className="space-y-2.5 4xl:space-y-3">
-                        {prizes.map((p, i) => (
-                            <div key={i} className="p-4 4xl:p-5 rounded-lg border border-[#232C42] bg-[#0F1729] hover:border-[#E8B04B]/50 hover:-translate-y-0.5 transition-all">
+                    <div className="space-y-1.5">
+                        {ranked.map((p, i) => (
+                            <div
+                                key={`r${i}`}
+                                className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] 4xl:grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 px-4 4xl:px-5 py-3 4xl:py-4"
+                                style={{ background: 'var(--t-surface)', boxShadow: p.rank === 1 ? 'inset 3px 0 0 var(--t-gold), inset 0 0 0 1px var(--t-line)' : 'inset 0 0 0 1px var(--t-line)' }}
+                            >
+                                <span className="font-scoreboard font-black text-3xl 4xl:text-4xl leading-none" style={{ color: p.rank === 1 ? 'var(--t-gold)' : 'var(--t-muted)' }}>
+                                    {p.rank}.°
+                                </span>
+                                <span className="min-w-0">
+                                    <span className="block font-semibold text-base 4xl:text-lg truncate">{p.name}</span>
+                                    {p.description && <span className="block text-sm 4xl:text-base truncate" style={{ color: 'var(--t-muted)' }}>{p.description}</span>}
+                                </span>
+                                {prizeAmount(p) && <span className="font-scoreboard font-black text-2xl 4xl:text-3xl">{prizeAmount(p)}</span>}
+                            </div>
+                        ))}
+                        {others.map((p, i) => (
+                            <div key={`o${i}`} className="px-4 4xl:px-5 py-3 4xl:py-4" style={{ background: 'var(--t-surface)', boxShadow: 'inset 0 0 0 1px var(--t-line)' }}>
                                 <div className="flex items-center justify-between gap-3">
-                                    <p className="font-display font-bold text-sm 4xl:text-base text-[#EDF0F7] truncate">{p.name}</p>
-                                    {(p.amountHidden || p.amount != null) && (
-                                        <span className="font-mono font-bold text-[#E8B04B] flex-shrink-0">
-                                            {p.amountHidden ? '???' : `$${p.amount!.toLocaleString()}`}
-                                        </span>
-                                    )}
+                                    <span className="font-semibold text-base 4xl:text-lg truncate">{p.name}</span>
+                                    {prizeAmount(p) && <span className="font-scoreboard font-black text-2xl 4xl:text-3xl flex-shrink-0">{prizeAmount(p)}</span>}
                                 </div>
-                                {p.description && <p className="font-mono text-[11px] 4xl:text-xs text-[#B8C1D6] mt-1">{p.description}</p>}
+                                {p.description && <p className="text-sm 4xl:text-base mt-0.5" style={{ color: 'var(--t-muted)' }}>{p.description}</p>}
                                 {p.leader && (
-                                    <p className="font-mono text-[11px] 4xl:text-xs text-[#7C8AA6] mt-1">
-                                        líder: <span className="text-[#3ED6C4]">{p.leader.displayName}</span> · {p.leader.value}
+                                    <p className="text-sm 4xl:text-base mt-1" style={{ color: 'var(--t-muted)' }}>
+                                        Va ganando <strong style={{ color: 'var(--t-ink)' }}>{p.leader.displayName}</strong> con {p.leader.value}
                                     </p>
                                 )}
                             </div>

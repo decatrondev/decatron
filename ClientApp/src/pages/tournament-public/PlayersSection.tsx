@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import { ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
-import { SectionLabel, EmptyState, NameAvatar, RoleBadge } from './shared';
+import { NameAvatar, RoleBadge } from './shared';
+import { SectionTitle, EmptyBlock } from './broadcast';
 
-// Tab "Jugadores" — separada de "Equipos" el 24-08-2026: vista plana de
-// participantes de la edicion (con o sin equipo asignado), a diferencia de
-// TeamsSection.tsx que los agrupa por equipo. Usa el endpoint nuevo /participants.
+// Tab "Jugadores" (rediseño de transmisión): todos los inscritos aprobados, con su
+// cuenta del juego y su equipo. La cuenta de Epic verificada lleva el escudo.
 
 interface Player {
     id: number;
@@ -24,53 +25,48 @@ interface Player {
 }
 
 export default function PlayersSection({ channelName, editionSlug }: { channelName: string; editionSlug: string }) {
-    const [players, setPlayers] = useState<Player[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [players, setPlayers] = useState<Player[] | null>(null);
 
     useEffect(() => {
-        (async () => {
-            try {
-                const res = await api.get(`/public/tournament/${channelName}/${editionSlug}/participants`);
-                if (res.data?.success) setPlayers(res.data.participants || []);
-            } catch (err) {
-                console.error('Error cargando jugadores', err);
-            } finally {
-                setLoading(false);
-            }
-        })();
+        api.get(`/public/tournament/${channelName}/${editionSlug}/participants`)
+            .then((res) => setPlayers(res.data?.participants || []))
+            .catch(() => setPlayers([]));
     }, [channelName, editionSlug]);
 
-    if (loading) return null;
+    if (players == null) return null;
 
     return (
         <section>
-            <SectionLabel title="Jugadores" accent="#7dd3fc" />
+            <SectionTitle meta={players.length > 0 ? `${players.length} ${players.length === 1 ? 'jugador' : 'jugadores'}` : undefined}>Jugadores</SectionTitle>
             {players.length === 0 ? (
-                <EmptyState text="Todavía no hay jugadores cargados." />
+                <EmptyBlock>Los jugadores aparecen aquí cuando el organizador aprueba su inscripción.</EmptyBlock>
             ) : (
-                <div className="border border-[#232C42] rounded-lg overflow-hidden divide-y divide-[#232C42]">
-                    {players.map((p) => (
-                        <div key={p.id} className="bg-[#0F1729] px-4 4xl:px-6 py-3 4xl:py-4 flex items-center gap-4 4xl:gap-6">
-                            <NameAvatar name={p.displayName} />
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-display font-bold text-[#EDF0F7] truncate 4xl:text-lg">{p.displayName}</span>
-                                    {p.primaryRole && <RoleBadge role={p.primaryRole} />}
-                                    {p.isCaptain && <span className="font-mono text-[10px] text-[#E8B04B]">(C)</span>}
-                                    {p.isSubstitute && <span className="font-mono text-[10px] text-[#7C8AA6]">suplente</span>}
-                                </div>
-                                <p className="font-mono text-[11px] text-[#7C8AA6] truncate">
-                                    {p.gameAccountName
-                                        ? `Epic: ${p.gameAccountName}${p.gameAccountVerified ? '' : ' (sin verificar)'}`
-                                        : p.riotId
-                                          ? `${p.riotId}#${p.riotTagLine}`
-                                          : 'sin cuenta vinculada'}
-                                </p>
-                            </div>
-                            <p className="font-mono text-[11px] text-[#7C8AA6] text-right flex-shrink-0">{p.teamName || 'sin equipo'}</p>
-                        </div>
-                    ))}
-                </div>
+                <ul className="grid grid-cols-1 lg:grid-cols-2 4xl:grid-cols-3 gap-x-4 gap-y-1">
+                    {players.map((p) => {
+                        const account = p.gameAccountName ?? (p.riotId ? `${p.riotId}#${p.riotTagLine}` : null);
+                        return (
+                            <li key={p.id} className="flex items-center gap-3 px-3 4xl:px-4 py-2.5 4xl:py-3" style={{ background: 'var(--t-surface)', boxShadow: 'inset 0 0 0 1px var(--t-line)' }}>
+                                <NameAvatar name={p.displayName} size={34} />
+                                <span className="min-w-0 flex-1">
+                                    <span className="flex items-center gap-2">
+                                        <span className="font-semibold text-base 4xl:text-lg truncate">{p.displayName}</span>
+                                        {p.primaryRole && <RoleBadge role={p.primaryRole} />}
+                                    </span>
+                                    <span className="flex items-center gap-1 text-sm 4xl:text-base truncate" style={{ color: 'var(--t-muted)' }}>
+                                        {account ?? 'Sin cuenta vinculada'}
+                                        {p.gameAccountName && p.gameAccountVerified && <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--t-accent)' }} aria-label="Verificada con Epic" />}
+                                    </span>
+                                </span>
+                                {p.teamName && (
+                                    <span className="text-sm 4xl:text-base text-right flex-shrink-0 max-w-[40%] truncate" style={{ color: 'var(--t-muted)' }}>
+                                        {p.teamName}
+                                        {p.isCaptain ? ' · capitán' : p.isSubstitute ? ' · suplente' : ''}
+                                    </span>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
             )}
         </section>
     );

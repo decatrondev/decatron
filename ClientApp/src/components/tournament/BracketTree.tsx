@@ -71,7 +71,7 @@ export default function BracketTree({
 }) {
     const [containerRef, containerWidth] = useContainerWidth<HTMLDivElement>();
 
-    if (matches.length === 0) return <p className="font-mono text-xs text-[#7C8AA6]">Sin matches todavía.</p>;
+    if (matches.length === 0) return <p className="font-mono text-xs text-[color:var(--t-muted,#7C8AA6)]">Sin matches todavía.</p>;
 
     const rounds = Array.from(new Set(matches.map((m) => m.roundNumber))).sort((a, b) => a - b);
     const maxRound = Math.max(...rounds);
@@ -107,7 +107,8 @@ export default function BracketTree({
     const championW = matchW * 0.85;
 
     return (
-        <div ref={containerRef} className="overflow-x-auto pb-3 -mx-1 px-1">
+        // --t-font-data: la pagina publica usa su tipografia de marcador; el panel sigue en monoespaciada.
+        <div ref={containerRef} className="overflow-x-auto pb-3 -mx-1 px-1" style={{ fontFamily: 'var(--t-font-data, ui-monospace, SFMono-Regular, Menlo, monospace)' }}>
             <div className="flex" style={{ gap: roundGap }}>
                 {rounds.map((round, i) => {
                     const isFinal = round === maxRound;
@@ -117,8 +118,8 @@ export default function BracketTree({
                     return (
                         <div key={round} className="relative flex-shrink-0" style={{ width: matchW, height: totalHeight }}>
                             <p
-                                className={`absolute left-0 right-0 text-center font-mono uppercase tracking-widest ${
-                                    isFinal ? 'text-[#E8B04B]' : 'text-[#7C8AA6]'
+                                className={`absolute left-0 right-0 text-center font-bold tracking-wide ${
+                                    isFinal ? 'text-[color:var(--t-gold,#E8B04B)]' : 'text-[color:var(--t-muted,#7C8AA6)]'
                                 }`}
                                 style={{ top: -24 * scale, fontSize: 10 * scale }}
                             >
@@ -142,8 +143,8 @@ export default function BracketTree({
                                     <React.Fragment key={m.id}>
                                         <div
                                             className={`absolute rounded-lg border overflow-hidden transition-colors ${
-                                                isFinal ? 'border-[#E8B04B]/50 shadow-[0_0_16px_-4px_rgba(232,176,75,0.35)]' : 'border-[#232C42]'
-                                            } bg-[#0F1729]`}
+                                                isFinal ? 'border-[color:var(--t-gold-line,rgba(232,176,75,0.5))] shadow-[0_0_16px_-4px_rgba(232,176,75,0.35)]' : 'border-[color:var(--t-line,#232C42)]'
+                                            } bg-[color:var(--t-surface,#0F1729)]`}
                                             style={{ top, width: matchW, height: matchH }}
                                         >
                                             <TeamRow
@@ -152,7 +153,7 @@ export default function BracketTree({
                                                 scale={scale}
                                                 onClick={playable ? () => onRecordResult!(m.id, m.teamAId!) : undefined}
                                             />
-                                            <div className="bg-[#232C42]" style={{ height: 1 }} />
+                                            <div className="bg-[color:var(--t-connector,#232C42)]" style={{ height: 1 }} />
                                             <TeamRow
                                                 name={m.teamBName}
                                                 bye={m.status === 'walkover' && !m.teamBName}
@@ -165,12 +166,12 @@ export default function BracketTree({
                                         {(isMerge || isIdentity) && (
                                             <>
                                                 <div
-                                                    className="absolute bg-[#232C42]"
+                                                    className="absolute bg-[color:var(--t-connector,#232C42)]"
                                                     style={{ top: centerY - 1, left: matchW, width: roundGap / 2, height: 2 }}
                                                 />
                                                 {isMerge && isFirstOfPair && (
                                                     <div
-                                                        className="absolute bg-[#232C42]"
+                                                        className="absolute bg-[color:var(--t-connector,#232C42)]"
                                                         style={{
                                                             // destCenterY es el promedio del par (propiedad de la distribucion
                                                             // pareja, ver nota arriba) — el compañero cae simetrico al otro lado.
@@ -182,7 +183,7 @@ export default function BracketTree({
                                                     />
                                                 )}
                                                 <div
-                                                    className="absolute bg-[#232C42]"
+                                                    className="absolute bg-[color:var(--t-connector,#232C42)]"
                                                     style={{ top: destCenterY - 1, left: matchW + roundGap / 2 - 1, width: roundGap / 2 + 1, height: 2 }}
                                                 />
                                             </>
@@ -197,21 +198,21 @@ export default function BracketTree({
                 {championName && (
                     <div className="relative flex-shrink-0" style={{ width: championW, height: totalHeight }}>
                         <p
-                            className="absolute left-0 right-0 text-center font-mono uppercase tracking-widest text-[#E8B04B]"
+                            className="absolute left-0 right-0 text-center font-bold tracking-wide text-[color:var(--t-gold,#E8B04B)]"
                             style={{ top: -24 * scale, fontSize: 10 * scale }}
                         >
                             Campeón
                         </p>
                         <div
-                            className="absolute bg-[#232C42]"
+                            className="absolute bg-[color:var(--t-connector,#232C42)]"
                             style={{ top: championCenterY - 1, left: -roundGap, width: roundGap, height: 2 }}
                         />
                         <div
-                            className="absolute rounded-lg border border-[#E8B04B] bg-[#E8B04B]/10 shadow-[0_0_20px_-4px_rgba(232,176,75,0.5)] flex items-center justify-center px-2 overflow-hidden"
+                            className="absolute rounded-lg border border-[color:var(--t-gold,#E8B04B)] bg-[color:var(--t-gold-soft,rgba(232,176,75,0.1))] shadow-[0_0_20px_-4px_rgba(232,176,75,0.5)] flex items-center justify-center px-2 overflow-hidden"
                             style={{ top: championCenterY - matchH / 2, width: championW, height: matchH }}
                         >
                             <span
-                                className="font-mono font-bold text-[#E8B04B] truncate"
+                                className="font-bold text-[color:var(--t-gold,#E8B04B)] truncate"
                                 style={{ fontSize: 13 * scale }}
                             >
                                 🏆 {championName}
@@ -242,14 +243,14 @@ function TeamRow({
         <Tag
             type={onClick ? 'button' : undefined}
             onClick={onClick}
-            className={`w-full flex items-center justify-between font-mono truncate ${onClick ? 'cursor-pointer hover:bg-[#1a2540]' : ''} ${
-                won ? 'text-[#3ED6C4] font-bold' : 'text-[#EDF0F7]'
+            className={`w-full flex items-center justify-between truncate ${onClick ? 'cursor-pointer hover:bg-[color:var(--t-surface-raised,#1a2540)]' : ''} ${
+                won ? 'text-[color:var(--t-accent,#3ED6C4)] font-bold' : 'text-[color:var(--t-ink,#EDF0F7)]'
             }`}
             style={{ height: 25 * scale, paddingLeft: 10 * scale, paddingRight: 10 * scale, fontSize: 12 * scale }}
         >
             <span className="truncate">{name || (bye ? '—' : 'TBD')}</span>
             {won && (
-                <span className="text-[#3ED6C4]" style={{ fontSize: 9 * scale }}>
+                <span className="text-[color:var(--t-accent,#3ED6C4)]" style={{ fontSize: 9 * scale }}>
                     ●
                 </span>
             )}

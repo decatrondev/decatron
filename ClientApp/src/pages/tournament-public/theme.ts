@@ -63,8 +63,15 @@ export function ensureContrast(color: string, bg: string, min = 4.5): string {
 
 export interface TournamentTokens {
     isDark: boolean;
+    // Colores tal cual los eligio el streamer (portada sin imagen).
+    brandPrimary: string;
+    brandSecondary: string;
+    // Los mismos, aclarados u oscurecidos lo justo para que se distingan del fondo
+    // (3:1, el minimo para barras, botones y bordes). Si el color ya se ve, no cambia.
     primary: string;
     secondary: string;
+    // true si hubo que ajustar el principal (la pestaña Apariencia lo avisa).
+    primaryAdjusted: boolean;
     onPrimary: string;
     onSecondary: string;
     // Version del principal que se lee como texto sobre el fondo.
@@ -80,20 +87,25 @@ export interface TournamentTokens {
 }
 
 export function buildTokens(a: Appearance): TournamentTokens {
-    const primary = a.primaryColor && HEX.test(a.primaryColor) ? a.primaryColor : DEFAULT_PRIMARY;
-    const secondary = a.secondaryColor && HEX.test(a.secondaryColor) ? a.secondaryColor : DEFAULT_SECONDARY;
+    const brandPrimary = a.primaryColor && HEX.test(a.primaryColor) ? a.primaryColor.toUpperCase() : DEFAULT_PRIMARY;
+    const brandSecondary = a.secondaryColor && HEX.test(a.secondaryColor) ? a.secondaryColor.toUpperCase() : DEFAULT_SECONDARY;
     const isDark = a.theme !== 'light';
 
-    const bg = isDark ? mix('#080B12', primary, 0.07) : mix('#F3F5F9', primary, 0.04);
-    const surface = isDark ? mix('#0F141F', primary, 0.08) : '#FFFFFF';
-    const surfaceRaised = isDark ? mix('#161D2B', primary, 0.1) : mix('#EEF1F6', primary, 0.05);
+    const bg = isDark ? mix('#080B12', brandPrimary, 0.07) : mix('#F3F5F9', brandPrimary, 0.04);
+    const surface = isDark ? mix('#0F141F', brandPrimary, 0.08) : '#FFFFFF';
+    const surfaceRaised = isDark ? mix('#161D2B', brandPrimary, 0.1) : mix('#EEF1F6', brandPrimary, 0.05);
+    const primary = ensureContrast(brandPrimary, surfaceRaised, 3);
+    const secondary = ensureContrast(brandSecondary, surfaceRaised, 3);
     const ink = isDark ? '#F2F5FA' : '#0E1320';
     const muted = isDark ? '#9AA4B6' : '#566072';
 
     return {
         isDark,
+        brandPrimary,
+        brandSecondary,
         primary,
         secondary,
+        primaryAdjusted: primary !== brandPrimary,
         onPrimary: readableOn(primary),
         onSecondary: readableOn(secondary),
         accent: ensureContrast(primary, surface),

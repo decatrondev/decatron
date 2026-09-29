@@ -133,9 +133,47 @@ namespace Decatron.Controllers
                     edition.AegisMechanicName,
                 },
                 isLive = isLive,
+                matchday = edition.Game == TournamentGames.Fortnite ? await GetFortniteMatchdayAsync(edition.Id) : null,
                 ranking = ordered,
                 sponsors = await GetActiveSponsorsAsync(edition.Id),
             });
+        }
+
+        /// <summary>
+        /// Fortnite: en que va el dia de partida, para la cabecera en vivo ("Partida 3 de
+        /// 6"). Nunca incluye el codigo de la partida.
+        /// </summary>
+        private async Task<object?> GetFortniteMatchdayAsync(long editionId)
+        {
+            var session = await _dbContext.TournamentFortniteSessions
+                .Where(s => s.TournamentEditionId == editionId && (s.Status == "in_progress" || s.Status == "check_in"))
+                .OrderBy(s => s.SortOrder)
+                .FirstOrDefaultAsync();
+            if (session == null)
+            {
+                var next = await _dbContext.TournamentFortniteSessions
+                    .Where(s => s.TournamentEditionId == editionId && s.Status == "scheduled")
+                    .OrderBy(s => s.ScheduledAt ?? DateTime.MaxValue).ThenBy(s => s.SortOrder)
+                    .Select(s => new { s.Name, s.ScheduledAt })
+                    .FirstOrDefaultAsync();
+                return next == null ? null : new { sessionName = next.Name, sessionStatus = "scheduled", scheduledAt = next.ScheduledAt };
+            }
+
+            var games = await _dbContext.TournamentFortniteGames
+                .Where(g => g.SessionId == session.Id)
+                .OrderBy(g => g.GameNumber)
+                .Select(g => new { g.GameNumber, g.Status })
+                .ToListAsync();
+            var current = games.LastOrDefault(g => g.Status != "waiting") ?? games.FirstOrDefault();
+            return new
+            {
+                sessionName = session.Name,
+                sessionStatus = session.Status,
+                scheduledAt = session.ScheduledAt,
+                gameNumber = current?.GameNumber,
+                gameStatus = current?.Status,
+                gamesTotal = games.Count,
+            };
         }
 
         private async Task<List<object>> GetActiveSponsorsAsync(long editionId)
