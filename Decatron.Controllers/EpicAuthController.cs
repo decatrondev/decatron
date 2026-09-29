@@ -134,8 +134,9 @@ namespace Decatron.Controllers
                 var tokenJson = await tokenRes.Content.ReadAsStringAsync();
                 if (!tokenRes.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("[EpicAuth] token {Status}: {Body}", (int)tokenRes.StatusCode, tokenJson.Length > 300 ? tokenJson[..300] : tokenJson);
-                    return (null, null, "Epic rechazó el inicio de sesión: vuelve a intentarlo");
+                    // La respuesta de error no trae secretos; se guarda entera para saber que pidio Epic.
+                    _logger.LogWarning("[EpicAuth] token {Status}: {Body}", (int)tokenRes.StatusCode, tokenJson.Length > 1500 ? tokenJson[..1500] : tokenJson);
+                    return (null, null, DescribeTokenError(tokenJson));
                 }
 
                 var token = JsonNode.Parse(tokenJson);
@@ -165,6 +166,40 @@ namespace Decatron.Controllers
             {
                 _logger.LogWarning(ex, "[EpicAuth] Error hablando con Epic");
                 return (null, null, "Epic no respondió: vuelve a intentarlo");
+            }
+        }
+
+        /// <summary>
+        /// "corrective_action_required": la cuenta de Epic tiene un paso pendiente que se
+        /// resuelve en epicgames.com (no en Decatron). Se le dice al usuario cual, si Epic
+        /// lo manda en correctiveAction.
+        /// </summary>
+        private static string DescribeTokenError(string json)
+        {
+            try
+            {
+                var node = JsonNode.Parse(json);
+                var code = node?["errorCode"]?.GetValue<string>() ?? "";
+                if (!code.Contains("corrective_action_required"))
+                    return "Epic rechazó el inicio de sesión: vuelve a intentarlo";
+
+                var action = node?["correctiveAction"]?.GetValue<string>() ?? "";
+                var step = action switch
+                {
+                    "PRIVACY_POLICY_ACCEPTANCE" => "aceptar la política de privacidad actualizada",
+                    "DATE_OF_BIRTH" => "confirmar tu fecha de nacimiento",
+                    "DISPLAY_NAME_UPDATE" => "elegir tu nombre visible",
+                    "EULA_ACCEPTANCE" => "aceptar el acuerdo de licencia",
+                    "EMAIL_VERIFICATION" or "VERIFY_EMAIL" => "verificar tu correo",
+                    _ => null,
+                };
+                return step != null
+                    ? $"Tu cuenta de Epic tiene un paso pendiente: {step}. Entra a epicgames.com, inicia sesión, complétalo y vuelve a intentar."
+                    : "Tu cuenta de Epic tiene un paso pendiente (Epic lo llama \"acción correctiva\"). Entra a epicgames.com, inicia sesión, completa lo que te pida y vuelve a intentar.";
+            }
+            catch
+            {
+                return "Epic rechazó el inicio de sesión: vuelve a intentarlo";
             }
         }
 
