@@ -80,11 +80,7 @@
     }
   },
   "integrations": {
-    "title": "Integraciones",
-    "spotify": "Spotify",
-    "steam": "Steam",
-    "youtube": "YouTube",
-    "comingSoon": "Próximamente"
+    "title": "Integraciones"
   },
   "accessLevels": {
     "owner": "PROPIETARIO",
@@ -136,5 +132,48 @@
     "confirmRevoke": "¿Desvincular «{{name}}»? La app dejará de conectarse hasta que la vincules de nuevo.",
     "errorCode": "No se pudo generar el código.",
     "errorRevoke": "No se pudo desvincular."
+  },
+  "tabs": {
+    "account": "Mi cuenta",
+    "channel": "Canal y bot",
+    "access": "Accesos",
+    "games": "Juegos",
+    "integrations": "Integraciones"
+  },
+  "header": {
+    "configuring": "Configurando",
+    "switchChannel": "Cambiar de canal",
+    "platforms": "Tus plataformas",
+    "connected": "Conectado",
+    "notConnected": "Sin vincular",
+    "delegated": "Estás administrando un canal que no es tuyo: tus vinculaciones se ven desde tu propio canal."
+  },
+  "sections": {
+    "platforms": {
+      "title": "Plataformas",
+      "description": "Una sola cuenta de Decatron une tus canales. Vincula las plataformas que uses."
+    },
+    "plan": {
+      "title": "Plan",
+      "description": "Tu nivel de cuenta y desde cuándo está activo."
+    },
+    "yourChannels": {
+      "title": "Tus canales",
+      "description": "Elige cuál de tus canales vinculados estás configurando. Cada uno tiene sus propios comandos, timers y overlays."
+    },
+    "bot": {
+      "title": "Bot"
+    },
+    "games": {
+      "title": "Cuentas de juego",
+      "description": "Las usas para inscribirte a torneos y para los overlays de juego."
+    },
+    "integrations": {
+      "title": "Integraciones",
+      "description": "Conecta Decatron con tu servidor de Discord y con la app de escritorio."
+    },
+    "accessLevel": {
+      "title": "Tu nivel de acceso"
+    }
   }
 }

@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useMemo } from 'react';
-import { Users, Trash2, Plus, Music, Gamepad2, Youtube, Crown, X, AlertTriangle, CheckCircle, Lock, Languages, MessageSquare, ExternalLink, Loader2, Unlink, Link2, EyeOff, Pencil } from 'lucide-react';
+import { Trash2, Plus, Crown, X, AlertTriangle, CheckCircle, Lock, MessageSquare, ExternalLink, Loader2, Unlink, EyeOff, Pencil } from 'lucide-react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +72,25 @@ interface AccountTier {
     source: string | null;
 }
 
+// Pestañas de Settings (rediseño 2026-09-29): una sección por pestaña en vez de
+// todo en una sola pagina. La pestaña va en ?tab= para poder enlazarla.
+type SettingsTab = 'account' | 'channel' | 'access' | 'games' | 'integrations';
+const SETTINGS_TABS: SettingsTab[] = ['account', 'channel', 'access', 'games', 'integrations'];
+
+/**
+ * Pestaña inicial: la de ?tab=, o la que corresponde a la vuelta de un login
+ * externo (Discord → Integraciones, Epic → Juegos, vincular plataforma → Mi cuenta),
+ * para que el aviso de esa seccion se vea al volver.
+ */
+function initialSettingsTab(): SettingsTab {
+    const q = new URLSearchParams(window.location.search);
+    const tab = q.get('tab') as SettingsTab | null;
+    if (tab && SETTINGS_TABS.includes(tab)) return tab;
+    if (q.get('discord')) return 'integrations';
+    if (q.get('epic')) return 'games';
+    return 'account';
+}
+
 // Interfaz para la notificación Toast
 interface Toast {
     id: number;
@@ -103,6 +122,26 @@ export default function Settings() {
     const [editAccess, setEditAccess] = useState<EditAccessForm | null>(null);
     const [loading, setLoading] = useState(false); // Para operaciones de C/R/U/D
     const [pageLoading, setPageLoading] = useState(true); // Para la carga inicial
+
+    const [activeTab, setActiveTabState] = useState<SettingsTab>(initialSettingsTab);
+    const setActiveTab = (tab: SettingsTab) => {
+        setActiveTabState(tab);
+        window.history.replaceState({}, '', `/settings?tab=${tab}`);
+    };
+
+    // Cuentas de juego vinculadas, solo para encender las fichas de Riot y Epic de la cabecera.
+    const [gameLinks, setGameLinks] = useState<{ riot: boolean; epic: boolean }>({ riot: false, epic: false });
+    useEffect(() => {
+        api.get('/me/game-accounts')
+            .then((res) => {
+                const accounts: { game: string; provider: string }[] = res.data?.accounts || [];
+                setGameLinks({
+                    riot: accounts.some((a) => a.provider === 'riot'),
+                    epic: accounts.some((a) => a.game === 'fortnite'),
+                });
+            })
+            .catch(() => {});
+    }, [activeTab]);
 
     // --- NUEVOS ESTADOS PARA NOTIFICACIONES ---
     const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -213,7 +252,10 @@ export default function Settings() {
                     login: discordUsername || 'Discord User',
                     displayName: jwtClaims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] || discordUsername || 'Discord User',
                     createdAt: 'N/A',
-                    updatedAt: new Date().toLocaleString('es-ES')
+                    updatedAt: new Date().toLocaleString('es-ES'),
+                    // Solo-Discord siempre es su propia cuenta: sin esto quedaba undefined y
+                    // se escondia la seccion de vincular (con el boton "Vincular Twitch").
+                    isOwner: true
                 });
                 setBotStatus({ botConnected: false, botEnabledForUser: false, canModifySettings: false, userAccessLevel: 'none' });
                 // Load Discord user info from DB
@@ -225,7 +267,8 @@ export default function Settings() {
                             login: res.data.discordUsername || discordUsername,
                             displayName: res.data.displayName || discordUsername,
                             createdAt: res.data.createdAt ? new Date(res.data.createdAt).toLocaleDateString('es-ES') : 'N/A',
-                            updatedAt: res.data.updatedAt ? new Date(res.data.updatedAt).toLocaleString('es-ES') : 'N/A'
+                            updatedAt: res.data.updatedAt ? new Date(res.data.updatedAt).toLocaleString('es-ES') : 'N/A',
+                            isOwner: true
                         });
                     }
                 } catch { /* fallback to JWT data */ }
@@ -489,422 +532,398 @@ export default function Settings() {
         return <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">{t('settings:loading.loadingSettings')}</div>;
     }
 
+    // Estado de cada plataforma para la cabecera y las filas de "Mi cuenta".
+    const twitchLinked = authProvider === 'twitch' || authProvider === 'both' || (authProvider === 'kick' && !!linkedTwitch);
+    const discordLinked = authProvider === 'discord' || authProvider === 'both';
+    const kickLinked = authProvider === 'kick' || !!linkedKick;
+
+    const tabs: { id: SettingsTab; label: string }[] = [
+        { id: 'account', label: t('settings:tabs.account') },
+        { id: 'channel', label: t('settings:tabs.channel') },
+        ...(!isDiscordOnly ? [{ id: 'access' as SettingsTab, label: t('settings:tabs.access') }] : []),
+        { id: 'games', label: t('settings:tabs.games') },
+        { id: 'integrations', label: t('settings:tabs.integrations') },
+    ];
+    const currentTab: SettingsTab = tabs.some((x) => x.id === activeTab) ? activeTab : 'account';
+
+    const linkButton = 'px-4 py-2 text-sm 4xl:text-base font-bold rounded-lg transition-all whitespace-nowrap';
+    const unlinkButton = `${linkButton} bg-red-500/10 text-red-500 border border-red-200 dark:border-red-800 hover:bg-red-500/20`;
+
     return (
         <>
-            {/* --- LAYOUT MODIFICADO (REQUEST 1) --- */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* Columna Izquierda */}
-                <div className="space-y-6">
-                    {/* Tus Canales — cambiar cual canal propio estas configurando.
-                        Distinto del selector de permisos delegados del header: acá
-                        solo aparecen tus propios canales vinculados por cuenta. */}
-                    {userInfo.isOwner && accountChannels.length > 1 && (
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Link2 className="w-6 h-6 text-[#2563eb]" />
-                                <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Tus Canales</h2>
+            <div className="font-onest max-w-[1400px] 4xl:max-w-[1900px] 5xl:max-w-[2500px] mx-auto space-y-6 4xl:space-y-8">
+                {/* Cabecera: quien sos, que plan tenes, que canal configuras y tus plataformas unidas */}
+                <section className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 md:p-6 4xl:p-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4 4xl:gap-6 min-w-0">
+                        {jwtClaims.ProfileImage ? (
+                            <img src={jwtClaims.ProfileImage} alt="" className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-2xl object-cover flex-shrink-0" />
+                        ) : (
+                            <div className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-2xl bg-[#2563eb] text-white flex items-center justify-center text-2xl 4xl:text-4xl font-black flex-shrink-0">
+                                {(userInfo.displayName || '?').slice(0, 1).toUpperCase()}
                             </div>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
-                                Elegí cuál de tus canales vinculados estás configurando ahora. Cada uno tiene sus propios comandos, timers y overlays — cambiar acá no toca los del otro.
+                        )}
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h1 className="text-2xl md:text-3xl 4xl:text-4xl font-extrabold text-[#1e293b] dark:text-[#f8fafc] truncate">{userInfo.displayName}</h1>
+                                {accountTier && <TierPill tier={accountTier} />}
+                            </div>
+                            <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                                {t('settings:header.configuring')}: <span className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">@{userInfo.login}</span>
+                                {userInfo.isOwner && accountChannels.length > 1 && (
+                                    <button onClick={() => setActiveTab('channel')} className="ml-2 font-semibold text-[#2563eb] hover:underline">
+                                        {t('settings:header.switchChannel')}
+                                    </button>
+                                )}
                             </p>
-                            <div className="space-y-2">
-                                {accountChannels.map((ch: any) => (
-                                    <div
-                                        key={ch.id}
-                                        className={`flex items-center justify-between p-3 rounded-lg border ${
-                                            ch.isCurrent
-                                                ? 'border-[#2563eb] bg-[#2563eb]/5'
-                                                : 'border-[#e2e8f0] dark:border-[#374151] bg-gray-50 dark:bg-[#222324]'
-                                        }`}
+                        </div>
+                    </div>
+
+                    {/* Tus plataformas como fichas unidas por una linea: encendidas las vinculadas */}
+                    <div>
+                        <p className="text-xs 4xl:text-sm font-semibold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('settings:header.platforms')}</p>
+                        <div className="relative flex items-center gap-3 4xl:gap-4">
+                            <span className="absolute left-5 right-5 top-1/2 h-0.5 bg-[#e2e8f0] dark:bg-[#374151]" aria-hidden />
+                            <PlatformTile name="Twitch" color="#9146FF" on={twitchLinked} onClick={() => setActiveTab('account')} statusText={twitchLinked ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                                <svg className="w-5 h-5 4xl:w-6 4xl:h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" /></svg>
+                            </PlatformTile>
+                            <PlatformTile name="Kick" color="#53FC18" dark on={kickLinked} onClick={() => setActiveTab('account')} statusText={kickLinked ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                                <span className="font-black text-lg 4xl:text-xl">K</span>
+                            </PlatformTile>
+                            <PlatformTile name="Discord" color="#5865F2" on={discordLinked} onClick={() => setActiveTab('account')} statusText={discordLinked ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                                <MessageSquare className="w-5 h-5 4xl:w-6 4xl:h-6" />
+                            </PlatformTile>
+                            <PlatformTile name="Riot" color="#D13639" on={gameLinks.riot} onClick={() => setActiveTab('games')} statusText={gameLinks.riot ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                                <span className="font-black text-lg 4xl:text-xl">R</span>
+                            </PlatformTile>
+                            <PlatformTile name="Epic" color="#2A2A2A" on={gameLinks.epic} onClick={() => setActiveTab('games')} statusText={gameLinks.epic ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                                <span className="font-black text-lg 4xl:text-xl">E</span>
+                            </PlatformTile>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Pestañas */}
+                <nav className="sticky top-0 z-20 -mx-1 px-1 bg-[#f8fafc]/90 dark:bg-[#111213]/90 backdrop-blur" role="tablist">
+                    <div className="flex gap-1 overflow-x-auto border-b border-[#e2e8f0] dark:border-[#374151]">
+                        {tabs.map((tab) => {
+                            const on = currentTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    role="tab"
+                                    aria-selected={on}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`relative px-4 4xl:px-6 py-3 4xl:py-4 text-sm md:text-base 4xl:text-lg font-bold whitespace-nowrap transition-colors ${
+                                        on ? 'text-[#1e293b] dark:text-[#f8fafc]' : 'text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc]'
+                                    }`}
+                                >
+                                    {tab.label}
+                                    {on && <span className="absolute left-2 right-2 -bottom-px h-0.5 bg-[#2563eb] rounded-full" />}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </nav>
+
+                {/* ─── Mi cuenta ─── */}
+                {currentTab === 'account' && (
+                    <div className="space-y-6 4xl:space-y-8">
+                        <SettingsGroup title={t('settings:sections.platforms.title')} description={t('settings:sections.platforms.description')}>
+                            {!userInfo.isOwner ? (
+                                <SettingsRow title="—" description={t('settings:header.delegated')} />
+                            ) : (
+                                <>
+                                    <SettingsRow
+                                        icon={<PlatformIcon color="#9146FF"><svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" /></svg></PlatformIcon>}
+                                        title="Twitch"
+                                        description={twitchLinked ? <Linked>Vinculado{linkedTwitch?.twitchLogin ? ` (${linkedTwitch.twitchLogin})` : ''}</Linked> : 'No vinculado'}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div
-                                                className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold ${
-                                                    ch.hasKick ? 'bg-[#53fc18] text-black' : 'bg-gradient-to-br from-[#9146ff] to-[#772ce8] text-white'
-                                                }`}
+                                        {authProvider === 'discord' && (
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await api.post('/auth/link-twitch-start');
+                                                        if (res.data.url) window.location.href = res.data.url;
+                                                    } catch { addToast('Error al iniciar vinculación', 'error'); }
+                                                }}
+                                                className={`${linkButton} bg-[#9146ff] hover:bg-[#772ce8] text-white`}
                                             >
-                                                {ch.hasKick ? 'K' : 'T'}
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">
-                                                    {ch.hasKick ? ch.kickUsername : ch.twitchLogin}
-                                                </div>
-                                                <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">
-                                                    {ch.hasKick ? 'Kick' : 'Twitch'}
-                                                </div>
-                                            </div>
+                                                Vincular
+                                            </button>
+                                        )}
+                                        {authProvider === 'kick' && !linkedTwitch && (
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        // link-account-start, no link-twitch-start: no fusiona
+                                                        // filas, Kick conserva su propia config.
+                                                        const res = await api.post('/auth/link-account-start');
+                                                        if (res.data.url) window.location.href = res.data.url;
+                                                    } catch { addToast('Error al iniciar vinculación', 'error'); }
+                                                }}
+                                                className={`${linkButton} bg-[#9146ff] hover:bg-[#772ce8] text-white`}
+                                            >
+                                                Vincular
+                                            </button>
+                                        )}
+                                        {authProvider === 'kick' && linkedTwitch && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('¿Desvincular Twitch? El canal sigue existiendo, solo deja de estar agrupado con esta cuenta.')) return;
+                                                    try {
+                                                        await api.post('/auth/unlink-account');
+                                                        addToast('Twitch desvinculado', 'success');
+                                                        loadAccountChannels();
+                                                    } catch { addToast('Error al desvincular', 'error'); }
+                                                }}
+                                                className={unlinkButton}
+                                            >
+                                                Desvincular
+                                            </button>
+                                        )}
+                                        {authProvider === 'both' && jwtClaims.AuthProvider === 'discord' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('¿Desvincular Twitch? Perderás acceso al bot y al dashboard del streamer.')) return;
+                                                    try {
+                                                        const res = await api.post('/auth/unlink-twitch');
+                                                        if (res.data.token) {
+                                                            localStorage.setItem('token', res.data.token);
+                                                            window.location.reload();
+                                                        }
+                                                    } catch { addToast('Error al desvincular', 'error'); }
+                                                }}
+                                                className={unlinkButton}
+                                            >
+                                                Desvincular
+                                            </button>
+                                        )}
+                                    </SettingsRow>
+
+                                    <SettingsRow
+                                        icon={<PlatformIcon color="#5865F2"><MessageSquare className="w-5 h-5" /></PlatformIcon>}
+                                        title="Discord"
+                                        description={discordLinked ? <Linked>Vinculado</Linked> : 'No vinculado'}
+                                    >
+                                        {authProvider === 'twitch' && (
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await api.post('/auth/discord/link-start');
+                                                        if (res.data.url) window.location.href = res.data.url;
+                                                    } catch { addToast('Error al iniciar vinculación', 'error'); }
+                                                }}
+                                                className={`${linkButton} bg-[#5865F2] hover:bg-[#4752C4] text-white`}
+                                            >
+                                                Vincular Discord
+                                            </button>
+                                        )}
+                                        {authProvider === 'both' && jwtClaims.AuthProvider !== 'discord' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('¿Desvincular Discord?')) return;
+                                                    try {
+                                                        const res = await api.post('/auth/discord/unlink');
+                                                        if (res.data.token) {
+                                                            localStorage.setItem('token', res.data.token);
+                                                            window.location.reload();
+                                                        }
+                                                    } catch { addToast('Error al desvincular', 'error'); }
+                                                }}
+                                                className={unlinkButton}
+                                            >
+                                                Desvincular
+                                            </button>
+                                        )}
+                                    </SettingsRow>
+
+                                    {/* Kick — no fusiona filas, cada canal mantiene su propia config */}
+                                    {authProvider !== 'kick' && (
+                                        <SettingsRow
+                                            icon={<PlatformIcon color="#53FC18" dark><span className="font-black">K</span></PlatformIcon>}
+                                            title="Kick"
+                                            description={linkedKick ? <Linked>Vinculado{linkedKick.kickUsername ? ` (${linkedKick.kickUsername})` : ''}</Linked> : 'No vinculado'}
+                                        >
+                                            {!linkedKick ? (
+                                                <button
+                                                    onClick={async () => {
+                                                        try {
+                                                            const res = await api.post('/auth/kick/link-start');
+                                                            if (res.data.url) window.location.href = res.data.url;
+                                                        } catch { addToast('Error al iniciar vinculación', 'error'); }
+                                                    }}
+                                                    className={`${linkButton} bg-[#53fc18] hover:bg-[#3ecc0a] text-black`}
+                                                >
+                                                    Vincular Kick
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm('¿Desvincular Kick? El canal sigue existiendo, solo deja de estar agrupado con esta cuenta.')) return;
+                                                        try {
+                                                            await api.post('/auth/kick/unlink');
+                                                            addToast('Kick desvinculado', 'success');
+                                                            loadAccountChannels();
+                                                        } catch { addToast('Error al desvincular', 'error'); }
+                                                    }}
+                                                    className={unlinkButton}
+                                                >
+                                                    Desvincular
+                                                </button>
+                                            )}
+                                        </SettingsRow>
+                                    )}
+                                    {authProvider === 'both' && (
+                                        <div className="px-5 4xl:px-7 py-3 bg-green-50 dark:bg-green-900/20 text-sm 4xl:text-base text-green-700 dark:text-green-400 font-medium flex items-center gap-2">
+                                            <CheckCircle className="w-4 h-4" /> Cuentas vinculadas: acceso completo
                                         </div>
+                                    )}
+                                </>
+                            )}
+                        </SettingsGroup>
+
+                        <SettingsGroup title={t('settings:sections.plan.title')} description={t('settings:sections.plan.description')}>
+                            <div className="px-5 4xl:px-7 py-4 4xl:py-5">
+                                {accountTier ? (
+                                    <TierBadge tier={accountTier} />
+                                ) : (
+                                    <div className="inline-block px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-500 font-bold rounded-lg text-sm animate-pulse">Cargando...</div>
+                                )}
+                            </div>
+                        </SettingsGroup>
+
+                        <SettingsGroup title={t('settings:language.title')} description={t('settings:language.description')}>
+                            <div className="px-5 4xl:px-7 py-4 4xl:py-5 space-y-4">
+                                <LanguageSelector variant="radio" showLabel={false} />
+                                <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('settings:language.note')}</p>
+                            </div>
+                        </SettingsGroup>
+                    </div>
+                )}
+
+                {/* ─── Canal y bot ─── */}
+                {currentTab === 'channel' && (
+                    <div className="space-y-6 4xl:space-y-8">
+                        {userInfo.isOwner && accountChannels.length > 1 && (
+                            <SettingsGroup title={t('settings:sections.yourChannels.title')} description={t('settings:sections.yourChannels.description')}>
+                                {accountChannels.map((ch: any) => (
+                                    <SettingsRow
+                                        key={ch.id}
+                                        icon={
+                                            ch.hasKick ? (
+                                                <PlatformIcon color="#53FC18" dark><span className="font-black">K</span></PlatformIcon>
+                                            ) : (
+                                                <PlatformIcon color="#9146FF"><span className="font-black">T</span></PlatformIcon>
+                                            )
+                                        }
+                                        title={ch.hasKick ? ch.kickUsername : ch.twitchLogin}
+                                        description={ch.hasKick ? 'Kick' : 'Twitch'}
+                                    >
                                         {ch.isCurrent ? (
-                                            <span className="text-xs font-bold text-[#2563eb] px-3 py-1.5">Configurando ahora</span>
+                                            <span className="text-sm 4xl:text-base font-bold text-[#2563eb] px-3 py-1.5">Configurando ahora</span>
                                         ) : (
                                             <button
                                                 onClick={() => switchToChannel(ch.id)}
                                                 disabled={switchingChannel}
-                                                className="px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50"
+                                                className={`${linkButton} bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50`}
                                             >
                                                 Configurar este
                                             </button>
                                         )}
-                                    </div>
+                                    </SettingsRow>
                                 ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Vincular Cuentas — oculta en modo delegado (userInfo.isOwner === false):
-                        estos botones actuan siempre sobre la cuenta de quien esta logueado,
-                        nunca sobre el canal delegado que se esta gestionando. */}
-                    {userInfo.isOwner && (
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Link2 className="w-6 h-6 text-[#2563eb]" />
-                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Vincular Cuentas</h2>
-                        </div>
-                        <div className="space-y-3">
-                            {/* Twitch */}
-                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#9146ff] to-[#772ce8] flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Twitch</div>
-                                        {(authProvider === 'twitch' || authProvider === 'both' || (authProvider === 'kick' && linkedTwitch)) ? (
-                                            <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-                                                <CheckCircle className="w-3.5 h-3.5" /> Vinculado{linkedTwitch?.twitchLogin ? ` (${linkedTwitch.twitchLogin})` : ''}
-                                            </div>
-                                        ) : (
-                                            <div className="text-sm text-[#94a3b8]">No vinculado</div>
-                                        )}
-                                    </div>
-                                </div>
-                                {authProvider === 'discord' && (
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                const res = await api.post('/auth/link-twitch-start');
-                                                if (res.data.url) window.location.href = res.data.url;
-                                            } catch { addToast('Error al iniciar vinculacion', 'error'); }
-                                        }}
-                                        className="px-4 py-2 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
-                                    >
-                                        Vincular
-                                    </button>
-                                )}
-                                {authProvider === 'kick' && !linkedTwitch && (
-                                    <button
-                                        onClick={async () => {
-                                            try {
-                                                // link-account-start, no link-twitch-start: no fusiona
-                                                // filas, Kick conserva su propia config.
-                                                const res = await api.post('/auth/link-account-start');
-                                                if (res.data.url) window.location.href = res.data.url;
-                                            } catch { addToast('Error al iniciar vinculacion', 'error'); }
-                                        }}
-                                        className="px-4 py-2 bg-gradient-to-r from-[#9146ff] to-[#772ce8] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
-                                    >
-                                        Vincular
-                                    </button>
-                                )}
-                                {authProvider === 'kick' && linkedTwitch && (
-                                    <button
-                                        onClick={async () => {
-                                            if (!confirm('¿Desvincular Twitch? El canal sigue existiendo, solo deja de estar agrupado con esta cuenta.')) return;
-                                            try {
-                                                await api.post('/auth/unlink-account');
-                                                addToast('Twitch desvinculado', 'success');
-                                                loadAccountChannels();
-                                            } catch { addToast('Error al desvincular', 'error'); }
-                                        }}
-                                        className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
-                                    >
-                                        Desvincular
-                                    </button>
-                                )}
-                                {authProvider === 'both' && jwtClaims.AuthProvider === 'discord' && (
-                                    <button
-                                        onClick={async () => {
-                                            if (!confirm('¿Desvincular Twitch? Perderas acceso al bot y dashboard del streamer.')) return;
-                                            try {
-                                                const res = await api.post('/auth/unlink-twitch');
-                                                if (res.data.token) {
-                                                    localStorage.setItem('token', res.data.token);
-                                                    window.location.reload();
-                                                }
-                                            } catch { addToast('Error al desvincular', 'error'); }
-                                        }}
-                                        className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
-                                    >
-                                        Desvincular
-                                    </button>
-                                )}
-                            </div>
-                            {/* Discord */}
-                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#5865F2] to-[#4752C4] flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Discord</div>
-                                        {(authProvider === 'discord' || authProvider === 'both') ? (
-                                            <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-                                                <CheckCircle className="w-3.5 h-3.5" /> Vinculado
-                                            </div>
-                                        ) : (
-                                            <div className="text-sm text-[#94a3b8]">No vinculado</div>
-                                        )}
-                                    </div>
-                                </div>
-                                {authProvider === 'twitch' && (
-                                    <button
-                                        onClick={async () => {
-                                            console.log('=== LINK DISCORD CLICKED ===');
-                                            try {
-                                                const res = await api.post('/auth/discord/link-start');
-                                                console.log('link-start response:', res.data);
-                                                if (res.data.url) window.location.href = res.data.url;
-                                            } catch (err) {
-                                                console.error('link-start error:', err);
-                                                addToast('Error al iniciar vinculacion', 'error');
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-gradient-to-r from-[#5865F2] to-[#4752C4] text-white text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
-                                    >
-                                        Vincular Discord
-                                    </button>
-                                )}
-                                {authProvider === 'both' && jwtClaims.AuthProvider !== 'discord' && (
-                                    <button
-                                        onClick={async () => {
-                                            if (!confirm('¿Desvincular Discord?')) return;
-                                            try {
-                                                const res = await api.post('/auth/discord/unlink');
-                                                if (res.data.token) {
-                                                    localStorage.setItem('token', res.data.token);
-                                                    window.location.reload();
-                                                }
-                                            } catch { addToast('Error al desvincular', 'error'); }
-                                        }}
-                                        className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
-                                    >
-                                        Desvincular
-                                    </button>
-                                )}
-                            </div>
-                            {/* Kick — no fusiona filas, cada canal mantiene su propia config */}
-                            {authProvider !== 'kick' && (
-                                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-[#53fc18] flex items-center justify-center font-display font-extrabold text-black">
-                                            K
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Kick</div>
-                                            {linkedKick ? (
-                                                <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-                                                    <CheckCircle className="w-3.5 h-3.5" /> Vinculado{linkedKick.kickUsername ? ` (${linkedKick.kickUsername})` : ''}
-                                                </div>
-                                            ) : (
-                                                <div className="text-sm text-[#94a3b8]">No vinculado</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {!linkedKick && (
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const res = await api.post('/auth/kick/link-start');
-                                                    if (res.data.url) window.location.href = res.data.url;
-                                                } catch { addToast('Error al iniciar vinculacion', 'error'); }
-                                            }}
-                                            className="px-4 py-2 bg-[#53fc18] hover:bg-[#3ecc0a] text-black text-sm font-bold rounded-lg hover:-translate-y-0.5 transition-all"
-                                        >
-                                            Vincular Kick
-                                        </button>
-                                    )}
-                                    {linkedKick && (
-                                        <button
-                                            onClick={async () => {
-                                                if (!confirm('¿Desvincular Kick? El canal sigue existiendo, solo deja de estar agrupado con esta cuenta.')) return;
-                                                try {
-                                                    await api.post('/auth/kick/unlink');
-                                                    addToast('Kick desvinculado', 'success');
-                                                    loadAccountChannels();
-                                                } catch { addToast('Error al desvincular', 'error'); }
-                                            }}
-                                            className="px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-200 dark:border-red-800 hover:bg-red-500/20 transition-all"
-                                        >
-                                            Desvincular
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        {authProvider === 'both' && (
-                            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                <p className="text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4" /> Cuentas vinculadas — acceso completo
-                                </p>
-                            </div>
+                            </SettingsGroup>
                         )}
-                    </div>
-                    )}
 
-                    {/* Configuración General — Estado del Bot */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">{t('settings:general.title')}</h2>
-                        <div className="space-y-6">
-                            <div className={`flex items-center justify-between p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151] ${isDiscordOnly ? 'opacity-50' : ''}`}>
-                                <div>
-                                    <div className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1">{t('settings:general.botStatus.title')}</div>
-                                    <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                        {isDiscordOnly ? 'Vincula tu cuenta de Twitch para activar el bot' : t('settings:general.botStatus.description')}
-                                    </div>
-                                </div>
+                        <SettingsGroup title={t('settings:sections.bot.title')}>
+                            <SettingsRow
+                                title={t('settings:general.botStatus.title')}
+                                description={isDiscordOnly ? 'Vincula tu cuenta de Twitch para activar el bot' : t('settings:general.botStatus.description')}
+                            >
                                 <button
                                     onClick={isDiscordOnly ? undefined : handleBotToggle}
                                     disabled={isDiscordOnly}
-                                    className={`relative w-14 h-8 rounded-full transition-colors ${isDiscordOnly ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed' : botEnabled ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                    role="switch"
+                                    aria-checked={!isDiscordOnly && botEnabled}
+                                    aria-label={t('settings:general.botStatus.title')}
+                                    className={`relative w-14 h-8 rounded-full transition-colors flex-shrink-0 ${isDiscordOnly ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed' : botEnabled ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
                                 >
                                     <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${!isDiscordOnly && botEnabled ? 'translate-x-6' : ''}`} />
                                 </button>
-                            </div>
-                        </div>
+                            </SettingsRow>
+                        </SettingsGroup>
+
+                        <SettingsGroup title={t('settings:systemInfo.title')}>
+                            <InfoRow label={t('settings:systemInfo.version')} value="Decatron v2.0" />
+                            <InfoRow label={t('settings:systemInfo.uniqueId')} value={userInfo.uniqueId} />
+                            <InfoRow label={t('settings:systemInfo.channel')} value={userInfo.login} />
+                            <InfoRow label={t('settings:systemInfo.memberSince')} value={userInfo.createdAt} />
+                            <InfoRow label={t('settings:systemInfo.lastUpdate')} value={userInfo.updatedAt} />
+                        </SettingsGroup>
+
+                        <SettingsGroup title={t('settings:sections.accessLevel.title')}>
+                            <SettingsRow title={t('settings:accessLevels.owner')} description={t('settings:systemInfo.accessLevelDescription')}>
+                                <span className="px-3 py-1 bg-purple-600 text-white text-xs 4xl:text-sm font-bold rounded">{t('settings:accessLevels.owner')}</span>
+                            </SettingsRow>
+                        </SettingsGroup>
                     </div>
+                )}
 
-                    {/* Preferencias de Idioma */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Languages className="w-6 h-6 text-[#2563eb]" />
-                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('settings:language.title')}</h2>
-                        </div>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-6">
-                            {t('settings:language.description')}
-                        </p>
-                        <LanguageSelector variant="radio" showLabel={false} />
-                        <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
-                                ℹ️ {t('settings:language.note')}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Información del Sistema */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">{t('settings:systemInfo.title')}</h2>
-                        <div className="space-y-4">
-                            <InfoRow label={t("settings:systemInfo.version")} value="Decatron v2.0" />
-                            <InfoRow label={t("settings:systemInfo.uniqueId")} value={userInfo.uniqueId} />
-                            <InfoRow label={t("settings:systemInfo.channel")} value={userInfo.login} />
-                            <InfoRow label={t("settings:systemInfo.memberSince")} value={userInfo.createdAt} />
-                            <InfoRow label={t("settings:systemInfo.lastUpdate")} value={userInfo.updatedAt} />
-                        </div>
-
-                        {/* Nivel de cuenta */}
-                        <div className="mt-6 pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
-                            <div className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-3">Nivel de cuenta</div>
-                            {accountTier ? (
-                                <TierBadge tier={accountTier} />
-                            ) : (
-                                <div className="inline-block px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-500 font-bold rounded-lg text-sm animate-pulse">
-                                    Cargando...
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="mt-6 pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
-                            <div className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">{t('settings:systemInfo.yourAccessLevel')}</div>
-                            <div className="inline-block px-4 py-2 bg-purple-600 text-white font-bold rounded-lg text-sm">
-                                {t('settings:accessLevels.owner')}
-                            </div>
-                            <div className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-2">{t('settings:systemInfo.accessLevelDescription')}</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Columna Derecha */}
-                <div className="space-y-6">
-                    {/* Gestión de Accesos — Solo Twitch/Both */}
-                    {!isDiscordOnly && (
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] h-fit">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('settings:accessManagement.title')}</h2>
-                            <button
-                                onClick={() => setShowAddUserModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all text-sm"
+                {/* ─── Accesos ─── */}
+                {currentTab === 'access' && !isDiscordOnly && (
+                    <div className="space-y-6 4xl:space-y-8">
+                        <SettingsGroup
+                            title={t('settings:accessManagement.title')}
+                            action={
+                                <button
+                                    onClick={() => setShowAddUserModal(true)}
+                                    className={`${linkButton} flex items-center gap-2 bg-[#2563eb] hover:bg-blue-700 text-white`}
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    {t('settings:accessManagement.addAccess')}
+                                </button>
+                            }
+                        >
+                            <SettingsRow
+                                icon={<Crown className="w-5 h-5 text-purple-600" />}
+                                title={userInfo.displayName}
+                                description={`@${userInfo.login}`}
                             >
-                                <Plus className="w-4 h-4" />
-                                {t('settings:accessManagement.addAccess')}
-                            </button>
-                        </div>
+                                <span className="px-3 py-1 bg-purple-600 text-white text-xs 4xl:text-sm font-bold rounded">{t('settings:accessLevels.owner')}</span>
+                            </SettingsRow>
+                        </SettingsGroup>
 
-                        {/* Propietario */}
-                        <div className="mb-6">
-                            <div className="flex items-center gap-2 text-[#2563eb] font-bold mb-3">
-                                <Crown className="w-5 h-5" />
-                                {t('settings:accessManagement.owner')}
-                            </div>
-                            <div className="bg-gray-50 dark:bg-[#222324] rounded-lg p-4 border border-purple-600">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{userInfo.displayName}</div>
-                                        <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">@{userInfo.login}</div>
-                                    </div>
-                                    <div className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded">
-                                        {t('settings:accessLevels.owner')}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Usuarios con Acceso */}
-                        <div>
-                            <div className="flex items-center gap-2 text-[#2563eb] font-bold mb-1">
-                                <Users className="w-5 h-5" />
-                                {t('settings:accessManagement.usersWithAccess')}
-                            </div>
-                            {isAccessOwner && (
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3">
-                                    {t('settings:accessManagement.hiddenHint')}
-                                </p>
-                            )}
+                        <SettingsGroup
+                            title={t('settings:accessManagement.usersWithAccess')}
+                            description={isAccessOwner ? t('settings:accessManagement.hiddenHint') : undefined}
+                        >
                             {channelUsers.length === 0 ? (
-                                <div className="text-center text-[#64748b] dark:text-[#94a3b8] py-8 text-sm">
-                                    {t('settings:accessManagement.noUsers')}
-                                </div>
+                                <div className="text-center text-[#64748b] dark:text-[#94a3b8] py-8 text-sm 4xl:text-base">{t('settings:accessManagement.noUsers')}</div>
                             ) : (
-                                <div className="overflow-x-auto rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                                    <table className="w-full text-sm">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm 4xl:text-base">
                                         <thead>
-                                            <tr className="bg-slate-50 dark:bg-[#222324]">
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">{t('settings:accessManagement.tableHeaders.name')}</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">{t('settings:accessManagement.tableHeaders.username')}</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">{t('settings:accessManagement.tableHeaders.permissions')}</th>
-                                                <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">{t('settings:accessManagement.tableHeaders.addedBy')}</th>
-                                                <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider">{t('settings:accessManagement.tableHeaders.actions')}</th>
+                                            <tr className="text-left text-[#64748b] dark:text-[#94a3b8]">
+                                                <th className="px-5 4xl:px-7 py-3 font-semibold">{t('settings:accessManagement.tableHeaders.name')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('settings:accessManagement.tableHeaders.username')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('settings:accessManagement.tableHeaders.permissions')}</th>
+                                                <th className="px-4 py-3 font-semibold">{t('settings:accessManagement.tableHeaders.addedBy')}</th>
+                                                <th className="px-5 4xl:px-7 py-3 font-semibold text-right">{t('settings:accessManagement.tableHeaders.actions')}</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151] border-t border-[#e2e8f0] dark:border-[#374151]">
                                             {channelUsers.map((user) => (
-                                                <tr key={user.id} className={`bg-white dark:bg-[#1B1C1D] hover:bg-slate-50 dark:hover:bg-[#222324] transition-colors ${user.isHidden ? 'opacity-60' : ''}`}>
-                                                    <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">
+                                                <tr key={user.id} className={`hover:bg-slate-50 dark:hover:bg-[#222324] transition-colors ${user.isHidden ? 'opacity-60' : ''}`}>
+                                                    <td className="px-5 4xl:px-7 py-3 text-[#1e293b] dark:text-[#f8fafc] font-medium">
                                                         <div className="flex items-center gap-2">
                                                             <span>{user.displayName}</span>
                                                             {user.isHidden && (
-                                                                <span title={t('settings:accessManagement.hiddenBadge')} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                                                <span title={t('settings:accessManagement.hiddenBadge')} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                                                                     <EyeOff className="w-3 h-3" />
                                                                     {t('settings:accessManagement.hiddenBadge')}
                                                                 </span>
                                                             )}
-                                                            {user.isSelf && (
-                                                                <span className="text-[10px] font-bold uppercase text-[#2563eb]">{t('settings:accessManagement.youBadge')}</span>
-                                                            )}
+                                                            {user.isSelf && <span className="text-xs font-bold text-[#2563eb]">{t('settings:accessManagement.youBadge')}</span>}
                                                         </div>
                                                         {user.alias && (
                                                             <div className="text-xs text-[#64748b] dark:text-[#94a3b8] font-normal">
@@ -915,26 +934,26 @@ export default function Settings() {
                                                     <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{user.isAliased ? '—' : `@${user.username}`}</td>
                                                     <td className="px-4 py-3">
                                                         <span className={`px-2 py-1 rounded text-xs font-bold text-white ${user.accessLevel === 'control_total' ? 'bg-purple-600' : user.accessLevel === 'moderation' ? 'bg-[#2563eb]' : 'bg-gray-500'}`}>
-                                                            {user.permissionLabel.toUpperCase()}
+                                                            {user.permissionLabel}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8]">{user.grantedBy === '__owner__' ? t('settings:accessManagement.owner') : user.grantedBy}</td>
-                                                    <td className="px-4 py-3 text-center">
+                                                    <td className="px-5 4xl:px-7 py-3 text-right">
                                                         <div className="inline-flex items-center gap-1">
                                                             {isAccessOwner && (
                                                                 <button
                                                                     onClick={() => openEditAccess(user)}
                                                                     disabled={loading}
                                                                     title={t('settings:accessManagement.editAccess')}
-                                                                    className="p-1 hover:bg-[#2563eb] rounded text-[#2563eb] hover:text-white transition-all disabled:opacity-50"
+                                                                    className="p-1.5 hover:bg-[#2563eb] rounded text-[#2563eb] hover:text-white transition-all disabled:opacity-50"
                                                                 >
                                                                     <Pencil className="w-4 h-4" />
                                                                 </button>
                                                             )}
                                                             <button
-                                                                onClick={() => removeUser(user.id)} // --- CAMBIO (REQUEST 3) ---
+                                                                onClick={() => removeUser(user.id)}
                                                                 disabled={loading}
-                                                                className="p-1 hover:bg-red-600 rounded text-red-500 hover:text-white transition-all disabled:opacity-50"
+                                                                className="p-1.5 hover:bg-red-600 rounded text-red-500 hover:text-white transition-all disabled:opacity-50"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
@@ -946,24 +965,29 @@ export default function Settings() {
                                     </table>
                                 </div>
                             )}
-                        </div>
+                        </SettingsGroup>
                     </div>
-                    )}
+                )}
 
-                    {/* Integraciones */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-6">{t('settings:integrations.title')}</h2>
-                        <div className="space-y-3">
-                            <DiscordIntegration />
-                            <DesktopAppSettings />
+                {/* ─── Juegos ─── */}
+                {currentTab === 'games' && (
+                    <SettingsGroup title={t('settings:sections.games.title')} description={t('settings:sections.games.description')}>
+                        <div className="p-4 4xl:p-6 space-y-3">
                             <RiotAccountsSettings />
                             <EpicAccountsSettings />
-                            <IntegrationCard icon={<Music className="w-6 h-6" />} name={t("settings:integrations.spotify")} status={t("settings:integrations.comingSoon")} color="bg-green-600" />
-                            <IntegrationCard icon={<Gamepad2 className="w-6 h-6" />} name={t("settings:integrations.steam")} status={t("settings:integrations.comingSoon")} color="bg-blue-600" />
-                            <IntegrationCard icon={<Youtube className="w-6 h-6" />} name={t("settings:integrations.youtube")} status={t("settings:integrations.comingSoon")} color="bg-red-600" />
                         </div>
-                    </div>
-                </div>
+                    </SettingsGroup>
+                )}
+
+                {/* ─── Integraciones ─── */}
+                {currentTab === 'integrations' && (
+                    <SettingsGroup title={t('settings:sections.integrations.title')} description={t('settings:sections.integrations.description')}>
+                        <div className="p-4 4xl:p-6 space-y-3">
+                            <DiscordIntegration />
+                            <DesktopAppSettings />
+                        </div>
+                    </SettingsGroup>
+                )}
             </div>
 
             {/* --- MODALES Y NOTIFICACIONES (REQUEST 3) --- */}
@@ -1200,10 +1224,99 @@ export default function Settings() {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="flex justify-between items-center py-3 border-b border-[#e2e8f0] dark:border-[#374151]">
-            <span className="text-[#64748b] dark:text-[#94a3b8] font-semibold">{label}</span>
-            <span className="text-[#1e293b] dark:text-[#f8fafc] font-mono text-sm">{value}</span>
+        <div className="flex justify-between items-center gap-4 px-5 4xl:px-7 py-3 4xl:py-4">
+            <span className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">{label}</span>
+            <span className="text-sm 4xl:text-base text-[#1e293b] dark:text-[#f8fafc] font-mono text-right break-all">{value}</span>
         </div>
+    );
+}
+
+/** Grupo de ajustes: titulo, explicacion y filas separadas por lineas finas. */
+function SettingsGroup({ title, description, action, children }: { title: string; description?: string; action?: React.ReactNode; children: React.ReactNode }) {
+    return (
+        <section>
+            <div className="flex items-end justify-between gap-4 mb-3 px-1">
+                <div className="min-w-0">
+                    <h2 className="text-lg md:text-xl 4xl:text-2xl font-extrabold text-[#1e293b] dark:text-[#f8fafc]">{title}</h2>
+                    {description && <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8] mt-0.5 max-w-3xl">{description}</p>}
+                </div>
+                {action}
+            </div>
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] divide-y divide-[#e2e8f0] dark:divide-[#374151] overflow-hidden">
+                {children}
+            </div>
+        </section>
+    );
+}
+
+/** Una fila: que es y que hace a la izquierda, el control a la derecha. */
+function SettingsRow({ icon, title, description, children }: { icon?: React.ReactNode; title: React.ReactNode; description?: React.ReactNode; children?: React.ReactNode }) {
+    return (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 4xl:px-7 py-4 4xl:py-5">
+            <div className="flex items-center gap-3 4xl:gap-4 min-w-0">
+                {icon && <div className="flex-shrink-0">{icon}</div>}
+                <div className="min-w-0">
+                    <div className="font-bold text-base 4xl:text-lg text-[#1e293b] dark:text-[#f8fafc] truncate">{title}</div>
+                    {description && <div className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8]">{description}</div>}
+                </div>
+            </div>
+            {children && <div className="flex items-center gap-2 flex-shrink-0">{children}</div>}
+        </div>
+    );
+}
+
+function Linked({ children }: { children: React.ReactNode }) {
+    return (
+        <span className="text-green-600 dark:text-green-400 inline-flex items-center gap-1">
+            <CheckCircle className="w-3.5 h-3.5" /> {children}
+        </span>
+    );
+}
+
+/** Icono de plataforma para las filas (color de la marca). */
+function PlatformIcon({ color, dark = false, children }: { color: string; dark?: boolean; children: React.ReactNode }) {
+    return (
+        <div className="w-10 h-10 4xl:w-12 4xl:h-12 rounded-xl flex items-center justify-center" style={{ background: color, color: dark ? '#000' : '#fff' }}>
+            {children}
+        </div>
+    );
+}
+
+/** Ficha de la cabecera: encendida si la plataforma esta vinculada, gris si no. */
+function PlatformTile({
+    name,
+    color,
+    dark = false,
+    on,
+    statusText,
+    onClick,
+    children,
+}: {
+    name: string;
+    color: string;
+    dark?: boolean;
+    on: boolean;
+    statusText: string;
+    onClick: () => void;
+    children: React.ReactNode;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            title={`${name}: ${statusText}`}
+            aria-label={`${name}: ${statusText}`}
+            className={`relative w-11 h-11 4xl:w-14 4xl:h-14 rounded-xl flex items-center justify-center transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563eb] ${
+                on ? 'shadow-sm' : 'bg-gray-100 dark:bg-[#262626] text-[#94a3b8] border border-dashed border-[#cbd5e1] dark:border-[#4b5563]'
+            }`}
+            style={on ? { background: color, color: dark ? '#000' : '#fff' } : undefined}
+        >
+            {children}
+            {on && (
+                <span className="absolute -right-1 -bottom-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white dark:border-[#1B1C1D] flex items-center justify-center">
+                    <CheckCircle className="w-2.5 h-2.5 text-white" />
+                </span>
+            )}
+        </button>
     );
 }
 
@@ -1245,18 +1358,10 @@ function TierBadge({ tier }: { tier: AccountTier }) {
     );
 }
 
-function IntegrationCard({ icon, name, status, color }: { icon: React.ReactNode; name: string; status: string; color: string }) {
-    return (
-        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-            <div className={`p-3 ${color} rounded-lg text-white`}>
-                {icon}
-            </div>
-            <div className="flex-1">
-                <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{name}</div>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{status}</div>
-            </div>
-        </div>
-    );
+/** Plan en chico para la cabecera. */
+function TierPill({ tier }: { tier: AccountTier }) {
+    const config = TIER_CONFIG[tier.tier] ?? { label: tier.tier, color: 'bg-slate-600', description: '' };
+    return <span className={`px-2.5 py-0.5 ${config.color} text-white font-bold rounded-md text-xs 4xl:text-sm`}>{config.label}</span>;
 }
 
 interface LinkedGuild {

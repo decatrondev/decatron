@@ -87,6 +87,8 @@ export default {
                 // numeros de marcador + texto. Ver .dev/torneos/16-rediseno-publico.md.
                 scoreboard: ['"Big Shoulders Display"', 'sans-serif'],
                 barlow: ['Barlow', 'sans-serif'],
+                // Settings (rediseño 2026-09-29): solo dentro de esa pagina.
+                onest: ['Onest', 'sans-serif'],
             },
         },
     },

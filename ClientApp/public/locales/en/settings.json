@@ -80,11 +80,7 @@
     }
   },
   "integrations": {
-    "title": "Integrations",
-    "spotify": "Spotify",
-    "steam": "Steam",
-    "youtube": "YouTube",
-    "comingSoon": "Coming Soon"
+    "title": "Integrations"
   },
   "accessLevels": {
     "owner": "OWNER",
@@ -136,5 +132,48 @@
     "confirmRevoke": "Unlink “{{name}}”? The app will stop connecting until you link it again.",
     "errorCode": "Couldn't generate the code.",
     "errorRevoke": "Couldn't unlink."
+  },
+  "tabs": {
+    "account": "My account",
+    "channel": "Channel & bot",
+    "access": "Access",
+    "games": "Games",
+    "integrations": "Integrations"
+  },
+  "header": {
+    "configuring": "Configuring",
+    "switchChannel": "Switch channel",
+    "platforms": "Your platforms",
+    "connected": "Connected",
+    "notConnected": "Not linked",
+    "delegated": "You're managing a channel that isn't yours: your links are shown from your own channel."
+  },
+  "sections": {
+    "platforms": {
+      "title": "Platforms",
+      "description": "One Decatron account ties your channels together. Link the platforms you use."
+    },
+    "plan": {
+      "title": "Plan",
+      "description": "Your account tier and since when it has been active."
+    },
+    "yourChannels": {
+      "title": "Your channels",
+      "description": "Choose which of your linked channels you are configuring. Each one keeps its own commands, timers and overlays."
+    },
+    "bot": {
+      "title": "Bot"
+    },
+    "games": {
+      "title": "Game accounts",
+      "description": "Used to sign up for tournaments and for game overlays."
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Connect Decatron with your Discord server and the desktop app."
+    },
+    "accessLevel": {
+      "title": "Your access level"
+    }
   }
 }
