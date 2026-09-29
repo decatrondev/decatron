@@ -376,3 +376,9 @@ body.dark-mode {
 @media (min-width: 3840px) {
     html.t-scale { font-size: 26px; }
 }
+
+/* Panel lateral "Mi inscripción" de torneos (MyTournamentModal). */
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}

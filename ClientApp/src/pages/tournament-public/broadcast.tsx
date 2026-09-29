@@ -24,6 +24,7 @@ export function rootStyle(t: TournamentTokens): CSSProperties {
         '--t-font-data': '"Barlow", sans-serif',
         '--t-gold-soft': t.isDark ? 'rgba(255,197,61,0.12)' : 'rgba(183,121,31,0.1)',
         '--t-gold-line': t.isDark ? 'rgba(255,197,61,0.55)' : 'rgba(183,121,31,0.5)',
+        '--t-accent-soft': `color-mix(in srgb, ${t.accent} 14%, ${t.surface})`,
         background: 'var(--t-bg)',
         color: 'var(--t-ink)',
         colorScheme: t.isDark ? 'dark' : 'light',

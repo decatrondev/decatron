@@ -119,24 +119,21 @@ export default function FortniteMatchday({ channelName, editionSlug }: { channel
 
     return (
         <section className="space-y-3">
-            <h2 className="font-display font-bold flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-[#3ED6C4]" /> Día de partida
-            </h2>
-            {error && <p className="text-sm text-[#E8677A]">{error}</p>}
+            {error && <p className="text-sm text-[color:var(--t-live)]">{error}</p>}
             {sessions && sessions.length === 0 && (
-                <p className="text-xs text-[#7C8AA6]">Todavía no hay sesiones para ti. El organizador las publica cuando arma el torneo.</p>
+                <p className="text-xs text-[color:var(--t-muted)]">Todavía no hay sesiones para ti. El organizador las publica cuando arma el torneo.</p>
             )}
             {sessions?.map((s) => (
-                <div key={s.id} className="p-4 rounded-lg border border-[#232C42] bg-[#0F1729] space-y-3">
+                <div key={s.id} className="p-4 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] space-y-3">
                     <div className="flex items-center justify-between gap-3">
                         <div>
-                            <p className="font-display font-bold">{s.name}</p>
-                            <p className="font-mono text-[11px] text-[#7C8AA6]">
+                            <p className="font-scoreboard font-black font-bold">{s.name}</p>
+                            <p className="text-sm text-[color:var(--t-muted)]">
                                 {formatDate(s.scheduledAt)} · {SESSION_LABELS[s.status] || s.status}
                             </p>
                         </div>
                         {s.checkedIn ? (
-                            <span className="flex items-center gap-1 font-mono text-xs text-[#3ED6C4] flex-shrink-0">
+                            <span className="flex items-center gap-1 text-sm text-[color:var(--t-accent)] flex-shrink-0">
                                 <Check className="w-3.5 h-3.5" /> Check-in hecho
                             </span>
                         ) : s.canCheckIn ? (
@@ -144,7 +141,7 @@ export default function FortniteMatchday({ channelName, editionSlug }: { channel
                                 type="button"
                                 onClick={() => checkIn(s.id)}
                                 disabled={checkingIn != null}
-                                className="px-4 py-2 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center gap-1.5 flex-shrink-0"
+                                className="px-4 py-2 rounded-lg bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center gap-1.5 flex-shrink-0"
                             >
                                 {checkingIn === s.id && <Loader2 className="w-4 h-4 animate-spin" />}
                                 Hacer check-in
@@ -153,9 +150,9 @@ export default function FortniteMatchday({ channelName, editionSlug }: { channel
                     </div>
 
                     {!s.checkedIn && s.status === 'in_progress' && (
-                        <p className="text-xs text-[#E8B04B]">No hiciste check-in en esta sesión: no puedes ver el código de las partidas.</p>
+                        <p className="text-xs text-[color:var(--t-gold)]">No hiciste check-in en esta sesión: no puedes ver el código de las partidas.</p>
                     )}
-                    {!s.checkedIn && s.status === 'scheduled' && <p className="text-xs text-[#7C8AA6]">El check-in se abre antes de empezar.</p>}
+                    {!s.checkedIn && s.status === 'scheduled' && <p className="text-xs text-[color:var(--t-muted)]">El check-in se abre antes de empezar.</p>}
 
                     {s.checkedIn && s.games.length > 0 && (
                         <div className="space-y-1.5">
@@ -200,40 +197,40 @@ function GameLine({
         <div className="space-y-1.5">
         <div
             className={`flex items-center justify-between gap-3 px-3 py-2 rounded-md ${
-                game.code ? 'border border-[#3ED6C4]/50 bg-[#132A2A]' : 'bg-[#131B2E]'
+                game.code ? 'border border-[color:var(--t-accent)] bg-[color:var(--t-accent-soft)]' : 'bg-[color:var(--t-surface-raised)]'
             }`}
         >
-            <span className="font-mono text-xs text-[#EDF0F7]">
-                Partida {game.gameNumber} · <span className="text-[#7C8AA6]">{GAME_LABELS[game.status] || game.status}</span>
+            <span className="text-sm text-[color:var(--t-ink)]">
+                Partida {game.gameNumber} · <span className="text-[color:var(--t-muted)]">{GAME_LABELS[game.status] || game.status}</span>
             </span>
             {game.code && (
                 <span className="flex items-center gap-1.5">
-                    <code className="font-mono text-sm px-2 py-0.5 rounded bg-[#0B1120] text-[#EDF0F7] tracking-wider">{show ? game.code : '••••••'}</code>
-                    <button type="button" onClick={() => setShow((v) => !v)} className="p-1 text-[#7C8AA6] hover:text-[#3ED6C4]" title={show ? 'Ocultar' : 'Mostrar'}>
+                    <code className="font-mono text-sm px-2 py-0.5 rounded bg-[color:var(--t-bg)] text-[color:var(--t-ink)] tracking-wider">{show ? game.code : '••••••'}</code>
+                    <button type="button" onClick={() => setShow((v) => !v)} className="p-1 text-[color:var(--t-muted)] hover:text-[color:var(--t-accent)]" title={show ? 'Ocultar' : 'Mostrar'}>
                         {show ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
-                    <button type="button" onClick={copy} className="p-1 text-[#7C8AA6] hover:text-[#3ED6C4]" title="Copiar">
+                    <button type="button" onClick={copy} className="p-1 text-[color:var(--t-muted)] hover:text-[color:var(--t-accent)]" title="Copiar">
                         <Copy className="w-3.5 h-3.5" />
                     </button>
-                    {copied && <span className="text-[10px] text-[#3ED6C4]">copiado</span>}
+                    {copied && <span className="text-xs text-[color:var(--t-accent)]">copiado</span>}
                 </span>
             )}
         </div>
         {game.teamResult && (
-            <p className="px-3 font-mono text-[11px] text-[#3ED6C4]">
+            <p className="px-3 text-sm text-[color:var(--t-accent)]">
                 Resultado de tu equipo: {RESULT_LABELS[game.teamResult.status] || game.teamResult.status}
                 {game.teamResult.status === 'approved' && ` · puesto ${game.teamResult.placement} · ${game.teamResult.eliminations} elim. · ${game.teamResult.points} pts`}
                 {game.teamResult.source === 'staff' && ' (lo cargó el organizador, mira el historial)'}
             </p>
         )}
         {!game.teamResult && game.myReport && !game.canReport && (
-            <p className="px-3 font-mono text-[11px] text-[#7C8AA6]">
+            <p className="px-3 text-sm text-[color:var(--t-muted)]">
                 Tu reporte: puesto {game.myReport.placement} · {game.myReport.eliminations} elim. — esperando revisión del organizador.
             </p>
         )}
         {game.canReport && <ReportForm game={game} base={base} proofMode={proofMode} aiReading={aiReading} teamSize={teamSize} onReported={onReported} />}
         {!game.canReport && !game.teamResult && game.cannotReportReason && proofMode !== 'staff_only' && (
-            <p className="px-3 text-[11px] text-[#7C8AA6]">{game.cannotReportReason}</p>
+            <p className="px-3 text-sm text-[color:var(--t-muted)]">{game.cannotReportReason}</p>
         )}
         </div>
     );
@@ -386,20 +383,20 @@ function ReportForm({
             onSubmit={submit}
             onMouseEnter={() => (pasteOwner = game.id)}
             onFocus={() => (pasteOwner = game.id)}
-            className="p-3 rounded-md border border-[#232C42] bg-[#0B1120] space-y-2"
+            className="p-3 rounded-md border border-[color:var(--t-line)] bg-[color:var(--t-bg)] space-y-2"
         >
-            <p className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">
+            <p className="text-sm font-semibold text-[color:var(--t-muted)]">
                 {game.myReport ? 'Tu reporte (puedes corregirlo)' : 'Reporta tu resultado'}
                 {deadline && ` · hasta las ${deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
             </p>
             {game.needsScreenshot && (
-                <p className="text-xs text-[#E8B04B] flex items-center gap-1">
+                <p className="text-xs text-[color:var(--t-gold)] flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5" /> Hay algo raro en el resultado de tu equipo: sube tu captura.
                 </p>
             )}
             <div className="grid grid-cols-2 gap-2">
                 <div>
-                    <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">{teamSize > 1 ? 'Puesto del equipo' : 'Puesto'}</label>
+                    <label className="text-sm font-semibold text-[color:var(--t-muted)]">{teamSize > 1 ? 'Puesto del equipo' : 'Puesto'}</label>
                     <input
                         type="number"
                         min={1}
@@ -407,11 +404,11 @@ function ReportForm({
                         required
                         value={placement}
                         onChange={(e) => setPlacement(e.target.value)}
-                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm"
+                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm"
                     />
                 </div>
                 <div>
-                    <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">{teamSize > 1 ? 'Tus eliminaciones' : 'Eliminaciones'}</label>
+                    <label className="text-sm font-semibold text-[color:var(--t-muted)]">{teamSize > 1 ? 'Tus eliminaciones' : 'Eliminaciones'}</label>
                     <input
                         type="number"
                         min={0}
@@ -419,7 +416,7 @@ function ReportForm({
                         required
                         value={eliminations}
                         onChange={(e) => setEliminations(e.target.value)}
-                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm"
+                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm"
                     />
                 </div>
             </div>
@@ -436,7 +433,7 @@ function ReportForm({
                     pickFile(e.dataTransfer.files?.[0] || null);
                 }}
                 className={`flex items-center gap-3 p-3 rounded-md border border-dashed cursor-pointer transition-colors ${
-                    dragging ? 'border-[#3ED6C4] bg-[#132A2A]' : 'border-[#232C42] hover:border-[#3ED6C4]/60'
+                    dragging ? 'border-[color:var(--t-accent)] bg-[color:var(--t-accent-soft)]' : 'border-[color:var(--t-line)] hover:border-[color:var(--t-accent)]'
                 }`}
             >
                 {preview ? (
@@ -444,28 +441,28 @@ function ReportForm({
                 ) : game.myReport?.screenshotFileId ? (
                     <AuthImage url={`${base}/files/${game.myReport.screenshotFileId}`} alt="Tu captura" className="w-20 h-12" />
                 ) : (
-                    <Paperclip className="w-5 h-5 text-[#3ED6C4] flex-shrink-0" />
+                    <Paperclip className="w-5 h-5 text-[color:var(--t-accent)] flex-shrink-0" />
                 )}
                 <span className="min-w-0">
-                    <span className="block text-xs text-[#3ED6C4] font-bold truncate">
+                    <span className="block text-xs text-[color:var(--t-accent)] font-bold truncate">
                         {file ? file.name : game.myReport?.hasScreenshot ? 'Cambiar captura' : `Captura de la pantalla final${screenshotRequired ? ' (obligatoria)' : ' (opcional)'}`}
                     </span>
-                    <span className="block text-[11px] text-[#7C8AA6]">Pégala con Ctrl+V, arrástrala aquí o toca para elegirla</span>
+                    <span className="block text-sm text-[color:var(--t-muted)]">Pégala con Ctrl+V, arrástrala aquí o toca para elegirla</span>
                 </span>
                 {uploading && (
-                    <span className="ml-auto flex items-center gap-1 text-[11px] text-[#7C8AA6] flex-shrink-0">
+                    <span className="ml-auto flex items-center gap-1 text-sm text-[color:var(--t-muted)] flex-shrink-0">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" /> {aiReading ? 'Subiendo y leyendo…' : 'Subiendo…'}
                     </span>
                 )}
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] || null)} />
             </label>
-            {aiInfo && <p className={`text-xs ${aiInfo.ok ? 'text-[#3ED6C4]' : 'text-[#E8B04B]'}`}>{aiInfo.text}</p>}
-            {error && <p className="text-xs text-[#E8677A]">{error}</p>}
-            {done && <p className="text-xs text-[#3ED6C4]">Reporte enviado.</p>}
+            {aiInfo && <p className={`text-xs ${aiInfo.ok ? 'text-[color:var(--t-accent)]' : 'text-[color:var(--t-gold)]'}`}>{aiInfo.text}</p>}
+            {error && <p className="text-xs text-[color:var(--t-live)]">{error}</p>}
+            {done && <p className="text-xs text-[color:var(--t-accent)]">Reporte enviado.</p>}
             <button
                 type="submit"
                 disabled={saving || uploading || !placement || (screenshotRequired && fileId == null)}
-                className="w-full py-2 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full py-2 rounded-lg bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                 {game.myReport ? 'Guardar cambios' : 'Enviar reporte'}
@@ -505,32 +502,32 @@ function PlayerAudit({ base }: { base: string }) {
     }, [open, base]);
 
     return (
-        <div className="rounded-lg border border-[#232C42]">
+        <div className="rounded-lg border border-[color:var(--t-line)]">
             <button type="button" onClick={() => setOpen((v) => !v)} className="w-full px-4 py-3 flex items-center justify-between gap-2">
-                <span className="font-display font-bold text-sm flex items-center gap-2">
-                    <History className="w-4 h-4 text-[#3ED6C4]" /> Cambios del organizador
+                <span className="font-scoreboard font-black font-bold text-sm flex items-center gap-2">
+                    <History className="w-4 h-4 text-[color:var(--t-accent)]" /> Cambios del organizador
                 </span>
-                {open ? <ChevronDown className="w-4 h-4 text-[#7C8AA6]" /> : <ChevronRight className="w-4 h-4 text-[#7C8AA6]" />}
+                {open ? <ChevronDown className="w-4 h-4 text-[color:var(--t-muted)]" /> : <ChevronRight className="w-4 h-4 text-[color:var(--t-muted)]" />}
             </button>
             {open && (
                 <div className="px-4 pb-4 space-y-2">
                     {entries == null ? null : entries.length === 0 ? (
-                        <p className="text-xs text-[#7C8AA6]">Todavía no hay cambios.</p>
+                        <p className="text-xs text-[color:var(--t-muted)]">Todavía no hay cambios.</p>
                     ) : (
                         entries.map((e) => (
-                            <div key={e.id} className="p-3 rounded-md bg-[#0F1729] space-y-1">
-                                <p className="text-xs text-[#EDF0F7]">
+                            <div key={e.id} className="p-3 rounded-md bg-[color:var(--t-surface)] space-y-1">
+                                <p className="text-xs text-[color:var(--t-ink)]">
                                     <span className="font-bold">{e.actorName}</span> {AUDIT_LABELS[e.action] || e.action} de <span className="font-bold">{e.teamName}</span>
                                 </p>
-                                <p className="font-mono text-[10px] text-[#7C8AA6]">
+                                <p className="text-xs text-[color:var(--t-muted)]">
                                     {e.sessionName}, partida {e.gameNumber} · {formatDate(e.createdAt)}
                                 </p>
                                 {(e.before || e.after) && (
-                                    <p className="font-mono text-[11px] text-[#EDF0F7]">
+                                    <p className="text-sm text-[color:var(--t-ink)]">
                                         {describe(e.before)} → {describe(e.after)}
                                     </p>
                                 )}
-                                {e.reason && <p className="text-[11px] italic text-[#7C8AA6]">“{e.reason}”</p>}
+                                {e.reason && <p className="text-sm italic text-[color:var(--t-muted)]">“{e.reason}”</p>}
                                 {e.evidenceFileIds.length > 0 && (
                                     <div className="flex gap-1.5 flex-wrap">
                                         {e.evidenceFileIds.map((id) => (

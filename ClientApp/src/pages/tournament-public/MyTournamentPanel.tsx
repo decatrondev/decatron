@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Loader2, Check, AlertTriangle, Monitor, Copy, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
 import { REGION_LABELS } from './shared';
+import { CUT } from './broadcast';
 import { EpicAccountSelect, EpicAccountCard, type EpicAccountOption } from './FortniteEpicAccount';
 import FortniteMatchday from './FortniteMatchday';
 
@@ -86,18 +87,18 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
     if (!loggedIn) {
         const path = `torneos/${channelName}/${editionSlug}/mi-panel`;
         return (
-            <div className="text-center space-y-4 py-6">
-                <p className="font-mono text-xs tracking-[0.3em] text-[#7C8AA6]">MI PANEL</p>
-                <h2 className="font-display font-bold text-2xl">Iniciá sesión para inscribirte</h2>
-                <p className="text-sm text-[#7C8AA6] max-w-sm mx-auto">
-                    Cada participante se anota con su propia cuenta de Twitch — así podés vincular tu cuenta de Riot y generar tu propio link de overlay, sin
-                    depender del organizador.
+            <div className="space-y-4 py-4">
+                <h3 className="font-scoreboard font-black text-4xl leading-none">Inicia sesión para inscribirte</h3>
+                <p className="text-base text-[color:var(--t-muted)] max-w-md">
+                    Cada jugador se inscribe con su propia cuenta de Decatron (Twitch, Kick o Discord). Así eliges tu cuenta del juego y ves tu panel del
+                    torneo.
                 </p>
                 <a
                     href={`/login?redirect=${encodeURIComponent(path)}`}
-                    className="inline-block font-mono text-xs tracking-wider uppercase px-5 py-3 rounded bg-[#3ED6C4] text-[#0B1120] font-bold hover:bg-[#5EE8D8] transition-colors"
+                    className="inline-flex font-scoreboard font-extrabold text-xl px-7 py-3 bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] hover:brightness-110"
+                    style={{ clipPath: CUT }}
                 >
-                    Iniciar sesión con Twitch
+                    Iniciar sesión
                 </a>
             </div>
         );
@@ -106,7 +107,7 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
     if (loading) {
         return (
             <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-8 h-8 animate-spin text-[#3ED6C4]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[color:var(--t-accent)]" />
             </div>
         );
     }
@@ -114,75 +115,159 @@ export default function MyTournamentPanel({ channelName, editionSlug }: { channe
     if (loadError || !status) {
         return (
             <div className="flex items-center justify-center py-16 text-center px-4">
-                <p className="text-[#E8677A]">{loadError || 'Torneo no encontrado'}</p>
+                <p className="text-[color:var(--t-live)]">{loadError || 'Torneo no encontrado'}</p>
             </div>
         );
     }
 
+    const isFortnite = status.game === 'fortnite';
+    const registered = status.registered;
+    const participant = status.participant;
+    const approved = participant?.status === 'approved';
+    const hasTeamStep = (status.mode === 'aram_teams' || isFortnite) && (status.teamSize || 1) > 1;
+    const isSoloQ = !isFortnite && status.mode !== 'aram_teams';
+
+    // Pasos del jugador, en orden. Cada uno dice si ya esta listo.
+    const accountDone = isFortnite ? !!participant?.gameAccountName : !!participant?.riotId;
+    const steps: { key: string; title: string; done: boolean }[] = [
+        { key: 'signup', title: 'Inscripción', done: registered && approved },
+        { key: 'account', title: isFortnite ? 'Cuenta de Epic' : 'Cuenta de Riot', done: registered && accountDone },
+        ...(hasTeamStep ? [{ key: 'team', title: 'Equipo', done: !!status.group?.full }] : []),
+        ...(isFortnite ? [{ key: 'matchday', title: 'Día de partida', done: false }] : []),
+    ];
+
     return (
         <div className="space-y-8 4xl:space-y-10">
-            {!status.registered ? (
-                <RegisterForm
-                    registrationOpen={!!status.registrationOpen}
-                    game={status.game}
-                    mode={status.mode}
-                    region={status.region || ''}
-                    eligibleRiotAccounts={status.eligibleRiotAccounts || []}
-                    epicAccounts={status.epicAccounts || []}
-                    onRegistered={() => load()}
-                    onAccountsChanged={() => load(true)}
-                />
-            ) : (
-                <div className="space-y-8">
-                    <div className="p-4 rounded-lg border border-[#232C42] bg-[#0F1729]">
-                        <p className="font-display font-bold">{status.participant!.displayName}</p>
-                        <p className="font-mono text-xs text-[#7C8AA6] mt-1">
-                            {PARTICIPANT_STATUS_LABELS[status.participant!.status] || status.participant!.status}
-                        </p>
-                    </div>
+            <ol className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
+                {steps.map((st, i) => (
+                    <li key={st.key}>
+                        <span className="block h-1.5" style={{ background: st.done ? 'var(--t-primary)' : 'var(--t-surface-raised)' }} />
+                        <span className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold" style={{ color: st.done ? 'var(--t-ink)' : 'var(--t-muted)' }}>
+                            {st.done ? <Check className="w-3.5 h-3.5 flex-shrink-0" /> : <span className="font-scoreboard font-black">{i + 1}</span>}
+                            <span className="truncate">{st.title}</span>
+                        </span>
+                    </li>
+                ))}
+            </ol>
 
-                    {status.game === 'fortnite' && status.participant!.status === 'approved' && (
-                        <FortniteMatchday channelName={channelName} editionSlug={editionSlug} />
-                    )}
+            <Step n={1} title="Inscripción">
+                {!registered ? (
+                    <RegisterForm
+                        registrationOpen={!!status.registrationOpen}
+                        game={status.game}
+                        mode={status.mode}
+                        region={status.region || ''}
+                        eligibleRiotAccounts={status.eligibleRiotAccounts || []}
+                        epicAccounts={status.epicAccounts || []}
+                        onRegistered={() => load()}
+                        onAccountsChanged={() => load(true)}
+                    />
+                ) : (
+                    <RegistrationStatus name={participant!.displayName} status={participant!.status} />
+                )}
+            </Step>
 
-                    {status.game === 'fortnite' && (
-                        <EpicAccountCard
-                            channelName={channelName}
-                            editionSlug={editionSlug}
-                            current={status.participant!.gameAccountName || null}
-                            verified={!!status.participant!.gameAccountVerified}
-                            accounts={status.epicAccounts || []}
-                            onChanged={() => load(true)}
-                        />
-                    )}
+            <Step n={2} title={isFortnite ? 'Cuenta de Epic' : 'Cuenta de Riot'}>
+                {!registered ? (
+                    <p className="text-base text-[color:var(--t-muted)]">La eliges al inscribirte, en el paso 1.</p>
+                ) : isFortnite ? (
+                    <EpicAccountCard
+                        channelName={channelName}
+                        editionSlug={editionSlug}
+                        current={participant!.gameAccountName || null}
+                        verified={!!participant!.gameAccountVerified}
+                        accounts={status.epicAccounts || []}
+                        onChanged={() => load(true)}
+                    />
+                ) : isSoloQ ? (
+                    <RiotAccountPicker
+                        channelName={channelName}
+                        editionSlug={editionSlug}
+                        region={status.region || ''}
+                        participant={participant!}
+                        eligibleAccounts={status.eligibleRiotAccounts || []}
+                        onChanged={() => load()}
+                    />
+                ) : (
+                    <p className="text-base">
+                        {participant!.riotId ? (
+                            <>
+                                Juegas con <strong>{participant!.riotId}#{participant!.riotTagLine}</strong>.
+                            </>
+                        ) : (
+                            <span className="text-[color:var(--t-muted)]">Sin cuenta de Riot elegida.</span>
+                        )}
+                    </p>
+                )}
+            </Step>
 
-                    {(status.mode === 'aram_teams' || status.game === 'fortnite') && (status.teamSize || 1) > 1 && (
+            {hasTeamStep && (
+                <Step n={3} title="Equipo">
+                    {!registered ? (
+                        <p className="text-base text-[color:var(--t-muted)]">Después de inscribirte puedes crear tu equipo o unirte con un código.</p>
+                    ) : (
                         <GroupSection
                             channelName={channelName}
                             editionSlug={editionSlug}
                             teamSize={status.teamSize!}
-                            isFortnite={status.game === 'fortnite'}
+                            isFortnite={isFortnite}
                             group={status.group || null}
                             onChanged={() => load()}
                         />
                     )}
-
-                    {status.mode !== 'aram_teams' && status.game !== 'fortnite' && (
-                        <RiotAccountPicker
-                            channelName={channelName}
-                            editionSlug={editionSlug}
-                            region={status.region || ''}
-                            participant={status.participant!}
-                            eligibleAccounts={status.eligibleRiotAccounts || []}
-                            onChanged={() => load()}
-                        />
-                    )}
-
-                    {status.mode !== 'aram_teams' && status.game !== 'fortnite' && (
-                        <OverlaySection channelName={channelName} editionSlug={editionSlug} overlay={status.overlay || null} onChanged={() => load()} />
-                    )}
-                </div>
+                </Step>
             )}
+
+            {isFortnite && (
+                <Step n={hasTeamStep ? 4 : 3} title="Día de partida">
+                    {approved ? (
+                        <FortniteMatchday channelName={channelName} editionSlug={editionSlug} />
+                    ) : (
+                        <p className="text-base text-[color:var(--t-muted)]">
+                            Cuando el organizador apruebe tu inscripción, aquí haces el check-in, ves el código de cada partida y reportas tu resultado.
+                        </p>
+                    )}
+                </Step>
+            )}
+
+            {registered && isSoloQ && (
+                <OverlaySection channelName={channelName} editionSlug={editionSlug} overlay={status.overlay || null} onChanged={() => load()} />
+            )}
+        </div>
+    );
+}
+
+/** Un paso del panel, con su numero y titulo. */
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+    return (
+        <section className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3">
+            <span className="font-scoreboard font-black text-4xl leading-none text-[color:var(--t-accent)]">{n}</span>
+            <div className="min-w-0 space-y-3">
+                <h3 className="font-scoreboard font-black text-2xl leading-none pt-1.5">{title}</h3>
+                {children}
+            </div>
+        </section>
+    );
+}
+
+const STATUS_HELP: Record<string, string> = {
+    pending_approval: 'El organizador todavía tiene que aprobar tu inscripción.',
+    approved: 'Ya estás dentro del torneo.',
+    rejected: 'El organizador rechazó tu inscripción. Si crees que es un error, escríbele.',
+    checked_in: 'Hiciste el check-in.',
+    active: 'Estás jugando el torneo.',
+    eliminated: 'Quedaste fuera del torneo.',
+    withdrawn: 'Te retiraste del torneo.',
+};
+
+function RegistrationStatus({ name, status }: { name: string; status: string }) {
+    const tone = status === 'approved' || status === 'active' || status === 'checked_in' ? 'var(--t-primary)' : status === 'rejected' ? 'var(--t-live)' : 'var(--t-secondary)';
+    return (
+        <div className="p-4 bg-[color:var(--t-surface)]" style={{ boxShadow: `inset 3px 0 0 ${tone}, inset 0 0 0 1px var(--t-line)` }}>
+            <p className="font-semibold text-lg">{name}</p>
+            <p className="text-base mt-0.5">
+                <strong>{PARTICIPANT_STATUS_LABELS[status] || status}.</strong> <span className="text-[color:var(--t-muted)]">{STATUS_HELP[status] || ''}</span>
+            </p>
         </div>
     );
 }
@@ -215,7 +300,7 @@ function RegisterForm({
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
     if (!registrationOpen) {
-        return <p className="font-mono text-sm text-[#7C8AA6]">Las inscripciones no están abiertas para este torneo todavía.</p>;
+        return <p className="text-base text-[color:var(--t-muted)]">Las inscripciones no están abiertas para este torneo todavía.</p>;
     }
 
     const isFortnite = game === 'fortnite';
@@ -247,13 +332,13 @@ function RegisterForm({
 
     if (needsRiotAccount && eligibleRiotAccounts.length === 0) {
         return (
-            <div className="p-4 rounded-lg border border-dashed border-[#232C42] space-y-2">
-                <p className="text-sm text-[#7C8AA6]">
-                    Para inscribirte necesitás una cuenta de Riot verificada de la región{' '}
-                    <span className="font-bold text-[#EDF0F7]">{(REGION_LABELS[region] || region.toUpperCase())}</span> — todavía no tenés ninguna.
+            <div className="p-4 rounded-lg border border-dashed border-[color:var(--t-line)] space-y-2">
+                <p className="text-sm text-[color:var(--t-muted)]">
+                    Para inscribirte necesitas una cuenta de Riot verificada de la región{' '}
+                    <span className="font-bold text-[color:var(--t-ink)]">{(REGION_LABELS[region] || region.toUpperCase())}</span> y todavía no tienes ninguna.
                 </p>
-                <Link to="/settings" className="text-sm text-[#3ED6C4] hover:underline">
-                    Vincularla en Settings →
+                <Link to="/settings" className="text-sm text-[color:var(--t-accent)] hover:underline">
+                    Vincúlala en Settings
                 </Link>
             </div>
         );
@@ -262,12 +347,12 @@ function RegisterForm({
     return (
         <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-                <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">Nombre público</label>
+                <label className="text-sm font-semibold text-[color:var(--t-muted)]">Nombre público</label>
                 <input
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     required
-                    className="w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm"
                 />
             </div>
             {isFortnite && (
@@ -280,12 +365,12 @@ function RegisterForm({
             )}
             {needsRiotAccount && (
                 <div>
-                    <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">Cuenta de Riot ({(REGION_LABELS[region] || region.toUpperCase())})</label>
+                    <label className="text-sm font-semibold text-[color:var(--t-muted)]">Cuenta de Riot ({(REGION_LABELS[region] || region.toUpperCase())})</label>
                     <select
                         value={userRiotAccountId ?? ''}
                         onChange={(e) => setUserRiotAccountId(Number(e.target.value))}
                         required
-                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm"
+                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm"
                     >
                         {eligibleRiotAccounts.map((a) => (
                             <option key={a.id} value={a.id}>
@@ -297,11 +382,11 @@ function RegisterForm({
             )}
             {showRole && (
                 <div>
-                    <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">Rol principal</label>
+                    <label className="text-sm font-semibold text-[color:var(--t-muted)]">Rol principal</label>
                     <select
                         value={primaryRole}
                         onChange={(e) => setPrimaryRole(e.target.value)}
-                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm"
+                        className="w-full mt-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm"
                     >
                         <option value="">—</option>
                         <option value="top">Top</option>
@@ -312,12 +397,12 @@ function RegisterForm({
                     </select>
                 </div>
             )}
-            {!needsRiotAccount && !isFortnite && <p className="text-[10px] text-[#7C8AA6]">Después de inscribirte vas a poder vincular tu cuenta de Riot desde acá mismo.</p>}
-            {result && !result.ok && <p className="text-sm text-[#E8677A]">{result.text}</p>}
+            {!needsRiotAccount && !isFortnite && <p className="text-xs text-[color:var(--t-muted)]">Después de inscribirte podrás vincular tu cuenta de Riot desde acá mismo.</p>}
+            {result && !result.ok && <p className="text-sm text-[color:var(--t-live)]">{result.text}</p>}
             <button
                 type="submit"
                 disabled={saving || (isFortnite && gameAccountId == null)}
-                className="w-full py-2.5 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 rounded-lg bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 Enviar inscripción
@@ -382,35 +467,34 @@ function GroupSection({
 
     return (
         <section className="space-y-3">
-            <h2 className="font-display font-bold">{isFortnite ? 'Mi equipo' : 'Mi dúo / grupo'}</h2>
             {isFortnite ? (
-                <p className="text-xs text-[#7C8AA6]">
+                <p className="text-xs text-[color:var(--t-muted)]">
                     Los equipos son de {teamSize}. Uno de ustedes crea el equipo y comparte el código; los demás se unen con ese código.
                 </p>
             ) : (
-            <p className="text-xs text-[#7C8AA6]">
-                Por defecto te anotás solo y el sistema te sortea un equipo de {teamSize} al azar. Si querés jugar con alguien puntual, armá un grupo acá y
-                compartile el código — el resto de los solos se sortea igual para completar lo que falte.
+            <p className="text-sm text-[color:var(--t-muted)]">
+                Por defecto entras solo y el sistema te sortea en un equipo de {teamSize}. Si quieres jugar con alguien en particular, crea un grupo aquí y
+                compártele el código; los demás lugares se completan con jugadores al azar.
             </p>
             )}
 
             {group ? (
-                <div className="p-4 rounded-lg border border-[#3ED6C4]/40 bg-[#132A2A] space-y-2">
-                    <p className="font-mono text-sm text-[#3ED6C4]">
+                <div className="p-4 rounded-lg border border-[color:var(--t-accent)] bg-[color:var(--t-accent-soft)] space-y-2">
+                    <p className="text-base text-[color:var(--t-accent)]">
                         {group.roster.join(', ')} ({group.roster.length}/{teamSize})
                     </p>
                     {!group.full && group.joinCode && (
                         <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#7C8AA6]">Código para compartir:</span>
-                            <code className="text-sm font-mono px-2 py-1 rounded bg-[#131B2E] text-[#EDF0F7] tracking-widest">{group.joinCode}</code>
-                            <button type="button" onClick={copyCode} className="p-1 rounded text-[#7C8AA6] hover:text-[#3ED6C4]">
+                            <span className="text-xs text-[color:var(--t-muted)]">Código para compartir:</span>
+                            <code className="text-sm font-mono px-2 py-1 rounded bg-[color:var(--t-surface-raised)] text-[color:var(--t-ink)] tracking-widest">{group.joinCode}</code>
+                            <button type="button" onClick={copyCode} className="p-1 rounded text-[color:var(--t-muted)] hover:text-[color:var(--t-accent)]">
                                 <Copy className="w-3.5 h-3.5" />
                             </button>
-                            {copied && <span className="text-[10px] text-[#3ED6C4]">copiado</span>}
+                            {copied && <span className="text-xs text-[color:var(--t-accent)]">copiado</span>}
                         </div>
                     )}
                     {group.full && (
-                        <p className="text-xs text-[#7C8AA6]">{isFortnite ? 'Equipo completo.' : 'Grupo completo — listo para el sorteo del bracket.'}</p>
+                        <p className="text-xs text-[color:var(--t-muted)]">{isFortnite ? 'Equipo completo.' : 'Grupo completo — listo para el sorteo del bracket.'}</p>
                     )}
                 </div>
             ) : (
@@ -419,7 +503,7 @@ function GroupSection({
                         type="button"
                         onClick={handleCreate}
                         disabled={saving}
-                        className="w-full py-2.5 rounded-lg bg-[#131B2E] border border-[#232C42] text-[#EDF0F7] font-bold text-sm hover:border-[#3ED6C4]/50 disabled:opacity-50"
+                        className="w-full py-2.5 rounded-lg bg-[color:var(--t-surface-raised)] border border-[color:var(--t-line)] text-[color:var(--t-ink)] font-bold text-sm hover:border-[color:var(--t-accent)] disabled:opacity-50"
                     >
                         {isFortnite ? 'Crear equipo' : 'Armar grupo nuevo'}
                     </button>
@@ -428,12 +512,12 @@ function GroupSection({
                             value={joinCode}
                             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                             placeholder="Código de un amigo"
-                            className="flex-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm font-mono tracking-widest"
+                            className="flex-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm font-mono tracking-widest"
                         />
                         <button
                             type="submit"
                             disabled={saving || !joinCode}
-                            className="px-4 py-2 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] font-bold text-sm hover:brightness-110 disabled:opacity-50"
                         >
                             Unirme
                         </button>
@@ -441,7 +525,7 @@ function GroupSection({
                 </div>
             )}
             {error && (
-                <p className="text-sm text-[#E8677A] flex items-center gap-1">
+                <p className="text-sm text-[color:var(--t-live)] flex items-center gap-1">
                     <AlertTriangle className="w-4 h-4" /> {error}
                 </p>
             )}
@@ -482,55 +566,50 @@ function RiotAccountPicker({
 
     return (
         <section className="space-y-3">
-            <h2 className="font-display font-bold flex items-center gap-2">
-                Cuenta de Riot para este torneo
-                {participant.linkedRiotAccountId && <ShieldCheck className="w-4 h-4 text-[#3ED6C4]" />}
-            </h2>
-
             {participant.linkedRiotAccountId ? (
                 <div className="space-y-2">
-                    <p className="font-mono text-sm text-[#3ED6C4]">
+                    <p className="text-base text-[color:var(--t-accent)]">
                         Usando: {participant.riotId}#{participant.riotTagLine}
                     </p>
                     {participant.smurfFlagNote && (
-                        <p className="text-xs text-[#E8B04B] flex items-start gap-1.5 bg-[#E8B04B]/10 border border-[#E8B04B]/30 rounded-lg px-3 py-2">
+                        <p className="text-xs text-[color:var(--t-gold)] flex items-start gap-1.5 bg-[color:var(--t-gold-soft)] border border-[color:var(--t-gold-line)] rounded-lg px-3 py-2">
                             <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" /> {participant.smurfFlagNote}
                         </p>
                     )}
                 </div>
             ) : eligibleAccounts.length === 0 ? (
-                <div className="p-4 rounded-lg border border-dashed border-[#232C42] space-y-2">
-                    <p className="text-sm text-[#7C8AA6]">
-                        No tenés ninguna cuenta de Riot verificada para la región <span className="font-bold text-[#EDF0F7]">{(REGION_LABELS[region] || region.toUpperCase())}</span>{' '}
+                <div className="p-4 rounded-lg border border-dashed border-[color:var(--t-line)] space-y-2">
+                    <p className="text-sm text-[color:var(--t-muted)]">
+                        No tienes ninguna cuenta de Riot verificada de la región <span className="font-bold text-[color:var(--t-ink)]">{(REGION_LABELS[region] || region.toUpperCase())}</span>{' '}
                         todavía.
                     </p>
-                    <Link to="/settings" className="text-sm text-[#3ED6C4] hover:underline">
-                        Vincularla en Settings →
+                    <Link to="/settings" className="text-sm text-[color:var(--t-accent)] hover:underline">
+                        Vincúlala en Settings
                     </Link>
                 </div>
             ) : (
                 <div className="space-y-2">
-                    <p className="text-xs text-[#7C8AA6]">Elegí cuál de tus cuentas verificadas de {(REGION_LABELS[region] || region.toUpperCase())} vas a usar en este torneo:</p>
+                    <p className="text-xs text-[color:var(--t-muted)]">Elige cuál de tus cuentas verificadas de {(REGION_LABELS[region] || region.toUpperCase())} vas a usar en este torneo:</p>
                     {eligibleAccounts.map((a) => (
                         <button
                             key={a.id}
                             onClick={() => handlePick(a.id)}
                             disabled={picking !== null}
-                            className="w-full text-left px-4 py-3 rounded-lg border border-[#232C42] bg-[#0F1729] hover:border-[#3ED6C4]/50 disabled:opacity-50 flex items-center justify-between"
+                            className="w-full text-left px-4 py-3 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] hover:border-[color:var(--t-accent)] disabled:opacity-50 flex items-center justify-between"
                         >
-                            <span className="font-mono text-sm">
+                            <span className="text-base">
                                 {a.riotId}#{a.riotTagLine}
                             </span>
-                            {picking === a.id ? <Loader2 className="w-4 h-4 animate-spin text-[#3ED6C4]" /> : <Check className="w-4 h-4 text-[#7C8AA6]" />}
+                            {picking === a.id ? <Loader2 className="w-4 h-4 animate-spin text-[color:var(--t-accent)]" /> : <Check className="w-4 h-4 text-[color:var(--t-muted)]" />}
                         </button>
                     ))}
-                    <Link to="/settings" className="text-xs text-[#7C8AA6] hover:text-[#3ED6C4] inline-block">
+                    <Link to="/settings" className="text-xs text-[color:var(--t-muted)] hover:text-[color:var(--t-accent)] inline-block">
                         + Vincular otra cuenta en Settings
                     </Link>
                 </div>
             )}
             {error && (
-                <p className="text-sm text-[#E8677A] flex items-center gap-1">
+                <p className="text-sm text-[color:var(--t-live)] flex items-center gap-1">
                     <AlertTriangle className="w-4 h-4" /> {error}
                 </p>
             )}
@@ -576,12 +655,12 @@ function OverlaySection({
 
     return (
         <section className="space-y-3">
-            <h2 className="font-display font-bold flex items-center gap-2">
+            <h2 className="font-scoreboard font-black font-bold flex items-center gap-2">
                 <Monitor className="w-4 h-4" /> Mi overlay para OBS
             </h2>
             <div className="flex flex-wrap gap-3">
                 {Object.entries(OVERLAY_WIDGET_LABELS).map(([w, label]) => (
-                    <label key={w} className="flex items-center gap-1.5 text-xs text-[#B8C1D6]">
+                    <label key={w} className="flex items-center gap-1.5 text-xs text-[color:var(--t-muted)]">
                         <input type="checkbox" checked={widgets.includes(w)} onChange={() => toggleWidget(w)} />
                         {label}
                     </label>
@@ -589,21 +668,21 @@ function OverlaySection({
             </div>
             {overlay && (
                 <div className="flex items-center gap-2">
-                    <code className="text-xs px-2 py-1.5 rounded bg-[#131B2E] text-[#B8C1D6] truncate max-w-[280px]">{fullUrl}</code>
-                    <button onClick={copyUrl} className="p-1.5 rounded text-[#7C8AA6] hover:text-[#3ED6C4]">
+                    <code className="text-xs px-2 py-1.5 rounded bg-[color:var(--t-surface-raised)] text-[color:var(--t-muted)] truncate max-w-[280px]">{fullUrl}</code>
+                    <button onClick={copyUrl} className="p-1.5 rounded text-[color:var(--t-muted)] hover:text-[color:var(--t-accent)]">
                         <Copy className="w-4 h-4" />
                     </button>
-                    {copied && <span className="text-xs text-[#3ED6C4]">copiado</span>}
+                    {copied && <span className="text-xs text-[color:var(--t-accent)]">copiado</span>}
                 </div>
             )}
             <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="px-4 py-2 rounded-lg bg-[#131B2E] border border-[#232C42] text-[#EDF0F7] font-bold text-sm hover:border-[#3ED6C4]/50 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-[color:var(--t-surface-raised)] border border-[color:var(--t-line)] text-[color:var(--t-ink)] font-bold text-sm hover:border-[color:var(--t-accent)] disabled:opacity-50"
             >
                 {generating ? <Loader2 className="w-4 h-4 animate-spin inline" /> : null} {overlay ? 'Regenerar link' : 'Generar link de overlay'}
             </button>
-            {overlay && <p className="text-[10px] text-[#7C8AA6]">Regenerar invalida el link anterior — usalo solo si se filtró.</p>}
+            {overlay && <p className="text-xs text-[color:var(--t-muted)]">Regenerar invalida el link anterior — usalo solo si se filtró.</p>}
         </section>
     );
 }

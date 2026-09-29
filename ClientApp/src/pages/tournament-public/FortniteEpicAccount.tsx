@@ -15,7 +15,7 @@ export interface EpicAccountOption {
     verified: boolean;
 }
 
-const inputClass = 'w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm';
+const inputClass = 'w-full mt-1 px-3 py-2 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] text-[color:var(--t-ink)] text-sm';
 
 // Boton del login oficial de Epic: vuelve a "Mi inscripción" de este torneo con la
 // cuenta ya verificada. Solo aparece si el servidor tiene la app de Epic configurada.
@@ -31,8 +31,8 @@ function VerifyWithEpic() {
 
     if (!available) {
         return (
-            <p className="text-[11px] text-[#7C8AA6] flex items-start gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-[#E8B04B] flex-shrink-0 mt-px" />
+            <p className="text-sm text-[color:var(--t-muted)] flex items-start gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-[color:var(--t-gold)] flex-shrink-0 mt-px" />
                 Por ahora las cuentas de Epic quedan sin verificar: el organizador lo ve marcado.
             </p>
         );
@@ -57,13 +57,13 @@ function VerifyWithEpic() {
                 type="button"
                 onClick={go}
                 disabled={loading}
-                className="w-full py-2 rounded-lg border border-[#3ED6C4]/60 text-[#3ED6C4] font-bold text-sm hover:bg-[#132A2A] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full py-2 rounded-lg border border-[color:var(--t-accent)] text-[color:var(--t-accent)] font-bold text-sm hover:bg-[color:var(--t-accent-soft)] disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                 Verificar con mi cuenta de Epic Games
             </button>
-            <p className="text-[11px] text-[#7C8AA6]">Recomendado: las cuentas sin verificar le aparecen marcadas al organizador.</p>
-            {error && <p className="text-xs text-[#E8677A]">{error}</p>}
+            <p className="text-sm text-[color:var(--t-muted)]">Recomendado: las cuentas sin verificar le aparecen marcadas al organizador.</p>
+            {error && <p className="text-xs text-[color:var(--t-live)]">{error}</p>}
         </div>
     );
 }
@@ -94,7 +94,7 @@ function LinkEpicAccountForm({ onLinked, onCancel }: { onLinked: (id: number) =>
 
     return (
         <div className="space-y-2">
-            <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">Tu nombre de Epic (el que se ve en Fortnite)</label>
+            <label className="text-sm font-semibold text-[color:var(--t-muted)]">Tu nombre de Epic (el que se ve en Fortnite)</label>
             <div className="flex items-center gap-2">
                 <input
                     value={name}
@@ -112,18 +112,18 @@ function LinkEpicAccountForm({ onLinked, onCancel }: { onLinked: (id: number) =>
                     type="button"
                     onClick={handleLink}
                     disabled={saving || !name.trim()}
-                    className="px-4 py-2 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center gap-1.5 flex-shrink-0"
+                    className="px-4 py-2 rounded-lg bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center gap-1.5 flex-shrink-0"
                 >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     Vincular
                 </button>
                 {onCancel && (
-                    <button type="button" onClick={onCancel} className="text-xs text-[#7C8AA6] hover:text-[#EDF0F7] flex-shrink-0">
+                    <button type="button" onClick={onCancel} className="text-xs text-[color:var(--t-muted)] hover:text-[color:var(--t-ink)] flex-shrink-0">
                         Cancelar
                     </button>
                 )}
             </div>
-            {error && <p className="text-sm text-[#E8677A]">{error}</p>}
+            {error && <p className="text-sm text-[color:var(--t-live)]">{error}</p>}
         </div>
     );
 }
@@ -155,7 +155,7 @@ export function EpicAccountSelect({
         <div className="space-y-2">
             {accounts.length > 0 && !linking && (
                 <div>
-                    <label className="font-mono text-[10px] uppercase tracking-wider text-[#7C8AA6]">Cuenta de Epic</label>
+                    <label className="text-sm font-semibold text-[color:var(--t-muted)]">Cuenta de Epic</label>
                     <select value={value ?? ''} onChange={(e) => onChange(Number(e.target.value))} required className={inputClass}>
                         {accounts.map((a) => (
                             <option key={a.id} value={a.id}>
@@ -164,7 +164,7 @@ export function EpicAccountSelect({
                             </option>
                         ))}
                     </select>
-                    <button type="button" onClick={() => setLinking(true)} className="mt-1.5 text-xs text-[#3ED6C4] hover:underline flex items-center gap-1">
+                    <button type="button" onClick={() => setLinking(true)} className="mt-1.5 text-xs text-[color:var(--t-accent)] hover:underline flex items-center gap-1">
                         <Plus className="w-3 h-3" /> Vincular otra cuenta
                     </button>
                 </div>
@@ -216,18 +216,13 @@ export function EpicAccountCard({
 
     return (
         <section className="space-y-3">
-            <h2 className="font-display font-bold flex items-center gap-2">
-                Cuenta de Epic para este torneo
-                {current && verified && <ShieldCheck className="w-4 h-4 text-[#3ED6C4]" />}
-            </h2>
-
             {current && !editing ? (
-                <div className="p-4 rounded-lg border border-[#232C42] bg-[#0F1729] flex items-center justify-between gap-3">
+                <div className="p-4 rounded-lg border border-[color:var(--t-line)] bg-[color:var(--t-surface)] flex items-center justify-between gap-3">
                     <div>
-                        <p className="font-mono text-sm text-[#EDF0F7]">{current}</p>
-                        <p className="text-[11px] text-[#7C8AA6]">{verified ? 'Verificada con Epic' : 'Sin verificar'}</p>
+                        <p className="text-base text-[color:var(--t-ink)]">{current}</p>
+                        <p className="text-sm text-[color:var(--t-muted)]">{verified ? 'Verificada con Epic' : 'Sin verificar'}</p>
                     </div>
-                    <button type="button" onClick={() => setEditing(true)} className="text-xs text-[#3ED6C4] hover:underline flex-shrink-0">
+                    <button type="button" onClick={() => setEditing(true)} className="text-xs text-[color:var(--t-accent)] hover:underline flex-shrink-0">
                         Cambiar
                     </button>
                 </div>
@@ -240,13 +235,13 @@ export function EpicAccountCard({
                                 type="button"
                                 onClick={() => save(selected)}
                                 disabled={saving || selected == null}
-                                className="px-4 py-2 rounded-lg bg-[#3ED6C4] text-[#0B1120] font-bold text-sm hover:bg-[#5EE8D8] disabled:opacity-50 flex items-center gap-1.5"
+                                className="px-4 py-2 rounded-lg bg-[color:var(--t-primary)] text-[color:var(--t-on-primary)] font-bold text-sm hover:brightness-110 disabled:opacity-50 flex items-center gap-1.5"
                             >
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                                 Usar esta cuenta
                             </button>
                             {current && (
-                                <button type="button" onClick={() => setEditing(false)} className="text-xs text-[#7C8AA6] hover:text-[#EDF0F7]">
+                                <button type="button" onClick={() => setEditing(false)} className="text-xs text-[color:var(--t-muted)] hover:text-[color:var(--t-ink)]">
                                     Cancelar
                                 </button>
                             )}
@@ -254,7 +249,7 @@ export function EpicAccountCard({
                     )}
                 </div>
             )}
-            {error && <p className="text-sm text-[#E8677A]">{error}</p>}
+            {error && <p className="text-sm text-[color:var(--t-live)]">{error}</p>}
         </section>
     );
 }
