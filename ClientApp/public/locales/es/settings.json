@@ -146,7 +146,8 @@
     "platforms": "Tus plataformas",
     "connected": "Conectado",
     "notConnected": "Sin vincular",
-    "delegated": "Estás administrando un canal que no es tuyo: tus vinculaciones se ven desde tu propio canal."
+    "delegatedBadge": "Control total",
+    "readOnly": "Estás viendo las cuentas de @{{login}}. Solo @{{login}} puede vincularlas o desvincularlas desde su propia sesión."
   },
   "sections": {
     "platforms": {
@@ -166,7 +167,8 @@
     },
     "games": {
       "title": "Cuentas de juego",
-      "description": "Las usas para inscribirte a torneos y para los overlays de juego."
+      "description": "Las usas para inscribirte a torneos y para los overlays de juego.",
+      "none": "No tiene cuentas de juego vinculadas."
     },
     "integrations": {
       "title": "Integraciones",

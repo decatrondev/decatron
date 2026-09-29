@@ -353,6 +353,57 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>
+        /// Identidad del canal activo para la cabecera de Settings (rediseño 2026-09-29):
+        /// que plataformas y cuentas de juego tiene vinculadas el DUEÑO del canal, no quien
+        /// mira. Con control total delegado se ve lo del dueño (solo lectura en la UI:
+        /// vincular requiere el login del propio dueño). Solo dueño o control_total.
+        /// </summary>
+        [HttpGet("channel-identity")]
+        public async Task<IActionResult> GetChannelIdentity()
+        {
+            var userId = GetUserId();
+            var channelOwnerId = GetChannelOwnerId();
+            var isOwner = await _permissionService.IsChannelOwnerAsync(userId, channelOwnerId);
+            if (!isOwner && !await _permissionService.HasPermissionLevelAsync(userId, channelOwnerId, "control_total"))
+                return StatusCode(403, new { success = false, message = "Sin permiso" });
+
+            var owner = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == channelOwnerId);
+            if (owner == null) return NotFound(new { success = false, message = "Canal no encontrado" });
+
+            // Todas las filas de la misma persona (Twitch, Kick y Discord pueden ser filas distintas unidas por AccountId).
+            var accountId = owner.AccountId ?? owner.Id;
+            var rows = await _dbContext.Users
+                .Where(u => u.Id == owner.Id || u.Id == accountId || (u.AccountId != null && u.AccountId == accountId))
+                .Select(u => new { u.Login, u.TwitchId, u.KickId, u.KickUsername, u.DiscordId })
+                .ToListAsync();
+
+            var twitch = rows.FirstOrDefault(r => !string.IsNullOrEmpty(r.TwitchId));
+            var kick = rows.FirstOrDefault(r => !string.IsNullOrEmpty(r.KickId));
+            var discord = rows.FirstOrDefault(r => !string.IsNullOrEmpty(r.DiscordId));
+
+            var games = await _dbContext.LinkedGameAccounts
+                .Where(a => a.AccountId == accountId && a.IsActive)
+                .OrderBy(a => a.Game).ThenBy(a => a.SortOrder)
+                .Select(a => new { a.Game, a.Provider, a.ExternalName, a.ExternalTag, a.Region, a.VerifiedAt })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                success = true,
+                isOwner,
+                owner = new { owner.Login, owner.DisplayName, owner.ProfileImageUrl },
+                platforms = new
+                {
+                    twitch = twitch == null ? null : new { login = twitch.Login },
+                    kick = kick == null ? null : new { username = kick.KickUsername },
+                    discord = discord != null,
+                },
+                riotAccounts = games.Where(g => g.Provider == "riot").Select(g => new { g.Game, name = $"{g.ExternalName}#{g.ExternalTag}", g.Region, verified = g.VerifiedAt != null }),
+                epicAccounts = games.Where(g => g.Game == "fortnite").Select(g => new { name = g.ExternalName, verified = g.Provider == "epic" && g.VerifiedAt != null }),
+            });
+        }
+
         [HttpGet("bot/status")]
         public async Task<IActionResult> GetBotStatus()
         {

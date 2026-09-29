@@ -91,6 +91,14 @@ function initialSettingsTab(): SettingsTab {
     return 'account';
 }
 
+interface ChannelIdentity {
+    isOwner: boolean;
+    owner: { login: string; displayName: string; profileImageUrl: string | null };
+    platforms: { twitch: { login: string } | null; kick: { username: string | null } | null; discord: boolean };
+    riotAccounts: { game: string; name: string; region: string | null; verified: boolean }[];
+    epicAccounts: { name: string; verified: boolean }[];
+}
+
 // Interfaz para la notificación Toast
 interface Toast {
     id: number;
@@ -129,18 +137,13 @@ export default function Settings() {
         window.history.replaceState({}, '', `/settings?tab=${tab}`);
     };
 
-    // Cuentas de juego vinculadas, solo para encender las fichas de Riot y Epic de la cabecera.
-    const [gameLinks, setGameLinks] = useState<{ riot: boolean; epic: boolean }>({ riot: false, epic: false });
+    // Plataformas y cuentas de juego del DUEÑO del canal activo (no de quien mira): con
+    // control total sobre un canal ajeno se ve lo de ese dueño, en solo lectura.
+    const [identity, setIdentity] = useState<ChannelIdentity | null>(null);
     useEffect(() => {
-        api.get('/me/game-accounts')
-            .then((res) => {
-                const accounts: { game: string; provider: string }[] = res.data?.accounts || [];
-                setGameLinks({
-                    riot: accounts.some((a) => a.provider === 'riot'),
-                    epic: accounts.some((a) => a.game === 'fortnite'),
-                });
-            })
-            .catch(() => {});
+        api.get('/settings/channel-identity')
+            .then((res) => setIdentity(res.data?.success ? res.data : null))
+            .catch(() => setIdentity(null));
     }, [activeTab]);
 
     // --- NUEVOS ESTADOS PARA NOTIFICACIONES ---
@@ -533,9 +536,15 @@ export default function Settings() {
     }
 
     // Estado de cada plataforma para la cabecera y las filas de "Mi cuenta".
-    const twitchLinked = authProvider === 'twitch' || authProvider === 'both' || (authProvider === 'kick' && !!linkedTwitch);
-    const discordLinked = authProvider === 'discord' || authProvider === 'both';
-    const kickLinked = authProvider === 'kick' || !!linkedKick;
+    // Quien mira es el dueño del canal: si no, lo personal se muestra solo lectura.
+    const viewerIsOwner = identity ? identity.isOwner : userInfo.isOwner !== false;
+    const twitchLinked = identity ? !!identity.platforms.twitch : authProvider === 'twitch' || authProvider === 'both' || (authProvider === 'kick' && !!linkedTwitch);
+    const discordLinked = identity ? identity.platforms.discord : authProvider === 'discord' || authProvider === 'both';
+    const kickLinked = identity ? !!identity.platforms.kick : authProvider === 'kick' || !!linkedKick;
+    const riotLinked = !!identity && identity.riotAccounts.length > 0;
+    const epicLinked = !!identity && identity.epicAccounts.length > 0;
+    const headerName = identity?.owner.displayName || userInfo.displayName;
+    const headerAvatar = identity ? identity.owner.profileImageUrl : jwtClaims.ProfileImage;
 
     const tabs: { id: SettingsTab; label: string }[] = [
         { id: 'account', label: t('settings:tabs.account') },
@@ -555,17 +564,20 @@ export default function Settings() {
                 {/* Cabecera: quien sos, que plan tenes, que canal configuras y tus plataformas unidas */}
                 <section className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 md:p-6 4xl:p-8 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                     <div className="flex items-center gap-4 4xl:gap-6 min-w-0">
-                        {jwtClaims.ProfileImage ? (
-                            <img src={jwtClaims.ProfileImage} alt="" className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-2xl object-cover flex-shrink-0" />
+                        {headerAvatar ? (
+                            <img src={headerAvatar} alt="" className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-2xl object-cover flex-shrink-0" />
                         ) : (
                             <div className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-2xl bg-[#2563eb] text-white flex items-center justify-center text-2xl 4xl:text-4xl font-black flex-shrink-0">
-                                {(userInfo.displayName || '?').slice(0, 1).toUpperCase()}
+                                {(headerName || '?').slice(0, 1).toUpperCase()}
                             </div>
                         )}
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <h1 className="text-2xl md:text-3xl 4xl:text-4xl font-extrabold text-[#1e293b] dark:text-[#f8fafc] truncate">{userInfo.displayName}</h1>
+                                <h1 className="text-2xl md:text-3xl 4xl:text-4xl font-extrabold text-[#1e293b] dark:text-[#f8fafc] truncate">{headerName}</h1>
                                 {accountTier && <TierPill tier={accountTier} />}
+                                {!viewerIsOwner && (
+                                    <span className="px-2.5 py-0.5 bg-purple-600 text-white font-bold rounded-md text-xs 4xl:text-sm">{t('settings:header.delegatedBadge')}</span>
+                                )}
                             </div>
                             <p className="text-sm 4xl:text-base text-[#64748b] dark:text-[#94a3b8] mt-0.5">
                                 {t('settings:header.configuring')}: <span className="font-semibold text-[#1e293b] dark:text-[#f8fafc]">@{userInfo.login}</span>
@@ -592,10 +604,10 @@ export default function Settings() {
                             <PlatformTile name="Discord" color="#5865F2" on={discordLinked} onClick={() => setActiveTab('account')} statusText={discordLinked ? t('settings:header.connected') : t('settings:header.notConnected')}>
                                 <MessageSquare className="w-5 h-5 4xl:w-6 4xl:h-6" />
                             </PlatformTile>
-                            <PlatformTile name="Riot" color="#D13639" on={gameLinks.riot} onClick={() => setActiveTab('games')} statusText={gameLinks.riot ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                            <PlatformTile name="Riot" color="#D13639" on={riotLinked} onClick={() => setActiveTab('games')} statusText={riotLinked ? t('settings:header.connected') : t('settings:header.notConnected')}>
                                 <span className="font-black text-lg 4xl:text-xl">R</span>
                             </PlatformTile>
-                            <PlatformTile name="Epic" color="#2A2A2A" on={gameLinks.epic} onClick={() => setActiveTab('games')} statusText={gameLinks.epic ? t('settings:header.connected') : t('settings:header.notConnected')}>
+                            <PlatformTile name="Epic" color="#2A2A2A" on={epicLinked} onClick={() => setActiveTab('games')} statusText={epicLinked ? t('settings:header.connected') : t('settings:header.notConnected')}>
                                 <span className="font-black text-lg 4xl:text-xl">E</span>
                             </PlatformTile>
                         </div>
@@ -604,7 +616,7 @@ export default function Settings() {
 
                 {/* Pestañas */}
                 <nav className="sticky top-0 z-20 -mx-1 px-1 bg-[#f8fafc]/90 dark:bg-[#111213]/90 backdrop-blur" role="tablist">
-                    <div className="flex gap-1 overflow-x-auto border-b border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b border-[#e2e8f0] dark:border-[#374151]">
                         {tabs.map((tab) => {
                             const on = currentTab === tab.id;
                             return (
@@ -618,7 +630,7 @@ export default function Settings() {
                                     }`}
                                 >
                                     {tab.label}
-                                    {on && <span className="absolute left-2 right-2 -bottom-px h-0.5 bg-[#2563eb] rounded-full" />}
+                                    {on && <span className="absolute left-2 right-2 bottom-0 h-0.5 bg-[#2563eb] rounded-full" />}
                                 </button>
                             );
                         })}
@@ -629,8 +641,13 @@ export default function Settings() {
                 {currentTab === 'account' && (
                     <div className="space-y-6 4xl:space-y-8">
                         <SettingsGroup title={t('settings:sections.platforms.title')} description={t('settings:sections.platforms.description')}>
-                            {!userInfo.isOwner ? (
-                                <SettingsRow title="—" description={t('settings:header.delegated')} />
+                            {!viewerIsOwner ? (
+                                <>
+                                    <ReadOnlyNotice text={t('settings:header.readOnly', { login: identity?.owner.login ?? userInfo.login })} />
+                                    <SettingsRow title="Twitch" description={twitchLinked ? <Linked>Vinculado{identity?.platforms.twitch?.login ? ` (${identity.platforms.twitch.login})` : ''}</Linked> : 'No vinculado'} />
+                                    <SettingsRow title="Kick" description={kickLinked ? <Linked>Vinculado{identity?.platforms.kick?.username ? ` (${identity.platforms.kick.username})` : ''}</Linked> : 'No vinculado'} />
+                                    <SettingsRow title="Discord" description={discordLinked ? <Linked>Vinculado</Linked> : 'No vinculado'} />
+                                </>
                             ) : (
                                 <>
                                     <SettingsRow
@@ -862,8 +879,13 @@ export default function Settings() {
                         </SettingsGroup>
 
                         <SettingsGroup title={t('settings:sections.accessLevel.title')}>
-                            <SettingsRow title={t('settings:accessLevels.owner')} description={t('settings:systemInfo.accessLevelDescription')}>
-                                <span className="px-3 py-1 bg-purple-600 text-white text-xs 4xl:text-sm font-bold rounded">{t('settings:accessLevels.owner')}</span>
+                            <SettingsRow
+                                title={viewerIsOwner ? t('settings:accessLevels.owner') : t('settings:accessLevels.controlTotal')}
+                                description={t('settings:systemInfo.accessLevelDescription')}
+                            >
+                                <span className="px-3 py-1 bg-purple-600 text-white text-xs 4xl:text-sm font-bold rounded">
+                                    {viewerIsOwner ? t('settings:accessLevels.owner') : t('settings:accessLevels.controlTotal')}
+                                </span>
                             </SettingsRow>
                         </SettingsGroup>
                     </div>
@@ -972,10 +994,35 @@ export default function Settings() {
                 {/* ─── Juegos ─── */}
                 {currentTab === 'games' && (
                     <SettingsGroup title={t('settings:sections.games.title')} description={t('settings:sections.games.description')}>
-                        <div className="p-4 4xl:p-6 space-y-3">
-                            <RiotAccountsSettings />
-                            <EpicAccountsSettings />
-                        </div>
+                        {viewerIsOwner ? (
+                            <div className="p-4 4xl:p-6 space-y-3">
+                                <RiotAccountsSettings />
+                                <EpicAccountsSettings />
+                            </div>
+                        ) : (
+                            <>
+                                <ReadOnlyNotice text={t('settings:header.readOnly', { login: identity?.owner.login ?? userInfo.login })} />
+                                {identity && identity.riotAccounts.length + identity.epicAccounts.length === 0 && (
+                                    <SettingsRow title="—" description={t('settings:sections.games.none')} />
+                                )}
+                                {identity?.riotAccounts.map((a, i) => (
+                                    <SettingsRow
+                                        key={`r${i}`}
+                                        icon={<PlatformIcon color="#D13639"><span className="font-black">R</span></PlatformIcon>}
+                                        title={a.name}
+                                        description={a.verified ? <Linked>Riot · verificada</Linked> : 'Riot · sin verificar'}
+                                    />
+                                ))}
+                                {identity?.epicAccounts.map((a, i) => (
+                                    <SettingsRow
+                                        key={`e${i}`}
+                                        icon={<PlatformIcon color="#2A2A2A"><span className="font-black">E</span></PlatformIcon>}
+                                        title={a.name}
+                                        description={a.verified ? <Linked>Epic Games · verificada</Linked> : 'Epic Games · sin verificar'}
+                                    />
+                                ))}
+                            </>
+                        )}
                     </SettingsGroup>
                 )}
 
@@ -1261,6 +1308,14 @@ function SettingsRow({ icon, title, description, children }: { icon?: React.Reac
                 </div>
             </div>
             {children && <div className="flex items-center gap-2 flex-shrink-0">{children}</div>}
+        </div>
+    );
+}
+
+function ReadOnlyNotice({ text }: { text: string }) {
+    return (
+        <div className="px-5 4xl:px-7 py-3 bg-purple-50 dark:bg-purple-900/20 text-sm 4xl:text-base text-purple-700 dark:text-purple-300 flex items-center gap-2">
+            <Lock className="w-4 h-4 flex-shrink-0" /> {text}
         </div>
     );
 }
