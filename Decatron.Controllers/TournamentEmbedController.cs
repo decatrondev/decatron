@@ -91,6 +91,9 @@ namespace Decatron.Controllers
         /// tercero. Mismo dato que TournamentPublicController.GetHome, servido aparte
         /// porque este si necesita CORS abierto.
         /// </summary>
+        // Colores, logo y fondo que eligio el streamer (pestaña Apariencia).
+        private static object Appearance(TournamentEdition e) => new { e.PrimaryColor, e.SecondaryColor, e.Theme, e.LogoUrl };
+
         [HttpGet("api/embed/torneo/{channelName}/{editionSlug}/ranking")]
         [EnableRateLimiting("tournament-embed")]
         public async Task<IActionResult> GetRankingWidget(string channelName, string editionSlug, [FromQuery] string theme = "dark", [FromQuery] int limit = 20)
@@ -113,11 +116,26 @@ namespace Decatron.Controllers
                 var scope = scopes.FirstOrDefault(s => s.IsFinal && s.Rows.Count > 0)
                     ?? scopes.FirstOrDefault(s => s.Key == "all")
                     ?? scopes.FirstOrDefault();
+                // Linea de estado para la franja de OBS: "Partida 3 de 6" mientras se juega.
+                string? subtitle = scope?.Name;
+                var session = await _dbContext.TournamentFortniteSessions
+                    .Where(x => x.TournamentEditionId == edition.Id && (x.Status == "in_progress" || x.Status == "check_in"))
+                    .OrderBy(x => x.SortOrder)
+                    .FirstOrDefaultAsync();
+                if (session != null)
+                {
+                    var games = await _dbContext.TournamentFortniteGames.Where(g => g.SessionId == session.Id).OrderBy(g => g.GameNumber).Select(g => new { g.GameNumber, g.Status }).ToListAsync();
+                    var current = games.LastOrDefault(g => g.Status != "waiting");
+                    subtitle = session.Status == "check_in" ? $"{session.Name} · check-in" : current != null ? $"Partida {current.GameNumber} de {games.Count}" : session.Name;
+                }
+
                 return Ok(new
                 {
                     success = true,
                     editionName = edition.Name,
                     scopeName = scope?.Name,
+                    subtitle,
+                    appearance = Appearance(edition),
                     theme = theme == "light" ? "light" : "dark",
                     ranking = (scope?.Rows ?? new List<TournamentFortniteStandingsService.Row>())
                         .Take(Math.Clamp(limit, 1, 50))
@@ -157,6 +175,8 @@ namespace Decatron.Controllers
             {
                 success = true,
                 editionName = edition.Name,
+                subtitle = "Clasificación",
+                appearance = Appearance(edition),
                 theme = theme == "light" ? "light" : "dark",
                 ranking,
             });

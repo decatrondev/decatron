@@ -185,8 +185,11 @@ function EmbedSnippet({ channelName, editionSlug, isFortnite = false }: { channe
     const [copied, setCopied] = useState<string | null>(null);
     const url = `${window.location.origin}/embed/torneo/${channelName}/${editionSlug}/ranking`;
     const snippet = `<iframe src="${url}" width="360" height="500" frameborder="0"></iframe>`;
-    // Para OBS: fuente de navegador con fondo transparente, se actualiza sola.
-    const obsUrl = `${url}?bg=transparent&limit=10`;
+    // Para OBS: fuentes de navegador con fondo transparente, se actualizan solas.
+    const obsLinks = [
+        { label: 'Lista (costado del stream, 400 × 600)', url: `${url}?bg=transparent&limit=10` },
+        { label: 'Barra inferior (abajo del stream, 1920 × 80)', url: `${url}?layout=bar&bg=transparent&limit=8` },
+    ];
 
     const copy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -211,20 +214,26 @@ function EmbedSnippet({ channelName, editionSlug, isFortnite = false }: { channe
                 </button>
                 {copied === snippet && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
             </div>
-            {isFortnite && (
-                <>
-                    <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-3 mb-2">
-                        Para OBS: agrega una fuente de navegador con este link (fondo transparente, top 10, se actualiza solo).
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                        <code className="text-[10px] px-2 py-1.5 rounded bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] flex-1 truncate">{obsUrl}</code>
-                        <button onClick={() => copy(obsUrl)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
-                            <Copy className="w-4 h-4" />
-                        </button>
-                        {copied === obsUrl && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+            <p className="text-xs 4xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-3 mb-2">
+                Para OBS: agrega una fuente de navegador con uno de estos links. Tienen fondo transparente, usan los colores de Apariencia y se actualizan solos.
+            </p>
+            <div className="space-y-2">
+                {obsLinks.map((l) => (
+                    <div key={l.url}>
+                        <p className="text-[11px] 4xl:text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">{l.label}</p>
+                        <div className="flex items-center gap-1.5">
+                            <code className="text-[10px] px-2 py-1.5 rounded bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] flex-1 truncate">{l.url}</code>
+                            <a href={l.url} target="_blank" rel="noreferrer" className="text-[11px] font-bold text-[#2563eb] hover:underline flex-shrink-0">
+                                Ver
+                            </a>
+                            <button onClick={() => copy(l.url)} className="p-1.5 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] flex-shrink-0">
+                                <Copy className="w-4 h-4" />
+                            </button>
+                            {copied === l.url && <span className="text-[10px] text-[#2563eb] flex-shrink-0">copiado</span>}
+                        </div>
                     </div>
-                </>
-            )}
+                ))}
+            </div>
         </div>
     );
 }
