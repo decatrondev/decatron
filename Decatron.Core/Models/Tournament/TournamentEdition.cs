@@ -65,6 +65,13 @@ public class TournamentEdition
     [Column("secondary_color")]
     public string? SecondaryColor { get; set; }
 
+    // Rediseño publico R0: portada de la cabecera y fondo "dark" | "light".
+    [Column("banner_url")]
+    public string? BannerUrl { get; set; }
+
+    [Column("theme")]
+    public string Theme { get; set; } = "dark";
+
     [Column("prize_pool_total")]
     public decimal? PrizePoolTotal { get; set; }
 

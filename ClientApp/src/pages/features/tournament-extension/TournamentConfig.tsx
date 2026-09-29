@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, Users, UsersRound, KeyRound, ArrowUp, Shield, DollarSign, LayoutDashboard, FileText, Handshake, Swords, Settings2, Radio } from 'lucide-react';
+import { Trophy, Users, UsersRound, KeyRound, ArrowUp, Shield, DollarSign, LayoutDashboard, FileText, Handshake, Swords, Settings2, Radio, Palette } from 'lucide-react';
 import api from '../../../services/api';
 import type { TournamentEdition } from './shared';
 import EditionsPanel from './EditionsPanel';
@@ -16,6 +16,7 @@ import WinConditionPanel from './WinConditionPanel';
 import FortniteFormatPanel from './fortnite/FortniteFormatPanel';
 import MatchdayPanel from './fortnite/MatchdayPanel';
 import StandingsPanel from './fortnite/StandingsPanel';
+import AppearancePanel from './AppearancePanel';
 
 // Milestone 0/1 del modulo de Torneos — UI minima para no seguir probando a mano
 // contra la API. Cubre lo que ya existe en el backend: crear/listar ediciones,
@@ -27,7 +28,7 @@ import StandingsPanel from './fortnite/StandingsPanel';
 // ParticipantsPanel, RiotConfigPanel, BlueShellPanel, ...) — este archivo es
 // solo el shell de tabs + el estado compartido de "que edicion esta seleccionada".
 
-type TabId = 'dashboard' | 'editions' | 'ranking' | 'participants' | 'teams' | 'format' | 'matchday' | 'standings' | 'blueshell' | 'wincondition' | 'prizes' | 'rules' | 'sponsors' | 'riot';
+type TabId = 'dashboard' | 'editions' | 'ranking' | 'participants' | 'teams' | 'format' | 'matchday' | 'standings' | 'appearance' | 'blueshell' | 'wincondition' | 'prizes' | 'rules' | 'sponsors' | 'riot';
 
 export default function TournamentConfig() {
     const [activeTab, setActiveTab] = useState<TabId>('dashboard');
@@ -121,6 +122,7 @@ export default function TournamentConfig() {
                             icon: <Shield className="w-4 h-4 4xl:w-5 4xl:h-5" />,
                         },
                         isAram && !isFortnite && { id: 'wincondition', label: 'Condición de victoria', icon: <Swords className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
+                        { id: 'appearance', label: 'Apariencia', icon: <Palette className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'prizes', label: 'Premios', icon: <DollarSign className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'rules', label: 'Normas', icon: <FileText className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
                         { id: 'sponsors', label: 'Sponsors', icon: <Handshake className="w-4 h-4 4xl:w-5 4xl:h-5" /> },
@@ -164,6 +166,10 @@ export default function TournamentConfig() {
 
             {activeTab === 'format' && (
                 <FortniteFormatPanel edition={selectedEdition} editions={editions} onSelectEdition={(id) => onSelectEdition(id, false)} />
+            )}
+
+            {activeTab === 'appearance' && (
+                <AppearancePanel edition={selectedEdition} editions={editions} onSelectEdition={(id) => onSelectEdition(id, false)} />
             )}
 
             {activeTab === 'standings' && (

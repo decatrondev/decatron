@@ -83,6 +83,10 @@ export default {
                 // Chakra Petch ya se cargaba en index.html sin usarse en ningun lado.
                 // Es la tipografia de titulos de la landing (ver Index.tsx).
                 display: ['"Chakra Petch"', 'sans-serif'],
+                // Vista publica de torneos (rediseño "grafico de transmision"): titulos y
+                // numeros de marcador + texto. Ver .dev/torneos/16-rediseno-publico.md.
+                scoreboard: ['"Big Shoulders Display"', 'sans-serif'],
+                barlow: ['Barlow', 'sans-serif'],
             },
         },
     },
