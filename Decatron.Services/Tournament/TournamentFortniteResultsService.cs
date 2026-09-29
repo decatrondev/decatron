@@ -31,8 +31,9 @@ namespace Decatron.Services.Tournament
             _config = config;
         }
 
-        // Carpeta privada, fuera del sitio publico. El backend corre como root, igual
-        // que brand-assets.
+        // Carpeta privada, fuera del sitio publico. El backend corre como el usuario
+        // decatron (runuser), asi que la carpeta tiene que existir con ese dueño, igual
+        // que brand-assets (creada 2026-09-29, 750 decatron:decatron).
         public string FilesPath => _config["Tournament:FilesPath"] ?? "/var/www/html/decatron/tournament-files";
 
         // ─── Archivos ──────────────────────────────────────────────────────────
