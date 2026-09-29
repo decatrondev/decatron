@@ -5,8 +5,8 @@ import api from '../../services/api';
 // Cuentas de Epic (Fortnite) vinculadas a nivel de cuenta de plataforma — se usan
 // para inscribirse a torneos de Fortnite (.dev/torneos/15-fortnite.md F1). Viven en
 // linked_game_accounts (game = fortnite), las mismas que usa Game Overlays.
-// Mientras Epic no apruebe el inicio de sesion oficial, se vinculan por nombre y
-// quedan sin verificar.
+// Con el login oficial de Epic (aprobado 2026-09-29) la cuenta queda verificada;
+// la carga por nombre sigue disponible y queda sin verificar.
 
 interface LinkedAccount {
     id: number;
@@ -22,6 +22,14 @@ export default function EpicAccountsSettings() {
     const [name, setName] = useState('');
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [epicAvailable, setEpicAvailable] = useState(false);
+    const [redirecting, setRedirecting] = useState(false);
+    // Resultado de la vuelta desde Epic (?epic=ok|error&reason=...).
+    const [epicResult] = useState(() => {
+        const q = new URLSearchParams(window.location.search);
+        const epic = q.get('epic');
+        return epic ? { ok: epic === 'ok', reason: q.get('reason') } : null;
+    });
 
     const load = async () => {
         setLoading(true);
@@ -37,7 +45,20 @@ export default function EpicAccountsSettings() {
 
     useEffect(() => {
         load();
+        api.get('/me/epic/status').then((res) => setEpicAvailable(!!res.data.available)).catch(() => {});
     }, []);
+
+    const loginWithEpic = async () => {
+        setRedirecting(true);
+        setError('');
+        try {
+            const res = await api.get('/me/epic/login-url', { params: { returnTo: '/settings' } });
+            window.location.href = res.data.url;
+        } catch (err: any) {
+            setError(err?.response?.data?.message || 'No se pudo abrir el inicio de sesión de Epic');
+            setRedirecting(false);
+        }
+    };
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,16 +93,41 @@ export default function EpicAccountsSettings() {
                 <div>
                     <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Cuentas de Epic Games (Fortnite)</div>
                     <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                        Para inscribirte a torneos de Fortnite. Por ahora quedan sin verificar; pronto se podrán verificar con el inicio de sesión de Epic.
+                        Para inscribirte a torneos de Fortnite.{' '}
+                        {epicAvailable
+                            ? 'Vincúlala con tu inicio de sesión de Epic para que quede verificada.'
+                            : 'Por ahora quedan sin verificar.'}
                     </div>
                 </div>
-                <button
-                    onClick={() => setShowForm((v) => !v)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#2563eb] text-white text-sm font-bold hover:bg-[#1d4ed8] flex-shrink-0"
-                >
-                    <Plus className="w-4 h-4" /> Vincular cuenta
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                    {epicAvailable && (
+                        <button
+                            onClick={loginWithEpic}
+                            disabled={redirecting}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#2563eb] text-white text-sm font-bold hover:bg-[#1d4ed8] disabled:opacity-50"
+                        >
+                            {redirecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />} Vincular con Epic Games
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setShowForm((v) => !v)}
+                        className={
+                            epicAvailable
+                                ? 'flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#94a3b8] text-sm font-bold hover:bg-gray-100 dark:hover:bg-[#262626]'
+                                : 'flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#2563eb] text-white text-sm font-bold hover:bg-[#1d4ed8]'
+                        }
+                    >
+                        <Plus className="w-4 h-4" /> {epicAvailable ? 'Solo con el nombre' : 'Vincular cuenta'}
+                    </button>
+                </div>
             </div>
+
+            {epicResult && (
+                <p className={`text-sm flex items-center gap-1 ${epicResult.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {epicResult.ok ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                    {epicResult.ok ? 'Cuenta de Epic vinculada y verificada.' : epicResult.reason || 'No se pudo vincular la cuenta de Epic.'}
+                </p>
+            )}
 
             {showForm && (
                 <form

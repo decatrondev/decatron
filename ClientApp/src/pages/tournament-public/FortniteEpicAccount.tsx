@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Loader2, ShieldCheck, AlertTriangle, Plus } from 'lucide-react';
 import api from '../../services/api';
 
@@ -16,13 +17,59 @@ export interface EpicAccountOption {
 
 const inputClass = 'w-full mt-1 px-3 py-2 rounded-lg border border-[#232C42] bg-[#0F1729] text-[#EDF0F7] text-sm';
 
-function UnverifiedNote() {
+// Boton del login oficial de Epic: vuelve a "Mi inscripción" de este torneo con la
+// cuenta ya verificada. Solo aparece si el servidor tiene la app de Epic configurada.
+function VerifyWithEpic() {
+    const { channelName, editionSlug } = useParams<{ channelName: string; editionSlug: string }>();
+    const [available, setAvailable] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        api.get('/me/epic/status').then((res) => setAvailable(!!res.data.available)).catch(() => {});
+    }, []);
+
+    if (!available) {
+        return (
+            <p className="text-[11px] text-[#7C8AA6] flex items-start gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-[#E8B04B] flex-shrink-0 mt-px" />
+                Por ahora las cuentas de Epic quedan sin verificar: el organizador lo ve marcado.
+            </p>
+        );
+    }
+
+    const go = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const returnTo = channelName && editionSlug ? `/torneos/${channelName}/${editionSlug}/mi-panel` : '/settings';
+            const res = await api.get('/me/epic/login-url', { params: { returnTo } });
+            window.location.href = res.data.url;
+        } catch (err: any) {
+            setError(err?.response?.data?.message || 'No se pudo abrir el inicio de sesión de Epic');
+            setLoading(false);
+        }
+    };
+
     return (
-        <p className="text-[11px] text-[#7C8AA6] flex items-start gap-1">
-            <AlertTriangle className="w-3.5 h-3.5 text-[#E8B04B] flex-shrink-0 mt-px" />
-            Por ahora las cuentas de Epic quedan sin verificar: el organizador lo ve marcado. Pronto se podrá verificar con el inicio de sesión de Epic.
-        </p>
+        <div className="space-y-1">
+            <button
+                type="button"
+                onClick={go}
+                disabled={loading}
+                className="w-full py-2 rounded-lg border border-[#3ED6C4]/60 text-[#3ED6C4] font-bold text-sm hover:bg-[#132A2A] disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                Verificar con mi cuenta de Epic Games
+            </button>
+            <p className="text-[11px] text-[#7C8AA6]">Recomendado: las cuentas sin verificar le aparecen marcadas al organizador.</p>
+            {error && <p className="text-xs text-[#E8677A]">{error}</p>}
+        </div>
     );
+}
+
+function UnverifiedNote() {
+    return <VerifyWithEpic />;
 }
 
 // Formulario corto para vincular una cuenta de Fortnite por nombre de Epic.
