@@ -246,6 +246,7 @@ namespace Decatron.Controllers
                 ("srpromote", "Sube un pedido al primer lugar de la cola por su número (!srpromote 3)", skip),
                 ("srvideo", "El reproductor muestra el video en vez de la portada", manage),
                 ("srcover", "El reproductor muestra la portada en vez del video", manage),
+                ("pladd", "Agrega una canción a una playlist del canal (!pladd <playlist> <link o nombre>); cada playlist decide quién puede", null),
             };
             foreach (var (name, description, restriction) in commands)
                 AddItem(results, overrideMap, "songrequest", name, name, description, restriction, applyHiddenFilter);

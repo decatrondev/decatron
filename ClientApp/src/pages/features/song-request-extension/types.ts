@@ -84,10 +84,22 @@ export interface SongRequestLimits {
     canHidePromo: boolean;
 }
 
+export interface PlaylistRequirements {
+    minRole: Role;
+    minAccountAgeDays: number;
+    minFollowAgeDays: number;
+    maxPerUser: number;
+    maxFromViewers: number;
+    cooldownMinutes: number;
+}
+
 export interface Playlist {
     id: number;
     name: string;
     visibility: 'public' | 'private';
+    /** owner: solo el streamer y los mods; open: viewers que cumplan los requisitos. */
+    contribution: 'owner' | 'open';
+    requirements: PlaylistRequirements;
     isFallback: boolean;
     shuffle: boolean;
     count: number;

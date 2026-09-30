@@ -356,7 +356,8 @@
       "srban": "Veta la canción que suena, o a un usuario si lo mencionas.",
       "srvolume": "Dice el volumen, o lo cambia de 0 a 100 (!srvolume 40).",
       "srpromote": "Sube la canción en esa posición al primer lugar de la cola.",
-      "videocover": "El reproductor muestra el video o la portada, sin cortar la música."
+      "videocover": "El reproductor muestra el video o la portada, sin cortar la música.",
+      "pladd": "Agrega una canción a una playlist colaborativa (el nombre de la playlist va primero)."
     },
     "basic": {
       "moduleTitle": "Módulo",
@@ -461,7 +462,22 @@
       "promote_invalid": "!srpromote: posición vacía",
       "promoted": "!srpromote: subida al primer lugar",
       "video_on": "!srvideo",
-      "cover_on": "!srcover"
+      "cover_on": "!srcover",
+      "pl_usage": "!pladd: cómo usarlo",
+      "pl_which": "!pladd: playlist no encontrada",
+      "pl_none": "!pladd: no hay playlists abiertas",
+      "pl_added": "!pladd: agregada",
+      "pl_closed": "!pladd: playlist solo del streamer",
+      "pl_slow_down": "!pladd: demasiado rápido",
+      "pl_role": "!pladd: falta el rol",
+      "pl_unverifiable": "!pladd: requisito que solo se verifica en Twitch",
+      "pl_account_age": "!pladd: cuenta muy nueva",
+      "pl_follow_age": "!pladd: follow muy reciente",
+      "pl_cooldown": "!pladd: tiene que esperar",
+      "pl_user_limit": "!pladd: límite por viewer",
+      "pl_viewers_full": "!pladd: tope del chat",
+      "playlist_full": "!pladd: playlist llena",
+      "already_in_playlist": "!pladd: ya está en la playlist"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -544,7 +560,8 @@
       "invalid_name": "Escribe un nombre de hasta 60 caracteres.",
       "name_taken": "Ya tienes una playlist con ese nombre.",
       "playlists_limit": "Llegaste al tope de playlists de tu plan.",
-      "invalid_visibility": "Visibilidad no válida."
+      "invalid_visibility": "Visibilidad no válida.",
+      "invalid_contribution": "Modo de aporte no válido."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -721,7 +738,8 @@
       "delete": "Borrar playlist",
       "deleteConfirm": "¿Borrar «{{name}}» con sus {{count}} canciones? No se puede deshacer.",
       "added": "Agregada a «{{name}}».",
-      "none": "No tienes playlists."
+      "none": "No tienes playlists.",
+      "addedBy": "Agregada por {{user}}"
     },
     "limits": {
       "upgrade": "Más con los planes de apoyo",
@@ -731,6 +749,29 @@
       "templates": "Tu plan permite {{max}} plantillas propias.",
       "templatesLimit": "Tu plan permite {{max}} plantillas propias. Borra alguna para guardar.",
       "promo": "En el plan gratis la tarjeta de Decatron va siempre. Desde Supporter la puedes ocultar."
+    },
+    "contrib": {
+      "title": "Quién puede agregar",
+      "description": "Deja que tus viewers sumen canciones a esta playlist desde el chat con !pladd o desde tu página pública.",
+      "who": "Agregan",
+      "owner": "Solo tú y tus mods",
+      "open": "Colaborativa: los viewers que cumplan los requisitos",
+      "ownerHint": "Tú lo haces desde aquí; tus mods, con !pladd {{name}} <canción> en el chat.",
+      "openHint": "Los viewers agregan con !pladd {{name}} <canción> o desde tu página pública. Tú y tus mods no pasan por los requisitos.",
+      "privateNote": "La playlist es privada: los viewers pueden agregar por el chat, pero no la ven ni agregan desde tu página pública. Hazla pública para eso.",
+      "requirements": "Requisitos para los viewers",
+      "minRole": "Rol mínimo",
+      "minRoleHint": "Con un rol distinto a «Todos», desde la página pública no se puede agregar (ahí no se sabe si es sub, VIP o mod): solo por el chat.",
+      "accountAge": "Antigüedad de la cuenta (días)",
+      "followAge": "Días siguiendo el canal",
+      "twitchOnly": "0 = sin mínimo. Solo se puede verificar en Twitch: si lo usas, en Kick no se podrá agregar.",
+      "maxPerUser": "Canciones por viewer",
+      "maxFromViewers": "Tope de canciones del chat",
+      "maxFromViewersHint": "Entre todos los viewers. 0 = hasta el tope de tu plan.",
+      "cooldown": "Minutos entre canciones de un viewer",
+      "alwaysApply": "También se aplican los filtros (duración, vistas) y las listas negras de Song Request.",
+      "save": "Guardar requisitos",
+      "discard": "Descartar"
     }
   },
   "overlayEditor": {

@@ -104,6 +104,7 @@ const COMMANDS: { cmd: string; key: string }[] = [
     { cmd: '!srpause · !srresume', key: 'pause' }, { cmd: '!srban [@usuario]', key: 'srban' },
     { cmd: '!srvolume [0-100]', key: 'srvolume' }, { cmd: '!srpromote <#>', key: 'srpromote' },
     { cmd: '!srvideo · !srcover', key: 'videocover' },
+    { cmd: '!pladd <playlist> <link | nombre>', key: 'pladd' },
 ];
 
 function CommandList() {

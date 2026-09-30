@@ -788,6 +788,79 @@ namespace Decatron.Controllers
             });
         }
 
+        // ── Aportes desde /sr/{canal} (fase 2) ──────────────────────────────
+
+        /// <summary>
+        /// Con qué cuenta agrega el viewer logueado en este canal: la de Twitch si el canal recibe pedidos
+        /// de Twitch, si no la de Kick. Cuentas vinculadas cuentan juntas. Null si no tiene ninguna de las dos.
+        /// </summary>
+        private async Task<(SongRequestContributor? Who, bool IsOwner)> WebContributorAsync(SongRequestConfig config, CancellationToken ct)
+        {
+            var me = this.GetAuthenticatedUserId();
+            if (me == 0)
+                return (null, false);
+            var accountId = await _db.Users.AsNoTracking().Where(u => u.Id == me).Select(u => u.AccountId).FirstOrDefaultAsync(ct);
+            var users = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == me || (accountId != null && u.AccountId == accountId))
+                .Select(u => new { u.Id, u.TwitchId, u.Login, u.DisplayName, u.KickId, u.KickUsername })
+                .ToListAsync(ct);
+            var isOwner = users.Any(u => u.Id == config.UserId);
+            var platforms = await _songs.GetQueuePlatformsAsync(config.UserId, ct);
+
+            var twitch = users.FirstOrDefault(u => !string.IsNullOrEmpty(u.TwitchId));
+            if (platforms.Contains("twitch") && twitch != null)
+                return (new SongRequestContributor("twitch", twitch.TwitchId, twitch.Login, twitch.DisplayName ?? twitch.Login, isOwner ? 5 : 0, isOwner), isOwner);
+            var kick = users.FirstOrDefault(u => !string.IsNullOrEmpty(u.KickId) && !string.IsNullOrEmpty(u.KickUsername));
+            if (platforms.Contains("kick") && kick != null)
+                return (new SongRequestContributor("kick", kick.KickId, kick.KickUsername!, kick.KickUsername!, isOwner ? 5 : 0, isOwner), isOwner);
+            return (null, isOwner);
+        }
+
+        /// <summary>Para la página pública: con qué cuenta agregaría el viewer (o null si no puede).</summary>
+        [HttpGet("api/song-request/public/{channel}/me")]
+        public async Task<IActionResult> PublicMe(string channel, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null)
+                return NotFound(new { success = false });
+            var (who, _) = await WebContributorAsync(config, ct);
+            return Ok(new { success = true, contributor = who == null ? null : new { platform = who.Platform, name = who.DisplayName } });
+        }
+
+        /// <summary>Un viewer agrega a una playlist colaborativa y pública desde /sr/{canal}.</summary>
+        [HttpPost("api/song-request/public/{channel}/playlists/{playlistId:long}/items")]
+        public async Task<IActionResult> PublicAddToPlaylist(string channel, long playlistId, [FromBody] AddRequest body, [FromServices] SongRequestContributionService contributions, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(body.Input) || body.Input.Length > 500)
+                return BadRequest(new { success = false, error = "invalid_input" });
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null || !config.Enabled)
+                return NotFound(new { success = false });
+            var playlist = await _db.SongRequestPlaylists.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == playlistId && p.UserId == config.UserId && p.Visibility == SongRequestPlaylistVisibility.Public, ct);
+            if (playlist == null)
+                return NotFound(new { success = false });
+
+            var (who, _) = await WebContributorAsync(config, ct);
+            if (who == null)
+                return Ok(new { success = false, error = "pl_need_account" });
+            // Desde la web no se sabe si es sub, VIP o mod: una playlist con rol mínimo se usa desde el chat
+            if (!who.Privileged && SongRequestContributionService.ParseRequirements(playlist.Requirements).MinRole != "everyone")
+                return Ok(new { success = false, error = "pl_role_web" });
+
+            var result = await contributions.AddAsync(config, playlist, who, body.Input.Trim(), ct);
+            return Ok(new
+            {
+                success = result.Success,
+                error = result.ErrorKey,
+                vars = result.Vars,
+                title = result.Track?.Title,
+                addedAs = new { platform = who.Platform, name = who.DisplayName }
+            });
+        }
+
         /// <summary>Las playlists públicas del canal, para /sr/{canal}.</summary>
         [AllowAnonymous]
         [HttpGet("api/public/song-request/{channel}/playlists")]

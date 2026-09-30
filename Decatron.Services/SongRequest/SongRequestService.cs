@@ -307,8 +307,11 @@ namespace Decatron.Services.SongRequest
             return new SongAddResult(item, position, track, null);
         }
 
-        /// <summary>Los filtros del canal. Devuelve la clave del mensaje de rechazo, o null si pasa.</summary>
-        private async Task<string?> CheckFiltersAsync(long userId, SongRequestSettings settings, SongTrack track, CancellationToken ct)
+        /// <summary>
+        /// Los filtros del canal. Devuelve la clave del mensaje de rechazo, o null si pasa.
+        /// <paramref name="checkRepeat"/>: "no repetir" solo tiene sentido para la cola, no para una playlist.
+        /// </summary>
+        public async Task<string?> CheckFiltersAsync(long userId, SongRequestSettings settings, SongTrack track, CancellationToken ct, bool checkRepeat = true)
         {
             if (settings.MaxDurationSeconds > 0)
             {
@@ -326,7 +329,7 @@ namespace Decatron.Services.SongRequest
             if (settings.MinViews > 0 && track.ViewCount != null && track.ViewCount < settings.MinViews)
                 return "too_few_views";
 
-            if (settings.NoRepeatMinutes > 0)
+            if (checkRepeat && settings.NoRepeatMinutes > 0)
             {
                 var since = DateTime.UtcNow.AddMinutes(-settings.NoRepeatMinutes);
                 var recent = await _db.SongRequestHistory.AnyAsync(h => h.UserId == userId && h.TrackId == track.Id
@@ -552,7 +555,7 @@ namespace Decatron.Services.SongRequest
 
         // ── Vetos ────────────────────────────────────────────────────────────
 
-        private Task<bool> IsBannedAsync(long userId, string type, string value, CancellationToken ct) =>
+        public Task<bool> IsBannedAsync(long userId, string type, string value, CancellationToken ct) =>
             _db.SongRequestBans.AnyAsync(b => b.UserId == userId && b.BanType == type && b.Value == value, ct);
 
         /// <returns>false si ya estaba vetado.</returns>

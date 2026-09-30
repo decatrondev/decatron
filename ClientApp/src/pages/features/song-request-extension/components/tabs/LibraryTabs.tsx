@@ -2,11 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Radio } from 'lucide-react';
 import api from '../../../../../services/api';
-import { Card, Field, NumberInput, PlanLimitNote, Toggle, inputClass } from '../ui';
+import { Card, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
 import { PlatformIcon, banPlatform } from '../PlatformIcon';
-import type { Playlist, SongRequestLimits } from '../../types';
+import type { Playlist, PlaylistRequirements, Role, SongRequestLimits } from '../../types';
+import { ROLES } from '../../constants/defaults';
+
+type PlaylistChangeKeys = 'name' | 'visibility' | 'shuffle' | 'isFallback' | 'contribution' | 'requirements';
 
 interface TabProps { cfg: SongRequestConfigState }
 
@@ -207,7 +210,7 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
 
 // ── Playlists ────────────────────────────────────────────────────────────
 
-interface PlaylistItem { id: number; track: TrackDto }
+interface PlaylistItem { id: number; track: TrackDto; addedBy: string | null; addedByPlatform: string | null }
 
 function usePlaylists() {
     const [playlists, setPlaylists] = useState<Playlist[] | null>(null);
@@ -248,7 +251,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
         finally { setCreating(false); }
     };
 
-    const update = async (id: number, changes: Partial<Pick<Playlist, 'name' | 'visibility' | 'shuffle' | 'isFallback'>>) => {
+    const update = async (id: number, changes: Partial<Pick<Playlist, PlaylistChangeKeys>>) => {
         setResult(null);
         try {
             const res = await api.put(`/song-request/playlists/${id}`, changes);
@@ -344,7 +347,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
 function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged }: {
     playlist: Playlist;
     channel: string;
-    onUpdate: (changes: Partial<Pick<Playlist, 'name' | 'visibility' | 'shuffle' | 'isFallback'>>) => void;
+    onUpdate: (changes: Partial<Pick<Playlist, PlaylistChangeKeys>>) => void;
     onDelete: () => void;
     onItemsChanged: () => void;
 }) {
@@ -444,6 +447,8 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged 
                 </div>
             </Card>
 
+            <ContributionCard playlist={playlist} onUpdate={onUpdate} />
+
             <Card title={t('songRequest.fallback.addTitle')}>
                 <div className="space-y-3">
                     {full && <PlanLimitNote text={t('songRequest.limits.items', { max })} />}
@@ -484,6 +489,11 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged 
                                                 <span className="w-7 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{i + 1}</span>
                                             </>}
                                         >
+                                            {item.addedBy && (
+                                                <span className="hidden md:inline-flex items-center gap-1 text-xs 3xl:text-sm text-[#94a3b8] max-w-[10rem] 3xl:max-w-[14rem] truncate shrink-0" title={t('songRequest.playlists.addedBy', { user: item.addedBy })}>
+                                                    <PlatformIcon platform={item.addedByPlatform ?? 'twitch'} /> {item.addedBy}
+                                                </span>
+                                            )}
                                             <button className={iconBtn} title={t('songRequest.queue.remove')} onClick={async () => { await api.delete(`${base}/items/${item.id}`); changed(); }}>
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -494,6 +504,72 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged 
                         )}
             </Card>
         </>
+    );
+}
+
+/** Quién puede agregar a la playlist y qué tiene que cumplir un viewer (fase 2). */
+function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate: (changes: Partial<Pick<Playlist, PlaylistChangeKeys>>) => void }) {
+    const { t } = useTranslation('overlays');
+    const [draft, setDraft] = useState<PlaylistRequirements>(playlist.requirements);
+    const dirty = JSON.stringify(draft) !== JSON.stringify(playlist.requirements);
+    const set = (patch: Partial<PlaylistRequirements>) => setDraft(prev => ({ ...prev, ...patch }));
+    const roleOptions = ROLES.filter(r => r !== 'broadcaster').map(r => ({ value: r as Role, label: t(`songRequest.roles.${r}`) }));
+    const open = playlist.contribution === 'open';
+
+    return (
+        <Card title={t('songRequest.contrib.title')} description={t('songRequest.contrib.description')}>
+            <div className="space-y-4">
+                <Field label={t('songRequest.contrib.who')}>
+                    <Select
+                        value={playlist.contribution}
+                        onChange={v => onUpdate({ contribution: v })}
+                        options={[
+                            { value: 'owner', label: t('songRequest.contrib.owner') },
+                            { value: 'open', label: t('songRequest.contrib.open') },
+                        ]}
+                    />
+                </Field>
+                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(open ? 'songRequest.contrib.openHint' : 'songRequest.contrib.ownerHint', { name: playlist.name })}</p>
+                {open && playlist.visibility !== 'public' && (
+                    <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.contrib.privateNote')}</p>
+                )}
+
+                {open && (
+                    <div className="space-y-4 pt-2 border-t border-[#e2e8f0] dark:border-[#374151]">
+                        <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] pt-2">{t('songRequest.contrib.requirements')}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            <Field label={t('songRequest.contrib.minRole')} hint={t('songRequest.contrib.minRoleHint')}>
+                                <Select value={draft.minRole} onChange={v => set({ minRole: v })} options={roleOptions} />
+                            </Field>
+                            <Field label={t('songRequest.contrib.accountAge')} hint={t('songRequest.contrib.twitchOnly')}>
+                                <NumberInput value={draft.minAccountAgeDays} min={0} max={3650} onChange={v => set({ minAccountAgeDays: v })} />
+                            </Field>
+                            <Field label={t('songRequest.contrib.followAge')} hint={t('songRequest.contrib.twitchOnly')}>
+                                <NumberInput value={draft.minFollowAgeDays} min={0} max={3650} onChange={v => set({ minFollowAgeDays: v })} />
+                            </Field>
+                            <Field label={t('songRequest.contrib.maxPerUser')} hint={t('songRequest.basic.zeroUnlimited')}>
+                                <NumberInput value={draft.maxPerUser} min={0} max={1000} onChange={v => set({ maxPerUser: v })} />
+                            </Field>
+                            <Field label={t('songRequest.contrib.maxFromViewers')} hint={t('songRequest.contrib.maxFromViewersHint')}>
+                                <NumberInput value={draft.maxFromViewers} min={0} max={100000} onChange={v => set({ maxFromViewers: v })} />
+                            </Field>
+                            <Field label={t('songRequest.contrib.cooldown')} hint={t('songRequest.basic.zeroUnlimited')}>
+                                <NumberInput value={draft.cooldownMinutes} min={0} max={10080} onChange={v => set({ cooldownMinutes: v })} />
+                            </Field>
+                        </div>
+                        <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.contrib.alwaysApply')}</p>
+                        <div className="flex flex-wrap gap-2">
+                            <button className={primaryBtn} disabled={!dirty} onClick={() => onUpdate({ requirements: draft })}>
+                                {t('songRequest.contrib.save')}
+                            </button>
+                            {dirty && (
+                                <button className={smallBtn} onClick={() => setDraft(playlist.requirements)}>{t('songRequest.contrib.discard')}</button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </Card>
     );
 }
 

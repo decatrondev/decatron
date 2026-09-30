@@ -257,9 +257,13 @@ public class SongRequestPlaylist
     [Column("visibility"), MaxLength(10)]
     public string Visibility { get; set; } = SongRequestPlaylistVisibility.Private;
 
-    /// <summary>Quién puede agregar: owner (streamer y mods). review/open llegan en las fases 2 y 3.</summary>
+    /// <summary>Quién puede agregar: owner (streamer y mods) | open (viewers que cumplan los requisitos). review: fase 3.</summary>
     [Column("contribution"), MaxLength(10)]
-    public string Contribution { get; set; } = "owner";
+    public string Contribution { get; set; } = SongRequestPlaylistContribution.Owner;
+
+    /// <summary>Requisitos para que un viewer agregue (JSON de <see cref="SongRequestPlaylistRequirements"/>).</summary>
+    [Column("requirements", TypeName = "jsonb")]
+    public string Requirements { get; set; } = "{}";
 
     [Column("is_fallback")]
     public bool IsFallback { get; set; }
@@ -277,6 +281,39 @@ public class SongRequestPlaylist
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public static class SongRequestPlaylistContribution
+{
+    public const string Owner = "owner";
+    public const string Open = "open";
+
+    public static bool IsValid(string? value) => value is Owner or Open;
+}
+
+/// <summary>
+/// Lo que pide una playlist colaborativa para que un viewer agregue. Todo lo define el streamer; por
+/// defecto puede cualquiera. El streamer, control_total y los mods no pasan por estos requisitos.
+/// </summary>
+public class SongRequestPlaylistRequirements
+{
+    /// <summary>everyone &lt; subscriber &lt; vip &lt; moderator &lt; lead_moderator &lt; broadcaster.</summary>
+    public string MinRole { get; set; } = "everyone";
+
+    /// <summary>Antigüedad mínima de la cuenta de Twitch, en días. 0 = sin mínimo.</summary>
+    public int MinAccountAgeDays { get; set; }
+
+    /// <summary>Días mínimos siguiendo el canal de Twitch. 0 = sin mínimo (ni hace falta seguir).</summary>
+    public int MinFollowAgeDays { get; set; }
+
+    /// <summary>Canciones que puede tener cada viewer en esta playlist. 0 = sin límite.</summary>
+    public int MaxPerUser { get; set; } = 5;
+
+    /// <summary>Canciones que pueden sumar entre todos los viewers. 0 = hasta el tope del plan.</summary>
+    public int MaxFromViewers { get; set; }
+
+    /// <summary>Minutos entre dos canciones de un mismo viewer. 0 = sin espera.</summary>
+    public int CooldownMinutes { get; set; } = 1;
 }
 
 public static class SongRequestPlaylistVisibility
@@ -308,6 +345,19 @@ public class SongRequestPlaylistItem
 
     [Column("position")]
     public int Position { get; set; }
+
+    /// <summary>twitch | kick. Null = la agregó el streamer o su equipo desde el dashboard.</summary>
+    [Column("added_by_platform"), MaxLength(10)]
+    public string? AddedByPlatform { get; set; }
+
+    [Column("added_by_id"), MaxLength(64)]
+    public string? AddedById { get; set; }
+
+    [Column("added_by_login"), MaxLength(100)]
+    public string? AddedByLogin { get; set; }
+
+    [Column("added_by_name"), MaxLength(100)]
+    public string? AddedByName { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

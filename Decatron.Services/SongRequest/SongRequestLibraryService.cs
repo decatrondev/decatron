@@ -131,6 +131,8 @@ namespace Decatron.Services.SongRequest
                 id = p.Id,
                 name = p.Name,
                 visibility = p.Visibility,
+                contribution = p.Contribution,
+                requirements = SongRequestContributionService.ParseRequirements(p.Requirements),
                 isFallback = p.IsFallback,
                 shuffle = p.Shuffle,
                 count = counts.GetValueOrDefault(p.Id)
@@ -170,6 +172,9 @@ namespace Decatron.Services.SongRequest
             public bool? Shuffle { get; set; }
             /// <summary>true la vuelve la de respaldo (la anterior deja de serlo).</summary>
             public bool? IsFallback { get; set; }
+            /// <summary>owner | open.</summary>
+            public string? Contribution { get; set; }
+            public SongRequestPlaylistRequirements? Requirements { get; set; }
         }
 
         /// <returns>null si se guardó; si no, la clave del error (not_found, invalid_name, name_taken, invalid_visibility).</returns>
@@ -196,6 +201,19 @@ namespace Decatron.Services.SongRequest
             }
             if (changes.Shuffle.HasValue)
                 playlist.Shuffle = changes.Shuffle.Value;
+            if (changes.Contribution != null)
+            {
+                if (!SongRequestPlaylistContribution.IsValid(changes.Contribution))
+                    return "invalid_contribution";
+                playlist.Contribution = changes.Contribution;
+            }
+            if (changes.Requirements != null)
+            {
+                var error = SongRequestContributionService.Validate(changes.Requirements);
+                if (error != null)
+                    return error;
+                playlist.Requirements = System.Text.Json.JsonSerializer.Serialize(changes.Requirements);
+            }
 
             if (changes.IsFallback.HasValue && changes.IsFallback.Value != playlist.IsFallback)
             {
@@ -224,7 +242,14 @@ namespace Decatron.Services.SongRequest
                 return null;
             var rows = await _db.SongRequestPlaylistItems.AsNoTracking().Include(i => i.Track)
                 .Where(i => i.PlaylistId == playlistId).OrderBy(i => i.Position).ThenBy(i => i.Id).ToListAsync(ct);
-            return rows.Select(i => (object)new { id = i.Id, track = TrackDto(i.Track) }).ToList();
+            return rows.Select(i => (object)new
+            {
+                id = i.Id,
+                track = TrackDto(i.Track),
+                addedBy = i.AddedByName,
+                addedByPlatform = i.AddedByPlatform,
+                addedAt = i.CreatedAt
+            }).ToList();
         }
 
         /// <returns>null si se agregó; si no, la clave del error (not_found, already_in_playlist, playlist_full).</returns>
@@ -321,9 +346,16 @@ namespace Decatron.Services.SongRequest
             var rows = await _db.SongRequestPlaylists.AsNoTracking()
                 .Where(p => p.UserId == userId && p.Visibility == SongRequestPlaylistVisibility.Public)
                 .OrderByDescending(p => p.IsFallback).ThenBy(p => p.CreatedAt).ThenBy(p => p.Id)
-                .Select(p => new { p.Id, p.Name, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
+                .Select(p => new { p.Id, p.Name, p.Contribution, p.Requirements, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
                 .ToListAsync(ct);
-            return rows.Select(p => (object)new { id = p.Id, name = p.Name, count = p.Count }).ToList();
+            return rows.Select(p => (object)new
+            {
+                id = p.Id,
+                name = p.Name,
+                count = p.Count,
+                open = p.Contribution == SongRequestPlaylistContribution.Open,
+                requirements = SongRequestContributionService.ParseRequirements(p.Requirements)
+            }).ToList();
         }
 
         /// <returns>null si no existe o no es pública.</returns>

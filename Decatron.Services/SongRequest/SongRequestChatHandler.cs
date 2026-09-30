@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -42,7 +42,8 @@ namespace Decatron.Services.SongRequest
             ["!srvolume"] = Action.Volume,
             ["!srpromote"] = Action.Promote,
             ["!srvideo"] = Action.Video,
-            ["!srcover"] = Action.Cover
+            ["!srcover"] = Action.Cover,
+            ["!pladd"] = Action.PlaylistAdd
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -80,7 +81,9 @@ namespace Decatron.Services.SongRequest
             "skip_nothing", "skip_done", "skip_vote", "skip_voted_done", "remove_usage", "remove_invalid", "removed",
             "opened", "closed_now", "paused", "resumed", "ban_user", "ban_track", "ban_nothing",
             "volume_current", "volume_set", "volume_usage",
-            "promote_usage", "promote_invalid", "promoted", "video_on", "cover_on"
+            "promote_usage", "promote_invalid", "promoted", "video_on", "cover_on",
+            "pl_usage", "pl_which", "pl_none", "pl_added", "pl_closed", "pl_slow_down", "pl_role", "pl_unverifiable",
+            "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -114,6 +117,7 @@ namespace Decatron.Services.SongRequest
                 {
                     Action.Skip => null, // decide adentro: directo o voto
                     Action.Volume => null, // decide adentro: ver el volumen o cambiarlo
+                    Action.PlaylistAdd => null, // decide la playlist: sus requisitos
                     Action.Remove or Action.Promote => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
                         or Action.Video or Action.Cover => run.Settings.Permissions.Manage,
@@ -140,6 +144,7 @@ namespace Decatron.Services.SongRequest
                     case Action.Promote: await PromoteAsync(run); break;
                     case Action.Video: await SetVideoModeAsync(run, true); break;
                     case Action.Cover: await SetVideoModeAsync(run, false); break;
+                    case Action.PlaylistAdd: await PlaylistAddAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -315,6 +320,48 @@ namespace Decatron.Services.SongRequest
             await run.ReplyAsync(video ? "video_on" : "cover_on");
         }
 
+        /// <summary>
+        /// !pladd [playlist] &lt;link o nombre&gt;: agrega a una playlist colaborativa (fase 2 de
+        /// SONG_REQUEST_PLAYLISTS_PLAN.md). Los mods (permiso de saltar) agregan a cualquiera y sin requisitos.
+        /// </summary>
+        private static async Task PlaylistAddAsync(Run run)
+        {
+            var contributions = run.Services.GetRequiredService<SongRequestContributionService>();
+            var privileged = run.Context.IsBroadcaster || await run.HasRoleAsync(run.Settings.Permissions.Skip);
+            var playlists = await contributions.GetWritablePlaylistsAsync(run.Config.UserId, privileged);
+            if (playlists.Count == 0)
+            {
+                await run.ReplyAsync("pl_none");
+                return;
+            }
+
+            var names = string.Join(" · ", playlists.Select(p => p.Name));
+            if (run.Args.Length == 0)
+            {
+                await run.ReplyAsync("pl_usage", new() { ["playlists"] = names });
+                return;
+            }
+            var (playlist, input) = SongRequestContributionService.MatchPlaylist(playlists, run.Args);
+            if (playlist == null || input.Length == 0)
+            {
+                await run.ReplyAsync(playlist == null ? "pl_which" : "pl_usage", new() { ["playlists"] = names });
+                return;
+            }
+
+            var who = new SongRequestContributor(run.Channel.Platform, run.Context.UserId, run.Context.Username, run.Context.Username,
+                run.RoleLevel, privileged || await run.HasControlTotalAsync());
+            var result = await contributions.AddAsync(run.Config, playlist, who, input);
+
+            var vars = Vars(result.Track).With("playlist", playlist.Name);
+            foreach (var (k, v) in result.Vars ?? new())
+                vars[k] = k == "role" ? await run.RoleNameAsync(v) : v;
+            if (!result.Success && result.ErrorKey is "too_long")
+                vars["max"] = FormatDuration(run.Settings.MaxDurationSeconds);
+            if (!result.Success && result.ErrorKey is "too_few_views")
+                vars["views"] = run.Settings.MinViews.ToString("N0");
+            await run.ReplyAsync(result.ErrorKey ?? "pl_added", vars);
+        }
+
         private static async Task SetOpenAsync(Run run, bool open)
         {
             await run.Songs.SetOpenAsync(run.Config, open);
@@ -436,19 +483,28 @@ namespace Decatron.Services.SongRequest
             public async Task<bool> HasControlTotalAsync() =>
                 _controlTotal ??= await ModerationPermissions.HasControlTotalAsync(Services, Channel, Context.UserId);
 
+            /// <summary>0 everyone, 1 sub, 2 vip, 3 mod, 4 lead mod, 5 streamer (el orden de RoleOrder).</summary>
+            public int RoleLevel => Context.IsBroadcaster ? 5
+                : Context.IsLeadModerator ? 4
+                : Context.IsModerator ? 3
+                : Context.IsVip ? 2
+                : Context.IsSubscriber ? 1
+                : 0;
+
+            /// <summary>El nombre del rol en el idioma del canal, para los mensajes.</summary>
+            public async Task<string> RoleNameAsync(string role)
+            {
+                var name = await GetTemplateAsync($"role_{role}");
+                return string.IsNullOrWhiteSpace(name) ? role : name;
+            }
+
             public async Task<bool> HasRoleAsync(string requiredRole)
             {
                 var required = Array.IndexOf(RoleOrder, requiredRole);
                 if (required <= 0)
                     return true;
 
-                var level = Context.IsBroadcaster ? 5
-                    : Context.IsLeadModerator ? 4
-                    : Context.IsModerator ? 3
-                    : Context.IsVip ? 2
-                    : Context.IsSubscriber ? 1
-                    : 0;
-                if (level >= required)
+                if (RoleLevel >= required)
                     return true;
 
                 // control_total = actuar como el streamer

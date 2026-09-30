@@ -356,7 +356,8 @@
       "srban": "Bans the song that's playing, or a user if you mention them.",
       "srvolume": "Tells the volume, or changes it from 0 to 100 (!srvolume 40).",
       "srpromote": "Moves the song at that position to the front of the queue.",
-      "videocover": "The player shows the video or the cover, without stopping the music."
+      "videocover": "The player shows the video or the cover, without stopping the music.",
+      "pladd": "Adds a song to a collaborative playlist (the playlist name goes first)."
     },
     "basic": {
       "moduleTitle": "Module",
@@ -461,7 +462,22 @@
       "promote_invalid": "!srpromote: empty position",
       "promoted": "!srpromote: moved to the front",
       "video_on": "!srvideo",
-      "cover_on": "!srcover"
+      "cover_on": "!srcover",
+      "pl_usage": "!pladd: how to use",
+      "pl_which": "!pladd: playlist not found",
+      "pl_none": "!pladd: no open playlists",
+      "pl_added": "!pladd: added",
+      "pl_closed": "!pladd: streamer-only playlist",
+      "pl_slow_down": "!pladd: too fast",
+      "pl_role": "!pladd: missing role",
+      "pl_unverifiable": "!pladd: Twitch-only requirement",
+      "pl_account_age": "!pladd: account too new",
+      "pl_follow_age": "!pladd: follow too recent",
+      "pl_cooldown": "!pladd: must wait",
+      "pl_user_limit": "!pladd: per-viewer limit",
+      "pl_viewers_full": "!pladd: chat limit reached",
+      "playlist_full": "!pladd: playlist full",
+      "already_in_playlist": "!pladd: already in the playlist"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
@@ -544,7 +560,8 @@
       "invalid_name": "Enter a name of up to 60 characters.",
       "name_taken": "You already have a playlist with that name.",
       "playlists_limit": "You reached your plan's playlist limit.",
-      "invalid_visibility": "Invalid visibility."
+      "invalid_visibility": "Invalid visibility.",
+      "invalid_contribution": "Invalid contribution mode."
     },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
@@ -721,7 +738,8 @@
       "delete": "Delete playlist",
       "deleteConfirm": "Delete \"{{name}}\" and its {{count}} songs? This can't be undone.",
       "added": "Added to \"{{name}}\".",
-      "none": "You have no playlists."
+      "none": "You have no playlists.",
+      "addedBy": "Added by {{user}}"
     },
     "limits": {
       "upgrade": "More with the supporter plans",
@@ -731,6 +749,29 @@
       "templates": "Your plan allows {{max}} custom templates.",
       "templatesLimit": "Your plan allows {{max}} custom templates. Delete one to save.",
       "promo": "On the free plan the Decatron card always shows. From Supporter on you can hide it."
+    },
+    "contrib": {
+      "title": "Who can add",
+      "description": "Let your viewers add songs to this playlist from chat with !pladd or from your public page.",
+      "who": "Who adds",
+      "owner": "Only you and your mods",
+      "open": "Collaborative: viewers who meet the requirements",
+      "ownerHint": "You add from here; your mods, with !pladd {{name}} <song> in chat.",
+      "openHint": "Viewers add with !pladd {{name}} <song> or from your public page. You and your mods skip the requirements.",
+      "privateNote": "The playlist is private: viewers can add from chat, but they can't see it or add from your public page. Make it public for that.",
+      "requirements": "Requirements for viewers",
+      "minRole": "Minimum role",
+      "minRoleHint": "With a role other than \"Everyone\", adding from the public page isn't possible (it can't tell sub, VIP or mod there): chat only.",
+      "accountAge": "Account age (days)",
+      "followAge": "Days following the channel",
+      "twitchOnly": "0 = no minimum. Only checkable on Twitch: if you use it, Kick viewers can't add.",
+      "maxPerUser": "Songs per viewer",
+      "maxFromViewers": "Songs from chat, max",
+      "maxFromViewersHint": "Across all viewers. 0 = up to your plan's limit.",
+      "cooldown": "Minutes between a viewer's songs",
+      "alwaysApply": "Song Request filters (duration, views) and blacklists also apply.",
+      "save": "Save requirements",
+      "discard": "Discard"
     }
   },
   "overlayEditor": {
