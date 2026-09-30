@@ -6,6 +6,8 @@ export interface SongRequestSettings {
     permissions: { request: Role; skip: Role; manage: Role; review: Role };
     maxQueueSize: number;
     maxPerUser: number;
+    /** Pedidos por usuario en la última hora (0 = sin límite). */
+    maxPerUserPerHour: number;
     skipVoteEnabled: boolean;
     skipVotesRequired: number;
     queuePreviewCount: number;
@@ -53,6 +55,9 @@ export interface QueueSnapshot {
     /** Con la cola vacía suena la playlist de respaldo. */
     fallbackEnabled?: boolean;
     requestReview?: boolean;
+    requestSource?: 'any' | 'playlists';
+    /** El modo rápido que resulta: abiertos, solo playlist, solo revisión o cerrado (fase 5). */
+    mode?: RequestMode;
     /** Cuántos esperan aprobación (cola y playlists). */
     pendingCount?: number;
     activePlaylistId?: number | null;
@@ -116,3 +121,5 @@ export interface Playlist {
     shuffle: boolean;
     count: number;
 }
+
+export type RequestMode = 'open' | 'playlists' | 'review' | 'closed';

@@ -360,7 +360,8 @@
       "videocover": "The player shows the video or the cover, without stopping the music.",
       "pladd": "Adds a song to a collaborative playlist (the playlist name goes first).",
       "review": "Approves or rejects what is waiting for review by its number (no number = the oldest).",
-      "srplay": "Plays a playlist when there are no requests; off goes back to the fallback."
+      "srplay": "Plays a playlist when there are no requests; off goes back to the fallback.",
+      "srmode": "Changes the request mode: open, playlists only, with review or closed."
     },
     "basic": {
       "moduleTitle": "Module",
@@ -378,7 +379,9 @@
       "regenerateConfirm": "The current player URL will stop working and you'll need to paste the new one into OBS. Continue?",
       "promoTitle": "Decatron card",
       "promoDescription": "Every so often it shows for a few seconds over the overlay with the Decatron logo and a message.",
-      "promo": "Show the Decatron card on the overlays"
+      "promo": "Show the Decatron card on the overlays",
+      "maxPerUserPerHour": "Requests per user per hour",
+      "maxPerUserPerHourHint": "Counts what was requested in the last hour, even if it already played. 0 = no limit."
     },
     "roles": {
       "everyone": "Everyone",
@@ -396,7 +399,7 @@
       "permSkip": "Skip and remove",
       "permSkipHint": "Direct !skip, !srremove and !srpromote.",
       "permManage": "Manage",
-      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo, !srcover and !srplay.",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo, !srcover, !srplay and !srmode.",
       "controlTotalNote": "Anyone with full control of your dashboard counts as the streamer.",
       "voteTitle": "Vote to skip",
       "voteEnabled": "Viewers can vote !skip",
@@ -496,7 +499,10 @@
       "play_usage": "!srplay: how to use",
       "pl_no_active": "!sr #n: no playlist playing",
       "pl_number_invalid": "!sr #n: number doesn't exist",
-      "only_playlists": "!sr: playlists only"
+      "only_playlists": "!sr: playlists only",
+      "mode_set": "!srmode: mode changed",
+      "mode_usage": "!srmode: current mode and how to use",
+      "hour_limit": "Requests per hour limit"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
@@ -583,7 +589,8 @@
       "invalid_contribution": "Invalid contribution mode.",
       "already_trusted": "That viewer is already trusted.",
       "invalid_action": "Invalid action.",
-      "voting_off": "This playlist has no voting."
+      "voting_off": "This playlist has no voting.",
+      "invalid_mode": "Invalid mode."
     },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
@@ -600,7 +607,7 @@
       "noRepeatHint": "A song that already played isn't accepted again until this time passes. 0 = no restriction.",
       "alwaysBlocked": "Always rejected, regardless of filters: live streams, premieres, private videos and videos that can't play outside YouTube.",
       "sourceTitle": "Where requests can come from",
-      "sourceDescription": "Limit !sr to your playlists when you don't want just any song on stream.",
+      "sourceDescription": "Limit !sr to your playlists when you don't want just any song on stream. Applies instantly (also from the modes in the Queue tab or with !srmode).",
       "source": "Viewers can request",
       "sourceAny": "Any song",
       "sourcePlaylists": "Only songs from my playlists",
@@ -818,7 +825,7 @@
       "modeTitle": "Request review",
       "modeDescription": "Decide what gets in before it plays: requests wait here until someone approves them.",
       "requestReview": "Review !sr requests before they join the queue",
-      "requestReviewHint": "{{role}} and above can approve (change it in Commands). They, you and trusted viewers skip review. Saved with the Save button.",
+      "requestReviewHint": "{{role}} and above can approve (change it in Commands). They, you and trusted viewers skip review. Applies instantly.",
       "playlistsNote": "For playlists, review is chosen on each one (Playlists tab → Who can add).",
       "inboxTitle": "Waiting for approval ({{count}})",
       "inboxDescription": "Approving or rejecting tells the viewer in chat. In chat too: !srapprove 2 or !srreject 2 (the number on the left).",
@@ -847,6 +854,19 @@
       "trustedAdd": "Add",
       "trustedEmpty": "No trusted viewers yet.",
       "trustedRemove": "Remove"
+    },
+    "modes": {
+      "title": "Request mode",
+      "description": "Change in one click how !sr requests get in, for example when a ranked game starts. Applies instantly.",
+      "open": "Open",
+      "openHint": "Any song that passes the filters.",
+      "playlists": "Playlists only",
+      "playlistsHint": "Only songs from your playlists (and !sr #number).",
+      "review": "With review",
+      "reviewHint": "Each request waits for a mod to approve it.",
+      "closed": "Closed",
+      "closedHint": "No requests accepted.",
+      "chatNote": "In chat: !srmode open, playlists, review or closed (with the manage permission)."
     }
   },
   "overlayEditor": {

@@ -212,6 +212,10 @@ public class SongRequestHistoryItem
 
     [Column("played_at")]
     public DateTime PlayedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>Cuándo se pidió (fase 5, para el límite por hora). Null en lo anterior a esa fase.</summary>
+    [Column("requested_at")]
+    public DateTime? RequestedAt { get; set; }
 }
 
 /// <summary>

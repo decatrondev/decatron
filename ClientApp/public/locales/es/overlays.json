@@ -360,7 +360,8 @@
       "videocover": "El reproductor muestra el video o la portada, sin cortar la música.",
       "pladd": "Agrega una canción a una playlist colaborativa (el nombre de la playlist va primero).",
       "review": "Aprueba o rechaza lo que espera revisión por su número (sin número, el más viejo).",
-      "srplay": "Pone a sonar una playlist cuando no hay pedidos; off vuelve a la de respaldo."
+      "srplay": "Pone a sonar una playlist cuando no hay pedidos; off vuelve a la de respaldo.",
+      "srmode": "Cambia el modo de pedidos: abiertos, solo de playlists, con revisión o cerrados."
     },
     "basic": {
       "moduleTitle": "Módulo",
@@ -378,7 +379,9 @@
       "regenerateConfirm": "La URL actual del reproductor dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?",
       "promoTitle": "Tarjeta de Decatron",
       "promoDescription": "Cada cierto tiempo aparece unos segundos sobre el overlay con el logo de Decatron y un mensaje.",
-      "promo": "Mostrar la tarjeta de Decatron en los overlays"
+      "promo": "Mostrar la tarjeta de Decatron en los overlays",
+      "maxPerUserPerHour": "Pedidos por usuario por hora",
+      "maxPerUserPerHourHint": "Cuenta lo pedido en la última hora, aunque ya haya sonado. 0 = sin límite."
     },
     "roles": {
       "everyone": "Todos",
@@ -396,7 +399,7 @@
       "permSkip": "Saltar y quitar",
       "permSkipHint": "!skip directo, !srremove y !srpromote.",
       "permManage": "Administrar",
-      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo, !srcover y !srplay.",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo, !srcover, !srplay y !srmode.",
       "controlTotalNote": "Quien tiene control total en tu dashboard cuenta como el streamer.",
       "voteTitle": "Votación para saltar",
       "voteEnabled": "Los viewers pueden votar !skip",
@@ -496,7 +499,10 @@
       "play_usage": "!srplay: cómo usarlo",
       "pl_no_active": "!sr #n: no hay playlist sonando",
       "pl_number_invalid": "!sr #n: número que no existe",
-      "only_playlists": "!sr: solo desde playlists"
+      "only_playlists": "!sr: solo desde playlists",
+      "mode_set": "!srmode: modo cambiado",
+      "mode_usage": "!srmode: modo actual y cómo usarlo",
+      "hour_limit": "Límite de pedidos por hora"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -583,7 +589,8 @@
       "invalid_contribution": "Modo de aporte no válido.",
       "already_trusted": "Ese viewer ya es de confianza.",
       "invalid_action": "Acción no válida.",
-      "voting_off": "Esta playlist no tiene votación."
+      "voting_off": "Esta playlist no tiene votación.",
+      "invalid_mode": "Modo no válido."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -600,7 +607,7 @@
       "noRepeatHint": "Una canción que ya sonó no se acepta de nuevo hasta que pase este tiempo. 0 = sin restricción.",
       "alwaysBlocked": "Siempre se rechazan, sin importar los filtros: transmisiones en vivo, estrenos, videos privados y los que no se pueden reproducir fuera de YouTube.",
       "sourceTitle": "De dónde se puede pedir",
-      "sourceDescription": "Limita !sr a tus playlists cuando no quieres cualquier canción en el stream.",
+      "sourceDescription": "Limita !sr a tus playlists cuando no quieres cualquier canción en el stream. Se aplica al instante (también desde los modos de la pestaña Cola o con !srmode).",
       "source": "Los viewers pueden pedir",
       "sourceAny": "Cualquier canción",
       "sourcePlaylists": "Solo canciones de mis playlists",
@@ -818,7 +825,7 @@
       "modeTitle": "Revisión de pedidos",
       "modeDescription": "Decide qué entra antes de que suene: los pedidos esperan aquí hasta que alguien los apruebe.",
       "requestReview": "Revisar los pedidos de !sr antes de que entren a la cola",
-      "requestReviewHint": "Pueden aprobar desde {{role}} para arriba (se cambia en Comandos). Ellos, tú y los viewers de confianza no pasan por revisión. Se guarda con el botón Guardar.",
+      "requestReviewHint": "Pueden aprobar desde {{role}} para arriba (se cambia en Comandos). Ellos, tú y los viewers de confianza no pasan por revisión. Se aplica al instante.",
       "playlistsNote": "Para las playlists, la revisión se elige en cada una (pestaña Playlists → Quién puede agregar).",
       "inboxTitle": "Esperando aprobación ({{count}})",
       "inboxDescription": "Al aprobar o rechazar se le avisa al viewer en el chat. En el chat también: !srapprove 2 o !srreject 2 (el número de la izquierda).",
@@ -847,6 +854,19 @@
       "trustedAdd": "Agregar",
       "trustedEmpty": "Todavía no hay viewers de confianza.",
       "trustedRemove": "Quitar"
+    },
+    "modes": {
+      "title": "Modo de pedidos",
+      "description": "Cambia de un clic cómo entran los pedidos de !sr, por ejemplo al empezar una ranked. Se aplica al instante.",
+      "open": "Abiertos",
+      "openHint": "Cualquier canción que pase los filtros.",
+      "playlists": "Solo de playlists",
+      "playlistsHint": "Solo canciones de tus playlists (y !sr #número).",
+      "review": "Con revisión",
+      "reviewHint": "Cada pedido espera a que un mod lo apruebe.",
+      "closed": "Cerrados",
+      "closedHint": "No se aceptan pedidos.",
+      "chatNote": "En el chat: !srmode open, playlists, review o closed (con el permiso de administrar)."
     }
   },
   "overlayEditor": {

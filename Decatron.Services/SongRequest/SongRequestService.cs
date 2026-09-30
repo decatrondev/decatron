@@ -169,6 +169,43 @@ namespace Decatron.Services.SongRequest
             await NotifyAsync(config, ct);
         }
 
+        // ── Modos rápidos (fase 5) ───────────────────────────────────────────
+
+        public static readonly string[] Modes = { "open", "playlists", "review", "closed" };
+
+        /// <summary>El modo que resulta de pedidos abiertos, revisión y "solo desde playlists".</summary>
+        public static string ModeOf(SongRequestConfig config, SongRequestSettings settings) =>
+            !config.RequestsOpen ? "closed"
+            : settings.RequestReview ? "review"
+            : settings.RequestSource == "playlists" ? "playlists"
+            : "open";
+
+        /// <summary>
+        /// Cambia al instante pedidos abiertos, revisión y de dónde se puede pedir (lo que no venga no se toca).
+        /// Van aparte del guardado del dashboard para que un !srmode del chat no lo pise un Guardar.
+        /// </summary>
+        public async Task SetRequestModeAsync(SongRequestConfig config, bool? open, bool? review, string? source, CancellationToken ct = default)
+        {
+            var settings = ParseSettings(config);
+            if (open.HasValue) config.RequestsOpen = open.Value;
+            if (review.HasValue) settings.RequestReview = review.Value;
+            if (source is "any" or "playlists") settings.RequestSource = source;
+            config.Settings = JsonSerializer.Serialize(settings);
+            config.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+        }
+
+        /// <summary>Uno de los cuatro modos: abiertos, solo playlist, solo revisión o cerrado.</summary>
+        public Task SetModeAsync(SongRequestConfig config, string mode, CancellationToken ct = default) => mode switch
+        {
+            "open" => SetRequestModeAsync(config, true, false, "any", ct),
+            "playlists" => SetRequestModeAsync(config, true, false, "playlists", ct),
+            "review" => SetRequestModeAsync(config, true, true, "any", ct),
+            "closed" => SetRequestModeAsync(config, false, null, null, ct),
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
+
         public async Task SetVolumeAsync(SongRequestConfig config, int volume, CancellationToken ct = default)
         {
             config.Volume = Math.Clamp(volume, 0, 100);
@@ -263,6 +300,17 @@ namespace Decatron.Services.SongRequest
                     mine += await PendingQueue(userId).CountAsync(p => p.RequestedPlatform == requester.Platform && p.RequestedByLogin == login, ct);
                 if (settings.MaxPerUser > 0 && mine >= settings.MaxPerUser)
                     return SongAddResult.Fail("user_limit");
+
+                // Por hora: lo pedido en la última hora, esté esperando, en la cola o ya haya sonado
+                if (settings.MaxPerUserPerHour > 0)
+                {
+                    var since = DateTime.UtcNow.AddHours(-1);
+                    var lastHour = await _db.SongRequestQueue.CountAsync(q => q.UserId == userId && q.RequestedPlatform == requester.Platform && q.RequestedByLogin == login && q.CreatedAt >= since, ct)
+                        + await _db.SongRequestHistory.CountAsync(h => h.UserId == userId && h.RequestedPlatform == requester.Platform && h.RequestedByLogin == login && h.RequestedAt >= since, ct)
+                        + await _db.SongRequestPending.CountAsync(p => p.UserId == userId && p.PlaylistId == null && p.RequestedPlatform == requester.Platform && p.RequestedByLogin == login && p.CreatedAt >= since, ct);
+                    if (lastHour >= settings.MaxPerUserPerHour)
+                        return SongAddResult.Fail("hour_limit");
+                }
             }
             if (review && await _db.SongRequestPending.CountAsync(p => p.UserId == userId, ct) >= MaxPending)
                 return SongAddResult.Fail("pending_full");
@@ -497,7 +545,8 @@ namespace Decatron.Services.SongRequest
                 OriginSource = current.OriginSource,
                 OriginUrl = current.OriginUrl,
                 EndReason = endReason,
-                PlayedAt = DateTime.UtcNow
+                PlayedAt = DateTime.UtcNow,
+                RequestedAt = current.CreatedAt
             });
             _db.SongRequestQueue.Remove(current);
 
@@ -789,6 +838,8 @@ namespace Decatron.Services.SongRequest
                 fallbackEnabled = settings.FallbackEnabled || config.ActivePlaylistId != null,
                 activePlaylistId = config.ActivePlaylistId,
                 requestReview = settings.RequestReview,
+                requestSource = settings.RequestSource,
+                mode = ModeOf(config, settings),
                 // Cuántos esperan aprobación (cola y playlists): el dashboard recarga la bandeja cuando cambia
                 pendingCount = await _db.SongRequestPending.CountAsync(p => p.UserId == config.UserId, ct),
                 playerConnected = _players.HasPlayer(config.ChannelName.ToLowerInvariant()),

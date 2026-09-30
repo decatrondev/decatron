@@ -16,6 +16,12 @@ public class SongRequestSettings
     /// <summary>Máximo de pedidos de un mismo usuario en la cola. 0 = sin límite. El streamer no tiene límite.</summary>
     public int MaxPerUser { get; set; } = 3;
 
+    /// <summary>
+    /// Máximo de pedidos de un mismo usuario en la última hora, sonados o no (fase 5). 0 = sin límite.
+    /// El streamer y control_total no tienen límite.
+    /// </summary>
+    public int MaxPerUserPerHour { get; set; }
+
     /// <summary>Si los viewers pueden votar !skip (los que tienen el permiso de saltar lo hacen directo).</summary>
     public bool SkipVoteEnabled { get; set; }
 

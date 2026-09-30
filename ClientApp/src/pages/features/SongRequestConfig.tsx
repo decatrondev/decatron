@@ -55,6 +55,10 @@ export default function SongRequestConfig() {
 
     useEffect(() => { try { sessionStorage.setItem('sr-tab', tab); } catch { /* sin storage */ } }, [tab]);
 
+    // El modo de pedidos puede cambiar desde el chat (!srmode): la vista lo sigue sin marcarse como cambiada
+    const { syncMode } = cfg;
+    useEffect(() => { syncMode(live.snapshot?.requestReview, live.snapshot?.requestSource); }, [syncMode, live.snapshot?.requestReview, live.snapshot?.requestSource]);
+
     useEffect(() => {
         if (!cfg.dirty) return;
         const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };

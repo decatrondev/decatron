@@ -107,6 +107,7 @@ const COMMANDS: { cmd: string; key: string }[] = [
     { cmd: '!pladd <playlist> <link | nombre>', key: 'pladd' },
     { cmd: '!srapprove [#] · !srreject [#]', key: 'review' },
     { cmd: '!srplay <playlist | off>', key: 'srplay' },
+    { cmd: '!srmode <open | playlists | review | closed>', key: 'srmode' },
 ];
 
 function CommandList() {
@@ -153,12 +154,15 @@ export function BasicTab({ cfg }: TabProps) {
             </Card>
 
             <Card title={t('songRequest.basic.limitsTitle')} description={t('songRequest.basic.limitsDescription')}>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <Field label={t('songRequest.basic.maxQueue')} hint={t('songRequest.basic.zeroUnlimited')}>
                         <NumberInput value={set.maxQueueSize} min={0} max={500} onChange={v => cfg.updateSettings({ maxQueueSize: v })} />
                     </Field>
                     <Field label={t('songRequest.basic.maxPerUser')} hint={t('songRequest.basic.zeroUnlimited')}>
                         <NumberInput value={set.maxPerUser} min={0} max={100} onChange={v => cfg.updateSettings({ maxPerUser: v })} />
+                    </Field>
+                    <Field label={t('songRequest.basic.maxPerUserPerHour')} hint={t('songRequest.basic.maxPerUserPerHourHint')}>
+                        <NumberInput value={set.maxPerUserPerHour} min={0} max={1000} onChange={v => cfg.updateSettings({ maxPerUserPerHour: v })} />
                     </Field>
                     <Field label={t('songRequest.basic.queuePreview')} hint={t('songRequest.basic.queuePreviewHint')}>
                         <NumberInput value={set.queuePreviewCount} min={1} max={10} onChange={v => cfg.updateSettings({ queuePreviewCount: v })} />

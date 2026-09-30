@@ -77,7 +77,7 @@ export default function ReviewTab({ cfg, snapshot }: { cfg: SongRequestConfigSta
                 <div className="space-y-3">
                     <Toggle
                         checked={cfg.settings.requestReview}
-                        onChange={v => cfg.updateSettings({ requestReview: v })}
+                        onChange={v => { cfg.setRequestMode({ requestReview: v }); }}
                         label={t('songRequest.review.requestReview')}
                         hint={t('songRequest.review.requestReviewHint', { role: t(`songRequest.roles.${cfg.settings.permissions.review}`) })}
                     />

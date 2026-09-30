@@ -113,6 +113,11 @@ namespace Decatron.Controllers
                 // La tarjeta de Decatron es lo que paga el plan gratis
                 if (!limits.CanHidePromo)
                     body.Settings.ShowPromo = true;
+                // El modo (revisión, de dónde se pide) se cambia al instante por su endpoint o por !srmode:
+                // un Guardar con la vista abierta desde antes no lo pisa
+                var current = SongRequestService.ParseSettings(config);
+                body.Settings.RequestReview = current.RequestReview;
+                body.Settings.RequestSource = current.RequestSource;
                 config.Settings = JsonSerializer.Serialize(body.Settings);
             }
             if (body.OverlayConfig is { ValueKind: JsonValueKind.Object } overlay)
@@ -156,6 +161,7 @@ namespace Decatron.Controllers
             s.Permissions = p;
             s.MaxQueueSize = Math.Clamp(s.MaxQueueSize, 0, 500);
             s.MaxPerUser = Math.Clamp(s.MaxPerUser, 0, 100);
+            s.MaxPerUserPerHour = Math.Clamp(s.MaxPerUserPerHour, 0, 1000);
             s.SkipVotesRequired = Math.Clamp(s.SkipVotesRequired, 1, 1000);
             s.QueuePreviewCount = Math.Clamp(s.QueuePreviewCount, 1, 10);
             s.MaxDurationSeconds = Math.Clamp(s.MaxDurationSeconds, 0, 6 * 3600);
@@ -385,6 +391,46 @@ namespace Decatron.Controllers
                 success = true,
                 playlists = await _library.GetPlaylistsAsync(config.UserId, ct),
                 limits = LimitsDto(await _library.GetLimitsAsync(config.UserId))
+            });
+        }
+
+        public sealed class RequestModeRequest
+        {
+            /// <summary>open | playlists | review | closed. Si viene, manda sobre lo demás.</summary>
+            public string? Mode { get; set; }
+            public bool? RequestsOpen { get; set; }
+            public bool? RequestReview { get; set; }
+            /// <summary>any | playlists</summary>
+            public string? RequestSource { get; set; }
+        }
+
+        /// <summary>Modo rápido o una de sus partes, al instante (fase 5).</summary>
+        [HttpPut("api/song-request/request-mode")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> SetRequestMode([FromBody] RequestModeRequest body, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            if (body.Mode != null)
+            {
+                if (!SongRequestService.Modes.Contains(body.Mode))
+                    return BadRequest(new { success = false, error = "invalid_mode" });
+                await _songs.SetModeAsync(config, body.Mode, ct);
+            }
+            else
+            {
+                if (body.RequestSource is not (null or "any" or "playlists"))
+                    return BadRequest(new { success = false, error = "invalid_request_source" });
+                await _songs.SetRequestModeAsync(config, body.RequestsOpen, body.RequestReview, body.RequestSource, ct);
+            }
+            var settings = SongRequestService.ParseSettings(config);
+            return Ok(new
+            {
+                success = true,
+                mode = SongRequestService.ModeOf(config, settings),
+                requestsOpen = config.RequestsOpen,
+                requestReview = settings.RequestReview,
+                requestSource = settings.RequestSource
             });
         }
 

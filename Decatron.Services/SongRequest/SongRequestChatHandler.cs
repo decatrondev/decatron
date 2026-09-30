@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -46,7 +46,8 @@ namespace Decatron.Services.SongRequest
             ["!pladd"] = Action.PlaylistAdd,
             ["!srapprove"] = Action.Approve,
             ["!srreject"] = Action.Reject,
-            ["!srplay"] = Action.Play
+            ["!srplay"] = Action.Play,
+            ["!srmode"] = Action.Mode
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -88,7 +89,8 @@ namespace Decatron.Services.SongRequest
             "pl_usage", "pl_which", "pl_none", "pl_added", "pl_closed", "pl_slow_down", "pl_role", "pl_unverifiable",
             "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist",
             "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none",
-            "play_started", "play_off", "play_usage", "pl_no_active", "pl_number_invalid", "only_playlists"
+            "play_started", "play_off", "play_usage", "pl_no_active", "pl_number_invalid", "only_playlists",
+            "mode_set", "mode_usage", "hour_limit"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -125,7 +127,7 @@ namespace Decatron.Services.SongRequest
                     Action.PlaylistAdd => null, // decide la playlist: sus requisitos
                     Action.Remove or Action.Promote => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
-                        or Action.Video or Action.Cover or Action.Play => run.Settings.Permissions.Manage,
+                        or Action.Video or Action.Cover or Action.Play or Action.Mode => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     _ => run.Settings.Permissions.Request
                 };
@@ -154,6 +156,7 @@ namespace Decatron.Services.SongRequest
                     case Action.Approve: await DecideAsync(run, approve: true); break;
                     case Action.Reject: await DecideAsync(run, approve: false); break;
                     case Action.Play: await PlayAsync(run); break;
+                    case Action.Mode: await ModeAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -189,7 +192,12 @@ namespace Decatron.Services.SongRequest
                 var vars = Vars(result.Track)
                     .With("number", run.Args.TrimStart('#'))
                     .With("url", run.Songs.PublicQueueUrl(run.Config.ChannelName))
-                    .With("max", result.ErrorKey == "too_long" ? FormatDuration(run.Settings.MaxDurationSeconds) : run.Settings.MaxPerUser.ToString())
+                    .With("max", result.ErrorKey switch
+                    {
+                        "too_long" => FormatDuration(run.Settings.MaxDurationSeconds),
+                        "hour_limit" => run.Settings.MaxPerUserPerHour.ToString(),
+                        _ => run.Settings.MaxPerUser.ToString()
+                    })
                     .With("views", run.Settings.MinViews.ToString("N0"))
                     .With("minutes", run.Settings.NoRepeatMinutes.ToString());
                 await run.ReplyAsync(result.ErrorKey!, vars);
@@ -432,6 +440,29 @@ namespace Decatron.Services.SongRequest
             await run.ReplyAsync("play_started", new() { ["playlist"] = playlist.Name });
         }
 
+        /// <summary>Nombres que acepta !srmode, en inglés y en español.</summary>
+        private static readonly Dictionary<string, string> ModeAliases = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["open"] = "open", ["abierto"] = "open", ["abiertos"] = "open",
+            ["playlists"] = "playlists", ["playlist"] = "playlists",
+            ["review"] = "review", ["revision"] = "review", ["revisión"] = "review",
+            ["closed"] = "closed", ["close"] = "closed", ["cerrado"] = "closed", ["cerrados"] = "closed"
+        };
+
+        /// <summary>!srmode open|playlists|review|closed: cambia el modo de pedidos (fase 5). Sin nada, dice el actual.</summary>
+        private static async Task ModeAsync(Run run)
+        {
+            var arg = run.Args.Split(' ', 2)[0];
+            if (arg.Length == 0 || !ModeAliases.TryGetValue(arg, out var mode))
+            {
+                var currentMode = SongRequestService.ModeOf(run.Config, run.Settings);
+                await run.ReplyAsync("mode_usage", new() { ["mode"] = await run.ModeNameAsync(currentMode) });
+                return;
+            }
+            await run.Songs.SetModeAsync(run.Config, mode);
+            await run.ReplyAsync("mode_set", new() { ["mode"] = await run.ModeNameAsync(mode) });
+        }
+
         private static async Task SetOpenAsync(Run run, bool open)
         {
             await run.Songs.SetOpenAsync(run.Config, open);
@@ -560,6 +591,13 @@ namespace Decatron.Services.SongRequest
                 : Context.IsVip ? 2
                 : Context.IsSubscriber ? 1
                 : 0;
+
+            /// <summary>El nombre del modo de pedidos en el idioma del canal.</summary>
+            public async Task<string> ModeNameAsync(string mode)
+            {
+                var name = await GetTemplateAsync($"mode_{mode}");
+                return string.IsNullOrWhiteSpace(name) ? mode : name;
+            }
 
             /// <summary>El nombre del rol en el idioma del canal, para los mensajes.</summary>
             public async Task<string> RoleNameAsync(string role)

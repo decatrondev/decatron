@@ -70,7 +70,7 @@ export function FiltersTab({ cfg }: TabProps) {
                 <Field label={t('songRequest.filters.source')}>
                     <Select
                         value={s.requestSource}
-                        onChange={v => cfg.updateSettings({ requestSource: v })}
+                        onChange={v => { cfg.setRequestMode({ requestSource: v }); }}
                         options={[
                             { value: 'any', label: t('songRequest.filters.sourceAny') },
                             { value: 'playlists', label: t('songRequest.filters.sourcePlaylists') },

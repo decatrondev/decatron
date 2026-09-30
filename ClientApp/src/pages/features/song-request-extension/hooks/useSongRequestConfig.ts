@@ -91,6 +91,25 @@ export function useSongRequestConfig() {
         }
     }, [enabled, settings, overlay]);
 
+    /**
+     * Modo de pedidos (abiertos, revisión, de dónde se pide): va al instante por su endpoint, no con Guardar,
+     * para que un !srmode del chat y el dashboard no se pisen (fase 5).
+     */
+    const setRequestMode = useCallback(async (patch: { mode?: string; requestsOpen?: boolean; requestReview?: boolean; requestSource?: 'any' | 'playlists' }) => {
+        const res = await api.put('/song-request/request-mode', patch);
+        const d = res.data;
+        if (d?.success) setSettings(prev => ({ ...prev, requestReview: d.requestReview, requestSource: d.requestSource }));
+        return !!d?.success;
+    }, []);
+
+    /** Lo que llega en vivo (otro dashboard, !srmode del chat) sin marcar la vista como cambiada. */
+    const syncMode = useCallback((requestReview?: boolean, requestSource?: 'any' | 'playlists') => {
+        setSettings(prev => (requestReview === undefined || requestSource === undefined
+            || (prev.requestReview === requestReview && prev.requestSource === requestSource))
+            ? prev
+            : { ...prev, requestReview, requestSource });
+    }, []);
+
     const regenerateKey = useCallback(async () => {
         const res = await api.post('/song-request/player-key/regenerate');
         if (res.data?.playerKey) setServer(prev => prev ? { ...prev, playerKey: res.data.playerKey } : prev);
@@ -98,7 +117,7 @@ export function useSongRequestConfig() {
 
     return {
         loading, saving, error, dirty, server, enabled, settings, overlay,
-        toggleEnabled, updateSettings, updateLayout, updateOverlay, save, regenerateKey, reload: load,
+        toggleEnabled, updateSettings, updateLayout, updateOverlay, save, regenerateKey, reload: load, setRequestMode, syncMode,
     };
 }
 

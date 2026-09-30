@@ -6,7 +6,7 @@ import { Card, Toggle, inputClass } from '../ui';
 import TrackPlayer from '../TrackPlayer';
 import { useSongRequestPlayer } from '../../hooks/useSongRequestHub';
 import { formatDuration } from '../../utils';
-import type { PlaybackProgress, QueueItem, QueueSnapshot } from '../../types';
+import type { PlaybackProgress, QueueItem, QueueSnapshot, RequestMode } from '../../types';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
 import { PlatformIcon } from '../PlatformIcon';
 
@@ -19,6 +19,10 @@ interface Props {
     onDownload?: (url: string) => void;
 }
 
+const MODES: { id: RequestMode; icon: string }[] = [
+    { id: 'open', icon: '🟢' }, { id: 'playlists', icon: '🎶' }, { id: 'review', icon: '🕒' }, { id: 'closed', icon: '🔒' },
+];
+
 const control = (action: string, value?: number) => api.post('/song-request/control', { action, value });
 
 /** Control remoto en vivo de la cola. */
@@ -28,6 +32,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
     const [adding, setAdding] = useState(false);
     const [addResult, setAddResult] = useState<{ ok: boolean; text: string } | null>(null);
     const [listenHere, setListenHere] = useState(false);
+    const [modeBusy, setModeBusy] = useState(false);
     const [dragId, setDragId] = useState<number | null>(null);
     const [order, setOrder] = useState<number[] | null>(null);
     const [volume, setVolume] = useState<number | null>(null);
@@ -97,6 +102,29 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                 <Status ok={!!snapshot?.requestsOpen} label={snapshot?.requestsOpen ? t('songRequest.queue.open') : t('songRequest.queue.closed')} />
                 {snapshot?.paused && <Status ok={false} warn label={t('songRequest.queue.paused')} />}
             </div>
+
+            {/* Modos rápidos (fase 5): combinan abrir/cerrar, revisión y "solo desde playlists", al instante */}
+            <Card title={t('songRequest.modes.title')} description={t('songRequest.modes.description')}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    {MODES.map(m => {
+                        const active = (snapshot?.mode ?? (snapshot?.requestsOpen ? 'open' : 'closed')) === m.id;
+                        return (
+                            <button
+                                key={m.id}
+                                disabled={modeBusy}
+                                onClick={async () => { setModeBusy(true); try { await cfg.setRequestMode({ mode: m.id }); } finally { setModeBusy(false); } }}
+                                className={`flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-colors disabled:opacity-60 ${active
+                                    ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30'
+                                    : 'border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}
+                            >
+                                <span className={`text-sm 3xl:text-base font-bold ${active ? 'text-[#1d4ed8] dark:text-[#93c5fd]' : 'text-[#1e293b] dark:text-[#f8fafc]'}`}>{m.icon} {t(`songRequest.modes.${m.id}`)}</span>
+                                <span className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t(`songRequest.modes.${m.id}Hint`)}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.modes.chatNote')}</p>
+            </Card>
 
             {/* Sonando ahora + controles */}
             <Card title={t('songRequest.queue.nowPlaying')}>

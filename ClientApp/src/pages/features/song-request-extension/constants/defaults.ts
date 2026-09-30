@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS: SongRequestSettings = {
     permissions: { request: 'everyone', skip: 'moderator', manage: 'lead_moderator', review: 'moderator' },
     maxQueueSize: 50,
     maxPerUser: 3,
+    maxPerUserPerHour: 0,
     skipVoteEnabled: false,
     skipVotesRequired: 3,
     queuePreviewCount: 3,

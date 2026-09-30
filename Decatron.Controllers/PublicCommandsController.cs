@@ -248,6 +248,7 @@ namespace Decatron.Controllers
                 ("srvideo", "El reproductor muestra el video en vez de la portada", manage),
                 ("srcover", "El reproductor muestra la portada en vez del video", manage),
                 ("pladd", "Agrega una canción a una playlist del canal (!pladd <playlist> <link o nombre>); cada playlist decide quién puede", null),
+                ("srmode", "Cambia el modo de pedidos: open (abiertos), playlists (solo de las playlists), review (con revisión) o closed (cerrados)", manage),
                 ("srplay", "Pone a sonar una playlist del canal cuando no hay pedidos (!srplay <playlist>; !srplay off vuelve a la de respaldo)", manage),
                 ("srapprove", "Aprueba lo que espera revisión, por su número (!srapprove 2; sin número, el más viejo)", review),
                 ("srreject", "Rechaza lo que espera revisión, por su número (!srreject 2; sin número, el más viejo)", review),
