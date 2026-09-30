@@ -58,6 +58,13 @@ public class SongRequestSettings
     /// </summary>
     public bool RequestReview { get; set; }
 
+    /// <summary>
+    /// De dónde se puede pedir (fase 4): any = cualquier canción; playlists = solo canciones que estén en una
+    /// playlist curada del canal (solo streamer y mods, o con revisión; las abiertas no cuentan porque
+    /// cualquiera las llena). !sr #n siempre vale. No aplica al streamer ni a control_total.
+    /// </summary>
+    public string RequestSource { get; set; } = "any";
+
     /// <summary>Mensajes del bot editados por el streamer (clave → plantilla). Lo que falte sale del idioma del canal.</summary>
     public Dictionary<string, string> Messages { get; set; } = new();
 }

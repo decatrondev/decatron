@@ -345,7 +345,7 @@
       "commandsTitle": "Comandos del chat"
     },
     "commandHelp": {
-      "sr": "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre.",
+      "sr": "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre. Con #número pide esa canción de la playlist que suena (!sr #12).",
       "wrongsong": "Quita el último pedido de quien lo escribe.",
       "queue": "Muestra las próximas canciones y el link a la cola pública.",
       "song": "Dice qué suena ahora, con el link.",
@@ -359,7 +359,8 @@
       "srpromote": "Sube la canción en esa posición al primer lugar de la cola.",
       "videocover": "El reproductor muestra el video o la portada, sin cortar la música.",
       "pladd": "Agrega una canción a una playlist colaborativa (el nombre de la playlist va primero).",
-      "review": "Aprueba o rechaza lo que espera revisión por su número (sin número, el más viejo)."
+      "review": "Aprueba o rechaza lo que espera revisión por su número (sin número, el más viejo).",
+      "srplay": "Pone a sonar una playlist cuando no hay pedidos; off vuelve a la de respaldo."
     },
     "basic": {
       "moduleTitle": "Módulo",
@@ -395,7 +396,7 @@
       "permSkip": "Saltar y quitar",
       "permSkipHint": "!skip directo, !srremove y !srpromote.",
       "permManage": "Administrar",
-      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo y !srcover.",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo, !srcover y !srplay.",
       "controlTotalNote": "Quien tiene control total en tu dashboard cuenta como el streamer.",
       "voteTitle": "Votación para saltar",
       "voteEnabled": "Los viewers pueden votar !skip",
@@ -489,7 +490,13 @@
       "pending_approved": "Aviso: aprobada para la cola",
       "pl_pending_approved": "Aviso: aprobada para la playlist",
       "pending_rejected": "Aviso: rechazada",
-      "pending_none": "!srapprove / !srreject: no hay ese número"
+      "pending_none": "!srapprove / !srreject: no hay ese número",
+      "play_started": "!srplay: playlist puesta a sonar",
+      "play_off": "!srplay off: vuelve la de respaldo",
+      "play_usage": "!srplay: cómo usarlo",
+      "pl_no_active": "!sr #n: no hay playlist sonando",
+      "pl_number_invalid": "!sr #n: número que no existe",
+      "only_playlists": "!sr: solo desde playlists"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -575,7 +582,8 @@
       "invalid_visibility": "Visibilidad no válida.",
       "invalid_contribution": "Modo de aporte no válido.",
       "already_trusted": "Ese viewer ya es de confianza.",
-      "invalid_action": "Acción no válida."
+      "invalid_action": "Acción no válida.",
+      "voting_off": "Esta playlist no tiene votación."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -590,7 +598,14 @@
       "minViewsHint": "0 = sin mínimo. Si no se sabe cuántas vistas tiene, se acepta.",
       "noRepeat": "No repetir durante (minutos)",
       "noRepeatHint": "Una canción que ya sonó no se acepta de nuevo hasta que pase este tiempo. 0 = sin restricción.",
-      "alwaysBlocked": "Siempre se rechazan, sin importar los filtros: transmisiones en vivo, estrenos, videos privados y los que no se pueden reproducir fuera de YouTube."
+      "alwaysBlocked": "Siempre se rechazan, sin importar los filtros: transmisiones en vivo, estrenos, videos privados y los que no se pueden reproducir fuera de YouTube.",
+      "sourceTitle": "De dónde se puede pedir",
+      "sourceDescription": "Limita !sr a tus playlists cuando no quieres cualquier canción en el stream.",
+      "source": "Los viewers pueden pedir",
+      "sourceAny": "Cualquier canción",
+      "sourcePlaylists": "Solo canciones de mis playlists",
+      "sourceHint_any": "Se acepta cualquier canción que pase los filtros.",
+      "sourceHint_playlists": "Solo entran canciones que estén en una playlist tuya de «Solo tú y tus mods» o «con revisión» (las colaborativas abiertas no cuentan: cualquiera las llena). !sr #número siempre vale."
     },
     "blacklist": {
       "title": "Listas negras",
@@ -753,7 +768,17 @@
       "deleteConfirm": "¿Borrar «{{name}}» con sus {{count}} canciones? No se puede deshacer.",
       "added": "Agregada a «{{name}}».",
       "none": "No tienes playlists.",
-      "addedBy": "Agregada por {{user}}"
+      "addedBy": "Agregada por {{user}}",
+      "playingBadge": "Sonando",
+      "play": "Poner a sonar",
+      "stopPlaying": "Dejar de sonar (vuelve la de respaldo)",
+      "playHint": "Suena cuando la cola está vacía, en lugar de la de respaldo (aunque el respaldo esté apagado). Los pedidos siempre van antes. También con !srplay en el chat.",
+      "playingHint": "Esta playlist está llenando el silencio. Los viewers pueden pedir una con !sr #número.",
+      "voting": "Votos de los viewers",
+      "votingHint": "Si la playlist es pública, los viewers votan sus canciones favoritas en tu página (un voto por canción y persona, con sesión de Twitch o Kick).",
+      "sortByVotes": "Más votadas primero",
+      "sortByVotesHint": "El orden lo dan los votos: al sonar en orden, en !sr #número y en la página. Mientras esté prendido no se arrastra.",
+      "votes": "{{count}} votos"
     },
     "limits": {
       "upgrade": "Más con los planes de apoyo",

@@ -98,7 +98,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
 }
 
 const COMMANDS: { cmd: string; key: string }[] = [
-    { cmd: '!sr <link | nombre>', key: 'sr' }, { cmd: '!wrongsong', key: 'wrongsong' }, { cmd: '!queue', key: 'queue' },
+    { cmd: '!sr <link | nombre | #n>', key: 'sr' }, { cmd: '!wrongsong', key: 'wrongsong' }, { cmd: '!queue', key: 'queue' },
     { cmd: '!song', key: 'song' }, { cmd: '!myqueue', key: 'myqueue' }, { cmd: '!skip', key: 'skip' },
     { cmd: '!srremove <#>', key: 'srremove' }, { cmd: '!sropen · !srclose', key: 'openclose' },
     { cmd: '!srpause · !srresume', key: 'pause' }, { cmd: '!srban [@usuario]', key: 'srban' },
@@ -106,6 +106,7 @@ const COMMANDS: { cmd: string; key: string }[] = [
     { cmd: '!srvideo · !srcover', key: 'videocover' },
     { cmd: '!pladd <playlist> <link | nombre>', key: 'pladd' },
     { cmd: '!srapprove [#] · !srreject [#]', key: 'review' },
+    { cmd: '!srplay <playlist | off>', key: 'srplay' },
 ];
 
 function CommandList() {

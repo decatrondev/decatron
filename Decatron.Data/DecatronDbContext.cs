@@ -150,6 +150,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.SongRequest.SongRequestPlaylistItem> SongRequestPlaylistItems { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestPending> SongRequestPending { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestTrusted> SongRequestTrusted { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestPlaylistVote> SongRequestPlaylistVotes { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 
@@ -909,6 +910,10 @@ namespace Decatron.Data
             modelBuilder.Entity<Core.Models.SongRequest.SongRequestPending>(entity =>
             {
                 entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestPlaylistVote>(entity =>
+            {
+                entity.HasIndex(e => new { e.ItemId, e.Platform, e.Login }).IsUnique().HasDatabaseName("uq_song_request_playlist_votes");
             });
             modelBuilder.Entity<Core.Models.SongRequest.SongRequestTrusted>(entity =>
             {

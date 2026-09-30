@@ -19,10 +19,12 @@ namespace Decatron.Services.SongRequest
         private readonly DecatronDbContext _db;
         private readonly SongResolverService _resolver;
         private readonly IEnumerable<IPlaylistSource> _playlists;
+        private readonly SongRequestService _songs;
 
-        public SongRequestLibraryService(DecatronDbContext db, SongResolverService resolver, IEnumerable<IPlaylistSource> playlists)
+        public SongRequestLibraryService(DecatronDbContext db, SongResolverService resolver, IEnumerable<IPlaylistSource> playlists, SongRequestService songs)
         {
             _db = db;
+            _songs = songs;
             _resolver = resolver;
             _playlists = playlists;
         }
@@ -121,6 +123,7 @@ namespace Decatron.Services.SongRequest
                 await _db.SaveChangesAsync(ct);
             }
 
+            var activeId = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ActivePlaylistId).FirstOrDefaultAsync(ct);
             var counts = await _db.SongRequestPlaylistItems.Where(i => i.UserId == userId)
                 .GroupBy(i => i.PlaylistId).Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
@@ -134,7 +137,10 @@ namespace Decatron.Services.SongRequest
                 contribution = p.Contribution,
                 requirements = SongRequestContributionService.ParseRequirements(p.Requirements),
                 isFallback = p.IsFallback,
+                isActive = p.Id == activeId,
                 shuffle = p.Shuffle,
+                votingEnabled = p.VotingEnabled,
+                sortByVotes = p.SortByVotes,
                 count = counts.GetValueOrDefault(p.Id)
             }).ToList();
         }
@@ -172,8 +178,10 @@ namespace Decatron.Services.SongRequest
             public bool? Shuffle { get; set; }
             /// <summary>true la vuelve la de respaldo (la anterior deja de serlo).</summary>
             public bool? IsFallback { get; set; }
-            /// <summary>owner | open.</summary>
+            /// <summary>owner | open | review.</summary>
             public string? Contribution { get; set; }
+            public bool? VotingEnabled { get; set; }
+            public bool? SortByVotes { get; set; }
             public SongRequestPlaylistRequirements? Requirements { get; set; }
         }
 
@@ -201,6 +209,10 @@ namespace Decatron.Services.SongRequest
             }
             if (changes.Shuffle.HasValue)
                 playlist.Shuffle = changes.Shuffle.Value;
+            if (changes.VotingEnabled.HasValue)
+                playlist.VotingEnabled = changes.VotingEnabled.Value;
+            if (changes.SortByVotes.HasValue)
+                playlist.SortByVotes = changes.SortByVotes.Value;
             if (changes.Contribution != null)
             {
                 if (!SongRequestPlaylistContribution.IsValid(changes.Contribution))
@@ -236,15 +248,21 @@ namespace Decatron.Services.SongRequest
         public async Task<bool> DeletePlaylistAsync(long userId, long playlistId, CancellationToken ct = default) =>
             await _db.SongRequestPlaylists.Where(p => p.Id == playlistId && p.UserId == userId).ExecuteDeleteAsync(ct) > 0;
 
+        /// <summary>En el orden de la playlist (manual o por votos): el número de cada una es el de !sr #n.</summary>
         public async Task<List<object>?> GetPlaylistItemsAsync(long userId, long playlistId, CancellationToken ct = default)
         {
-            if (!await _db.SongRequestPlaylists.AnyAsync(p => p.Id == playlistId && p.UserId == userId, ct))
+            var playlist = await _db.SongRequestPlaylists.AsNoTracking().FirstOrDefaultAsync(p => p.Id == playlistId && p.UserId == userId, ct);
+            if (playlist == null)
                 return null;
-            var rows = await _db.SongRequestPlaylistItems.AsNoTracking().Include(i => i.Track)
-                .Where(i => i.PlaylistId == playlistId).OrderBy(i => i.Position).ThenBy(i => i.Id).ToListAsync(ct);
-            return rows.Select(i => (object)new
+            var rows = await _songs.GetOrderedItemsAsync(playlist, ct, includeTrack: true);
+            var votes = await _db.SongRequestPlaylistVotes.Where(v => v.PlaylistId == playlistId)
+                .GroupBy(v => v.ItemId).Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+            return rows.Select((i, index) => (object)new
             {
                 id = i.Id,
+                number = index + 1,
+                votes = votes.GetValueOrDefault(i.Id),
                 track = TrackDto(i.Track),
                 addedBy = i.AddedByName,
                 addedByPlatform = i.AddedByPlatform,
@@ -346,13 +364,20 @@ namespace Decatron.Services.SongRequest
             var rows = await _db.SongRequestPlaylists.AsNoTracking()
                 .Where(p => p.UserId == userId && p.Visibility == SongRequestPlaylistVisibility.Public)
                 .OrderByDescending(p => p.IsFallback).ThenBy(p => p.CreatedAt).ThenBy(p => p.Id)
-                .Select(p => new { p.Id, p.Name, p.Contribution, p.Requirements, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
+                .Select(p => new { p.Id, p.Name, p.Contribution, p.Requirements, p.VotingEnabled, p.SortByVotes, p.IsFallback, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
                 .ToListAsync(ct);
+            var activeId = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ActivePlaylistId).FirstOrDefaultAsync(ct);
+            // La que responde a !sr #n: la puesta a sonar o, si no hay, la de respaldo
+            var numberedId = activeId != null && rows.Any(p => p.Id == activeId) ? activeId : rows.FirstOrDefault(p => p.IsFallback)?.Id;
             return rows.Select(p => (object)new
             {
                 id = p.Id,
                 name = p.Name,
                 count = p.Count,
+                isActive = p.Id == activeId,
+                numbered = p.Id == numberedId,
+                votingEnabled = p.VotingEnabled,
+                sortByVotes = p.SortByVotes,
                 open = p.Contribution == SongRequestPlaylistContribution.Open || p.Contribution == SongRequestPlaylistContribution.Review,
                 review = p.Contribution == SongRequestPlaylistContribution.Review,
                 requirements = SongRequestContributionService.ParseRequirements(p.Requirements)
@@ -366,6 +391,40 @@ namespace Decatron.Services.SongRequest
                 return null;
             return await GetPlaylistItemsAsync(userId, playlistId, ct);
         }
+
+        // ── Votos (fase 4) ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Vota o quita el voto (uno por canción y persona). Devuelve si quedó votada y cuántos votos tiene,
+        /// o la clave del error (not_found, voting_off, banned_user).
+        /// </summary>
+        public async Task<(bool Voted, int Votes, string? Error)> ToggleVoteAsync(long userId, long playlistId, long itemId, string platform, string login, CancellationToken ct = default)
+        {
+            var playlist = await _db.SongRequestPlaylists.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == playlistId && p.UserId == userId && p.Visibility == SongRequestPlaylistVisibility.Public, ct);
+            if (playlist == null || !await _db.SongRequestPlaylistItems.AnyAsync(i => i.Id == itemId && i.PlaylistId == playlistId, ct))
+                return (false, 0, "not_found");
+            if (!playlist.VotingEnabled)
+                return (false, 0, "voting_off");
+            login = login.ToLowerInvariant();
+            if (await _songs.IsBannedAsync(userId, "user", $"{platform}:{login}", ct))
+                return (false, 0, "banned_user");
+
+            var removed = await _db.SongRequestPlaylistVotes.Where(v => v.ItemId == itemId && v.Platform == platform && v.Login == login).ExecuteDeleteAsync(ct);
+            if (removed == 0)
+            {
+                _db.SongRequestPlaylistVotes.Add(new SongRequestPlaylistVote { PlaylistId = playlistId, ItemId = itemId, Platform = platform, Login = login, CreatedAt = DateTime.UtcNow });
+                try { await _db.SaveChangesAsync(ct); }
+                catch (DbUpdateException) { /* doble clic: el voto ya estaba */ }
+            }
+            var votes = await _db.SongRequestPlaylistVotes.CountAsync(v => v.ItemId == itemId, ct);
+            return (removed == 0, votes, null);
+        }
+
+        /// <summary>Las canciones que ya votó esta persona en la playlist.</summary>
+        public Task<List<long>> GetMyVotesAsync(long playlistId, string platform, string login, CancellationToken ct = default) =>
+            _db.SongRequestPlaylistVotes.Where(v => v.PlaylistId == playlistId && v.Platform == platform && v.Login == login.ToLower())
+                .Select(v => v.ItemId).ToListAsync(ct);
 
         // ── Listas negras ────────────────────────────────────────────────────
 

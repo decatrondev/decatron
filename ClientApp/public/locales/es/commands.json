@@ -385,6 +385,11 @@
     }
   },
   "songRequestPublic": {
+    "playing": "Sonando",
+    "requestByNumber": "Pide una de esta playlist en el chat con",
+    "requestByNumberCmd": "!sr #número",
+    "vote": "Votar (otro clic lo quita)",
+    "loginToVote": "Inicia sesión para votar",
     "pending": "«{{title}}» quedó esperando aprobación para «{{playlist}}». Te avisamos en el chat cuando la revisen.",
     "collaborative": "Colaborativa",
     "addedBy": "agregada por {{user}}",

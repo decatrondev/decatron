@@ -267,11 +267,33 @@ namespace Decatron.Services.SongRequest
             if (review && await _db.SongRequestPending.CountAsync(p => p.UserId == userId, ct) >= MaxPending)
                 return SongAddResult.Fail("pending_full");
 
-            var resolved = await _resolver.ResolveAsync(input, ct);
-            if (!resolved.Success)
-                return SongAddResult.Fail(ErrorKeyFor(resolved.Error));
+            // !sr #12: la canción 12 de la playlist que suena (fase 4); no hace falta resolver nada
+            SongTrack track;
+            TrackInfo? origin = null;
+            var number = ParsePlaylistNumber(input);
+            if (number != null)
+            {
+                var playlist = await GetRequestPlaylistAsync(config, ct);
+                if (playlist == null)
+                    return SongAddResult.Fail("pl_no_active");
+                var items = await GetOrderedItemsAsync(playlist, ct, includeTrack: true);
+                if (number < 1 || number > items.Count || items[number.Value - 1].Track == null)
+                    return SongAddResult.Fail("pl_number_invalid");
+                track = items[number.Value - 1].Track!;
+            }
+            else
+            {
+                var resolved = await _resolver.ResolveAsync(input, ct);
+                if (!resolved.Success)
+                    return SongAddResult.Fail(ErrorKeyFor(resolved.Error));
+                track = resolved.Track!;
+                origin = resolved.Origin;
 
-            var track = resolved.Track!;
+                // Modo "solo desde playlists": la canción tiene que estar en una playlist curada del canal
+                if (!unlimited && settings.RequestSource == "playlists" && !await InCuratedPlaylistAsync(userId, track.Id, ct))
+                    return SongAddResult.Fail("only_playlists", track);
+            }
+
             if (await IsBannedAsync(userId, "track", $"{track.Source}:{track.SourceId}", ct))
                 return SongAddResult.Fail("banned_track", track);
             if (track.AuthorId != null && await IsBannedAsync(userId, "author", $"{track.Source}:{track.AuthorId}", ct))
@@ -288,7 +310,6 @@ namespace Decatron.Services.SongRequest
                     return SongAddResult.Fail(filtered, track);
             }
 
-            var origin = resolved.Origin;
             if (review)
             {
                 if (await PendingQueue(userId).AnyAsync(p => p.TrackId == track.Id, ct))
@@ -513,19 +534,93 @@ namespace Decatron.Services.SongRequest
             await NotifyAsync(config, ct);
         }
 
-        /// <summary>Agrega a la cola, ya sonando, la próxima de la playlist de respaldo. false si no hay.</summary>
+        // ── Playlists sonando (fase 4) ───────────────────────────────────────
+
+        private static readonly System.Text.RegularExpressions.Regex PlaylistNumberRegex = new(@"^#(\d{1,5})$");
+
+        /// <summary>"#12" → 12. Cualquier otra cosa → null (es un link o un nombre).</summary>
+        public static int? ParsePlaylistNumber(string input)
+        {
+            var m = PlaylistNumberRegex.Match(input.Trim());
+            return m.Success ? int.Parse(m.Groups[1].Value) : null;
+        }
+
+        /// <summary>La playlist que llena el silencio: la puesta a sonar, o la de respaldo si el respaldo está activo.</summary>
+        public async Task<SongRequestPlaylist?> GetPlayingPlaylistAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            if (config.ActivePlaylistId != null)
+            {
+                var active = await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.Id == config.ActivePlaylistId && p.UserId == config.UserId, ct);
+                if (active != null)
+                    return active;
+            }
+            return ParseSettings(config).FallbackEnabled
+                ? await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.UserId == config.UserId && p.IsFallback, ct)
+                : null;
+        }
+
+        /// <summary>De cuál cuenta !sr #n: la puesta a sonar o, si no hay, la de respaldo (aunque el respaldo esté apagado).</summary>
+        public async Task<SongRequestPlaylist?> GetRequestPlaylistAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            if (config.ActivePlaylistId != null)
+            {
+                var active = await _db.SongRequestPlaylists.AsNoTracking().FirstOrDefaultAsync(p => p.Id == config.ActivePlaylistId && p.UserId == config.UserId, ct);
+                if (active != null)
+                    return active;
+            }
+            return await _db.SongRequestPlaylists.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == config.UserId && p.IsFallback, ct);
+        }
+
+        /// <summary>
+        /// Las canciones en el orden de la playlist: manual, o más votadas primero. Es el mismo orden al sonar,
+        /// en !sr #n y en la página pública, así el número que ve el viewer es el que pide.
+        /// </summary>
+        public async Task<List<SongRequestPlaylistItem>> GetOrderedItemsAsync(SongRequestPlaylist playlist, CancellationToken ct = default, bool includeTrack = false)
+        {
+            var query = _db.SongRequestPlaylistItems.AsNoTracking().Where(i => i.PlaylistId == playlist.Id);
+            if (includeTrack)
+                query = query.Include(i => i.Track);
+            return playlist.SortByVotes
+                ? await query.OrderByDescending(i => _db.SongRequestPlaylistVotes.Count(v => v.ItemId == i.Id)).ThenBy(i => i.Position).ThenBy(i => i.Id).ToListAsync(ct)
+                : await query.OrderBy(i => i.Position).ThenBy(i => i.Id).ToListAsync(ct);
+        }
+
+        /// <summary>
+        /// Está en una playlist curada: de solo streamer y mods, o con revisión. Las abiertas no cuentan: si no,
+        /// con !pladd cualquiera se saltearía el modo "solo desde playlists".
+        /// </summary>
+        private Task<bool> InCuratedPlaylistAsync(long userId, long trackId, CancellationToken ct) =>
+            _db.SongRequestPlaylistItems.AnyAsync(i => i.UserId == userId && i.TrackId == trackId
+                && _db.SongRequestPlaylists.Any(p => p.Id == i.PlaylistId && p.Contribution != SongRequestPlaylistContribution.Open), ct);
+
+        /// <summary>
+        /// Pone una playlist a sonar (o vuelve a la de respaldo con null). Si sonaba una de relleno, se cambia
+        /// ya; un pedido que esté sonando no se corta.
+        /// </summary>
+        public async Task<bool> SetActivePlaylistAsync(SongRequestConfig config, long? playlistId, CancellationToken ct = default)
+        {
+            if (playlistId != null && !await _db.SongRequestPlaylists.AnyAsync(p => p.Id == playlistId && p.UserId == config.UserId, ct))
+                return false;
+            config.ActivePlaylistId = playlistId;
+            config.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+
+            var current = await _db.SongRequestQueue.AsNoTracking().FirstOrDefaultAsync(q => q.UserId == config.UserId && q.Status == "playing", ct);
+            if (current?.RequestedPlatform == SongRequestPlatforms.Fallback)
+                await AdvanceAsync(config, "skipped", ct);
+            else if (current == null)
+                await StartNextIfIdleAsync(config, ct);
+            await NotifyAsync(config, ct);
+            return true;
+        }
+
+        /// <summary>Agrega a la cola, ya sonando, la próxima de la playlist que llena el silencio. false si no hay.</summary>
         private async Task<bool> StartFallbackAsync(SongRequestConfig config, CancellationToken ct)
         {
-            var settings = ParseSettings(config);
-            if (!settings.FallbackEnabled)
-                return false;
-
-            var playlist = await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.UserId == config.UserId && p.IsFallback, ct);
+            var playlist = await GetPlayingPlaylistAsync(config, ct);
             if (playlist == null)
                 return false;
-            var items = await _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlist.Id)
-                .OrderBy(i => i.Position).ThenBy(i => i.Id)
-                .Select(i => i.TrackId).ToListAsync(ct);
+            var items = (await GetOrderedItemsAsync(playlist, ct)).Select(i => i.TrackId).ToList();
             if (items.Count == 0)
                 return false;
 
@@ -690,7 +785,9 @@ namespace Decatron.Services.SongRequest
                 volume = config.Volume,
                 // El reproductor corta al llegar aquí las canciones de duración desconocida (0 = no corta)
                 maxDurationSeconds = settings.MaxDurationSeconds > 0 && settings.AllowUnknownDuration ? settings.MaxDurationSeconds : 0,
-                fallbackEnabled = settings.FallbackEnabled,
+                // El reproductor pide la siguiente con la cola vacía si hay algo que llene el silencio
+                fallbackEnabled = settings.FallbackEnabled || config.ActivePlaylistId != null,
+                activePlaylistId = config.ActivePlaylistId,
                 requestReview = settings.RequestReview,
                 // Cuántos esperan aprobación (cola y playlists): el dashboard recarga la bandeja cuando cambia
                 pendingCount = await _db.SongRequestPending.CountAsync(p => p.UserId == config.UserId, ct),

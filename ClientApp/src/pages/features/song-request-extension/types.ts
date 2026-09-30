@@ -18,6 +18,8 @@ export interface SongRequestSettings {
     showPromo: boolean;
     /** Los pedidos de !sr esperan aprobación (fase 3). */
     requestReview: boolean;
+    /** any = cualquier canción; playlists = solo de playlists curadas (fase 4). */
+    requestSource: 'any' | 'playlists';
     messages: Record<string, string>;
 }
 
@@ -53,6 +55,7 @@ export interface QueueSnapshot {
     requestReview?: boolean;
     /** Cuántos esperan aprobación (cola y playlists). */
     pendingCount?: number;
+    activePlaylistId?: number | null;
     playerConnected: boolean;
     current: QueueItem | null;
     queue: QueueItem[];
@@ -105,6 +108,10 @@ export interface Playlist {
     /** owner: solo el streamer y los mods; open: viewers que cumplan los requisitos. */
     contribution: 'owner' | 'open' | 'review';
     requirements: PlaylistRequirements;
+    /** Puesta a sonar: llena el silencio en vez de la de respaldo. */
+    isActive: boolean;
+    votingEnabled: boolean;
+    sortByVotes: boolean;
     isFallback: boolean;
     shuffle: boolean;
     count: number;

@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: SongRequestSettings = {
     fallbackEnabled: false,
     showPromo: true,
     requestReview: false,
+    requestSource: 'any',
     messages: {},
 };
 

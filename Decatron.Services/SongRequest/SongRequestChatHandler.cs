@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -45,7 +45,8 @@ namespace Decatron.Services.SongRequest
             ["!srcover"] = Action.Cover,
             ["!pladd"] = Action.PlaylistAdd,
             ["!srapprove"] = Action.Approve,
-            ["!srreject"] = Action.Reject
+            ["!srreject"] = Action.Reject,
+            ["!srplay"] = Action.Play
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -86,7 +87,8 @@ namespace Decatron.Services.SongRequest
             "promote_usage", "promote_invalid", "promoted", "video_on", "cover_on",
             "pl_usage", "pl_which", "pl_none", "pl_added", "pl_closed", "pl_slow_down", "pl_role", "pl_unverifiable",
             "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist",
-            "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none"
+            "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none",
+            "play_started", "play_off", "play_usage", "pl_no_active", "pl_number_invalid", "only_playlists"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -123,7 +125,7 @@ namespace Decatron.Services.SongRequest
                     Action.PlaylistAdd => null, // decide la playlist: sus requisitos
                     Action.Remove or Action.Promote => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
-                        or Action.Video or Action.Cover => run.Settings.Permissions.Manage,
+                        or Action.Video or Action.Cover or Action.Play => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     _ => run.Settings.Permissions.Request
                 };
@@ -151,6 +153,7 @@ namespace Decatron.Services.SongRequest
                     case Action.PlaylistAdd: await PlaylistAddAsync(run); break;
                     case Action.Approve: await DecideAsync(run, approve: true); break;
                     case Action.Reject: await DecideAsync(run, approve: false); break;
+                    case Action.Play: await PlayAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -184,6 +187,8 @@ namespace Decatron.Services.SongRequest
             if (!result.Success)
             {
                 var vars = Vars(result.Track)
+                    .With("number", run.Args.TrimStart('#'))
+                    .With("url", run.Songs.PublicQueueUrl(run.Config.ChannelName))
                     .With("max", result.ErrorKey == "too_long" ? FormatDuration(run.Settings.MaxDurationSeconds) : run.Settings.MaxPerUser.ToString())
                     .With("views", run.Settings.MinViews.ToString("N0"))
                     .With("minutes", run.Settings.NoRepeatMinutes.ToString());
@@ -395,6 +400,36 @@ namespace Decatron.Services.SongRequest
                 await reviews.ApproveAsync(run.Config, pending);
             else
                 await reviews.RejectAsync(run.Config, pending, notify: true);
+        }
+
+        /// <summary>!srplay &lt;playlist&gt; la pone a sonar con la cola vacía; !srplay off vuelve a la de respaldo.</summary>
+        private static async Task PlayAsync(Run run)
+        {
+            var db = run.Services.GetRequiredService<DecatronDbContext>();
+            var playlists = await db.SongRequestPlaylists.AsNoTracking().Where(p => p.UserId == run.Config.UserId)
+                .OrderByDescending(p => p.IsFallback).ThenBy(p => p.CreatedAt).ToListAsync();
+            var names = string.Join(" · ", playlists.Select(p => p.Name));
+            var arg = run.Args.Trim();
+            if (arg.Length == 0)
+            {
+                await run.ReplyAsync("play_usage", new() { ["playlists"] = names });
+                return;
+            }
+            if (arg.Equals("off", StringComparison.OrdinalIgnoreCase))
+            {
+                await run.Songs.SetActivePlaylistAsync(run.Config, null);
+                await run.ReplyAsync("play_off");
+                return;
+            }
+            var playlist = playlists.FirstOrDefault(p => string.Equals(p.Name, arg, StringComparison.OrdinalIgnoreCase))
+                ?? playlists.FirstOrDefault(p => p.Name.StartsWith(arg, StringComparison.OrdinalIgnoreCase));
+            if (playlist == null)
+            {
+                await run.ReplyAsync("play_usage", new() { ["playlists"] = names });
+                return;
+            }
+            await run.Songs.SetActivePlaylistAsync(run.Config, playlist.Id);
+            await run.ReplyAsync("play_started", new() { ["playlist"] = playlist.Name });
         }
 
         private static async Task SetOpenAsync(Run run, bool open)

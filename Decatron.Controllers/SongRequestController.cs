@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -160,6 +161,8 @@ namespace Decatron.Controllers
             s.MaxDurationSeconds = Math.Clamp(s.MaxDurationSeconds, 0, 6 * 3600);
             s.MinViews = Math.Clamp(s.MinViews, 0, 10_000_000_000);
             s.NoRepeatMinutes = Math.Clamp(s.NoRepeatMinutes, 0, 7 * 24 * 60);
+            if (s.RequestSource is not ("any" or "playlists"))
+                return "invalid_request_source";
             s.Messages ??= new();
             if (s.Messages.Values.Any(m => m != null && m.Length > 400))
                 return "message_too_long";
@@ -383,6 +386,18 @@ namespace Decatron.Controllers
                 playlists = await _library.GetPlaylistsAsync(config.UserId, ct),
                 limits = LimitsDto(await _library.GetLimitsAsync(config.UserId))
             });
+        }
+
+        public sealed class ActivePlaylistRequest { public long? PlaylistId { get; set; } }
+
+        /// <summary>Pone una playlist a sonar (o vuelve a la de respaldo con null).</summary>
+        [HttpPut("api/song-request/active-playlist")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> SetActivePlaylist([FromBody] ActivePlaylistRequest body, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            return await _songs.SetActivePlaylistAsync(config, body.PlaylistId, ct) ? Ok(new { success = true }) : NotFound(new { success = false, error = "not_found" });
         }
 
         public sealed class PlaylistNameRequest { public string Name { get; set; } = ""; }
@@ -941,6 +956,32 @@ namespace Decatron.Controllers
                 title = result.Track?.Title,
                 addedAs = new { platform = who.Platform, name = who.DisplayName }
             });
+        }
+
+        /// <summary>Vota o quita el voto a una canción de una playlist pública con votación.</summary>
+        [HttpPost("api/song-request/public/{channel}/playlists/{playlistId:long}/items/{itemId:long}/vote")]
+        public async Task<IActionResult> PublicVote(string channel, long playlistId, long itemId, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null)
+                return NotFound(new { success = false });
+            var (who, _) = await WebContributorAsync(config, ct);
+            if (who == null)
+                return Ok(new { success = false, error = "pl_need_account" });
+            var (voted, votes, error) = await _library.ToggleVoteAsync(config.UserId, playlistId, itemId, who.Platform, who.Login, ct);
+            return Ok(new { success = error == null, error, voted, votes });
+        }
+
+        [HttpGet("api/song-request/public/{channel}/playlists/{playlistId:long}/my-votes")]
+        public async Task<IActionResult> PublicMyVotes(string channel, long playlistId, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null)
+                return NotFound(new { success = false });
+            var (who, _) = await WebContributorAsync(config, ct);
+            return Ok(new { success = true, items = who == null ? new List<long>() : await _library.GetMyVotesAsync(playlistId, who.Platform, who.Login, ct) });
         }
 
         /// <summary>Las playlists públicas del canal, para /sr/{canal}.</summary>

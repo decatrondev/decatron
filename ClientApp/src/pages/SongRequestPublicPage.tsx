@@ -311,8 +311,8 @@ function NowPlaying({ item, paused, openLabel, requestedBy }: { item: QueueItem;
 }
 
 interface PlaylistRequirements { minRole: string; minAccountAgeDays: number; minFollowAgeDays: number; maxPerUser: number; cooldownMinutes: number }
-interface PublicPlaylist { id: number; name: string; count: number; open: boolean; review?: boolean; requirements: PlaylistRequirements }
-interface PublicPlaylistItem { id: number; addedBy: string | null; addedByPlatform: string | null; track: { url: string | null; title: string; artist: string; durationSeconds: number | null; thumbnailUrl: string | null } }
+interface PublicPlaylist { id: number; name: string; count: number; open: boolean; review?: boolean; requirements: PlaylistRequirements; isActive?: boolean; numbered?: boolean; votingEnabled?: boolean }
+interface PublicPlaylistItem { id: number; number: number; votes: number; addedBy: string | null; addedByPlatform: string | null; track: { url: string | null; title: string; artist: string; durationSeconds: number | null; thumbnailUrl: string | null } }
 /** Con qué cuenta agrega el viewer logueado. undefined = sin sesión; null = con sesión pero sin Twitch ni Kick. */
 type Contributor = { platform: string; name: string } | null | undefined;
 
@@ -330,6 +330,7 @@ function PublicPlaylists({ channel }: { channel: string }) {
     const [openId, setOpenId] = useState<number | null>(null);
     const [items, setItems] = useState<Record<number, PublicPlaylistItem[]>>({});
     const [contributor, setContributor] = useState<Contributor>(undefined);
+    const [myVotes, setMyVotes] = useState<Record<number, Set<number>>>({});
     const base = `/api/public/song-request/${encodeURIComponent(channel)}`;
 
     const loadPlaylists = useCallback(() => {
@@ -356,6 +357,28 @@ function PublicPlaylists({ channel }: { channel: string }) {
             const d = r.ok ? await r.json() : null;
             setItems(prev => ({ ...prev, [id]: d?.items ?? [] }));
         } catch { setItems(prev => ({ ...prev, [id]: [] })); }
+        const headers = authHeaders();
+        if (headers.Authorization && playlists.find(p => p.id === id)?.votingEnabled) {
+            fetch(`/api/song-request/public/${encodeURIComponent(channel)}/playlists/${id}/my-votes`, { headers })
+                .then(r => (r.ok ? r.json() : null))
+                .then(d => setMyVotes(prev => ({ ...prev, [id]: new Set<number>(d?.items ?? []) })))
+                .catch(() => { /* sin votos */ });
+        }
+    };
+
+    const vote = async (playlistId: number, itemId: number) => {
+        if (!contributor) { window.location.href = `/login?redirect=${encodeURIComponent(`/sr/${channel}`)}`; return; }
+        try {
+            const r = await fetch(`/api/song-request/public/${encodeURIComponent(channel)}/playlists/${playlistId}/items/${itemId}/vote`, { method: 'POST', headers: authHeaders() });
+            const d = r.ok ? await r.json() : null;
+            if (!d?.success) return;
+            setMyVotes(prev => {
+                const set = new Set(prev[playlistId] ?? []);
+                if (d.voted) set.add(itemId); else set.delete(itemId);
+                return { ...prev, [playlistId]: set };
+            });
+            setItems(prev => ({ ...prev, [playlistId]: (prev[playlistId] ?? []).map(i => (i.id === itemId ? { ...i, votes: d.votes } : i)) }));
+        } catch { /* se reintenta con otro clic */ }
     };
 
     const toggle = (id: number) => {
@@ -373,6 +396,7 @@ function PublicPlaylists({ channel }: { channel: string }) {
                         <button onClick={() => toggle(p.id)} className="w-full flex items-center justify-between gap-3 px-4 py-3 4xl:py-4 text-left hover:bg-[#111114] rounded-lg transition-colors">
                             <span className="flex items-center gap-2 min-w-0">
                                 <span className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{p.name}</span>
+                                {p.isActive && <span className="shrink-0 px-1.5 py-0.5 rounded border border-amber-400/50 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-amber-300">▶ {t('songRequestPublic.playing')}</span>}
                                 {p.open && <span className="shrink-0 px-1.5 py-0.5 rounded border border-[#39ff14]/40 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-[#39ff14]">{t('songRequestPublic.collaborative')}</span>}
                             </span>
                             <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">
@@ -381,6 +405,11 @@ function PublicPlaylists({ channel }: { channel: string }) {
                         </button>
                         {openId === p.id && (
                             <>
+                                {p.numbered && (
+                                    <p className="px-4 pb-2 text-xs 3xl:text-sm 4xl:text-base text-[#a1a1aa]">
+                                        {t('songRequestPublic.requestByNumber')} <code className="font-mono text-[#39ff14]">{t('songRequestPublic.requestByNumberCmd')}</code>
+                                    </p>
+                                )}
                                 {p.open && (
                                     <ContributeBox
                                         channel={channel}
@@ -395,10 +424,10 @@ function PublicPlaylists({ channel }: { channel: string }) {
                                     <p className="px-4 pb-3 text-sm 3xl:text-base text-[#71717a]">{t('songRequestPublic.playlistEmpty')}</p>
                                 ) : (
                                     <ol className="divide-y divide-[#1f1f23] border-t border-[#1f1f23] max-h-[32rem] 4xl:max-h-[48rem] overflow-y-auto">
-                                        {items[p.id].map((item, i) => (
-                                            <li key={item.id}>
-                                                <a href={item.track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 4xl:gap-5 py-2 4xl:py-3 px-4 hover:bg-[#111114] transition-colors">
-                                                    <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#52525b] w-7 4xl:w-10 text-right shrink-0">{i + 1}</span>
+                                        {items[p.id].map(item => (
+                                            <li key={item.id} className="flex items-center">
+                                                <a href={item.track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 flex items-center gap-3 4xl:gap-5 py-2 4xl:py-3 px-4 hover:bg-[#111114] transition-colors">
+                                                    <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#52525b] w-9 4xl:w-12 text-right shrink-0">#{item.number}</span>
                                                     {item.track.thumbnailUrl
                                                         ? <img src={item.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] object-cover rounded shrink-0 bg-[#18181b]" />
                                                         : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] rounded shrink-0 bg-[#18181b]" />}
@@ -417,6 +446,17 @@ function PublicPlaylists({ channel }: { channel: string }) {
                                                     </div>
                                                     <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">{formatDuration(item.track.durationSeconds)}</span>
                                                 </a>
+                                                {p.votingEnabled && (
+                                                    <button
+                                                        onClick={() => vote(p.id, item.id)}
+                                                        title={contributor ? t('songRequestPublic.vote') : t('songRequestPublic.loginToVote')}
+                                                        className={`mr-3 shrink-0 flex items-center gap-1 px-2 py-1 rounded font-mono text-xs 3xl:text-sm 4xl:text-base border transition-colors ${myVotes[p.id]?.has(item.id)
+                                                            ? 'border-[#39ff14] text-[#39ff14] bg-[#39ff14]/10'
+                                                            : 'border-[#27272a] text-[#a1a1aa] hover:border-[#39ff14]/60'}`}
+                                                    >
+                                                        ▲ {item.votes}
+                                                    </button>
+                                                )}
                                             </li>
                                         ))}
                                     </ol>

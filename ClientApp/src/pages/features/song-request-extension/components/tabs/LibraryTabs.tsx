@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Radio } from 'lucide-react';
+import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Radio, Play, Square, ThumbsUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
@@ -9,7 +9,7 @@ import { PlatformIcon, banPlatform } from '../PlatformIcon';
 import type { Playlist, PlaylistRequirements, Role, SongRequestLimits } from '../../types';
 import { ROLES } from '../../constants/defaults';
 
-type PlaylistChangeKeys = 'name' | 'visibility' | 'shuffle' | 'isFallback' | 'contribution' | 'requirements';
+type PlaylistChangeKeys = 'name' | 'visibility' | 'shuffle' | 'isFallback' | 'contribution' | 'requirements' | 'votingEnabled' | 'sortByVotes';
 
 interface TabProps { cfg: SongRequestConfigState }
 
@@ -65,6 +65,20 @@ export function FiltersTab({ cfg }: TabProps) {
             <div className="p-4 rounded-xl border border-[#bfdbfe] dark:border-[#1e3a8a] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 text-[#1e40af] dark:text-[#93c5fd] text-sm 3xl:text-base">
                 {t('songRequest.filters.exempt')}
             </div>
+
+            <Card title={t('songRequest.filters.sourceTitle')} description={t('songRequest.filters.sourceDescription')}>
+                <Field label={t('songRequest.filters.source')}>
+                    <Select
+                        value={s.requestSource}
+                        onChange={v => cfg.updateSettings({ requestSource: v })}
+                        options={[
+                            { value: 'any', label: t('songRequest.filters.sourceAny') },
+                            { value: 'playlists', label: t('songRequest.filters.sourcePlaylists') },
+                        ]}
+                    />
+                </Field>
+                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-2">{t(`songRequest.filters.sourceHint_${s.requestSource}`)}</p>
+            </Card>
 
             <Card title={t('songRequest.filters.durationTitle')}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -210,7 +224,7 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
 
 // ── Playlists ────────────────────────────────────────────────────────────
 
-interface PlaylistItem { id: number; track: TrackDto; addedBy: string | null; addedByPlatform: string | null }
+interface PlaylistItem { id: number; number: number; votes: number; track: TrackDto; addedBy: string | null; addedByPlatform: string | null }
 
 function usePlaylists() {
     const [playlists, setPlaylists] = useState<Playlist[] | null>(null);
@@ -313,6 +327,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
                                 <span className="truncate max-w-[12rem] 3xl:max-w-[16rem]">{p.name}</span>
                                 <span className="text-xs 3xl:text-sm text-[#94a3b8]">{p.count}</span>
                                 {p.isFallback && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">{t('songRequest.playlists.fallbackBadge')}</span>}
+                                {p.isActive && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">▶ {t('songRequest.playlists.playingBadge')}</span>}
                             </button>
                         ))}
                     </div>
@@ -338,13 +353,15 @@ export function PlaylistsTab({ cfg }: TabProps) {
                     onUpdate={changes => update(selected.id, changes)}
                     onDelete={() => remove(selected)}
                     onItemsChanged={reload}
+                    onPlay={async on => { await api.put('/song-request/active-playlist', { playlistId: on ? selected.id : null }); await reload(); }}
                 />
             )}
         </div>
     );
 }
 
-function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged }: {
+function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged, onPlay }: {
+    onPlay: (on: boolean) => void;
     playlist: Playlist;
     channel: string;
     onUpdate: (changes: Partial<Pick<Playlist, PlaylistChangeKeys>>) => void;
@@ -370,7 +387,8 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged 
             setMax(res.data.max ?? 500);
         } catch { setItems([]); }
     }, [base]);
-    useEffect(() => { load(); }, [load]);
+    // El orden cambia al prender o apagar "más votadas primero"
+    useEffect(() => { load(); }, [load, playlist.sortByVotes]);
 
     const changed = async () => { await load(); onItemsChanged(); };
 
@@ -438,11 +456,25 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged 
                         hint={t('songRequest.playlists.publicHint', { url: `decatron.net/sr/${channel}` })}
                     />
                     <Toggle checked={playlist.shuffle} onChange={v => onUpdate({ shuffle: v })} label={t('songRequest.fallback.shuffle')} hint={t('songRequest.playlists.shuffleHint')} />
-                    {!playlist.isFallback && (
-                        <button className={smallBtn} onClick={() => onUpdate({ isFallback: true })}>
-                            <Radio className="w-4 h-4" /> {t('songRequest.playlists.makeFallback')}
-                        </button>
-                    )}
+                    <Toggle checked={playlist.votingEnabled} onChange={v => onUpdate({ votingEnabled: v })} label={t('songRequest.playlists.voting')} hint={t('songRequest.playlists.votingHint')} />
+                    <Toggle checked={playlist.sortByVotes} onChange={v => onUpdate({ sortByVotes: v })} label={t('songRequest.playlists.sortByVotes')} hint={t('songRequest.playlists.sortByVotesHint')} />
+                    <div className="flex flex-wrap gap-2">
+                        {playlist.isActive ? (
+                            <button className={smallBtn} onClick={() => onPlay(false)}>
+                                <Square className="w-4 h-4" /> {t('songRequest.playlists.stopPlaying')}
+                            </button>
+                        ) : (
+                            <button className={primaryBtn} onClick={() => onPlay(true)}>
+                                <Play className="w-4 h-4" /> {t('songRequest.playlists.play')}
+                            </button>
+                        )}
+                        {!playlist.isFallback && (
+                            <button className={smallBtn} onClick={() => onUpdate({ isFallback: true })}>
+                                <Radio className="w-4 h-4" /> {t('songRequest.playlists.makeFallback')}
+                            </button>
+                        )}
+                    </div>
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(playlist.isActive ? 'songRequest.playlists.playingHint' : 'songRequest.playlists.playHint')}</p>
                     <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.instantNote')}</p>
                 </div>
             </Card>
@@ -480,15 +512,21 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged 
                     : items.length === 0 ? <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.fallback.empty')}</p>
                         : (
                             <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
-                                {items.map((item, i) => (
-                                    <div key={item.id} draggable onDragStart={() => setDragId(item.id)} onDragOver={e => e.preventDefault()} onDrop={() => drop(item.id)} className={dragId === item.id ? 'opacity-40' : ''}>
+                                {items.map(item => (
+                                    // Con "más votadas primero" el orden lo dan los votos: no se arrastra
+                                    <div key={item.id} draggable={!playlist.sortByVotes} onDragStart={() => setDragId(item.id)} onDragOver={e => e.preventDefault()} onDrop={() => drop(item.id)} className={dragId === item.id ? 'opacity-40' : ''}>
                                         <TrackRow
                                             track={item.track}
                                             leading={<>
-                                                <GripVertical className="w-4 h-4 text-[#cbd5e1] dark:text-[#4b5563] cursor-grab shrink-0" />
-                                                <span className="w-7 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{i + 1}</span>
+                                                {!playlist.sortByVotes && <GripVertical className="w-4 h-4 text-[#cbd5e1] dark:text-[#4b5563] cursor-grab shrink-0" />}
+                                                <span className="w-9 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">#{item.number}</span>
                                             </>}
                                         >
+                                            {playlist.votingEnabled && (
+                                                <span className="inline-flex items-center gap-1 text-xs 3xl:text-sm font-bold text-[#64748b] dark:text-[#94a3b8] shrink-0" title={t('songRequest.playlists.votes', { count: item.votes })}>
+                                                    <ThumbsUp className="w-3.5 h-3.5" /> {item.votes}
+                                                </span>
+                                            )}
                                             {item.addedBy && (
                                                 <span className="hidden md:inline-flex items-center gap-1 text-xs 3xl:text-sm text-[#94a3b8] max-w-[10rem] 3xl:max-w-[14rem] truncate shrink-0" title={t('songRequest.playlists.addedBy', { user: item.addedBy })}>
                                                     <PlatformIcon platform={item.addedByPlatform ?? 'twitch'} /> {item.addedBy}

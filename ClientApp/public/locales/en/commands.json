@@ -385,6 +385,11 @@
     }
   },
   "songRequestPublic": {
+    "playing": "Playing",
+    "requestByNumber": "Request one from this playlist in chat with",
+    "requestByNumberCmd": "!sr #number",
+    "vote": "Vote (click again to remove)",
+    "loginToVote": "Log in to vote",
     "pending": "“{{title}}” is waiting for approval for “{{playlist}}”. We'll let you know in chat once it's reviewed.",
     "collaborative": "Collaborative",
     "addedBy": "added by {{user}}",

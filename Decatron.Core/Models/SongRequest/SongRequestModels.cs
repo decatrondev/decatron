@@ -92,6 +92,13 @@ public class SongRequestConfig
     [Column("volume")]
     public int Volume { get; set; } = 50;
 
+    /// <summary>
+    /// La playlist puesta a sonar (fase 4): llena el silencio en vez de la de respaldo, aunque el respaldo
+    /// esté apagado. Null = la de respaldo. Los pedidos siempre van antes.
+    /// </summary>
+    [Column("active_playlist_id")]
+    public long? ActivePlaylistId { get; set; }
+
     /// <summary>Ya no se usa: el cursor vive en cada playlist (song_request_playlists.cursor). Se dejó la columna.</summary>
     [Column("fallback_cursor")]
     public int FallbackCursor { get; set; }
@@ -276,6 +283,14 @@ public class SongRequestPlaylist
     [Column("cursor")]
     public int Cursor { get; set; }
 
+    /// <summary>Los viewers votan canciones desde /sr/{canal} (fase 4).</summary>
+    [Column("voting_enabled")]
+    public bool VotingEnabled { get; set; }
+
+    /// <summary>Más votadas primero (al sonar, en !sr #n y en la página) en vez del orden manual.</summary>
+    [Column("sort_by_votes")]
+    public bool SortByVotes { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -445,6 +460,29 @@ public class SongRequestTrusted
 
     [Column("created_by"), MaxLength(100)]
     public string? CreatedBy { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Un voto de un viewer a una canción de una playlist (uno por canción y persona).</summary>
+[Table("song_request_playlist_votes")]
+public class SongRequestPlaylistVote
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("playlist_id")]
+    public long PlaylistId { get; set; }
+
+    [Column("item_id")]
+    public long ItemId { get; set; }
+
+    [Column("platform"), MaxLength(20)]
+    public string Platform { get; set; } = "";
+
+    [Column("login"), MaxLength(100)]
+    public string Login { get; set; } = "";
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

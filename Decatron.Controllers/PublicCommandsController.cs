@@ -228,7 +228,7 @@ namespace Decatron.Controllers
 
             var commands = new (string Name, string Description, string? Restriction)[]
             {
-                ("sr", "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre (también !songrequest)", request),
+                ("sr", "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre (también !songrequest); !sr #12 pide la 12 de la playlist que suena", request),
                 ("wrongsong", "Quita de la cola tu último pedido", request),
                 ("queue", "Muestra las próximas canciones y el link a la cola", request),
                 ("song", "Muestra la canción que está sonando (también !currentsong)", request),
@@ -248,6 +248,7 @@ namespace Decatron.Controllers
                 ("srvideo", "El reproductor muestra el video en vez de la portada", manage),
                 ("srcover", "El reproductor muestra la portada en vez del video", manage),
                 ("pladd", "Agrega una canción a una playlist del canal (!pladd <playlist> <link o nombre>); cada playlist decide quién puede", null),
+                ("srplay", "Pone a sonar una playlist del canal cuando no hay pedidos (!srplay <playlist>; !srplay off vuelve a la de respaldo)", manage),
                 ("srapprove", "Aprueba lo que espera revisión, por su número (!srapprove 2; sin número, el más viejo)", review),
                 ("srreject", "Rechaza lo que espera revisión, por su número (!srreject 2; sin número, el más viejo)", review),
             };

@@ -345,7 +345,7 @@
       "commandsTitle": "Chat commands"
     },
     "commandHelp": {
-      "sr": "Request a song with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or its name.",
+      "sr": "Requests a song with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or the name. With #number it requests that song from the playing playlist (!sr #12).",
       "wrongsong": "Removes the sender's last request.",
       "queue": "Shows the next songs and the link to the public queue.",
       "song": "Says what's playing, with the link.",
@@ -359,7 +359,8 @@
       "srpromote": "Moves the song at that position to the front of the queue.",
       "videocover": "The player shows the video or the cover, without stopping the music.",
       "pladd": "Adds a song to a collaborative playlist (the playlist name goes first).",
-      "review": "Approves or rejects what is waiting for review by its number (no number = the oldest)."
+      "review": "Approves or rejects what is waiting for review by its number (no number = the oldest).",
+      "srplay": "Plays a playlist when there are no requests; off goes back to the fallback."
     },
     "basic": {
       "moduleTitle": "Module",
@@ -395,7 +396,7 @@
       "permSkip": "Skip and remove",
       "permSkipHint": "Direct !skip, !srremove and !srpromote.",
       "permManage": "Manage",
-      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo and !srcover.",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo, !srcover and !srplay.",
       "controlTotalNote": "Anyone with full control of your dashboard counts as the streamer.",
       "voteTitle": "Vote to skip",
       "voteEnabled": "Viewers can vote !skip",
@@ -489,7 +490,13 @@
       "pending_approved": "Notice: approved for the queue",
       "pl_pending_approved": "Notice: approved for the playlist",
       "pending_rejected": "Notice: rejected",
-      "pending_none": "!srapprove / !srreject: no such number"
+      "pending_none": "!srapprove / !srreject: no such number",
+      "play_started": "!srplay: playlist playing",
+      "play_off": "!srplay off: back to the fallback",
+      "play_usage": "!srplay: how to use",
+      "pl_no_active": "!sr #n: no playlist playing",
+      "pl_number_invalid": "!sr #n: number doesn't exist",
+      "only_playlists": "!sr: playlists only"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
@@ -575,7 +582,8 @@
       "invalid_visibility": "Invalid visibility.",
       "invalid_contribution": "Invalid contribution mode.",
       "already_trusted": "That viewer is already trusted.",
-      "invalid_action": "Invalid action."
+      "invalid_action": "Invalid action.",
+      "voting_off": "This playlist has no voting."
     },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
@@ -590,7 +598,14 @@
       "minViewsHint": "0 = no minimum. If the view count is unknown, it's accepted.",
       "noRepeat": "Don't repeat for (minutes)",
       "noRepeatHint": "A song that already played isn't accepted again until this time passes. 0 = no restriction.",
-      "alwaysBlocked": "Always rejected, regardless of filters: live streams, premieres, private videos and videos that can't play outside YouTube."
+      "alwaysBlocked": "Always rejected, regardless of filters: live streams, premieres, private videos and videos that can't play outside YouTube.",
+      "sourceTitle": "Where requests can come from",
+      "sourceDescription": "Limit !sr to your playlists when you don't want just any song on stream.",
+      "source": "Viewers can request",
+      "sourceAny": "Any song",
+      "sourcePlaylists": "Only songs from my playlists",
+      "sourceHint_any": "Any song that passes the filters is accepted.",
+      "sourceHint_playlists": "Only songs in one of your \"Only you and your mods\" or \"with review\" playlists get in (open collaborative ones don't count: anyone fills them). !sr #number always works."
     },
     "blacklist": {
       "title": "Blacklists",
@@ -753,7 +768,17 @@
       "deleteConfirm": "Delete \"{{name}}\" and its {{count}} songs? This can't be undone.",
       "added": "Added to \"{{name}}\".",
       "none": "You have no playlists.",
-      "addedBy": "Added by {{user}}"
+      "addedBy": "Added by {{user}}",
+      "playingBadge": "Playing",
+      "play": "Play it",
+      "stopPlaying": "Stop (back to the fallback)",
+      "playHint": "Plays when the queue is empty, instead of the fallback (even if the fallback is off). Requests always go first. Also with !srplay in chat.",
+      "playingHint": "This playlist is filling the silence. Viewers can request one with !sr #number.",
+      "voting": "Viewer votes",
+      "votingHint": "If the playlist is public, viewers vote for their favorite songs on your page (one vote per song and person, logged in with Twitch or Kick).",
+      "sortByVotes": "Most voted first",
+      "sortByVotesHint": "Votes set the order: when playing in order, for !sr #number and on the page. While on, it can't be dragged.",
+      "votes": "{{count}} votes"
     },
     "limits": {
       "upgrade": "More with the supporter plans",
