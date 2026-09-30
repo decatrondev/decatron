@@ -515,7 +515,74 @@ namespace Decatron.Controllers
             return Ok(new { success = error == null, error, added, skipped });
         }
 
-        [HttpDelete("api/song-request/playlists/{playlistId:long}/items/{itemId:long}")]
+        // ── Importar de Spotify / Deezer / Apple Music con Decatron Desktop (fase 6) ──
+
+        private static object JobDto(SongImportJob? job, bool desktopReady) => new
+        {
+            success = true,
+            desktopReady,
+            job = job == null ? null : new
+            {
+                id = job.Id,
+                state = job.State,
+                service = job.Service,
+                sourceName = job.SourceName,
+                playlistId = job.PlaylistId,
+                playlistName = job.PlaylistName,
+                total = job.Tracks.Count,
+                added = job.Count(ImportItemState.Added),
+                duplicates = job.Count(ImportItemState.Duplicate),
+                notFound = job.Count(ImportItemState.NotFound),
+                rejected = job.Count(ImportItemState.Rejected),
+                pending = job.Count(ImportItemState.Pending),
+                // Lo que no entró, para que el streamer sepa qué buscar a mano
+                problems = job.Tracks.Select((t, i) => (t, i))
+                    .Where(x => job.States[x.i] is ImportItemState.NotFound or ImportItemState.Rejected)
+                    .Take(200)
+                    .Select(x => new { title = x.t.Title, artist = x.t.Artist, url = x.t.Url, reason = job.Reasons[x.i] }),
+                createdAt = job.CreatedAt
+            }
+        };
+
+        [HttpGet("api/song-request/imports/current")]
+        [RequirePermission("overlays")]
+        public IActionResult CurrentImport([FromServices] SongImportDesktopChannel imports)
+        {
+            var desktopUser = this.GetChannelOwnerId();
+            return Ok(JobDto(imports.GetJob(desktopUser), imports.IsReady(desktopUser)));
+        }
+
+        public sealed class ExternalImportRequest { public string Url { get; set; } = ""; }
+
+        [HttpPost("api/song-request/playlists/{playlistId:long}/import-external")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ImportExternal(long playlistId, [FromBody] ExternalImportRequest body, [FromServices] SongImportDesktopChannel imports, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(body.Url) || body.Url.Length > 500)
+                return BadRequest(new { success = false, error = "invalid_input" });
+            if (ExternalPlaylistReader.ServiceOf(body.Url) == null)
+                return Ok(new { success = false, error = "not_a_playlist" });
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var (job, error) = await imports.StartAsync(this.GetChannelOwnerId(), config.UserId, playlistId, body.Url.Trim(), ct);
+            return error != null ? Ok(new { success = false, error }) : Ok(JobDto(job, true));
+        }
+
+        [HttpPost("api/song-request/imports/current/{action}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ImportAction(string action, [FromServices] SongImportDesktopChannel imports)
+        {
+            var desktopUser = this.GetChannelOwnerId();
+            string? error = action switch
+            {
+                "cancel" => await imports.CancelAsync(desktopUser) ? null : "not_found",
+                "resume" => await imports.ResumeAsync(desktopUser),
+                _ => "invalid_action"
+            };
+            return Ok(new { success = error == null, error });
+        }
+
+                [HttpDelete("api/song-request/playlists/{playlistId:long}/items/{itemId:long}")]
         [RequirePermission("overlays")]
         public async Task<IActionResult> RemovePlaylistItem(long playlistId, long itemId, CancellationToken ct)
         {

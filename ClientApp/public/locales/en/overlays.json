@@ -577,7 +577,7 @@
       "unknown_duration": "That song's length is unknown.",
       "too_few_views": "That song has fewer views than the minimum.",
       "recently_played": "That song played recently.",
-      "not_a_playlist": "That link isn't a YouTube playlist.",
+      "not_a_playlist": "That link isn't a YouTube, Spotify, Deezer or Apple Music playlist.",
       "author_unknown": "Couldn't tell which channel that song is from.",
       "invalid_user": "That username isn't valid.",
       "already_in_playlist": "That song is already in that playlist.",
@@ -590,7 +590,9 @@
       "already_trusted": "That viewer is already trusted.",
       "invalid_action": "Invalid action.",
       "voting_off": "This playlist has no voting.",
-      "invalid_mode": "Invalid mode."
+      "invalid_mode": "Invalid mode.",
+      "desktop_missing": "Open Decatron Desktop (updated) to import from Spotify, Deezer or Apple Music.",
+      "import_running": "An import is already running. Wait for it to finish or cancel it."
     },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
@@ -646,7 +648,7 @@
       "shuffle": "Shuffle",
       "saveNote": "\"Use the fallback playlist\" is saved with the Save button. Everything else in this tab saves instantly.",
       "addTitle": "Add songs",
-      "importPlaceholder": "YouTube playlist link (…?list=…)",
+      "importPlaceholder": "Link to a YouTube, Spotify, Deezer or Apple Music playlist",
       "import": "Import",
       "added": "Added to the fallback playlist.",
       "imported": "{{added}} songs were added ({{skipped}} were already there or didn't fit).",
@@ -867,6 +869,36 @@
       "closed": "Closed",
       "closedHint": "No requests accepted.",
       "chatNote": "In chat: !srmode open, playlists, review or closed (with the manage permission)."
+    },
+    "importExt": {
+      "hint": "YouTube imports right here. Spotify (up to 100 songs), Deezer and Apple Music import with Decatron Desktop open: it searches each song on YouTube from your PC.",
+      "noDesktop": "No Decatron Desktop with this feature is open right now: open or update it.",
+      "services": {
+        "spotify": "Spotify",
+        "deezer": "Deezer",
+        "apple": "Apple Music"
+      },
+      "state": {
+        "matching": "Importing “{{name}}” from {{service}}: Decatron Desktop is searching each song on YouTube…",
+        "done": "Import of “{{name}}” ({{service}}) finished.",
+        "canceled": "Import of “{{name}}” canceled.",
+        "desktop_lost": "Decatron Desktop closed halfway through “{{name}}”."
+      },
+      "counts": "{{done}} of {{total}} checked · {{added}} added · {{duplicates}} already there · {{notFound}} not found · {{rejected}} rejected",
+      "lostHint": "What was added is already saved. Open the app and resume: only the missing ones are searched.",
+      "cancel": "Cancel",
+      "resume": "Resume ({{count}} left)",
+      "problems": "See the {{count}} that didn't make it",
+      "reasons": {
+        "no_match": "not found on YouTube",
+        "tools_unavailable": "Desktop without yt-dlp",
+        "not_found": "the video no longer exists",
+        "not_embeddable": "can't be played in the overlay",
+        "banned_track": "banned song",
+        "banned_author": "banned channel",
+        "playlist_full": "the playlist hit its limit",
+        "failed": "error while saving"
+      }
     }
   },
   "overlayEditor": {

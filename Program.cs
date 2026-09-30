@@ -405,6 +405,10 @@ try
     // Song Request fase 5: descargas en Decatron Desktop. Una sola instancia: el canal y la API comparten estado
     builder.Services.AddSingleton<Decatron.Services.SongRequest.DownloadsDesktopChannel>();
     builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.DownloadsDesktopChannel>());
+    // Song Request, importar playlists de Spotify/Deezer/Apple Music: la app busca en YouTube (SONG_REQUEST_PLAYLISTS_PLAN.md, fase 6)
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.ExternalPlaylistReader>();
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.SongImportDesktopChannel>();
+    builder.Services.AddSingleton<Decatron.Services.Desktop.IDesktopChannel>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.SongImportDesktopChannel>());
     builder.Services.AddSingleton<Decatron.Services.Desktop.DesktopConnectionRegistry>();
 
     // Decatron Desktop (app de escritorio; la traducción en vivo es su primer módulo)

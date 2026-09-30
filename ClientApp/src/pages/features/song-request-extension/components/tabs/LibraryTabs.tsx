@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Radio, Play, Square, ThumbsUp } from 'lucide-react';
 import api from '../../../../../services/api';
@@ -407,6 +407,13 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
         if (!importUrl.trim()) return;
         setBusy('import'); setResult(null);
         try {
+            // Spotify, Deezer y Apple Music: la búsqueda en YouTube la hace Decatron Desktop (fase 6)
+            if (isExternalPlaylist(importUrl)) {
+                const res = await api.post(`${base}/import-external`, { url: importUrl.trim() });
+                if (res.data.success) { setImportUrl(''); setImportJob(res.data.job); }
+                else setResult({ ok: false, text: errorText(res.data.error) });
+                return;
+            }
             const res = await api.post(`${base}/import`, { url: importUrl.trim() });
             if (res.data.success) {
                 setImportUrl('');
@@ -434,6 +441,36 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
     };
 
     const full = items !== null && items.length >= max;
+
+    // Importación con Desktop: se sigue cada 2 s mientras busca; al terminar se recarga la lista
+    const [importJob, setImportJob] = useState<ImportJob | null>(null);
+    const [desktopReady, setDesktopReady] = useState<boolean | null>(null);
+    const running = importJob?.state === 'matching';
+    const lastAdded = useRef(0);
+    useEffect(() => {
+        let alive = true;
+        const poll = async () => {
+            try {
+                const res = await api.get('/song-request/imports/current');
+                if (!alive) return;
+                setDesktopReady(!!res.data.desktopReady);
+                const job: ImportJob | null = res.data.job && res.data.job.playlistId === playlist.id ? res.data.job : null;
+                setImportJob(job);
+                if (job && job.added !== lastAdded.current) { lastAdded.current = job.added; changed(); }
+            } catch { /* se reintenta */ }
+        };
+        poll();
+        if (!running) return () => { alive = false; };
+        const id = window.setInterval(poll, 2000);
+        return () => { alive = false; window.clearInterval(id); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [running, playlist.id]);
+    const importAction = async (action: 'cancel' | 'resume') => {
+        const res = await api.post(`/song-request/imports/current/${action}`);
+        if (!res.data.success) setResult({ ok: false, text: errorText(res.data.error) });
+        const cur = await api.get('/song-request/imports/current');
+        setImportJob(cur.data.job?.playlistId === playlist.id ? cur.data.job : null);
+    };
 
     return (
         <>
@@ -496,7 +533,12 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                             {busy === 'import' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('songRequest.fallback.import')}
                         </button>
                     </form>
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">
+                        {t('songRequest.importExt.hint')}{' '}
+                        {desktopReady === false && <span className="text-amber-700 dark:text-amber-300">{t('songRequest.importExt.noDesktop')}</span>}
+                    </p>
                     <Feedback result={result} />
+                    {importJob && <ImportJobCard job={importJob} onAction={importAction} />}
                 </div>
             </Card>
 
@@ -542,6 +584,74 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                         )}
             </Card>
         </>
+    );
+}
+
+interface ImportJob {
+    id: string;
+    state: 'matching' | 'done' | 'canceled' | 'desktop_lost';
+    service: 'spotify' | 'deezer' | 'apple';
+    sourceName: string | null;
+    playlistId: number;
+    total: number;
+    added: number;
+    duplicates: number;
+    notFound: number;
+    rejected: number;
+    pending: number;
+    problems: { title: string; artist: string; url: string | null; reason: string | null }[];
+}
+
+/** Links de playlists que se importan con Decatron Desktop (el resto, como YouTube, los importa el server). */
+function isExternalPlaylist(url: string) {
+    return /open\.spotify\.com\/(intl-[a-z-]+\/)?(embed\/)?playlist\//i.test(url)
+        || /deezer\.com\/([a-z]{2}\/)?playlist\//i.test(url)
+        || /music\.apple\.com\/[a-z]{2}\/playlist\//i.test(url);
+}
+
+/** Avance y resultado de una importación con Desktop, con lo que no entró para buscarlo a mano. */
+function ImportJobCard({ job, onAction }: { job: ImportJob; onAction: (a: 'cancel' | 'resume') => void }) {
+    const { t } = useTranslation('overlays');
+    const [showProblems, setShowProblems] = useState(false);
+    const done = job.total - job.pending;
+    const percent = job.total ? Math.round((done / job.total) * 100) : 0;
+    const service = t(`songRequest.importExt.services.${job.service}`);
+    return (
+        <div className="mt-2 p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#111] space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                    {t(`songRequest.importExt.state.${job.state}`, { service, name: job.sourceName ?? '' })}
+                </p>
+                {job.state === 'matching' && <button className={smallBtn} onClick={() => onAction('cancel')}>{t('songRequest.importExt.cancel')}</button>}
+                {(job.state === 'desktop_lost' || job.state === 'canceled') && job.pending > 0 && (
+                    <button className={primaryBtn} onClick={() => onAction('resume')}>{t('songRequest.importExt.resume', { count: job.pending })}</button>
+                )}
+            </div>
+            <div className="h-2 rounded-full bg-[#e2e8f0] dark:bg-[#262626] overflow-hidden">
+                <div className="h-full bg-[#2563eb] transition-all" style={{ width: `${percent}%` }} />
+            </div>
+            <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">
+                {t('songRequest.importExt.counts', { done, total: job.total, added: job.added, duplicates: job.duplicates, notFound: job.notFound, rejected: job.rejected })}
+            </p>
+            {job.state === 'desktop_lost' && <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.importExt.lostHint')}</p>}
+            {job.problems.length > 0 && (
+                <div>
+                    <button className="text-xs 3xl:text-sm font-bold text-[#2563eb] dark:text-[#60a5fa] underline" onClick={() => setShowProblems(v => !v)}>
+                        {t('songRequest.importExt.problems', { count: job.problems.length })}
+                    </button>
+                    {showProblems && (
+                        <ul className="mt-2 max-h-64 overflow-y-auto divide-y divide-[#e2e8f0] dark:divide-[#374151] text-xs 3xl:text-sm">
+                            {job.problems.map((p, i) => (
+                                <li key={i} className="flex items-center justify-between gap-3 py-1.5">
+                                    <a href={p.url ?? undefined} target="_blank" rel="noopener noreferrer" className="truncate text-[#1e293b] dark:text-[#f8fafc] hover:underline">{p.artist} — {p.title}</a>
+                                    <span className="shrink-0 text-[#94a3b8]">{t(`songRequest.importExt.reasons.${p.reason ?? 'no_match'}`, { defaultValue: t('songRequest.importExt.reasons.no_match') })}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 

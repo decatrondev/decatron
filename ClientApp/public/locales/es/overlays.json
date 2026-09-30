@@ -577,7 +577,7 @@
       "unknown_duration": "No se sabe cuánto dura esa canción.",
       "too_few_views": "Esa canción tiene menos vistas que el mínimo.",
       "recently_played": "Esa canción sonó hace poco.",
-      "not_a_playlist": "Ese link no es una playlist de YouTube.",
+      "not_a_playlist": "Ese link no es una playlist de YouTube, Spotify, Deezer o Apple Music.",
       "author_unknown": "No se pudo saber de qué canal es esa canción.",
       "invalid_user": "Ese usuario no es válido.",
       "already_in_playlist": "Esa canción ya está en esa playlist.",
@@ -590,7 +590,9 @@
       "already_trusted": "Ese viewer ya es de confianza.",
       "invalid_action": "Acción no válida.",
       "voting_off": "Esta playlist no tiene votación.",
-      "invalid_mode": "Modo no válido."
+      "invalid_mode": "Modo no válido.",
+      "desktop_missing": "Abre Decatron Desktop (actualizado) para importar de Spotify, Deezer o Apple Music.",
+      "import_running": "Ya hay una importación en curso. Espera a que termine o cancélala."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -646,7 +648,7 @@
       "shuffle": "Orden aleatorio",
       "saveNote": "«Usar la playlist de respaldo» se guarda con el botón Guardar. Todo lo demás de esta pestaña se guarda al instante.",
       "addTitle": "Agregar canciones",
-      "importPlaceholder": "Link de una playlist de YouTube (…?list=…)",
+      "importPlaceholder": "Link de una playlist de YouTube, Spotify, Deezer o Apple Music",
       "import": "Importar",
       "added": "Agregada a la playlist de respaldo.",
       "imported": "Se agregaron {{added}} canciones ({{skipped}} ya estaban o no entraron).",
@@ -867,6 +869,36 @@
       "closed": "Cerrados",
       "closedHint": "No se aceptan pedidos.",
       "chatNote": "En el chat: !srmode open, playlists, review o closed (con el permiso de administrar)."
+    },
+    "importExt": {
+      "hint": "YouTube se importa acá mismo. Spotify (hasta 100 canciones), Deezer y Apple Music se importan con Decatron Desktop abierto: busca cada canción en YouTube desde tu PC.",
+      "noDesktop": "Ahora no hay un Decatron Desktop abierto con esta función: ábrelo o actualízalo.",
+      "services": {
+        "spotify": "Spotify",
+        "deezer": "Deezer",
+        "apple": "Apple Music"
+      },
+      "state": {
+        "matching": "Importando «{{name}}» de {{service}}: Decatron Desktop está buscando cada canción en YouTube…",
+        "done": "Importación de «{{name}}» ({{service}}) terminada.",
+        "canceled": "Importación de «{{name}}» cancelada.",
+        "desktop_lost": "Se cerró Decatron Desktop a la mitad de «{{name}}»."
+      },
+      "counts": "{{done}} de {{total}} revisadas · {{added}} agregadas · {{duplicates}} ya estaban · {{notFound}} sin encontrar · {{rejected}} rechazadas",
+      "lostHint": "Lo agregado ya quedó guardado. Abre la app y retoma: solo se buscan las que faltan.",
+      "cancel": "Cancelar",
+      "resume": "Retomar ({{count}} faltan)",
+      "problems": "Ver las {{count}} que no entraron",
+      "reasons": {
+        "no_match": "no se encontró en YouTube",
+        "tools_unavailable": "Desktop sin yt-dlp",
+        "not_found": "el video ya no existe",
+        "not_embeddable": "no se puede poner en el overlay",
+        "banned_track": "canción vetada",
+        "banned_author": "canal vetado",
+        "playlist_full": "la playlist llegó al tope",
+        "failed": "error al guardar"
+      }
     }
   },
   "overlayEditor": {
