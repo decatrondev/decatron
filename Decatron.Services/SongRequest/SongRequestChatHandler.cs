@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -39,7 +39,10 @@ namespace Decatron.Services.SongRequest
             ["!srpause"] = Action.Pause,
             ["!srresume"] = Action.Resume,
             ["!srban"] = Action.Ban,
-            ["!srvolume"] = Action.Volume
+            ["!srvolume"] = Action.Volume,
+            ["!srpromote"] = Action.Promote,
+            ["!srvideo"] = Action.Video,
+            ["!srcover"] = Action.Cover
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -76,7 +79,8 @@ namespace Decatron.Services.SongRequest
             "wrongsong_removed", "no_requests", "queue_empty", "queue_list", "song_current", "song_current_fallback", "song_none", "myqueue",
             "skip_nothing", "skip_done", "skip_vote", "skip_voted_done", "remove_usage", "remove_invalid", "removed",
             "opened", "closed_now", "paused", "resumed", "ban_user", "ban_track", "ban_nothing",
-            "volume_current", "volume_set", "volume_usage"
+            "volume_current", "volume_set", "volume_usage",
+            "promote_usage", "promote_invalid", "promoted", "video_on", "cover_on"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -110,8 +114,9 @@ namespace Decatron.Services.SongRequest
                 {
                     Action.Skip => null, // decide adentro: directo o voto
                     Action.Volume => null, // decide adentro: ver el volumen o cambiarlo
-                    Action.Remove => run.Settings.Permissions.Skip,
-                    Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban => run.Settings.Permissions.Manage,
+                    Action.Remove or Action.Promote => run.Settings.Permissions.Skip,
+                    Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
+                        or Action.Video or Action.Cover => run.Settings.Permissions.Manage,
                     _ => run.Settings.Permissions.Request
                 };
                 if (required != null && !await run.HasRoleAsync(required))
@@ -132,6 +137,9 @@ namespace Decatron.Services.SongRequest
                     case Action.Resume: await SetPausedAsync(run, false); break;
                     case Action.Ban: await BanAsync(run); break;
                     case Action.Volume: await VolumeAsync(run); break;
+                    case Action.Promote: await PromoteAsync(run); break;
+                    case Action.Video: await SetVideoModeAsync(run, true); break;
+                    case Action.Cover: await SetVideoModeAsync(run, false); break;
                 }
             }
             catch (Exception ex)
@@ -284,6 +292,27 @@ namespace Decatron.Services.SongRequest
             var removed = await run.Songs.RemoveAtPositionAsync(run.Config, position);
             await run.ReplyAsync(removed == null ? "remove_invalid" : "removed",
                 Vars(removed).With("position", position.ToString()));
+        }
+
+        /// <summary>!srpromote 3 sube el pedido #3 al primer lugar de la cola.</summary>
+        private static async Task PromoteAsync(Run run)
+        {
+            if (!int.TryParse(run.Args.Split(' ', 2)[0].TrimStart('#'), out var position))
+            {
+                await run.ReplyAsync("promote_usage");
+                return;
+            }
+
+            var promoted = await run.Songs.PromoteAtPositionAsync(run.Config, position);
+            await run.ReplyAsync(promoted == null ? "promote_invalid" : "promoted",
+                Vars(promoted).With("position", position.ToString()));
+        }
+
+        /// <summary>!srvideo / !srcover: el reproductor muestra el video o la portada, sin cortar la música.</summary>
+        private static async Task SetVideoModeAsync(Run run, bool video)
+        {
+            await run.Songs.SetVideoModeAsync(run.Config, video);
+            await run.ReplyAsync(video ? "video_on" : "cover_on");
         }
 
         private static async Task SetOpenAsync(Run run, bool open)

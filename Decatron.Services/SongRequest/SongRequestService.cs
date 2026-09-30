@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -173,6 +174,48 @@ namespace Decatron.Services.SongRequest
             config.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
             await NotifyAsync(config, ct);
+        }
+
+        /// <summary>
+        /// El reproductor muestra el video (y apaga la portada) o la portada (y apaga el video). Toca solo
+        /// esos dos elementos del diseño guardado; lo que falte lo completa el overlay con sus valores por defecto.
+        /// </summary>
+        /// <returns>false si ya estaba así.</returns>
+        public async Task<bool> SetVideoModeAsync(SongRequestConfig config, bool video, CancellationToken ct = default)
+        {
+            // Un diseño ilegible no se pisa con uno vacío: se deja como está
+            JsonObject? root;
+            try { root = JsonNode.Parse(string.IsNullOrWhiteSpace(config.OverlayConfig) ? "{}" : config.OverlayConfig) as JsonObject; }
+            catch (JsonException) { return false; }
+            if (root == null)
+                return false;
+
+            var player = Child(root, "player");
+            var elements = Child(player, "elements");
+            var videoEl = Child(elements, "video");
+            var coverEl = Child(elements, "cover");
+            if (Enabled(videoEl) == video && Enabled(coverEl) == !video)
+                return false;
+
+            videoEl["enabled"] = video;
+            coverEl["enabled"] = !video;
+            config.OverlayConfig = root.ToJsonString();
+            config.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await NotifyConfigChangedAsync(config, ct);
+            return true;
+
+            static JsonObject Child(JsonObject parent, string name)
+            {
+                if (parent[name] is JsonObject existing)
+                    return existing;
+                var created = new JsonObject();
+                parent[name] = created;
+                return created;
+            }
+
+            static bool? Enabled(JsonObject element) =>
+                element["enabled"] is JsonValue value && value.TryGetValue<bool>(out var enabled) ? enabled : null;
         }
 
         /// <summary>La clave de la URL del reproductor; se crea la primera vez que se pide.</summary>
@@ -442,6 +485,39 @@ namespace Decatron.Services.SongRequest
                 .ToList();
             for (var i = 0; i < ordered.Count; i++)
                 ordered[i].Position = i + 1;
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+        }
+
+        /// <summary>Sube el pedido de esa posición (1 = el próximo) al primer lugar de la cola.</summary>
+        public async Task<SongRequestQueueItem?> PromoteAtPositionAsync(SongRequestConfig config, int position, CancellationToken ct = default)
+        {
+            if (position < 1)
+                return null;
+            var items = await QueuedQuery(config.UserId).ToListAsync(ct);
+            if (position > items.Count)
+                return null;
+            await PromoteAsync(config, items, items[position - 1], ct);
+            return items[0];
+        }
+
+        /// <summary>Lo mismo desde el dashboard, por id.</summary>
+        public async Task<SongRequestQueueItem?> PromoteByIdAsync(SongRequestConfig config, long itemId, CancellationToken ct = default)
+        {
+            var items = await QueuedQuery(config.UserId).ToListAsync(ct);
+            var item = items.FirstOrDefault(q => q.Id == itemId);
+            if (item == null)
+                return null;
+            await PromoteAsync(config, items, item, ct);
+            return item;
+        }
+
+        private async Task PromoteAsync(SongRequestConfig config, List<SongRequestQueueItem> items, SongRequestQueueItem item, CancellationToken ct)
+        {
+            items.Remove(item);
+            items.Insert(0, item);
+            for (var i = 0; i < items.Count; i++)
+                items[i].Position = i + 1;
             await _db.SaveChangesAsync(ct);
             await NotifyAsync(config, ct);
         }

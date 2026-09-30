@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pause, Play, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio, Download } from 'lucide-react';
+import { Pause, Play, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio, Download, ChevronsUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Toggle, inputClass } from '../ui';
 import TrackPlayer from '../TrackPlayer';
@@ -189,6 +189,11 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                                 {onDownload && (item.originUrl ?? item.url) && (
                                     <button className={iconBtn} title={t('songRequest.downloads.sendTo')} onClick={() => onDownload((item.originUrl ?? item.url)!)}>
                                         <Download className="w-4 h-4" />
+                                    </button>
+                                )}
+                                {i > 0 && (
+                                    <button className={iconBtn} title={t('songRequest.queue.promote')} onClick={() => api.post(`/song-request/queue/${item.id}/promote`)}>
+                                        <ChevronsUp className="w-4 h-4" />
                                     </button>
                                 )}
                                 <BanMenu item={item} onBan={ban} />

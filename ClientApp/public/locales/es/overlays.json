@@ -354,7 +354,9 @@
       "openclose": "Abre o cierra los pedidos.",
       "pause": "Pausa o reanuda el reproductor.",
       "srban": "Veta la canción que suena, o a un usuario si lo mencionas.",
-      "srvolume": "Dice el volumen, o lo cambia de 0 a 100 (!srvolume 40)."
+      "srvolume": "Dice el volumen, o lo cambia de 0 a 100 (!srvolume 40).",
+      "srpromote": "Sube la canción en esa posición al primer lugar de la cola.",
+      "videocover": "El reproductor muestra el video o la portada, sin cortar la música."
     },
     "basic": {
       "moduleTitle": "Módulo",
@@ -385,9 +387,9 @@
       "permRequest": "Pedir y consultar",
       "permRequestHint": "!sr, !wrongsong, !queue, !song, !myqueue y votar !skip.",
       "permSkip": "Saltar y quitar",
-      "permSkipHint": "!skip directo y !srremove.",
+      "permSkipHint": "!skip directo, !srremove y !srpromote.",
       "permManage": "Administrar",
-      "permManageHint": "!sropen, !srclose, !srpause, !srresume y !srban.",
+      "permManageHint": "!sropen, !srclose, !srpause, !srresume, !srban, !srvideo y !srcover.",
       "controlTotalNote": "Quien tiene control total en tu dashboard cuenta como el streamer.",
       "voteTitle": "Votación para saltar",
       "voteEnabled": "Los viewers pueden votar !skip",
@@ -451,7 +453,12 @@
       "song_current_fallback": "!song: suena la playlist de respaldo",
       "volume_current": "!srvolume: volumen actual",
       "volume_set": "!srvolume: volumen cambiado",
-      "volume_usage": "Cómo usar !srvolume"
+      "volume_usage": "Cómo usar !srvolume",
+      "promote_usage": "Cómo usar !srpromote",
+      "promote_invalid": "!srpromote: posición vacía",
+      "promoted": "!srpromote: subida al primer lugar",
+      "video_on": "!srvideo",
+      "cover_on": "!srcover"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -482,6 +489,7 @@
       "total": "{{duration}} en total",
       "empty": "La cola está vacía.",
       "remove": "Quitar",
+      "promote": "Subir al primer lugar",
       "ban": "Vetar",
       "banCurrent": "Vetar lo que suena:",
       "banOptions": {

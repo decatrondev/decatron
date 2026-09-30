@@ -22,7 +22,10 @@ interface Props {
     progress: PlaybackProgress | null;
     paused: boolean;
     labels: OverlayLabels;
-    /** El iframe de YouTube (solo el reproductor). Queda fuera de la animación para no recargarse. */
+    /**
+     * El reproductor (solo el overlay que suena). Siempre en el mismo lugar del árbol, esté el video
+     * prendido o no: si cambiara de lugar, el iframe se recargaría y la canción volvería a 0.
+     */
     videoSlot?: ReactNode;
     /** En el editor: siempre visible aunque no haya canción. */
     alwaysVisible?: boolean;
@@ -147,6 +150,9 @@ function useShowHide(visible: boolean, enter: ShowHideAnimation, exit: ShowHideA
     if (!changed) return undefined;
     return showHideCss(visible ? enter : exit, visible);
 }
+
+/** Con el video apagado el reproductor igual tiene que existir para sonar: invisible, pero con tamaño. */
+const HIDDEN_PLAYER: CSSProperties = { position: 'absolute', left: 0, top: 0, width: 200, height: 200, opacity: 0, pointerEvents: 'none' };
 
 export default function MusicOverlayRenderer({ layout, current, queue, progress, paused, labels, videoSlot, alwaysVisible, hidden }: Props) {
     const { elements: els, theme, animations } = layout;
@@ -286,8 +292,13 @@ export default function MusicOverlayRenderer({ layout, current, queue, progress,
 
                 {/* El video real va encima (si comparte lugar con la portada, la tapaba) y fuera de la capa
                     animada, así el iframe no se recarga en cada cambio de canción */}
-                {els.video.enabled && videoSlot && (
-                    <div style={{ ...box(els.video), borderRadius: theme.coverRadius, overflow: 'hidden', background: '#000' }}>
+                {videoSlot && (
+                    <div
+                        style={els.video.enabled
+                            ? { ...box(els.video), borderRadius: theme.coverRadius, overflow: 'hidden', background: '#000' }
+                            : HIDDEN_PLAYER}
+                        aria-hidden={!els.video.enabled}
+                    >
                         {videoSlot}
                     </div>
                 )}

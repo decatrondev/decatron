@@ -98,24 +98,17 @@ function PlayerOverlay({ channel, playerKey }: { channel: string; playerKey: str
         />
     );
 
+    // Con o sin video el reproductor va en el mismo lugar (el renderer lo oculta): cambiar el diseño no corta la canción
     return (
-        <>
-            <SongOverlayRenderer
-                layout={layout}
-                current={current}
-                queue={snapshot?.queue ?? []}
-                progress={progress}
-                paused={snapshot?.paused ?? false}
-                labels={labels}
-                videoSlot={layout.elements.video.enabled ? player : undefined}
-            />
-            {/* Sin el video en el diseño, el reproductor igual tiene que existir para sonar */}
-            {!layout.elements.video.enabled && (
-                <div style={{ position: 'fixed', left: 0, top: 0, width: 200, height: 200, opacity: 0, pointerEvents: 'none' }} aria-hidden>
-                    {player}
-                </div>
-            )}
-        </>
+        <SongOverlayRenderer
+            layout={layout}
+            current={current}
+            queue={snapshot?.queue ?? []}
+            progress={progress}
+            paused={snapshot?.paused ?? false}
+            labels={labels}
+            videoSlot={player}
+        />
     );
 }
 

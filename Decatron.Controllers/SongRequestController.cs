@@ -222,6 +222,18 @@ namespace Decatron.Controllers
             return Ok(new { success = true });
         }
 
+        /// <summary>Sube el pedido al primer lugar de la cola (lo mismo que !srpromote).</summary>
+        [HttpPost("api/song-request/queue/{id:long}/promote")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> Promote(long id, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null)
+                return NotFound(new { success = false });
+            var promoted = await _songs.PromoteByIdAsync(config, id, ct);
+            return promoted == null ? NotFound(new { success = false }) : Ok(new { success = true });
+        }
+
         [HttpDelete("api/song-request/queue/{id:long}")]
         [RequirePermission("overlays")]
         public async Task<IActionResult> Remove(long id, CancellationToken ct)
