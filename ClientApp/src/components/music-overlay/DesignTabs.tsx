@@ -42,7 +42,15 @@ function useLayout({ layout, onChange }: DesignProps) {
 
 // ── Tema ─────────────────────────────────────────────────────────────────
 
-export function ThemeTab(props: DesignProps & { templates?: { list: SavedTemplate[]; onChange: (list: SavedTemplate[]) => void } }) {
+/** Plantillas propias. max: tope del plan (al llegar se muestra limitNote en vez del formulario). */
+export interface TemplateStore {
+    list: SavedTemplate[];
+    onChange: (list: SavedTemplate[]) => void;
+    max?: number;
+    limitNote?: ReactNode;
+}
+
+export function ThemeTab(props: DesignProps & { templates?: TemplateStore }) {
     const { t } = useTranslation('overlays');
     const { layout, set } = useLayout(props);
     const theme = layout.theme;
@@ -86,7 +94,7 @@ export function ThemeTab(props: DesignProps & { templates?: { list: SavedTemplat
     );
 }
 
-function TemplatesCard({ layout, onChange, elementIds, templates: store }: DesignProps & { templates: { list: SavedTemplate[]; onChange: (list: SavedTemplate[]) => void } }) {
+function TemplatesCard({ layout, onChange, elementIds, templates: store }: DesignProps & { templates: TemplateStore }) {
     const { t } = useTranslation('overlays');
     const [name, setName] = useState('');
     const templates = store.list;
@@ -94,18 +102,23 @@ function TemplatesCard({ layout, onChange, elementIds, templates: store }: Desig
     const saveTemplate = () => {
         if (!name.trim()) return;
         const tpl: SavedTemplate = { id: crypto.randomUUID(), name: name.trim().slice(0, 60), icon: '🎵', layout: structuredClone(layout), createdAt: new Date().toISOString() };
-        store.onChange([...templates, tpl].slice(-30));
+        // Sin tope del plan quedan las 30 más nuevas, como siempre
+        store.onChange(store.max === undefined ? [...templates, tpl].slice(-30) : [...templates, tpl]);
         setName('');
     };
 
     return (
         <Card title={t('musicOverlay.templates.title')} description={t('musicOverlay.templates.description')}>
-            <form className="flex gap-2 mb-4" onSubmit={e => { e.preventDefault(); saveTemplate(); }}>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder={t('musicOverlay.templates.namePlaceholder')} className={inputClass} maxLength={60} />
-                <button type="submit" disabled={!name.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0">
-                    <Save className="w-4 h-4" /> {t('musicOverlay.templates.save')}
-                </button>
-            </form>
+            {store.max !== undefined && templates.length >= store.max ? (
+                <div className="mb-4">{store.limitNote}</div>
+            ) : (
+                <form className="flex gap-2 mb-4" onSubmit={e => { e.preventDefault(); saveTemplate(); }}>
+                    <input value={name} onChange={e => setName(e.target.value)} placeholder={t('musicOverlay.templates.namePlaceholder')} className={inputClass} maxLength={60} />
+                    <button type="submit" disabled={!name.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0">
+                        <Save className="w-4 h-4" /> {t('musicOverlay.templates.save')}
+                    </button>
+                </form>
+            )}
             {templates.length === 0 ? (
                 <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('musicOverlay.templates.empty')}</p>
             ) : (

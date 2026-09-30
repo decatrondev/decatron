@@ -230,6 +230,8 @@ export default function SongRequestPublicPage() {
                                 ))}
                             </ol>
                         )}
+
+                        <PublicPlaylists channel={channelName} />
                     </>
                 )}
 
@@ -303,6 +305,78 @@ function NowPlaying({ item, paused, openLabel, requestedBy }: { item: QueueItem;
                         {openLabel} ↗
                     </a>
                 )}
+            </div>
+        </div>
+    );
+}
+
+interface PublicPlaylist { id: number; name: string; count: number }
+interface PublicPlaylistItem { id: number; track: { url: string | null; title: string; artist: string; durationSeconds: number | null; thumbnailUrl: string | null } }
+
+/** Las playlists que el streamer marcó como públicas (SONG_REQUEST_PLAYLISTS_PLAN.md, fase 1). */
+function PublicPlaylists({ channel }: { channel: string }) {
+    const { t } = useTranslation('commands');
+    const [playlists, setPlaylists] = useState<PublicPlaylist[]>([]);
+    const [openId, setOpenId] = useState<number | null>(null);
+    const [items, setItems] = useState<Record<number, PublicPlaylistItem[]>>({});
+
+    useEffect(() => {
+        fetch(`/api/public/song-request/${encodeURIComponent(channel)}/playlists`)
+            .then(r => (r.ok ? r.json() : null))
+            .then(d => setPlaylists(d?.playlists ?? []))
+            .catch(() => { /* sin playlists públicas */ });
+    }, [channel]);
+
+    const toggle = async (id: number) => {
+        setOpenId(prev => (prev === id ? null : id));
+        if (items[id]) return;
+        try {
+            const r = await fetch(`/api/public/song-request/${encodeURIComponent(channel)}/playlists/${id}`);
+            const d = r.ok ? await r.json() : null;
+            setItems(prev => ({ ...prev, [id]: d?.items ?? [] }));
+        } catch { setItems(prev => ({ ...prev, [id]: [] })); }
+    };
+
+    if (playlists.length === 0) return null;
+    return (
+        <div className="mt-12">
+            <SectionTitle>{t('songRequestPublic.playlists')}</SectionTitle>
+            <div className="space-y-2">
+                {playlists.map(p => (
+                    <div key={p.id} className="border border-[#1f1f23] rounded-lg">
+                        <button onClick={() => toggle(p.id)} className="w-full flex items-center justify-between gap-3 px-4 py-3 4xl:py-4 text-left hover:bg-[#111114] rounded-lg transition-colors">
+                            <span className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{p.name}</span>
+                            <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">
+                                {t('songRequestPublic.songs', { count: p.count })} {openId === p.id ? '▴' : '▾'}
+                            </span>
+                        </button>
+                        {openId === p.id && (
+                            !items[p.id] ? (
+                                <p className="px-4 pb-3 font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">{t('songRequestPublic.loading')}</p>
+                            ) : items[p.id].length === 0 ? (
+                                <p className="px-4 pb-3 text-sm 3xl:text-base text-[#71717a]">{t('songRequestPublic.playlistEmpty')}</p>
+                            ) : (
+                                <ol className="divide-y divide-[#1f1f23] border-t border-[#1f1f23] max-h-[32rem] 4xl:max-h-[48rem] overflow-y-auto">
+                                    {items[p.id].map((item, i) => (
+                                        <li key={item.id}>
+                                            <a href={item.track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 4xl:gap-5 py-2 4xl:py-3 px-4 hover:bg-[#111114] transition-colors">
+                                                <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#52525b] w-7 4xl:w-10 text-right shrink-0">{i + 1}</span>
+                                                {item.track.thumbnailUrl
+                                                    ? <img src={item.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] object-cover rounded shrink-0 bg-[#18181b]" />
+                                                    : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] rounded shrink-0 bg-[#18181b]" />}
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-white text-sm 3xl:text-base 4xl:text-xl truncate">{item.track.title}</p>
+                                                    <p className="text-xs 3xl:text-sm 4xl:text-base text-[#71717a] truncate">{item.track.artist}</p>
+                                                </div>
+                                                <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">{formatDuration(item.track.durationSeconds)}</span>
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ol>
+                            )
+                        )}
+                    </div>
+                ))}
             </div>
         </div>
     );

@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: SongRequestSettings = {
     minViews: 0,
     noRepeatMinutes: 0,
     fallbackEnabled: false,
-    fallbackShuffle: false,
+    showPromo: true,
     messages: {},
 };
 

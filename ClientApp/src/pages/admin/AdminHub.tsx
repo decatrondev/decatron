@@ -120,8 +120,8 @@ export default function AdminHub() {
         },
         {
             id: 'game-overlay-promos',
-            name: 'Anuncios de Game Overlays',
-            description: 'Catálogo de anuncios de Decatron que tapan la tarjeta de rango de los streamers: mensajes, imagen, peso, frecuencia y duración',
+            name: 'Anuncios de Decatron en overlays',
+            description: 'Catálogo de anuncios de Decatron que tapan la tarjeta de rango (Game Overlays) y el panel de música (Song Request): mensajes, imagen, peso, frecuencia y duración',
             icon: <Megaphone className="w-6 h-6 text-[#2563eb]" />,
             route: '/admin/game-overlay-promos',
             ready: true

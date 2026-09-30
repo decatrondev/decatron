@@ -12,6 +12,13 @@ interface Promo {
     createdAt?: string; updatedAt?: string;
 }
 
+/** Dónde puede salir un anuncio: los juegos de Game Overlays y los overlays de Song Request (misma clave que manda el backend). */
+const TARGETS: { id: string; name: string }[] = [
+    ...GAME_IDS.map(g => ({ id: g as string, name: GAME_NAMES[g] })),
+    { id: 'songrequest', name: 'Song Request' },
+];
+const targetNames = (games: string) => games.split(',').map(g => TARGETS.find(x => x.id === g.trim())?.name ?? g).join(', ');
+
 const EMPTY: Promo = { id: 0, isEnabled: true, weight: 1, sortOrder: 0, titleEs: 'Consigue Decatron gratis en', titleEn: 'Get Decatron for free at', lineEs: '', lineEn: '', imageUrl: null, durationSeconds: 8, games: null };
 
 const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';
@@ -87,8 +94,8 @@ export default function GameOverlayPromosAdmin() {
                 <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-[#f1f5f9] dark:hover:bg-[#262626]"><ArrowLeft className="w-5 h-5" /></button>
                 <Megaphone className="w-6 h-6 text-[#2563eb]" />
                 <div>
-                    <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Anuncios de Game Overlays</h1>
-                    <p className={muted}>Tapan la tarjeta de rango del streamer unos segundos. El streamer no los edita: solo los apaga si es Supporter o más.</p>
+                    <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">Anuncios de Decatron en overlays</h1>
+                    <p className={muted}>Tapan unos segundos la tarjeta de rango (Game Overlays) y el panel de música (Song Request). El streamer no los edita: solo los apaga si es Supporter o más.</p>
                 </div>
                 <button onClick={load} className="ml-auto p-2 rounded-lg hover:bg-[#f1f5f9] dark:hover:bg-[#262626]" title="Recargar"><RefreshCw className="w-4 h-4" /></button>
             </div>
@@ -122,7 +129,7 @@ export default function GameOverlayPromosAdmin() {
                                 </div>
                                 <div className={muted + ' text-right'}>
                                     <div>peso {p.weight}{totalWeight > 0 && p.isEnabled ? ` · ${Math.round(100 * p.weight / totalWeight)}%` : ''} · {p.durationSeconds} s</div>
-                                    <div>{p.games ? `solo ${p.games}` : 'todos los juegos'}{p.imageUrl ? ' · imagen propia' : ''}</div>
+                                    <div>{p.games ? `solo ${targetNames(p.games)}` : 'en todos lados'}{p.imageUrl ? ' · imagen propia' : ''}</div>
                                 </div>
                                 <button onClick={() => setEditing({ ...p })} className="px-3 py-1.5 rounded-lg bg-[#f1f5f9] dark:bg-[#262626] text-sm">Editar</button>
                                 <button onClick={() => remove(p)} className="p-2 rounded-lg hover:bg-red-500/10 text-red-400" title="Borrar"><Trash2 className="w-4 h-4" /></button>
@@ -150,12 +157,12 @@ export default function GameOverlayPromosAdmin() {
                                 <div><label className={label}>Orden</label><input type="number" className={input} value={editing.sortOrder} onChange={e => setEditing({ ...editing, sortOrder: Number(e.target.value) })} /></div>
                             </div>
                             <div>
-                                <label className={label}>Juegos (vacío = todos)</label>
+                                <label className={label}>Dónde sale (nada marcado = en todos lados: juegos y Song Request)</label>
                                 <div className="flex flex-wrap gap-2">
-                                    {GAME_IDS.map(g => {
+                                    {TARGETS.map(({ id: g, name }) => {
                                         const set = new Set((editing.games ?? '').split(',').map(x => x.trim()).filter(Boolean));
                                         const on = set.has(g);
-                                        return <button key={g} onClick={() => { if (on) set.delete(g); else set.add(g); setEditing({ ...editing, games: set.size ? [...set].join(',') : null }); }} className={`px-2.5 py-1 rounded-lg text-xs border ${on ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#f8fafc] dark:bg-[#111214] border-[#e2e8f0] dark:border-[#374151]'}`}>{GAME_NAMES[g]}</button>;
+                                        return <button key={g} onClick={() => { if (on) set.delete(g); else set.add(g); setEditing({ ...editing, games: set.size ? [...set].join(',') : null }); }} className={`px-2.5 py-1 rounded-lg text-xs border ${on ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#f8fafc] dark:bg-[#111214] border-[#e2e8f0] dark:border-[#374151]'}`}>{name}</button>;
                                     })}
                                 </div>
                             </div>

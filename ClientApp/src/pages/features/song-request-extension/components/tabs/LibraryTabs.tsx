@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload } from 'lucide-react';
+import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Radio } from 'lucide-react';
 import api from '../../../../../services/api';
-import { Card, Field, NumberInput, Toggle, inputClass } from '../ui';
+import { Card, Field, NumberInput, PlanLimitNote, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
 import { PlatformIcon, banPlatform } from '../PlatformIcon';
+import type { Playlist, SongRequestLimits } from '../../types';
 
 interface TabProps { cfg: SongRequestConfigState }
 
@@ -204,51 +205,192 @@ function BanSection({ type, bans, onChanged, errorText, platforms }: { type: Ban
     );
 }
 
-// ── Playlist de respaldo ─────────────────────────────────────────────────
+// ── Playlists ────────────────────────────────────────────────────────────
 
-interface FallbackItem { id: number; track: TrackDto }
+interface PlaylistItem { id: number; track: TrackDto }
 
-export function FallbackTab({ cfg }: TabProps) {
+function usePlaylists() {
+    const [playlists, setPlaylists] = useState<Playlist[] | null>(null);
+    const [limits, setLimits] = useState<SongRequestLimits | null>(null);
+    const load = useCallback(async () => {
+        try {
+            const res = await api.get('/song-request/playlists');
+            setPlaylists(res.data.playlists ?? []);
+            setLimits(res.data.limits ?? null);
+        } catch { setPlaylists([]); }
+    }, []);
+    useEffect(() => { load(); }, [load]);
+    return { playlists, limits, reload: load };
+}
+
+export function PlaylistsTab({ cfg }: TabProps) {
     const { t } = useTranslation('overlays');
     const errorText = useErrorText();
     const s = cfg.settings;
-    const [items, setItems] = useState<FallbackItem[] | null>(null);
+    const { playlists, limits, reload } = usePlaylists();
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [newName, setNewName] = useState('');
+    const [creating, setCreating] = useState(false);
+    const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+
+    const selected = playlists?.find(p => p.id === selectedId) ?? playlists?.[0] ?? null;
+    const fallback = playlists?.find(p => p.isFallback) ?? null;
+    const atLimit = !!limits && !!playlists && playlists.length >= limits.maxPlaylists;
+
+    const create = async () => {
+        if (!newName.trim()) return;
+        setCreating(true); setResult(null);
+        try {
+            const res = await api.post('/song-request/playlists', { name: newName.trim() });
+            if (res.data.success) { setNewName(''); setSelectedId(res.data.id); await reload(); }
+            else setResult({ ok: false, text: errorText(res.data.error) });
+        } catch { setResult({ ok: false, text: errorText('failed') }); }
+        finally { setCreating(false); }
+    };
+
+    const update = async (id: number, changes: Partial<Pick<Playlist, 'name' | 'visibility' | 'shuffle' | 'isFallback'>>) => {
+        setResult(null);
+        try {
+            const res = await api.put(`/song-request/playlists/${id}`, changes);
+            if (!res.data.success) setResult({ ok: false, text: errorText(res.data.error) });
+        } catch { setResult({ ok: false, text: errorText('failed') }); }
+        await reload();
+    };
+
+    const remove = async (playlist: Playlist) => {
+        if (!window.confirm(t('songRequest.playlists.deleteConfirm', { name: playlist.name, count: playlist.count }))) return;
+        await api.delete(`/song-request/playlists/${playlist.id}`);
+        setSelectedId(null);
+        await reload();
+    };
+
+    if (playlists === null) return <Loader2 className="w-5 h-5 animate-spin text-[#94a3b8]" />;
+
+    return (
+        <div className="space-y-6">
+            <Card title={t('songRequest.fallback.title')} description={t('songRequest.fallback.description')}>
+                <div className="space-y-4">
+                    <Toggle checked={s.fallbackEnabled} onChange={v => cfg.updateSettings({ fallbackEnabled: v })} label={t('songRequest.fallback.enabled')} hint={t('songRequest.fallback.enabledHint')} />
+                    <Field label={t('songRequest.fallback.which')}>
+                        <select
+                            className={inputClass}
+                            value={fallback?.id ?? ''}
+                            onChange={e => {
+                                const id = Number(e.target.value);
+                                if (id) update(id, { isFallback: true });
+                                else if (fallback) update(fallback.id, { isFallback: false });
+                            }}
+                        >
+                            <option value="">{t('songRequest.fallback.none')}</option>
+                            {playlists.map(p => <option key={p.id} value={p.id}>{p.name} ({p.count})</option>)}
+                        </select>
+                    </Field>
+                    {s.fallbackEnabled && (!fallback || fallback.count === 0) && (
+                        <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.fallback.emptyWarning')}</p>
+                    )}
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.fallback.saveNote')}</p>
+                </div>
+            </Card>
+
+            <Card
+                title={t('songRequest.playlists.title', { count: playlists.length, max: limits?.maxPlaylists ?? '…' })}
+                description={t('songRequest.playlists.description')}
+            >
+                <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                        {playlists.map(p => (
+                            <button
+                                key={p.id}
+                                onClick={() => setSelectedId(p.id)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm 3xl:text-base font-semibold transition-colors ${selected?.id === p.id
+                                    ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#1d4ed8] dark:text-[#93c5fd]'
+                                    : 'border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}
+                            >
+                                {p.visibility === 'public' ? <Globe className="w-4 h-4 shrink-0" /> : <Lock className="w-4 h-4 shrink-0" />}
+                                <span className="truncate max-w-[12rem] 3xl:max-w-[16rem]">{p.name}</span>
+                                <span className="text-xs 3xl:text-sm text-[#94a3b8]">{p.count}</span>
+                                {p.isFallback && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">{t('songRequest.playlists.fallbackBadge')}</span>}
+                            </button>
+                        ))}
+                    </div>
+                    {atLimit ? (
+                        <PlanLimitNote text={t('songRequest.limits.playlists', { max: limits!.maxPlaylists })} />
+                    ) : (
+                        <form className="flex gap-2" onSubmit={e => { e.preventDefault(); create(); }}>
+                            <input value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('songRequest.playlists.namePlaceholder')} className={inputClass} maxLength={60} />
+                            <button type="submit" disabled={creating || !newName.trim()} className={primaryBtn}>
+                                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {t('songRequest.playlists.create')}
+                            </button>
+                        </form>
+                    )}
+                    <Feedback result={result} />
+                </div>
+            </Card>
+
+            {selected && (
+                <PlaylistEditor
+                    key={selected.id}
+                    playlist={selected}
+                    channel={cfg.server?.channel ?? ''}
+                    onUpdate={changes => update(selected.id, changes)}
+                    onDelete={() => remove(selected)}
+                    onItemsChanged={reload}
+                />
+            )}
+        </div>
+    );
+}
+
+function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged }: {
+    playlist: Playlist;
+    channel: string;
+    onUpdate: (changes: Partial<Pick<Playlist, 'name' | 'visibility' | 'shuffle' | 'isFallback'>>) => void;
+    onDelete: () => void;
+    onItemsChanged: () => void;
+}) {
+    const { t } = useTranslation('overlays');
+    const errorText = useErrorText();
+    const base = `/song-request/playlists/${playlist.id}`;
+    const [name, setName] = useState(playlist.name);
+    const [items, setItems] = useState<PlaylistItem[] | null>(null);
     const [max, setMax] = useState(500);
     const [input, setInput] = useState('');
-    const [playlist, setPlaylist] = useState('');
+    const [importUrl, setImportUrl] = useState('');
     const [busy, setBusy] = useState<'add' | 'import' | null>(null);
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
     const [dragId, setDragId] = useState<number | null>(null);
 
     const load = useCallback(async () => {
         try {
-            const res = await api.get('/song-request/fallback');
+            const res = await api.get(`${base}/items`);
             setItems(res.data.items ?? []);
             setMax(res.data.max ?? 500);
         } catch { setItems([]); }
-    }, []);
+    }, [base]);
     useEffect(() => { load(); }, [load]);
+
+    const changed = async () => { await load(); onItemsChanged(); };
 
     const add = async () => {
         if (!input.trim()) return;
         setBusy('add'); setResult(null);
         try {
-            const res = await api.post('/song-request/fallback', { input: input.trim() });
-            if (res.data.success) { setInput(''); setResult({ ok: true, text: t('songRequest.fallback.added') }); load(); }
+            const res = await api.post(`${base}/items`, { input: input.trim() });
+            if (res.data.success) { setInput(''); setResult({ ok: true, text: t('songRequest.playlists.added', { name: playlist.name }) }); changed(); }
             else setResult({ ok: false, text: errorText(res.data.error) });
         } catch { setResult({ ok: false, text: errorText('failed') }); }
         finally { setBusy(null); }
     };
 
     const importList = async () => {
-        if (!playlist.trim()) return;
+        if (!importUrl.trim()) return;
         setBusy('import'); setResult(null);
         try {
-            const res = await api.post('/song-request/fallback/import', { url: playlist.trim() });
+            const res = await api.post(`${base}/import`, { url: importUrl.trim() });
             if (res.data.success) {
-                setPlaylist('');
+                setImportUrl('');
                 setResult({ ok: true, text: t('songRequest.fallback.imported', { added: res.data.added, skipped: res.data.skipped }) });
-                load();
+                changed();
             } else setResult({ ok: false, text: errorText(res.data.error) });
         } catch { setResult({ ok: false, text: errorText('failed') }); }
         finally { setBusy(null); }
@@ -261,30 +403,59 @@ export function FallbackTab({ cfg }: TabProps) {
         const byId = new Map(items.map(i => [i.id, i]));
         setItems(ids.map(id => byId.get(id)!));
         setDragId(null);
-        await api.put('/song-request/fallback/order', { ids });
+        await api.put(`${base}/order`, { ids });
     };
 
+    const saveName = () => {
+        const clean = name.trim();
+        if (clean && clean !== playlist.name) onUpdate({ name: clean });
+        else setName(playlist.name);
+    };
+
+    const full = items !== null && items.length >= max;
+
     return (
-        <div className="space-y-6">
-            <Card title={t('songRequest.fallback.title')} description={t('songRequest.fallback.description')}>
+        <>
+            <Card
+                title={playlist.name}
+                actions={
+                    <button className={smallBtn} onClick={onDelete}>
+                        <Trash2 className="w-4 h-4" /> {t('songRequest.playlists.delete')}
+                    </button>
+                }
+            >
                 <div className="space-y-4">
-                    <Toggle checked={s.fallbackEnabled} onChange={v => cfg.updateSettings({ fallbackEnabled: v })} label={t('songRequest.fallback.enabled')} hint={t('songRequest.fallback.enabledHint')} />
-                    <Toggle checked={s.fallbackShuffle} onChange={v => cfg.updateSettings({ fallbackShuffle: v })} label={t('songRequest.fallback.shuffle')} />
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.fallback.saveNote')}</p>
+                    <Field label={t('songRequest.playlists.name')}>
+                        <input value={name} onChange={e => setName(e.target.value)} onBlur={saveName} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} className={inputClass} maxLength={60} />
+                    </Field>
+                    <Toggle
+                        checked={playlist.visibility === 'public'}
+                        onChange={v => onUpdate({ visibility: v ? 'public' : 'private' })}
+                        label={t('songRequest.playlists.public')}
+                        hint={t('songRequest.playlists.publicHint', { url: `decatron.net/sr/${channel}` })}
+                    />
+                    <Toggle checked={playlist.shuffle} onChange={v => onUpdate({ shuffle: v })} label={t('songRequest.fallback.shuffle')} hint={t('songRequest.playlists.shuffleHint')} />
+                    {!playlist.isFallback && (
+                        <button className={smallBtn} onClick={() => onUpdate({ isFallback: true })}>
+                            <Radio className="w-4 h-4" /> {t('songRequest.playlists.makeFallback')}
+                        </button>
+                    )}
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.instantNote')}</p>
                 </div>
             </Card>
 
             <Card title={t('songRequest.fallback.addTitle')}>
                 <div className="space-y-3">
+                    {full && <PlanLimitNote text={t('songRequest.limits.items', { max })} />}
                     <form className="flex gap-2" onSubmit={e => { e.preventDefault(); add(); }}>
-                        <input value={input} onChange={e => setInput(e.target.value)} placeholder={t('songRequest.queue.addPlaceholder')} className={inputClass} maxLength={500} />
-                        <button type="submit" disabled={!!busy || !input.trim()} className={primaryBtn}>
+                        <input value={input} onChange={e => setInput(e.target.value)} placeholder={t('songRequest.queue.addPlaceholder')} className={inputClass} maxLength={500} disabled={full} />
+                        <button type="submit" disabled={!!busy || !input.trim() || full} className={primaryBtn}>
                             {busy === 'add' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {t('songRequest.queue.add')}
                         </button>
                     </form>
                     <form className="flex gap-2" onSubmit={e => { e.preventDefault(); importList(); }}>
-                        <input value={playlist} onChange={e => setPlaylist(e.target.value)} placeholder={t('songRequest.fallback.importPlaceholder')} className={inputClass} maxLength={500} />
-                        <button type="submit" disabled={!!busy || !playlist.trim()} className={primaryBtn}>
+                        <input value={importUrl} onChange={e => setImportUrl(e.target.value)} placeholder={t('songRequest.fallback.importPlaceholder')} className={inputClass} maxLength={500} disabled={full} />
+                        <button type="submit" disabled={!!busy || !importUrl.trim() || full} className={primaryBtn}>
                             {busy === 'import' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('songRequest.fallback.import')}
                         </button>
                     </form>
@@ -295,7 +466,7 @@ export function FallbackTab({ cfg }: TabProps) {
             <Card
                 title={t('songRequest.fallback.listTitle', { count: items?.length ?? 0, max })}
                 actions={items && items.length > 0 ? (
-                    <button className={smallBtn} onClick={async () => { if (window.confirm(t('songRequest.fallback.clearConfirm'))) { await api.delete('/song-request/fallback'); load(); } }}>
+                    <button className={smallBtn} onClick={async () => { if (window.confirm(t('songRequest.fallback.clearConfirm', { name: playlist.name }))) { await api.delete(`${base}/items`); changed(); } }}>
                         <Trash2 className="w-4 h-4" /> {t('songRequest.fallback.clear')}
                     </button>
                 ) : undefined}
@@ -313,7 +484,7 @@ export function FallbackTab({ cfg }: TabProps) {
                                                 <span className="w-7 text-right font-mono text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{i + 1}</span>
                                             </>}
                                         >
-                                            <button className={iconBtn} title={t('songRequest.queue.remove')} onClick={async () => { await api.delete(`/song-request/fallback/${item.id}`); load(); }}>
+                                            <button className={iconBtn} title={t('songRequest.queue.remove')} onClick={async () => { await api.delete(`${base}/items/${item.id}`); changed(); }}>
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </TrackRow>
@@ -322,6 +493,31 @@ export function FallbackTab({ cfg }: TabProps) {
                             </div>
                         )}
             </Card>
+        </>
+    );
+}
+
+/** Menú para mandar una canción del historial a cualquiera de las playlists. */
+function AddToPlaylistMenu({ playlists, onPick }: { playlists: Playlist[]; onPick: (playlist: Playlist) => void }) {
+    const { t } = useTranslation('overlays');
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="relative">
+            <button className={iconBtn} title={t('songRequest.history.toPlaylist')} onClick={() => setOpen(o => !o)}>
+                <ListPlus className="w-4 h-4" />
+            </button>
+            {open && (
+                <div className="absolute right-0 top-full mt-1 z-20 w-60 max-h-72 overflow-y-auto rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-xl p-1" onMouseLeave={() => setOpen(false)}>
+                    {playlists.length === 0
+                        ? <p className="px-3 py-2 text-sm 3xl:text-base text-[#94a3b8]">{t('songRequest.playlists.none')}</p>
+                        : playlists.map(p => (
+                            <button key={p.id} onClick={() => { setOpen(false); onPick(p); }} className="w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]">
+                                <span className="truncate">{p.name}</span>
+                                <span className="text-xs 3xl:text-sm text-[#94a3b8] shrink-0">{p.count}</span>
+                            </button>
+                        ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -339,6 +535,8 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(true);
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+    const [historyDays, setHistoryDays] = useState<number | null>(null);
+    const { playlists, reload: reloadPlaylists } = usePlaylists();
 
     const load = useCallback(async (p: number, favs: boolean, append: boolean) => {
         setLoading(true);
@@ -346,6 +544,7 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
             const res = await api.get('/song-request/history', { params: { page: p, favorites: favs } });
             const data = res.data.data;
             setTotal(data.total);
+            setHistoryDays(data.historyDays ?? null);
             setItems(prev => append ? [...prev, ...data.items] : data.items);
             setPage(p);
         } finally { setLoading(false); }
@@ -390,6 +589,7 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
                         </button>
                     ))}
                 </div>
+                {historyDays !== null && !favorites && <div className="mb-3"><PlanLimitNote text={t('songRequest.limits.history', { days: historyDays })} /></div>}
                 <Feedback result={result} />
                 {items.length === 0 && !loading ? (
                     <p className="text-sm 3xl:text-base text-[#94a3b8]">{favorites ? t('songRequest.history.noFavorites') : t('songRequest.history.empty')}</p>
@@ -414,9 +614,14 @@ export function HistoryTab({ onDownload }: { onDownload?: (url: string) => void 
                                         <HardDriveDownload className="w-4 h-4" />
                                     </button>
                                 )}
-                                <button className={iconBtn} title={t('songRequest.history.toFallback')} onClick={() => act(() => api.post(`/song-request/history/${item.id}/fallback`), t('songRequest.fallback.added'))}>
-                                    <ListPlus className="w-4 h-4" />
-                                </button>
+                                <AddToPlaylistMenu
+                                    playlists={playlists ?? []}
+                                    onPick={p => act(async () => {
+                                        const res = await api.post(`/song-request/history/${item.id}/playlist/${p.id}`);
+                                        reloadPlaylists();
+                                        return res;
+                                    }, t('songRequest.playlists.added', { name: p.name }))}
+                                />
                             </TrackRow>
                         ))}
                     </div>

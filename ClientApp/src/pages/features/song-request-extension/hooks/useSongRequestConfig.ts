@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '../../../../services/api';
-import type { OverlayKind, OverlayLayout, SongRequestOverlayConfig, SongRequestSettings } from '../types';
+import type { OverlayKind, OverlayLayout, SongRequestLimits, SongRequestOverlayConfig, SongRequestSettings } from '../types';
 import { DEFAULT_SETTINGS, defaultOverlayConfig, normalizeOverlayConfig } from '../constants/defaults';
 
 interface ServerConfig {
@@ -13,7 +13,10 @@ interface ServerConfig {
     requestsOpen: boolean;
     commands: string[];
     messageDefaults: Record<string, string>;
+    limits: SongRequestLimits;
 }
+
+const FREE_LIMITS: SongRequestLimits = { tier: 'free', maxPlaylists: 3, maxItemsPerPlaylist: 500, historyDays: 30, maxTemplates: 3, canHidePromo: false };
 
 /** Carga y guarda la config del módulo (lo del chat y el diseño de los dos overlays). */
 export function useSongRequestConfig() {
@@ -34,6 +37,7 @@ export function useSongRequestConfig() {
             setServer({
                 channel: d.channel, platforms: d.platforms ?? ['twitch'], publicUrl: d.publicUrl, playerKey: d.playerKey, enabled: d.enabled,
                 requestsOpen: d.requestsOpen, commands: d.commands ?? [], messageDefaults: d.messageDefaults ?? {},
+                limits: { ...FREE_LIMITS, ...(d.limits ?? {}) },
             });
             setEnabled(!!d.enabled);
             setSettings({
@@ -73,14 +77,15 @@ export function useSongRequestConfig() {
         setDirty(true);
     }, []);
 
-    const save = useCallback(async () => {
+    /** error: la clave que mandó el backend (p. ej. templates_limit), o 'failed'. */
+    const save = useCallback(async (): Promise<{ ok: boolean; error?: string }> => {
         setSaving(true);
         try {
             await api.put('/song-request/config', { enabled, settings, overlayConfig: overlay });
             setDirty(false);
-            return true;
-        } catch {
-            return false;
+            return { ok: true };
+        } catch (e: any) {
+            return { ok: false, error: e?.response?.data?.error ?? 'failed' };
         } finally {
             setSaving(false);
         }

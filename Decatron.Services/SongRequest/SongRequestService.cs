@@ -438,14 +438,17 @@ namespace Decatron.Services.SongRequest
             if (!settings.FallbackEnabled)
                 return false;
 
-            var items = await _db.SongRequestFallback.Where(f => f.UserId == config.UserId)
-                .OrderBy(f => f.Position).ThenBy(f => f.Id)
-                .Select(f => f.TrackId).ToListAsync(ct);
+            var playlist = await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.UserId == config.UserId && p.IsFallback, ct);
+            if (playlist == null)
+                return false;
+            var items = await _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlist.Id)
+                .OrderBy(i => i.Position).ThenBy(i => i.Id)
+                .Select(i => i.TrackId).ToListAsync(ct);
             if (items.Count == 0)
                 return false;
 
             int index;
-            if (settings.FallbackShuffle)
+            if (playlist.Shuffle)
             {
                 // Al azar, sin repetir la que acaba de sonar
                 var last = await _db.SongRequestHistory.Where(h => h.UserId == config.UserId)
@@ -456,8 +459,8 @@ namespace Decatron.Services.SongRequest
             }
             else
             {
-                index = ((config.FallbackCursor % items.Count) + items.Count) % items.Count;
-                config.FallbackCursor = index + 1;
+                index = ((playlist.Cursor % items.Count) + items.Count) % items.Count;
+                playlist.Cursor = index + 1;
             }
 
             _db.SongRequestQueue.Add(new SongRequestQueueItem

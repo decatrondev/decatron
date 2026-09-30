@@ -385,6 +385,8 @@
     }
   },
   "songRequestPublic": {
+    "playlists": "Playlists del canal",
+    "playlistEmpty": "Esta playlist está vacía.",
     "title": "Cola de canciones",
     "loading": "Cargando la cola…",
     "notFound": "No existe el canal «{{channel}}».",

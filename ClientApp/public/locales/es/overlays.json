@@ -281,9 +281,9 @@
       "editor": "Editor",
       "filters": "Filtros",
       "blacklist": "Listas negras",
-      "fallback": "Playlist de respaldo",
       "history": "Historial",
-      "downloads": "Descargas"
+      "downloads": "Descargas",
+      "playlists": "Playlists"
     },
     "kinds": {
       "player": "Reproductor",
@@ -371,7 +371,10 @@
       "queuePreviewHint": "Cuántas lista el bot en el chat.",
       "linksTitle": "Links",
       "regenerate": "Generar clave nueva del reproductor",
-      "regenerateConfirm": "La URL actual del reproductor dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?"
+      "regenerateConfirm": "La URL actual del reproductor dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?",
+      "promoTitle": "Tarjeta de Decatron",
+      "promoDescription": "Cada cierto tiempo aparece unos segundos sobre el overlay con el logo de Decatron y un mensaje.",
+      "promo": "Mostrar la tarjeta de Decatron en los overlays"
     },
     "roles": {
       "everyone": "Todos",
@@ -516,7 +519,7 @@
       "user_limit": "Límite de pedidos alcanzado.",
       "unsupported": "Se aceptan links de YouTube, Spotify, SoundCloud, Deezer y Apple Music.",
       "invalid_link": "Ese link no lleva a una canción.",
-      "not_found": "Esa canción no existe o ya no está disponible.",
+      "not_found": "Esa playlist ya no existe.",
       "private": "Esa canción es privada.",
       "live": "No se aceptan transmisiones en vivo.",
       "upcoming": "Ese video todavía no se estrenó.",
@@ -533,11 +536,15 @@
       "unknown_duration": "No se sabe cuánto dura esa canción.",
       "too_few_views": "Esa canción tiene menos vistas que el mínimo.",
       "recently_played": "Esa canción sonó hace poco.",
-      "already_in_fallback": "Esa canción ya está en la playlist de respaldo.",
-      "fallback_full": "La playlist de respaldo está llena.",
       "not_a_playlist": "Ese link no es una playlist de YouTube.",
       "author_unknown": "No se pudo saber de qué canal es esa canción.",
-      "invalid_user": "Ese usuario no es válido."
+      "invalid_user": "Ese usuario no es válido.",
+      "already_in_playlist": "Esa canción ya está en esa playlist.",
+      "playlist_full": "La playlist llegó al tope de tu plan.",
+      "invalid_name": "Escribe un nombre de hasta 60 caracteres.",
+      "name_taken": "Ya tienes una playlist con ese nombre.",
+      "playlists_limit": "Llegaste al tope de playlists de tu plan.",
+      "invalid_visibility": "Visibilidad no válida."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -584,7 +591,7 @@
       "enabled": "Usar la playlist de respaldo",
       "enabledHint": "Así el stream nunca se queda en silencio.",
       "shuffle": "Orden aleatorio",
-      "saveNote": "Estas dos opciones se guardan con el botón Guardar. La lista de abajo se guarda al instante.",
+      "saveNote": "«Usar la playlist de respaldo» se guarda con el botón Guardar. Todo lo demás de esta pestaña se guarda al instante.",
       "addTitle": "Agregar canciones",
       "importPlaceholder": "Link de una playlist de YouTube (…?list=…)",
       "import": "Importar",
@@ -593,11 +600,14 @@
       "listTitle": "Canciones ({{count}} de {{max}})",
       "empty": "La playlist está vacía. Agrega canciones o importa una playlist de YouTube.",
       "clear": "Vaciar",
-      "clearConfirm": "¿Quitar todas las canciones de la playlist de respaldo?"
+      "clearConfirm": "¿Quitar todas las canciones de «{{name}}»?",
+      "which": "Playlist que suena de respaldo",
+      "none": "Ninguna",
+      "emptyWarning": "La playlist de respaldo está vacía o no elegiste ninguna: con la cola vacía no va a sonar nada."
     },
     "history": {
       "title": "Historial ({{count}})",
-      "description": "Lo que sonó en tu canal. Marca favoritas, vuelve a ponerlas en la cola o súmalas a la playlist de respaldo.",
+      "description": "Lo que sonó en tu canal. Marca favoritas, vuelve a ponerlas en la cola o súmalas a una playlist.",
       "all": "Todas",
       "favorites": "Favoritas",
       "empty": "Todavía no sonó ninguna canción.",
@@ -606,7 +616,6 @@
       "unfavorite": "Quitar de favoritas",
       "requeue": "Volver a la cola",
       "requeued": "Agregada a la cola.",
-      "toFallback": "Agregar a la playlist de respaldo",
       "more": "Cargar más",
       "clear": "Borrar historial",
       "clearConfirm": "¿Borrar el historial? Las favoritas se conservan.",
@@ -615,7 +624,8 @@
         "skipped": "Saltada",
         "error": "Error",
         "removed": "Quitada"
-      }
+      },
+      "toPlaylist": "Agregar a una playlist"
     },
     "downloads": {
       "title": "Descargar video o audio",
@@ -695,6 +705,32 @@
         "invalid_url": "El link no es válido.",
         "invalid_request": "Pedido inválido."
       }
+    },
+    "playlists": {
+      "title": "Tus playlists ({{count}} de {{max}})",
+      "description": "Arma varias listas (por ejemplo para rankeds, para charlar o lo mejor de la comunidad). Una de ellas puede ser la de respaldo.",
+      "namePlaceholder": "Nombre de la playlist nueva",
+      "create": "Crear",
+      "fallbackBadge": "Respaldo",
+      "name": "Nombre",
+      "public": "Pública",
+      "publicHint": "Tus viewers la ven en {{url}}. Si está apagada, solo la ves tú en el dashboard.",
+      "shuffleHint": "Cuando suena de respaldo: al azar en vez de en orden.",
+      "makeFallback": "Usar como playlist de respaldo",
+      "instantNote": "Estos cambios se guardan al instante.",
+      "delete": "Borrar playlist",
+      "deleteConfirm": "¿Borrar «{{name}}» con sus {{count}} canciones? No se puede deshacer.",
+      "added": "Agregada a «{{name}}».",
+      "none": "No tienes playlists."
+    },
+    "limits": {
+      "upgrade": "Más con los planes de apoyo",
+      "playlists": "Tu plan permite {{max}} playlists.",
+      "items": "Llegaste al tope de tu plan: {{max}} canciones por playlist.",
+      "history": "Tu plan muestra los últimos {{days}} días del historial (las favoritas se ven siempre). No se borra nada.",
+      "templates": "Tu plan permite {{max}} plantillas propias.",
+      "templatesLimit": "Tu plan permite {{max}} plantillas propias. Borra alguna para guardar.",
+      "promo": "En el plan gratis la tarjeta de Decatron va siempre. Desde Supporter la puedes ocultar."
     }
   },
   "overlayEditor": {

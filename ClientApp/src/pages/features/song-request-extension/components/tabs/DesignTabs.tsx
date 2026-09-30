@@ -5,6 +5,7 @@ import type { OverlayLabels } from '../../../../../components/music-overlay/Musi
 import { ELEMENT_ORDER, LAYOUT_PRESETS, SAMPLE_SONGS } from '../../constants/defaults';
 import type { ElementId, OverlayKind } from '../../types';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
+import { PlanLimitNote } from '../ui';
 
 // Song Request usa las pestañas de diseño del motor compartido (components/music-overlay) con lo suyo:
 // dos overlays (reproductor y "sonando ahora"), plantillas guardadas y la cola de ejemplo.
@@ -57,8 +58,20 @@ export function KindSwitch({ cfg, kind, onKindChange }: DesignProps) {
 }
 
 export function ThemeTab(props: DesignProps) {
+    const { t } = useTranslation('overlays');
     const { cfg } = props;
-    return <Shared.ThemeTab {...shared(props)} templates={{ list: cfg.overlay.templates, onChange: list => cfg.updateOverlay({ ...cfg.overlay, templates: list }) }} />;
+    const max = cfg.server?.limits.maxTemplates;
+    return (
+        <Shared.ThemeTab
+            {...shared(props)}
+            templates={{
+                list: cfg.overlay.templates,
+                onChange: list => cfg.updateOverlay({ ...cfg.overlay, templates: list }),
+                max,
+                limitNote: <PlanLimitNote text={t('songRequest.limits.templates', { max })} />,
+            }}
+        />
+    );
 }
 
 export function ElementsTab(props: DesignProps & { labels?: OverlayLabels }) {

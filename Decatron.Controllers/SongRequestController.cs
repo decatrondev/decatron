@@ -9,6 +9,7 @@ using Decatron.Core.Helpers;
 using Decatron.Core.Models.SongRequest;
 using Decatron.Data;
 using Decatron.Services;
+using Decatron.Services.GameData;
 using Decatron.Services.SongRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,12 +30,14 @@ namespace Decatron.Controllers
         private readonly ICommandMessagesService _messages;
         private readonly SongRequestLibraryService _library;
         private readonly DownloadsDesktopChannel _downloads;
+        private readonly GameOverlayPromoService _promos;
 
-        /// <summary>Tope del JSON del editor: sobra para dos layouts con plantillas.</summary>
-        private const int MaxOverlayConfigLength = 300_000;
+        /// <summary>Tope del JSON del editor: sobra para dos layouts con las plantillas del plan más alto.</summary>
+        private const int MaxOverlayConfigLength = 1_500_000;
 
-        public SongRequestController(SongResolverService resolver, SongRequestService songs, DecatronDbContext db, ICommandMessagesService messages, SongRequestLibraryService library, DownloadsDesktopChannel downloads)
+        public SongRequestController(SongResolverService resolver, SongRequestService songs, DecatronDbContext db, ICommandMessagesService messages, SongRequestLibraryService library, DownloadsDesktopChannel downloads, GameOverlayPromoService promos)
         {
+            _promos = promos;
             _downloads = downloads;
             _library = library;
             _resolver = resolver;
@@ -72,6 +75,7 @@ namespace Decatron.Controllers
                 volume = config.Volume,
                 settings = SongRequestService.ParseSettings(config),
                 overlayConfig = ParseJson(config.OverlayConfig),
+                limits = LimitsDto(await _library.GetLimitsAsync(userId)),
                 commands = SongRequestChatHandler.CommandNames,
                 messageDefaults = SongRequestChatHandler.MessageKeys
                     .ToDictionary(k => k, k => _messages.GetMessage("songrequest", k, language))
@@ -99,11 +103,15 @@ namespace Decatron.Controllers
             var config = await _songs.GetOrCreateConfigAsync(userId, channel.Login, ct);
             if (body.Enabled.HasValue) config.Enabled = body.Enabled.Value;
             if (body.RequestsOpen.HasValue) config.RequestsOpen = body.RequestsOpen.Value;
+            var limits = await _library.GetLimitsAsync(userId);
             if (body.Settings != null)
             {
                 var error = Validate(body.Settings);
                 if (error != null)
                     return BadRequest(new { success = false, error });
+                // La tarjeta de Decatron es lo que paga el plan gratis
+                if (!limits.CanHidePromo)
+                    body.Settings.ShowPromo = true;
                 config.Settings = JsonSerializer.Serialize(body.Settings);
             }
             if (body.OverlayConfig is { ValueKind: JsonValueKind.Object } overlay)
@@ -111,6 +119,10 @@ namespace Decatron.Controllers
                 var raw = overlay.GetRawText();
                 if (raw.Length > MaxOverlayConfigLength)
                     return BadRequest(new { success = false, error = "overlay_config_too_large" });
+                // Más plantillas que el plan solo si ya las tenía (bajar de plan no borra nada)
+                var templates = TemplateCount(overlay);
+                if (templates > limits.MaxTemplates && templates > TemplateCount(ParseJson(config.OverlayConfig)))
+                    return BadRequest(new { success = false, error = "templates_limit", max = limits.MaxTemplates });
                 config.OverlayConfig = raw;
             }
             config.UpdatedAt = DateTime.UtcNow;
@@ -120,6 +132,20 @@ namespace Decatron.Controllers
                 await _songs.NotifyConfigChangedAsync(config, ct);
             return Ok(new { success = true });
         }
+
+        private static int TemplateCount(JsonElement overlay) =>
+            overlay.ValueKind == JsonValueKind.Object && overlay.TryGetProperty("templates", out var t) && t.ValueKind == JsonValueKind.Array
+                ? t.GetArrayLength() : 0;
+
+        private static object LimitsDto(SongRequestTierLimits l) => new
+        {
+            tier = l.Tier,
+            maxPlaylists = l.MaxPlaylists,
+            maxItemsPerPlaylist = l.MaxItemsPerPlaylist,
+            historyDays = l.UnlimitedHistory ? (int?)null : l.HistoryDays,
+            maxTemplates = l.MaxTemplates,
+            canHidePromo = l.CanHidePromo
+        };
 
         private static string? Validate(SongRequestSettings s)
         {
@@ -323,14 +349,14 @@ namespace Decatron.Controllers
             return await Add(new AddRequest { Input = url }, ct);
         }
 
-        [HttpPost("api/song-request/history/{id:long}/fallback")]
+        [HttpPost("api/song-request/history/{id:long}/playlist/{playlistId:long}")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> HistoryToFallback(long id, CancellationToken ct)
+        public async Task<IActionResult> HistoryToPlaylist(long id, long playlistId, CancellationToken ct)
         {
             var config = await OwnConfigAsync(ct);
             var row = config == null ? null : await _library.GetHistoryItemAsync(config.UserId, id, ct);
             if (config == null || row?.Track == null) return NotFound(new { success = false });
-            var error = await _library.AddToFallbackAsync(config.UserId, row.Track, ct);
+            var error = await _library.AddToPlaylistAsync(config.UserId, playlistId, row.Track, ct);
             return Ok(new { success = error == null, error });
         }
 
@@ -343,68 +369,116 @@ namespace Decatron.Controllers
             return Ok(new { success = true, removed = await _library.ClearHistoryAsync(config.UserId, ct) });
         }
 
-        // ── Playlist de respaldo ─────────────────────────────────────────────
+        // ── Playlists ────────────────────────────────────────────────────────
 
-        [HttpGet("api/song-request/fallback")]
+        [HttpGet("api/song-request/playlists")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> Fallback(CancellationToken ct)
+        public async Task<IActionResult> Playlists(CancellationToken ct)
         {
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
-            return Ok(new { success = true, items = await _library.GetFallbackAsync(config.UserId, ct), max = SongRequestLibraryService.MaxFallbackItems });
+            return Ok(new
+            {
+                success = true,
+                playlists = await _library.GetPlaylistsAsync(config.UserId, ct),
+                limits = LimitsDto(await _library.GetLimitsAsync(config.UserId))
+            });
         }
 
-        [HttpPost("api/song-request/fallback")]
+        public sealed class PlaylistNameRequest { public string Name { get; set; } = ""; }
+
+        [HttpPost("api/song-request/playlists")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> AddFallback([FromBody] AddRequest body, CancellationToken ct)
+        public async Task<IActionResult> CreatePlaylist([FromBody] PlaylistNameRequest body, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var (id, error) = await _library.CreatePlaylistAsync(config.UserId, body.Name, ct);
+            return Ok(new { success = error == null, error, id });
+        }
+
+        [HttpPut("api/song-request/playlists/{playlistId:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> UpdatePlaylist(long playlistId, [FromBody] SongRequestLibraryService.PlaylistChanges body, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var error = await _library.UpdatePlaylistAsync(config.UserId, playlistId, body, ct);
+            return error == "not_found" ? NotFound(new { success = false }) : Ok(new { success = error == null, error });
+        }
+
+        [HttpDelete("api/song-request/playlists/{playlistId:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> DeletePlaylist(long playlistId, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            return await _library.DeletePlaylistAsync(config.UserId, playlistId, ct) ? Ok(new { success = true }) : NotFound(new { success = false });
+        }
+
+        [HttpGet("api/song-request/playlists/{playlistId:long}/items")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> PlaylistItems(long playlistId, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var items = await _library.GetPlaylistItemsAsync(config.UserId, playlistId, ct);
+            return items == null
+                ? NotFound(new { success = false })
+                : Ok(new { success = true, items, max = (await _library.GetLimitsAsync(config.UserId)).MaxItemsPerPlaylist });
+        }
+
+        [HttpPost("api/song-request/playlists/{playlistId:long}/items")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> AddPlaylistItem(long playlistId, [FromBody] AddRequest body, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(body.Input) || body.Input.Length > 500)
                 return BadRequest(new { success = false, error = "invalid_input" });
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
-            var error = await _library.AddToFallbackAsync(config.UserId, body.Input, ct);
+            var error = await _library.AddToPlaylistAsync(config.UserId, playlistId, body.Input, ct);
             return Ok(new { success = error == null, error });
         }
 
         public sealed class ImportRequest { public string Url { get; set; } = ""; }
 
-        [HttpPost("api/song-request/fallback/import")]
+        [HttpPost("api/song-request/playlists/{playlistId:long}/import")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> ImportFallback([FromBody] ImportRequest body, CancellationToken ct)
+        public async Task<IActionResult> ImportPlaylist(long playlistId, [FromBody] ImportRequest body, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(body.Url) || body.Url.Length > 500)
                 return BadRequest(new { success = false, error = "invalid_input" });
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
-            var (added, skipped, error) = await _library.ImportPlaylistAsync(config.UserId, body.Url, ct);
+            var (added, skipped, error) = await _library.ImportPlaylistAsync(config.UserId, playlistId, body.Url, ct);
             return Ok(new { success = error == null, error, added, skipped });
         }
 
-        [HttpDelete("api/song-request/fallback/{id:long}")]
+        [HttpDelete("api/song-request/playlists/{playlistId:long}/items/{itemId:long}")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> RemoveFallback(long id, CancellationToken ct)
+        public async Task<IActionResult> RemovePlaylistItem(long playlistId, long itemId, CancellationToken ct)
         {
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
-            return await _library.RemoveFromFallbackAsync(config.UserId, id, ct) ? Ok(new { success = true }) : NotFound(new { success = false });
+            return await _library.RemoveFromPlaylistAsync(config.UserId, playlistId, itemId, ct) ? Ok(new { success = true }) : NotFound(new { success = false });
         }
 
-        [HttpDelete("api/song-request/fallback")]
+        [HttpDelete("api/song-request/playlists/{playlistId:long}/items")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> ClearFallback(CancellationToken ct)
+        public async Task<IActionResult> ClearPlaylist(long playlistId, CancellationToken ct)
         {
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
-            return Ok(new { success = true, removed = await _library.ClearFallbackAsync(config.UserId, ct) });
+            return Ok(new { success = true, removed = await _library.ClearPlaylistAsync(config.UserId, playlistId, ct) });
         }
 
-        [HttpPut("api/song-request/fallback/order")]
+        [HttpPut("api/song-request/playlists/{playlistId:long}/order")]
         [RequirePermission("overlays")]
-        public async Task<IActionResult> ReorderFallback([FromBody] ReorderRequest body, CancellationToken ct)
+        public async Task<IActionResult> ReorderPlaylist(long playlistId, [FromBody] ReorderRequest body, CancellationToken ct)
         {
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
-            await _library.ReorderFallbackAsync(config.UserId, body.Ids, ct);
+            await _library.ReorderPlaylistAsync(config.UserId, playlistId, body.Ids, ct);
             return Ok(new { success = true });
         }
 
@@ -700,7 +774,42 @@ namespace Decatron.Controllers
             var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
             if (config == null)
                 return NotFound(new { success = false });
-            return Ok(new { success = true, overlayConfig = ParseJson(config.OverlayConfig) });
+
+            // La tarjeta de Decatron: el streamer la apaga solo si su plan lo permite
+            var limits = await _library.GetLimitsAsync(config.UserId);
+            var showPromo = !limits.CanHidePromo || SongRequestService.ParseSettings(config).ShowPromo;
+            var lang = await _db.Users.AsNoTracking().Where(u => u.Id == config.UserId).Select(u => u.PreferredLanguage).FirstOrDefaultAsync(ct);
+            return Ok(new
+            {
+                success = true,
+                overlayConfig = ParseJson(config.OverlayConfig),
+                promos = showPromo ? await _promos.GetCatalogAsync(lang ?? "es", "songrequest") : null,
+                lang = lang != null && lang.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en" : "es"
+            });
+        }
+
+        /// <summary>Las playlists públicas del canal, para /sr/{canal}.</summary>
+        [AllowAnonymous]
+        [HttpGet("api/public/song-request/{channel}/playlists")]
+        public async Task<IActionResult> PublicPlaylists(string channel, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null)
+                return NotFound(new { success = false });
+            return Ok(new { success = true, playlists = await _library.GetPublicPlaylistsAsync(config.UserId, ct) });
+        }
+
+        [AllowAnonymous]
+        [HttpGet("api/public/song-request/{channel}/playlists/{playlistId:long}")]
+        public async Task<IActionResult> PublicPlaylistItems(string channel, long playlistId, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null)
+                return NotFound(new { success = false });
+            var items = await _library.GetPublicPlaylistItemsAsync(config.UserId, playlistId, ct);
+            return items == null ? NotFound(new { success = false }) : Ok(new { success = true, items });
         }
     }
 }

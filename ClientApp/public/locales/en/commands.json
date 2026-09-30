@@ -385,6 +385,8 @@
     }
   },
   "songRequestPublic": {
+    "playlists": "Channel playlists",
+    "playlistEmpty": "This playlist is empty.",
     "title": "Song queue",
     "loading": "Loading the queue…",
     "notFound": "Channel “{{channel}}” doesn't exist.",

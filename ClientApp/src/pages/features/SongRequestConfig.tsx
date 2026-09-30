@@ -9,7 +9,7 @@ import SongRequestPreview from './song-request-extension/components/SongRequestP
 import QueueTab from './song-request-extension/components/tabs/QueueTab';
 import { GuideTab, BasicTab, CommandsTab, MessagesTab } from './song-request-extension/components/tabs/SetupTabs';
 import DownloadsTab from './song-request-extension/components/tabs/DownloadsTab';
-import { FiltersTab, BlacklistTab, FallbackTab, HistoryTab } from './song-request-extension/components/tabs/LibraryTabs';
+import { FiltersTab, BlacklistTab, PlaylistsTab, HistoryTab } from './song-request-extension/components/tabs/LibraryTabs';
 import { ThemeTab, ElementsTab, TypographyTab, AnimationsTab, EditorTab } from './song-request-extension/components/tabs/DesignTabs';
 import type { OverlayLabels } from './song-request-extension/components/SongOverlayRenderer';
 import type { OverlayKind, TabId } from './song-request-extension/types';
@@ -23,7 +23,7 @@ const TABS: { id: TabId; icon: string }[] = [
     { id: 'basic', icon: '⚙️' },
     { id: 'filters', icon: '🚦' },
     { id: 'blacklist', icon: '⛔' },
-    { id: 'fallback', icon: '🎶' },
+    { id: 'playlists', icon: '🎶' },
     { id: 'history', icon: '📈' },
     { id: 'downloads', icon: '⬇️' },
     { id: 'commands', icon: '💬' },
@@ -39,7 +39,10 @@ export default function SongRequestConfig() {
     const { t } = useTranslation('overlays');
     const navigate = useNavigate();
     const cfg = useSongRequestConfig();
-    const [tab, setTab] = useState<TabId>(() => (sessionStorage.getItem('sr-tab') as TabId) || 'guide');
+    const [tab, setTab] = useState<TabId>(() => {
+        const saved = sessionStorage.getItem('sr-tab') as TabId | null;
+        return saved && TABS.some(x => x.id === saved) ? saved : 'guide';
+    });
     const [kind, setKind] = useState<OverlayKind>('player');
     // Link que se manda a Descargas desde la Cola o el Historial
     const [downloadInput, setDownloadInput] = useState<string | null>(null);
@@ -71,8 +74,13 @@ export default function SongRequestConfig() {
     }), [t]);
 
     const save = async () => {
-        const ok = await cfg.save();
-        setMessage({ ok, text: ok ? t('songRequest.saved') : t('songRequest.saveFailed') });
+        const { ok, error } = await cfg.save();
+        setMessage({
+            ok,
+            text: ok ? t('songRequest.saved')
+                : error === 'templates_limit' ? t('songRequest.limits.templatesLimit', { max: cfg.server?.limits.maxTemplates })
+                    : t('songRequest.saveFailed'),
+        });
     };
 
     if (cfg.loading) {
@@ -160,7 +168,7 @@ export default function SongRequestConfig() {
                             {tab === 'basic' && <BasicTab cfg={cfg} />}
                             {tab === 'filters' && <FiltersTab cfg={cfg} />}
                             {tab === 'blacklist' && <BlacklistTab platforms={cfg.server?.platforms ?? ['twitch']} />}
-                            {tab === 'fallback' && <FallbackTab cfg={cfg} />}
+                            {tab === 'playlists' && <PlaylistsTab cfg={cfg} />}
                             {tab === 'history' && <HistoryTab onDownload={sendToDownloads} />}
                             {tab === 'downloads' && <DownloadsTab initialInput={downloadInput} onInputConsumed={() => setDownloadInput(null)} />}
                             {tab === 'commands' && <CommandsTab cfg={cfg} />}

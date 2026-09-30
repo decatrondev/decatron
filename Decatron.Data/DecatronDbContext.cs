@@ -146,7 +146,8 @@ namespace Decatron.Data
         public DbSet<Core.Models.SongRequest.SongRequestHistoryItem> SongRequestHistory { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestBan> SongRequestBans { get; set; }
         public DbSet<Core.Models.AdminModAction> AdminModActions { get; set; }
-        public DbSet<Core.Models.SongRequest.SongRequestFallbackItem> SongRequestFallback { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestPlaylist> SongRequestPlaylists { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestPlaylistItem> SongRequestPlaylistItems { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 
@@ -897,10 +898,11 @@ namespace Decatron.Data
             {
                 entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
             });
-            modelBuilder.Entity<Core.Models.SongRequest.SongRequestFallbackItem>(entity =>
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestPlaylistItem>(entity =>
             {
                 entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
-                entity.HasIndex(e => new { e.UserId, e.TrackId }).IsUnique().HasDatabaseName("uq_song_request_fallback");
+                entity.HasOne<Core.Models.SongRequest.SongRequestPlaylist>().WithMany().HasForeignKey(e => e.PlaylistId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(e => new { e.PlaylistId, e.TrackId }).IsUnique().HasDatabaseName("uq_song_request_playlist_items");
             });
             modelBuilder.Entity<Core.Models.SongRequest.SongRequestBan>(entity =>
             {

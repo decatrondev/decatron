@@ -281,9 +281,9 @@
       "editor": "Editor",
       "filters": "Filters",
       "blacklist": "Blacklists",
-      "fallback": "Fallback playlist",
       "history": "History",
-      "downloads": "Downloads"
+      "downloads": "Downloads",
+      "playlists": "Playlists"
     },
     "kinds": {
       "player": "Player",
@@ -371,7 +371,10 @@
       "queuePreviewHint": "How many the bot lists in chat.",
       "linksTitle": "Links",
       "regenerate": "Generate a new player key",
-      "regenerateConfirm": "The current player URL will stop working and you'll need to paste the new one into OBS. Continue?"
+      "regenerateConfirm": "The current player URL will stop working and you'll need to paste the new one into OBS. Continue?",
+      "promoTitle": "Decatron card",
+      "promoDescription": "Every so often it shows for a few seconds over the overlay with the Decatron logo and a message.",
+      "promo": "Show the Decatron card on the overlays"
     },
     "roles": {
       "everyone": "Everyone",
@@ -516,7 +519,7 @@
       "user_limit": "Request limit reached.",
       "unsupported": "YouTube, Spotify, SoundCloud, Deezer and Apple Music links are accepted.",
       "invalid_link": "That link doesn't point to a song.",
-      "not_found": "That song doesn't exist or is no longer available.",
+      "not_found": "That playlist no longer exists.",
       "private": "That song is private.",
       "live": "Live streams aren't accepted.",
       "upcoming": "That video hasn't premiered yet.",
@@ -533,11 +536,15 @@
       "unknown_duration": "That song's length is unknown.",
       "too_few_views": "That song has fewer views than the minimum.",
       "recently_played": "That song played recently.",
-      "already_in_fallback": "That song is already in the fallback playlist.",
-      "fallback_full": "The fallback playlist is full.",
       "not_a_playlist": "That link isn't a YouTube playlist.",
       "author_unknown": "Couldn't tell which channel that song is from.",
-      "invalid_user": "That username isn't valid."
+      "invalid_user": "That username isn't valid.",
+      "already_in_playlist": "That song is already in that playlist.",
+      "playlist_full": "The playlist reached your plan's limit.",
+      "invalid_name": "Enter a name of up to 60 characters.",
+      "name_taken": "You already have a playlist with that name.",
+      "playlists_limit": "You reached your plan's playlist limit.",
+      "invalid_visibility": "Invalid visibility."
     },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
@@ -584,7 +591,7 @@
       "enabled": "Use the fallback playlist",
       "enabledHint": "So your stream is never silent.",
       "shuffle": "Shuffle",
-      "saveNote": "These two options are saved with the Save button. The list below is saved instantly.",
+      "saveNote": "\"Use the fallback playlist\" is saved with the Save button. Everything else in this tab saves instantly.",
       "addTitle": "Add songs",
       "importPlaceholder": "YouTube playlist link (…?list=…)",
       "import": "Import",
@@ -593,11 +600,14 @@
       "listTitle": "Songs ({{count}} of {{max}})",
       "empty": "The playlist is empty. Add songs or import a YouTube playlist.",
       "clear": "Empty",
-      "clearConfirm": "Remove every song from the fallback playlist?"
+      "clearConfirm": "Remove every song from \"{{name}}\"?",
+      "which": "Playlist that plays as fallback",
+      "none": "None",
+      "emptyWarning": "The fallback playlist is empty or none is selected: nothing will play when the queue is empty."
     },
     "history": {
       "title": "History ({{count}})",
-      "description": "What played on your channel. Mark favorites, put them back in the queue or add them to the fallback playlist.",
+      "description": "What played on your channel. Mark favorites, put them back in the queue or add them to a playlist.",
       "all": "All",
       "favorites": "Favorites",
       "empty": "No song has played yet.",
@@ -606,7 +616,6 @@
       "unfavorite": "Remove from favorites",
       "requeue": "Back to the queue",
       "requeued": "Added to the queue.",
-      "toFallback": "Add to the fallback playlist",
       "more": "Load more",
       "clear": "Clear history",
       "clearConfirm": "Clear the history? Favorites are kept.",
@@ -615,7 +624,8 @@
         "skipped": "Skipped",
         "error": "Error",
         "removed": "Removed"
-      }
+      },
+      "toPlaylist": "Add to a playlist"
     },
     "downloads": {
       "title": "Download video or audio",
@@ -695,6 +705,32 @@
         "invalid_url": "The link isn't valid.",
         "invalid_request": "Invalid request."
       }
+    },
+    "playlists": {
+      "title": "Your playlists ({{count}} of {{max}})",
+      "description": "Build several lists (for ranked games, for chatting, or the community's best). One of them can be the fallback.",
+      "namePlaceholder": "New playlist name",
+      "create": "Create",
+      "fallbackBadge": "Fallback",
+      "name": "Name",
+      "public": "Public",
+      "publicHint": "Your viewers see it at {{url}}. When off, only you see it in the dashboard.",
+      "shuffleHint": "When it plays as fallback: shuffled instead of in order.",
+      "makeFallback": "Use as fallback playlist",
+      "instantNote": "These changes save instantly.",
+      "delete": "Delete playlist",
+      "deleteConfirm": "Delete \"{{name}}\" and its {{count}} songs? This can't be undone.",
+      "added": "Added to \"{{name}}\".",
+      "none": "You have no playlists."
+    },
+    "limits": {
+      "upgrade": "More with the supporter plans",
+      "playlists": "Your plan allows {{max}} playlists.",
+      "items": "You reached your plan's limit: {{max}} songs per playlist.",
+      "history": "Your plan shows the last {{days}} days of history (favorites always show). Nothing is deleted.",
+      "templates": "Your plan allows {{max}} custom templates.",
+      "templatesLimit": "Your plan allows {{max}} custom templates. Delete one to save.",
+      "promo": "On the free plan the Decatron card always shows. From Supporter on you can hide it."
     }
   },
   "overlayEditor": {

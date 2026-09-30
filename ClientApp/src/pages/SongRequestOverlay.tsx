@@ -7,19 +7,30 @@ import TrackPlayer from './features/song-request-extension/components/TrackPlaye
 import { useSongRequestPlayer, useSongRequestWatch } from './features/song-request-extension/hooks/useSongRequestHub';
 import { normalizeOverlayConfig } from './features/song-request-extension/constants/defaults';
 import { useLayoutFonts } from './features/song-request-extension/utils';
-import type { SongRequestOverlayConfig } from './features/song-request-extension/types';
+import type { OverlayLayout, SongRequestOverlayConfig } from './features/song-request-extension/types';
+import type { PromoCatalog } from './features/game-overlays/types';
+import SongRequestPromo from './features/song-request-extension/components/SongRequestPromo';
 
 // Overlay de song request para OBS (.dev/plans/SONG_REQUEST_PLAN.md, fase 2).
 //   /overlay/songrequest?channel=X&key=Y  → el que suena (reproductor + su diseño)
 //   /overlay/songrequest?channel=X        → solo muestra ("sonando ahora"), sin audio
 
+interface OverlayData {
+    config: SongRequestOverlayConfig;
+    /** Tarjeta de Decatron: null si el plan del canal la ocultó. */
+    promos: PromoCatalog | null;
+    lang: 'es' | 'en';
+}
+
 function useOverlayConfig(channel: string) {
-    const [config, setConfig] = useState<SongRequestOverlayConfig | null>(null);
+    const [data, setData] = useState<OverlayData | null>(null);
 
     const load = useCallback(async () => {
         try {
             const res = await fetch(`/api/public/song-request/${encodeURIComponent(channel)}/overlay`);
-            if (res.ok) setConfig(normalizeOverlayConfig((await res.json()).overlayConfig));
+            if (!res.ok) return;
+            const d = await res.json();
+            setData({ config: normalizeOverlayConfig(d.overlayConfig), promos: d.promos ?? null, lang: d.lang === 'en' ? 'en' : 'es' });
         } catch { /* se reintenta con el próximo aviso */ }
     }, [channel]);
 
@@ -38,7 +49,7 @@ function useOverlayConfig(channel: string) {
         return () => { connection.stop(); };
     }, [channel, load]);
 
-    return config;
+    return data;
 }
 
 function useLabels(): OverlayLabels {
@@ -70,9 +81,9 @@ export default function SongRequestOverlay() {
 function PlayerOverlay({ channel, playerKey }: { channel: string; playerKey: string }) {
     const { t } = useTranslation('overlays');
     const labels = useLabels();
-    const config = useOverlayConfig(channel);
+    const data = useOverlayConfig(channel);
     const { snapshot, status, progress, reportEnded, reportError, reportProgress } = useSongRequestPlayer(channel, playerKey);
-    const layout = config?.player ?? null;
+    const layout = data?.config.player ?? null;
     useLayoutFonts([layout]);
 
     const current = snapshot?.current ?? null;
@@ -100,35 +111,52 @@ function PlayerOverlay({ channel, playerKey }: { channel: string; playerKey: str
 
     // Con o sin video el reproductor va en el mismo lugar (el renderer lo oculta): cambiar el diseño no corta la canción
     return (
-        <SongOverlayRenderer
-            layout={layout}
-            current={current}
-            queue={snapshot?.queue ?? []}
-            progress={progress}
-            paused={snapshot?.paused ?? false}
-            labels={labels}
-            videoSlot={player}
-        />
+        <WithPromo layout={layout} data={data!} active={!!current || !layout.animations.hideWhenIdle}>
+            <SongOverlayRenderer
+                layout={layout}
+                current={current}
+                queue={snapshot?.queue ?? []}
+                progress={progress}
+                paused={snapshot?.paused ?? false}
+                labels={labels}
+                videoSlot={player}
+            />
+        </WithPromo>
     );
 }
 
 function DisplayOverlay({ channel }: { channel: string }) {
     const labels = useLabels();
-    const config = useOverlayConfig(channel);
+    const data = useOverlayConfig(channel);
     const { snapshot, progress } = useSongRequestWatch(channel);
-    const layout = config?.nowPlaying ?? null;
+    const layout = data?.config.nowPlaying ?? null;
     useLayoutFonts([layout]);
     if (!layout || !snapshot?.enabled) return null;
 
     return (
-        <SongOverlayRenderer
-            layout={layout}
-            current={snapshot.current}
-            queue={snapshot.queue}
-            progress={progress}
-            paused={snapshot.paused}
-            labels={labels}
-        />
+        <WithPromo layout={layout} data={data!} active={!!snapshot.current || !layout.animations.hideWhenIdle}>
+            <SongOverlayRenderer
+                layout={layout}
+                current={snapshot.current}
+                queue={snapshot.queue}
+                progress={progress}
+                paused={snapshot.paused}
+                labels={labels}
+            />
+        </WithPromo>
+    );
+}
+
+/**
+ * El overlay con la tarjeta de Decatron encima, en el lugar del panel (si el plan del canal la lleva).
+ * El contenedor está siempre, con o sin tarjeta: si cambiara la estructura, el reproductor se recargaría.
+ */
+function WithPromo({ layout, data, active, children }: { layout: OverlayLayout; data: OverlayData; active: boolean; children: React.ReactNode }) {
+    return (
+        <div style={{ position: 'relative', width: layout.canvas.width, height: layout.canvas.height }}>
+            {children}
+            {data.promos && <SongRequestPromo layout={layout} catalog={data.promos} lang={data.lang} active={active} />}
+        </div>
     );
 }
 

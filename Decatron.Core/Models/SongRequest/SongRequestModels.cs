@@ -92,7 +92,7 @@ public class SongRequestConfig
     [Column("volume")]
     public int Volume { get; set; } = 50;
 
-    /// <summary>Por dónde va la playlist de respaldo (en orden, sin mezclar).</summary>
+    /// <summary>Ya no se usa: el cursor vive en cada playlist (song_request_playlists.cursor). Se dejó la columna.</summary>
     [Column("fallback_cursor")]
     public int FallbackCursor { get; set; }
 
@@ -237,13 +237,67 @@ public class SongRequestBan
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-/// <summary>Una canción de la playlist de respaldo del canal (suena con la cola vacía).</summary>
-[Table("song_request_fallback")]
-public class SongRequestFallbackItem
+/// <summary>
+/// Una playlist del canal (etapa 2, .dev/plans/SONG_REQUEST_PLAYLISTS_PLAN.md). Una de ellas puede ser la
+/// de respaldo: suena con la cola vacía.
+/// </summary>
+[Table("song_request_playlists")]
+public class SongRequestPlaylist
 {
     [Key, Column("id")]
     public long Id { get; set; }
 
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("name"), MaxLength(60)]
+    public string Name { get; set; } = "";
+
+    /// <summary>public (se ve en /sr/{canal}) | private (solo el dashboard).</summary>
+    [Column("visibility"), MaxLength(10)]
+    public string Visibility { get; set; } = SongRequestPlaylistVisibility.Private;
+
+    /// <summary>Quién puede agregar: owner (streamer y mods). review/open llegan en las fases 2 y 3.</summary>
+    [Column("contribution"), MaxLength(10)]
+    public string Contribution { get; set; } = "owner";
+
+    [Column("is_fallback")]
+    public bool IsFallback { get; set; }
+
+    /// <summary>Como respaldo: al azar o en orden.</summary>
+    [Column("shuffle")]
+    public bool Shuffle { get; set; }
+
+    /// <summary>Por dónde va sonando en orden.</summary>
+    [Column("cursor")]
+    public int Cursor { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public static class SongRequestPlaylistVisibility
+{
+    public const string Public = "public";
+    public const string Private = "private";
+
+    public static bool IsValid(string? value) => value is Public or Private;
+}
+
+/// <summary>Una canción de una playlist del canal.</summary>
+[Table("song_request_playlist_items")]
+public class SongRequestPlaylistItem
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("playlist_id")]
+    public long PlaylistId { get; set; }
+
+    /// <summary>El dueño del canal (repetido de la playlist para filtrar sin join).</summary>
     [Column("user_id")]
     public long UserId { get; set; }
 

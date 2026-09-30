@@ -41,12 +41,16 @@ public class SongRequestSettings
     /// <summary>No volver a aceptar una canción que sonó hace menos de estos minutos. 0 = sin restricción.</summary>
     public int NoRepeatMinutes { get; set; }
 
-    // ── Playlist de respaldo (fase 3) ──
+    // ── Playlist de respaldo (fase 3). Cuál es y si va al azar vive en cada playlist (song_request_playlists) ──
 
     /// <summary>Con la cola vacía suena la playlist de respaldo. Los pedidos siempre van antes.</summary>
     public bool FallbackEnabled { get; set; }
 
-    public bool FallbackShuffle { get; set; }
+    /// <summary>
+    /// Tarjeta de Decatron en los overlays (SONG_REQUEST_PLAYLISTS_PLAN.md). Solo se puede apagar desde
+    /// el plan Supporter; en el gratis el backend la deja prendida.
+    /// </summary>
+    public bool ShowPromo { get; set; } = true;
 
     /// <summary>Mensajes del bot editados por el streamer (clave → plantilla). Lo que falte sale del idioma del canal.</summary>
     public Dictionary<string, string> Messages { get; set; } = new();

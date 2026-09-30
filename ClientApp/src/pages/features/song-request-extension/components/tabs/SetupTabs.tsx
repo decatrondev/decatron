@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Card, CopyButton, Field, NumberInput, Select, Toggle, inputClass } from '../ui';
+import { Card, CopyButton, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } from '../ui';
 import { ROLES } from '../../constants/defaults';
 import type { Role, TabId } from '../../types';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
@@ -132,6 +132,21 @@ export function BasicTab({ cfg }: TabProps) {
         <div className="space-y-6">
             <Card title={t('songRequest.basic.moduleTitle')}>
                 <Toggle checked={cfg.enabled} onChange={cfg.toggleEnabled} label={t('songRequest.basic.enabled')} hint={t('songRequest.basic.enabledHint')} />
+            </Card>
+
+            <Card title={t('songRequest.basic.promoTitle')} description={t('songRequest.basic.promoDescription')}>
+                <div className="space-y-3">
+                    {s.limits.canHidePromo ? (
+                        <Toggle checked={set.showPromo} onChange={v => cfg.updateSettings({ showPromo: v })} label={t('songRequest.basic.promo')} />
+                    ) : (
+                        <>
+                            <div className="opacity-50 pointer-events-none" aria-disabled>
+                                <Toggle checked onChange={() => { /* el plan gratis la lleva siempre */ }} label={t('songRequest.basic.promo')} />
+                            </div>
+                            <PlanLimitNote text={t('songRequest.limits.promo')} />
+                        </>
+                    )}
+                </div>
             </Card>
 
             <Card title={t('songRequest.basic.limitsTitle')} description={t('songRequest.basic.limitsDescription')}>

@@ -14,7 +14,8 @@ export interface SongRequestSettings {
     minViews: number;
     noRepeatMinutes: number;
     fallbackEnabled: boolean;
-    fallbackShuffle: boolean;
+    /** Tarjeta de Decatron en los overlays: solo se apaga desde el plan Supporter. */
+    showPromo: boolean;
     messages: Record<string, string>;
 }
 
@@ -70,5 +71,24 @@ export interface SongRequestOverlayConfig {
 }
 
 export type TabId =
-    | 'guide' | 'queue' | 'basic' | 'filters' | 'blacklist' | 'fallback' | 'history' | 'downloads' | 'commands' | 'messages'
+    | 'guide' | 'queue' | 'basic' | 'filters' | 'blacklist' | 'playlists' | 'history' | 'downloads' | 'commands' | 'messages'
     | 'theme' | 'elements' | 'typography' | 'animations' | 'editor';
+
+/** Límites del plan del dueño del canal (SONG_REQUEST_PLAYLISTS_PLAN.md). null = sin tope. */
+export interface SongRequestLimits {
+    tier: string;
+    maxPlaylists: number;
+    maxItemsPerPlaylist: number;
+    historyDays: number | null;
+    maxTemplates: number;
+    canHidePromo: boolean;
+}
+
+export interface Playlist {
+    id: number;
+    name: string;
+    visibility: 'public' | 'private';
+    isFallback: boolean;
+    shuffle: boolean;
+    count: number;
+}
