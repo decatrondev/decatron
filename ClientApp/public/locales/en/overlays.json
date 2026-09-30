@@ -283,7 +283,8 @@
       "blacklist": "Blacklists",
       "history": "History",
       "downloads": "Downloads",
-      "playlists": "Playlists"
+      "playlists": "Playlists",
+      "review": "Review"
     },
     "kinds": {
       "player": "Player",
@@ -357,7 +358,8 @@
       "srvolume": "Tells the volume, or changes it from 0 to 100 (!srvolume 40).",
       "srpromote": "Moves the song at that position to the front of the queue.",
       "videocover": "The player shows the video or the cover, without stopping the music.",
-      "pladd": "Adds a song to a collaborative playlist (the playlist name goes first)."
+      "pladd": "Adds a song to a collaborative playlist (the playlist name goes first).",
+      "review": "Approves or rejects what is waiting for review by its number (no number = the oldest)."
     },
     "basic": {
       "moduleTitle": "Module",
@@ -398,7 +400,9 @@
       "voteTitle": "Vote to skip",
       "voteEnabled": "Viewers can vote !skip",
       "voteHint": "With enough votes the song is skipped. Those with skip permission skip directly.",
-      "votesRequired": "Votes needed"
+      "votesRequired": "Votes needed",
+      "permReview": "Review pending",
+      "permReviewHint": "!srapprove and !srreject. Their own requests skip review."
     },
     "messages": {
       "title": "Bot messages",
@@ -477,7 +481,15 @@
       "pl_user_limit": "!pladd: per-viewer limit",
       "pl_viewers_full": "!pladd: chat limit reached",
       "playlist_full": "!pladd: playlist full",
-      "already_in_playlist": "!pladd: already in the playlist"
+      "already_in_playlist": "!pladd: already in the playlist",
+      "pending_added": "!sr: waiting for approval",
+      "pl_pending": "!pladd: waiting for approval",
+      "already_pending": "Already waiting for approval",
+      "pending_full": "Pending inbox full",
+      "pending_approved": "Notice: approved for the queue",
+      "pl_pending_approved": "Notice: approved for the playlist",
+      "pending_rejected": "Notice: rejected",
+      "pending_none": "!srapprove / !srreject: no such number"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
@@ -561,7 +573,9 @@
       "name_taken": "You already have a playlist with that name.",
       "playlists_limit": "You reached your plan's playlist limit.",
       "invalid_visibility": "Invalid visibility.",
-      "invalid_contribution": "Invalid contribution mode."
+      "invalid_contribution": "Invalid contribution mode.",
+      "already_trusted": "That viewer is already trusted.",
+      "invalid_action": "Invalid action."
     },
     "filters": {
       "exempt": "Filters only apply to viewers. They don't apply to you, to anyone with full control, or to what you add from the dashboard.",
@@ -771,7 +785,43 @@
       "cooldown": "Minutes between a viewer's songs",
       "alwaysApply": "Song Request filters (duration, views) and blacklists also apply.",
       "save": "Save requirements",
-      "discard": "Discard"
+      "discard": "Discard",
+      "review": "Collaborative with review: viewers propose and a mod approves",
+      "reviewHint": "Viewers propose with !pladd {{name}} <song> or from your public page, and it waits in the Review tab until someone approves it. Your mods and trusted viewers go straight in."
+    },
+    "review": {
+      "modeTitle": "Request review",
+      "modeDescription": "Decide what gets in before it plays: requests wait here until someone approves them.",
+      "requestReview": "Review !sr requests before they join the queue",
+      "requestReviewHint": "{{role}} and above can approve (change it in Commands). They, you and trusted viewers skip review. Saved with the Save button.",
+      "playlistsNote": "For playlists, review is chosen on each one (Playlists tab → Who can add).",
+      "inboxTitle": "Waiting for approval ({{count}})",
+      "inboxDescription": "Approving or rejecting tells the viewer in chat. In chat too: !srapprove 2 or !srreject 2 (the number on the left).",
+      "empty": "Nothing is waiting for approval.",
+      "toQueue": "For the queue",
+      "toPlaylist": "For the “{{name}}” playlist",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectOptions": {
+        "reject": "Reject and tell them in chat",
+        "reject_silent": "Reject silently"
+      },
+      "trust": "Trust {{user}} and approve all of theirs",
+      "ban": "Ban {{user}}",
+      "banConfirm": "Ban {{user}}? Everything of theirs leaves the inbox and the queue, and they can no longer request.",
+      "done": {
+        "approve": "Approved “{{title}}”.",
+        "reject": "Rejected “{{title}}” (they were told in chat).",
+        "reject_silent": "Rejected “{{title}}”.",
+        "ban": "{{user}} is now banned.",
+        "trust": "{{user}} is now trusted and their requests were approved."
+      },
+      "trustedTitle": "Trusted viewers ({{count}})",
+      "trustedDescription": "Their requests and contributions go straight in, skipping review. Each playlist's requirements still apply.",
+      "trustedPlaceholder": "Username",
+      "trustedAdd": "Add",
+      "trustedEmpty": "No trusted viewers yet.",
+      "trustedRemove": "Remove"
     }
   },
   "overlayEditor": {

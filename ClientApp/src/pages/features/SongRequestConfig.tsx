@@ -7,6 +7,7 @@ import { useSongRequestWatch } from './song-request-extension/hooks/useSongReque
 import { useLayoutFonts } from './song-request-extension/utils';
 import SongRequestPreview from './song-request-extension/components/SongRequestPreview';
 import QueueTab from './song-request-extension/components/tabs/QueueTab';
+import ReviewTab from './song-request-extension/components/tabs/ReviewTab';
 import { GuideTab, BasicTab, CommandsTab, MessagesTab } from './song-request-extension/components/tabs/SetupTabs';
 import DownloadsTab from './song-request-extension/components/tabs/DownloadsTab';
 import { FiltersTab, BlacklistTab, PlaylistsTab, HistoryTab } from './song-request-extension/components/tabs/LibraryTabs';
@@ -20,6 +21,7 @@ import type { OverlayKind, TabId } from './song-request-extension/types';
 const TABS: { id: TabId; icon: string }[] = [
     { id: 'guide', icon: '📚' },
     { id: 'queue', icon: '🎵' },
+    { id: 'review', icon: '🕒' },
     { id: 'basic', icon: '⚙️' },
     { id: 'filters', icon: '🚦' },
     { id: 'blacklist', icon: '⛔' },
@@ -157,6 +159,9 @@ export default function SongRequestConfig() {
                                             : 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'}`}
                                     >
                                         {item.icon} {t(`songRequest.tabs.${item.id}`)}
+                                        {item.id === 'review' && (live.snapshot?.pendingCount ?? 0) > 0 && (
+                                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] 3xl:text-xs font-black bg-amber-400 text-black">{live.snapshot!.pendingCount}</span>
+                                        )}
                                     </button>
                                 ))}
                             </div>
@@ -164,6 +169,7 @@ export default function SongRequestConfig() {
 
                         <div>
                             {tab === 'guide' && <GuideTab cfg={cfg} onNavigate={setTab} />}
+                            {tab === 'review' && <ReviewTab cfg={cfg} snapshot={live.snapshot} />}
                             {tab === 'queue' && <QueueTab cfg={cfg} snapshot={live.snapshot} progress={live.progress} connected={live.connected} onDownload={sendToDownloads} />}
                             {tab === 'basic' && <BasicTab cfg={cfg} />}
                             {tab === 'filters' && <FiltersTab cfg={cfg} />}

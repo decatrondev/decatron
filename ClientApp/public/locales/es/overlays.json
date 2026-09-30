@@ -283,7 +283,8 @@
       "blacklist": "Listas negras",
       "history": "Historial",
       "downloads": "Descargas",
-      "playlists": "Playlists"
+      "playlists": "Playlists",
+      "review": "Revisión"
     },
     "kinds": {
       "player": "Reproductor",
@@ -357,7 +358,8 @@
       "srvolume": "Dice el volumen, o lo cambia de 0 a 100 (!srvolume 40).",
       "srpromote": "Sube la canción en esa posición al primer lugar de la cola.",
       "videocover": "El reproductor muestra el video o la portada, sin cortar la música.",
-      "pladd": "Agrega una canción a una playlist colaborativa (el nombre de la playlist va primero)."
+      "pladd": "Agrega una canción a una playlist colaborativa (el nombre de la playlist va primero).",
+      "review": "Aprueba o rechaza lo que espera revisión por su número (sin número, el más viejo)."
     },
     "basic": {
       "moduleTitle": "Módulo",
@@ -398,7 +400,9 @@
       "voteTitle": "Votación para saltar",
       "voteEnabled": "Los viewers pueden votar !skip",
       "voteHint": "Con suficientes votos la canción se salta. Los que tienen permiso de saltar lo hacen directo.",
-      "votesRequired": "Votos necesarios"
+      "votesRequired": "Votos necesarios",
+      "permReview": "Revisar pendientes",
+      "permReviewHint": "!srapprove y !srreject. Sus pedidos no pasan por revisión."
     },
     "messages": {
       "title": "Mensajes del bot",
@@ -477,7 +481,15 @@
       "pl_user_limit": "!pladd: límite por viewer",
       "pl_viewers_full": "!pladd: tope del chat",
       "playlist_full": "!pladd: playlist llena",
-      "already_in_playlist": "!pladd: ya está en la playlist"
+      "already_in_playlist": "!pladd: ya está en la playlist",
+      "pending_added": "!sr: quedó esperando aprobación",
+      "pl_pending": "!pladd: quedó esperando aprobación",
+      "already_pending": "Ya está esperando aprobación",
+      "pending_full": "Bandeja de pendientes llena",
+      "pending_approved": "Aviso: aprobada para la cola",
+      "pl_pending_approved": "Aviso: aprobada para la playlist",
+      "pending_rejected": "Aviso: rechazada",
+      "pending_none": "!srapprove / !srreject: no hay ese número"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -561,7 +573,9 @@
       "name_taken": "Ya tienes una playlist con ese nombre.",
       "playlists_limit": "Llegaste al tope de playlists de tu plan.",
       "invalid_visibility": "Visibilidad no válida.",
-      "invalid_contribution": "Modo de aporte no válido."
+      "invalid_contribution": "Modo de aporte no válido.",
+      "already_trusted": "Ese viewer ya es de confianza.",
+      "invalid_action": "Acción no válida."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -771,7 +785,43 @@
       "cooldown": "Minutos entre canciones de un viewer",
       "alwaysApply": "También se aplican los filtros (duración, vistas) y las listas negras de Song Request.",
       "save": "Guardar requisitos",
-      "discard": "Descartar"
+      "discard": "Descartar",
+      "review": "Colaborativa con revisión: los viewers proponen y un mod aprueba",
+      "reviewHint": "Los viewers proponen con !pladd {{name}} <canción> o desde tu página pública, y queda en la pestaña Revisión hasta que alguien lo apruebe. Tus mods y los viewers de confianza entran directo."
+    },
+    "review": {
+      "modeTitle": "Revisión de pedidos",
+      "modeDescription": "Decide qué entra antes de que suene: los pedidos esperan aquí hasta que alguien los apruebe.",
+      "requestReview": "Revisar los pedidos de !sr antes de que entren a la cola",
+      "requestReviewHint": "Pueden aprobar desde {{role}} para arriba (se cambia en Comandos). Ellos, tú y los viewers de confianza no pasan por revisión. Se guarda con el botón Guardar.",
+      "playlistsNote": "Para las playlists, la revisión se elige en cada una (pestaña Playlists → Quién puede agregar).",
+      "inboxTitle": "Esperando aprobación ({{count}})",
+      "inboxDescription": "Al aprobar o rechazar se le avisa al viewer en el chat. En el chat también: !srapprove 2 o !srreject 2 (el número de la izquierda).",
+      "empty": "No hay nada esperando aprobación.",
+      "toQueue": "Para la cola",
+      "toPlaylist": "Para la playlist «{{name}}»",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "rejectOptions": {
+        "reject": "Rechazar y avisar en el chat",
+        "reject_silent": "Rechazar sin avisar"
+      },
+      "trust": "Confiar en {{user}} y aprobar todo lo suyo",
+      "ban": "Vetar a {{user}}",
+      "banConfirm": "¿Vetar a {{user}}? Se quita todo lo suyo de la bandeja y de la cola, y ya no podrá pedir.",
+      "done": {
+        "approve": "Aprobada «{{title}}».",
+        "reject": "Rechazada «{{title}}» (se avisó en el chat).",
+        "reject_silent": "Rechazada «{{title}}».",
+        "ban": "{{user}} quedó vetado.",
+        "trust": "{{user}} ahora es de confianza y se aprobó lo suyo."
+      },
+      "trustedTitle": "Viewers de confianza ({{count}})",
+      "trustedDescription": "Sus pedidos y aportes entran directo, sin pasar por revisión. Los requisitos de cada playlist igual se aplican.",
+      "trustedPlaceholder": "Nombre de usuario",
+      "trustedAdd": "Agregar",
+      "trustedEmpty": "Todavía no hay viewers de confianza.",
+      "trustedRemove": "Quitar"
     }
   },
   "overlayEditor": {

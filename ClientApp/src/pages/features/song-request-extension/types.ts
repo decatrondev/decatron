@@ -3,7 +3,7 @@
 export type Role = 'everyone' | 'subscriber' | 'vip' | 'moderator' | 'lead_moderator' | 'broadcaster';
 
 export interface SongRequestSettings {
-    permissions: { request: Role; skip: Role; manage: Role };
+    permissions: { request: Role; skip: Role; manage: Role; review: Role };
     maxQueueSize: number;
     maxPerUser: number;
     skipVoteEnabled: boolean;
@@ -16,6 +16,8 @@ export interface SongRequestSettings {
     fallbackEnabled: boolean;
     /** Tarjeta de Decatron en los overlays: solo se apaga desde el plan Supporter. */
     showPromo: boolean;
+    /** Los pedidos de !sr esperan aprobación (fase 3). */
+    requestReview: boolean;
     messages: Record<string, string>;
 }
 
@@ -48,6 +50,9 @@ export interface QueueSnapshot {
     maxDurationSeconds?: number;
     /** Con la cola vacía suena la playlist de respaldo. */
     fallbackEnabled?: boolean;
+    requestReview?: boolean;
+    /** Cuántos esperan aprobación (cola y playlists). */
+    pendingCount?: number;
     playerConnected: boolean;
     current: QueueItem | null;
     queue: QueueItem[];
@@ -71,7 +76,7 @@ export interface SongRequestOverlayConfig {
 }
 
 export type TabId =
-    | 'guide' | 'queue' | 'basic' | 'filters' | 'blacklist' | 'playlists' | 'history' | 'downloads' | 'commands' | 'messages'
+    | 'guide' | 'queue' | 'review' | 'basic' | 'filters' | 'blacklist' | 'playlists' | 'history' | 'downloads' | 'commands' | 'messages'
     | 'theme' | 'elements' | 'typography' | 'animations' | 'editor';
 
 /** Límites del plan del dueño del canal (SONG_REQUEST_PLAYLISTS_PLAN.md). null = sin tope. */
@@ -98,7 +103,7 @@ export interface Playlist {
     name: string;
     visibility: 'public' | 'private';
     /** owner: solo el streamer y los mods; open: viewers que cumplan los requisitos. */
-    contribution: 'owner' | 'open';
+    contribution: 'owner' | 'open' | 'review';
     requirements: PlaylistRequirements;
     isFallback: boolean;
     shuffle: boolean;

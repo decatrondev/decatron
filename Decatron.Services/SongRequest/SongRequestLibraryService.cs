@@ -353,7 +353,8 @@ namespace Decatron.Services.SongRequest
                 id = p.Id,
                 name = p.Name,
                 count = p.Count,
-                open = p.Contribution == SongRequestPlaylistContribution.Open,
+                open = p.Contribution == SongRequestPlaylistContribution.Open || p.Contribution == SongRequestPlaylistContribution.Review,
+                review = p.Contribution == SongRequestPlaylistContribution.Review,
                 requirements = SongRequestContributionService.ParseRequirements(p.Requirements)
             }).ToList();
         }

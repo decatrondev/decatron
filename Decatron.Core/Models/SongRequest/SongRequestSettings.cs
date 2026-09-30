@@ -52,6 +52,12 @@ public class SongRequestSettings
     /// </summary>
     public bool ShowPromo { get; set; } = true;
 
+    /// <summary>
+    /// Los pedidos de !sr quedan pendientes hasta que alguien con el permiso de revisar los apruebe
+    /// (SONG_REQUEST_PLAYLISTS_PLAN.md, fase 3). No aplica a quien puede revisar ni a los de confianza.
+    /// </summary>
+    public bool RequestReview { get; set; }
+
     /// <summary>Mensajes del bot editados por el streamer (clave → plantilla). Lo que falte sale del idioma del canal.</summary>
     public Dictionary<string, string> Messages { get; set; } = new();
 }
@@ -70,4 +76,7 @@ public class SongRequestPermissions
 
     /// <summary>!sropen, !srclose, !srpause, !srresume, !srban.</summary>
     public string Manage { get; set; } = "lead_moderator";
+
+    /// <summary>Aprobar o rechazar lo pendiente (!srapprove, !srreject); sus pedidos no pasan por revisión.</summary>
+    public string Review { get; set; } = "moderator";
 }

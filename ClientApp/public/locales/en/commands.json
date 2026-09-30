@@ -385,6 +385,7 @@
     }
   },
   "songRequestPublic": {
+    "pending": "“{{title}}” is waiting for approval for “{{playlist}}”. We'll let you know in chat once it's reviewed.",
     "collaborative": "Collaborative",
     "addedBy": "added by {{user}}",
     "added": "“{{title}}” was added to “{{playlist}}”.",
@@ -395,6 +396,7 @@
     "loginToAdd": "Log in with Twitch or Kick to add",
     "req": {
       "title": "To add:",
+      "review": "Songs are reviewed before they get in.",
       "anyone": "Anyone can add songs.",
       "role": "be {{role}} or higher",
       "accountAge": "Twitch account {{days}}+ days old",
@@ -409,6 +411,8 @@
       "lead_moderator": "a lead moderator"
     },
     "errors": {
+      "already_pending": "That song is already waiting for approval.",
+      "pending_full": "Too many songs are waiting for approval. Try again later.",
       "failed": "The song couldn't be added. Try another link or name.",
       "pl_need_login": "Log in to add songs.",
       "pl_need_account": "To add you need a Twitch or Kick account linked to Decatron (depending on where this channel takes requests).",

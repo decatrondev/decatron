@@ -148,6 +148,8 @@ namespace Decatron.Data
         public DbSet<Core.Models.AdminModAction> AdminModActions { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestPlaylist> SongRequestPlaylists { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestPlaylistItem> SongRequestPlaylistItems { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestPending> SongRequestPending { get; set; }
+        public DbSet<Core.Models.SongRequest.SongRequestTrusted> SongRequestTrusted { get; set; }
         public DbSet<Core.Models.Desktop.DesktopDevice> DesktopDevices { get; set; }
         public DbSet<Core.Models.LiveTranslation.LiveTranslationSession> LiveTranslationSessions { get; set; }
 
@@ -903,6 +905,14 @@ namespace Decatron.Data
                 entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
                 entity.HasOne<Core.Models.SongRequest.SongRequestPlaylist>().WithMany().HasForeignKey(e => e.PlaylistId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(e => new { e.PlaylistId, e.TrackId }).IsUnique().HasDatabaseName("uq_song_request_playlist_items");
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestPending>(entity =>
+            {
+                entity.HasOne(e => e.Track).WithMany().HasForeignKey(e => e.TrackId);
+            });
+            modelBuilder.Entity<Core.Models.SongRequest.SongRequestTrusted>(entity =>
+            {
+                entity.HasIndex(e => new { e.UserId, e.Platform, e.Login }).IsUnique().HasDatabaseName("uq_song_request_trusted");
             });
             modelBuilder.Entity<Core.Models.SongRequest.SongRequestBan>(entity =>
             {

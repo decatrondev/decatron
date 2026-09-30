@@ -257,7 +257,7 @@ public class SongRequestPlaylist
     [Column("visibility"), MaxLength(10)]
     public string Visibility { get; set; } = SongRequestPlaylistVisibility.Private;
 
-    /// <summary>Quién puede agregar: owner (streamer y mods) | open (viewers que cumplan los requisitos). review: fase 3.</summary>
+    /// <summary>Quién puede agregar: owner (streamer y mods) | open (viewers que cumplan los requisitos) | review (igual, pero pasa por la bandeja de pendientes).</summary>
     [Column("contribution"), MaxLength(10)]
     public string Contribution { get; set; } = SongRequestPlaylistContribution.Owner;
 
@@ -287,8 +287,12 @@ public static class SongRequestPlaylistContribution
 {
     public const string Owner = "owner";
     public const string Open = "open";
+    public const string Review = "review";
 
-    public static bool IsValid(string? value) => value is Owner or Open;
+    public static bool IsValid(string? value) => value is Owner or Open or Review;
+
+    /// <summary>Los viewers pueden aportar (directo o con revisión).</summary>
+    public static bool AcceptsViewers(string? value) => value is Open or Review;
 }
 
 /// <summary>
@@ -358,6 +362,89 @@ public class SongRequestPlaylistItem
 
     [Column("added_by_name"), MaxLength(100)]
     public string? AddedByName { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>
+/// Algo que espera aprobación (SONG_REQUEST_PLAYLISTS_PLAN.md, fase 3): un pedido a la cola
+/// (<see cref="PlaylistId"/> null) o un aporte a una playlist "con revisión".
+/// </summary>
+[Table("song_request_pending")]
+public class SongRequestPending
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    /// <summary>El dueño de la cola.</summary>
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("playlist_id")]
+    public long? PlaylistId { get; set; }
+
+    [Column("track_id")]
+    public long TrackId { get; set; }
+
+    public SongTrack? Track { get; set; }
+
+    [Column("requested_platform"), MaxLength(20)]
+    public string RequestedPlatform { get; set; } = "";
+
+    [Column("requested_by_id"), MaxLength(100)]
+    public string? RequestedById { get; set; }
+
+    [Column("requested_by_login"), MaxLength(100)]
+    public string RequestedByLogin { get; set; } = "";
+
+    [Column("requested_by_name"), MaxLength(100)]
+    public string RequestedByName { get; set; } = "";
+
+    /// <summary>A qué chat avisar la decisión: login de Twitch o id de Kick (lo que entiende el IMessageSender).</summary>
+    [Column("reply_channel"), MaxLength(100)]
+    public string? ReplyChannel { get; set; }
+
+    [Column("origin_source"), MaxLength(30)]
+    public string? OriginSource { get; set; }
+
+    [Column("origin_url"), MaxLength(500)]
+    public string? OriginUrl { get; set; }
+
+    [Column("origin_title"), MaxLength(300)]
+    public string? OriginTitle { get; set; }
+
+    [Column("origin_artist"), MaxLength(200)]
+    public string? OriginArtist { get; set; }
+
+    [Column("origin_thumbnail_url"), MaxLength(500)]
+    public string? OriginThumbnailUrl { get; set; }
+
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Un viewer de confianza del canal: sus pedidos y aportes no pasan por revisión.</summary>
+[Table("song_request_trusted")]
+public class SongRequestTrusted
+{
+    [Key, Column("id")]
+    public long Id { get; set; }
+
+    [Column("user_id")]
+    public long UserId { get; set; }
+
+    [Column("platform"), MaxLength(20)]
+    public string Platform { get; set; } = "";
+
+    [Column("login"), MaxLength(100)]
+    public string Login { get; set; } = "";
+
+    [Column("display_name"), MaxLength(100)]
+    public string DisplayName { get; set; } = "";
+
+    [Column("created_by"), MaxLength(100)]
+    public string? CreatedBy { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

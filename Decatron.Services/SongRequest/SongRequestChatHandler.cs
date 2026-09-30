@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -43,7 +43,9 @@ namespace Decatron.Services.SongRequest
             ["!srpromote"] = Action.Promote,
             ["!srvideo"] = Action.Video,
             ["!srcover"] = Action.Cover,
-            ["!pladd"] = Action.PlaylistAdd
+            ["!pladd"] = Action.PlaylistAdd,
+            ["!srapprove"] = Action.Approve,
+            ["!srreject"] = Action.Reject
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -83,7 +85,8 @@ namespace Decatron.Services.SongRequest
             "volume_current", "volume_set", "volume_usage",
             "promote_usage", "promote_invalid", "promoted", "video_on", "cover_on",
             "pl_usage", "pl_which", "pl_none", "pl_added", "pl_closed", "pl_slow_down", "pl_role", "pl_unverifiable",
-            "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist"
+            "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist",
+            "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -121,6 +124,7 @@ namespace Decatron.Services.SongRequest
                     Action.Remove or Action.Promote => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
                         or Action.Video or Action.Cover => run.Settings.Permissions.Manage,
+                    Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     _ => run.Settings.Permissions.Request
                 };
                 if (required != null && !await run.HasRoleAsync(required))
@@ -145,6 +149,8 @@ namespace Decatron.Services.SongRequest
                     case Action.Video: await SetVideoModeAsync(run, true); break;
                     case Action.Cover: await SetVideoModeAsync(run, false); break;
                     case Action.PlaylistAdd: await PlaylistAddAsync(run); break;
+                    case Action.Approve: await DecideAsync(run, approve: true); break;
+                    case Action.Reject: await DecideAsync(run, approve: false); break;
                 }
             }
             catch (Exception ex)
@@ -170,7 +176,11 @@ namespace Decatron.Services.SongRequest
             }
 
             var unlimited = run.Context.IsBroadcaster || await run.HasControlTotalAsync();
-            var result = await run.Songs.AddAsync(run.Config, run.Requester, run.Args, unlimited);
+            // Modo revisión (fase 3): queda pendiente, salvo quien puede revisar y los de confianza
+            var review = run.Settings.RequestReview && !unlimited
+                && !await run.HasRoleAsync(run.Settings.Permissions.Review)
+                && !await run.Services.GetRequiredService<SongRequestContributionService>().IsTrustedAsync(run.Config.UserId, run.Channel.Platform, run.Context.Username);
+            var result = await run.Songs.AddAsync(run.Config, run.Requester, run.Args, unlimited, review: review, replyChannel: run.Context.Channel);
             if (!result.Success)
             {
                 var vars = Vars(result.Track)
@@ -181,6 +191,11 @@ namespace Decatron.Services.SongRequest
                 return;
             }
 
+            if (result.Pending != null)
+            {
+                await run.ReplyAsync("pending_added", Vars(result.Track).With("position", result.Position.ToString()));
+                return;
+            }
             await run.ReplyAsync("added", Vars(result.Item!).With("position", result.Position.ToString()));
         }
 
@@ -350,7 +365,7 @@ namespace Decatron.Services.SongRequest
 
             var who = new SongRequestContributor(run.Channel.Platform, run.Context.UserId, run.Context.Username, run.Context.Username,
                 run.RoleLevel, privileged || await run.HasControlTotalAsync());
-            var result = await contributions.AddAsync(run.Config, playlist, who, input);
+            var result = await contributions.AddAsync(run.Config, playlist, who, input, replyChannel: run.Context.Channel);
 
             var vars = Vars(result.Track).With("playlist", playlist.Name);
             foreach (var (k, v) in result.Vars ?? new())
@@ -359,7 +374,27 @@ namespace Decatron.Services.SongRequest
                 vars["max"] = FormatDuration(run.Settings.MaxDurationSeconds);
             if (!result.Success && result.ErrorKey is "too_few_views")
                 vars["views"] = run.Settings.MinViews.ToString("N0");
-            await run.ReplyAsync(result.ErrorKey ?? "pl_added", vars);
+            await run.ReplyAsync(result.ErrorKey ?? (result.Pending ? "pl_pending" : "pl_added"), vars);
+        }
+
+        /// <summary>
+        /// !srapprove [n] / !srreject [n]: decide el pendiente n (1 = el más viejo, el que va si no se dice).
+        /// El aviso al viewer lo manda el servicio en su chat.
+        /// </summary>
+        private static async Task DecideAsync(Run run, bool approve)
+        {
+            var reviews = run.Services.GetRequiredService<SongRequestReviewService>();
+            var number = int.TryParse(run.Args.Split(' ', 2)[0].TrimStart('#'), out var n) ? n : 1;
+            var pending = await reviews.FindByNumberAsync(run.Config.UserId, number);
+            if (pending == null)
+            {
+                await run.ReplyAsync("pending_none");
+                return;
+            }
+            if (approve)
+                await reviews.ApproveAsync(run.Config, pending);
+            else
+                await reviews.RejectAsync(run.Config, pending, notify: true);
         }
 
         private static async Task SetOpenAsync(Run run, bool open)

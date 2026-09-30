@@ -105,6 +105,7 @@ const COMMANDS: { cmd: string; key: string }[] = [
     { cmd: '!srvolume [0-100]', key: 'srvolume' }, { cmd: '!srpromote <#>', key: 'srpromote' },
     { cmd: '!srvideo · !srcover', key: 'videocover' },
     { cmd: '!pladd <playlist> <link | nombre>', key: 'pladd' },
+    { cmd: '!srapprove [#] · !srreject [#]', key: 'review' },
 ];
 
 function CommandList() {
@@ -192,7 +193,7 @@ export function CommandsTab({ cfg }: TabProps) {
     return (
         <div className="space-y-6">
             <Card title={t('songRequest.commands.permissionsTitle')} description={t('songRequest.commands.permissionsDescription')}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
                     <Field label={t('songRequest.commands.permRequest')} hint={t('songRequest.commands.permRequestHint')}>
                         <Select value={set.permissions.request} onChange={v => setPerm({ request: v })} options={roleOptions} />
                     </Field>
@@ -201,6 +202,9 @@ export function CommandsTab({ cfg }: TabProps) {
                     </Field>
                     <Field label={t('songRequest.commands.permManage')} hint={t('songRequest.commands.permManageHint')}>
                         <Select value={set.permissions.manage} onChange={v => setPerm({ manage: v })} options={roleOptions} />
+                    </Field>
+                    <Field label={t('songRequest.commands.permReview')} hint={t('songRequest.commands.permReviewHint')}>
+                        <Select value={set.permissions.review} onChange={v => setPerm({ review: v })} options={roleOptions} />
                     </Field>
                 </div>
                 <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.commands.controlTotalNote')}</p>

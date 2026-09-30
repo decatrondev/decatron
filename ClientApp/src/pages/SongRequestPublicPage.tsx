@@ -311,7 +311,7 @@ function NowPlaying({ item, paused, openLabel, requestedBy }: { item: QueueItem;
 }
 
 interface PlaylistRequirements { minRole: string; minAccountAgeDays: number; minFollowAgeDays: number; maxPerUser: number; cooldownMinutes: number }
-interface PublicPlaylist { id: number; name: string; count: number; open: boolean; requirements: PlaylistRequirements }
+interface PublicPlaylist { id: number; name: string; count: number; open: boolean; review?: boolean; requirements: PlaylistRequirements }
 interface PublicPlaylistItem { id: number; addedBy: string | null; addedByPlatform: string | null; track: { url: string | null; title: string; artist: string; durationSeconds: number | null; thumbnailUrl: string | null } }
 /** Con qué cuenta agrega el viewer logueado. undefined = sin sesión; null = con sesión pero sin Twitch ni Kick. */
 type Contributor = { platform: string; name: string } | null | undefined;
@@ -458,7 +458,7 @@ function ContributeBox({ channel, playlist, contributor, onAdded }: { channel: s
             const d = res.ok ? await res.json() : null;
             if (d?.success) {
                 setInput('');
-                setResult({ ok: true, text: t('songRequestPublic.added', { title: d.title, playlist: playlist.name }) });
+                setResult({ ok: true, text: t(d.pending ? 'songRequestPublic.pending' : 'songRequestPublic.added', { title: d.title, playlist: playlist.name }) });
                 onAdded();
             } else {
                 const key = d?.error ?? (res.status === 401 ? 'pl_need_login' : 'failed');
@@ -475,6 +475,7 @@ function ContributeBox({ channel, playlist, contributor, onAdded }: { channel: s
         <div className="px-4 pb-4 space-y-3">
             <p className="text-xs 3xl:text-sm 4xl:text-base text-[#a1a1aa]">
                 {rules.length > 0 ? `${t('songRequestPublic.req.title')} ${rules.join(' · ')}` : t('songRequestPublic.req.anyone')}
+                {playlist.review && ` ${t('songRequestPublic.req.review')}`}
             </p>
             {contributor === undefined ? (
                 <a href={loginUrl} className="inline-block px-4 py-2 rounded-lg bg-[#39ff14] text-black font-bold text-sm 3xl:text-base 4xl:text-lg hover:brightness-110">

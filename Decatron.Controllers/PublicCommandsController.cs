@@ -224,6 +224,7 @@ namespace Decatron.Controllers
             var request = RoleRestriction(permissions.Request);
             var skip = RoleRestriction(permissions.Skip);
             var manage = RoleRestriction(permissions.Manage);
+            var review = RoleRestriction(permissions.Review);
 
             var commands = new (string Name, string Description, string? Restriction)[]
             {
@@ -247,6 +248,8 @@ namespace Decatron.Controllers
                 ("srvideo", "El reproductor muestra el video en vez de la portada", manage),
                 ("srcover", "El reproductor muestra la portada en vez del video", manage),
                 ("pladd", "Agrega una canción a una playlist del canal (!pladd <playlist> <link o nombre>); cada playlist decide quién puede", null),
+                ("srapprove", "Aprueba lo que espera revisión, por su número (!srapprove 2; sin número, el más viejo)", review),
+                ("srreject", "Rechaza lo que espera revisión, por su número (!srreject 2; sin número, el más viejo)", review),
             };
             foreach (var (name, description, restriction) in commands)
                 AddItem(results, overrideMap, "songrequest", name, name, description, restriction, applyHiddenFilter);

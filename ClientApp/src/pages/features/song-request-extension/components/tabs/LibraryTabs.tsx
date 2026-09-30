@@ -514,7 +514,7 @@ function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate
     const dirty = JSON.stringify(draft) !== JSON.stringify(playlist.requirements);
     const set = (patch: Partial<PlaylistRequirements>) => setDraft(prev => ({ ...prev, ...patch }));
     const roleOptions = ROLES.filter(r => r !== 'broadcaster').map(r => ({ value: r as Role, label: t(`songRequest.roles.${r}`) }));
-    const open = playlist.contribution === 'open';
+    const open = playlist.contribution !== 'owner';
 
     return (
         <Card title={t('songRequest.contrib.title')} description={t('songRequest.contrib.description')}>
@@ -526,10 +526,11 @@ function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate
                         options={[
                             { value: 'owner', label: t('songRequest.contrib.owner') },
                             { value: 'open', label: t('songRequest.contrib.open') },
+                            { value: 'review', label: t('songRequest.contrib.review') },
                         ]}
                     />
                 </Field>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(open ? 'songRequest.contrib.openHint' : 'songRequest.contrib.ownerHint', { name: playlist.name })}</p>
+                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`songRequest.contrib.${playlist.contribution}Hint`, { name: playlist.name })}</p>
                 {open && playlist.visibility !== 'public' && (
                     <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.contrib.privateNote')}</p>
                 )}

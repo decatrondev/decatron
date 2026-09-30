@@ -542,6 +542,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.SoundCloudTrackSource>());
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestLibraryService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestContributionService>();
+    builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestReviewService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongResolverService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestService>();
     builder.Services.AddSingleton<Decatron.Services.SongRequest.SongRequestChatHandler>();

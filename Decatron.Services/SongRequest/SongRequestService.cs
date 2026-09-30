@@ -22,9 +22,10 @@ namespace Decatron.Services.SongRequest
     /// Resultado de un pedido. Si falló, <see cref="ErrorKey"/> es la clave del mensaje del chat
     /// (bot-messages → songrequest) y <see cref="Track"/> puede venir para nombrar la canción.
     /// </summary>
-    public sealed record SongAddResult(SongRequestQueueItem? Item, int Position, SongTrack? Track, string? ErrorKey)
+    /// <remarks>En modo revisión <see cref="Pending"/> trae lo que quedó esperando y <see cref="Position"/> su lugar en la bandeja.</remarks>
+    public sealed record SongAddResult(SongRequestQueueItem? Item, int Position, SongTrack? Track, string? ErrorKey, SongRequestPending? Pending = null)
     {
-        public bool Success => Item != null;
+        public bool Success => Item != null || Pending != null;
         public static SongAddResult Fail(string errorKey, SongTrack? track = null) => new(null, 0, track, errorKey);
     }
 
@@ -236,8 +237,11 @@ namespace Decatron.Services.SongRequest
         /// Resuelve y agrega a la cola. <paramref name="unlimited"/> = el streamer (o control_total):
         /// no le aplican el límite por usuario ni el de la cola.
         /// </summary>
+        /// <param name="review">El pedido queda en la bandeja de pendientes en vez de entrar a la cola (fase 3).</param>
+        /// <param name="replyChannel">A qué chat avisar cuando se decida (solo con <paramref name="review"/>).</param>
         public async Task<SongAddResult> AddAsync(
-            SongRequestConfig config, SongRequester requester, string input, bool unlimited, CancellationToken ct = default)
+            SongRequestConfig config, SongRequester requester, string input, bool unlimited, CancellationToken ct = default,
+            bool review = false, string? replyChannel = null)
         {
             var settings = ParseSettings(config);
             var userId = config.UserId;
@@ -253,10 +257,15 @@ namespace Decatron.Services.SongRequest
                 if (settings.MaxQueueSize > 0 && await queued.CountAsync(ct) >= settings.MaxQueueSize)
                     return SongAddResult.Fail("queue_full");
 
-                if (settings.MaxPerUser > 0 && await queued.CountAsync(q =>
-                        q.RequestedPlatform == requester.Platform && q.RequestedByLogin == login, ct) >= settings.MaxPerUser)
+                // Lo que espera aprobación también cuenta para el límite: si no, la bandeja se llena de lo mismo
+                var mine = await queued.CountAsync(q => q.RequestedPlatform == requester.Platform && q.RequestedByLogin == login, ct);
+                if (review)
+                    mine += await PendingQueue(userId).CountAsync(p => p.RequestedPlatform == requester.Platform && p.RequestedByLogin == login, ct);
+                if (settings.MaxPerUser > 0 && mine >= settings.MaxPerUser)
                     return SongAddResult.Fail("user_limit");
             }
+            if (review && await _db.SongRequestPending.CountAsync(p => p.UserId == userId, ct) >= MaxPending)
+                return SongAddResult.Fail("pending_full");
 
             var resolved = await _resolver.ResolveAsync(input, ct);
             if (!resolved.Success)
@@ -279,8 +288,36 @@ namespace Decatron.Services.SongRequest
                     return SongAddResult.Fail(filtered, track);
             }
 
-            var lastPosition = await queued.MaxAsync(q => (int?)q.Position, ct) ?? 0;
             var origin = resolved.Origin;
+            if (review)
+            {
+                if (await PendingQueue(userId).AnyAsync(p => p.TrackId == track.Id, ct))
+                    return SongAddResult.Fail("already_pending", track);
+                var pending = new SongRequestPending
+                {
+                    UserId = userId,
+                    TrackId = track.Id,
+                    Track = track,
+                    RequestedPlatform = requester.Platform,
+                    RequestedById = requester.Id,
+                    RequestedByLogin = login,
+                    RequestedByName = string.IsNullOrWhiteSpace(requester.DisplayName) ? requester.Login : requester.DisplayName,
+                    ReplyChannel = replyChannel,
+                    OriginSource = origin?.Origin,
+                    OriginUrl = origin?.Url,
+                    OriginTitle = origin?.Title,
+                    OriginArtist = origin?.Artist,
+                    OriginThumbnailUrl = origin?.ThumbnailUrl,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _db.SongRequestPending.Add(pending);
+                await _db.SaveChangesAsync(ct);
+                var waiting = await PendingQueue(userId).CountAsync(p => p.Id <= pending.Id, ct);
+                await NotifyAsync(config, ct);
+                return new SongAddResult(null, waiting, track, null, pending);
+            }
+
+            var lastPosition = await queued.MaxAsync(q => (int?)q.Position, ct) ?? 0;
             var item = new SongRequestQueueItem
             {
                 UserId = userId,
@@ -305,6 +342,48 @@ namespace Decatron.Services.SongRequest
             var position = await queued.CountAsync(q => q.Position < item.Position || (q.Position == item.Position && q.Id <= item.Id), ct);
             await NotifyAsync(config, ct);
             return new SongAddResult(item, position, track, null);
+        }
+
+        /// <summary>Tope de la bandeja de pendientes por canal (cola y playlists juntas).</summary>
+        public const int MaxPending = 100;
+
+        /// <summary>Los pedidos a la cola que esperan aprobación, del más viejo al más nuevo.</summary>
+        public IQueryable<SongRequestPending> PendingQueue(long userId) =>
+            _db.SongRequestPending.Where(p => p.UserId == userId && p.PlaylistId == null).OrderBy(p => p.Id);
+
+        /// <summary>
+        /// Un pedido aprobado entra al final de la cola, a nombre de quien lo pidió. Los límites ya se
+        /// revisaron al pedirlo; solo se evita que entre dos veces.
+        /// </summary>
+        public async Task<(SongRequestQueueItem? Item, int Position, string? ErrorKey)> EnqueueApprovedAsync(SongRequestConfig config, SongRequestPending pending, CancellationToken ct = default)
+        {
+            var userId = config.UserId;
+            if (await _db.SongRequestQueue.AnyAsync(q => q.UserId == userId && q.TrackId == pending.TrackId, ct))
+                return (null, 0, "already_queued");
+
+            var queued = _db.SongRequestQueue.Where(q => q.UserId == userId && q.Status == "queued");
+            var lastPosition = await queued.MaxAsync(q => (int?)q.Position, ct) ?? 0;
+            var item = new SongRequestQueueItem
+            {
+                UserId = userId,
+                TrackId = pending.TrackId,
+                Position = lastPosition + 1,
+                Status = "queued",
+                RequestedPlatform = pending.RequestedPlatform,
+                RequestedById = pending.RequestedById,
+                RequestedByLogin = pending.RequestedByLogin,
+                RequestedByName = pending.RequestedByName,
+                OriginSource = pending.OriginSource,
+                OriginUrl = pending.OriginUrl,
+                OriginTitle = pending.OriginTitle,
+                OriginArtist = pending.OriginArtist,
+                OriginThumbnailUrl = pending.OriginThumbnailUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.SongRequestQueue.Add(item);
+            await _db.SaveChangesAsync(ct);
+            var position = await queued.CountAsync(q => q.Position < item.Position || (q.Position == item.Position && q.Id <= item.Id), ct);
+            return (item, position, null);
         }
 
         /// <summary>
@@ -612,6 +691,9 @@ namespace Decatron.Services.SongRequest
                 // El reproductor corta al llegar aquí las canciones de duración desconocida (0 = no corta)
                 maxDurationSeconds = settings.MaxDurationSeconds > 0 && settings.AllowUnknownDuration ? settings.MaxDurationSeconds : 0,
                 fallbackEnabled = settings.FallbackEnabled,
+                requestReview = settings.RequestReview,
+                // Cuántos esperan aprobación (cola y playlists): el dashboard recarga la bandeja cuando cambia
+                pendingCount = await _db.SongRequestPending.CountAsync(p => p.UserId == config.UserId, ct),
                 playerConnected = _players.HasPlayer(config.ChannelName.ToLowerInvariant()),
                 current = current == null ? null : ToDto(current, 0),
                 queue = queued.Select((q, i) => ToDto(q, i + 1)).ToList(),

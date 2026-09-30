@@ -150,7 +150,7 @@ namespace Decatron.Controllers
         private static string? Validate(SongRequestSettings s)
         {
             var p = s.Permissions ?? new SongRequestPermissions();
-            if (new[] { p.Request, p.Skip, p.Manage }.Any(r => !Roles.Contains(r)))
+            if (new[] { p.Request, p.Skip, p.Manage, p.Review }.Any(r => !Roles.Contains(r)))
                 return "invalid_role";
             s.Permissions = p;
             s.MaxQueueSize = Math.Clamp(s.MaxQueueSize, 0, 500);
@@ -480,6 +480,85 @@ namespace Decatron.Controllers
             if (config == null) return NotFound(new { success = false });
             await _library.ReorderPlaylistAsync(config.UserId, playlistId, body.Ids, ct);
             return Ok(new { success = true });
+        }
+
+        // ── Revisión (fase 3) ────────────────────────────────────────────────
+
+        /// <summary>Quién está actuando desde el dashboard, para "vetado por" / "de confianza por".</summary>
+        private async Task<string?> ActorAsync(CancellationToken ct)
+        {
+            var me = this.GetAuthenticatedUserId();
+            return me == 0 ? null : await _db.Users.AsNoTracking().Where(u => u.Id == me).Select(u => u.Login).FirstOrDefaultAsync(ct);
+        }
+
+        [HttpGet("api/song-request/pending")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> PendingList([FromServices] SongRequestReviewService reviews, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            return Ok(new
+            {
+                success = true,
+                items = await reviews.ListAsync(config.UserId, ct),
+                trusted = await reviews.ListTrustedAsync(config.UserId, ct)
+            });
+        }
+
+        public sealed class DecideRequest
+        {
+            /// <summary>approve | reject | reject_silent | ban | trust</summary>
+            public string Action { get; set; } = "";
+        }
+
+        [HttpPost("api/song-request/pending/{id:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> Decide(long id, [FromBody] DecideRequest body, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var pending = await reviews.FindAsync(config.UserId, id, ct);
+            if (pending == null) return NotFound(new { success = false, error = "not_found" });
+
+            var result = body.Action switch
+            {
+                "approve" => await reviews.ApproveAsync(config, pending, ct),
+                "reject" => await reviews.RejectAsync(config, pending, notify: true, ct),
+                "reject_silent" => await reviews.RejectAsync(config, pending, notify: false, ct),
+                "ban" => await reviews.BanRequesterAsync(config, pending, await ActorAsync(ct), ct),
+                "trust" => await reviews.TrustAndApproveAsync(config, pending, await ActorAsync(ct), ct),
+                _ => null
+            };
+            if (result == null) return BadRequest(new { success = false, error = "invalid_action" });
+            return Ok(new { success = result.ErrorKey == null, error = result.ErrorKey, position = result.Position });
+        }
+
+        public sealed class TrustedRequest
+        {
+            public string Platform { get; set; } = "twitch";
+            public string Login { get; set; } = "";
+        }
+
+        [HttpPost("api/song-request/trusted")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> AddTrusted([FromBody] TrustedRequest body, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
+        {
+            var login = body.Login.Trim().TrimStart('@');
+            if (login.Length is 0 or > 100 || body.Platform is not ("twitch" or "kick"))
+                return BadRequest(new { success = false, error = "invalid_input" });
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var added = await reviews.AddTrustedAsync(config.UserId, body.Platform, login, login, await ActorAsync(ct), ct);
+            return Ok(new { success = added, error = added ? null : "already_trusted" });
+        }
+
+        [HttpDelete("api/song-request/trusted/{id:long}")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> RemoveTrusted(long id, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            return await reviews.RemoveTrustedAsync(config.UserId, id, ct) ? Ok(new { success = true }) : NotFound(new { success = false });
         }
 
         // ── Listas negras ────────────────────────────────────────────────────
@@ -830,7 +909,7 @@ namespace Decatron.Controllers
 
         /// <summary>Un viewer agrega a una playlist colaborativa y pública desde /sr/{canal}.</summary>
         [HttpPost("api/song-request/public/{channel}/playlists/{playlistId:long}/items")]
-        public async Task<IActionResult> PublicAddToPlaylist(string channel, long playlistId, [FromBody] AddRequest body, [FromServices] SongRequestContributionService contributions, CancellationToken ct)
+        public async Task<IActionResult> PublicAddToPlaylist(string channel, long playlistId, [FromBody] AddRequest body, [FromServices] SongRequestContributionService contributions, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(body.Input) || body.Input.Length > 500)
                 return BadRequest(new { success = false, error = "invalid_input" });
@@ -850,10 +929,13 @@ namespace Decatron.Controllers
             if (!who.Privileged && SongRequestContributionService.ParseRequirements(playlist.Requirements).MinRole != "everyone")
                 return Ok(new { success = false, error = "pl_role_web" });
 
-            var result = await contributions.AddAsync(config, playlist, who, body.Input.Trim(), ct);
+            // Si queda pendiente, la decisión se avisa en el chat de la cuenta con la que agregó
+            var replyChannel = await reviews.ReplyChannelForAsync(config, who.Platform, ct);
+            var result = await contributions.AddAsync(config, playlist, who, body.Input.Trim(), ct, replyChannel);
             return Ok(new
             {
                 success = result.Success,
+                pending = result.Pending,
                 error = result.ErrorKey,
                 vars = result.Vars,
                 title = result.Track?.Title,

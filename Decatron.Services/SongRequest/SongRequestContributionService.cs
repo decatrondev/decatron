@@ -20,7 +20,8 @@ namespace Decatron.Services.SongRequest
     public sealed record SongRequestContributor(string Platform, string? Id, string Login, string DisplayName, int RoleLevel, bool Privileged);
 
     /// <summary>Resultado de un aporte: la clave del mensaje y los datos para armarlo.</summary>
-    public sealed record ContributionResult(string? ErrorKey, SongTrack? Track = null, SongRequestPlaylist? Playlist = null, Dictionary<string, string>? Vars = null)
+    /// <remarks><see cref="Pending"/>: quedó en la bandeja de pendientes (playlist "con revisión").</remarks>
+    public sealed record ContributionResult(string? ErrorKey, SongTrack? Track = null, SongRequestPlaylist? Playlist = null, Dictionary<string, string>? Vars = null, bool Pending = false)
     {
         public bool Success => ErrorKey == null;
     }
@@ -75,7 +76,7 @@ namespace Decatron.Services.SongRequest
         /// <summary>Las playlists en las que alguien del chat puede agregar (colaborativas, o todas si es privilegiado).</summary>
         public Task<List<SongRequestPlaylist>> GetWritablePlaylistsAsync(long ownerId, bool privileged, CancellationToken ct = default) =>
             _db.SongRequestPlaylists.AsNoTracking()
-                .Where(p => p.UserId == ownerId && (privileged || p.Contribution == SongRequestPlaylistContribution.Open))
+                .Where(p => p.UserId == ownerId && (privileged || p.Contribution == SongRequestPlaylistContribution.Open || p.Contribution == SongRequestPlaylistContribution.Review))
                 .OrderByDescending(p => p.IsFallback).ThenBy(p => p.CreatedAt).ThenBy(p => p.Id)
                 .ToListAsync(ct);
 
@@ -101,13 +102,18 @@ namespace Decatron.Services.SongRequest
             return playlists.Count == 1 ? (playlists[0], text) : (null, text);
         }
 
-        public async Task<ContributionResult> AddAsync(SongRequestConfig config, SongRequestPlaylist playlist, SongRequestContributor who, string input, CancellationToken ct = default)
+        /// <summary>Los viewers de confianza del canal no pasan por revisión.</summary>
+        public Task<bool> IsTrustedAsync(long ownerId, string platform, string login, CancellationToken ct = default) =>
+            _db.SongRequestTrusted.AnyAsync(t => t.UserId == ownerId && t.Platform == platform && t.Login == login.ToLower(), ct);
+
+        /// <param name="replyChannel">A qué chat avisar si queda pendiente y después se decide.</param>
+        public async Task<ContributionResult> AddAsync(SongRequestConfig config, SongRequestPlaylist playlist, SongRequestContributor who, string input, CancellationToken ct = default, string? replyChannel = null)
         {
             var ownerId = config.UserId;
             var login = who.Login.ToLowerInvariant();
             var reqs = ParseRequirements(playlist.Requirements);
 
-            if (!who.Privileged && playlist.Contribution != SongRequestPlaylistContribution.Open)
+            if (!who.Privileged && !SongRequestPlaylistContribution.AcceptsViewers(playlist.Contribution))
                 return new("pl_closed", Playlist: playlist);
             if (await _songs.IsBannedAsync(ownerId, "user", $"{who.Platform}:{login}", ct))
                 return new("banned_user", Playlist: playlist);
@@ -126,6 +132,11 @@ namespace Decatron.Services.SongRequest
                     return denied;
             }
 
+            var review = !who.Privileged && playlist.Contribution == SongRequestPlaylistContribution.Review
+                && !await IsTrustedAsync(ownerId, who.Platform, login, ct);
+            if (review && await _db.SongRequestPending.CountAsync(p => p.UserId == ownerId, ct) >= SongRequestService.MaxPending)
+                return new("pending_full", Playlist: playlist);
+
             var limits = await _library.GetLimitsAsync(ownerId);
             if (await _db.SongRequestPlaylistItems.CountAsync(i => i.PlaylistId == playlist.Id, ct) >= limits.MaxItemsPerPlaylist)
                 return new("playlist_full", Playlist: playlist);
@@ -141,11 +152,38 @@ namespace Decatron.Services.SongRequest
                 return new("banned_author", track, playlist);
             if (await _db.SongRequestPlaylistItems.AnyAsync(i => i.PlaylistId == playlist.Id && i.TrackId == track.Id, ct))
                 return new("already_in_playlist", track, playlist);
+            if (await _db.SongRequestPending.AnyAsync(p => p.PlaylistId == playlist.Id && p.TrackId == track.Id, ct))
+                return new("already_pending", track, playlist);
             if (!who.Privileged)
             {
                 var filtered = await _songs.CheckFiltersAsync(ownerId, SongRequestService.ParseSettings(config), track, ct, checkRepeat: false);
                 if (filtered != null)
                     return new(filtered, track, playlist);
+            }
+
+            if (review)
+            {
+                var origin = resolved.Origin;
+                _db.SongRequestPending.Add(new SongRequestPending
+                {
+                    UserId = ownerId,
+                    PlaylistId = playlist.Id,
+                    TrackId = track.Id,
+                    RequestedPlatform = who.Platform,
+                    RequestedById = who.Id,
+                    RequestedByLogin = login,
+                    RequestedByName = string.IsNullOrWhiteSpace(who.DisplayName) ? who.Login : who.DisplayName,
+                    ReplyChannel = replyChannel,
+                    OriginSource = origin?.Origin,
+                    OriginUrl = origin?.Url,
+                    OriginTitle = origin?.Title,
+                    OriginArtist = origin?.Artist,
+                    OriginThumbnailUrl = origin?.ThumbnailUrl,
+                    CreatedAt = now
+                });
+                await _db.SaveChangesAsync(ct);
+                await _songs.NotifyAsync(config, ct);
+                return new(null, track, playlist, Pending: true);
             }
 
             var lastPosition = await _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlist.Id).MaxAsync(i => (int?)i.Position, ct) ?? 0;
@@ -193,10 +231,14 @@ namespace Decatron.Services.SongRequest
                     return new("pl_follow_age", Playlist: playlist, Vars: new() { ["days"] = reqs.MinFollowAgeDays.ToString() });
             }
 
+            // Lo que tiene esperando aprobación en esta playlist cuenta igual que lo ya agregado
             var mine = _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlist.Id && i.AddedByPlatform == who.Platform && i.AddedByLogin == login);
+            var minePending = _db.SongRequestPending.Where(p => p.PlaylistId == playlist.Id && p.RequestedPlatform == who.Platform && p.RequestedByLogin == login);
             if (reqs.CooldownMinutes > 0)
             {
-                var lastAdded = await mine.MaxAsync(i => (DateTime?)i.CreatedAt, ct);
+                var lastItem = await mine.MaxAsync(i => (DateTime?)i.CreatedAt, ct);
+                var lastPending = await minePending.MaxAsync(p => (DateTime?)p.CreatedAt, ct);
+                var lastAdded = lastItem > lastPending || lastPending == null ? lastItem : lastPending;
                 if (lastAdded != null)
                 {
                     var wait = lastAdded.Value.AddMinutes(reqs.CooldownMinutes) - DateTime.UtcNow;
@@ -204,7 +246,7 @@ namespace Decatron.Services.SongRequest
                         return new("pl_cooldown", Playlist: playlist, Vars: new() { ["minutes"] = Math.Max(1, (int)Math.Ceiling(wait.TotalMinutes)).ToString() });
                 }
             }
-            if (reqs.MaxPerUser > 0 && await mine.CountAsync(ct) >= reqs.MaxPerUser)
+            if (reqs.MaxPerUser > 0 && await mine.CountAsync(ct) + await minePending.CountAsync(ct) >= reqs.MaxPerUser)
                 return new("pl_user_limit", Playlist: playlist, Vars: new() { ["max"] = reqs.MaxPerUser.ToString() });
             if (reqs.MaxFromViewers > 0 && await _db.SongRequestPlaylistItems.CountAsync(i => i.PlaylistId == playlist.Id && i.AddedByLogin != null, ct) >= reqs.MaxFromViewers)
                 return new("pl_viewers_full", Playlist: playlist);
