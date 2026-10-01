@@ -537,7 +537,7 @@
       },
       "srplay": {
         "syntax": "!srplay <playlist | off>",
-        "text": "Plays that playlist when there are no requests, instead of the fallback one. off goes back to the fallback. With nothing, lists them."
+        "text": "Plays that playlist when there are no requests, instead of the fallback one. To stop it: !srplay off (!srplay <playlist> off works too). With nothing, lists them."
       },
       "skip": {
         "syntax": "!skip",

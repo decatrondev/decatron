@@ -89,7 +89,7 @@ namespace Decatron.Services.SongRequest
             "pl_usage", "pl_which", "pl_none", "pl_added", "pl_closed", "pl_slow_down", "pl_role", "pl_unverifiable",
             "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist",
             "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none",
-            "play_started", "play_off", "play_usage", "pl_no_active", "pl_number_invalid", "only_playlists",
+            "play_started", "play_off", "play_off_silent", "play_already_off", "play_already_off_silent", "play_usage", "pl_no_active", "pl_number_invalid", "only_playlists",
             "mode_set", "mode_usage", "hour_limit"
         };
 
@@ -423,13 +423,21 @@ namespace Decatron.Services.SongRequest
                 await run.ReplyAsync("play_usage", new() { ["playlists"] = names });
                 return;
             }
-            if (arg.Equals("off", StringComparison.OrdinalIgnoreCase))
+            // El nombre exacto gana; si no, "off" (o stop/parar...) al final para lo que suena: "!srplay TEST off" también
+            var exact = playlists.FirstOrDefault(p => string.Equals(p.Name, arg, StringComparison.OrdinalIgnoreCase));
+            var lastWord = arg.Split(' ', StringSplitOptions.RemoveEmptyEntries)[^1];
+            if (exact == null && OffWords.Contains(lastWord))
             {
+                if (run.Config.ActivePlaylistId == null)
+                {
+                    await run.ReplyAsync(run.Settings.FallbackEnabled ? "play_already_off" : "play_already_off_silent");
+                    return;
+                }
                 await run.Songs.SetActivePlaylistAsync(run.Config, null);
-                await run.ReplyAsync("play_off");
+                await run.ReplyAsync(run.Settings.FallbackEnabled ? "play_off" : "play_off_silent");
                 return;
             }
-            var playlist = playlists.FirstOrDefault(p => string.Equals(p.Name, arg, StringComparison.OrdinalIgnoreCase))
+            var playlist = exact
                 ?? playlists.FirstOrDefault(p => p.Name.StartsWith(arg, StringComparison.OrdinalIgnoreCase));
             if (playlist == null)
             {
@@ -439,6 +447,9 @@ namespace Decatron.Services.SongRequest
             await run.Songs.SetActivePlaylistAsync(run.Config, playlist.Id);
             await run.ReplyAsync("play_started", new() { ["playlist"] = playlist.Name });
         }
+
+        /// <summary>Lo que para la playlist puesta a sonar con !srplay, en inglés y en español.</summary>
+        private static readonly HashSet<string> OffWords = new(StringComparer.OrdinalIgnoreCase) { "off", "stop", "parar", "detener", "apagar" };
 
         /// <summary>Nombres que acepta !srmode, en inglés y en español.</summary>
         private static readonly Dictionary<string, string> ModeAliases = new(StringComparer.OrdinalIgnoreCase)

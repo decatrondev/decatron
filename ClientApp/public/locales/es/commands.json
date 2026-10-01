@@ -537,7 +537,7 @@
       },
       "srplay": {
         "syntax": "!srplay <playlist | off>",
-        "text": "Pone a sonar esa playlist cuando no hay pedidos, en lugar de la de respaldo. Con off vuelve la de respaldo. Sin nada, dice cuáles hay."
+        "text": "Pone a sonar esa playlist cuando no hay pedidos, en lugar de la de respaldo. Para pararla: !srplay off (también vale !srplay <playlist> off). Sin nada, dice cuáles hay."
       },
       "skip": {
         "syntax": "!skip",
