@@ -190,7 +190,7 @@ namespace Decatron.Services.SongRequest
             if (!result.Success)
             {
                 var vars = Vars(result.Track)
-                    .With("number", run.Args.TrimStart('#'))
+                    .With("number", run.Args.TrimStart('#').Trim())
                     .With("url", run.Songs.PublicQueueUrl(run.Config.ChannelName))
                     .With("max", result.ErrorKey switch
                     {

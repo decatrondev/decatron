@@ -327,7 +327,8 @@ namespace Decatron.Services.SongRequest
                 var items = await GetOrderedItemsAsync(playlist, ct, includeTrack: true);
                 if (number < 1 || number > items.Count || items[number.Value - 1].Track == null)
                     return SongAddResult.Fail("pl_number_invalid");
-                track = items[number.Value - 1].Track!;
+                // La lista viene sin seguimiento: con esa instancia, guardar el pedido intentaba crear la canción de nuevo
+                track = await _db.SongTracks.FirstAsync(t => t.Id == items[number.Value - 1].TrackId, ct);
             }
             else
             {
@@ -585,9 +586,9 @@ namespace Decatron.Services.SongRequest
 
         // ── Playlists sonando (fase 4) ───────────────────────────────────────
 
-        private static readonly System.Text.RegularExpressions.Regex PlaylistNumberRegex = new(@"^#(\d{1,5})$");
+        private static readonly System.Text.RegularExpressions.Regex PlaylistNumberRegex = new(@"^#\s*(\d{1,5})$");
 
-        /// <summary>"#12" → 12. Cualquier otra cosa → null (es un link o un nombre).</summary>
+        /// <summary>"#12" o "# 12" → 12. Cualquier otra cosa → null (es un link o un nombre).</summary>
         public static int? ParsePlaylistNumber(string input)
         {
             var m = PlaylistNumberRegex.Match(input.Trim());
