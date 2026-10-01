@@ -595,31 +595,20 @@ namespace Decatron.Services.SongRequest
             return m.Success ? int.Parse(m.Groups[1].Value) : null;
         }
 
-        /// <summary>La playlist que llena el silencio: la puesta a sonar, o la de respaldo si el respaldo está activo.</summary>
-        public async Task<SongRequestPlaylist?> GetPlayingPlaylistAsync(SongRequestConfig config, CancellationToken ct = default)
-        {
-            if (config.ActivePlaylistId != null)
-            {
-                var active = await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.Id == config.ActivePlaylistId && p.UserId == config.UserId, ct);
-                if (active != null)
-                    return active;
-            }
-            return ParseSettings(config).FallbackEnabled
-                ? await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.UserId == config.UserId && p.IsFallback, ct)
-                : null;
-        }
+        /// <summary>
+        /// La playlist de fondo: la que suena con la cola vacía (SONG_REQUEST_PUBLIC_PLAYLISTS_PLAN.md, fase 0b).
+        /// Una o ninguna; "respaldo" y "puesta a sonar" pasaron a ser lo mismo.
+        /// </summary>
+        public async Task<SongRequestPlaylist?> GetPlayingPlaylistAsync(SongRequestConfig config, CancellationToken ct = default) =>
+            config.ActivePlaylistId == null
+                ? null
+                : await _db.SongRequestPlaylists.FirstOrDefaultAsync(p => p.Id == config.ActivePlaylistId && p.UserId == config.UserId, ct);
 
-        /// <summary>De cuál cuenta !sr #n: la puesta a sonar o, si no hay, la de respaldo (aunque el respaldo esté apagado).</summary>
-        public async Task<SongRequestPlaylist?> GetRequestPlaylistAsync(SongRequestConfig config, CancellationToken ct = default)
-        {
-            if (config.ActivePlaylistId != null)
-            {
-                var active = await _db.SongRequestPlaylists.AsNoTracking().FirstOrDefaultAsync(p => p.Id == config.ActivePlaylistId && p.UserId == config.UserId, ct);
-                if (active != null)
-                    return active;
-            }
-            return await _db.SongRequestPlaylists.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == config.UserId && p.IsFallback, ct);
-        }
+        /// <summary>De cuál cuenta !sr #n: la playlist de fondo.</summary>
+        public async Task<SongRequestPlaylist?> GetRequestPlaylistAsync(SongRequestConfig config, CancellationToken ct = default) =>
+            config.ActivePlaylistId == null
+                ? null
+                : await _db.SongRequestPlaylists.AsNoTracking().FirstOrDefaultAsync(p => p.Id == config.ActivePlaylistId && p.UserId == config.UserId, ct);
 
         /// <summary>
         /// Las canciones en el orden de la playlist: manual, o más votadas primero. Es el mismo orden al sonar,
@@ -644,8 +633,8 @@ namespace Decatron.Services.SongRequest
                 && _db.SongRequestPlaylists.Any(p => p.Id == i.PlaylistId && p.Contribution != SongRequestPlaylistContribution.Open), ct);
 
         /// <summary>
-        /// Pone una playlist a sonar (o vuelve a la de respaldo con null). Si sonaba una de relleno, se cambia
-        /// ya; un pedido que esté sonando no se corta.
+        /// Cambia la playlist de fondo (null = ninguna: con la cola vacía no suena nada). Si sonaba una de la
+        /// playlist, se cambia ya; un pedido que esté sonando no se corta.
         /// </summary>
         public async Task<bool> SetActivePlaylistAsync(SongRequestConfig config, long? playlistId, CancellationToken ct = default)
         {
@@ -664,18 +653,113 @@ namespace Decatron.Services.SongRequest
             return true;
         }
 
-        /// <summary>Agrega a la cola, ya sonando, la próxima de la playlist que llena el silencio. false si no hay.</summary>
+        /// <summary>
+        /// La próxima de la playlist de fondo que pidió !plplay #n (canal → playlist y canción). Se usa una vez:
+        /// ya, si sonaba la playlist, o cuando terminen los pedidos. Vive en memoria: tras un reinicio sigue el orden normal.
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<long, (long PlaylistId, long ItemId)> _jumps = new();
+
+        public enum JumpResult { Now, AfterRequests, NoPlayer, Invalid }
+
+        /// <summary>
+        /// !plplay [playlist] #n: la canción n de esa playlist suena ya (o al terminar los pedidos). Si la playlist no
+        /// era la de fondo, pasa a serlo.
+        /// </summary>
+        public async Task<(JumpResult Result, SongTrack? Track)> JumpToAsync(SongRequestConfig config, SongRequestPlaylist playlist, int number, CancellationToken ct = default)
+        {
+            var items = await GetOrderedItemsAsync(playlist, ct, includeTrack: true);
+            if (number < 1 || number > items.Count || items[number - 1].Track == null)
+                return (JumpResult.Invalid, null);
+            var item = items[number - 1];
+            _jumps[config.UserId] = (playlist.Id, item.Id);
+
+            if (config.ActivePlaylistId != playlist.Id)
+            {
+                await SetActivePlaylistAsync(config, playlist.Id, ct);
+            }
+            else
+            {
+                var current = await _db.SongRequestQueue.AsNoTracking().FirstOrDefaultAsync(q => q.UserId == config.UserId && q.Status == "playing", ct);
+                if (current?.RequestedPlatform == SongRequestPlatforms.Fallback)
+                    await AdvanceAsync(config, "skipped", ct);
+                else if (current == null)
+                    await StartNextIfIdleAsync(config, ct);
+            }
+
+            var playing = await _db.SongRequestQueue.AsNoTracking().FirstOrDefaultAsync(q => q.UserId == config.UserId && q.Status == "playing", ct);
+            if (playing?.RequestedPlatform == SongRequestPlatforms.Fallback && playing.TrackId == item.TrackId)
+                return (JumpResult.Now, item.Track);
+            // Sin reproductor abierto no arranca nada: queda para cuando suene
+            if (playing == null && !_players.HasPlayer(config.ChannelName.ToLowerInvariant()))
+                return (JumpResult.NoPlayer, item.Track);
+            return (JumpResult.AfterRequests, item.Track);
+        }
+
+        /// <summary>!plnext: la siguiente de la playlist de fondo. false si lo que suena no es de la playlist.</summary>
+        public async Task<bool> NextInPlaylistAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            var current = await _db.SongRequestQueue.AsNoTracking().FirstOrDefaultAsync(q => q.UserId == config.UserId && q.Status == "playing", ct);
+            if (current?.RequestedPlatform != SongRequestPlatforms.Fallback)
+                return false;
+            await AdvanceAsync(config, "skipped", ct);
+            return true;
+        }
+
+        /// <summary>!plshuffle: al azar o en orden. null = la cambia al revés de como estaba.</summary>
+        public async Task<bool?> SetShuffleAsync(SongRequestConfig config, bool? shuffle, CancellationToken ct = default)
+        {
+            var playlist = await GetPlayingPlaylistAsync(config, ct);
+            if (playlist == null)
+                return null;
+            playlist.Shuffle = shuffle ?? !playlist.Shuffle;
+            playlist.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            return playlist.Shuffle;
+        }
+
+        /// <summary>
+        /// Para !pl: la playlist de fondo, cuántas canciones tiene y el número de la que suena (null si ahora suena
+        /// un pedido o nada de la playlist).
+        /// </summary>
+        public async Task<(SongRequestPlaylist Playlist, int Count, int? Number)?> GetBackgroundStatusAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            var playlist = await GetRequestPlaylistAsync(config, ct);
+            if (playlist == null)
+                return null;
+            var items = await GetOrderedItemsAsync(playlist, ct);
+            var current = await _db.SongRequestQueue.AsNoTracking().FirstOrDefaultAsync(q => q.UserId == config.UserId && q.Status == "playing", ct);
+            int? number = null;
+            if (current?.RequestedPlatform == SongRequestPlatforms.Fallback)
+            {
+                var index = items.FindIndex(i => i.TrackId == current.TrackId);
+                number = index >= 0 ? index + 1 : null;
+            }
+            return (playlist, items.Count, number);
+        }
+
+        /// <summary>Agrega a la cola, ya sonando, la próxima de la playlist de fondo. false si no hay.</summary>
         private async Task<bool> StartFallbackAsync(SongRequestConfig config, CancellationToken ct)
         {
             var playlist = await GetPlayingPlaylistAsync(config, ct);
             if (playlist == null)
                 return false;
-            var items = (await GetOrderedItemsAsync(playlist, ct)).Select(i => i.TrackId).ToList();
+            var ordered = await GetOrderedItemsAsync(playlist, ct);
+            var items = ordered.Select(i => i.TrackId).ToList();
             if (items.Count == 0)
                 return false;
 
             int index;
-            if (playlist.Shuffle)
+            // !plplay #n: esa va primero; en orden, la que sigue es la de después
+            var jumpIndex = _jumps.TryRemove(config.UserId, out var jump) && jump.PlaylistId == playlist.Id
+                ? ordered.FindIndex(i => i.Id == jump.ItemId)
+                : -1;
+            if (jumpIndex >= 0)
+            {
+                index = jumpIndex;
+                if (!playlist.Shuffle)
+                    playlist.Cursor = index + 1;
+            }
+            else if (playlist.Shuffle)
             {
                 // Al azar, sin repetir la que acaba de sonar
                 var last = await _db.SongRequestHistory.Where(h => h.UserId == config.UserId)
@@ -835,8 +919,8 @@ namespace Decatron.Services.SongRequest
                 volume = config.Volume,
                 // El reproductor corta al llegar aquí las canciones de duración desconocida (0 = no corta)
                 maxDurationSeconds = settings.MaxDurationSeconds > 0 && settings.AllowUnknownDuration ? settings.MaxDurationSeconds : 0,
-                // El reproductor pide la siguiente con la cola vacía si hay algo que llene el silencio
-                fallbackEnabled = settings.FallbackEnabled || config.ActivePlaylistId != null,
+                // El reproductor pide la siguiente con la cola vacía si hay playlist de fondo
+                fallbackEnabled = config.ActivePlaylistId != null,
                 activePlaylistId = config.ActivePlaylistId,
                 requestReview = settings.RequestReview,
                 requestSource = settings.RequestSource,

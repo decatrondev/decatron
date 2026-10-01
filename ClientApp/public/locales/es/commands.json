@@ -474,7 +474,7 @@
   "srGuide": {
     "groups": {
       "request": "Pedir y consultar",
-      "playlists": "Playlists",
+      "playlists": "Playlist de fondo",
       "queue": "Cola",
       "review": "Revisión",
       "manage": "Administrar"
@@ -505,7 +505,7 @@
       },
       "srNumber": {
         "syntax": "!sr #<número>",
-        "text": "Pide por su número una canción de la playlist que está sonando (o de la de respaldo)."
+        "text": "Pide a la cola, por su número, una canción de la playlist de fondo."
       },
       "wrongsong": {
         "syntax": "!wrongsong",
@@ -525,23 +525,39 @@
       },
       "skipVote": {
         "syntax": "!skip",
-        "text": "Vota para saltar la canción que suena; se salta con {{votes}} votos."
+        "text": "Vota para saltar la canción que suena (pedido o de la playlist); se salta con {{votes}} votos."
       },
       "volumeView": {
         "syntax": "!srvolume",
         "text": "Dice el volumen de la música."
       },
+      "pl": {
+        "syntax": "!pl",
+        "text": "Dice cuál es la playlist de fondo y qué número está sonando."
+      },
+      "plplay": {
+        "syntax": "!plplay <playlist | #número>",
+        "text": "Con el nombre, pone esa playlist de fondo (suena cuando no hay pedidos). Con #número salta ya a esa canción de la playlist de fondo; si suena un pedido, va apenas termine. Se pueden juntar: !plplay chill #19."
+      },
+      "plstop": {
+        "syntax": "!plstop",
+        "text": "Para la playlist de fondo: con la cola vacía no suena nada. También vale !plplay off."
+      },
+      "plnext": {
+        "syntax": "!plnext",
+        "text": "Pasa a la siguiente canción de la playlist de fondo. No salta pedidos (para eso, !skip)."
+      },
+      "plshuffle": {
+        "syntax": "!plshuffle [on | off]",
+        "text": "La playlist de fondo suena al azar (on) o en orden (off); sin nada, cambia entre los dos."
+      },
       "pladd": {
         "syntax": "!pladd <playlist> <link o nombre>",
         "text": "Agrega una canción a una playlist colaborativa. Si hay una sola abierta, no hace falta el nombre de la playlist. Quién puede agregar lo decide cada playlist."
       },
-      "srplay": {
-        "syntax": "!srplay <playlist | off>",
-        "text": "Pone a sonar esa playlist cuando no hay pedidos, en lugar de la de respaldo. Para pararla: !srplay off (también vale !srplay <playlist> off). Sin nada, dice cuáles hay."
-      },
       "skip": {
         "syntax": "!skip",
-        "text": "Salta la canción que suena, sin votación."
+        "text": "Salta la canción que suena (pedido o de la playlist), sin votación."
       },
       "srremove": {
         "syntax": "!srremove <posición>",

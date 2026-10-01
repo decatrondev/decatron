@@ -105,7 +105,7 @@ namespace Decatron.Services.SongRequest
 
         /// <summary>
         /// Las playlists del canal con cuántas canciones tiene cada una. Un canal nuevo arranca con su
-        /// playlist de respaldo (los que ya existían la recibieron en la migración).
+        /// primera playlist (los que ya existían la recibieron en la migración).
         /// </summary>
         public async Task<List<object>> GetPlaylistsAsync(long userId, CancellationToken ct = default)
         {
@@ -115,7 +115,7 @@ namespace Decatron.Services.SongRequest
                 _db.SongRequestPlaylists.Add(new SongRequestPlaylist
                 {
                     UserId = userId,
-                    Name = lang != null && lang.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "Fallback playlist" : "Playlist de respaldo",
+                    Name = lang != null && lang.StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "My playlist" : "Mi playlist",
                     IsFallback = true
                 });
                 await _db.SaveChangesAsync(ct);
@@ -326,12 +326,8 @@ namespace Decatron.Services.SongRequest
                 .Select(p => new { p.Id, p.Name, p.Contribution, p.Requirements, p.VotingEnabled, p.SortByVotes, p.IsFallback, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
                 .ToListAsync(ct);
             var activeId = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ActivePlaylistId).FirstOrDefaultAsync(ct);
-            // La que responde a !sr #n: la puesta a sonar o, si no hay (o se borró), la de respaldo. Se mira entre
-            // todas: si la que suena es privada, ninguna pública lleva el número (la de respaldo no es a la que pide).
-            var activeExists = activeId != null && await _db.SongRequestPlaylists.AnyAsync(p => p.Id == activeId && p.UserId == userId, ct);
-            var numberedId = activeExists
-                ? activeId
-                : await _db.SongRequestPlaylists.Where(p => p.UserId == userId && p.IsFallback).Select(p => (long?)p.Id).FirstOrDefaultAsync(ct);
+            // La que responde a !sr #n es la playlist de fondo; si es privada, ninguna pública lleva el número
+            var numberedId = activeId;
             return rows.Select(p => (object)new
             {
                 id = p.Id,

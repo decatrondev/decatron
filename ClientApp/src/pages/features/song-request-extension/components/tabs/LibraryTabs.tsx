@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Radio, Play, Square, ThumbsUp } from 'lucide-react';
+import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Play, Square, ThumbsUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
@@ -244,7 +244,6 @@ function usePlaylists() {
 export function PlaylistsTab({ cfg }: TabProps) {
     const { t } = useTranslation('overlays');
     const errorText = useErrorText();
-    const s = cfg.settings;
     const { playlists, limits, reload } = usePlaylists();
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [newName, setNewName] = useState('');
@@ -252,7 +251,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
     const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
     const selected = playlists?.find(p => p.id === selectedId) ?? playlists?.[0] ?? null;
-    const fallback = playlists?.find(p => p.isFallback) ?? null;
+    const background = playlists?.find(p => p.isActive) ?? null;
     const atLimit = !!limits && !!playlists && playlists.length >= limits.maxPlaylists;
 
     const create = async () => {
@@ -275,6 +274,14 @@ export function PlaylistsTab({ cfg }: TabProps) {
         await reload();
     };
 
+    // La playlist de fondo (fase 0b): la misma que !plplay y !plstop, al instante
+    const setBackground = async (id: number | null) => {
+        setResult(null);
+        try { await api.put('/song-request/active-playlist', { playlistId: id }); }
+        catch { setResult({ ok: false, text: errorText('failed') }); }
+        await reload();
+    };
+
     const remove = async (playlist: Playlist) => {
         if (!window.confirm(t('songRequest.playlists.deleteConfirm', { name: playlist.name, count: playlist.count }))) return;
         await api.delete(`/song-request/playlists/${playlist.id}`);
@@ -286,27 +293,18 @@ export function PlaylistsTab({ cfg }: TabProps) {
 
     return (
         <div className="space-y-6">
-            <Card title={t('songRequest.fallback.title')} description={t('songRequest.fallback.description')}>
-                <div className="space-y-4">
-                    <Toggle checked={s.fallbackEnabled} onChange={v => cfg.updateSettings({ fallbackEnabled: v })} label={t('songRequest.fallback.enabled')} hint={t('songRequest.fallback.enabledHint')} />
-                    <Field label={t('songRequest.fallback.which')}>
-                        <select
-                            className={inputClass}
-                            value={fallback?.id ?? ''}
-                            onChange={e => {
-                                const id = Number(e.target.value);
-                                if (id) update(id, { isFallback: true });
-                                else if (fallback) update(fallback.id, { isFallback: false });
-                            }}
-                        >
-                            <option value="">{t('songRequest.fallback.none')}</option>
+            <Card title={t('songRequest.background.title')} description={t('songRequest.background.description')}>
+                <div className="space-y-3">
+                    <Field label={t('songRequest.background.which')}>
+                        <select className={inputClass} value={background?.id ?? ''} onChange={e => setBackground(e.target.value ? Number(e.target.value) : null)}>
+                            <option value="">{t('songRequest.background.none')}</option>
                             {playlists.map(p => <option key={p.id} value={p.id}>{p.name} ({p.count})</option>)}
                         </select>
                     </Field>
-                    {s.fallbackEnabled && (!fallback || fallback.count === 0) && (
-                        <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.fallback.emptyWarning')}</p>
-                    )}
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.fallback.saveNote')}</p>
+                    {background
+                        ? background.count === 0 && <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.background.emptyWarning')}</p>
+                        : <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.background.noneNote')}</p>}
+                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.instantNote')}</p>
                 </div>
             </Card>
 
@@ -327,8 +325,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
                                 {p.visibility === 'public' ? <Globe className="w-4 h-4 shrink-0" /> : <Lock className="w-4 h-4 shrink-0" />}
                                 <span className="truncate max-w-[12rem] 3xl:max-w-[16rem]">{p.name}</span>
                                 <span className="text-xs 3xl:text-sm text-[#94a3b8]">{p.count}</span>
-                                {p.isFallback && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">{t('songRequest.playlists.fallbackBadge')}</span>}
-                                {p.isActive && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">▶ {t('songRequest.playlists.playingBadge')}</span>}
+                                {p.isActive && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">♪ {t('songRequest.playlists.playingBadge')}</span>}
                             </button>
                         ))}
                     </div>
@@ -354,7 +351,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
                     onUpdate={changes => update(selected.id, changes)}
                     onDelete={() => remove(selected)}
                     onItemsChanged={reload}
-                    onPlay={async on => { await api.put('/song-request/active-playlist', { playlistId: on ? selected.id : null }); await reload(); }}
+                    onPlay={on => setBackground(on ? selected.id : null)}
                 />
             )}
         </div>
@@ -501,11 +498,6 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                         ) : (
                             <button className={primaryBtn} onClick={() => onPlay(true)}>
                                 <Play className="w-4 h-4" /> {t('songRequest.playlists.play')}
-                            </button>
-                        )}
-                        {!playlist.isFallback && (
-                            <button className={smallBtn} onClick={() => onUpdate({ isFallback: true })}>
-                                <Radio className="w-4 h-4" /> {t('songRequest.playlists.makeFallback')}
                             </button>
                         )}
                     </div>

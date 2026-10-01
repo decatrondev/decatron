@@ -474,7 +474,7 @@
   "srGuide": {
     "groups": {
       "request": "Request and check",
-      "playlists": "Playlists",
+      "playlists": "Background playlist",
       "queue": "Queue",
       "review": "Review",
       "manage": "Manage"
@@ -505,7 +505,7 @@
       },
       "srNumber": {
         "syntax": "!sr #<number>",
-        "text": "Requests a song by its number from the playlist that's playing (or the fallback one)."
+        "text": "Requests to the queue, by its number, a song from the background playlist."
       },
       "wrongsong": {
         "syntax": "!wrongsong",
@@ -525,23 +525,39 @@
       },
       "skipVote": {
         "syntax": "!skip",
-        "text": "Votes to skip the song that's playing; it's skipped with {{votes}} votes."
+        "text": "Votes to skip the song that's playing (request or playlist); it's skipped with {{votes}} votes."
       },
       "volumeView": {
         "syntax": "!srvolume",
         "text": "Says the music volume."
       },
+      "pl": {
+        "syntax": "!pl",
+        "text": "Says which playlist is in the background and which number is playing."
+      },
+      "plplay": {
+        "syntax": "!plplay <playlist | #number>",
+        "text": "With a name, sets that playlist as background (it plays when there are no requests). With #number it jumps right away to that song of the background playlist; if a request is playing, right after it. They can be combined: !plplay chill #19."
+      },
+      "plstop": {
+        "syntax": "!plstop",
+        "text": "Stops the background playlist: when the queue is empty nothing plays. !plplay off works too."
+      },
+      "plnext": {
+        "syntax": "!plnext",
+        "text": "Moves to the next song of the background playlist. It doesn't skip requests (use !skip)."
+      },
+      "plshuffle": {
+        "syntax": "!plshuffle [on | off]",
+        "text": "The background playlist plays in random order (on) or in order (off); with nothing, it toggles."
+      },
       "pladd": {
         "syntax": "!pladd <playlist> <link or name>",
         "text": "Adds a song to a collaborative playlist. If only one is open, the playlist name isn't needed. Each playlist decides who can add."
       },
-      "srplay": {
-        "syntax": "!srplay <playlist | off>",
-        "text": "Plays that playlist when there are no requests, instead of the fallback one. To stop it: !srplay off (!srplay <playlist> off works too). With nothing, lists them."
-      },
       "skip": {
         "syntax": "!skip",
-        "text": "Skips the song that's playing, without a vote."
+        "text": "Skips the song that's playing (request or playlist), without a vote."
       },
       "srremove": {
         "syntax": "!srremove <position>",

@@ -228,7 +228,7 @@ namespace Decatron.Controllers
 
             var commands = new (string Name, string Description, string? Restriction)[]
             {
-                ("sr", "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre (también !songrequest); !sr #12 pide la 12 de la playlist que suena", request),
+                ("sr", "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre (también !songrequest); !sr #12 pide a la cola la 12 de la playlist de fondo", request),
                 ("wrongsong", "Quita de la cola tu último pedido", request),
                 ("queue", "Muestra las próximas canciones y el link a la cola", request),
                 ("song", "Muestra la canción que está sonando (también !currentsong)", request),
@@ -249,7 +249,11 @@ namespace Decatron.Controllers
                 ("srcover", "El reproductor muestra la portada en vez del video", manage),
                 ("pladd", "Agrega una canción a una playlist del canal (!pladd <playlist> <link o nombre>); cada playlist decide quién puede", null),
                 ("srmode", "Cambia el modo de pedidos: open (abiertos), playlists (solo de las playlists), review (con revisión) o closed (cerrados)", manage),
-                ("srplay", "Pone a sonar una playlist del canal cuando no hay pedidos (!srplay <playlist>); para pararla, !srplay off", manage),
+                ("pl", "Dice cuál es la playlist de fondo (la que suena sin pedidos) y qué número está sonando", request),
+                ("plplay", "Pone una playlist de fondo (!plplay <playlist>) o salta a una canción de ella (!plplay #19); también !srplay", manage),
+                ("plstop", "Para la playlist de fondo: con la cola vacía no suena nada", manage),
+                ("plnext", "Pasa a la siguiente canción de la playlist de fondo (no salta pedidos)", skip),
+                ("plshuffle", "La playlist de fondo al azar o en orden (!plshuffle on / off)", manage),
                 ("srapprove", "Aprueba lo que espera revisión, por su número (!srapprove 2; sin número, el más viejo)", review),
                 ("srreject", "Rechaza lo que espera revisión, por su número (!srreject 2; sin número, el más viejo)", review),
             };

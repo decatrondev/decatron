@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -46,7 +46,13 @@ namespace Decatron.Services.SongRequest
             ["!pladd"] = Action.PlaylistAdd,
             ["!srapprove"] = Action.Approve,
             ["!srreject"] = Action.Reject,
+            // Playlist de fondo (fase 0b): familia !pl; !srplay sigue valiendo igual que !plplay
             ["!srplay"] = Action.Play,
+            ["!plplay"] = Action.Play,
+            ["!pl"] = Action.PlaylistInfo,
+            ["!plstop"] = Action.PlaylistStop,
+            ["!plnext"] = Action.PlaylistNext,
+            ["!plshuffle"] = Action.PlaylistShuffle,
             ["!srmode"] = Action.Mode
         };
 
@@ -89,7 +95,8 @@ namespace Decatron.Services.SongRequest
             "pl_usage", "pl_which", "pl_none", "pl_added", "pl_closed", "pl_slow_down", "pl_role", "pl_unverifiable",
             "pl_account_age", "pl_follow_age", "pl_cooldown", "pl_user_limit", "pl_viewers_full", "playlist_full", "already_in_playlist",
             "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none",
-            "play_started", "play_off", "play_off_silent", "play_already_off", "play_already_off_silent", "play_usage", "pl_no_active", "pl_number_invalid", "only_playlists",
+            "play_started", "play_off", "play_already_off", "play_usage", "pl_jump_now", "pl_jump_after", "pl_jump_no_player",
+            "pl_info", "pl_info_idle", "pl_info_none", "pl_next_not_playlist", "pl_shuffle_on", "pl_shuffle_off", "pl_no_active", "pl_number_invalid", "only_playlists",
             "mode_set", "mode_usage", "hour_limit"
         };
 
@@ -125,9 +132,10 @@ namespace Decatron.Services.SongRequest
                     Action.Skip => null, // decide adentro: directo o voto
                     Action.Volume => null, // decide adentro: ver el volumen o cambiarlo
                     Action.PlaylistAdd => null, // decide la playlist: sus requisitos
-                    Action.Remove or Action.Promote => run.Settings.Permissions.Skip,
+                    Action.Remove or Action.Promote or Action.PlaylistNext => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
-                        or Action.Video or Action.Cover or Action.Play or Action.Mode => run.Settings.Permissions.Manage,
+                        or Action.Video or Action.Cover or Action.Play or Action.Mode
+                        or Action.PlaylistStop or Action.PlaylistShuffle => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     _ => run.Settings.Permissions.Request
                 };
@@ -157,6 +165,10 @@ namespace Decatron.Services.SongRequest
                     case Action.Reject: await DecideAsync(run, approve: false); break;
                     case Action.Play: await PlayAsync(run); break;
                     case Action.Mode: await ModeAsync(run); break;
+                    case Action.PlaylistInfo: await PlaylistInfoAsync(run); break;
+                    case Action.PlaylistStop: await PlaylistStopAsync(run); break;
+                    case Action.PlaylistNext: await PlaylistNextAsync(run); break;
+                    case Action.PlaylistShuffle: await PlaylistShuffleAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -411,44 +423,153 @@ namespace Decatron.Services.SongRequest
         }
 
         /// <summary>!srplay &lt;playlist&gt; la pone a sonar con la cola vacía; !srplay off vuelve a la de respaldo.</summary>
+        private static async Task<List<SongRequestPlaylist>> ChannelPlaylistsAsync(Run run) =>
+            await run.Services.GetRequiredService<DecatronDbContext>().SongRequestPlaylists.AsNoTracking()
+                .Where(p => p.UserId == run.Config.UserId)
+                .OrderByDescending(p => p.Id == run.Config.ActivePlaylistId).ThenBy(p => p.CreatedAt).ThenBy(p => p.Id).ToListAsync();
+
+        private static string Names(List<SongRequestPlaylist> playlists) => string.Join(" · ", playlists.Select(p => p.Name));
+
+        /// <summary>
+        /// !plplay (o !srplay): &lt;playlist&gt; la pone de fondo; #n salta a esa canción de la de fondo; &lt;playlist&gt; #n
+        /// las dos cosas; off (o stop, parar…) al final la para, como !plstop.
+        /// </summary>
         private static async Task PlayAsync(Run run)
         {
-            var db = run.Services.GetRequiredService<DecatronDbContext>();
-            var playlists = await db.SongRequestPlaylists.AsNoTracking().Where(p => p.UserId == run.Config.UserId)
-                .OrderByDescending(p => p.IsFallback).ThenBy(p => p.CreatedAt).ToListAsync();
-            var names = string.Join(" · ", playlists.Select(p => p.Name));
+            var playlists = await ChannelPlaylistsAsync(run);
             var arg = run.Args.Trim();
             if (arg.Length == 0)
             {
-                await run.ReplyAsync("play_usage", new() { ["playlists"] = names });
+                await run.ReplyAsync("play_usage", new() { ["playlists"] = Names(playlists) });
                 return;
             }
-            // El nombre exacto gana; si no, "off" (o stop/parar...) al final para lo que suena: "!srplay TEST off" también
+            // El nombre exacto gana, aunque termine en "off" o en "#n"
             var exact = playlists.FirstOrDefault(p => string.Equals(p.Name, arg, StringComparison.OrdinalIgnoreCase));
             var lastWord = arg.Split(' ', StringSplitOptions.RemoveEmptyEntries)[^1];
             if (exact == null && OffWords.Contains(lastWord))
             {
-                if (run.Config.ActivePlaylistId == null)
+                await PlaylistStopAsync(run);
+                return;
+            }
+
+            // "#19", "# 19", "TEST #19"
+            int? number = null;
+            var name = arg;
+            if (exact == null)
+            {
+                var m = JumpRegex.Match(arg);
+                if (m.Success)
                 {
-                    await run.ReplyAsync(run.Settings.FallbackEnabled ? "play_already_off" : "play_already_off_silent");
+                    number = int.Parse(m.Groups[2].Value);
+                    name = m.Groups[1].Value.Trim();
+                }
+            }
+
+            SongRequestPlaylist? playlist;
+            if (exact != null)
+                playlist = exact;
+            else if (name.Length == 0)
+            {
+                playlist = playlists.FirstOrDefault(p => p.Id == run.Config.ActivePlaylistId);
+                if (playlist == null)
+                {
+                    await run.ReplyAsync("pl_no_active");
                     return;
                 }
-                await run.Songs.SetActivePlaylistAsync(run.Config, null);
-                await run.ReplyAsync(run.Settings.FallbackEnabled ? "play_off" : "play_off_silent");
-                return;
             }
-            var playlist = exact
-                ?? playlists.FirstOrDefault(p => p.Name.StartsWith(arg, StringComparison.OrdinalIgnoreCase));
+            else
+                playlist = playlists.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+                    ?? playlists.FirstOrDefault(p => p.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase));
             if (playlist == null)
             {
-                await run.ReplyAsync("play_usage", new() { ["playlists"] = names });
+                await run.ReplyAsync("play_usage", new() { ["playlists"] = Names(playlists) });
                 return;
             }
-            await run.Songs.SetActivePlaylistAsync(run.Config, playlist.Id);
-            await run.ReplyAsync("play_started", new() { ["playlist"] = playlist.Name });
+
+            if (number == null)
+            {
+                await run.Songs.SetActivePlaylistAsync(run.Config, playlist.Id);
+                await run.ReplyAsync("play_started", new() { ["playlist"] = playlist.Name });
+                return;
+            }
+
+            var (result, track) = await run.Songs.JumpToAsync(run.Config, playlist, number.Value);
+            var vars = Vars(track).With("number", number.Value.ToString()).With("playlist", playlist.Name)
+                .With("url", run.Songs.PublicQueueUrl(run.Config.ChannelName));
+            await run.ReplyAsync(result switch
+            {
+                SongRequestService.JumpResult.Now => "pl_jump_now",
+                SongRequestService.JumpResult.AfterRequests => "pl_jump_after",
+                SongRequestService.JumpResult.NoPlayer => "pl_jump_no_player",
+                _ => "pl_number_invalid"
+            }, vars);
         }
 
-        /// <summary>Lo que para la playlist puesta a sonar con !srplay, en inglés y en español.</summary>
+        private static readonly System.Text.RegularExpressions.Regex JumpRegex = new(@"^(.*?)#\s*(\d{1,5})$");
+
+        /// <summary>!plstop: sin playlist de fondo; con la cola vacía no suena nada.</summary>
+        private static async Task PlaylistStopAsync(Run run)
+        {
+            if (run.Config.ActivePlaylistId == null)
+            {
+                await run.ReplyAsync("play_already_off");
+                return;
+            }
+            await run.Songs.SetActivePlaylistAsync(run.Config, null);
+            await run.ReplyAsync("play_off");
+        }
+
+        /// <summary>!pl: cuál es la playlist de fondo y en qué número va.</summary>
+        private static async Task PlaylistInfoAsync(Run run)
+        {
+            var status = await run.Songs.GetBackgroundStatusAsync(run.Config);
+            if (status == null)
+            {
+                // Cualquiera puede usar !pl: solo se nombran las públicas
+                var visible = (await ChannelPlaylistsAsync(run)).Where(p => p.Visibility == SongRequestPlaylistVisibility.Public).ToList();
+                await run.ReplyAsync("pl_info_none", new() { ["playlists"] = visible.Count > 0 ? Names(visible) : "—" });
+                return;
+            }
+            var (playlist, count, number) = status.Value;
+            var vars = new Dictionary<string, string>
+            {
+                ["playlist"] = playlist.Name,
+                ["count"] = count.ToString(),
+                ["url"] = run.Songs.PublicQueueUrl(run.Config.ChannelName)
+            };
+            if (number != null)
+                vars["number"] = number.Value.ToString();
+            await run.ReplyAsync(number != null ? "pl_info" : "pl_info_idle", vars);
+        }
+
+        /// <summary>!plnext: la siguiente de la playlist; un pedido no se salta con esto (para eso !skip).</summary>
+        private static async Task PlaylistNextAsync(Run run)
+        {
+            if (run.Config.ActivePlaylistId == null)
+            {
+                await run.ReplyAsync("pl_no_active");
+                return;
+            }
+            if (!await run.Songs.NextInPlaylistAsync(run.Config))
+                await run.ReplyAsync("pl_next_not_playlist");
+        }
+
+        /// <summary>!plshuffle [on|off]: la playlist de fondo al azar o en orden; sin nada, la cambia.</summary>
+        private static async Task PlaylistShuffleAsync(Run run)
+        {
+            var arg = run.Args.Split(' ', 2)[0].ToLowerInvariant();
+            bool? wanted = arg is "on" or "si" or "sí" ? true : OffWords.Contains(arg) ? false : null;
+            var playlist = await run.Songs.GetRequestPlaylistAsync(run.Config);
+            var result = await run.Songs.SetShuffleAsync(run.Config, wanted);
+            if (result == null || playlist == null)
+            {
+                await run.ReplyAsync("pl_no_active");
+                return;
+            }
+            await run.ReplyAsync(result.Value ? "pl_shuffle_on" : "pl_shuffle_off", new() { ["playlist"] = playlist.Name });
+        }
+
+        /// <summary>Lo que para la playlist de fondo con !plplay/!srplay, o apaga !plshuffle, en inglés y en español.</summary>
         private static readonly HashSet<string> OffWords = new(StringComparer.OrdinalIgnoreCase) { "off", "stop", "parar", "detener", "apagar" };
 
         /// <summary>Nombres que acepta !srmode, en inglés y en español.</summary>

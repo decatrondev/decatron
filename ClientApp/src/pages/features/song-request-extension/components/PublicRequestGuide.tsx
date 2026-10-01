@@ -65,7 +65,7 @@ export function PublicRequestGuide({ channel, mode, requestSource, activePlaylis
         if (cmd.id === 'srNumber') return guide.numberedPlaylist != null;
         if (cmd.id === 'skipVote') return guide.skipVoteEnabled;
         if (cmd.id === 'pladd') return guide.hasCollaborative;
-        return cmd.group === 'request';
+        return cmd.group === 'request' || cmd.id === 'pl';
     };
     const commands = GUIDE_COMMANDS.filter(visible);
     const primary = commands.filter(c => PRIMARY.includes(c.id));

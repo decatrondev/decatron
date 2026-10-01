@@ -31,9 +31,13 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     { id: 'myqueue', group: 'request', examples: ['!myqueue'], perm: 'request', keys: ['myqueue'] },
     { id: 'skipVote', group: 'request', examples: ['!skip'], perm: 'request', keys: ['skip'] },
     { id: 'volumeView', group: 'request', examples: ['!srvolume'], perm: 'request', keys: ['srvolume'] },
-    // Playlists
+    // Playlist de fondo (familia !pl, fase 0b)
+    { id: 'pl', group: 'playlists', examples: ['!pl'], perm: 'request', keys: ['pl'] },
+    { id: 'plplay', group: 'playlists', aliases: ['!srplay'], examples: ['!plplay chill', '!plplay #19', '!plplay chill #19'], perm: 'manage', keys: ['plplay', 'srplay'] },
+    { id: 'plstop', group: 'playlists', examples: ['!plstop'], perm: 'manage', keys: ['plstop'] },
+    { id: 'plnext', group: 'playlists', examples: ['!plnext'], perm: 'skip', keys: ['plnext'] },
+    { id: 'plshuffle', group: 'playlists', examples: ['!plshuffle', '!plshuffle on', '!plshuffle off'], perm: 'manage', keys: ['plshuffle'] },
     { id: 'pladd', group: 'playlists', examples: ['!pladd chill https://youtu.be/dQw4w9WgXcQ', '!pladd chill daft punk one more time'], perm: 'playlist', keys: ['pladd'] },
-    { id: 'srplay', group: 'playlists', examples: ['!srplay chill', '!srplay off'], perm: 'manage', keys: ['srplay'] },
     // Cola
     { id: 'skip', group: 'queue', examples: ['!skip'], perm: 'skip', keys: ['skip'] },
     { id: 'srremove', group: 'queue', examples: ['!srremove 3'], perm: 'skip', keys: ['srremove'] },
