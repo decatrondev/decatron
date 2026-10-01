@@ -501,26 +501,14 @@ namespace Decatron.Controllers
             return Ok(new { success = error == null, error });
         }
 
-        public sealed class ImportRequest { public string Url { get; set; } = ""; }
 
-        [HttpPost("api/song-request/playlists/{playlistId:long}/import")]
-        [RequirePermission("overlays")]
-        public async Task<IActionResult> ImportPlaylist(long playlistId, [FromBody] ImportRequest body, CancellationToken ct)
-        {
-            if (string.IsNullOrWhiteSpace(body.Url) || body.Url.Length > 500)
-                return BadRequest(new { success = false, error = "invalid_input" });
-            var config = await OwnConfigAsync(ct);
-            if (config == null) return NotFound(new { success = false });
-            var (added, skipped, error) = await _library.ImportPlaylistAsync(config.UserId, playlistId, body.Url, ct);
-            return Ok(new { success = error == null, error, added, skipped });
-        }
+        // ── Importar playlists (YouTube, Spotify, Deezer, Apple Music): siempre con Decatron Desktop ──
 
-        // ── Importar de Spotify / Deezer / Apple Music con Decatron Desktop (fase 6) ──
-
-        private static object JobDto(SongImportJob? job, bool desktopReady) => new
+        private static object JobDto(SongImportJob? job, bool desktopReady, bool desktopOutdated = false) => new
         {
             success = true,
             desktopReady,
+            desktopOutdated,
             job = job == null ? null : new
             {
                 id = job.Id,
@@ -529,6 +517,7 @@ namespace Decatron.Controllers
                 sourceName = job.SourceName,
                 playlistId = job.PlaylistId,
                 playlistName = job.PlaylistName,
+                error = job.Error,
                 total = job.Tracks.Count,
                 added = job.Count(ImportItemState.Added),
                 duplicates = job.Count(ImportItemState.Duplicate),
@@ -549,7 +538,7 @@ namespace Decatron.Controllers
         public IActionResult CurrentImport([FromServices] SongImportDesktopChannel imports)
         {
             var desktopUser = this.GetChannelOwnerId();
-            return Ok(JobDto(imports.GetJob(desktopUser), imports.IsReady(desktopUser)));
+            return Ok(JobDto(imports.GetJob(desktopUser), imports.IsReady(desktopUser), imports.IsOutdated(desktopUser)));
         }
 
         public sealed class ExternalImportRequest { public string Url { get; set; } = ""; }
@@ -560,7 +549,7 @@ namespace Decatron.Controllers
         {
             if (string.IsNullOrWhiteSpace(body.Url) || body.Url.Length > 500)
                 return BadRequest(new { success = false, error = "invalid_input" });
-            if (ExternalPlaylistReader.ServiceOf(body.Url) == null)
+            if (ExternalPlaylistReader.ServiceOf(body.Url) == null && !ExternalPlaylistReader.IsYouTubePlaylist(body.Url))
                 return Ok(new { success = false, error = "not_a_playlist" });
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });

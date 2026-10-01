@@ -18,15 +18,13 @@ namespace Decatron.Services.SongRequest
     {
         private readonly DecatronDbContext _db;
         private readonly SongResolverService _resolver;
-        private readonly IEnumerable<IPlaylistSource> _playlists;
         private readonly SongRequestService _songs;
 
-        public SongRequestLibraryService(DecatronDbContext db, SongResolverService resolver, IEnumerable<IPlaylistSource> playlists, SongRequestService songs)
+        public SongRequestLibraryService(DecatronDbContext db, SongResolverService resolver, SongRequestService songs)
         {
             _db = db;
             _songs = songs;
             _resolver = resolver;
-            _playlists = playlists;
         }
 
         private object TrackDto(SongTrack? t) => t == null ? new { } : new
@@ -300,45 +298,6 @@ namespace Decatron.Services.SongRequest
             return resolved.Success
                 ? await AddToPlaylistAsync(userId, playlistId, resolved.Track!, ct)
                 : SongRequestService.ErrorKeyFor(resolved.Error);
-        }
-
-        /// <summary>Importa una playlist entera (YouTube). Devuelve cuántas se agregaron, o el error.</summary>
-        public async Task<(int Added, int Skipped, string? Error)> ImportPlaylistAsync(long userId, long playlistId, string url, CancellationToken ct = default)
-        {
-            if (!await _db.SongRequestPlaylists.AnyAsync(p => p.Id == playlistId && p.UserId == userId, ct))
-                return (0, 0, "not_found");
-            if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri))
-                return (0, 0, "invalid_link");
-            var source = _playlists.FirstOrDefault(p => p.CanHandlePlaylist(uri));
-            if (source == null)
-                return (0, 0, "not_a_playlist");
-
-            var max = (await GetLimitsAsync(userId)).MaxItemsPerPlaylist;
-            var existingCount = await _db.SongRequestPlaylistItems.CountAsync(i => i.PlaylistId == playlistId, ct);
-            var room = max - existingCount;
-            if (room <= 0)
-                return (0, 0, "playlist_full");
-
-            var (tracks, error) = await source.ListPlaylistAsync(uri, Math.Min(room + 50, max), ct);
-            if (tracks.Count == 0)
-                return (0, 0, SongRequestService.ErrorKeyFor(error));
-
-            var saved = await _resolver.UpsertTracksAsync(tracks, ct);
-            var already = (await _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlistId).Select(i => i.TrackId).ToListAsync(ct)).ToHashSet();
-            var last = await _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlistId).MaxAsync(i => (int?)i.Position, ct) ?? 0;
-
-            var added = 0;
-            foreach (var t in saved)
-            {
-                if (added >= room || !already.Add(t.Id))
-                    continue;
-                _db.SongRequestPlaylistItems.Add(new SongRequestPlaylistItem
-                {
-                    PlaylistId = playlistId, UserId = userId, TrackId = t.Id, Position = last + ++added, CreatedAt = DateTime.UtcNow
-                });
-            }
-            await _db.SaveChangesAsync(ct);
-            return (added, saved.Count - added, null);
         }
 
         public async Task<bool> RemoveFromPlaylistAsync(long userId, long playlistId, long itemId, CancellationToken ct = default) =>

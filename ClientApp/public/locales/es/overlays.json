@@ -591,8 +591,9 @@
       "invalid_action": "Acción no válida.",
       "voting_off": "Esta playlist no tiene votación.",
       "invalid_mode": "Modo no válido.",
-      "desktop_missing": "Abre Decatron Desktop (actualizado) para importar de Spotify, Deezer o Apple Music.",
-      "import_running": "Ya hay una importación en curso. Espera a que termine o cancélala."
+      "desktop_missing": "Abre Decatron Desktop para importar playlists: la búsqueda en YouTube se hace desde tu PC.",
+      "import_running": "Ya hay una importación en curso. Espera a que termine o cancélala.",
+      "desktop_outdated": "Actualiza Decatron Desktop (se actualiza solo al abrirlo) para importar playlists."
     },
     "filters": {
       "exempt": "Los filtros solo aplican a los viewers. No te aplican a ti, a quien tiene control total ni a lo que agregas desde el dashboard.",
@@ -871,18 +872,20 @@
       "chatNote": "En el chat: !srmode open, playlists, review o closed (con el permiso de administrar)."
     },
     "importExt": {
-      "hint": "YouTube se importa acá mismo. Spotify (hasta 100 canciones), Deezer y Apple Music se importan con Decatron Desktop abierto: busca cada canción en YouTube desde tu PC.",
-      "noDesktop": "Ahora no hay un Decatron Desktop abierto con esta función: ábrelo o actualízalo.",
+      "hint": "Las playlists se importan con Decatron Desktop abierto: la app lee la lista y busca cada canción en YouTube desde tu PC, así YouTube no bloquea al bot. YouTube y Deezer, completas; Spotify, hasta 100 canciones.",
+      "noDesktop": "Para importar playlists necesitas Decatron Desktop abierto y vinculado: la búsqueda en YouTube se hace desde tu PC para que YouTube no bloquee al bot.",
       "services": {
         "spotify": "Spotify",
         "deezer": "Deezer",
-        "apple": "Apple Music"
+        "apple": "Apple Music",
+        "youtube": "YouTube"
       },
       "state": {
         "matching": "Importando «{{name}}» de {{service}}: Decatron Desktop está buscando cada canción en YouTube…",
         "done": "Importación de «{{name}}» ({{service}}) terminada.",
         "canceled": "Importación de «{{name}}» cancelada.",
-        "desktop_lost": "Se cerró Decatron Desktop a la mitad de «{{name}}»."
+        "desktop_lost": "Se cerró Decatron Desktop a la mitad de «{{name}}».",
+        "listing": "Decatron Desktop está leyendo la playlist de YouTube…"
       },
       "counts": "{{done}} de {{total}} revisadas · {{added}} agregadas · {{duplicates}} ya estaban · {{notFound}} sin encontrar · {{rejected}} rechazadas",
       "lostHint": "Lo agregado ya quedó guardado. Abre la app y retoma: solo se buscan las que faltan.",
@@ -898,6 +901,14 @@
         "banned_author": "canal vetado",
         "playlist_full": "la playlist llegó al tope",
         "failed": "error al guardar"
+      },
+      "outdated": "Tu Decatron Desktop es de una versión anterior: actualízalo (se actualiza solo al abrirlo) para importar playlists.",
+      "retry": "Reintentar",
+      "listErrors": {
+        "list_failed": "Decatron Desktop no pudo leer la playlist. Revisa que sea pública o no esté vacía.",
+        "empty": "La playlist no tiene videos que se puedan reproducir.",
+        "not_a_playlist": "Ese link no es una playlist de YouTube.",
+        "tools_unavailable": "Decatron Desktop no pudo preparar yt-dlp. Revisa su pestaña Descargas."
       }
     }
   },

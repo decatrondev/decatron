@@ -31,11 +31,15 @@ namespace Decatron.Services.SongRequest
         public long PlaylistId { get; init; }
         public string PlaylistName { get; init; } = "";
         public string Service { get; init; } = "";
-        public string? SourceName { get; init; }
-        public List<ExternalTrack> Tracks { get; init; } = new();
-        public ImportItemState[] States { get; init; } = Array.Empty<ImportItemState>();
-        public string?[] Reasons { get; init; } = Array.Empty<string?>();
-        /// <summary>matching | done | canceled | desktop_lost</summary>
+        public string? SourceName { get; set; }
+        /// <summary>Por qué no se pudo leer la playlist (YouTube), si falló.</summary>
+        public string? Error { get; set; }
+        public string? SourceUrl { get; init; }
+        // YouTube: se llenan cuando la app devuelve la lista
+        public List<ExternalTrack> Tracks { get; set; } = new();
+        public ImportItemState[] States { get; set; } = Array.Empty<ImportItemState>();
+        public string?[] Reasons { get; set; } = Array.Empty<string?>();
+        /// <summary>listing (YouTube: la app lee la lista) | matching | done | canceled | desktop_lost</summary>
         public string State { get; set; } = "matching";
         public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -46,10 +50,11 @@ namespace Decatron.Services.SongRequest
     }
 
     /// <summary>
-    /// Canal <c>songimport</c> de Decatron Desktop (.dev/plans/SONG_REQUEST_PLAYLISTS_PLAN.md, fase 6). El server lee
-    /// la playlist de Spotify/Deezer/Apple Music (no toca a YouTube) y le pide a la app que busque cada canción en
-    /// YouTube con la IP del streamer, con el mismo criterio que el server (duración, audio oficial, sin covers).
-    /// Cada resultado se revisa (existe y se puede embeber, vetos, duplicado, tope del plan) y se guarda al llegar.
+    /// Canal <c>songimport</c> de Decatron Desktop (.dev/plans/SONG_REQUEST_PLAYLISTS_PLAN.md, fase 6). **El server no le
+    /// hace ninguna consulta a YouTube al importar** (le bloquea la IP): lee la playlist de Spotify/Deezer/Apple Music
+    /// (no es YouTube) y la app busca cada canción en YouTube con la IP del streamer; las playlists de YouTube las lee
+    /// la app entera. Cada resultado se revisa (vetos, duplicado, tope del plan) y se guarda al llegar; lo que no se
+    /// pueda embeber lo salta el reproductor.
     /// </summary>
     public sealed class SongImportDesktopChannel : IDesktopChannel
     {
@@ -57,16 +62,15 @@ namespace Decatron.Services.SongRequest
 
         private static readonly Regex VideoId = new("^[A-Za-z0-9_-]{11}$", RegexOptions.Compiled);
 
-        private readonly ConcurrentDictionary<long, ConcurrentDictionary<DesktopConnection, DateTime>> _ready = new();
+        /// <summary>Apps que saben importar, con la versión del protocolo que anunciaron (2 = también leen playlists de YouTube).</summary>
+        private readonly ConcurrentDictionary<long, ConcurrentDictionary<DesktopConnection, (DateTime At, int Version)>> _ready = new();
         private readonly ConcurrentDictionary<long, SongImportJob> _jobs = new();
         private readonly IServiceScopeFactory _scopes;
-        private readonly IHttpClientFactory _http;
         private readonly ILogger<SongImportDesktopChannel> _logger;
 
-        public SongImportDesktopChannel(IServiceScopeFactory scopes, IHttpClientFactory http, ILogger<SongImportDesktopChannel> logger)
+        public SongImportDesktopChannel(IServiceScopeFactory scopes, ILogger<SongImportDesktopChannel> logger)
         {
             _scopes = scopes;
-            _http = http;
             _logger = logger;
         }
 
@@ -81,7 +85,10 @@ namespace Decatron.Services.SongRequest
             {
                 case "ready":
                     // Solo las versiones de la app que traen el buscador lo anuncian
-                    _ready.GetOrAdd(conn.UserId, _ => new())[conn] = DateTime.UtcNow;
+                    _ready.GetOrAdd(conn.UserId, _ => new())[conn] = (DateTime.UtcNow, msg["version"] is JsonValue v && v.TryGetValue<int>(out var ver) ? ver : 1);
+                    break;
+                case "listed":
+                    await OnListedAsync(conn, msg);
                     break;
                 case "matched":
                     await OnMatchedAsync(conn, msg);
@@ -103,7 +110,7 @@ namespace Decatron.Services.SongRequest
             if (_ready.TryGetValue(conn.UserId, out var conns))
                 conns.TryRemove(conn, out _);
             // Se cerró la app a la mitad: lo guardado queda y se puede retomar
-            if (_jobs.TryGetValue(conn.UserId, out var job) && job.Connection == conn && job.State == "matching")
+            if (_jobs.TryGetValue(conn.UserId, out var job) && job.Connection == conn && job.State is "matching" or "listing")
             {
                 job.State = "desktop_lost";
                 job.UpdatedAt = DateTime.UtcNow;
@@ -112,22 +119,28 @@ namespace Decatron.Services.SongRequest
         }
 
         /// <summary>La app del canal que sabe buscar: la que lo anunció más recientemente y sigue conectada.</summary>
-        private DesktopConnection? Target(long userId) =>
+        private DesktopConnection? Target(long userId, int minVersion = 1) =>
             _ready.TryGetValue(userId, out var conns)
-                ? conns.Where(c => !c.Key.Token.IsCancellationRequested).OrderByDescending(c => c.Value).Select(c => c.Key).FirstOrDefault()
+                ? conns.Where(c => !c.Key.Token.IsCancellationRequested && c.Value.Version >= minVersion)
+                    .OrderByDescending(c => c.Value.At).Select(c => c.Key).FirstOrDefault()
                 : null;
 
-        public bool IsReady(long userId) => Target(userId) != null;
+        /// <summary>Hay una app que sabe importar todo (también playlists de YouTube).</summary>
+        public bool IsReady(long userId) => Target(userId, 2) != null;
+
+        /// <summary>Hay una app abierta que importa, pero de una versión que no lee playlists de YouTube.</summary>
+        public bool IsOutdated(long userId) => Target(userId) != null && Target(userId, 2) == null;
 
         public SongImportJob? GetJob(long userId) => _jobs.TryGetValue(userId, out var j) ? j : null;
 
         /// <returns>El trabajo, o la clave del error (desktop_missing, import_running, playlist_full, las del lector).</returns>
         public async Task<(SongImportJob? Job, string? Error)> StartAsync(long desktopUserId, long userId, long playlistId, string url, CancellationToken ct = default)
         {
-            var conn = Target(desktopUserId);
+            var youtube = ExternalPlaylistReader.IsYouTubePlaylist(url);
+            var conn = Target(desktopUserId, youtube ? 2 : 1);
             if (conn == null)
-                return (null, "desktop_missing");
-            if (_jobs.TryGetValue(desktopUserId, out var running) && running.State == "matching")
+                return (null, Target(desktopUserId) != null ? "desktop_outdated" : "desktop_missing");
+            if (_jobs.TryGetValue(desktopUserId, out var running) && running.State is "matching" or "listing")
                 return (null, "import_running");
 
             using var scope = _scopes.CreateScope();
@@ -139,6 +152,26 @@ namespace Decatron.Services.SongRequest
             var room = (await library.GetLimitsAsync(userId)).MaxItemsPerPlaylist - await db.SongRequestPlaylistItems.CountAsync(i => i.PlaylistId == playlistId, ct);
             if (room <= 0)
                 return (null, "playlist_full");
+
+            if (youtube)
+            {
+                // La lista la lee la app: el server no consulta a YouTube
+                var ytJob = new SongImportJob
+                {
+                    Id = Guid.NewGuid().ToString("N")[..16],
+                    UserId = userId,
+                    DesktopUserId = desktopUserId,
+                    PlaylistId = playlistId,
+                    PlaylistName = playlist.Name,
+                    Service = "youtube",
+                    SourceUrl = url,
+                    State = "listing",
+                    Connection = conn
+                };
+                _jobs[desktopUserId] = ytJob;
+                await conn.SendAsync(ChannelName, "list", new { jobId = ytJob.Id, url, max = Math.Min(room, ExternalPlaylistReader.MaxYouTubeTracks) });
+                return (ytJob, null);
+            }
 
             var read = await scope.ServiceProvider.GetRequiredService<ExternalPlaylistReader>().ReadAsync(url, ct);
             if (read.Error != null)
@@ -166,8 +199,14 @@ namespace Decatron.Services.SongRequest
         /// <summary>Se cerró la app a la mitad: se le vuelven a mandar solo las que faltan.</summary>
         public async Task<string?> ResumeAsync(long userId)
         {
-            if (!_jobs.TryGetValue(userId, out var job) || job.State is "matching" or "done")
+            if (!_jobs.TryGetValue(userId, out var job) || job.State is "matching" or "listing" or "done")
                 return "not_found";
+            // Una de YouTube que no llegó a leerse se empieza de nuevo
+            if (job.Service == "youtube" && job.Tracks.Count == 0)
+            {
+                var (_, error) = await StartAsync(userId, job.UserId, job.PlaylistId, job.SourceUrl ?? "");
+                return error;
+            }
             var conn = Target(userId);
             if (conn == null)
                 return "desktop_missing";
@@ -180,7 +219,7 @@ namespace Decatron.Services.SongRequest
 
         public async Task<bool> CancelAsync(long userId)
         {
-            if (!_jobs.TryGetValue(userId, out var job) || job.State != "matching")
+            if (!_jobs.TryGetValue(userId, out var job) || job.State is not ("matching" or "listing"))
                 return false;
             job.State = "canceled";
             job.UpdatedAt = DateTime.UtcNow;
@@ -196,6 +235,56 @@ namespace Decatron.Services.SongRequest
                 .Select(x => new { i = x.i, title = x.t.Title, artist = x.t.Artist, duration = x.t.DurationSeconds })
                 .ToList();
             return conn.SendAsync(ChannelName, "match", new { jobId = job.Id, items });
+        }
+
+        /// <summary>La app leyó la playlist de YouTube: cada video ya es la canción, solo falta revisar y guardar.</summary>
+        private async Task OnListedAsync(DesktopConnection conn, JsonNode msg)
+        {
+            if (!_jobs.TryGetValue(conn.UserId, out var job) || job.Id != msg["jobId"]?.GetValue<string>() || job.State != "listing")
+                return;
+            if (msg["ok"]?.GetValue<bool>() != true || msg["items"] is not JsonArray items)
+            {
+                job.State = "done";
+                job.Error = msg["error"]?.GetValue<string>() ?? "list_failed";
+                job.UpdatedAt = DateTime.UtcNow;
+                return;
+            }
+
+            var entries = items.OfType<JsonNode>().Take(ExternalPlaylistReader.MaxYouTubeTracks).ToList();
+            static string? S(JsonNode m, string k) => m[k] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
+            await job.Lock.WaitAsync();
+            try
+            {
+                job.SourceName = S(msg, "name");
+                job.Tracks = entries.Select(e => new ExternalTrack(S(e, "title") ?? "", S(e, "channel") ?? "",
+                    e["duration"] is JsonValue d && d.TryGetValue<double>(out var secs) ? (int)Math.Round(secs) : null,
+                    S(e, "videoId") is { } id ? $"https://youtu.be/{id}" : null)).ToList();
+                job.States = new ImportItemState[job.Tracks.Count];
+                job.Reasons = new string?[job.Tracks.Count];
+                job.State = "matching";
+                for (var i = 0; i < entries.Count && job.State == "matching"; i++)
+                {
+                    var node = entries[i];
+                    node["i"] = i;
+                    node["ok"] = true;
+                    try
+                    {
+                        var (state, reason) = await SaveAsync(job, node);
+                        job.States[i] = state;
+                        job.Reasons[i] = reason;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "[SongRequest] No se pudo guardar el video {I} de la importación {Job}", i, job.Id);
+                        job.States[i] = ImportItemState.Rejected;
+                        job.Reasons[i] = "failed";
+                    }
+                    job.UpdatedAt = DateTime.UtcNow;
+                }
+                if (job.State == "matching")
+                    job.State = "done";
+            }
+            finally { job.Lock.Release(); }
         }
 
         private async Task OnMatchedAsync(DesktopConnection conn, JsonNode msg)
@@ -231,11 +320,6 @@ namespace Decatron.Services.SongRequest
             var videoId = S(msg, "videoId");
             if (msg["ok"]?.GetValue<bool>() != true || videoId == null || !VideoId.IsMatch(videoId))
                 return (ImportItemState.NotFound, S(msg, "error") ?? "no_match");
-
-            // Que exista y se pueda poner en el overlay (oEmbed no lo bloquea YouTube)
-            var embed = await CheckEmbeddableAsync(videoId);
-            if (embed != null)
-                return (ImportItemState.Rejected, embed);
 
             using var scope = _scopes.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
@@ -281,27 +365,6 @@ namespace Decatron.Services.SongRequest
             });
             await db.SaveChangesAsync();
             return (ImportItemState.Added, null);
-        }
-
-        /// <summary>null si se puede embeber (o si oEmbed no contestó: el reproductor igual salta lo que no suene).</summary>
-        private async Task<string?> CheckEmbeddableAsync(string videoId)
-        {
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
-                var url = "https://www.youtube.com/oembed?format=json&url=" + Uri.EscapeDataString($"https://www.youtube.com/watch?v={videoId}");
-                using var response = await _http.CreateClient().GetAsync(url, cts.Token);
-                return response.StatusCode switch
-                {
-                    HttpStatusCode.NotFound or HttpStatusCode.BadRequest => "not_found",
-                    HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => "not_embeddable",
-                    _ => null
-                };
-            }
-            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-            {
-                return null;
-            }
         }
     }
 }

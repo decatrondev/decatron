@@ -6,6 +6,7 @@ import { Card, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } f
 import { formatDuration } from '../../utils';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
 import { PlatformIcon, banPlatform } from '../PlatformIcon';
+import { useDesktopDownload } from '../../../../../hooks/useDesktopDownload';
 import type { Playlist, PlaylistRequirements, Role, SongRequestLimits } from '../../types';
 import { ROLES } from '../../constants/defaults';
 
@@ -407,19 +408,13 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
         if (!importUrl.trim()) return;
         setBusy('import'); setResult(null);
         try {
-            // Spotify, Deezer y Apple Music: la búsqueda en YouTube la hace Decatron Desktop (fase 6)
-            if (isExternalPlaylist(importUrl)) {
-                const res = await api.post(`${base}/import-external`, { url: importUrl.trim() });
-                if (res.data.success) { setImportUrl(''); setImportJob(res.data.job); }
-                else setResult({ ok: false, text: errorText(res.data.error) });
-                return;
+            // Toda importación corre en Decatron Desktop: el server no le consulta nada a YouTube (le bloquea la IP)
+            const res = await api.post(`${base}/import-external`, { url: importUrl.trim() });
+            if (res.data.success) { setImportUrl(''); setImportJob(res.data.job); }
+            else {
+                setResult({ ok: false, text: errorText(res.data.error) });
+                if (res.data.error === 'desktop_missing' || res.data.error === 'desktop_outdated') setDesktopReady(false);
             }
-            const res = await api.post(`${base}/import`, { url: importUrl.trim() });
-            if (res.data.success) {
-                setImportUrl('');
-                setResult({ ok: true, text: t('songRequest.fallback.imported', { added: res.data.added, skipped: res.data.skipped }) });
-                changed();
-            } else setResult({ ok: false, text: errorText(res.data.error) });
         } catch { setResult({ ok: false, text: errorText('failed') }); }
         finally { setBusy(null); }
     };
@@ -445,7 +440,9 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
     // Importación con Desktop: se sigue cada 2 s mientras busca; al terminar se recarga la lista
     const [importJob, setImportJob] = useState<ImportJob | null>(null);
     const [desktopReady, setDesktopReady] = useState<boolean | null>(null);
-    const running = importJob?.state === 'matching';
+    const [desktopOutdated, setDesktopOutdated] = useState(false);
+    const desktop = useDesktopDownload();
+    const running = importJob?.state === 'matching' || importJob?.state === 'listing';
     const lastAdded = useRef(0);
     useEffect(() => {
         let alive = true;
@@ -454,6 +451,7 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                 const res = await api.get('/song-request/imports/current');
                 if (!alive) return;
                 setDesktopReady(!!res.data.desktopReady);
+                setDesktopOutdated(!!res.data.desktopOutdated);
                 const job: ImportJob | null = res.data.job && res.data.job.playlistId === playlist.id ? res.data.job : null;
                 setImportJob(job);
                 if (job && job.added !== lastAdded.current) { lastAdded.current = job.added; changed(); }
@@ -533,10 +531,16 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                             {busy === 'import' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {t('songRequest.fallback.import')}
                         </button>
                     </form>
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8]">
-                        {t('songRequest.importExt.hint')}{' '}
-                        {desktopReady === false && <span className="text-amber-700 dark:text-amber-300">{t('songRequest.importExt.noDesktop')}</span>}
-                    </p>
+                    {desktopReady === false ? (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
+                            <p className="flex-1 text-xs 3xl:text-sm text-amber-900 dark:text-amber-200">
+                                {t(desktopOutdated ? 'songRequest.importExt.outdated' : 'songRequest.importExt.noDesktop')}
+                            </p>
+                            <a href={desktop.url} target="_blank" rel="noreferrer" className={primaryBtn}><Download className="w-4 h-4" /> {desktop.label}</a>
+                        </div>
+                    ) : (
+                        <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.importExt.hint')}</p>
+                    )}
                     <Feedback result={result} />
                     {importJob && <ImportJobCard job={importJob} onAction={importAction} />}
                 </div>
@@ -589,8 +593,9 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
 
 interface ImportJob {
     id: string;
-    state: 'matching' | 'done' | 'canceled' | 'desktop_lost';
-    service: 'spotify' | 'deezer' | 'apple';
+    state: 'listing' | 'matching' | 'done' | 'canceled' | 'desktop_lost';
+    service: 'youtube' | 'spotify' | 'deezer' | 'apple';
+    error?: string | null;
     sourceName: string | null;
     playlistId: number;
     total: number;
@@ -600,13 +605,6 @@ interface ImportJob {
     rejected: number;
     pending: number;
     problems: { title: string; artist: string; url: string | null; reason: string | null }[];
-}
-
-/** Links de playlists que se importan con Decatron Desktop (el resto, como YouTube, los importa el server). */
-function isExternalPlaylist(url: string) {
-    return /open\.spotify\.com\/(intl-[a-z-]+\/)?(embed\/)?playlist\//i.test(url)
-        || /deezer\.com\/([a-z]{2}\/)?playlist\//i.test(url)
-        || /music\.apple\.com\/[a-z]{2}\/playlist\//i.test(url);
 }
 
 /** Avance y resultado de una importación con Desktop, con lo que no entró para buscarlo a mano. */
@@ -622,9 +620,9 @@ function ImportJobCard({ job, onAction }: { job: ImportJob; onAction: (a: 'cance
                 <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">
                     {t(`songRequest.importExt.state.${job.state}`, { service, name: job.sourceName ?? '' })}
                 </p>
-                {job.state === 'matching' && <button className={smallBtn} onClick={() => onAction('cancel')}>{t('songRequest.importExt.cancel')}</button>}
-                {(job.state === 'desktop_lost' || job.state === 'canceled') && job.pending > 0 && (
-                    <button className={primaryBtn} onClick={() => onAction('resume')}>{t('songRequest.importExt.resume', { count: job.pending })}</button>
+                {(job.state === 'matching' || job.state === 'listing') && <button className={smallBtn} onClick={() => onAction('cancel')}>{t('songRequest.importExt.cancel')}</button>}
+                {(job.state === 'desktop_lost' || job.state === 'canceled') && (job.pending > 0 || job.total === 0) && (
+                    <button className={primaryBtn} onClick={() => onAction('resume')}>{job.total === 0 ? t('songRequest.importExt.retry') : t('songRequest.importExt.resume', { count: job.pending })}</button>
                 )}
             </div>
             <div className="h-2 rounded-full bg-[#e2e8f0] dark:bg-[#262626] overflow-hidden">
@@ -634,6 +632,7 @@ function ImportJobCard({ job, onAction }: { job: ImportJob; onAction: (a: 'cance
                 {t('songRequest.importExt.counts', { done, total: job.total, added: job.added, duplicates: job.duplicates, notFound: job.notFound, rejected: job.rejected })}
             </p>
             {job.state === 'desktop_lost' && <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.importExt.lostHint')}</p>}
+            {job.error && <p className="text-xs 3xl:text-sm text-red-600 dark:text-red-400">{t(`songRequest.importExt.listErrors.${job.error}`, { defaultValue: t('songRequest.importExt.listErrors.list_failed') })}</p>}
             {job.problems.length > 0 && (
                 <div>
                     <button className="text-xs 3xl:text-sm font-bold text-[#2563eb] dark:text-[#60a5fa] underline" onClick={() => setShowProblems(v => !v)}>

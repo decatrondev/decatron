@@ -537,7 +537,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.SongRequest.YouTubeTrackSource>();
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
-    builder.Services.AddSingleton<Decatron.Services.SongRequest.IPlaylistSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.YouTubeTrackSource>());
+    // Las playlists de YouTube ya no las lee el server (YouTube le bloquea la IP): las lee Decatron Desktop (SongImportDesktopChannel)
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.SpotifyTrackResolver>(); // fase 4: links de Spotify → misma canción en YouTube
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.DeezerTrackResolver>(); // fase 6: Deezer y Apple Music, igual que Spotify
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver, Decatron.Services.SongRequest.AppleMusicTrackResolver>();

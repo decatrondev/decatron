@@ -43,6 +43,20 @@ namespace Decatron.Services.SongRequest
             _logger = logger;
         }
 
+        /// <summary>Tope de videos al importar una playlist de YouTube (la lee la app, no el server).</summary>
+        public const int MaxYouTubeTracks = 5000;
+
+        private static readonly Regex YouTubeListId = new(@"[?&]list=([A-Za-z0-9_-]{10,64})", RegexOptions.Compiled);
+
+        /// <summary>Un link de playlist de YouTube o YouTube Music: se importa entero con Decatron Desktop.</summary>
+        public static bool IsYouTubePlaylist(string url)
+        {
+            if (!Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri) || uri.Scheme != "https")
+                return false;
+            return uri.Host.ToLowerInvariant() is "www.youtube.com" or "youtube.com" or "m.youtube.com" or "music.youtube.com" or "youtu.be"
+                && YouTubeListId.IsMatch(uri.Query);
+        }
+
         /// <summary>El servicio del link (spotify, deezer, apple) si es una playlist que se sabe leer.</summary>
         public static string? ServiceOf(string url)
         {
