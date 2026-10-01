@@ -136,6 +136,15 @@ export default function PublicCommandsPage() {
                             <span className="flex-1 border-t border-dashed border-[#27272a] ml-2" />
                         </div>
 
+                        {group.category === 'songrequest' && (
+                            <a
+                                href={`/sr/${(channelName || '').toLowerCase()}`}
+                                className="inline-block mb-3 text-xs text-[#39ff14] hover:underline"
+                            >
+                                → cómo pedir canciones en este canal, con ejemplos y la cola en vivo
+                            </a>
+                        )}
+
                         <div className="border-l-2 border-[#27272a] pl-4 space-y-1">
                             {group.list.map((item, i) => (
                                 <div

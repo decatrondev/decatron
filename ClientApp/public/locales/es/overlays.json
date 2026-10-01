@@ -344,25 +344,6 @@
       "step5Body": "Tus viewers ven la cola en vivo en esta página. !queue la comparte en el chat.",
       "commandsTitle": "Comandos del chat"
     },
-    "commandHelp": {
-      "sr": "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o con el nombre. Con #número pide esa canción de la playlist que suena (!sr #12).",
-      "wrongsong": "Quita el último pedido de quien lo escribe.",
-      "queue": "Muestra las próximas canciones y el link a la cola pública.",
-      "song": "Dice qué suena ahora, con el link.",
-      "myqueue": "Muestra en qué posición están tus pedidos.",
-      "skip": "Salta la canción (mods) o vota para saltarla (viewers, si está activo).",
-      "srremove": "Quita la canción en esa posición de la cola.",
-      "openclose": "Abre o cierra los pedidos.",
-      "pause": "Pausa o reanuda el reproductor.",
-      "srban": "Veta la canción que suena, o a un usuario si lo mencionas.",
-      "srvolume": "Dice el volumen, o lo cambia de 0 a 100 (!srvolume 40).",
-      "srpromote": "Sube la canción en esa posición al primer lugar de la cola.",
-      "videocover": "El reproductor muestra el video o la portada, sin cortar la música.",
-      "pladd": "Agrega una canción a una playlist colaborativa (el nombre de la playlist va primero).",
-      "review": "Aprueba o rechaza lo que espera revisión por su número (sin número, el más viejo).",
-      "srplay": "Pone a sonar una playlist cuando no hay pedidos; off vuelve a la de respaldo.",
-      "srmode": "Cambia el modo de pedidos: abiertos, solo de playlists, con revisión o cerrados."
-    },
     "basic": {
       "moduleTitle": "Módulo",
       "enabled": "Song Request activo",

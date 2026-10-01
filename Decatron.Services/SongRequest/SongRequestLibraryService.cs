@@ -326,8 +326,12 @@ namespace Decatron.Services.SongRequest
                 .Select(p => new { p.Id, p.Name, p.Contribution, p.Requirements, p.VotingEnabled, p.SortByVotes, p.IsFallback, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
                 .ToListAsync(ct);
             var activeId = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ActivePlaylistId).FirstOrDefaultAsync(ct);
-            // La que responde a !sr #n: la puesta a sonar o, si no hay, la de respaldo
-            var numberedId = activeId != null && rows.Any(p => p.Id == activeId) ? activeId : rows.FirstOrDefault(p => p.IsFallback)?.Id;
+            // La que responde a !sr #n: la puesta a sonar o, si no hay (o se borró), la de respaldo. Se mira entre
+            // todas: si la que suena es privada, ninguna pública lleva el número (la de respaldo no es a la que pide).
+            var activeExists = activeId != null && await _db.SongRequestPlaylists.AnyAsync(p => p.Id == activeId && p.UserId == userId, ct);
+            var numberedId = activeExists
+                ? activeId
+                : await _db.SongRequestPlaylists.Where(p => p.UserId == userId && p.IsFallback).Select(p => (long?)p.Id).FirstOrDefaultAsync(ct);
             return rows.Select(p => (object)new
             {
                 id = p.Id,

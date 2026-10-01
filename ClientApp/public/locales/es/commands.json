@@ -459,8 +459,6 @@
     "closed": "Pedidos cerrados",
     "paused": "En pausa",
     "live": "En vivo",
-    "howTo": "Pide una canción en el chat con",
-    "howToArg": "<link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o nombre>",
     "nowPlaying": "Sonando ahora",
     "nothingPlaying": "No está sonando ninguna canción pedida.",
     "upNext": "A continuación",
@@ -472,5 +470,149 @@
     "totalDuration": "{{duration}} en total",
     "openOn": "Abrir en {{source}}",
     "footer": "Cola en vivo de Decatron"
+  },
+  "srGuide": {
+    "groups": {
+      "request": "Pedir y consultar",
+      "playlists": "Playlists",
+      "queue": "Cola",
+      "review": "Revisión",
+      "manage": "Administrar"
+    },
+    "badges": {
+      "everyone": "Todos",
+      "subscriber": "Subs+",
+      "vip": "VIPs+",
+      "moderator": "Mods+",
+      "lead_moderator": "Lead Mods+",
+      "broadcaster": "Streamer",
+      "playlist": "Según la playlist",
+      "off": "Apagado"
+    },
+    "rolePhrase": {
+      "subscriber": "suscriptores o más",
+      "vip": "VIPs o más",
+      "moderator": "moderadores o más",
+      "lead_moderator": "lead moderators o más",
+      "broadcaster": "solo el streamer"
+    },
+    "aliases": "También:",
+    "examples": "Ejemplos",
+    "cmd": {
+      "sr": {
+        "syntax": "!sr <link o nombre>",
+        "text": "Pide una canción con un link de YouTube, Spotify, SoundCloud, Deezer o Apple Music, o escribiendo el nombre."
+      },
+      "srNumber": {
+        "syntax": "!sr #<número>",
+        "text": "Pide por su número una canción de la playlist que está sonando (o de la de respaldo)."
+      },
+      "wrongsong": {
+        "syntax": "!wrongsong",
+        "text": "Quita de la cola tu último pedido, por si te equivocaste."
+      },
+      "song": {
+        "syntax": "!song",
+        "text": "Dice qué canción suena ahora, con el link."
+      },
+      "queue": {
+        "syntax": "!queue",
+        "text": "Muestra las próximas canciones y el link a la cola."
+      },
+      "myqueue": {
+        "syntax": "!myqueue",
+        "text": "Dice en qué puesto están tus pedidos."
+      },
+      "skipVote": {
+        "syntax": "!skip",
+        "text": "Vota para saltar la canción que suena; se salta con {{votes}} votos."
+      },
+      "volumeView": {
+        "syntax": "!srvolume",
+        "text": "Dice el volumen de la música."
+      },
+      "pladd": {
+        "syntax": "!pladd <playlist> <link o nombre>",
+        "text": "Agrega una canción a una playlist colaborativa. Si hay una sola abierta, no hace falta el nombre de la playlist. Quién puede agregar lo decide cada playlist."
+      },
+      "srplay": {
+        "syntax": "!srplay <playlist | off>",
+        "text": "Pone a sonar esa playlist cuando no hay pedidos, en lugar de la de respaldo. Con off vuelve la de respaldo. Sin nada, dice cuáles hay."
+      },
+      "skip": {
+        "syntax": "!skip",
+        "text": "Salta la canción que suena, sin votación."
+      },
+      "srremove": {
+        "syntax": "!srremove <posición>",
+        "text": "Quita de la cola el pedido en esa posición."
+      },
+      "srpromote": {
+        "syntax": "!srpromote <posición>",
+        "text": "Sube el pedido en esa posición al primer lugar de la cola."
+      },
+      "srapprove": {
+        "syntax": "!srapprove [número]",
+        "text": "Aprueba lo que espera revisión por su número en la bandeja; sin número, el más viejo."
+      },
+      "srreject": {
+        "syntax": "!srreject [número]",
+        "text": "Rechaza lo que espera revisión por su número en la bandeja; sin número, el más viejo."
+      },
+      "srmode": {
+        "syntax": "!srmode <open | playlists | review | closed>",
+        "text": "Cambia el modo de pedidos al instante: abiertos, solo de las playlists, con revisión o cerrados. Sin nada, dice el modo actual."
+      },
+      "openclose": {
+        "syntax": "!sropen · !srclose",
+        "text": "Abre o cierra los pedidos."
+      },
+      "pause": {
+        "syntax": "!srpause · !srresume",
+        "text": "Pausa o reanuda la música."
+      },
+      "volumeSet": {
+        "syntax": "!srvolume <0-100>",
+        "text": "Cambia el volumen de la música."
+      },
+      "srban": {
+        "syntax": "!srban [@usuario]",
+        "text": "Sin nada, veta la canción que suena y la salta; con @usuario, veta a esa persona."
+      },
+      "videocover": {
+        "syntax": "!srvideo · !srcover",
+        "text": "El reproductor muestra el video o la portada, sin cortar la música."
+      }
+    },
+    "dashboard": {
+      "title": "Guía de comandos",
+      "description": "Todos los comandos de song request con el permiso que tienen ahora en tu canal. Si cambias un permiso, la guía se actualiza.",
+      "publicNote": "Tus viewers ven su propia guía, con solo lo que ellos pueden usar, en tu página pública:",
+      "skipVoteOff": "Activa la votación para saltar para que los viewers puedan usarlo."
+    },
+    "public": {
+      "title": "Cómo pedir",
+      "chatOn": "Escribe los comandos en el chat del canal en",
+      "or": "o",
+      "mode": {
+        "open": "Pedidos abiertos: pide la canción que quieras.",
+        "playlists": "Solo se aceptan canciones que ya están en las playlists del canal, o por número con !sr #n.",
+        "review": "Cada pedido lo revisa el equipo del canal antes de entrar a la cola. Te avisan en el chat.",
+        "closed": "Los pedidos están cerrados por ahora. Igual puedes ver qué suena con !song y la cola con !queue."
+      },
+      "rulesTitle": "Reglas del canal",
+      "rules": {
+        "role": "Pueden pedir: {{role}}",
+        "maxPerUser": "Hasta {{count}} pedidos tuyos en la cola a la vez",
+        "perHour": "Hasta {{count}} pedidos por hora",
+        "maxDuration": "Canciones de hasta {{duration}}",
+        "noRepeat": "No se repite una canción que sonó hace menos de {{minutes}} min"
+      },
+      "numbered": "Los números son los de «{{playlist}}», más abajo.",
+      "commandsTitle": "Comandos",
+      "allCommands": "Ver todos los comandos del canal",
+      "show": "Ver comandos",
+      "hide": "Ocultar comandos"
+    }
   }
 }

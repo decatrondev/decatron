@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card, CopyButton, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } from '../ui';
 import { ROLES } from '../../constants/defaults';
+import { CommandGuide } from '../CommandGuide';
 import type { Role, TabId } from '../../types';
 import type { SongRequestConfigState } from '../../hooks/useSongRequestConfig';
 
@@ -91,35 +92,8 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
                 </div>
             </Card>
             <Card title={t('songRequest.guide.commandsTitle')}>
-                <CommandList />
+                <CommandGuide permissions={cfg.settings.permissions} skipVoteEnabled={cfg.settings.skipVoteEnabled} skipVotesRequired={cfg.settings.skipVotesRequired} publicUrl={cfg.server?.publicUrl} />
             </Card>
-        </div>
-    );
-}
-
-const COMMANDS: { cmd: string; key: string }[] = [
-    { cmd: '!sr <link | nombre | #n>', key: 'sr' }, { cmd: '!wrongsong', key: 'wrongsong' }, { cmd: '!queue', key: 'queue' },
-    { cmd: '!song', key: 'song' }, { cmd: '!myqueue', key: 'myqueue' }, { cmd: '!skip', key: 'skip' },
-    { cmd: '!srremove <#>', key: 'srremove' }, { cmd: '!sropen · !srclose', key: 'openclose' },
-    { cmd: '!srpause · !srresume', key: 'pause' }, { cmd: '!srban [@usuario]', key: 'srban' },
-    { cmd: '!srvolume [0-100]', key: 'srvolume' }, { cmd: '!srpromote <#>', key: 'srpromote' },
-    { cmd: '!srvideo · !srcover', key: 'videocover' },
-    { cmd: '!pladd <playlist> <link | nombre>', key: 'pladd' },
-    { cmd: '!srapprove [#] · !srreject [#]', key: 'review' },
-    { cmd: '!srplay <playlist | off>', key: 'srplay' },
-    { cmd: '!srmode <open | playlists | review | closed>', key: 'srmode' },
-];
-
-function CommandList() {
-    const { t } = useTranslation('overlays');
-    return (
-        <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
-            {COMMANDS.map(c => (
-                <div key={c.key} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 py-2">
-                    <code className="font-mono text-sm 3xl:text-base font-bold text-[#2563eb] dark:text-[#60a5fa] sm:w-56 shrink-0">{c.cmd}</code>
-                    <span className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t(`songRequest.commandHelp.${c.key}`)}</span>
-                </div>
-            ))}
         </div>
     );
 }
@@ -229,7 +203,7 @@ export function CommandsTab({ cfg }: TabProps) {
             </Card>
 
             <Card title={t('songRequest.guide.commandsTitle')}>
-                <CommandList />
+                <CommandGuide permissions={cfg.settings.permissions} skipVoteEnabled={cfg.settings.skipVoteEnabled} skipVotesRequired={cfg.settings.skipVotesRequired} publicUrl={cfg.server?.publicUrl} />
             </Card>
         </div>
     );

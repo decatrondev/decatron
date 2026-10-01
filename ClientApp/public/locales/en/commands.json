@@ -459,8 +459,6 @@
     "closed": "Requests closed",
     "paused": "Paused",
     "live": "Live",
-    "howTo": "Request a song in chat with",
-    "howToArg": "<YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or name>",
     "nowPlaying": "Now playing",
     "nothingPlaying": "No requested song is playing.",
     "upNext": "Up next",
@@ -472,5 +470,149 @@
     "totalDuration": "{{duration}} total",
     "openOn": "Open on {{source}}",
     "footer": "Live queue by Decatron"
+  },
+  "srGuide": {
+    "groups": {
+      "request": "Request and check",
+      "playlists": "Playlists",
+      "queue": "Queue",
+      "review": "Review",
+      "manage": "Manage"
+    },
+    "badges": {
+      "everyone": "Everyone",
+      "subscriber": "Subs+",
+      "vip": "VIPs+",
+      "moderator": "Mods+",
+      "lead_moderator": "Lead Mods+",
+      "broadcaster": "Streamer",
+      "playlist": "Per playlist",
+      "off": "Off"
+    },
+    "rolePhrase": {
+      "subscriber": "subscribers and up",
+      "vip": "VIPs and up",
+      "moderator": "moderators and up",
+      "lead_moderator": "lead moderators and up",
+      "broadcaster": "the streamer only"
+    },
+    "aliases": "Also:",
+    "examples": "Examples",
+    "cmd": {
+      "sr": {
+        "syntax": "!sr <link or name>",
+        "text": "Requests a song with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or by typing its name."
+      },
+      "srNumber": {
+        "syntax": "!sr #<number>",
+        "text": "Requests a song by its number from the playlist that's playing (or the fallback one)."
+      },
+      "wrongsong": {
+        "syntax": "!wrongsong",
+        "text": "Removes your last request from the queue, in case you got it wrong."
+      },
+      "song": {
+        "syntax": "!song",
+        "text": "Says which song is playing, with the link."
+      },
+      "queue": {
+        "syntax": "!queue",
+        "text": "Shows the next songs and the link to the queue."
+      },
+      "myqueue": {
+        "syntax": "!myqueue",
+        "text": "Says where your requests are in the queue."
+      },
+      "skipVote": {
+        "syntax": "!skip",
+        "text": "Votes to skip the song that's playing; it's skipped with {{votes}} votes."
+      },
+      "volumeView": {
+        "syntax": "!srvolume",
+        "text": "Says the music volume."
+      },
+      "pladd": {
+        "syntax": "!pladd <playlist> <link or name>",
+        "text": "Adds a song to a collaborative playlist. If only one is open, the playlist name isn't needed. Each playlist decides who can add."
+      },
+      "srplay": {
+        "syntax": "!srplay <playlist | off>",
+        "text": "Plays that playlist when there are no requests, instead of the fallback one. off goes back to the fallback. With nothing, lists them."
+      },
+      "skip": {
+        "syntax": "!skip",
+        "text": "Skips the song that's playing, without a vote."
+      },
+      "srremove": {
+        "syntax": "!srremove <position>",
+        "text": "Removes the request at that queue position."
+      },
+      "srpromote": {
+        "syntax": "!srpromote <position>",
+        "text": "Moves the request at that position to the front of the queue."
+      },
+      "srapprove": {
+        "syntax": "!srapprove [number]",
+        "text": "Approves what is waiting for review by its number in the inbox; with no number, the oldest."
+      },
+      "srreject": {
+        "syntax": "!srreject [number]",
+        "text": "Rejects what is waiting for review by its number in the inbox; with no number, the oldest."
+      },
+      "srmode": {
+        "syntax": "!srmode <open | playlists | review | closed>",
+        "text": "Changes the request mode instantly: open, playlists only, with review or closed. With nothing, says the current mode."
+      },
+      "openclose": {
+        "syntax": "!sropen · !srclose",
+        "text": "Opens or closes requests."
+      },
+      "pause": {
+        "syntax": "!srpause · !srresume",
+        "text": "Pauses or resumes the music."
+      },
+      "volumeSet": {
+        "syntax": "!srvolume <0-100>",
+        "text": "Changes the music volume."
+      },
+      "srban": {
+        "syntax": "!srban [@user]",
+        "text": "With nothing, bans the song that's playing and skips it; with @user, bans that person."
+      },
+      "videocover": {
+        "syntax": "!srvideo · !srcover",
+        "text": "The player shows the video or the cover, without stopping the music."
+      }
+    },
+    "dashboard": {
+      "title": "Command guide",
+      "description": "Every song request command with the permission it has right now on your channel. Change a permission and the guide updates.",
+      "publicNote": "Your viewers get their own guide, with only what they can use, on your public page:",
+      "skipVoteOff": "Turn on vote to skip so viewers can use it."
+    },
+    "public": {
+      "title": "How to request",
+      "chatOn": "Type the commands in the channel's chat on",
+      "or": "or",
+      "mode": {
+        "open": "Requests are open: ask for any song you like.",
+        "playlists": "Only songs already in the channel's playlists are accepted, or by number with !sr #n.",
+        "review": "The channel's team reviews each request before it enters the queue. You'll be told in chat.",
+        "closed": "Requests are closed for now. You can still see what's playing with !song and the queue with !queue."
+      },
+      "rulesTitle": "Channel rules",
+      "rules": {
+        "role": "Who can request: {{role}}",
+        "maxPerUser": "Up to {{count}} of your requests in the queue at once",
+        "perHour": "Up to {{count}} requests per hour",
+        "maxDuration": "Songs up to {{duration}} long",
+        "noRepeat": "A song that played less than {{minutes}} min ago can't be requested again"
+      },
+      "numbered": "The numbers are the ones in “{{playlist}}”, below.",
+      "commandsTitle": "Commands",
+      "allCommands": "See all the channel's commands",
+      "show": "Show commands",
+      "hide": "Hide commands"
+    }
   }
 }

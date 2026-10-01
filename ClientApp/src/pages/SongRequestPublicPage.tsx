@@ -5,6 +5,7 @@ import * as signalR from '@microsoft/signalr';
 import api from '../services/api';
 import { PlatformIcon } from './features/song-request-extension/components/PlatformIcon';
 import { sourceName } from './features/song-request-extension/utils';
+import { PublicRequestGuide, type RequestMode } from './features/song-request-extension/components/PublicRequestGuide';
 
 // Cola pública de song request: /sr/:channelName (.dev/plans/SONG_REQUEST_PLAN.md, fase 1).
 // Se actualiza en vivo por /hubs/songrequest (grupo sr_{canal}).
@@ -30,6 +31,9 @@ interface QueueState {
     enabled: boolean;
     requestsOpen: boolean;
     paused: boolean;
+    mode?: RequestMode;
+    requestSource?: 'any' | 'playlists';
+    activePlaylistId?: number | null;
     current: QueueItem | null;
     queue: QueueItem[];
     totalDurationSeconds: number;
@@ -154,7 +158,7 @@ export default function SongRequestPublicPage() {
 
                 {status === 'ok' && state && (
                     <>
-                        {/* Estado + cómo pedir */}
+                        {/* Estado */}
                         <div className="flex flex-wrap items-center gap-2 mb-6 4xl:mb-8 font-mono text-xs 3xl:text-sm 4xl:text-base">
                             <Chip tone={state.requestsOpen ? 'green' : 'red'}>
                                 {state.requestsOpen ? t('songRequestPublic.open') : t('songRequestPublic.closed')}
@@ -166,14 +170,6 @@ export default function SongRequestPublicPage() {
                             </span>
                         </div>
 
-                        {state.requestsOpen && (
-                            <div className="mb-8 4xl:mb-12 rounded-lg border border-[#27272a] bg-[#111114] px-4 py-3 4xl:px-6 4xl:py-4 text-sm 3xl:text-base 4xl:text-lg">
-                                <span className="text-[#a1a1aa]">{t('songRequestPublic.howTo')} </span>
-                                <code className="font-mono text-[#39ff14]">!sr</code>{' '}
-                                <code className="font-mono text-[#71717a] break-words">{t('songRequestPublic.howToArg')}</code>
-                            </div>
-                        )}
-
                         {/* Sonando ahora */}
                         <SectionTitle>{t('songRequestPublic.nowPlaying')}</SectionTitle>
                         {current ? (
@@ -181,6 +177,14 @@ export default function SongRequestPublicPage() {
                         ) : (
                             <p className="mb-10 text-sm 3xl:text-base 4xl:text-lg text-[#71717a]">{t('songRequestPublic.nothingPlaying')}</p>
                         )}
+
+                        {/* Cómo pedir */}
+                        <PublicRequestGuide
+                            channel={channelName}
+                            mode={state.mode ?? (state.requestsOpen ? 'open' : 'closed')}
+                            requestSource={state.requestSource}
+                            activePlaylistId={state.activePlaylistId}
+                        />
 
                         {/* A continuación */}
                         <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -231,7 +235,7 @@ export default function SongRequestPublicPage() {
                             </ol>
                         )}
 
-                        <PublicPlaylists channel={channelName} />
+                        <PublicPlaylists channel={channelName} activePlaylistId={state.activePlaylistId} />
                     </>
                 )}
 
@@ -324,7 +328,7 @@ function authHeaders(): Record<string, string> {
 }
 
 /** Las playlists que el streamer marcó como públicas; en las colaborativas se puede agregar (SONG_REQUEST_PLAYLISTS_PLAN.md). */
-function PublicPlaylists({ channel }: { channel: string }) {
+function PublicPlaylists({ channel, activePlaylistId }: { channel: string; activePlaylistId?: number | null }) {
     const { t } = useTranslation('commands');
     const [playlists, setPlaylists] = useState<PublicPlaylist[]>([]);
     const [openId, setOpenId] = useState<number | null>(null);
@@ -339,7 +343,8 @@ function PublicPlaylists({ channel }: { channel: string }) {
             .then(d => setPlaylists(d?.playlists ?? []))
             .catch(() => { /* sin playlists públicas */ });
     }, [base]);
-    useEffect(loadPlaylists, [loadPlaylists]);
+    // Cuando cambia la que suena se recarga: cambian "Sonando" y a cuál cuenta !sr #n
+    useEffect(loadPlaylists, [loadPlaylists, activePlaylistId]);
 
     // Fetch directo (no el cliente de la app): un 401 acá es "no inició sesión", no hay que mandarlo al login
     useEffect(() => {
@@ -386,13 +391,28 @@ function PublicPlaylists({ channel }: { channel: string }) {
         if (!items[id]) loadItems(id);
     };
 
+    // "Los números son los de «X»" en la guía lleva a #playlist-{id}: se abre sola
+    useEffect(() => {
+        const openFromHash = () => {
+            const match = /^#playlist-(\d+)$/.exec(window.location.hash);
+            const id = match ? Number(match[1]) : null;
+            if (id == null || !playlists.some(p => p.id === id)) return;
+            setOpenId(id);
+            if (!items[id]) loadItems(id);
+        };
+        openFromHash();
+        window.addEventListener('hashchange', openFromHash);
+        return () => window.removeEventListener('hashchange', openFromHash);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playlists]);
+
     if (playlists.length === 0) return null;
     return (
         <div className="mt-12">
             <SectionTitle>{t('songRequestPublic.playlists')}</SectionTitle>
             <div className="space-y-2">
                 {playlists.map(p => (
-                    <div key={p.id} className="border border-[#1f1f23] rounded-lg">
+                    <div key={p.id} id={`playlist-${p.id}`} className="border border-[#1f1f23] rounded-lg scroll-mt-6">
                         <button onClick={() => toggle(p.id)} className="w-full flex items-center justify-between gap-3 px-4 py-3 4xl:py-4 text-left hover:bg-[#111114] rounded-lg transition-colors">
                             <span className="flex items-center gap-2 min-w-0">
                                 <span className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{p.name}</span>

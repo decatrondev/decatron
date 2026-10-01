@@ -961,6 +961,50 @@ namespace Decatron.Controllers
             });
         }
 
+        /// <summary>
+        /// Lo que necesita la guía "Cómo pedir" de /sr/{canal} (SONG_REQUEST_PUBLIC_PLAYLISTS_PLAN.md, fase 0):
+        /// permisos, límites y de qué playlist cuenta !sr #n. El modo va en vivo en el snapshot.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("api/public/song-request/{channel}/guide")]
+        public async Task<IActionResult> PublicGuide(string channel, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null || !config.Enabled)
+                return NotFound(new { success = false });
+
+            var settings = SongRequestService.ParseSettings(config);
+            // !sr #n solo se ofrece si el viewer puede ver los números: la playlist tiene que ser pública
+            var numbered = await _songs.GetRequestPlaylistAsync(config, ct);
+            var hasCollaborative = await _db.SongRequestPlaylists.AsNoTracking().AnyAsync(p => p.UserId == config.UserId
+                && p.Visibility == SongRequestPlaylistVisibility.Public
+                && (p.Contribution == SongRequestPlaylistContribution.Open || p.Contribution == SongRequestPlaylistContribution.Review), ct);
+            // Lo que el streamer ocultó en "Comandos públicos" tampoco sale en la guía
+            var hidden = await _db.PublicCommandOverrides.AsNoTracking()
+                .Where(o => o.UserId == config.UserId && o.Category == "songrequest" && o.Hidden)
+                .Select(o => o.CommandKey)
+                .ToListAsync(ct);
+
+            return Ok(new
+            {
+                success = true,
+                permissions = settings.Permissions,
+                skipVoteEnabled = settings.SkipVoteEnabled,
+                skipVotesRequired = Math.Max(1, settings.SkipVotesRequired),
+                maxPerUser = settings.MaxPerUser,
+                maxPerUserPerHour = settings.MaxPerUserPerHour,
+                maxDurationSeconds = settings.MaxDurationSeconds,
+                noRepeatMinutes = settings.NoRepeatMinutes,
+                numberedPlaylist = numbered != null && numbered.Visibility == SongRequestPlaylistVisibility.Public
+                    ? new { id = numbered.Id, name = numbered.Name }
+                    : null,
+                hasCollaborative,
+                platforms = await _songs.GetQueuePlatformsAsync(config.UserId, ct),
+                hidden
+            });
+        }
+
         /// <summary>El diseño de los overlays (OBS no inicia sesión). No trae la clave del reproductor.</summary>
         [AllowAnonymous]
         [HttpGet("api/public/song-request/{channel}/overlay")]

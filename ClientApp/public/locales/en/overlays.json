@@ -344,25 +344,6 @@
       "step5Body": "Your viewers see the live queue on this page. !queue shares it in chat.",
       "commandsTitle": "Chat commands"
     },
-    "commandHelp": {
-      "sr": "Requests a song with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or the name. With #number it requests that song from the playing playlist (!sr #12).",
-      "wrongsong": "Removes the sender's last request.",
-      "queue": "Shows the next songs and the link to the public queue.",
-      "song": "Says what's playing, with the link.",
-      "myqueue": "Shows the position of your requests.",
-      "skip": "Skips the song (mods) or votes to skip it (viewers, when enabled).",
-      "srremove": "Removes the song at that queue position.",
-      "openclose": "Opens or closes requests.",
-      "pause": "Pauses or resumes the player.",
-      "srban": "Bans the song that's playing, or a user if you mention them.",
-      "srvolume": "Tells the volume, or changes it from 0 to 100 (!srvolume 40).",
-      "srpromote": "Moves the song at that position to the front of the queue.",
-      "videocover": "The player shows the video or the cover, without stopping the music.",
-      "pladd": "Adds a song to a collaborative playlist (the playlist name goes first).",
-      "review": "Approves or rejects what is waiting for review by its number (no number = the oldest).",
-      "srplay": "Plays a playlist when there are no requests; off goes back to the fallback.",
-      "srmode": "Changes the request mode: open, playlists only, with review or closed."
-    },
     "basic": {
       "moduleTitle": "Module",
       "enabled": "Song Request on",
