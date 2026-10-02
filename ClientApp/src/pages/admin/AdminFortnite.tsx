@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Loader2, Plus, Pencil, Trash2, Save, X,
     LayoutGrid, BarChart3, Check, AlertTriangle, RefreshCw,
-    Eye, EyeOff
+    Eye, EyeOff, DownloadCloud
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -126,6 +126,23 @@ function SpritesTab() {
     const [testingNotify, setTestingNotify] = useState(false);
     const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
+    const [syncing, setSyncing] = useState<'preview' | 'apply' | null>(null);
+    const [syncResult, setSyncResult] = useState<{ ok: boolean; dryRun: boolean; msg: string; output: string } | null>(null);
+
+    // Corre el mismo sync del cron horario contra la API propia, sin esperar a la proxima hora
+    const handleSync = async (dryRun: boolean) => {
+        setSyncing(dryRun ? 'preview' : 'apply');
+        setSyncResult(null);
+        try {
+            const r = await api.post(`/admin/fortnite/sync?dryRun=${dryRun}`, null, { timeout: 200000 });
+            setSyncResult({ ok: r.data.success, dryRun, msg: r.data.message, output: r.data.output ?? '' });
+            if (!dryRun && r.data.success) load();
+        } catch (e: any) {
+            setSyncResult({ ok: false, dryRun, msg: e.response?.data?.message || 'Error al sincronizar', output: e.response?.data?.output ?? '' });
+        }
+        setSyncing(null);
+    };
+
     const handleTestNotify = async (channel: 'twitch' | 'discord') => {
         if (!testUsername.trim()) return;
         setTestingNotify(true);
@@ -213,6 +230,44 @@ function SpritesTab() {
 
     return (
         <div className="space-y-4">
+            {/* Importar desde la API propia (decatron-fortnite-api) sin esperar al cron horario */}
+            <div className="bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">Importar desde la API</span>
+                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">Corre solo cada hora; aqui lo puedes forzar tras subir un parche</span>
+                    <div className="flex-1" />
+                    <button
+                        onClick={() => handleSync(true)}
+                        disabled={syncing !== null}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f1f5f9] dark:hover:bg-[#374151]/50 disabled:opacity-50 text-[#1e293b] dark:text-[#f8fafc] rounded-lg text-xs font-bold transition-colors"
+                    >
+                        {syncing === 'preview' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                        Ver cambios
+                    </button>
+                    <button
+                        onClick={() => handleSync(false)}
+                        disabled={syncing !== null}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2563eb] hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors"
+                    >
+                        {syncing === 'apply' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <DownloadCloud className="w-3.5 h-3.5" />}
+                        Sincronizar ahora
+                    </button>
+                </div>
+                {syncResult && (
+                    <div className="space-y-2">
+                        <div className={`flex items-center gap-1.5 text-xs font-semibold ${syncResult.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {syncResult.ok ? <Check className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                            {syncResult.msg}
+                        </div>
+                        {syncResult.output && (
+                            <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-lg p-3 text-xs font-mono text-[#1e293b] dark:text-[#e2e8f0]">
+                                {syncResult.output}
+                            </pre>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Probar aviso de Twitch a mano — simula que el stream de ese usuario recien arranco */}
             <div className="flex flex-wrap items-center gap-2 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
                 <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase">Probar aviso</span>

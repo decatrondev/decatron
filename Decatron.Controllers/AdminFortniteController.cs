@@ -5,6 +5,7 @@ using Decatron.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace Decatron.Controllers
 {
@@ -18,17 +19,97 @@ namespace Decatron.Controllers
         private readonly ISpiritNotificationDeliveryService _notificationDelivery;
         private readonly DecatronDbContext _context;
         private readonly ILogger<AdminFortniteController> _logger;
+        private readonly IWebHostEnvironment _env;
+
+        // Una sola corrida a la vez (boton o doble click); el cron horario corre aparte y el script es idempotente
+        private static readonly SemaphoreSlim _syncLock = new(1, 1);
 
         public AdminFortniteController(
             IFortniteService fortniteService,
             ISpiritNotificationDeliveryService notificationDelivery,
             DecatronDbContext context,
-            ILogger<AdminFortniteController> logger)
+            ILogger<AdminFortniteController> logger,
+            IWebHostEnvironment env)
         {
             _fortniteService = fortniteService;
             _notificationDelivery = notificationDelivery;
             _context = context;
             _logger = logger;
+            _env = env;
+        }
+
+        /// <summary>Corre a mano scripts/sync-fortnite-sprites.py (el mismo del cron horario) contra la API propia — dryRun=true solo muestra el diff</summary>
+        [HttpPost("sync")]
+        public async Task<IActionResult> SyncFromApi([FromQuery] bool dryRun = true)
+        {
+            if (!await _syncLock.WaitAsync(0))
+                return Conflict(new { success = false, message = "Ya hay una sincronizacion en curso" });
+
+            try
+            {
+                var script = Path.Combine(_env.ContentRootPath, "scripts", "sync-fortnite-sprites.py");
+                if (!System.IO.File.Exists(script))
+                    return StatusCode(500, new { success = false, message = $"No se encontro {script}" });
+
+                var psi = new ProcessStartInfo("python3")
+                {
+                    WorkingDirectory = _env.ContentRootPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                };
+                psi.ArgumentList.Add("-u");
+                psi.ArgumentList.Add(script);
+                if (dryRun) psi.ArgumentList.Add("--dry-run");
+
+                using var proc = Process.Start(psi)!;
+                var stdoutTask = proc.StandardOutput.ReadToEndAsync();
+                var stderrTask = proc.StandardError.ReadToEndAsync();
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                try
+                {
+                    await proc.WaitForExitAsync(cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    proc.Kill(entireProcessTree: true);
+                    return StatusCode(504, new { success = false, message = "La sincronizacion tardo mas de 3 minutos y se corto" });
+                }
+
+                var output = (await stdoutTask) + (await stderrTask);
+                var ok = proc.ExitCode == 0;
+                if (ok && !dryRun)
+                {
+                    _logger.LogInformation("Sync manual de spirits aplicado desde el panel admin");
+
+                    // Sin esto los avisos esperaban al proximo barrido (cada 15 min). Twitch solo
+                    // avisa a canales en vivo; los offline lo reciben al arrancar su stream
+                    await _notificationDelivery.RunTwitchSweepAsync();
+                    await _notificationDelivery.RunDiscordSweepAsync();
+                }
+                else if (!ok)
+                    _logger.LogWarning("Sync manual de spirits fallo (exit {Code}): {Output}", proc.ExitCode, output);
+
+                return Ok(new
+                {
+                    success = ok,
+                    dryRun,
+                    message = ok
+                        ? (dryRun ? "Vista previa lista (no se aplico nada)" : "Sincronizacion aplicada y avisos enviados (Twitch solo a canales en vivo)")
+                        : $"El script termino con error (codigo {proc.ExitCode})",
+                    output
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error corriendo el sync manual de spirits");
+                return StatusCode(500, new { success = false, message = "Error corriendo la sincronizacion" });
+            }
+            finally
+            {
+                _syncLock.Release();
+            }
         }
 
         /// <summary>Dispara a mano el aviso de Twitch de un usuario, como si su stream recien hubiera arrancado — util para probar sin esperar al evento real</summary>

@@ -38,6 +38,11 @@ namespace Decatron.Services
         private readonly IStreamStatusService _streamStatusService;
         private readonly ILogger<SpiritNotificationDeliveryService> _logger;
 
+        // El barrido automatico (cada 15 min) y el que dispara el sync manual del panel admin
+        // pueden coincidir: se serializan para que el segundo lea los LastNotified* ya
+        // actualizados por el primero y nadie reciba el aviso dos veces
+        private static readonly SemaphoreSlim _sweepLock = new(1, 1);
+
         public SpiritNotificationDeliveryService(
             DecatronDbContext context,
             IFortniteService fortnite,
@@ -87,6 +92,19 @@ namespace Decatron.Services
 
         public async Task RunTwitchSweepAsync()
         {
+            await _sweepLock.WaitAsync();
+            try
+            {
+                await RunTwitchSweepAsyncCore();
+            }
+            finally
+            {
+                _sweepLock.Release();
+            }
+        }
+
+        private async Task RunTwitchSweepAsyncCore()
+        {
             var subscribers = await _context.UserSpiritNotificationPrefs
                 .Where(p => p.NotifyTwitchChat)
                 .ToListAsync();
@@ -119,6 +137,19 @@ namespace Decatron.Services
         }
 
         public async Task RunDiscordSweepAsync()
+        {
+            await _sweepLock.WaitAsync();
+            try
+            {
+                await RunDiscordSweepAsyncCore();
+            }
+            finally
+            {
+                _sweepLock.Release();
+            }
+        }
+
+        private async Task RunDiscordSweepAsyncCore()
         {
             var subscribers = await _context.UserSpiritNotificationPrefs
                 .Where(p => p.NotifyDiscordDm)

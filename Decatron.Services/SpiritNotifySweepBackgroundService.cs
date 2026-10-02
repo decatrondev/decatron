@@ -35,6 +35,10 @@ namespace Decatron.Services
         {
             _logger.LogInformation("🎃 SpiritNotifySweepBackgroundService iniciado");
 
+            // Al arrancar el backend el bot de Discord conecta un par de segundos despues; un
+            // barrido inmediato no encuentra guilds y todos los DM fallan hasta el siguiente
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
