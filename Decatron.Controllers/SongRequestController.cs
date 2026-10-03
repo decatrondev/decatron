@@ -36,8 +36,11 @@ namespace Decatron.Controllers
         /// <summary>Tope del JSON del editor: sobra para dos layouts con las plantillas del plan más alto.</summary>
         private const int MaxOverlayConfigLength = 1_500_000;
 
-        public SongRequestController(SongResolverService resolver, SongRequestService songs, DecatronDbContext db, ICommandMessagesService messages, SongRequestLibraryService library, DownloadsDesktopChannel downloads, GameOverlayPromoService promos)
+        private readonly SongListenStatsService _listenStats;
+
+        public SongRequestController(SongResolverService resolver, SongRequestService songs, DecatronDbContext db, ICommandMessagesService messages, SongRequestLibraryService library, DownloadsDesktopChannel downloads, GameOverlayPromoService promos, SongListenStatsService listenStats)
         {
+            _listenStats = listenStats;
             _promos = promos;
             _downloads = downloads;
             _library = library;
@@ -376,6 +379,19 @@ namespace Decatron.Controllers
             var config = await OwnConfigAsync(ct);
             if (config == null) return NotFound(new { success = false });
             return Ok(new { success = true, removed = await _library.ClearHistoryAsync(config.UserId, ct) });
+        }
+
+        // ── Estadísticas de escucha (etapa 3, fase 4) ────────────────────────
+
+        /// <summary>Quién escucha las playlists: totales, días, por playlist, más escuchadas y las que no se reproducen afuera.</summary>
+        [HttpGet("api/song-request/stats")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> ListenStats([FromQuery] int days = 30, [FromQuery] long? playlistId = null, CancellationToken ct = default)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var stats = await _listenStats.GetStatsAsync(_db, config.UserId, days, playlistId, ct);
+            return Ok(new { success = true, stats });
         }
 
         // ── Playlists ────────────────────────────────────────────────────────
@@ -1016,6 +1032,40 @@ namespace Decatron.Controllers
             });
         }
 
+        public sealed class ListenEventRequest
+        {
+            public string? VisitorId { get; set; }
+            /// <summary>beat | stop | listen | unplayable</summary>
+            public string? Event { get; set; }
+            public long? TrackId { get; set; }
+            public int Seconds { get; set; }
+        }
+
+        /// <summary>
+        /// Una señal anónima del reproductor del viewer (fase 4, etapa 3): escuchando, pausa, canción escuchada 30 s o
+        /// que YouTube no deja reproducir. Responde siempre 204 para no darle pistas a quien quiera inflar números.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("api/public/song-request/{channel}/playlists/{code}/listen")]
+        public async Task<IActionResult> PublicListenEvent(string channel, string code, [FromBody] ListenEventRequest body, CancellationToken ct)
+        {
+            if (body == null || !SongListenStatsService.IsValidEvent(body.Event))
+                return NoContent();
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null || !config.Enabled)
+                return NoContent();
+            var playlist = await _library.FindSharedPlaylistAsync(config.UserId, code, ct);
+            if (playlist == null)
+                return NoContent();
+
+            // Solo para frenar abusos y solo en memoria: la IP no se guarda (detrás de Cloudflare y nginx va en estos encabezados)
+            var ip = Request.Headers["CF-Connecting-IP"].FirstOrDefault() ?? Request.Headers["X-Real-IP"].FirstOrDefault()
+                ?? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "?";
+            await _listenStats.RecordAsync(playlist.Id, body.VisitorId ?? "", body.Event!, body.TrackId, body.Seconds, ip, ct);
+            return NoContent();
+        }
+
         /// <summary>
         /// Lo que ya sonó en el stream, para la pestaña Historial de /sr/{canal} (SONG_REQUEST_PUBLIC_PLAYLISTS_PLAN.md, fase 1b).
         /// Mismo tope por plan que el dashboard; no sale lo vetado ni lo que falló.
@@ -1167,6 +1217,8 @@ namespace Decatron.Controllers
             var replyChannel = await reviews.ReplyChannelForAsync(config, who.Platform, ct);
             var requester = new SongRequester(who.Platform, who.Id, who.Login, who.DisplayName);
             var result = await _songs.AddAsync(config, requester, "", who.Privileged, ct, review, replyChannel, item.Track);
+            if (result.Success)
+                await _listenStats.AddWebRequestAsync(playlist.Id, ct);
             return Ok(new
             {
                 success = result.Success,

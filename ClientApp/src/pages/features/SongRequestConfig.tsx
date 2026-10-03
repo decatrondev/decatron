@@ -9,6 +9,7 @@ import SongRequestPreview from './song-request-extension/components/SongRequestP
 import QueueTab from './song-request-extension/components/tabs/QueueTab';
 import ReviewTab from './song-request-extension/components/tabs/ReviewTab';
 import { GuideTab, BasicTab, CommandsTab, MessagesTab } from './song-request-extension/components/tabs/SetupTabs';
+import { StatsTab } from './song-request-extension/components/tabs/StatsTab';
 import DownloadsTab from './song-request-extension/components/tabs/DownloadsTab';
 import { FiltersTab, BlacklistTab, PlaylistsTab, HistoryTab } from './song-request-extension/components/tabs/LibraryTabs';
 import { ThemeTab, ElementsTab, TypographyTab, AnimationsTab, EditorTab } from './song-request-extension/components/tabs/DesignTabs';
@@ -27,6 +28,7 @@ const TABS: { id: TabId; icon: string }[] = [
     { id: 'blacklist', icon: '⛔' },
     { id: 'playlists', icon: '🎶' },
     { id: 'history', icon: '📈' },
+    { id: 'stats', icon: '📊' },
     { id: 'downloads', icon: '⬇️' },
     { id: 'commands', icon: '💬' },
     { id: 'messages', icon: '📢' },
@@ -180,6 +182,7 @@ export default function SongRequestConfig() {
                             {tab === 'blacklist' && <BlacklistTab platforms={cfg.server?.platforms ?? ['twitch']} />}
                             {tab === 'playlists' && <PlaylistsTab cfg={cfg} />}
                             {tab === 'history' && <HistoryTab onDownload={sendToDownloads} />}
+                            {tab === 'stats' && <StatsTab />}
                             {tab === 'downloads' && <DownloadsTab initialInput={downloadInput} onInputConsumed={() => setDownloadInput(null)} />}
                             {tab === 'commands' && <CommandsTab cfg={cfg} />}
                             {tab === 'messages' && <MessagesTab cfg={cfg} />}

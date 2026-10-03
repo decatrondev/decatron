@@ -544,6 +544,8 @@ try
     builder.Services.AddSingleton<Decatron.Services.SongRequest.SoundCloudTrackSource>(); // fase 6: fuente propia (su reproductor y descarga)
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackResolver>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.SoundCloudTrackSource>());
     builder.Services.AddSingleton<Decatron.Services.SongRequest.ITrackSource>(sp => sp.GetRequiredService<Decatron.Services.SongRequest.SoundCloudTrackSource>());
+    builder.Services.AddSingleton<Decatron.Services.SongRequest.SongListenStatsService>(); // fase 4, etapa 3: estadísticas anónimas de escucha
+    builder.Services.AddHostedService<Decatron.Services.SongRequest.SongListenStatsCleanupService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestLibraryService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestContributionService>();
     builder.Services.AddScoped<Decatron.Services.SongRequest.SongRequestReviewService>();

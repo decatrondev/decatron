@@ -86,7 +86,7 @@ export interface SongRequestOverlayConfig {
 }
 
 export type TabId =
-    | 'guide' | 'queue' | 'review' | 'basic' | 'filters' | 'blacklist' | 'playlists' | 'history' | 'downloads' | 'commands' | 'messages'
+    | 'guide' | 'queue' | 'review' | 'basic' | 'filters' | 'blacklist' | 'playlists' | 'history' | 'stats' | 'downloads' | 'commands' | 'messages'
     | 'theme' | 'elements' | 'typography' | 'animations' | 'editor';
 
 /** Límites del plan del dueño del canal (SONG_REQUEST_PLAYLISTS_PLAN.md). null = sin tope. */

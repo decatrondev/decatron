@@ -19,6 +19,24 @@ const BLOCKED_ERRORS = [100, 101, 150];
 interface Saved { trackId?: number; position?: number; shuffle?: boolean; repeat?: Repeat }
 
 const VOLUME_KEY = 'sr_listen_volume';
+const VISITOR_KEY = 'sr_listen_visitor';
+/** Segundos escuchados de una canción para que cuente como una escucha. */
+const LISTEN_AFTER = 30;
+/** Cada cuánto se avisa que se sigue escuchando (el servidor pide al menos 20 s entre señales). */
+const BEAT_EVERY = 30;
+
+/** Un id aleatorio de este navegador: sin cuenta, sin IP, nada que identifique a la persona (fase 4: estadísticas anónimas). */
+function visitorId(): string {
+    try {
+        let id = localStorage.getItem(VISITOR_KEY);
+        if (!id) {
+            id = (crypto as Crypto & { randomUUID?: () => string }).randomUUID?.()
+                ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+            localStorage.setItem(VISITOR_KEY, id);
+        }
+        return id;
+    } catch { return ''; }
+}
 const saveKey = (channel: string, code: string) => `sr_listen_v1_${channel.toLowerCase()}_${code}`;
 
 function readJson<T>(key: string): T | null {
@@ -67,6 +85,22 @@ export function useListenPlayer(channel: string, code: string, items: PublicPlay
     // Lo último, para los callbacks del reproductor (se crean una sola vez)
     const latest = useRef({ items, now, order, repeat, blocked, volume });
     latest.current = { items, now, order, repeat, blocked, volume };
+
+    // Estadísticas anónimas: lo que se escucha de verdad (no hay nada sin reproducir)
+    const stats = useRef({ unreported: 0, trackPlayed: 0, listenSent: false });
+    const reportRef = useRef<(event: 'beat' | 'stop' | 'listen' | 'unplayable', trackId?: number, seconds?: number) => void>(() => undefined);
+    const report = useCallback((event: 'beat' | 'stop' | 'listen' | 'unplayable', trackId?: number, seconds = 0) => {
+        const id = visitorId();
+        if (!id) return;
+        const url = `/api/public/song-request/${encodeURIComponent(channel.toLowerCase())}/playlists/${encodeURIComponent(code)}/listen`;
+        const body = JSON.stringify({ visitorId: id, event, trackId, seconds: Math.min(70, Math.round(seconds)) });
+        try {
+            // sendBeacon sobrevive al cierre de la pestaña; sin él, fetch con keepalive
+            if (!navigator.sendBeacon?.(url, new Blob([body], { type: 'application/json' })))
+                fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => undefined);
+        } catch { /* una estadística que falla no molesta a quien escucha */ }
+    }, [channel, code]);
+    reportRef.current = report;
 
     const playable = useCallback((item: PublicPlaylistItem) => isPlayable(item) && !latest.current.blocked.has(item.track.trackId), []);
 
@@ -170,6 +204,9 @@ export function useListenPlayer(channel: string, code: string, items: PublicPlay
                         else if (e.data === STATE_PAUSED) setPlaying(false);
                         else if (e.data === STATE_ENDED) {
                             setPlaying(false);
+                            // Si se repite la misma, la próxima vuelta es otra escucha
+                            stats.current.trackPlayed = 0;
+                            stats.current.listenSent = false;
                             if (latest.current.repeat === 'one') { player.current?.seekTo?.(0, true); player.current?.playVideo?.(); }
                             else next(true);
                         }
@@ -179,6 +216,7 @@ export function useListenPlayer(channel: string, code: string, items: PublicPlay
                         if (!cur) return;
                         // El que falla se marca y se pasa a la siguiente (si todas fallan, se detiene sola: pickNext no repite)
                         if (BLOCKED_ERRORS.includes(Number(e.data))) {
+                            reportRef.current('unplayable', cur.track.trackId);
                             setBlocked(prev => new Set(prev).add(cur.track.trackId));
                             latest.current.blocked = new Set(latest.current.blocked).add(cur.track.trackId);
                         }
@@ -237,6 +275,41 @@ export function useListenPlayer(channel: string, code: string, items: PublicPlay
         const id = window.setInterval(save, 5000);
         return () => window.clearInterval(id);
     }, [channel, code, now?.track.trackId, playing, shuffle, repeat]);
+
+    // Estadísticas: mientras suena, cada segundo suma; cada 30 s se avisa, y a los 30 s de una canción cuenta una escucha
+    const trackId = now?.track.trackId;
+    useEffect(() => {
+        stats.current.trackPlayed = 0;
+        stats.current.listenSent = false;
+    }, [trackId]);
+    useEffect(() => {
+        if (!playing || trackId == null) return;
+        report('beat', trackId, 0);
+        const id = window.setInterval(() => {
+            const st = stats.current;
+            st.unreported += 1;
+            st.trackPlayed += 1;
+            if (!st.listenSent && st.trackPlayed >= LISTEN_AFTER) {
+                st.listenSent = true;
+                report('listen', trackId);
+            }
+            if (st.unreported >= BEAT_EVERY) {
+                report('beat', trackId, st.unreported);
+                st.unreported = 0;
+            }
+        }, 1000);
+        return () => {
+            window.clearInterval(id);
+            // Pausa o cambio de canción: lo que falta por avisar se manda con el cierre
+            report('stop', trackId, stats.current.unreported);
+            stats.current.unreported = 0;
+        };
+    }, [playing, trackId, report]);
+    useEffect(() => {
+        const leave = () => { if (stats.current.unreported > 0 || latest.current.now) { report('stop', latest.current.now?.track.trackId, stats.current.unreported); stats.current.unreported = 0; } };
+        window.addEventListener('pagehide', leave);
+        return () => window.removeEventListener('pagehide', leave);
+    }, [report]);
 
     // Controles del sistema: pantalla de bloqueo y teclas multimedia (Media Session)
     useEffect(() => {
