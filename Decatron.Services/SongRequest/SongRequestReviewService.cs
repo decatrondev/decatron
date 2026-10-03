@@ -123,6 +123,8 @@ namespace Decatron.Services.SongRequest
             _db.SongRequestPending.Remove(pending);
             await _db.SaveChangesAsync(ct);
             await _songs.NotifyAsync(config, ct);
+            if (pending.PlaylistId != null)
+                await _songs.NotifyPlaylistsAsync(config.UserId, ct);
 
             if (error is null or "already_queued" or "already_in_playlist")
             {

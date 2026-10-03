@@ -24,6 +24,8 @@ export interface QueueState {
     requestsOpen: boolean;
     paused: boolean;
     mode?: RequestMode;
+    allowWebRequests?: boolean;
+    activePlaylist?: { code: string; name: string } | null;
     requestSource?: 'any' | 'playlists';
     activePlaylistId?: number | null;
     current: QueueItem | null;

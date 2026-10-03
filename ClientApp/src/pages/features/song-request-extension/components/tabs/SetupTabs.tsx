@@ -192,6 +192,10 @@ export function CommandsTab({ cfg }: TabProps) {
                 <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.commands.controlTotalNote')}</p>
             </Card>
 
+            <Card title={t('songRequest.commands.webRequestsTitle')}>
+                <Toggle checked={set.allowWebRequests} onChange={v => cfg.updateSettings({ allowWebRequests: v })} label={t('songRequest.commands.webRequests')} hint={t('songRequest.commands.webRequestsHint')} />
+            </Card>
+
             <Card title={t('songRequest.commands.voteTitle')}>
                 <div className="space-y-4">
                     <Toggle checked={set.skipVoteEnabled} onChange={v => cfg.updateSettings({ skipVoteEnabled: v })} label={t('songRequest.commands.voteEnabled')} hint={t('songRequest.commands.voteHint')} />

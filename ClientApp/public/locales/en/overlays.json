@@ -389,7 +389,10 @@
       "permReview": "Review pending",
       "permReviewHint": "!srapprove and !srreject. Their own requests skip review.",
       "permPlaylist": "Playlists link",
-      "permPlaylistHint": "!playlist: the link to listen to the channel's public playlists."
+      "permPlaylistHint": "!playlist: the link to listen to the channel's public playlists.",
+      "webRequestsTitle": "Requesting from the web",
+      "webRequests": "Allow requests from the playlist page",
+      "webRequestsHint": "Every song on /sr/{channel}/p/{code} has a “Request” button that does the same as !sr for that song: same limits, mode, review and bans. Whoever requests has to log in with Twitch or Kick."
     },
     "messages": {
       "title": "Bot messages",

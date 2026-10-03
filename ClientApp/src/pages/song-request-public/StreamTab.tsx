@@ -21,6 +21,16 @@ export default function StreamTab({ state, onOpenGuide }: { state: QueueState; o
                 <p className="mb-10 text-sm 3xl:text-base 4xl:text-lg text-[#71717a]">{t('songRequestPublic.nothingPlaying')}</p>
             )}
 
+            {/* Lo que suena viene de una playlist pública: se puede escuchar entera en el navegador */}
+            {current?.isFallback && state.activePlaylist && (
+                <a
+                    href={`/sr/${state.channel}/p/${state.activePlaylist.code}`}
+                    className="-mt-6 mb-10 4xl:mb-14 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[#39ff14]/30 font-mono text-xs 3xl:text-sm 4xl:text-base text-[#39ff14] hover:bg-[#39ff14]/10 transition-colors"
+                >
+                    ▶ {t('songRequestPublic.listenThis')} · {state.activePlaylist.name} →
+                </a>
+            )}
+
             {/* Resumen de cómo pedir: la guía completa está en su pestaña */}
             <div className="mb-10 4xl:mb-14 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-[#27272a] bg-[#111114] px-4 py-3 4xl:px-6 4xl:py-4">
                 <p className="flex items-start gap-2.5 text-white font-semibold text-sm 3xl:text-base 4xl:text-xl">

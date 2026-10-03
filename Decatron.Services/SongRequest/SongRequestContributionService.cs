@@ -200,6 +200,7 @@ namespace Decatron.Services.SongRequest
                 CreatedAt = now
             });
             await _db.SaveChangesAsync(ct);
+            await _songs.NotifyPlaylistsAsync(ownerId, ct);
             return new(null, track, playlist);
         }
 

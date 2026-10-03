@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS: SongRequestSettings = {
     maxQueueSize: 50,
     maxPerUser: 3,
     maxPerUserPerHour: 0,
+    allowWebRequests: true,
     skipVoteEnabled: false,
     skipVotesRequired: 3,
     queuePreviewCount: 3,

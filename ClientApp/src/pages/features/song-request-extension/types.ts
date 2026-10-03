@@ -9,6 +9,8 @@ export interface SongRequestSettings {
     /** Pedidos por usuario en la última hora (0 = sin límite). */
     maxPerUserPerHour: number;
     skipVoteEnabled: boolean;
+    /** Los viewers piden al stream una canción de una playlist desde su página. */
+    allowWebRequests: boolean;
     skipVotesRequired: number;
     queuePreviewCount: number;
     maxDurationSeconds: number;

@@ -273,12 +273,18 @@ namespace Decatron.Services.SongRequest
 
             playlist.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
+            await PlaylistsChangedAsync(userId, ct);
             return null;
         }
 
         /// <summary>Borra la playlist con sus canciones. Si era la de respaldo, no suena ninguna hasta elegir otra.</summary>
-        public async Task<bool> DeletePlaylistAsync(long userId, long playlistId, CancellationToken ct = default) =>
-            await _db.SongRequestPlaylists.Where(p => p.Id == playlistId && p.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+        public async Task<bool> DeletePlaylistAsync(long userId, long playlistId, CancellationToken ct = default)
+        {
+            var removed = await _db.SongRequestPlaylists.Where(p => p.Id == playlistId && p.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+            if (removed)
+                await PlaylistsChangedAsync(userId, ct);
+            return removed;
+        }
 
         /// <summary>En el orden de la playlist (manual o por votos): el número de cada una es el de !sr #n.</summary>
         public async Task<List<object>?> GetPlaylistItemsAsync(long userId, long playlistId, CancellationToken ct = default)
@@ -320,6 +326,7 @@ namespace Decatron.Services.SongRequest
                 PlaylistId = playlistId, UserId = userId, TrackId = track.Id, Position = last + 1, CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(ct);
+            await PlaylistsChangedAsync(userId, ct);
             return null;
         }
 
@@ -334,11 +341,24 @@ namespace Decatron.Services.SongRequest
                 : SongRequestService.ErrorKeyFor(resolved.Error);
         }
 
-        public async Task<bool> RemoveFromPlaylistAsync(long userId, long playlistId, long itemId, CancellationToken ct = default) =>
-            await _db.SongRequestPlaylistItems.Where(i => i.Id == itemId && i.PlaylistId == playlistId && i.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+        /// <summary>Avisa a quien mira una playlist que su contenido cambió (agregar, quitar, ordenar, renombrar…).</summary>
+        public Task PlaylistsChangedAsync(long userId, CancellationToken ct = default) => _songs.NotifyPlaylistsAsync(userId, ct);
 
-        public Task<int> ClearPlaylistAsync(long userId, long playlistId, CancellationToken ct = default) =>
-            _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlistId && i.UserId == userId).ExecuteDeleteAsync(ct);
+        public async Task<bool> RemoveFromPlaylistAsync(long userId, long playlistId, long itemId, CancellationToken ct = default)
+        {
+            var removed = await _db.SongRequestPlaylistItems.Where(i => i.Id == itemId && i.PlaylistId == playlistId && i.UserId == userId).ExecuteDeleteAsync(ct) > 0;
+            if (removed)
+                await PlaylistsChangedAsync(userId, ct);
+            return removed;
+        }
+
+        public async Task<int> ClearPlaylistAsync(long userId, long playlistId, CancellationToken ct = default)
+        {
+            var removed = await _db.SongRequestPlaylistItems.Where(i => i.PlaylistId == playlistId && i.UserId == userId).ExecuteDeleteAsync(ct);
+            if (removed > 0)
+                await PlaylistsChangedAsync(userId, ct);
+            return removed;
+        }
 
         public async Task ReorderPlaylistAsync(long userId, long playlistId, IReadOnlyList<long> orderedIds, CancellationToken ct = default)
         {
@@ -348,6 +368,7 @@ namespace Decatron.Services.SongRequest
             for (var i = 0; i < ordered.Count; i++)
                 ordered[i].Position = i + 1;
             await _db.SaveChangesAsync(ct);
+            await PlaylistsChangedAsync(userId, ct);
         }
 
         // ── Playlists públicas (/sr/{canal}) ─────────────────────────────────

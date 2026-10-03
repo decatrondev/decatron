@@ -1130,6 +1130,59 @@ namespace Decatron.Controllers
             });
         }
 
+        /// <summary>
+        /// "Pedir al stream" en una canción de la playlist (fase 2, etapa 3): exactamente lo mismo que !sr de esa canción.
+        /// Mismos requisitos, límites, modo, revisión y vetos; el pedido lleva el nombre de quien lo hizo.
+        /// </summary>
+        [HttpPost("api/song-request/public/{channel}/playlists/{code}/items/{itemId:long}/request")]
+        public async Task<IActionResult> PublicRequestFromPlaylist(string channel, string code, long itemId, [FromServices] SongRequestContributionService contributions, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null || !config.Enabled)
+                return NotFound(new { success = false });
+            var playlist = await _library.FindSharedPlaylistAsync(config.UserId, code, ct);
+            if (playlist == null)
+                return NotFound(new { success = false });
+            var item = await _db.SongRequestPlaylistItems.AsNoTracking().Include(i => i.Track)
+                .FirstOrDefaultAsync(i => i.Id == itemId && i.PlaylistId == playlist.Id, ct);
+            if (item?.Track == null)
+                return NotFound(new { success = false });
+
+            var settings = SongRequestService.ParseSettings(config);
+            if (!settings.AllowWebRequests)
+                return Ok(new { success = false, error = "web_requests_off" });
+            if (!config.RequestsOpen)
+                return Ok(new { success = false, error = "closed" });
+
+            var (who, _) = await WebContributorAsync(config, ct);
+            if (who == null)
+                return Ok(new { success = false, error = "pl_need_account" });
+            // Desde la web no se sabe si es sub, VIP o mod: si el canal pide un rol para pedir, se pide desde el chat
+            if (!who.Privileged && settings.Permissions.Request != "everyone")
+                return Ok(new { success = false, error = "request_role_web" });
+
+            var review = settings.RequestReview && !who.Privileged
+                && !await contributions.IsTrustedAsync(config.UserId, who.Platform, who.Login, ct);
+            var replyChannel = await reviews.ReplyChannelForAsync(config, who.Platform, ct);
+            var requester = new SongRequester(who.Platform, who.Id, who.Login, who.DisplayName);
+            var result = await _songs.AddAsync(config, requester, "", who.Privileged, ct, review, replyChannel, item.Track);
+            return Ok(new
+            {
+                success = result.Success,
+                pending = result.Pending != null,
+                position = result.Position,
+                error = result.ErrorKey,
+                title = result.Track?.Title ?? item.Track.Title,
+                vars = new Dictionary<string, string>
+                {
+                    ["max"] = (result.ErrorKey == "hour_limit" ? settings.MaxPerUserPerHour : settings.MaxPerUser).ToString(),
+                    ["minutes"] = settings.NoRepeatMinutes.ToString(),
+                    ["views"] = settings.MinViews.ToString("N0")
+                }
+            });
+        }
+
         /// <summary>Vota o quita el voto a una canción de una playlist pública con votación.</summary>
         [HttpPost("api/song-request/public/{channel}/playlists/{code}/items/{itemId:long}/vote")]
         public async Task<IActionResult> PublicVote(string channel, string code, long itemId, CancellationToken ct)

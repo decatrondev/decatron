@@ -389,7 +389,10 @@
       "permReview": "Revisar pendientes",
       "permReviewHint": "!srapprove y !srreject. Sus pedidos no pasan por revisión.",
       "permPlaylist": "Enlace a las playlists",
-      "permPlaylistHint": "!playlist: el enlace para escuchar las playlists públicas del canal."
+      "permPlaylistHint": "!playlist: el enlace para escuchar las playlists públicas del canal.",
+      "webRequestsTitle": "Pedir desde la web",
+      "webRequests": "Permitir pedir desde la página de la playlist",
+      "webRequestsHint": "Cada canción de /sr/{canal}/p/{código} tiene un botón «Pedir» que hace lo mismo que !sr de esa canción: mismos límites, modo, revisión y vetos. Quien pide necesita iniciar sesión con Twitch o Kick."
     },
     "messages": {
       "title": "Mensajes del bot",

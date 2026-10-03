@@ -8,6 +8,9 @@ namespace Decatron.Core.Models.SongRequest;
 /// </summary>
 public class SongRequestSettings
 {
+    /// <summary>Los viewers pueden pedir al stream una canción de una playlist desde su página (/sr/{canal}/p/{código}). Fase 2, etapa 3.</summary>
+    public bool AllowWebRequests { get; set; } = true;
+
     public SongRequestPermissions Permissions { get; set; } = new();
 
     /// <summary>Máximo de canciones en la cola (sin contar la que suena).</summary>

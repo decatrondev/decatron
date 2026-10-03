@@ -276,9 +276,10 @@ namespace Decatron.Services.SongRequest
         /// </summary>
         /// <param name="review">El pedido queda en la bandeja de pendientes en vez de entrar a la cola (fase 3).</param>
         /// <param name="replyChannel">A qué chat avisar cuando se decida (solo con <paramref name="review"/>).</param>
+        /// <param name="knownTrack">La canción ya está resuelta (viene de una playlist del canal): no se parsea ni se consulta nada. Mismos límites, vetos y revisión que un !sr.</param>
         public async Task<SongAddResult> AddAsync(
             SongRequestConfig config, SongRequester requester, string input, bool unlimited, CancellationToken ct = default,
-            bool review = false, string? replyChannel = null)
+            bool review = false, string? replyChannel = null, SongTrack? knownTrack = null)
         {
             var settings = ParseSettings(config);
             var userId = config.UserId;
@@ -318,8 +319,12 @@ namespace Decatron.Services.SongRequest
             // !sr #12: la canción 12 de la playlist que suena (fase 4); no hace falta resolver nada
             SongTrack track;
             TrackInfo? origin = null;
-            var number = ParsePlaylistNumber(input);
-            if (number != null)
+            var number = knownTrack == null ? ParsePlaylistNumber(input) : null;
+            if (knownTrack != null)
+            {
+                track = knownTrack;
+            }
+            else if (number != null)
             {
                 var playlist = await GetRequestPlaylistAsync(config, ct);
                 if (playlist == null)
@@ -925,6 +930,9 @@ namespace Decatron.Services.SongRequest
                 requestReview = settings.RequestReview,
                 requestSource = settings.RequestSource,
                 mode = ModeOf(config, settings),
+                allowWebRequests = settings.AllowWebRequests,
+                // La playlist de fondo, solo si es pública: /sr enlaza "Escuchar esta playlist" (las de solo enlace o privadas no se anuncian)
+                activePlaylist = await GetPublicActivePlaylistAsync(config, ct),
                 // Cuántos esperan aprobación (cola y playlists): el dashboard recarga la bandeja cuando cambia
                 pendingCount = await _db.SongRequestPending.CountAsync(p => p.UserId == config.UserId, ct),
                 playerConnected = _players.HasPlayer(config.ChannelName.ToLowerInvariant()),
@@ -932,6 +940,16 @@ namespace Decatron.Services.SongRequest
                 queue = queued.Select((q, i) => ToDto(q, i + 1)).ToList(),
                 totalDurationSeconds = queued.Sum(q => q.Track?.DurationSeconds ?? 0)
             };
+        }
+
+        private async Task<object?> GetPublicActivePlaylistAsync(SongRequestConfig config, CancellationToken ct)
+        {
+            if (config.ActivePlaylistId == null)
+                return null;
+            return await _db.SongRequestPlaylists.AsNoTracking()
+                .Where(p => p.Id == config.ActivePlaylistId && p.Visibility == SongRequestPlaylistVisibility.Public)
+                .Select(p => new { code = p.ShareCode, name = p.Name })
+                .FirstOrDefaultAsync(ct);
         }
 
         private object ToDto(SongRequestQueueItem item, int position)
@@ -968,6 +986,23 @@ namespace Decatron.Services.SongRequest
             {
                 // Un aviso que no llega no puede tirar el pedido: el overlay y la página se ponen al día al recargar
                 _logger.LogWarning(ex, "[SongRequest] No se pudo avisar el cambio de cola de {Channel}", config.ChannelName);
+            }
+        }
+
+        public const string PlaylistsChangedEvent = "SongRequestPlaylistsChanged";
+
+        /// <summary>Cambió el contenido de alguna playlist del canal: las vistas de playlist la vuelven a pedir sin cortar lo que suena.</summary>
+        public async Task NotifyPlaylistsAsync(long userId, CancellationToken ct = default)
+        {
+            try
+            {
+                var channel = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ChannelName).FirstOrDefaultAsync(ct);
+                if (channel != null)
+                    await _hub.Clients.Group(SongRequestHub.Group(channel)).SendAsync(PlaylistsChangedEvent, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[SongRequest] No se pudo avisar el cambio de playlists del usuario {UserId}", userId);
             }
         }
 

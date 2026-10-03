@@ -12,7 +12,7 @@ declare global {
 
 let apiPromise: Promise<any> | null = null;
 
-function loadYouTubeApi(): Promise<any> {
+export function loadYouTubeApi(): Promise<any> {
     if (window.YT?.Player) return Promise.resolve(window.YT);
     if (apiPromise) return apiPromise;
     apiPromise = new Promise(resolve => {

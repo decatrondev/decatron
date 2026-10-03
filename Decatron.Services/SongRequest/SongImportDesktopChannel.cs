@@ -364,6 +364,7 @@ namespace Decatron.Services.SongRequest
                 PlaylistId = job.PlaylistId, UserId = job.UserId, TrackId = saved.Id, Position = last + 1, CreatedAt = DateTime.UtcNow
             });
             await db.SaveChangesAsync();
+            await library.PlaylistsChangedAsync(job.UserId);
             return (ImportItemState.Added, null);
         }
     }

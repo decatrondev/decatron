@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlatformIcon } from '../features/song-request-extension/components/PlatformIcon';
 import { authHeaders, formatDuration } from './shared';
+import { usePlaylistData } from './usePlaylistData';
 
 export interface PlaylistRequirements { minRole: string; minAccountAgeDays: number; minFollowAgeDays: number; maxPerUser: number; cooldownMinutes: number }
 export interface PublicPlaylist { id: number; code: string; name: string; count: number; open: boolean; review?: boolean; requirements: PlaylistRequirements; isActive?: boolean; numbered?: boolean; votingEnabled?: boolean }
-export interface PublicPlaylistItem { id: number; number: number; votes: number; addedBy: string | null; addedByPlatform: string | null; track: { url: string | null; title: string; artist: string; durationSeconds: number | null; thumbnailUrl: string | null } }
+export interface PublicPlaylistItem { id: number; number: number; votes: number; addedBy: string | null; addedByPlatform: string | null; track: { trackId: number; source: string; sourceId: string; url: string | null; title: string; artist: string; durationSeconds: number | null; thumbnailUrl: string | null } }
 /** Con qué cuenta agrega el viewer logueado. undefined = sin sesión; null = con sesión pero sin Twitch ni Kick. */
 export type Contributor = { platform: string; name: string } | null | undefined;
 
@@ -38,39 +39,9 @@ export function PlaylistPanel({ channel, playlist, loginRedirect, listMaxHeight 
 }) {
     const { t } = useTranslation('commands');
     const contributor = useContributor(channel);
-    const [items, setItems] = useState<PublicPlaylistItem[] | null>(null);
-    const [myVotes, setMyVotes] = useState<Set<number>>(new Set());
-    const api = `/api/song-request/public/${encodeURIComponent(channel)}/playlists/${playlist.code}`;
-
-    const loadItems = useCallback(async () => {
-        try {
-            const r = await fetch(`/api/public/song-request/${encodeURIComponent(channel)}/playlists/${playlist.code}`);
-            const d = r.ok ? await r.json() : null;
-            setItems(d?.shared?.items ?? []);
-        } catch { setItems([]); }
-        const headers = authHeaders();
-        if (headers.Authorization && playlist.votingEnabled) {
-            fetch(`${api}/my-votes`, { headers })
-                .then(r => (r.ok ? r.json() : null))
-                .then(d => setMyVotes(new Set<number>(d?.items ?? [])))
-                .catch(() => { /* sin votos */ });
-        }
-    }, [channel, playlist.code, playlist.votingEnabled, api]);
-    useEffect(() => { loadItems(); }, [loadItems]);
-
+    const { items, myVotes, vote: castVote, reload } = usePlaylistData(channel, playlist.code);
     const vote = async (itemId: number) => {
-        if (!contributor) { window.location.href = `/login?redirect=${encodeURIComponent(loginRedirect)}`; return; }
-        try {
-            const r = await fetch(`${api}/items/${itemId}/vote`, { method: 'POST', headers: authHeaders() });
-            const d = r.ok ? await r.json() : null;
-            if (!d?.success) return;
-            setMyVotes(prev => {
-                const set = new Set(prev);
-                if (d.voted) set.add(itemId); else set.delete(itemId);
-                return set;
-            });
-            setItems(prev => (prev ?? []).map(i => (i.id === itemId ? { ...i, votes: d.votes } : i)));
-        } catch { /* se reintenta con otro clic */ }
+        if (!await castVote(itemId, !!contributor)) window.location.href = `/login?redirect=${encodeURIComponent(loginRedirect)}`;
     };
 
     return (
@@ -85,7 +56,7 @@ export function PlaylistPanel({ channel, playlist, loginRedirect, listMaxHeight 
                     channel={channel}
                     playlist={playlist}
                     contributor={contributor}
-                    onAdded={() => { loadItems(); onChanged?.(); }}
+                    onAdded={() => { reload(); onChanged?.(); }}
                 />
             )}
             {!items ? (
