@@ -420,7 +420,7 @@
       "permSkip": "Saltar y quitar",
       "permSkipHint": "!skip directo (también !srskip y !srnext), !srremove y !srpromote.",
       "permManage": "Administrar",
-      "permManageHint": "!sropen, !srclose, !srclear, !srpause (también !srstop), !srresume, !srban, !srunban, !srvideo, !srcover, !srplay y !srmode.",
+      "permManageHint": "!sropen, !srclose, !srclear, !srpause, !srstop, !srresume, !srban, !srunban, !srvideo, !srcover, !srplay y !srmode.",
       "controlTotalNote": "Quien tiene control total en tu dashboard cuenta como el streamer.",
       "voteTitle": "Votación para saltar",
       "voteEnabled": "Los viewers pueden votar !skip",
@@ -552,7 +552,9 @@
       "last_none": "!lastsong: todavía no sonó nada",
       "unban_user": "!srunban: veto quitado",
       "unban_none": "!srunban: no estaba vetado",
-      "unban_usage": "!srunban: cómo usarlo"
+      "unban_usage": "!srunban: cómo usarlo",
+      "stopped": "!srstop: detenido y oculto",
+      "stop_already": "!srstop: ya estaba detenido"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -563,6 +565,9 @@
       "open": "Pedidos abiertos",
       "closed": "Pedidos cerrados",
       "paused": "En pausa",
+      "stopped": "Detenido",
+      "stop": "Detener y ocultar",
+      "stopHint": "Silencio y overlay oculto; al reanudar se ve de nuevo y suena donde se quedó",
       "nowPlaying": "Sonando ahora",
       "requestedBy": "pedida por {{user}}",
       "waitingPlayer": "Hay canciones en la cola: abre el reproductor en OBS o activa «Escuchar aquí» para que empiece.",

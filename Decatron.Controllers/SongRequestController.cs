@@ -76,6 +76,7 @@ namespace Decatron.Controllers
                 enabled = config.Enabled,
                 requestsOpen = config.RequestsOpen,
                 paused = config.IsPaused,
+                stopped = config.IsStopped,
                 volume = config.Volume,
                 settings = SongRequestService.ParseSettings(config),
                 overlayConfig = ParseJson(config.OverlayConfig),
@@ -210,6 +211,7 @@ namespace Decatron.Controllers
             {
                 case "pause": await _songs.SetPausedAsync(config, true, ct); break;
                 case "resume": await _songs.SetPausedAsync(config, false, ct); break;
+                case "stop": await _songs.SetStoppedAsync(config, ct); break;
                 case "skip": await _songs.AdvanceAsync(config, "skipped", ct); break;
                 case "open": await _songs.SetOpenAsync(config, true, ct); break;
                 case "close": await _songs.SetOpenAsync(config, false, ct); break;

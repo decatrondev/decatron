@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pause, Play, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio, Download, ChevronsUp } from 'lucide-react';
+import { Pause, Play, Square, SkipForward, Trash2, Ban, GripVertical, Headphones, Volume2, Lock, Unlock, Plus, Radio, Download, ChevronsUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Toggle, inputClass } from '../ui';
 import TrackPlayer from '../TrackPlayer';
@@ -100,7 +100,9 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                 <Status ok={connected} label={connected ? t('songRequest.queue.live') : t('songRequest.queue.reconnecting')} />
                 <Status ok={!!snapshot?.playerConnected} label={snapshot?.playerConnected ? t('songRequest.queue.playerOn') : t('songRequest.queue.playerOff')} />
                 <Status ok={!!snapshot?.requestsOpen} label={snapshot?.requestsOpen ? t('songRequest.queue.open') : t('songRequest.queue.closed')} />
-                {snapshot?.paused && <Status ok={false} warn label={t('songRequest.queue.paused')} />}
+                {snapshot?.stopped
+                    ? <Status ok={false} warn label={t('songRequest.queue.stopped')} />
+                    : snapshot?.paused && <Status ok={false} warn label={t('songRequest.queue.paused')} />}
             </div>
 
             {/* Modos rápidos (fase 5): combinan abrir/cerrar, revisión y "solo desde playlists", al instante */}
@@ -149,6 +151,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
                     ) : (
                         <CtlButton onClick={() => control('pause')} icon={<Pause className="w-4 h-4" />} label={t('songRequest.queue.pause')} />
                     )}
+                    <CtlButton onClick={() => control('stop')} icon={<Square className="w-4 h-4" />} label={t('songRequest.queue.stop')} disabled={!!snapshot?.stopped} title={t('songRequest.queue.stopHint')} />
                     <CtlButton onClick={() => control('skip')} icon={<SkipForward className="w-4 h-4" />} label={t('songRequest.queue.skip')} disabled={!current} />
                     {snapshot?.requestsOpen ? (
                         <CtlButton onClick={() => control('close')} icon={<Lock className="w-4 h-4" />} label={t('songRequest.queue.closeRequests')} />
@@ -255,11 +258,12 @@ function Status({ ok, label, warn }: { ok: boolean; label: string; warn?: boolea
     );
 }
 
-function CtlButton({ onClick, icon, label, primary, disabled }: { onClick: () => void; icon: React.ReactNode; label: string; primary?: boolean; disabled?: boolean }) {
+function CtlButton({ onClick, icon, label, primary, disabled, title }: { onClick: () => void; icon: React.ReactNode; label: string; primary?: boolean; disabled?: boolean; title?: string }) {
     return (
         <button
             onClick={onClick}
             disabled={disabled}
+            title={title}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-40 ${primary ? 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'}`}
         >
             {icon} {label}

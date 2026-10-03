@@ -465,6 +465,8 @@
     "unban_user": "✅ @{target} ya puede pedir canciones otra vez.",
     "unban_none": "⛔ @{target} no estaba vetado.",
     "unban_usage": "⛔ @{user}, usa {command} @usuario para quitarle el veto a un usuario. Los vetos de canciones y artistas se quitan en el dashboard.",
+    "stopped": "⏹️ Música detenida y overlay oculto. Usa !srresume para continuar donde se quedó.",
+    "stop_already": "⏹️ El song request ya está detenido. Usa !srresume para continuar.",
     "too_long": "🎵 @{user}, «{title}» dura más de {max}, el máximo del canal.",
     "unknown_duration": "🎵 @{user}, no pude saber cuánto dura esa canción y el canal tiene un máximo de duración.",
     "too_few_views": "🎵 @{user}, esa canción tiene menos de {views} vistas, el mínimo del canal.",

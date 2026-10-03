@@ -51,6 +51,8 @@ export interface QueueSnapshot {
     enabled: boolean;
     requestsOpen: boolean;
     paused: boolean;
+    /** Detenido (!srstop): en silencio y con el overlay oculto; reanudar lo muestra y sigue donde se quedó. */
+    stopped?: boolean;
     volume: number;
     /** El reproductor corta aquí las canciones de duración desconocida (0 = no corta). */
     maxDurationSeconds?: number;

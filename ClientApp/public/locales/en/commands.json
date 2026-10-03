@@ -520,6 +520,7 @@
     "open": "Requests open",
     "closed": "Requests closed",
     "paused": "Paused",
+    "stopped": "Stopped",
     "live": "Live",
     "nowPlaying": "Now playing",
     "nothingPlaying": "No requested song is playing.",
@@ -663,7 +664,11 @@
       },
       "pause": {
         "syntax": "!srpause · !srresume",
-        "text": "Pauses or resumes the music."
+        "text": "Pauses or resumes the music. The overlay stays visible; !srresume also leaves a stop."
+      },
+      "stop": {
+        "syntax": "!srstop",
+        "text": "Silence and overlay hidden, without losing the song or the queue. !srresume shows it again and continues where it left off. New requests don't resume it by themselves."
       },
       "volumeSet": {
         "syntax": "!srvolume <0-100>",

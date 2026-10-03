@@ -52,7 +52,8 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     // Administrar
     { id: 'srmode', group: 'manage', aliases: ['abiertos', 'revisión', 'cerrados'], examples: ['!srmode open', '!srmode playlists', '!srmode review', '!srmode closed'], perm: 'manage', keys: ['srmode'] },
     { id: 'openclose', group: 'manage', examples: ['!sropen', '!srclose'], perm: 'manage', keys: ['sropen', 'srclose'] },
-    { id: 'pause', group: 'player', aliases: ['!srstop'], examples: ['!srpause', '!srresume'], perm: 'manage', keys: ['srpause', 'srresume'] },
+    { id: 'pause', group: 'player', examples: ['!srpause', '!srresume'], perm: 'manage', keys: ['srpause', 'srresume'] },
+    { id: 'stop', group: 'player', examples: ['!srstop'], perm: 'manage', keys: ['srstop'] },
     { id: 'volumeSet', group: 'player', examples: ['!srvolume 40'], perm: 'manage', keys: ['srvolume'] },
     { id: 'srban', group: 'manage', examples: ['!srban', '!srban @viewer123'], perm: 'manage', keys: ['srban'] },
     { id: 'srunban', group: 'manage', examples: ['!srunban @viewer123'], perm: 'manage', keys: ['srunban'] },

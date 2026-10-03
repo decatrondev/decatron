@@ -111,13 +111,14 @@ function PlayerOverlay({ channel, playerKey }: { channel: string; playerKey: str
 
     // Con o sin video el reproductor va en el mismo lugar (el renderer lo oculta): cambiar el diseño no corta la canción
     return (
-        <WithPromo layout={layout} data={data!} active={!!current || !layout.animations.hideWhenIdle}>
+        <WithPromo layout={layout} data={data!} active={!snapshot?.stopped && (!!current || !layout.animations.hideWhenIdle)}>
             <SongOverlayRenderer
                 layout={layout}
                 current={current}
                 queue={snapshot?.queue ?? []}
                 progress={progress}
                 paused={snapshot?.paused ?? false}
+                hidden={snapshot?.stopped ?? false}
                 labels={labels}
                 videoSlot={player}
             />
@@ -134,13 +135,14 @@ function DisplayOverlay({ channel }: { channel: string }) {
     if (!layout || !snapshot?.enabled) return null;
 
     return (
-        <WithPromo layout={layout} data={data!} active={!!snapshot.current || !layout.animations.hideWhenIdle}>
+        <WithPromo layout={layout} data={data!} active={!snapshot.stopped && (!!snapshot.current || !layout.animations.hideWhenIdle)}>
             <SongOverlayRenderer
                 layout={layout}
                 current={snapshot.current}
                 queue={snapshot.queue}
                 progress={progress}
                 paused={snapshot.paused}
+                hidden={snapshot.stopped ?? false}
                 labels={labels}
             />
         </WithPromo>

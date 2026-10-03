@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink, Clear, LastSong, Unban }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink, Clear, LastSong, Unban, Stop }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -56,8 +56,8 @@ namespace Decatron.Services.SongRequest
             ["!srmode"] = Action.Mode,
             // El enlace a las playlists para escucharlas en la web (fase 1, etapa 3)
             ["!playlist"] = Action.PlaylistLink,
-            // Alias y comandos del cierre de la etapa 3: parar = pausar, saltar con prefijo, vaciar la cola y la canción anterior
-            ["!srstop"] = Action.Pause,
+            // Comandos del cierre de la etapa 3: detener (silencio y overlay oculto), saltar con prefijo, vaciar la cola y la canción anterior
+            ["!srstop"] = Action.Stop,
             ["!srskip"] = Action.Skip,
             ["!srnext"] = Action.Skip,
             ["!srclear"] = Action.Clear,
@@ -110,7 +110,7 @@ namespace Decatron.Services.SongRequest
             "mode_set", "mode_usage", "hour_limit",
             "playlist_link", "playlist_link_one", "playlist_link_none", "playlist_link_notfound", "playlist_link_play", "playlist_link_stop",
             "cleared", "clear_none", "last_song", "last_song_fallback", "last_none",
-            "unban_user", "unban_none", "unban_usage"
+            "unban_user", "unban_none", "unban_usage", "stopped", "stop_already"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -147,7 +147,7 @@ namespace Decatron.Services.SongRequest
                     Action.PlaylistAdd => null, // decide la playlist: sus requisitos
                     Action.Remove or Action.Promote or Action.PlaylistNext => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
-                        or Action.Video or Action.Cover or Action.Play or Action.Mode or Action.Clear or Action.Unban
+                        or Action.Video or Action.Cover or Action.Play or Action.Mode or Action.Clear or Action.Unban or Action.Stop
                         or Action.PlaylistStop or Action.PlaylistShuffle => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     Action.PlaylistLink => run.Settings.Permissions.Playlist,
@@ -186,6 +186,7 @@ namespace Decatron.Services.SongRequest
                     case Action.PlaylistLink: await PlaylistLinkAsync(run); break;
                     case Action.Clear: await ClearAsync(run); break;
                     case Action.Unban: await UnbanAsync(run); break;
+                    case Action.Stop: await StopAsync(run); break;
                     case Action.LastSong: await LastSongAsync(run); break;
                 }
             }
@@ -691,8 +692,20 @@ namespace Decatron.Services.SongRequest
 
         private static async Task SetPausedAsync(Run run, bool paused)
         {
+            // Detenido ya está en silencio y oculto: pausar no lo muestra. Solo reanudar sale de ahí.
+            if (paused && run.Config.IsStopped)
+            {
+                await run.ReplyAsync("stop_already");
+                return;
+            }
             await run.Songs.SetPausedAsync(run.Config, paused);
             await run.ReplyAsync(paused ? "paused" : "resumed");
+        }
+
+        /// <summary>!srstop: silencio y overlay oculto (distinto de !srpause, que lo deja a la vista). !srresume sigue donde se quedó.</summary>
+        private static async Task StopAsync(Run run)
+        {
+            await run.ReplyAsync(await run.Songs.SetStoppedAsync(run.Config) ? "stopped" : "stop_already");
         }
 
         /// <summary>!srban @usuario veta a alguien; !srban solo veta la canción que suena y la salta.</summary>

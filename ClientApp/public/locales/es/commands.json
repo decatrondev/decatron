@@ -520,6 +520,7 @@
     "open": "Pedidos abiertos",
     "closed": "Pedidos cerrados",
     "paused": "En pausa",
+    "stopped": "Detenido",
     "live": "En vivo",
     "nowPlaying": "Sonando ahora",
     "nothingPlaying": "No está sonando ninguna canción pedida.",
@@ -663,7 +664,11 @@
       },
       "pause": {
         "syntax": "!srpause · !srresume",
-        "text": "Pausa o reanuda la música."
+        "text": "Pausa o reanuda la música. El overlay sigue a la vista; !srresume también sale de un stop."
+      },
+      "stop": {
+        "syntax": "!srstop",
+        "text": "Silencio y overlay oculto, sin perder la canción ni la cola. !srresume lo muestra de nuevo y sigue donde se quedó. Los pedidos nuevos no lo reanudan solos."
       },
       "volumeSet": {
         "syntax": "!srvolume <0-100>",

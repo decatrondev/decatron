@@ -85,6 +85,13 @@ public class SongRequestConfig
     [Column("is_paused")]
     public bool IsPaused { get; set; }
 
+    /// <summary>
+    /// Detenido (!srstop): el reproductor se calla y el overlay se oculta; al reanudar se ve de nuevo y suena donde se quedó.
+    /// Siempre va con <see cref="IsPaused"/>. Los pedidos y la playlist de fondo no lo reanudan solos.
+    /// </summary>
+    [Column("is_stopped")]
+    public bool IsStopped { get; set; }
+
     /// <summary>Clave del overlay que suena (va en su URL). Se crea al pedirla y se puede regenerar.</summary>
     [Column("player_key"), MaxLength(64)]
     public string? PlayerKey { get; set; }

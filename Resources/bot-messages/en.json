@@ -465,6 +465,8 @@
     "unban_user": "✅ @{target} can request songs again.",
     "unban_none": "⛔ @{target} wasn't banned.",
     "unban_usage": "⛔ @{user}, use {command} @user to lift a user's ban. Song and artist bans are lifted in the dashboard.",
+    "stopped": "⏹️ Music stopped and overlay hidden. Use !srresume to continue where it left off.",
+    "stop_already": "⏹️ Song request is already stopped. Use !srresume to continue.",
     "too_long": "🎵 @{user}, “{title}” is longer than {max}, the channel's maximum.",
     "unknown_duration": "🎵 @{user}, I couldn't tell how long that song is and the channel has a length limit.",
     "too_few_views": "🎵 @{user}, that song has fewer than {views} views, the channel's minimum.",

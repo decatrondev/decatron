@@ -23,6 +23,7 @@ export interface QueueState {
     enabled: boolean;
     requestsOpen: boolean;
     paused: boolean;
+    stopped?: boolean;
     mode?: RequestMode;
     allowWebRequests?: boolean;
     activePlaylist?: { code: string; name: string } | null;

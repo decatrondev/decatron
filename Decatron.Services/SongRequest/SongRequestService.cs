@@ -161,12 +161,29 @@ namespace Decatron.Services.SongRequest
             await NotifyAsync(config, ct);
         }
 
+        /// <summary>Pausar deja el overlay a la vista; reanudar también sale de "detenido".</summary>
         public async Task SetPausedAsync(SongRequestConfig config, bool paused, CancellationToken ct = default)
         {
             config.IsPaused = paused;
+            if (!paused)
+                config.IsStopped = false;
             config.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
             await NotifyAsync(config, ct);
+        }
+
+        /// <summary>!srstop: silencio y overlay oculto, sin perder la canción ni la cola. <see cref="SetPausedAsync"/> con false lo reanuda.</summary>
+        /// <returns>false si ya estaba detenido.</returns>
+        public async Task<bool> SetStoppedAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            if (config.IsStopped)
+                return false;
+            config.IsStopped = true;
+            config.IsPaused = true;
+            config.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+            return true;
         }
 
         // ── Modos rápidos (fase 5) ───────────────────────────────────────────
@@ -947,6 +964,7 @@ namespace Decatron.Services.SongRequest
                 enabled = config.Enabled,
                 requestsOpen = config.RequestsOpen,
                 paused = config.IsPaused,
+                stopped = config.IsStopped,
                 volume = config.Volume,
                 // El reproductor corta al llegar aquí las canciones de duración desconocida (0 = no corta)
                 maxDurationSeconds = settings.MaxDurationSeconds > 0 && settings.AllowUnknownDuration ? settings.MaxDurationSeconds : 0,

@@ -152,7 +152,9 @@ export default function SongRequestPublicPage() {
                             <Chip tone={state.requestsOpen ? 'green' : 'red'}>
                                 {state.requestsOpen ? t('songRequestPublic.open') : t('songRequestPublic.closed')}
                             </Chip>
-                            {state.paused && <Chip tone="amber">{t('songRequestPublic.paused')}</Chip>}
+                            {state.stopped
+                                ? <Chip tone="amber">{t('songRequestPublic.stopped')}</Chip>
+                                : state.paused && <Chip tone="amber">{t('songRequestPublic.paused')}</Chip>}
                             <span className={`flex items-center gap-1.5 ml-auto ${connected ? 'text-[#39ff14]' : 'text-[#52525b]'}`}>
                                 <span className={`w-2 h-2 rounded-full ${connected ? 'bg-[#39ff14] animate-pulse' : 'bg-[#52525b]'}`} />
                                 {t('songRequestPublic.live')}
