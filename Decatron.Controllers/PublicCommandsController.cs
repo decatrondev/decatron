@@ -225,6 +225,7 @@ namespace Decatron.Controllers
             var skip = RoleRestriction(permissions.Skip);
             var manage = RoleRestriction(permissions.Manage);
             var review = RoleRestriction(permissions.Review);
+            var playlistLink = RoleRestriction(permissions.Playlist);
 
             var commands = new (string Name, string Description, string? Restriction)[]
             {
@@ -250,6 +251,7 @@ namespace Decatron.Controllers
                 ("pladd", "Agrega una canción a una playlist del canal (!pladd <playlist> <link o nombre>); cada playlist decide quién puede", null),
                 ("srmode", "Cambia el modo de pedidos: open (abiertos), playlists (solo de las playlists), review (con revisión) o closed (cerrados)", manage),
                 ("pl", "Dice cuál es la playlist de fondo (la que suena sin pedidos) y qué número está sonando", request),
+                ("playlist", "Da el enlace para escuchar las playlists públicas del canal (!playlist <nombre> da el de esa playlist)", playlistLink),
                 ("plplay", "Pone una playlist de fondo (!plplay <playlist>) o salta a una canción de ella (!plplay #19); también !srplay", manage),
                 ("plstop", "Para la playlist de fondo: con la cola vacía no suena nada", manage),
                 ("plnext", "Pasa a la siguiente canción de la playlist de fondo (no salta pedidos)", skip),

@@ -385,6 +385,13 @@
     }
   },
   "songRequestPublic": {
+    "openPlaylistPage": "Abrir la página de esta playlist",
+    "playlistPage": {
+      "label": "Playlist de {{channel}}",
+      "notFound": "Esta playlist no existe o no es pública.",
+      "unlisted": "Solo con enlace",
+      "back": "Todas las playlists"
+    },
     "tabs": {
       "stream": "Stream",
       "guide": "Cómo pedir",
@@ -548,6 +555,10 @@
       "pl": {
         "syntax": "!pl",
         "text": "Dice cuál es la playlist de fondo y qué número está sonando."
+      },
+      "playlistLink": {
+        "syntax": "!playlist [nombre]",
+        "text": "Da el enlace para escuchar las playlists públicas del canal; con un nombre, el de esa playlist."
       },
       "plplay": {
         "syntax": "!plplay <playlist | #número>",

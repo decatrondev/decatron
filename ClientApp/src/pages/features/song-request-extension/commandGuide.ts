@@ -4,7 +4,7 @@ import type { Role } from './types';
 // dashboard y /sr/{canal}: la sintaxis y el texto van en commands.json → srGuide.cmd.{id}.
 
 /** Qué permiso del canal decide quién lo usa. `playlist` = lo decide cada playlist. */
-export type GuidePerm = 'request' | 'skip' | 'manage' | 'review' | 'playlist';
+export type GuidePerm = 'request' | 'skip' | 'manage' | 'review' | 'playlist' | 'playlistLink';
 
 export type GuideGroup = 'request' | 'queue' | 'manage' | 'review' | 'playlists';
 
@@ -33,6 +33,7 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     { id: 'volumeView', group: 'request', examples: ['!srvolume'], perm: 'request', keys: ['srvolume'] },
     // Playlist de fondo (familia !pl, fase 0b)
     { id: 'pl', group: 'playlists', examples: ['!pl'], perm: 'request', keys: ['pl'] },
+    { id: 'playlistLink', group: 'playlists', examples: ['!playlist', '!playlist chill'], perm: 'playlistLink', keys: ['playlist'] },
     { id: 'plplay', group: 'playlists', aliases: ['!srplay'], examples: ['!plplay chill', '!plplay #19', '!plplay chill #19'], perm: 'manage', keys: ['plplay', 'srplay'] },
     { id: 'plstop', group: 'playlists', examples: ['!plstop'], perm: 'manage', keys: ['plstop'] },
     { id: 'plnext', group: 'playlists', examples: ['!plnext'], perm: 'skip', keys: ['plnext'] },
@@ -54,9 +55,11 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     { id: 'videocover', group: 'manage', examples: ['!srvideo', '!srcover'], perm: 'manage', keys: ['srvideo', 'srcover'] },
 ];
 
-export interface GuidePermissions { request: Role; skip: Role; manage: Role; review: Role }
+export interface GuidePermissions { request: Role; skip: Role; manage: Role; review: Role; playlist?: Role }
 
 /** El rol mínimo de un comando con la configuración del canal (null = lo decide cada playlist). */
 export function roleFor(cmd: GuideCommand, permissions: GuidePermissions): Role | null {
-    return cmd.perm === 'playlist' ? null : permissions[cmd.perm];
+    if (cmd.perm === 'playlist') return null;
+    if (cmd.perm === 'playlistLink') return permissions.playlist ?? 'everyone';
+    return permissions[cmd.perm];
 }

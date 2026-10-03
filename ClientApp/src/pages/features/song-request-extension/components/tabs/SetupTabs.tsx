@@ -185,6 +185,9 @@ export function CommandsTab({ cfg }: TabProps) {
                     <Field label={t('songRequest.commands.permReview')} hint={t('songRequest.commands.permReviewHint')}>
                         <Select value={set.permissions.review} onChange={v => setPerm({ review: v })} options={roleOptions} />
                     </Field>
+                    <Field label={t('songRequest.commands.permPlaylist')} hint={t('songRequest.commands.permPlaylistHint')}>
+                        <Select value={set.permissions.playlist} onChange={v => setPerm({ playlist: v })} options={roleOptions} />
+                    </Field>
                 </div>
                 <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('songRequest.commands.controlTotalNote')}</p>
             </Card>

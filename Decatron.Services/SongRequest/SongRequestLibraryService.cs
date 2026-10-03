@@ -165,6 +165,7 @@ namespace Decatron.Services.SongRequest
                 id = p.Id,
                 name = p.Name,
                 visibility = p.Visibility,
+                shareCode = p.ShareCode,
                 contribution = p.Contribution,
                 requirements = SongRequestContributionService.ParseRequirements(p.Requirements),
                 isFallback = p.IsFallback,
@@ -356,7 +357,7 @@ namespace Decatron.Services.SongRequest
             var rows = await _db.SongRequestPlaylists.AsNoTracking()
                 .Where(p => p.UserId == userId && p.Visibility == SongRequestPlaylistVisibility.Public)
                 .OrderByDescending(p => p.IsFallback).ThenBy(p => p.CreatedAt).ThenBy(p => p.Id)
-                .Select(p => new { p.Id, p.Name, p.Contribution, p.Requirements, p.VotingEnabled, p.SortByVotes, p.IsFallback, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
+                .Select(p => new { p.Id, p.ShareCode, p.Name, p.Contribution, p.Requirements, p.VotingEnabled, p.SortByVotes, p.IsFallback, Count = _db.SongRequestPlaylistItems.Count(i => i.PlaylistId == p.Id) })
                 .ToListAsync(ct);
             var activeId = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ActivePlaylistId).FirstOrDefaultAsync(ct);
             // La que responde a !sr #n es la playlist de fondo; si es privada, ninguna pública lleva el número
@@ -364,6 +365,7 @@ namespace Decatron.Services.SongRequest
             return rows.Select(p => (object)new
             {
                 id = p.Id,
+                code = p.ShareCode,
                 name = p.Name,
                 count = p.Count,
                 isActive = p.Id == activeId,
@@ -376,12 +378,54 @@ namespace Decatron.Services.SongRequest
             }).ToList();
         }
 
-        /// <returns>null si no existe o no es pública.</returns>
-        public async Task<List<object>?> GetPublicPlaylistItemsAsync(long userId, long playlistId, CancellationToken ct = default)
+        /// <summary>La playlist de este canal con ese código de enlace. null si no existe o es privada (se responde igual, para no revelar que existe).</summary>
+        public Task<SongRequestPlaylist?> FindSharedPlaylistAsync(long userId, string? code, CancellationToken ct = default)
         {
-            if (!await _db.SongRequestPlaylists.AnyAsync(p => p.Id == playlistId && p.UserId == userId && p.Visibility == SongRequestPlaylistVisibility.Public, ct))
+            var clean = (code ?? "").Trim().ToLowerInvariant();
+            if (clean.Length is 0 or > 16)
+                return Task.FromResult<SongRequestPlaylist?>(null);
+            return _db.SongRequestPlaylists.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.ShareCode == clean
+                    && (p.Visibility == SongRequestPlaylistVisibility.Public || p.Visibility == SongRequestPlaylistVisibility.Unlisted), ct);
+        }
+
+        /// <summary>Los datos de una playlist compartida y sus canciones, para /sr/{canal}/p/{código}. null si no existe o es privada.</summary>
+        public async Task<object?> GetSharedPlaylistAsync(long userId, string? code, CancellationToken ct = default)
+        {
+            var playlist = await FindSharedPlaylistAsync(userId, code, ct);
+            if (playlist == null)
                 return null;
-            return await GetPlaylistItemsAsync(userId, playlistId, ct);
+            var activeId = await _db.SongRequestConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.ActivePlaylistId).FirstOrDefaultAsync(ct);
+            var items = await GetPlaylistItemsAsync(userId, playlist.Id, ct) ?? new List<object>();
+            return new
+            {
+                playlist = new
+                {
+                    code = playlist.ShareCode,
+                    name = playlist.Name,
+                    listed = playlist.Visibility == SongRequestPlaylistVisibility.Public,
+                    count = items.Count,
+                    isActive = playlist.Id == activeId,
+                    votingEnabled = playlist.VotingEnabled,
+                    sortByVotes = playlist.SortByVotes,
+                    open = SongRequestPlaylistContribution.AcceptsViewers(playlist.Contribution),
+                    review = playlist.Contribution == SongRequestPlaylistContribution.Review,
+                    requirements = SongRequestContributionService.ParseRequirements(playlist.Requirements)
+                },
+                items
+            };
+        }
+
+        /// <summary>Un código nuevo: el enlace anterior deja de funcionar. null si la playlist no existe.</summary>
+        public async Task<string?> RegenerateShareCodeAsync(long userId, long playlistId, CancellationToken ct = default)
+        {
+            var playlist = await FindPlaylistAsync(userId, playlistId, ct);
+            if (playlist == null)
+                return null;
+            playlist.ShareCode = SongRequestPlaylistVisibility.NewShareCode();
+            playlist.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+            return playlist.ShareCode;
         }
 
         // ── Votos (fase 4) ───────────────────────────────────────────────────
@@ -393,7 +437,8 @@ namespace Decatron.Services.SongRequest
         public async Task<(bool Voted, int Votes, string? Error)> ToggleVoteAsync(long userId, long playlistId, long itemId, string platform, string login, CancellationToken ct = default)
         {
             var playlist = await _db.SongRequestPlaylists.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == playlistId && p.UserId == userId && p.Visibility == SongRequestPlaylistVisibility.Public, ct);
+                .FirstOrDefaultAsync(p => p.Id == playlistId && p.UserId == userId
+                    && (p.Visibility == SongRequestPlaylistVisibility.Public || p.Visibility == SongRequestPlaylistVisibility.Unlisted), ct);
             if (playlist == null || !await _db.SongRequestPlaylistItems.AnyAsync(i => i.Id == itemId && i.PlaylistId == playlistId, ct))
                 return (false, 0, "not_found");
             if (!playlist.VotingEnabled)

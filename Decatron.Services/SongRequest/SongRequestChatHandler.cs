@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -53,7 +53,9 @@ namespace Decatron.Services.SongRequest
             ["!plstop"] = Action.PlaylistStop,
             ["!plnext"] = Action.PlaylistNext,
             ["!plshuffle"] = Action.PlaylistShuffle,
-            ["!srmode"] = Action.Mode
+            ["!srmode"] = Action.Mode,
+            // El enlace a las playlists para escucharlas en la web (fase 1, etapa 3)
+            ["!playlist"] = Action.PlaylistLink
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -97,7 +99,8 @@ namespace Decatron.Services.SongRequest
             "pending_added", "pl_pending", "already_pending", "pending_full", "pending_approved", "pl_pending_approved", "pending_rejected", "pending_none",
             "play_started", "play_off", "play_already_off", "play_usage", "pl_jump_now", "pl_jump_after", "pl_jump_no_player",
             "pl_info", "pl_info_idle", "pl_info_none", "pl_next_not_playlist", "pl_shuffle_on", "pl_shuffle_off", "pl_no_active", "pl_number_invalid", "only_playlists",
-            "mode_set", "mode_usage", "hour_limit"
+            "mode_set", "mode_usage", "hour_limit",
+            "playlist_link", "playlist_link_one", "playlist_link_none", "playlist_link_notfound"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -137,6 +140,7 @@ namespace Decatron.Services.SongRequest
                         or Action.Video or Action.Cover or Action.Play or Action.Mode
                         or Action.PlaylistStop or Action.PlaylistShuffle => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
+                    Action.PlaylistLink => run.Settings.Permissions.Playlist,
                     _ => run.Settings.Permissions.Request
                 };
                 if (required != null && !await run.HasRoleAsync(required))
@@ -169,6 +173,7 @@ namespace Decatron.Services.SongRequest
                     case Action.PlaylistStop: await PlaylistStopAsync(run); break;
                     case Action.PlaylistNext: await PlaylistNextAsync(run); break;
                     case Action.PlaylistShuffle: await PlaylistShuffleAsync(run); break;
+                    case Action.PlaylistLink: await PlaylistLinkAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -540,6 +545,37 @@ namespace Decatron.Services.SongRequest
             if (number != null)
                 vars["number"] = number.Value.ToString();
             await run.ReplyAsync(number != null ? "pl_info" : "pl_info_idle", vars);
+        }
+
+        /// <summary>
+        /// !playlist: el enlace a las playlists públicas; con un nombre, el de esa playlist. Las "solo con enlace" nunca salen
+        /// acá (el chat es público): el streamer o un mod comparten ese enlace a mano.
+        /// </summary>
+        private static async Task PlaylistLinkAsync(Run run)
+        {
+            var baseUrl = run.Songs.PublicQueueUrl(run.Config.ChannelName);
+            var visible = (await ChannelPlaylistsAsync(run)).Where(p => p.Visibility == SongRequestPlaylistVisibility.Public).ToList();
+            if (visible.Count == 0)
+            {
+                await run.ReplyAsync("playlist_link_none");
+                return;
+            }
+
+            if (run.Args.Length == 0)
+            {
+                await run.ReplyAsync("playlist_link", new() { ["playlists"] = Names(visible), ["url"] = $"{baseUrl}?tab=playlists" });
+                return;
+            }
+
+            var wanted = run.Args.Trim();
+            var match = visible.FirstOrDefault(p => p.Name.Equals(wanted, StringComparison.OrdinalIgnoreCase))
+                ?? visible.FirstOrDefault(p => p.Name.StartsWith(wanted, StringComparison.OrdinalIgnoreCase));
+            if (match == null)
+            {
+                await run.ReplyAsync("playlist_link_notfound", new() { ["playlists"] = Names(visible) });
+                return;
+            }
+            await run.ReplyAsync("playlist_link_one", new() { ["playlist"] = match.Name, ["url"] = $"{baseUrl}/p/{match.ShareCode}" });
         }
 
         /// <summary>!plnext: la siguiente de la playlist; un pedido no se salta con esto (para eso !skip).</summary>

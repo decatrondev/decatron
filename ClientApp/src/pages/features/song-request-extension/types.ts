@@ -3,7 +3,7 @@
 export type Role = 'everyone' | 'subscriber' | 'vip' | 'moderator' | 'lead_moderator' | 'broadcaster';
 
 export interface SongRequestSettings {
-    permissions: { request: Role; skip: Role; manage: Role; review: Role };
+    permissions: { request: Role; skip: Role; manage: Role; review: Role; playlist: Role };
     maxQueueSize: number;
     maxPerUser: number;
     /** Pedidos por usuario en la última hora (0 = sin límite). */
@@ -109,7 +109,9 @@ export interface PlaylistRequirements {
 export interface Playlist {
     id: number;
     name: string;
-    visibility: 'public' | 'private';
+    visibility: 'public' | 'unlisted' | 'private';
+    /** Código del enlace /sr/{canal}/p/{código}. */
+    shareCode: string;
     /** owner: solo el streamer y los mods; open: viewers que cumplan los requisitos. */
     contribution: 'owner' | 'open' | 'review';
     requirements: PlaylistRequirements;

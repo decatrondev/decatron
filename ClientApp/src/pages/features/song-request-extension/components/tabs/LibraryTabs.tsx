@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Play, Square, ThumbsUp } from 'lucide-react';
+import { Trash2, Star, ListPlus, RotateCcw, GripVertical, Plus, Download, Loader2, HardDriveDownload, Globe, Lock, Link2, Copy, Check, Play, Square, ThumbsUp } from 'lucide-react';
 import api from '../../../../../services/api';
 import { Card, Field, NumberInput, PlanLimitNote, Select, Toggle, inputClass } from '../ui';
 import { formatDuration } from '../../utils';
@@ -322,7 +322,7 @@ export function PlaylistsTab({ cfg }: TabProps) {
                                     ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#1d4ed8] dark:text-[#93c5fd]'
                                     : 'border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}
                             >
-                                {p.visibility === 'public' ? <Globe className="w-4 h-4 shrink-0" /> : <Lock className="w-4 h-4 shrink-0" />}
+                                {p.visibility === 'public' ? <Globe className="w-4 h-4 shrink-0" /> : p.visibility === 'unlisted' ? <Link2 className="w-4 h-4 shrink-0" /> : <Lock className="w-4 h-4 shrink-0" />}
                                 <span className="truncate max-w-[12rem] 3xl:max-w-[16rem]">{p.name}</span>
                                 <span className="text-xs 3xl:text-sm text-[#94a3b8]">{p.count}</span>
                                 {p.isActive && <span className="px-1.5 py-0.5 rounded-md text-[10px] 3xl:text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">♪ {t('songRequest.playlists.playingBadge')}</span>}
@@ -481,12 +481,20 @@ function PlaylistEditor({ playlist, channel, onUpdate, onDelete, onItemsChanged,
                     <Field label={t('songRequest.playlists.name')}>
                         <input value={name} onChange={e => setName(e.target.value)} onBlur={saveName} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} className={inputClass} maxLength={60} />
                     </Field>
-                    <Toggle
-                        checked={playlist.visibility === 'public'}
-                        onChange={v => onUpdate({ visibility: v ? 'public' : 'private' })}
-                        label={t('songRequest.playlists.public')}
-                        hint={t('songRequest.playlists.publicHint', { url: `decatron.net/sr/${channel}` })}
-                    />
+                    <Field label={t('songRequest.playlists.visibility')} hint={t(`songRequest.playlists.visibilityHint.${playlist.visibility}`, { url: `decatron.net/sr/${channel}` })}>
+                        <Select
+                            value={playlist.visibility}
+                            onChange={v => onUpdate({ visibility: v })}
+                            options={[
+                                { value: 'public', label: t('songRequest.playlists.visPublic') },
+                                { value: 'unlisted', label: t('songRequest.playlists.visUnlisted') },
+                                { value: 'private', label: t('songRequest.playlists.visPrivate') },
+                            ]}
+                        />
+                    </Field>
+                    {playlist.visibility !== 'private' && (
+                        <ShareLink playlist={playlist} channel={channel} onChanged={onItemsChanged} />
+                    )}
                     <Toggle checked={playlist.shuffle} onChange={v => onUpdate({ shuffle: v })} label={t('songRequest.fallback.shuffle')} hint={t('songRequest.playlists.shuffleHint')} />
                     <Toggle checked={playlist.votingEnabled} onChange={v => onUpdate({ votingEnabled: v })} label={t('songRequest.playlists.voting')} hint={t('songRequest.playlists.votingHint')} />
                     <Toggle checked={playlist.sortByVotes} onChange={v => onUpdate({ sortByVotes: v })} label={t('songRequest.playlists.sortByVotes')} hint={t('songRequest.playlists.sortByVotesHint')} />
@@ -647,6 +655,39 @@ function ImportJobCard({ job, onAction }: { job: ImportJob; onAction: (a: 'cance
 }
 
 /** Quién puede agregar a la playlist y qué tiene que cumplir un viewer (fase 2). */
+/** El enlace /sr/{canal}/p/{código}: copiarlo o generar uno nuevo (el anterior deja de funcionar). */
+function ShareLink({ playlist, channel, onChanged }: { playlist: Playlist; channel: string; onChanged: () => void }) {
+    const { t } = useTranslation('overlays');
+    const [copied, setCopied] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const url = `${window.location.origin}/sr/${channel}/p/${playlist.shareCode}`;
+
+    const copy = async () => {
+        try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* sin permiso del portapapeles: se puede copiar a mano */ }
+    };
+    const regenerate = async () => {
+        if (!window.confirm(t('songRequest.playlists.regenerateConfirm', { name: playlist.name }))) return;
+        setBusy(true);
+        try { await api.post(`/song-request/playlists/${playlist.id}/share-code`); onChanged(); } finally { setBusy(false); }
+    };
+
+    return (
+        <div className="space-y-2">
+            <p className="text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc]">{t('songRequest.playlists.shareLink')}</p>
+            <div className="flex flex-wrap gap-2">
+                <input readOnly value={url} onFocus={e => e.target.select()} className={`${inputClass} flex-1 min-w-[14rem] font-mono`} />
+                <button className={smallBtn} onClick={copy}>
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? t('songRequest.playlists.copied') : t('songRequest.playlists.copyLink')}
+                </button>
+                <button className={smallBtn} onClick={regenerate} disabled={busy}>
+                    {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />} {t('songRequest.playlists.regenerate')}
+                </button>
+            </div>
+            <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('songRequest.playlists.regenerateHint')}</p>
+        </div>
+    );
+}
+
 function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate: (changes: Partial<Pick<Playlist, PlaylistChangeKeys>>) => void }) {
     const { t } = useTranslation('overlays');
     const [draft, setDraft] = useState<PlaylistRequirements>(playlist.requirements);
@@ -670,7 +711,7 @@ function ContributionCard({ playlist, onUpdate }: { playlist: Playlist; onUpdate
                     />
                 </Field>
                 <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`songRequest.contrib.${playlist.contribution}Hint`, { name: playlist.name })}</p>
-                {open && playlist.visibility !== 'public' && (
+                {open && playlist.visibility === 'private' && (
                     <p className="text-xs 3xl:text-sm text-amber-700 dark:text-amber-300">{t('songRequest.contrib.privateNote')}</p>
                 )}
 

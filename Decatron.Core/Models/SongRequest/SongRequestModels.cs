@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -264,9 +265,13 @@ public class SongRequestPlaylist
     [Column("name"), MaxLength(60)]
     public string Name { get; set; } = "";
 
-    /// <summary>public (se ve en /sr/{canal}) | private (solo el dashboard).</summary>
+    /// <summary>public (se ve en /sr/{canal}) | unlisted (solo con el enlace /sr/{canal}/p/{código}) | private (solo el dashboard).</summary>
     [Column("visibility"), MaxLength(10)]
     public string Visibility { get; set; } = SongRequestPlaylistVisibility.Private;
+
+    /// <summary>Código aleatorio del enlace /sr/{canal}/p/{código}; los ids son seguidos y se adivinarían. Se regenera desde el dashboard.</summary>
+    [Column("share_code"), MaxLength(16)]
+    public string ShareCode { get; set; } = SongRequestPlaylistVisibility.NewShareCode();
 
     /// <summary>Quién puede agregar: owner (streamer y mods) | open (viewers que cumplan los requisitos) | review (igual, pero pasa por la bandeja de pendientes).</summary>
     [Column("contribution"), MaxLength(10)]
@@ -342,9 +347,22 @@ public class SongRequestPlaylistRequirements
 public static class SongRequestPlaylistVisibility
 {
     public const string Public = "public";
+    public const string Unlisted = "unlisted";
     public const string Private = "private";
 
-    public static bool IsValid(string? value) => value is Public or Private;
+    public static bool IsValid(string? value) => value is Public or Unlisted or Private;
+
+    /// <summary>Se puede ver con el enlace (las privadas nunca).</summary>
+    public static bool IsShareable(string? value) => value is Public or Unlisted;
+
+    private const string CodeAlphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+
+    /// <summary>10 caracteres sin los que se confunden (i, l, o, 0, 1): ~50 bits.</summary>
+    public static string NewShareCode()
+    {
+        var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(10);
+        return new string(bytes.Select(b => CodeAlphabet[b % CodeAlphabet.Length]).ToArray());
+    }
 }
 
 /// <summary>Una canción de una playlist del canal.</summary>

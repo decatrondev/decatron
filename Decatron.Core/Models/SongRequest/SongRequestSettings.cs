@@ -92,4 +92,7 @@ public class SongRequestPermissions
 
     /// <summary>Aprobar o rechazar lo pendiente (!srapprove, !srreject); sus pedidos no pasan por revisión.</summary>
     public string Review { get; set; } = "moderator";
+
+    /// <summary>!playlist: el enlace a las playlists del canal.</summary>
+    public string Playlist { get; set; } = "everyone";
 }

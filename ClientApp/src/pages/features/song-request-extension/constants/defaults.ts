@@ -10,7 +10,7 @@ export {
 export const ROLES = ['everyone', 'subscriber', 'vip', 'moderator', 'lead_moderator', 'broadcaster'] as const;
 
 export const DEFAULT_SETTINGS: SongRequestSettings = {
-    permissions: { request: 'everyone', skip: 'moderator', manage: 'lead_moderator', review: 'moderator' },
+    permissions: { request: 'everyone', skip: 'moderator', manage: 'lead_moderator', review: 'moderator', playlist: 'everyone' },
     maxQueueSize: 50,
     maxPerUser: 3,
     maxPerUserPerHour: 0,

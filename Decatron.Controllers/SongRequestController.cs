@@ -156,7 +156,7 @@ namespace Decatron.Controllers
         private static string? Validate(SongRequestSettings s)
         {
             var p = s.Permissions ?? new SongRequestPermissions();
-            if (new[] { p.Request, p.Skip, p.Manage, p.Review }.Any(r => !Roles.Contains(r)))
+            if (new[] { p.Request, p.Skip, p.Manage, p.Review, p.Playlist }.Any(r => !Roles.Contains(r)))
                 return "invalid_role";
             s.Permissions = p;
             s.MaxQueueSize = Math.Clamp(s.MaxQueueSize, 0, 500);
@@ -466,6 +466,17 @@ namespace Decatron.Controllers
             if (config == null) return NotFound(new { success = false });
             var error = await _library.UpdatePlaylistAsync(config.UserId, playlistId, body, ct);
             return error == "not_found" ? NotFound(new { success = false }) : Ok(new { success = error == null, error });
+        }
+
+        /// <summary>Código de enlace nuevo: el enlace anterior de la playlist deja de funcionar.</summary>
+        [HttpPost("api/song-request/playlists/{playlistId:long}/share-code")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> RegenerateShareCode(long playlistId, CancellationToken ct)
+        {
+            var config = await OwnConfigAsync(ct);
+            if (config == null) return NotFound(new { success = false });
+            var code = await _library.RegenerateShareCodeAsync(config.UserId, playlistId, ct);
+            return code == null ? NotFound(new { success = false }) : Ok(new { success = true, shareCode = code });
         }
 
         [HttpDelete("api/song-request/playlists/{playlistId:long}")]
@@ -1084,9 +1095,9 @@ namespace Decatron.Controllers
             return Ok(new { success = true, contributor = who == null ? null : new { platform = who.Platform, name = who.DisplayName } });
         }
 
-        /// <summary>Un viewer agrega a una playlist colaborativa y pública desde /sr/{canal}.</summary>
-        [HttpPost("api/song-request/public/{channel}/playlists/{playlistId:long}/items")]
-        public async Task<IActionResult> PublicAddToPlaylist(string channel, long playlistId, [FromBody] AddRequest body, [FromServices] SongRequestContributionService contributions, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
+        /// <summary>Un viewer agrega a una playlist colaborativa (pública o solo con enlace) desde la web.</summary>
+        [HttpPost("api/song-request/public/{channel}/playlists/{code}/items")]
+        public async Task<IActionResult> PublicAddToPlaylist(string channel, string code, [FromBody] AddRequest body, [FromServices] SongRequestContributionService contributions, [FromServices] SongRequestReviewService reviews, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(body.Input) || body.Input.Length > 500)
                 return BadRequest(new { success = false, error = "invalid_input" });
@@ -1094,8 +1105,7 @@ namespace Decatron.Controllers
             var config = await _db.SongRequestConfigs.FirstOrDefaultAsync(c => c.ChannelName == login, ct);
             if (config == null || !config.Enabled)
                 return NotFound(new { success = false });
-            var playlist = await _db.SongRequestPlaylists.AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == playlistId && p.UserId == config.UserId && p.Visibility == SongRequestPlaylistVisibility.Public, ct);
+            var playlist = await _library.FindSharedPlaylistAsync(config.UserId, code, ct);
             if (playlist == null)
                 return NotFound(new { success = false });
 
@@ -1121,8 +1131,8 @@ namespace Decatron.Controllers
         }
 
         /// <summary>Vota o quita el voto a una canción de una playlist pública con votación.</summary>
-        [HttpPost("api/song-request/public/{channel}/playlists/{playlistId:long}/items/{itemId:long}/vote")]
-        public async Task<IActionResult> PublicVote(string channel, long playlistId, long itemId, CancellationToken ct)
+        [HttpPost("api/song-request/public/{channel}/playlists/{code}/items/{itemId:long}/vote")]
+        public async Task<IActionResult> PublicVote(string channel, string code, long itemId, CancellationToken ct)
         {
             var login = channel.Trim().ToLowerInvariant();
             var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
@@ -1131,19 +1141,25 @@ namespace Decatron.Controllers
             var (who, _) = await WebContributorAsync(config, ct);
             if (who == null)
                 return Ok(new { success = false, error = "pl_need_account" });
-            var (voted, votes, error) = await _library.ToggleVoteAsync(config.UserId, playlistId, itemId, who.Platform, who.Login, ct);
+            var shared = await _library.FindSharedPlaylistAsync(config.UserId, code, ct);
+            if (shared == null)
+                return NotFound(new { success = false });
+            var (voted, votes, error) = await _library.ToggleVoteAsync(config.UserId, shared.Id, itemId, who.Platform, who.Login, ct);
             return Ok(new { success = error == null, error, voted, votes });
         }
 
-        [HttpGet("api/song-request/public/{channel}/playlists/{playlistId:long}/my-votes")]
-        public async Task<IActionResult> PublicMyVotes(string channel, long playlistId, CancellationToken ct)
+        [HttpGet("api/song-request/public/{channel}/playlists/{code}/my-votes")]
+        public async Task<IActionResult> PublicMyVotes(string channel, string code, CancellationToken ct)
         {
             var login = channel.Trim().ToLowerInvariant();
             var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
             if (config == null)
                 return NotFound(new { success = false });
+            var shared = await _library.FindSharedPlaylistAsync(config.UserId, code, ct);
+            if (shared == null)
+                return NotFound(new { success = false });
             var (who, _) = await WebContributorAsync(config, ct);
-            return Ok(new { success = true, items = who == null ? new List<long>() : await _library.GetMyVotesAsync(playlistId, who.Platform, who.Login, ct) });
+            return Ok(new { success = true, items = who == null ? new List<long>() : await _library.GetMyVotesAsync(shared.Id, who.Platform, who.Login, ct) });
         }
 
         /// <summary>Las playlists públicas del canal, para /sr/{canal}.</summary>
@@ -1159,15 +1175,16 @@ namespace Decatron.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("api/public/song-request/{channel}/playlists/{playlistId:long}")]
-        public async Task<IActionResult> PublicPlaylistItems(string channel, long playlistId, CancellationToken ct)
+        [HttpGet("api/public/song-request/{channel}/playlists/{code}")]
+        public async Task<IActionResult> PublicPlaylistItems(string channel, string code, CancellationToken ct)
         {
             var login = channel.Trim().ToLowerInvariant();
             var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
             if (config == null)
                 return NotFound(new { success = false });
-            var items = await _library.GetPublicPlaylistItemsAsync(config.UserId, playlistId, ct);
-            return items == null ? NotFound(new { success = false }) : Ok(new { success = true, items });
+            // Pública o solo con enlace; una privada responde igual que una que no existe
+            var shared = await _library.GetSharedPlaylistAsync(config.UserId, code, ct);
+            return shared == null ? NotFound(new { success = false }) : Ok(new { success = true, shared });
         }
     }
 }

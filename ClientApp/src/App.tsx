@@ -66,6 +66,7 @@ import SupportersPublic from './pages/SupportersPublic';
 import Credits from './pages/Credits';
 import PublicCommandsPage from './pages/PublicCommandsPage';
 import SongRequestPublicPage from './pages/SongRequestPublicPage';
+import SongRequestPlaylistPage from './pages/SongRequestPlaylistPage';
 import SongRequestOverlay from './pages/SongRequestOverlay';
 import SongRequestConfig from './pages/features/SongRequestConfig';
 import TranslatePublic from './pages/TranslatePublic';
@@ -229,6 +230,7 @@ function App() {
                 {/* Public Commands Page - No authentication required */}
                 <Route path="/commands/:channelName" element={<PublicCommandsPage />} />
                 <Route path="/sr/:channelName" element={<SafeRoute name="Song Request Queue"><SongRequestPublicPage /></SafeRoute>} />
+                <Route path="/sr/:channelName/p/:code" element={<SafeRoute name="Song Request Playlist"><SongRequestPlaylistPage /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug" element={<SafeRoute name="Tournament Public"><TournamentPublicPage /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug/mi-panel" element={<SafeRoute name="My Tournament"><MyTournamentPage /></SafeRoute>} />
                 <Route path="/overlay/torneo/:token" element={<SafeRoute name="Tournament Overlay"><TournamentOverlayPage /></SafeRoute>} />

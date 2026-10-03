@@ -387,7 +387,9 @@
       "voteHint": "With enough votes the song is skipped. Those with skip permission skip directly.",
       "votesRequired": "Votes needed",
       "permReview": "Review pending",
-      "permReviewHint": "!srapprove and !srreject. Their own requests skip review."
+      "permReviewHint": "!srapprove and !srreject. Their own requests skip review.",
+      "permPlaylist": "Playlists link",
+      "permPlaylistHint": "!playlist: the link to listen to the channel's public playlists."
     },
     "messages": {
       "title": "Bot messages",
@@ -493,7 +495,11 @@
       "only_playlists": "!sr: playlists only",
       "mode_set": "!srmode: mode changed",
       "mode_usage": "!srmode: current mode and how to use",
-      "hour_limit": "Requests per hour limit"
+      "hour_limit": "Requests per hour limit",
+      "playlist_link": "!playlist: playlists link",
+      "playlist_link_one": "!playlist <name>: that playlist's link",
+      "playlist_link_none": "!playlist: no public playlists",
+      "playlist_link_notfound": "!playlist <name>: not found"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",
@@ -761,6 +767,21 @@
       "name": "Name",
       "public": "Public",
       "publicHint": "Your viewers see it at {{url}}. When off, only you see it in the dashboard.",
+      "visibility": "Who can see it",
+      "visPublic": "Public (listed)",
+      "visUnlisted": "Link only",
+      "visPrivate": "Private",
+      "visibilityHint": {
+        "public": "Listed at {{url}} and in !playlist, and can be listened to with its link.",
+        "unlisted": "It's not in any list: anyone with the link can listen. You or a mod share it; !playlist doesn't give it.",
+        "private": "Only you see it in the dashboard."
+      },
+      "shareLink": "Link to listen to it",
+      "copyLink": "Copy link",
+      "copied": "Copied",
+      "regenerate": "Generate new link",
+      "regenerateHint": "If the link leaked, generate a new one: the old one stops working right away.",
+      "regenerateConfirm": "Generate a new link for “{{name}}”? The current link will stop working.",
       "shuffleHint": "When it plays as background: shuffled instead of in order.",
       "instantNote": "These changes save instantly.",
       "delete": "Delete playlist",

@@ -387,7 +387,9 @@
       "voteHint": "Con suficientes votos la canción se salta. Los que tienen permiso de saltar lo hacen directo.",
       "votesRequired": "Votos necesarios",
       "permReview": "Revisar pendientes",
-      "permReviewHint": "!srapprove y !srreject. Sus pedidos no pasan por revisión."
+      "permReviewHint": "!srapprove y !srreject. Sus pedidos no pasan por revisión.",
+      "permPlaylist": "Enlace a las playlists",
+      "permPlaylistHint": "!playlist: el enlace para escuchar las playlists públicas del canal."
     },
     "messages": {
       "title": "Mensajes del bot",
@@ -493,7 +495,11 @@
       "only_playlists": "!sr: solo desde playlists",
       "mode_set": "!srmode: modo cambiado",
       "mode_usage": "!srmode: modo actual y cómo usarlo",
-      "hour_limit": "Límite de pedidos por hora"
+      "hour_limit": "Límite de pedidos por hora",
+      "playlist_link": "!playlist: enlace a las playlists",
+      "playlist_link_one": "!playlist <nombre>: enlace de esa playlist",
+      "playlist_link_none": "!playlist: sin playlists públicas",
+      "playlist_link_notfound": "!playlist <nombre>: no la encontró"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",
@@ -761,6 +767,21 @@
       "name": "Nombre",
       "public": "Pública",
       "publicHint": "Tus viewers la ven en {{url}}. Si está apagada, solo la ves tú en el dashboard.",
+      "visibility": "Quién la ve",
+      "visPublic": "Pública (sale en la lista)",
+      "visUnlisted": "Solo con enlace",
+      "visPrivate": "Privada",
+      "visibilityHint": {
+        "public": "Sale en {{url}} y en !playlist, y se escucha con su enlace.",
+        "unlisted": "No sale en ninguna lista: la escucha quien tenga el enlace. Compártelo tú o un mod; !playlist no lo da.",
+        "private": "Solo la ves tú en el dashboard."
+      },
+      "shareLink": "Enlace para escucharla",
+      "copyLink": "Copiar enlace",
+      "copied": "Copiado",
+      "regenerate": "Generar enlace nuevo",
+      "regenerateHint": "Si el enlace se filtró, genera uno nuevo: el anterior deja de funcionar al instante.",
+      "regenerateConfirm": "¿Generar un enlace nuevo para «{{name}}»? El enlace actual dejará de funcionar.",
       "shuffleHint": "Al sonar de fondo: al azar en vez de en orden.",
       "instantNote": "Estos cambios se guardan al instante.",
       "delete": "Borrar playlist",
