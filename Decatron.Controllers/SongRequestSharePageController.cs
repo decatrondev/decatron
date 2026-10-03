@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Decatron.Core.Models.SongRequest;
 using Decatron.Data;
+using Decatron.Services.SongRequest;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -66,7 +67,7 @@ namespace Decatron.Controllers
                 if (!_cache.TryGetValue(key, out meta))
                 {
                     meta = await BuildMetaAsync(channel.Trim().ToLowerInvariant(), code, ct);
-                    _cache.Set(key, meta, MetaTtl);
+                    _cache.Set(key, meta, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = MetaTtl }.AddExpirationToken(SongShareMetaCache.Token));
                 }
             }
             catch (Exception)

@@ -342,7 +342,11 @@ namespace Decatron.Services.SongRequest
         }
 
         /// <summary>Avisa a quien mira una playlist que su contenido cambió (agregar, quitar, ordenar, renombrar…).</summary>
-        public Task PlaylistsChangedAsync(long userId, CancellationToken ct = default) => _songs.NotifyPlaylistsAsync(userId, ct);
+        public Task PlaylistsChangedAsync(long userId, CancellationToken ct = default)
+        {
+            SongShareMetaCache.Clear(); // la vista previa al compartir se vuelve a armar
+            return _songs.NotifyPlaylistsAsync(userId, ct);
+        }
 
         public async Task<bool> RemoveFromPlaylistAsync(long userId, long playlistId, long itemId, CancellationToken ct = default)
         {
@@ -446,6 +450,7 @@ namespace Decatron.Services.SongRequest
             playlist.ShareCode = SongRequestPlaylistVisibility.NewShareCode();
             playlist.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
+            SongShareMetaCache.Clear(); // el enlace viejo deja de mostrar la vista previa al instante
             return playlist.ShareCode;
         }
 

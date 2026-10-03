@@ -352,6 +352,25 @@ namespace Decatron.Services.SongRequest
         }
     }
 
+    /// <summary>
+    /// La caché de la vista previa al compartir (/sr/{canal}, /sr/{canal}/p/{código}). Cada entrada vence con el token:
+    /// cualquier cambio de playlists (visibilidad, enlace nuevo, canciones, nombre) lo cancela y todo se vuelve a leer,
+    /// así un enlace regenerado deja de mostrar el título al instante.
+    /// </summary>
+    public static class SongShareMetaCache
+    {
+        private static CancellationTokenSource _source = new();
+
+        public static Microsoft.Extensions.Primitives.IChangeToken Token => new Microsoft.Extensions.Primitives.CancellationChangeToken(_source.Token);
+
+        public static void Clear()
+        {
+            var old = Interlocked.Exchange(ref _source, new CancellationTokenSource());
+            old.Cancel();
+            old.Dispose();
+        }
+    }
+
     /// <summary>Limpia la memoria de las estadísticas y los oyentes viejos de la base, una vez al día.</summary>
     public sealed class SongListenStatsCleanupService : BackgroundService
     {

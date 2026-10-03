@@ -406,7 +406,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-2 w-40 4xl:w-56">
+                    <div className="flex items-center gap-2 w-48 4xl:w-60 min-w-0">
                         <button className={iconBtn} onClick={() => {
                             if (c.volume > 0) { volumeBeforeMute.current = c.volume; c.setVolume(0); } else c.setVolume(volumeBeforeMute.current || 80);
                         }} title={t('songRequestPublic.listen.volume')}>
@@ -419,7 +419,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                             value={c.volume}
                             onChange={e => c.setVolume(Number(e.target.value))}
                             aria-label={t('songRequestPublic.listen.volume')}
-                            className="flex-1 accent-[#39ff14]"
+                            className="flex-1 min-w-0 accent-[#39ff14]"
                         />
                     </div>
                 </div>
