@@ -77,6 +77,39 @@ namespace Decatron.Services.SongRequest
             };
         }
 
+        /// <summary>Historial de solo lectura para la vista pública: sin vetados ni errores y sin datos de favoritas.</summary>
+        public async Task<object> GetPublicHistoryAsync(long userId, int page, int pageSize, CancellationToken ct = default)
+        {
+            var limits = await GetLimitsAsync(userId);
+            var query = _db.SongRequestHistory.AsNoTracking().Include(h => h.Track)
+                .Where(h => h.UserId == userId && h.EndReason != "removed" && h.EndReason != "error");
+            if (!limits.UnlimitedHistory)
+            {
+                var since = DateTime.UtcNow.AddDays(-limits.HistoryDays);
+                query = query.Where(h => h.IsFavorite || h.PlayedAt >= since);
+            }
+
+            var total = await query.CountAsync(ct);
+            var rows = await query.OrderByDescending(h => h.PlayedAt)
+                .Skip(Math.Max(0, page) * pageSize).Take(pageSize).ToListAsync(ct);
+            return new
+            {
+                total,
+                pageSize,
+                items = rows.Select(h => new
+                {
+                    id = h.Id,
+                    track = TrackDto(h.Track),
+                    requestedBy = h.RequestedByName,
+                    platform = h.RequestedPlatform,
+                    isFallback = h.RequestedPlatform == SongRequestPlatforms.Fallback,
+                    originUrl = h.OriginUrl,
+                    originSource = h.OriginSource,
+                    playedAt = h.PlayedAt
+                })
+            };
+        }
+
         public async Task<bool> SetFavoriteAsync(long userId, long historyId, bool favorite, CancellationToken ct = default)
         {
             var row = await _db.SongRequestHistory.FirstOrDefaultAsync(h => h.Id == historyId && h.UserId == userId, ct);

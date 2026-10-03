@@ -1005,6 +1005,22 @@ namespace Decatron.Controllers
             });
         }
 
+        /// <summary>
+        /// Lo que ya sonó en el stream, para la pestaña Historial de /sr/{canal} (SONG_REQUEST_PUBLIC_PLAYLISTS_PLAN.md, fase 1b).
+        /// Mismo tope por plan que el dashboard; no sale lo vetado ni lo que falló.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("api/public/song-request/{channel}/history")]
+        public async Task<IActionResult> PublicHistory(string channel, [FromQuery] int page = 0, CancellationToken ct = default)
+        {
+            var login = channel.Trim().ToLowerInvariant();
+            var config = await _db.SongRequestConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.ChannelName == login, ct);
+            if (config == null || !config.Enabled)
+                return NotFound(new { success = false });
+
+            return Ok(new { success = true, data = await _library.GetPublicHistoryAsync(config.UserId, page, 30, ct) });
+        }
+
         /// <summary>El diseño de los overlays (OBS no inicia sesión). No trae la clave del reproductor.</summary>
         [AllowAnonymous]
         [HttpGet("api/public/song-request/{channel}/overlay")]

@@ -385,6 +385,20 @@
     }
   },
   "songRequestPublic": {
+    "tabs": {
+      "stream": "Stream",
+      "guide": "How to request",
+      "playlists": "Playlists",
+      "history": "History",
+      "howToRequestLink": "See how to request"
+    },
+    "noPlaylists": "This channel doesn't have public playlists.",
+    "history": {
+      "empty": "Nothing has played yet.",
+      "error": "Couldn't load the history.",
+      "count": "{{count}} songs have played on this channel",
+      "more": "Show more"
+    },
     "playing": "Playing",
     "requestByNumber": "Request one from this playlist in chat with",
     "requestByNumberCmd": "!sr #number",

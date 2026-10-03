@@ -385,6 +385,20 @@
     }
   },
   "songRequestPublic": {
+    "tabs": {
+      "stream": "Stream",
+      "guide": "Cómo pedir",
+      "playlists": "Playlists",
+      "history": "Historial",
+      "howToRequestLink": "Ver cómo pedir"
+    },
+    "noPlaylists": "Este canal no tiene playlists públicas.",
+    "history": {
+      "empty": "Todavía no ha sonado nada.",
+      "error": "No se pudo cargar el historial.",
+      "count": "{{count}} canciones han sonado en este canal",
+      "more": "Ver más"
+    },
     "playing": "Sonando",
     "requestByNumber": "Pide una de esta playlist en el chat con",
     "requestByNumberCmd": "!sr #número",
