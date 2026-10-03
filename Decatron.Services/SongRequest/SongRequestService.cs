@@ -909,6 +909,13 @@ namespace Decatron.Services.SongRequest
             return true;
         }
 
+        /// <summary>!srunban: quita el veto de un usuario (el mismo que pone !srban @usuario). false si no estaba vetado.</summary>
+        public async Task<bool> UnbanUserAsync(long userId, string platform, string login, CancellationToken ct = default)
+        {
+            var value = $"{platform}:{login.ToLowerInvariant()}";
+            return await _db.SongRequestBans.Where(b => b.UserId == userId && b.BanType == "user" && b.Value == value).ExecuteDeleteAsync(ct) > 0;
+        }
+
         /// <summary>Al vetar a un usuario se van también sus pedidos pendientes.</summary>
         public async Task<int> RemoveAllByUserAsync(SongRequestConfig config, string platform, string login, CancellationToken ct = default)
         {

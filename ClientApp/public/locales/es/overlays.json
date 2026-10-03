@@ -420,7 +420,7 @@
       "permSkip": "Saltar y quitar",
       "permSkipHint": "!skip directo (también !srskip y !srnext), !srremove y !srpromote.",
       "permManage": "Administrar",
-      "permManageHint": "!sropen, !srclose, !srclear, !srpause (también !srstop), !srresume, !srban, !srvideo, !srcover, !srplay y !srmode.",
+      "permManageHint": "!sropen, !srclose, !srclear, !srpause (también !srstop), !srresume, !srban, !srunban, !srvideo, !srcover, !srplay y !srmode.",
       "controlTotalNote": "Quien tiene control total en tu dashboard cuenta como el streamer.",
       "voteTitle": "Votación para saltar",
       "voteEnabled": "Los viewers pueden votar !skip",
@@ -549,7 +549,10 @@
       "clear_none": "!srclear: no había pedidos",
       "last_song": "!lastsong: canción anterior pedida",
       "last_song_fallback": "!lastsong: canción anterior de la playlist",
-      "last_none": "!lastsong: todavía no sonó nada"
+      "last_none": "!lastsong: todavía no sonó nada",
+      "unban_user": "!srunban: veto quitado",
+      "unban_none": "!srunban: no estaba vetado",
+      "unban_usage": "!srunban: cómo usarlo"
     },
     "queue": {
       "disabled": "El módulo está apagado: puedes preparar la cola, pero el chat no puede pedir canciones.",

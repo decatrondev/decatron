@@ -673,6 +673,10 @@
         "syntax": "!srban [@user]",
         "text": "With nothing, bans the song that's playing and skips it; with @user, bans that person."
       },
+      "srunban": {
+        "syntax": "!srunban @usuario",
+        "text": "Lifts a user's ban so they can request again. Song and artist bans are lifted in the dashboard."
+      },
       "videocover": {
         "syntax": "!srvideo · !srcover",
         "text": "The player shows the video or the cover, without stopping the music."

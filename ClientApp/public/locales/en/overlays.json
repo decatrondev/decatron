@@ -420,7 +420,7 @@
       "permSkip": "Skip and remove",
       "permSkipHint": "Direct !skip (also !srskip and !srnext), !srremove and !srpromote.",
       "permManage": "Manage",
-      "permManageHint": "!sropen, !srclose, !srclear, !srpause (also !srstop), !srresume, !srban, !srvideo, !srcover, !srplay and !srmode.",
+      "permManageHint": "!sropen, !srclose, !srclear, !srpause (also !srstop), !srresume, !srban, !srunban, !srvideo, !srcover, !srplay and !srmode.",
       "controlTotalNote": "Anyone with full control of your dashboard counts as the streamer.",
       "voteTitle": "Vote to skip",
       "voteEnabled": "Viewers can vote !skip",
@@ -549,7 +549,10 @@
       "clear_none": "!srclear: no requests",
       "last_song": "!lastsong: previous requested song",
       "last_song_fallback": "!lastsong: previous playlist song",
-      "last_none": "!lastsong: nothing played yet"
+      "last_none": "!lastsong: nothing played yet",
+      "unban_user": "!srunban: ban lifted",
+      "unban_none": "!srunban: wasn't banned",
+      "unban_usage": "!srunban: how to use it"
     },
     "queue": {
       "disabled": "The module is off: you can prepare the queue, but chat can't request songs.",

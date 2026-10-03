@@ -246,6 +246,7 @@ namespace Decatron.Controllers
                 ("srpause", "Pausa la música (también !srstop)", manage),
                 ("srresume", "Vuelve a reproducir la música", manage),
                 ("srban", "Veta la canción que suena, o a un usuario con !srban @usuario", manage),
+                ("srunban", "Le quita el veto a un usuario (!srunban @usuario)", manage),
                 ("srvolume", "Dice el volumen de la música; los que administran lo cambian con !srvolume 40", request),
                 ("srpromote", "Sube un pedido al primer lugar de la cola por su número (!srpromote 3)", skip),
                 ("srvideo", "El reproductor muestra el video en vez de la portada", manage),

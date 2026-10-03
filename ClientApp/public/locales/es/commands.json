@@ -673,6 +673,10 @@
         "syntax": "!srban [@usuario]",
         "text": "Sin nada, veta la canción que suena y la salta; con @usuario, veta a esa persona."
       },
+      "srunban": {
+        "syntax": "!srunban @usuario",
+        "text": "Le quita el veto a un usuario para que vuelva a pedir. Los vetos de canciones y artistas se quitan en el dashboard."
+      },
       "videocover": {
         "syntax": "!srvideo · !srcover",
         "text": "El reproductor muestra el video o la portada, sin cortar la música."

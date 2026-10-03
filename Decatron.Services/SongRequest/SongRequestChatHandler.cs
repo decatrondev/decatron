@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink, Clear, LastSong }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink, Clear, LastSong, Unban }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -61,6 +61,7 @@ namespace Decatron.Services.SongRequest
             ["!srskip"] = Action.Skip,
             ["!srnext"] = Action.Skip,
             ["!srclear"] = Action.Clear,
+            ["!srunban"] = Action.Unban,
             ["!lastsong"] = Action.LastSong,
             ["!prevsong"] = Action.LastSong
         };
@@ -108,7 +109,8 @@ namespace Decatron.Services.SongRequest
             "pl_info", "pl_info_idle", "pl_info_none", "pl_next_not_playlist", "pl_shuffle_on", "pl_shuffle_off", "pl_no_active", "pl_number_invalid", "only_playlists",
             "mode_set", "mode_usage", "hour_limit",
             "playlist_link", "playlist_link_one", "playlist_link_none", "playlist_link_notfound", "playlist_link_play", "playlist_link_stop",
-            "cleared", "clear_none", "last_song", "last_song_fallback", "last_none"
+            "cleared", "clear_none", "last_song", "last_song_fallback", "last_none",
+            "unban_user", "unban_none", "unban_usage"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -145,7 +147,7 @@ namespace Decatron.Services.SongRequest
                     Action.PlaylistAdd => null, // decide la playlist: sus requisitos
                     Action.Remove or Action.Promote or Action.PlaylistNext => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
-                        or Action.Video or Action.Cover or Action.Play or Action.Mode or Action.Clear
+                        or Action.Video or Action.Cover or Action.Play or Action.Mode or Action.Clear or Action.Unban
                         or Action.PlaylistStop or Action.PlaylistShuffle => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     Action.PlaylistLink => run.Settings.Permissions.Playlist,
@@ -183,6 +185,7 @@ namespace Decatron.Services.SongRequest
                     case Action.PlaylistShuffle: await PlaylistShuffleAsync(run); break;
                     case Action.PlaylistLink: await PlaylistLinkAsync(run); break;
                     case Action.Clear: await ClearAsync(run); break;
+                    case Action.Unban: await UnbanAsync(run); break;
                     case Action.LastSong: await LastSongAsync(run); break;
                 }
             }
@@ -720,6 +723,19 @@ namespace Decatron.Services.SongRequest
             await run.Songs.AdvanceAsync(run.Config, "skipped");
             _skipVotes.TryRemove(run.Config.UserId, out _);
             await run.ReplyAsync("ban_track", Vars(current));
+        }
+
+        /// <summary>!srunban @usuario: le quita el veto que puso !srban @usuario (o el dashboard). Los vetos de canciones y artistas se quitan en el dashboard.</summary>
+        private static async Task UnbanAsync(Run run)
+        {
+            var target = run.Args.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.TrimStart('@').ToLowerInvariant();
+            if (string.IsNullOrEmpty(target))
+            {
+                await run.ReplyAsync("unban_usage");
+                return;
+            }
+            var removed = await run.Songs.UnbanUserAsync(run.Config.UserId, run.Channel.Platform, target);
+            await run.ReplyAsync(removed ? "unban_user" : "unban_none", new() { ["target"] = target });
         }
 
         /// <summary>!srvolume dice el volumen (quien puede pedir); !srvolume 40 lo cambia (quien puede administrar).</summary>

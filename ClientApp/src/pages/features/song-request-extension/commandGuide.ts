@@ -55,6 +55,7 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     { id: 'pause', group: 'player', aliases: ['!srstop'], examples: ['!srpause', '!srresume'], perm: 'manage', keys: ['srpause', 'srresume'] },
     { id: 'volumeSet', group: 'player', examples: ['!srvolume 40'], perm: 'manage', keys: ['srvolume'] },
     { id: 'srban', group: 'manage', examples: ['!srban', '!srban @viewer123'], perm: 'manage', keys: ['srban'] },
+    { id: 'srunban', group: 'manage', examples: ['!srunban @viewer123'], perm: 'manage', keys: ['srunban'] },
     { id: 'videocover', group: 'player', examples: ['!srvideo', '!srcover'], perm: 'manage', keys: ['srvideo', 'srcover'] },
 ];
 
