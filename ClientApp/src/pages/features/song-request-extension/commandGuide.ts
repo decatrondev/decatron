@@ -6,7 +6,7 @@ import type { Role } from './types';
 /** Qué permiso del canal decide quién lo usa. `playlist` = lo decide cada playlist. */
 export type GuidePerm = 'request' | 'skip' | 'manage' | 'review' | 'playlist' | 'playlistLink';
 
-export type GuideGroup = 'request' | 'queue' | 'manage' | 'review' | 'playlists';
+export type GuideGroup = 'request' | 'queue' | 'manage' | 'review' | 'playlists' | 'player';
 
 export interface GuideCommand {
     id: string;
@@ -19,7 +19,7 @@ export interface GuideCommand {
     keys: string[];
 }
 
-export const GUIDE_GROUPS: GuideGroup[] = ['request', 'playlists', 'queue', 'review', 'manage'];
+export const GUIDE_GROUPS: GuideGroup[] = ['request', 'playlists', 'player', 'queue', 'review', 'manage'];
 
 export const GUIDE_COMMANDS: GuideCommand[] = [
     // Pedir y consultar
@@ -27,6 +27,7 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     { id: 'srNumber', group: 'request', examples: ['!sr #12'], perm: 'request', keys: ['sr'] },
     { id: 'wrongsong', group: 'request', examples: ['!wrongsong'], perm: 'request', keys: ['wrongsong'] },
     { id: 'song', group: 'request', aliases: ['!currentsong'], examples: ['!song'], perm: 'request', keys: ['song'] },
+    { id: 'lastsong', group: 'request', aliases: ['!prevsong'], examples: ['!lastsong'], perm: 'request', keys: ['lastsong'] },
     { id: 'queue', group: 'request', examples: ['!queue'], perm: 'request', keys: ['queue'] },
     { id: 'myqueue', group: 'request', examples: ['!myqueue'], perm: 'request', keys: ['myqueue'] },
     { id: 'skipVote', group: 'request', examples: ['!skip'], perm: 'request', keys: ['skip'] },
@@ -40,7 +41,9 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     { id: 'plshuffle', group: 'playlists', examples: ['!plshuffle', '!plshuffle on', '!plshuffle off'], perm: 'manage', keys: ['plshuffle'] },
     { id: 'pladd', group: 'playlists', examples: ['!pladd chill https://youtu.be/dQw4w9WgXcQ', '!pladd chill daft punk one more time'], perm: 'playlist', keys: ['pladd'] },
     // Cola
-    { id: 'skip', group: 'queue', examples: ['!skip'], perm: 'skip', keys: ['skip'] },
+    // Reproductor: sirve para todo lo que suene, sean pedidos o la playlist de fondo
+    { id: 'skip', group: 'player', aliases: ['!srskip', '!srnext'], examples: ['!skip'], perm: 'skip', keys: ['skip'] },
+    { id: 'srclear', group: 'queue', examples: ['!srclear'], perm: 'manage', keys: ['srclear'] },
     { id: 'srremove', group: 'queue', examples: ['!srremove 3'], perm: 'skip', keys: ['srremove'] },
     { id: 'srpromote', group: 'queue', examples: ['!srpromote 3'], perm: 'skip', keys: ['srpromote'] },
     // Revisión
@@ -49,10 +52,10 @@ export const GUIDE_COMMANDS: GuideCommand[] = [
     // Administrar
     { id: 'srmode', group: 'manage', aliases: ['abiertos', 'revisión', 'cerrados'], examples: ['!srmode open', '!srmode playlists', '!srmode review', '!srmode closed'], perm: 'manage', keys: ['srmode'] },
     { id: 'openclose', group: 'manage', examples: ['!sropen', '!srclose'], perm: 'manage', keys: ['sropen', 'srclose'] },
-    { id: 'pause', group: 'manage', examples: ['!srpause', '!srresume'], perm: 'manage', keys: ['srpause', 'srresume'] },
-    { id: 'volumeSet', group: 'manage', examples: ['!srvolume 40'], perm: 'manage', keys: ['srvolume'] },
+    { id: 'pause', group: 'player', aliases: ['!srstop'], examples: ['!srpause', '!srresume'], perm: 'manage', keys: ['srpause', 'srresume'] },
+    { id: 'volumeSet', group: 'player', examples: ['!srvolume 40'], perm: 'manage', keys: ['srvolume'] },
     { id: 'srban', group: 'manage', examples: ['!srban', '!srban @viewer123'], perm: 'manage', keys: ['srban'] },
-    { id: 'videocover', group: 'manage', examples: ['!srvideo', '!srcover'], perm: 'manage', keys: ['srvideo', 'srcover'] },
+    { id: 'videocover', group: 'player', examples: ['!srvideo', '!srcover'], perm: 'manage', keys: ['srvideo', 'srcover'] },
 ];
 
 export interface GuidePermissions { request: Role; skip: Role; manage: Role; review: Role; playlist?: Role }

@@ -21,7 +21,7 @@ namespace Decatron.Services.SongRequest
     /// </summary>
     public sealed class SongRequestChatHandler
     {
-        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink }
+        private enum Action { Request, WrongSong, Queue, Song, MyQueue, Skip, Remove, Open, Close, Pause, Resume, Ban, Volume, Promote, Video, Cover, PlaylistAdd, Approve, Reject, Play, Mode, PlaylistInfo, PlaylistStop, PlaylistNext, PlaylistShuffle, PlaylistLink, Clear, LastSong }
 
         private static readonly Dictionary<string, Action> Commands = new()
         {
@@ -55,7 +55,14 @@ namespace Decatron.Services.SongRequest
             ["!plshuffle"] = Action.PlaylistShuffle,
             ["!srmode"] = Action.Mode,
             // El enlace a las playlists para escucharlas en la web (fase 1, etapa 3)
-            ["!playlist"] = Action.PlaylistLink
+            ["!playlist"] = Action.PlaylistLink,
+            // Alias y comandos del cierre de la etapa 3: parar = pausar, saltar con prefijo, vaciar la cola y la canción anterior
+            ["!srstop"] = Action.Pause,
+            ["!srskip"] = Action.Skip,
+            ["!srnext"] = Action.Skip,
+            ["!srclear"] = Action.Clear,
+            ["!lastsong"] = Action.LastSong,
+            ["!prevsong"] = Action.LastSong
         };
 
         private static readonly string[] RoleOrder = { "everyone", "subscriber", "vip", "moderator", "lead_moderator", "broadcaster" };
@@ -100,7 +107,8 @@ namespace Decatron.Services.SongRequest
             "play_started", "play_off", "play_already_off", "play_usage", "pl_jump_now", "pl_jump_after", "pl_jump_no_player",
             "pl_info", "pl_info_idle", "pl_info_none", "pl_next_not_playlist", "pl_shuffle_on", "pl_shuffle_off", "pl_no_active", "pl_number_invalid", "only_playlists",
             "mode_set", "mode_usage", "hour_limit",
-            "playlist_link", "playlist_link_one", "playlist_link_none", "playlist_link_notfound"
+            "playlist_link", "playlist_link_one", "playlist_link_none", "playlist_link_notfound", "playlist_link_play", "playlist_link_stop",
+            "cleared", "clear_none", "last_song", "last_song_fallback", "last_none"
         };
 
         public static IEnumerable<string> CommandNames => Commands.Keys;
@@ -137,7 +145,7 @@ namespace Decatron.Services.SongRequest
                     Action.PlaylistAdd => null, // decide la playlist: sus requisitos
                     Action.Remove or Action.Promote or Action.PlaylistNext => run.Settings.Permissions.Skip,
                     Action.Open or Action.Close or Action.Pause or Action.Resume or Action.Ban
-                        or Action.Video or Action.Cover or Action.Play or Action.Mode
+                        or Action.Video or Action.Cover or Action.Play or Action.Mode or Action.Clear
                         or Action.PlaylistStop or Action.PlaylistShuffle => run.Settings.Permissions.Manage,
                     Action.Approve or Action.Reject => run.Settings.Permissions.Review,
                     Action.PlaylistLink => run.Settings.Permissions.Playlist,
@@ -174,6 +182,8 @@ namespace Decatron.Services.SongRequest
                     case Action.PlaylistNext: await PlaylistNextAsync(run); break;
                     case Action.PlaylistShuffle: await PlaylistShuffleAsync(run); break;
                     case Action.PlaylistLink: await PlaylistLinkAsync(run); break;
+                    case Action.Clear: await ClearAsync(run); break;
+                    case Action.LastSong: await LastSongAsync(run); break;
                 }
             }
             catch (Exception ex)
@@ -262,6 +272,28 @@ namespace Decatron.Services.SongRequest
             var key = current == null ? "song_none"
                 : current.RequestedPlatform == SongRequestPlatforms.Fallback ? "song_current_fallback" : "song_current";
             await run.ReplyAsync(key, Vars(current));
+        }
+
+        /// <summary>!srclear: vacía la cola de pedidos (el que suena sigue). Sin confirmación: quien administra sabe lo que hace.</summary>
+        private static async Task ClearAsync(Run run)
+        {
+            var removed = await run.Songs.ClearQueueAsync(run.Config);
+            await run.ReplyAsync(removed == 0 ? "clear_none" : "cleared", new() { ["count"] = removed.ToString() });
+        }
+
+        /// <summary>!lastsong / !prevsong: la que sonó justo antes de la actual.</summary>
+        private static async Task LastSongAsync(Run run)
+        {
+            var last = await run.Songs.GetLastPlayedAsync(run.Config.UserId);
+            if (last?.Track == null)
+            {
+                await run.ReplyAsync("last_none");
+                return;
+            }
+            var vars = Vars(last.Track);
+            vars["requester"] = last.RequestedByName ?? "";
+            vars["url"] = last.OriginUrl ?? SongResolverService.PublicUrlFor(last.Track);
+            await run.ReplyAsync(last.RequestedPlatform == SongRequestPlatforms.Fallback ? "last_song_fallback" : "last_song", vars);
         }
 
         private static async Task MyQueueAsync(Run run)
@@ -553,6 +585,23 @@ namespace Decatron.Services.SongRequest
         /// </summary>
         private static async Task PlaylistLinkAsync(Run run)
         {
+            // "!playlist play test" no inicia nada: este comando solo da el enlace. Se orienta hacia !plplay / !plstop
+            var words = run.Args.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length > 0)
+            {
+                var first = words[0].ToLowerInvariant();
+                if (first is "play" or "start" or "iniciar" or "inicia" or "poner" or "pon" or "reproducir" or "sonar")
+                {
+                    await run.ReplyAsync("playlist_link_play", new() { ["name"] = words.Length > 1 ? words[1].Trim() : "<playlist>" });
+                    return;
+                }
+                if (first is "stop" or "parar" or "para" or "detener" or "off")
+                {
+                    await run.ReplyAsync("playlist_link_stop");
+                    return;
+                }
+            }
+
             var baseUrl = run.Songs.PublicQueueUrl(run.Config.ChannelName);
             var visible = (await ChannelPlaylistsAsync(run)).Where(p => p.Visibility == SongRequestPlaylistVisibility.Public).ToList();
             if (visible.Count == 0)

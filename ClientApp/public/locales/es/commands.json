@@ -537,9 +537,13 @@
     "groups": {
       "request": "Pedir y consultar",
       "playlists": "Playlist de fondo",
+      "player": "Reproductor",
       "queue": "Cola",
       "review": "Revisión",
       "manage": "Administrar"
+    },
+    "groupNotes": {
+      "player": "Sirven para todo lo que suene: pedidos y playlist de fondo."
     },
     "badges": {
       "everyone": "Todos",
@@ -596,6 +600,14 @@
       "pl": {
         "syntax": "!pl",
         "text": "Dice cuál es la playlist de fondo y qué número está sonando."
+      },
+      "lastsong": {
+        "syntax": "!lastsong",
+        "text": "Dice cuál fue la canción anterior, con el link."
+      },
+      "srclear": {
+        "syntax": "!srclear",
+        "text": "Vacía la cola de pedidos. La que suena sigue y lo que espera revisión no se toca."
       },
       "playlistLink": {
         "syntax": "!playlist [nombre]",

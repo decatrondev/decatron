@@ -510,6 +510,25 @@ namespace Decatron.Services.SongRequest
             return item;
         }
 
+        /// <summary>!srclear: quita todos los pedidos que esperan (no el que suena ni lo que espera revisión). Devuelve cuántos.</summary>
+        public async Task<int> ClearQueueAsync(SongRequestConfig config, CancellationToken ct = default)
+        {
+            var waiting = await QueuedQuery(config.UserId).ToListAsync(ct);
+            if (waiting.Count == 0)
+                return 0;
+            _db.SongRequestQueue.RemoveRange(waiting);
+            await _db.SaveChangesAsync(ct);
+            await NotifyAsync(config, ct);
+            return waiting.Count;
+        }
+
+        /// <summary>La última que terminó de sonar, para !lastsong (no cuenta lo vetado ni lo que falló).</summary>
+        public Task<SongRequestHistoryItem?> GetLastPlayedAsync(long userId, CancellationToken ct = default) =>
+            _db.SongRequestHistory.AsNoTracking().Include(h => h.Track)
+                .Where(h => h.UserId == userId && h.EndReason != "removed" && h.EndReason != "error")
+                .OrderByDescending(h => h.PlayedAt)
+                .FirstOrDefaultAsync(ct);
+
         /// <summary>Quita el pedido en la posición visible (1 = la próxima).</summary>
         public async Task<SongRequestQueueItem?> RemoveAtPositionAsync(SongRequestConfig config, int position, CancellationToken ct = default)
         {

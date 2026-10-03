@@ -236,12 +236,14 @@ namespace Decatron.Controllers
                 ("myqueue", "Muestra en qué puesto están tus pedidos", request),
                 ("skip", settings.SkipVoteEnabled
                     ? $"Salta la canción; los demás votan y se salta con {Math.Max(1, settings.SkipVotesRequired)} votos"
-                    : "Salta la canción que está sonando",
+                    : "Salta la canción que está sonando (también !srskip y !srnext)",
                     settings.SkipVoteEnabled ? request : skip),
+                ("srclear", "Vacía la cola de pedidos (el que suena sigue)", manage),
+                ("lastsong", "Dice cuál fue la canción anterior (también !prevsong)", request),
                 ("srremove", "Quita un pedido de la cola por su número (!srremove 3)", skip),
                 ("sropen", "Abre los pedidos de canciones", manage),
                 ("srclose", "Cierra los pedidos de canciones", manage),
-                ("srpause", "Pausa la música", manage),
+                ("srpause", "Pausa la música (también !srstop)", manage),
                 ("srresume", "Vuelve a reproducir la música", manage),
                 ("srban", "Veta la canción que suena, o a un usuario con !srban @usuario", manage),
                 ("srvolume", "Dice el volumen de la música; los que administran lo cambian con !srvolume 40", request),

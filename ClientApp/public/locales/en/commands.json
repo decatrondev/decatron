@@ -537,9 +537,13 @@
     "groups": {
       "request": "Request and check",
       "playlists": "Background playlist",
+      "player": "Player",
       "queue": "Queue",
       "review": "Review",
       "manage": "Manage"
+    },
+    "groupNotes": {
+      "player": "They work on whatever is playing: requests and the background playlist."
     },
     "badges": {
       "everyone": "Everyone",
@@ -596,6 +600,14 @@
       "pl": {
         "syntax": "!pl",
         "text": "Says which playlist is in the background and which number is playing."
+      },
+      "lastsong": {
+        "syntax": "!lastsong",
+        "text": "Says which song played before, with the link."
+      },
+      "srclear": {
+        "syntax": "!srclear",
+        "text": "Clears the request queue. The one playing keeps going and anything waiting for review is untouched."
       },
       "playlistLink": {
         "syntax": "!playlist [name]",

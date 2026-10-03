@@ -12,7 +12,7 @@ export function CommandGuide({ permissions, skipVoteEnabled, skipVotesRequired, 
     skipVotesRequired: number;
     publicUrl?: string;
 }) {
-    const { t } = useTranslation('commands');
+    const { t, i18n } = useTranslation('commands');
     const { t: tOverlays } = useTranslation('overlays');
 
     return (
@@ -24,6 +24,9 @@ export function CommandGuide({ permissions, skipVoteEnabled, skipVotesRequired, 
                 return (
                     <section key={group}>
                         <h4 className="mb-2 text-xs 3xl:text-sm font-black uppercase tracking-wider text-[#94a3b8]">{t(`srGuide.groups.${group}`)}</h4>
+                        {i18n.exists(`commands:srGuide.groupNotes.${group}`) && (
+                            <p className="mb-2 text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t(`srGuide.groupNotes.${group}`)}</p>
+                        )}
                         <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151] border-y border-[#e2e8f0] dark:border-[#374151]">
                             {commands.map(cmd => {
                                 const role = roleFor(cmd, permissions);
