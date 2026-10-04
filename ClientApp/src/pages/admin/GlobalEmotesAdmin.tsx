@@ -64,7 +64,7 @@ export default function GlobalEmotesAdmin() {
         try {
             const form = new FormData();
             form.append('file', file); form.append('name', name.trim()); form.append('zeroWidth', String(zeroWidth));
-            const { data } = await api.post('/admin/global-emotes', form);
+            const { data } = await api.post('/admin/global-emotes', form, { headers: { 'Content-Type': 'multipart/form-data' } });
             setNotice(data.collides ? { kind: 'warn', text: t('global.collides', { name: name.trim() }) } : { kind: 'ok', text: t('global.saved') });
             setName(''); setFile(null); setZeroWidth(false); if (fileRef.current) fileRef.current.value = '';
             await load();
