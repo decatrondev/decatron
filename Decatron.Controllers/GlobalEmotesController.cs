@@ -31,6 +31,19 @@ namespace Decatron.Controllers
 
         private string? Login => User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
         private long? UserId => long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
+        /// <summary>
+        /// ¿Se está actuando en el canal de otra persona (control total o moderación)? El permiso sobre los emotes
+        /// globales es personal y no se hereda de un canal: en ese contexto no se ofrece ni se solicita.
+        /// </summary>
+        private bool ActingForAnotherChannel()
+        {
+            var me = UserId;
+            if (me == null) return false;
+            var session = HttpContext.Session.GetString("ActiveChannelId");
+            if (!string.IsNullOrEmpty(session) && long.TryParse(session, out var sid)) return sid != me.Value;
+            return long.TryParse(User.FindFirst("ChannelOwnerId")?.Value, out var cid) && cid != me.Value;
+        }
+
         private IActionResult Fail(string error, int status = 400) => StatusCode(status, new { success = false, error });
 
         private object Dto(GlobalEmote e) => new
@@ -161,6 +174,7 @@ namespace Decatron.Controllers
         [HttpGet("api/global-emotes/me")]
         public async Task<IActionResult> Me()
         {
+            if (ActingForAnotherChannel()) return Ok(new { success = true, delegated = true, access = "none", request = (object?)null });
             var access = await _emotes.ResolveAccessAsync(Login);
             var req = access == "none" && Login != null ? await _emotes.GetMyRequestAsync(Login) : null;
             return Ok(new { success = true, access, request = req == null ? null : new { status = req.Status, createdAt = req.CreatedAt, resolvedAt = req.ResolvedAt } });
@@ -171,7 +185,7 @@ namespace Decatron.Controllers
         [HttpPost("api/global-emotes/request")]
         public async Task<IActionResult> RequestAccess([FromBody] AccessRequest? request)
         {
-            if (UserId == null || Login == null) return Fail("not_allowed", 403);
+            if (UserId == null || Login == null || ActingForAnotherChannel()) return Fail("not_allowed", 403);
             var error = await _emotes.RequestAccessAsync(UserId.Value, Login, request?.Message);
             return error == null ? Ok(new { success = true }) : Fail(error, 409);
         }

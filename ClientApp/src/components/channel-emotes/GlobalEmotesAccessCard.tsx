@@ -6,7 +6,7 @@ import api from '../../services/api';
 // Acceso a los emotes globales de Decatron desde el panel de emotes: quien ya tiene permiso va a gestionarlos,
 // y quien no puede solicitarlo (el owner aprueba o rechaza desde /emotes/global).
 
-interface Me { access: 'owner' | 'admin' | 'manager' | 'none'; request: { status: 'pending' | 'approved' | 'rejected'; resolvedAt?: string | null } | null }
+interface Me { delegated?: boolean; access: 'owner' | 'admin' | 'manager' | 'none'; request: { status: 'pending' | 'approved' | 'rejected'; resolvedAt?: string | null } | null }
 
 const btn = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] text-white hover:bg-[#1d4ed8] disabled:opacity-50 flex items-center gap-2';
 
@@ -33,7 +33,8 @@ export default function GlobalEmotesAccessCard({ onGranted }: { onGranted?: () =
         } finally { setBusy(false); }
     };
 
-    if (!me) return null;
+    // Actuando en el canal de otra persona no se ofrece: el permiso es personal
+    if (!me || me.delegated) return null;
     const rejected = me.request?.status === 'rejected';
 
     return (
