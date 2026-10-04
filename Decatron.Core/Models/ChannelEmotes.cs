@@ -75,6 +75,8 @@ namespace Decatron.Core.Models
     {
         public const string Approved = "approved";
         public const string Hidden = "hidden";
+        /// <summary>En la papelera: los archivos se conservan 30 días y un admin puede restaurarlo</summary>
+        public const string Removed = "removed";
 
         [Key] [Column("id")] public long Id { get; set; }
         [Required] [MaxLength(25)] [Column("name")] public string Name { get; set; } = "";
@@ -85,6 +87,8 @@ namespace Decatron.Core.Models
         [Column("height")] public int Height { get; set; }
         [Column("bytes")] public int Bytes { get; set; }
         [Required] [MaxLength(10)] [Column("status")] public string Status { get; set; } = Approved;
+        [Column("removed_at")] public DateTime? RemovedAt { get; set; }
+        [MaxLength(100)] [Column("removed_by")] public string? RemovedBy { get; set; }
         [Column("uploaded_by")] public long UploadedBy { get; set; }
         [Required] [MaxLength(100)] [Column("uploaded_by_name")] public string UploadedByName { get; set; } = "";
         [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -97,6 +101,16 @@ namespace Decatron.Core.Models
         [Key] [Column("id")] public long Id { get; set; }
         [Required] [MaxLength(100)] [Column("login")] public string Login { get; set; } = "";
         [Required] [MaxLength(100)] [Column("added_by")] public string AddedBy { get; set; } = "";
+        [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
+
+    [Table("global_emote_log")]
+    public class GlobalEmoteLog
+    {
+        [Key] [Column("id")] public long Id { get; set; }
+        [Required] [MaxLength(100)] [Column("actor")] public string Actor { get; set; } = "";
+        [Required] [MaxLength(30)] [Column("action")] public string Action { get; set; } = "";
+        [MaxLength(300)] [Column("detail")] public string? Detail { get; set; }
         [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

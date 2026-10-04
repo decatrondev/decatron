@@ -1,24 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, ArrowLeft, Eye, EyeOff, Loader2, Pencil, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Eye, EyeOff, Loader2, Pencil, RotateCcw, Trash2, Upload, X } from 'lucide-react';
 import api from '../../services/api';
 
 // Emotes globales de Decatron: el set de la plataforma que se ve en todos los canales (prioridad más baja).
 // Lo manejan los admins del sistema y quienes el dueño autorice por usuario de Twitch.
 
 interface GlobalEmote {
-    id: number; name: string; status: 'approved' | 'hidden'; animated: boolean; zeroWidth: boolean;
-    uploadedBy: string; urls: { x1: string; x2: string; x4: string };
+    id: number; name: string; status: 'approved' | 'hidden' | 'removed'; animated: boolean; zeroWidth: boolean;
+    uploadedBy: string; removedAt?: string | null; removedBy?: string | null; urls: { x1: string; x2: string; x4: string };
 }
 interface Manager { id: number; login: string; addedBy: string }
+interface LogRow { id: number; actor: string; action: string; detail?: string | null; createdAt: string }
+const TRASH_DAYS = 30;
 
 const card = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-4 3xl:p-6 shadow-sm';
 const input = 'px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-sm 3xl:text-base text-[#1e293b] dark:text-[#f1f5f9]';
 const btnBlue = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] text-white hover:bg-[#1d4ed8] disabled:opacity-50 flex items-center gap-2';
 const iconBtn = 'p-2 rounded-lg bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]';
 
-export default function GlobalEmotesAdmin() {
+/** Gestor de los emotes globales. `embedded` lo deja sin cabecera ni pantalla completa para usarlo dentro de la página pública. */
+export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boolean }) {
     const { t } = useTranslation('emotes');
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
@@ -32,15 +35,21 @@ export default function GlobalEmotesAdmin() {
     const [notice, setNotice] = useState<{ kind: 'ok' | 'warn' | 'err'; text: string } | null>(null);
     const [collision, setCollision] = useState(false);
     const [login, setLogin] = useState('');
+    const [canRestore, setCanRestore] = useState(false);
+    const [log, setLog] = useState<LogRow[]>([]);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    const err = (code?: string) => t(`errors.${code}`, { defaultValue: t(`global.errors.${code}`, { defaultValue: code ?? 'error' }) });
+    const err = (code?: string) => t(`global.errors.${code}`, { defaultValue: t(`errors.${code}`, { defaultValue: code ?? 'error' }) });
 
     const load = useCallback(async () => {
         try {
             const { data } = await api.get('/admin/global-emotes');
             setEmotes(data.emotes ?? []);
             setManagers(data.managers ?? null);
+            setCanRestore(!!data.canRestore);
+            if (data.canRestore) {
+                try { setLog((await api.get('/admin/global-emotes/log')).data.log ?? []); } catch { /* sin historial */ }
+            }
             setError(null);
         } catch (e: any) {
             setError(e?.response?.status === 403 ? 'forbidden' : 'load');
@@ -81,10 +90,20 @@ export default function GlobalEmotesAdmin() {
         if (n && n.trim() !== e.name) patch(e, { name: n.trim() });
     };
     const remove = async (e: GlobalEmote) => {
-        if (!window.confirm(t('global.confirmDelete', { name: e.name }))) return;
+        if (!window.confirm(t('global.confirmDelete', { name: e.name, days: TRASH_DAYS }))) return;
         try { await api.delete(`/admin/global-emotes/${e.id}`); await load(); }
         catch (x: any) { setNotice({ kind: 'err', text: err(x?.response?.data?.error) }); }
     };
+    const restore = async (e: GlobalEmote) => {
+        try { await api.post(`/admin/global-emotes/${e.id}/restore`); await load(); }
+        catch (x: any) { setNotice({ kind: 'err', text: err(x?.response?.data?.error) }); }
+    };
+    const purge = async (e: GlobalEmote) => {
+        if (!window.confirm(t('global.confirmPurge', { name: e.name }))) return;
+        try { await api.delete(`/admin/global-emotes/${e.id}/purge`); await load(); }
+        catch (x: any) { setNotice({ kind: 'err', text: err(x?.response?.data?.error) }); }
+    };
+    const daysLeft = (e: GlobalEmote) => Math.max(0, TRASH_DAYS - Math.floor((Date.now() - new Date(e.removedAt ?? Date.now()).getTime()) / 86400000));
     const addManager = async () => {
         if (!login.trim()) return;
         try { await api.post('/admin/global-emotes/managers', { login: login.trim() }); setLogin(''); await load(); }
@@ -104,10 +123,13 @@ export default function GlobalEmotesAdmin() {
         );
     }
 
+    const live = emotes.filter(e => e.status !== 'removed');
+    const trash = emotes.filter(e => e.status === 'removed');
+
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8">
-            <div className="panel-scale max-w-[1200px] mx-auto space-y-6">
-                <div className="flex items-center gap-4">
+        <div className={embedded ? 'space-y-6' : 'min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6 lg:p-8'}>
+            <div className={embedded ? 'space-y-6' : 'panel-scale max-w-[1200px] mx-auto space-y-6'}>
+                {!embedded && <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} aria-label={t('global.back')}
                         className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] shadow-lg">
                         <ArrowLeft className="w-5 h-5 text-[#64748b]" />
@@ -116,7 +138,7 @@ export default function GlobalEmotesAdmin() {
                         <h1 className="text-2xl 3xl:text-3xl font-bold text-[#1e293b] dark:text-[#f1f5f9]">{t('global.title')}</h1>
                         <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('global.subtitle')}</p>
                     </div>
-                </div>
+                </div>}
 
                 {notice && (
                     <div className={`flex items-start gap-2 p-3 rounded-xl border text-sm ${notice.kind === 'err' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300' : notice.kind === 'warn' ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300' : 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300'}`}>
@@ -148,9 +170,9 @@ export default function GlobalEmotesAdmin() {
                 </section>
 
                 <section className={card}>
-                    {emotes.length === 0 ? <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('global.empty')}</p> : (
+                    {live.length === 0 ? <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('global.empty')}</p> : (
                         <ul className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
-                            {emotes.map(e => (
+                            {live.map(e => (
                                 <li key={e.id} className={`flex items-center gap-3 p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] ${e.status === 'hidden' ? 'opacity-60' : ''}`}>
                                     <img src={e.urls.x2} alt={e.name} className="w-12 h-12 object-contain shrink-0" />
                                     <div className="min-w-0 flex-1">
@@ -167,6 +189,46 @@ export default function GlobalEmotesAdmin() {
                         </ul>
                     )}
                 </section>
+
+                {trash.length > 0 && (
+                    <section className={card}>
+                        <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9]">{t('global.trash')}</h2>
+                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">{t('global.trashHint', { days: TRASH_DAYS })}</p>
+                        <ul className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
+                            {trash.map(e => (
+                                <li key={e.id} className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-[#e2e8f0] dark:border-[#374151] opacity-80">
+                                    <img src={e.urls.x2} alt={e.name} className="w-12 h-12 object-contain shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f1f5f9] truncate">{e.name}</div>
+                                        <div className="text-xs text-[#94a3b8] truncate">{t('global.deletedBy', { name: e.removedBy ?? '?' })} · {t('global.daysLeft', { count: daysLeft(e) })}</div>
+                                    </div>
+                                    {canRestore && <>
+                                        <button className={iconBtn} title={t('global.restore')} onClick={() => restore(e)}><RotateCcw className="w-4 h-4" /></button>
+                                        <button className={iconBtn} title={t('global.purge')} onClick={() => purge(e)}><Trash2 className="w-4 h-4 text-red-500" /></button>
+                                    </>}
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
+                {canRestore && (
+                    <section className={card}>
+                        <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9] mb-4">{t('global.log')}</h2>
+                        {log.length === 0 ? <p className="text-sm text-[#94a3b8]">{t('global.logEmpty')}</p> : (
+                            <ul className="divide-y divide-[#e2e8f0] dark:divide-[#374151] max-h-96 overflow-y-auto">
+                                {log.map(l => (
+                                    <li key={l.id} className="py-2 flex flex-wrap items-baseline gap-x-3 text-sm">
+                                        <span className="text-xs text-[#94a3b8] tabular-nums">{new Date(l.createdAt).toLocaleString()}</span>
+                                        <span className="font-bold text-[#1e293b] dark:text-[#f1f5f9]">{l.actor}</span>
+                                        <span className="text-[#2563eb] dark:text-[#93c5fd]">{t(`global.actions.${l.action}`, { defaultValue: l.action })}</span>
+                                        <span className="text-[#64748b] dark:text-[#94a3b8] break-all">{l.detail}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+                )}
 
                 {managers && (
                     <section className={card}>

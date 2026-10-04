@@ -188,7 +188,7 @@
     "show": "Show",
     "rename": "Rename",
     "delete": "Delete",
-    "confirmDelete": "Delete \"{{name}}\" from every channel?",
+    "confirmDelete": "Move \"{{name}}\" to the trash? It stops showing in every channel and can be restored for {{days}} days.",
     "hidden": "Hidden",
     "by": "Uploaded by {{name}}",
     "people": "Who can manage them",
@@ -204,7 +204,38 @@
     "errors": {
       "manager_exists": "That person already has access.",
       "invalid_login": "Invalid Twitch username.",
-      "too_many_managers": "Too many authorized people."
-    }
+      "too_many_managers": "Too many authorized people.",
+      "rate_limited": "You deleted many emotes in a row. Wait a while or ask an admin to do it."
+    },
+    "trash": "Trash",
+    "trashHint": "Deleted emotes are kept {{days}} days and then removed for good.",
+    "deletedBy": "Deleted by {{name}}",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left",
+    "restore": "Restore",
+    "purge": "Delete forever",
+    "confirmPurge": "Delete \"{{name}}\" permanently? This can't be undone.",
+    "log": "Change history",
+    "logEmpty": "No changes yet.",
+    "actions": {
+      "upload": "uploaded",
+      "update": "changed",
+      "delete": "deleted",
+      "restore": "restored",
+      "purge": "permanently deleted",
+      "manager_add": "gave access to",
+      "manager_remove": "removed access from"
+    },
+    "publicTitle": "Decatron global emotes",
+    "publicSubtitle": "The platform's set: it shows in the chat of every channel that has it on. Click an emote to copy its name.",
+    "publicEmpty": "There are no global emotes yet.",
+    "manageTitle": "Manage",
+    "loginTitle": "Want to contribute global emotes?",
+    "loginText": "Log in with your Twitch account on Decatron and ask the owner to add your Twitch username to the authorized list. Once they do, you'll manage them from this same page.",
+    "loginButton": "Log in with Twitch",
+    "noAccess": "Your account doesn't have permission to manage global emotes yet. Ask the owner to add your Twitch username ({{login}}).",
+    "search": "Search emote",
+    "copied": "Copied!",
+    "loading": "Loading…"
   }
 }

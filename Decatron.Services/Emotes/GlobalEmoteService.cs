@@ -15,6 +15,10 @@ namespace Decatron.Services.Emotes
     public sealed class GlobalEmoteService
     {
         private const int MaxEmotes = 500;
+        private const int TrashDays = 30;
+        /// <summary>Borrados por hora de una persona autorizada que no es admin (los borrados masivos los hace un admin)</summary>
+        private const int ManagerDeletesPerHour = 10;
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Queue<DateTime>> RecentDeletes = new();
         private readonly DecatronDbContext _db;
         private readonly EmoteCatalogService _catalog;
         private readonly IConfiguration _config;
@@ -43,7 +47,32 @@ namespace Decatron.Services.Emotes
             return await _db.GlobalEmoteManagers.AnyAsync(m => m.Login == login) ? "manager" : "none";
         }
 
-        public Task<List<GlobalEmote>> ListAsync() => _db.GlobalEmotes.AsNoTracking().OrderBy(e => e.Name).ToListAsync();
+        /// <summary>Todos los emotes, papelera incluida. De paso borra del todo lo que lleva más de 30 días en la papelera</summary>
+        public async Task<List<GlobalEmote>> ListAsync()
+        {
+            await PurgeExpiredAsync();
+            return await _db.GlobalEmotes.AsNoTracking().OrderBy(e => e.Name).ToListAsync();
+        }
+
+        private async Task PurgeExpiredAsync()
+        {
+            var cutoff = DateTime.Now.AddDays(-TrashDays);
+            var old = await _db.GlobalEmotes.Where(e => e.Status == GlobalEmote.Removed && e.RemovedAt != null && e.RemovedAt < cutoff).ToListAsync();
+            if (old.Count == 0) return;
+            _db.GlobalEmotes.RemoveRange(old);
+            await _db.SaveChangesAsync();
+            foreach (var e in old) TryDeleteDir(Path.Combine(AssetsPath, e.FileKey));
+            await LogAsync("sistema", "purge", $"{old.Count} emote(s) con más de {TrashDays} días en la papelera");
+        }
+
+        private async Task LogAsync(string actor, string action, string? detail)
+        {
+            _db.GlobalEmoteLogs.Add(new GlobalEmoteLog { Actor = actor, Action = action, Detail = detail?.Length > 300 ? detail[..300] : detail });
+            await _db.SaveChangesAsync();
+        }
+
+        public Task<List<GlobalEmoteLog>> GetLogAsync() =>
+            _db.GlobalEmoteLogs.AsNoTracking().OrderByDescending(l => l.CreatedAt).ThenByDescending(l => l.Id).Take(300).ToListAsync();
 
         public Task<List<GlobalEmote>> ListApprovedAsync() =>
             _db.GlobalEmotes.AsNoTracking().Where(e => e.Status == GlobalEmote.Approved).OrderBy(e => e.Name).ToListAsync();
@@ -51,12 +80,12 @@ namespace Decatron.Services.Emotes
         /// <summary>Nombres de 7TV, BTTV y FFZ globales con los que chocaría este nombre (el nuestro queda tapado en el chat)</summary>
         public async Task<bool> CollidesAsync(string name) => (await _catalog.GetExternalGlobalNamesAsync()).Contains(name);
 
-        public async Task<EmoteResult> UploadAsync(long actorUserId, string name, Stream file, bool zeroWidth, CancellationToken ct = default)
+        public async Task<EmoteResult> UploadAsync(long actorUserId, string actor, string name, Stream file, bool zeroWidth, CancellationToken ct = default)
         {
             name = (name ?? "").Trim();
             if (ChannelEmoteService.ValidateName(name) != null) return EmoteResult.Fail("invalid_name");
-            if (await _db.GlobalEmotes.AnyAsync(e => e.Name.ToLower() == name.ToLower(), ct)) return EmoteResult.Fail("name_taken");
-            if (await _db.GlobalEmotes.CountAsync(ct) >= MaxEmotes) return EmoteResult.Fail("limit_reached");
+            if (await _db.GlobalEmotes.AnyAsync(e => e.Status != GlobalEmote.Removed && e.Name.ToLower() == name.ToLower(), ct)) return EmoteResult.Fail("name_taken");
+            if (await _db.GlobalEmotes.CountAsync(e => e.Status != GlobalEmote.Removed, ct) >= MaxEmotes) return EmoteResult.Fail("limit_reached");
 
             ProcessedEmote processed;
             try { processed = await EmoteImageProcessor.ProcessAsync(file, ct); }
@@ -80,6 +109,7 @@ namespace Decatron.Services.Emotes
                 _db.GlobalEmotes.Add(row);
                 await _db.SaveChangesAsync(ct);
                 _catalog.InvalidateGlobal();
+                await LogAsync(actor, "upload", name);
                 return new EmoteResult(null);
             }
             catch (DbUpdateException)
@@ -94,35 +124,88 @@ namespace Decatron.Services.Emotes
             }
         }
 
-        public async Task<string?> UpdateAsync(long id, string? name, bool? zeroWidth, bool? visible)
+        public async Task<string?> UpdateAsync(long id, string actor, string? name, bool? zeroWidth, bool? visible)
         {
-            var e = await _db.GlobalEmotes.FirstOrDefaultAsync(x => x.Id == id);
+            var e = await _db.GlobalEmotes.FirstOrDefaultAsync(x => x.Id == id && x.Status != GlobalEmote.Removed);
             if (e == null) return "not_found";
+            var changes = new List<string>();
             if (name != null)
             {
                 name = name.Trim();
                 if (ChannelEmoteService.ValidateName(name) != null) return "invalid_name";
-                if (await _db.GlobalEmotes.AnyAsync(x => x.Id != id && x.Name.ToLower() == name.ToLower())) return "name_taken";
+                if (await _db.GlobalEmotes.AnyAsync(x => x.Id != id && x.Status != GlobalEmote.Removed && x.Name.ToLower() == name.ToLower())) return "name_taken";
+                if (name != e.Name) changes.Add($"nombre {e.Name} → {name}");
                 e.Name = name;
             }
-            if (zeroWidth.HasValue) e.ZeroWidth = zeroWidth.Value;
-            if (visible.HasValue) e.Status = visible.Value ? GlobalEmote.Approved : GlobalEmote.Hidden;
+            if (zeroWidth.HasValue && zeroWidth.Value != e.ZeroWidth) { changes.Add(zeroWidth.Value ? "encima del anterior: sí" : "encima del anterior: no"); e.ZeroWidth = zeroWidth.Value; }
+            if (visible.HasValue)
+            {
+                var status = visible.Value ? GlobalEmote.Approved : GlobalEmote.Hidden;
+                if (status != e.Status) { changes.Add(visible.Value ? "mostrado" : "oculto"); e.Status = status; }
+            }
             e.UpdatedAt = DateTime.Now;
             try { await _db.SaveChangesAsync(); }
             catch (DbUpdateException) { return "name_taken"; }
             _catalog.InvalidateGlobal();
+            if (changes.Count > 0) await LogAsync(actor, "update", $"{e.Name}: {string.Join(", ", changes)}");
             return null;
         }
 
-        public async Task<bool> DeleteAsync(long id)
+        /// <summary>Va a la papelera (archivos intactos, 30 días). Quien no es admin tiene un tope de borrados por hora</summary>
+        public async Task<string?> DeleteAsync(long id, string actor, string access)
         {
-            var e = await _db.GlobalEmotes.FirstOrDefaultAsync(x => x.Id == id);
-            if (e == null) return false;
+            var e = await _db.GlobalEmotes.FirstOrDefaultAsync(x => x.Id == id && x.Status != GlobalEmote.Removed);
+            if (e == null) return "not_found";
+            if (access == "manager" && DeleteRateLimited(actor)) return "rate_limited";
+            e.Status = GlobalEmote.Removed;
+            e.RemovedAt = DateTime.Now;
+            e.RemovedBy = actor;
+            e.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+            _catalog.InvalidateGlobal();
+            await LogAsync(actor, "delete", e.Name);
+            return null;
+        }
+
+        public async Task<string?> RestoreAsync(long id, string actor)
+        {
+            var e = await _db.GlobalEmotes.FirstOrDefaultAsync(x => x.Id == id && x.Status == GlobalEmote.Removed);
+            if (e == null) return "not_found";
+            if (await _db.GlobalEmotes.AnyAsync(x => x.Status != GlobalEmote.Removed && x.Name.ToLower() == e.Name.ToLower())) return "name_taken";
+            e.Status = GlobalEmote.Approved;
+            e.RemovedAt = null;
+            e.RemovedBy = null;
+            e.UpdatedAt = DateTime.Now;
+            try { await _db.SaveChangesAsync(); }
+            catch (DbUpdateException) { return "name_taken"; }
+            _catalog.InvalidateGlobal();
+            await LogAsync(actor, "restore", e.Name);
+            return null;
+        }
+
+        /// <summary>Borra del todo un emote de la papelera (solo admins)</summary>
+        public async Task<string?> PurgeAsync(long id, string actor)
+        {
+            var e = await _db.GlobalEmotes.FirstOrDefaultAsync(x => x.Id == id && x.Status == GlobalEmote.Removed);
+            if (e == null) return "not_found";
             _db.GlobalEmotes.Remove(e);
             await _db.SaveChangesAsync();
             TryDeleteDir(Path.Combine(AssetsPath, e.FileKey));
-            _catalog.InvalidateGlobal();
-            return true;
+            await LogAsync(actor, "purge", e.Name);
+            return null;
+        }
+
+        private static bool DeleteRateLimited(string actor)
+        {
+            var queue = RecentDeletes.GetOrAdd(actor, _ => new Queue<DateTime>());
+            lock (queue)
+            {
+                var cutoff = DateTime.UtcNow.AddHours(-1);
+                while (queue.Count > 0 && queue.Peek() < cutoff) queue.Dequeue();
+                if (queue.Count >= ManagerDeletesPerHour) return true;
+                queue.Enqueue(DateTime.UtcNow);
+                return false;
+            }
         }
 
         // ── Quién puede manejarlos (lo edita solo el dueño) ──────────────────
@@ -138,15 +221,17 @@ namespace Decatron.Services.Emotes
             if (await _db.GlobalEmoteManagers.AnyAsync(m => m.Login == login)) return "manager_exists";
             _db.GlobalEmoteManagers.Add(new GlobalEmoteManager { Login = login, AddedBy = addedBy });
             await _db.SaveChangesAsync();
+            await LogAsync(addedBy, "manager_add", login);
             return null;
         }
 
-        public async Task<bool> RemoveManagerAsync(long id)
+        public async Task<bool> RemoveManagerAsync(long id, string actor)
         {
             var row = await _db.GlobalEmoteManagers.FirstOrDefaultAsync(m => m.Id == id);
             if (row == null) return false;
             _db.GlobalEmoteManagers.Remove(row);
             await _db.SaveChangesAsync();
+            await LogAsync(actor, "manager_remove", row.Login);
             return true;
         }
 

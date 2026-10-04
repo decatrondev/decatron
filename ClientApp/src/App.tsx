@@ -190,6 +190,7 @@ import { BrandProvider } from './brand/BrandContext';
 import { BrandMark } from './brand/BrandMark';
 import BrandAdmin from './pages/admin/BrandAdmin';
 import GlobalEmotesAdmin from './pages/admin/GlobalEmotesAdmin';
+import GlobalEmotesPublic from './pages/GlobalEmotesPublic';
 
 function App() {
     return (
@@ -236,6 +237,7 @@ function App() {
 
                 {/* Public Commands Page - No authentication required */}
                 <Route path="/commands/:channelName" element={<PublicCommandsPage />} />
+                <Route path="/emotes/global" element={<SafeRoute name="Global Emotes Public"><GlobalEmotesPublic /></SafeRoute>} />
                 <Route path="/emotes/:channelName" element={<SafeRoute name="Channel Emotes"><ChannelEmotesPublic /></SafeRoute>} />
                 <Route path="/sr/:channelName" element={<SafeRoute name="Song Request Queue"><SongRequestPublicPage /></SafeRoute>} />
                 <Route path="/sr/:channelName/p/:code" element={<SafeRoute name="Song Request Playlist"><SongRequestPlaylistPage /></SafeRoute>} />

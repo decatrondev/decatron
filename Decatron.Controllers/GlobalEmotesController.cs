@@ -35,6 +35,7 @@ namespace Decatron.Controllers
         {
             id = e.Id, name = e.Name, status = e.Status, animated = e.Animated, zeroWidth = e.ZeroWidth,
             width = e.Width, height = e.Height, bytes = e.Bytes, uploadedBy = e.UploadedByName, createdAt = e.CreatedAt,
+            removedAt = e.RemovedAt, removedBy = e.RemovedBy,
             urls = new { x1 = _emotes.UrlFor(e, 1), x2 = _emotes.UrlFor(e, 2), x4 = _emotes.UrlFor(e, 4) }
         };
 
@@ -68,6 +69,7 @@ namespace Decatron.Controllers
                 success = true,
                 access,
                 canManagePeople = access == "owner",
+                canRestore = access is "owner" or "admin",
                 managers = access == "owner" ? (await _emotes.GetManagersAsync()).Select(m => new { id = m.Id, login = m.Login, addedBy = m.AddedBy, createdAt = m.CreatedAt }) : null,
                 emotes = (await _emotes.ListAsync()).Select(Dto)
             });
@@ -93,7 +95,7 @@ namespace Decatron.Controllers
                 if (await _emotes.ResolveAccessAsync(Login) == "none" || UserId == null) return Fail("not_allowed", 403);
                 if (file == null || file.Length == 0) return Fail("invalid_image");
                 await using var stream = file.OpenReadStream();
-                var result = await _emotes.UploadAsync(UserId.Value, name, stream, zeroWidth, ct);
+                var result = await _emotes.UploadAsync(UserId.Value, Login ?? "?", name, stream, zeroWidth, ct);
                 return result.Success ? Ok(new { success = true, collides = await _emotes.CollidesAsync((name ?? "").Trim()) }) : Fail(result.Error!);
             }
             catch (Exception ex)
@@ -108,7 +110,7 @@ namespace Decatron.Controllers
         public async Task<IActionResult> Update(long id, [FromBody] UpdateRequest request)
         {
             if (await _emotes.ResolveAccessAsync(Login) == "none") return Fail("not_allowed", 403);
-            var error = await _emotes.UpdateAsync(id, request.Name, request.ZeroWidth, request.Visible);
+            var error = await _emotes.UpdateAsync(id, Login ?? "?", request.Name, request.ZeroWidth, request.Visible);
             return error == null ? Ok(new { success = true }) : Fail(error, error == "not_found" ? 404 : 400);
         }
 
@@ -116,8 +118,39 @@ namespace Decatron.Controllers
         [HttpDelete("api/admin/global-emotes/{id:long}")]
         public async Task<IActionResult> Delete(long id)
         {
-            if (await _emotes.ResolveAccessAsync(Login) == "none") return Fail("not_allowed", 403);
-            return await _emotes.DeleteAsync(id) ? Ok(new { success = true }) : Fail("not_found", 404);
+            var access = await _emotes.ResolveAccessAsync(Login);
+            if (access == "none") return Fail("not_allowed", 403);
+            var error = await _emotes.DeleteAsync(id, Login ?? "?", access);
+            return error == null ? Ok(new { success = true }) : Fail(error, error == "not_found" ? 404 : 429);
+        }
+
+        /// <summary>POST /api/admin/global-emotes/{id}/restore - Saca un emote de la papelera (admins)</summary>
+        [Authorize]
+        [HttpPost("api/admin/global-emotes/{id:long}/restore")]
+        public async Task<IActionResult> Restore(long id)
+        {
+            if (await _emotes.ResolveAccessAsync(Login) is not ("owner" or "admin")) return Fail("not_allowed", 403);
+            var error = await _emotes.RestoreAsync(id, Login ?? "?");
+            return error == null ? Ok(new { success = true }) : Fail(error, error == "not_found" ? 404 : 400);
+        }
+
+        /// <summary>DELETE /api/admin/global-emotes/{id}/purge - Borra del todo un emote de la papelera (admins)</summary>
+        [Authorize]
+        [HttpDelete("api/admin/global-emotes/{id:long}/purge")]
+        public async Task<IActionResult> Purge(long id)
+        {
+            if (await _emotes.ResolveAccessAsync(Login) is not ("owner" or "admin")) return Fail("not_allowed", 403);
+            var error = await _emotes.PurgeAsync(id, Login ?? "?");
+            return error == null ? Ok(new { success = true }) : Fail(error, 404);
+        }
+
+        /// <summary>GET /api/admin/global-emotes/log - Historial de cambios (admins)</summary>
+        [Authorize]
+        [HttpGet("api/admin/global-emotes/log")]
+        public async Task<IActionResult> Log()
+        {
+            if (await _emotes.ResolveAccessAsync(Login) is not ("owner" or "admin")) return Fail("not_allowed", 403);
+            return Ok(new { success = true, log = (await _emotes.GetLogAsync()).Select(l => new { id = l.Id, actor = l.Actor, action = l.Action, detail = l.Detail, createdAt = l.CreatedAt }) });
         }
 
         [Authorize]
@@ -134,7 +167,7 @@ namespace Decatron.Controllers
         public async Task<IActionResult> RemoveManager(long id)
         {
             if (await _emotes.ResolveAccessAsync(Login) != "owner") return Fail("not_allowed", 403);
-            return await _emotes.RemoveManagerAsync(id) ? Ok(new { success = true }) : Fail("not_found", 404);
+            return await _emotes.RemoveManagerAsync(id, Login ?? "?") ? Ok(new { success = true }) : Fail("not_found", 404);
         }
     }
 }
