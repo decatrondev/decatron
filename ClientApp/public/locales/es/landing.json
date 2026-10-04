@@ -92,12 +92,14 @@
     "privacy": {
       "title": "Privacidad de la extensión",
       "points": [
-        "La extensión solo se ejecuta en páginas de twitch.tv y solo habla con decatron.net.",
-        "No pide cuenta ni recoge datos personales. No lee el chat ni tu actividad en Twitch.",
-        "Lo único que envía al servidor es el nombre del canal que estás viendo y el idioma que elegiste, para recibir la traducción de ese canal.",
-        "Tus preferencias (idioma preferido, volumen de fondo, subtítulos) se guardan en el almacenamiento de tu navegador y se pueden borrar desinstalando la extensión.",
+        "La extensión solo se ejecuta en páginas de twitch.tv. No pide cuenta, no tiene anuncios y no recoge datos personales.",
+        "Traducción: envía a decatron.net el nombre del canal que estás viendo y el idioma que elegiste, para recibir la traducción de ese canal.",
+        "Emotes: para mostrar los emotes, pide el nombre del canal a decatron.net (emotes propios y globales de Decatron), a 7tv.io, api.betterttv.net y api.frankerfacez.com (sus emotes) y a gql.twitch.tv (para obtener el identificador del canal). Solo viaja el canal que estás viendo.",
+        "La extensión lee el texto del chat únicamente en tu navegador, para dibujar los emotes y para el selector que se abre al escribir «:». Ese texto, lo que escribes y tus mensajes nunca se envían a ningún servidor.",
+        "Tus preferencias (idioma, volumen de fondo, subtítulos, módulos activos) y una copia temporal de las listas de emotes se guardan en el almacenamiento de tu navegador y se borran al desinstalar la extensión.",
+        "Como en cualquier sitio web, los servidores a los que se conecta (decatron.net, 7TV, BetterTTV, FrankerFaceZ y Twitch) pueden ver tu dirección IP al recibir la petición. En decatron.net esos registros técnicos se conservan hasta 30 días y no se usan para identificarte ni para perfilarte.",
         "El audio y el texto traducidos se generan a partir de la voz del streamer, con su autorización expresa al activar la función.",
-        "No hay publicidad ni venta de datos."
+        "No hay publicidad, no se venden datos y no se usan para nada ajeno al funcionamiento de la extensión."
       ],
       "contact": "Dudas sobre privacidad:"
     }

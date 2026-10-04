@@ -92,12 +92,14 @@
     "privacy": {
       "title": "Extension privacy",
       "points": [
-        "The extension only runs on twitch.tv pages and only talks to decatron.net.",
-        "It asks for no account and collects no personal data. It doesn't read the chat or your Twitch activity.",
-        "The only thing sent to the server is the name of the channel you're watching and the language you picked, to receive that channel's translation.",
-        "Your preferences (preferred language, background volume, captions) are stored in your browser and are removed by uninstalling the extension.",
-        "The translated audio and text are generated from the streamer's voice, with their explicit authorization when enabling the feature.",
-        "No ads, no data sales."
+        "The extension only runs on twitch.tv pages. It asks for no account, has no ads and collects no personal data.",
+        "Translation: it sends decatron.net the name of the channel you are watching and the language you picked, to receive that channel's translation.",
+        "Emotes: to show emotes it asks decatron.net (Decatron's own and global emotes), 7tv.io, api.betterttv.net and api.frankerfacez.com (their emotes) and gql.twitch.tv (to get the channel's identifier) about the channel name. Only the channel you are watching is sent.",
+        "The extension reads the chat text only inside your browser, to draw emotes and to power the picker that opens when you type \":\". That text, what you type and your messages are never sent to any server.",
+        "Your preferences (language, background volume, captions, active modules) and a temporary copy of the emote lists are kept in your browser's storage and are deleted when you uninstall the extension.",
+        "As with any website, the servers it connects to (decatron.net, 7TV, BetterTTV, FrankerFaceZ and Twitch) can see your IP address when they receive the request. On decatron.net those technical logs are kept for up to 30 days and are not used to identify or profile you.",
+        "The translated audio and text are generated from the streamer's voice, with their express authorization when they turn the feature on.",
+        "No advertising, no selling of data, and no use of data for anything unrelated to how the extension works."
       ],
       "contact": "Privacy questions:"
     }
