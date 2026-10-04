@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useChannelEmotes } from './channel-emotes-extension/useChannelEmotes';
+import GlobalEmotesAccessCard from '../../components/channel-emotes/GlobalEmotesAccessCard';
 import { MyEmotesTab, UploadTab, ReviewTab, SettingsTab, type EmotesTabId } from './channel-emotes-extension/ChannelEmotesTabs';
 
 // Emotes propios de Decatron (.dev/plans/CHAT_OVERLAY_EMOTES_PLAN.md, fase 3): el panel de quien administra el canal.
@@ -88,6 +89,8 @@ export default function ChannelEmotes() {
                         <div className={`h-full rounded-full ${pct >= 90 ? 'bg-amber-500' : 'bg-[#2563eb]'}`} style={{ width: `${pct}%` }} />
                     </div>
                 </div>
+
+                <GlobalEmotesAccessCard />
 
                 <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg mb-6">
                     <div className="flex flex-wrap gap-2">

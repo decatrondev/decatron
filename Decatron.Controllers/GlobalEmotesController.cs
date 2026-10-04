@@ -26,6 +26,8 @@ namespace Decatron.Controllers
 
         public record UpdateRequest(string? Name, bool? ZeroWidth, bool? Visible);
         public record ManagerRequest(string Login);
+        public record AccessRequest(string? Message);
+        public record ResolveBody(bool Approve);
 
         private string? Login => User.FindFirst("login")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
         private long? UserId => long.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
@@ -71,6 +73,7 @@ namespace Decatron.Controllers
                 canManagePeople = access == "owner",
                 canRestore = access is "owner" or "admin",
                 managers = access == "owner" ? (await _emotes.GetManagersAsync()).Select(m => new { id = m.Id, login = m.Login, addedBy = m.AddedBy, createdAt = m.CreatedAt }) : null,
+                requests = access == "owner" ? (await _emotes.ListPendingRequestsAsync()).Select(r => new { id = r.Id, login = r.Login, message = r.Message, createdAt = r.CreatedAt }) : null,
                 emotes = (await _emotes.ListAsync()).Select(Dto)
             });
         }
@@ -151,6 +154,36 @@ namespace Decatron.Controllers
         {
             if (await _emotes.ResolveAccessAsync(Login) is not ("owner" or "admin")) return Fail("not_allowed", 403);
             return Ok(new { success = true, log = (await _emotes.GetLogAsync()).Select(l => new { id = l.Id, actor = l.Actor, action = l.Action, detail = l.Detail, createdAt = l.CreatedAt }) });
+        }
+
+        /// <summary>GET /api/global-emotes/me - Si la persona puede manejar los emotes globales y cómo va su solicitud</summary>
+        [Authorize]
+        [HttpGet("api/global-emotes/me")]
+        public async Task<IActionResult> Me()
+        {
+            var access = await _emotes.ResolveAccessAsync(Login);
+            var req = access == "none" && Login != null ? await _emotes.GetMyRequestAsync(Login) : null;
+            return Ok(new { success = true, access, request = req == null ? null : new { status = req.Status, createdAt = req.CreatedAt, resolvedAt = req.ResolvedAt } });
+        }
+
+        /// <summary>POST /api/global-emotes/request - Pide acceso para manejar los emotes globales</summary>
+        [Authorize]
+        [HttpPost("api/global-emotes/request")]
+        public async Task<IActionResult> RequestAccess([FromBody] AccessRequest? request)
+        {
+            if (UserId == null || Login == null) return Fail("not_allowed", 403);
+            var error = await _emotes.RequestAccessAsync(UserId.Value, Login, request?.Message);
+            return error == null ? Ok(new { success = true }) : Fail(error, 409);
+        }
+
+        /// <summary>POST /api/admin/global-emotes/requests/{id}/resolve - El owner aprueba o rechaza una solicitud</summary>
+        [Authorize]
+        [HttpPost("api/admin/global-emotes/requests/{id:long}/resolve")]
+        public async Task<IActionResult> ResolveRequest(long id, [FromBody] ResolveBody request)
+        {
+            if (await _emotes.ResolveAccessAsync(Login) != "owner") return Fail("not_allowed", 403);
+            var error = await _emotes.ResolveRequestAsync(id, request.Approve, Login ?? "?");
+            return error == null ? Ok(new { success = true }) : Fail(error, error == "not_found" ? 404 : 400);
         }
 
         [Authorize]

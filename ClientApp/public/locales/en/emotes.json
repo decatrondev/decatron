@@ -205,7 +205,11 @@
       "manager_exists": "That person already has access.",
       "invalid_login": "Invalid Twitch username.",
       "too_many_managers": "Too many authorized people.",
-      "rate_limited": "You deleted many emotes in a row. Wait a while or ask an admin to do it."
+      "rate_limited": "You deleted many emotes in a row. Wait a while or ask an admin to do it.",
+      "request_exists": "You already have a pending request.",
+      "already_has_access": "You already have access.",
+      "rejected_recently": "Your request was rejected recently. Try again after 7 days.",
+      "request_failed": "Could not send the request."
     },
     "trash": "Trash",
     "trashHint": "Deleted emotes are kept {{days}} days and then removed for good.",
@@ -224,7 +228,10 @@
       "restore": "restored",
       "purge": "permanently deleted",
       "manager_add": "gave access to",
-      "manager_remove": "removed access from"
+      "manager_remove": "removed access from",
+      "request": "requested access",
+      "request_approve": "approved the request from",
+      "request_reject": "rejected the request from"
     },
     "publicTitle": "Decatron global emotes",
     "publicSubtitle": "The platform's set: it shows in the chat of every channel that has it on. Click an emote to copy its name.",
@@ -236,6 +243,21 @@
     "noAccess": "Your account doesn't have permission to manage global emotes yet. Ask the owner to add your Twitch username ({{login}}).",
     "search": "Search emote",
     "copied": "Copied!",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "requests_one": "{{count}} access request",
+    "requests_other": "{{count}} access requests",
+    "approve": "Approve",
+    "reject": "Reject",
+    "card": {
+      "title": "Decatron global emotes",
+      "has": "You can manage the global set that shows in every channel.",
+      "ask": "The global set shows in every channel's chat. If you'd like to contribute emotes, request access and Decatron's owner will review it.",
+      "pending": "Your request was sent and is waiting for the owner's answer.",
+      "rejected": "Your previous request was rejected. You can ask again after 7 days.",
+      "manage": "Manage global emotes",
+      "viewSet": "See the global set",
+      "messagePlaceholder": "Tell us which emotes you'd like to contribute (optional)",
+      "request": "Request access"
+    }
   }
 }

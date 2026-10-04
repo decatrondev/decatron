@@ -208,6 +208,53 @@ namespace Decatron.Services.Emotes
             }
         }
 
+        // ── Solicitudes de acceso ────────────────────────────────────────────
+
+        /// <summary>Tras un rechazo, la misma persona puede volver a pedir pasados estos días</summary>
+        private const int RetryAfterRejectDays = 7;
+
+        public Task<GlobalEmoteRequest?> GetMyRequestAsync(string login) =>
+            _db.GlobalEmoteRequests.AsNoTracking().Where(r => r.Login == login.ToLower()).OrderByDescending(r => r.CreatedAt).FirstOrDefaultAsync();
+
+        public async Task<string?> RequestAccessAsync(long userId, string login, string? message)
+        {
+            login = (login ?? "").Trim().ToLowerInvariant();
+            if (login == "") return "not_allowed";
+            if (await ResolveAccessAsync(login) != "none") return "already_has_access";
+            var last = await GetMyRequestAsync(login);
+            if (last?.Status == GlobalEmoteRequest.Pending) return "request_exists";
+            if (last?.Status == GlobalEmoteRequest.Rejected && last.ResolvedAt > DateTime.Now.AddDays(-RetryAfterRejectDays)) return "rejected_recently";
+            message = message?.Trim();
+            if (string.IsNullOrEmpty(message)) message = null;
+            else if (message.Length > 300) message = message[..300];
+            _db.GlobalEmoteRequests.Add(new GlobalEmoteRequest { UserId = userId, Login = login, Message = message });
+            try { await _db.SaveChangesAsync(); }
+            catch (DbUpdateException) { return "request_exists"; }
+            await LogAsync(login, "request", message);
+            return null;
+        }
+
+        public Task<List<GlobalEmoteRequest>> ListPendingRequestsAsync() =>
+            _db.GlobalEmoteRequests.AsNoTracking().Where(r => r.Status == GlobalEmoteRequest.Pending).OrderBy(r => r.CreatedAt).ToListAsync();
+
+        /// <summary>El owner aprueba (la persona pasa a la lista de autorizadas) o rechaza una solicitud</summary>
+        public async Task<string?> ResolveRequestAsync(long id, bool approve, string actor)
+        {
+            var r = await _db.GlobalEmoteRequests.FirstOrDefaultAsync(x => x.Id == id && x.Status == GlobalEmoteRequest.Pending);
+            if (r == null) return "not_found";
+            if (approve)
+            {
+                var error = await AddManagerAsync(r.Login, actor);
+                if (error != null && error != "manager_exists") return error;
+            }
+            r.Status = approve ? GlobalEmoteRequest.Approved : GlobalEmoteRequest.Rejected;
+            r.ResolvedBy = actor;
+            r.ResolvedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+            await LogAsync(actor, approve ? "request_approve" : "request_reject", r.Login);
+            return null;
+        }
+
         // ── Quién puede manejarlos (lo edita solo el dueño) ──────────────────
 
         public Task<List<GlobalEmoteManager>> GetManagersAsync() =>

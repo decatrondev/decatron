@@ -113,4 +113,22 @@ namespace Decatron.Core.Models
         [MaxLength(300)] [Column("detail")] public string? Detail { get; set; }
         [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
+
+    /// <summary>Solicitud de una persona para manejar los emotes globales</summary>
+    [Table("global_emote_requests")]
+    public class GlobalEmoteRequest
+    {
+        public const string Pending = "pending";
+        public const string Approved = "approved";
+        public const string Rejected = "rejected";
+
+        [Key] [Column("id")] public long Id { get; set; }
+        [Column("user_id")] public long UserId { get; set; }
+        [Required] [MaxLength(100)] [Column("login")] public string Login { get; set; } = "";
+        [MaxLength(300)] [Column("message")] public string? Message { get; set; }
+        [Required] [MaxLength(10)] [Column("status")] public string Status { get; set; } = Pending;
+        [MaxLength(100)] [Column("resolved_by")] public string? ResolvedBy { get; set; }
+        [Column("resolved_at")] public DateTime? ResolvedAt { get; set; }
+        [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
 }

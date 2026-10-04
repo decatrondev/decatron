@@ -13,6 +13,7 @@ interface GlobalEmote {
 }
 interface Manager { id: number; login: string; addedBy: string }
 interface LogRow { id: number; actor: string; action: string; detail?: string | null; createdAt: string }
+interface Req { id: number; login: string; message?: string | null; createdAt: string }
 const TRASH_DAYS = 30;
 
 const card = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-4 3xl:p-6 shadow-sm';
@@ -36,6 +37,7 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
     const [collision, setCollision] = useState(false);
     const [login, setLogin] = useState('');
     const [canRestore, setCanRestore] = useState(false);
+    const [requests, setRequests] = useState<Req[]>([]);
     const [log, setLog] = useState<LogRow[]>([]);
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +49,7 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
             setEmotes(data.emotes ?? []);
             setManagers(data.managers ?? null);
             setCanRestore(!!data.canRestore);
+            setRequests(data.requests ?? []);
             if (data.canRestore) {
                 try { setLog((await api.get('/admin/global-emotes/log')).data.log ?? []); } catch { /* sin historial */ }
             }
@@ -107,6 +110,10 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
     const addManager = async () => {
         if (!login.trim()) return;
         try { await api.post('/admin/global-emotes/managers', { login: login.trim() }); setLogin(''); await load(); }
+        catch (x: any) { setNotice({ kind: 'err', text: err(x?.response?.data?.error) }); }
+    };
+    const resolveRequest = async (r: Req, approve: boolean) => {
+        try { await api.post(`/admin/global-emotes/requests/${r.id}/resolve`, { approve }); await load(); }
         catch (x: any) { setNotice({ kind: 'err', text: err(x?.response?.data?.error) }); }
     };
     const removeManager = async (m: Manager) => {
@@ -232,6 +239,24 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
 
                 {managers && (
                     <section className={card}>
+                        {requests.length > 0 && (
+                            <div className="mb-6 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+                                <h3 className="font-bold text-sm 3xl:text-base text-amber-800 dark:text-amber-300 mb-3">{t('global.requests', { count: requests.length })}</h3>
+                                <ul className="space-y-2">
+                                    {requests.map(r => (
+                                        <li key={r.id} className="flex flex-wrap items-center gap-3">
+                                            <div className="min-w-0 flex-1">
+                                                <span className="font-bold text-sm text-[#1e293b] dark:text-[#f1f5f9]">{r.login}</span>
+                                                <span className="ml-2 text-xs text-[#94a3b8]">{new Date(r.createdAt).toLocaleDateString()}</span>
+                                                {r.message && <p className="text-sm text-[#64748b] dark:text-[#cbd5e1] break-words">{r.message}</p>}
+                                            </div>
+                                            <button className={btnBlue} onClick={() => resolveRequest(r, true)}>{t('global.approve')}</button>
+                                            <button className={iconBtn} onClick={() => resolveRequest(r, false)}>{t('global.reject')}</button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                         <h2 className="font-bold text-lg 3xl:text-xl text-[#1e293b] dark:text-[#f1f5f9]">{t('global.people')}</h2>
                         <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">{t('global.peopleHint')}</p>
                         <div className="flex flex-wrap gap-3 mb-4">

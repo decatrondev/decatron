@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
-import { decodeJwt, isTokenExpired } from '../utils/jwt';
+import { isTokenExpired } from '../utils/jwt';
 import { EmoteThumb } from '../components/channel-emotes/shared';
 import GlobalEmotesAdmin from './admin/GlobalEmotesAdmin';
+import GlobalEmotesAccessCard from '../components/channel-emotes/GlobalEmotesAccessCard';
 
 // Página pública de los emotes globales de Decatron: /emotes/global. Cualquiera ve la galería; las personas
 // que el dueño autorizó (por su usuario de Twitch) gestionan el set desde acá con su sesión.
@@ -19,7 +20,6 @@ export default function GlobalEmotesPublic() {
 
     const token = (() => { try { return localStorage.getItem('token'); } catch { return null; } })();
     const loggedIn = !!token && !isTokenExpired(token, 60);
-    const myLogin = (token && decodeJwt(token)?.login) || '';
     const loginUrl = `/login?redirect=${encodeURIComponent('/emotes/global')}`;
 
     useEffect(() => {
@@ -79,7 +79,7 @@ export default function GlobalEmotesPublic() {
                         </div>
                     )}
                     {loggedIn && access === 'checking' && <p className="font-mono text-sm text-[#71717a] animate-pulse">{t('global.loading')}</p>}
-                    {loggedIn && access === 'no' && <p className="text-sm 3xl:text-base text-[#a1a1aa]">{t('global.noAccess', { login: myLogin || '…' })}</p>}
+                    {loggedIn && access === 'no' && <GlobalEmotesAccessCard onGranted={() => setAccess('yes')} />}
                     {access === 'yes' && <GlobalEmotesAdmin embedded />}
                 </section>
             </div>

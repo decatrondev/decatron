@@ -71,6 +71,7 @@ namespace Decatron.Data
         public DbSet<GlobalEmote> GlobalEmotes { get; set; }
         public DbSet<GlobalEmoteManager> GlobalEmoteManagers { get; set; }
         public DbSet<GlobalEmoteLog> GlobalEmoteLogs { get; set; }
+        public DbSet<GlobalEmoteRequest> GlobalEmoteRequests { get; set; }
         public DbSet<SoundAlertConfig> SoundAlertConfigs { get; set; }
         public DbSet<SoundAlertFile> SoundAlertFiles { get; set; }
         public DbSet<SoundAlertHistory> SoundAlertHistories { get; set; }

@@ -205,7 +205,11 @@
       "manager_exists": "Esa persona ya tiene permiso.",
       "invalid_login": "Usuario de Twitch inválido.",
       "too_many_managers": "Ya hay demasiadas personas autorizadas.",
-      "rate_limited": "Borraste muchos emotes seguidos. Espera un rato o pide a un admin que lo haga."
+      "rate_limited": "Borraste muchos emotes seguidos. Espera un rato o pide a un admin que lo haga.",
+      "request_exists": "Ya tienes una solicitud pendiente.",
+      "already_has_access": "Ya tienes acceso.",
+      "rejected_recently": "Tu solicitud fue rechazada hace poco. Intenta de nuevo pasados 7 días.",
+      "request_failed": "No se pudo enviar la solicitud."
     },
     "trash": "Papelera",
     "trashHint": "Los borrados se conservan {{days}} días y luego se eliminan del todo.",
@@ -224,7 +228,10 @@
       "restore": "restauró",
       "purge": "eliminó del todo",
       "manager_add": "dio permiso a",
-      "manager_remove": "quitó el permiso a"
+      "manager_remove": "quitó el permiso a",
+      "request": "solicitó acceso",
+      "request_approve": "aprobó la solicitud de",
+      "request_reject": "rechazó la solicitud de"
     },
     "publicTitle": "Emotes globales de Decatron",
     "publicSubtitle": "El set de la plataforma: aparece en el chat de todos los canales que lo tengan activo. Clic en un emote para copiar su nombre.",
@@ -236,6 +243,21 @@
     "noAccess": "Tu cuenta aún no tiene permiso para gestionar los emotes globales. Pide al dueño que agregue tu usuario de Twitch ({{login}}).",
     "search": "Buscar emote",
     "copied": "¡Copiado!",
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "requests_one": "{{count}} solicitud de acceso",
+    "requests_other": "{{count}} solicitudes de acceso",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "card": {
+      "title": "Emotes globales de Decatron",
+      "has": "Tienes permiso para gestionar el set global que se ve en todos los canales.",
+      "ask": "El set global se ve en el chat de todos los canales. Si quieres aportar emotes, solicita acceso y el dueño de Decatron lo revisará.",
+      "pending": "Tu solicitud está enviada y espera la respuesta del dueño.",
+      "rejected": "Tu solicitud anterior fue rechazada. Puedes volver a pedirlo pasados 7 días.",
+      "manage": "Gestionar emotes globales",
+      "viewSet": "Ver el set global",
+      "messagePlaceholder": "Cuéntanos qué emotes quieres aportar (opcional)",
+      "request": "Solicitar acceso"
+    }
   }
 }
