@@ -159,6 +159,14 @@ export default function AdminHub() {
             ready: true
         },
         {
+            id: 'global-emotes',
+            name: 'Emotes globales',
+            description: 'El set de emotes de Decatron que se ve en el chat de todos los canales, y quién puede manejarlo',
+            icon: <ImageIcon className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/global-emotes',
+            ready: true
+        },
+        {
             id: 'brand',
             name: 'Logos de la marca',
             description: 'Cómo se ve el logo de Decatron en cada lugar del sitio: imagen, texto, tamaño y posición por pantalla. Se publica al guardar',

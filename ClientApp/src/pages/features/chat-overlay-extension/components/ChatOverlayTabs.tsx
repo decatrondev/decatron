@@ -345,6 +345,7 @@ export function EmotesTab({ cfg }: TabProps) {
             <Card title={t('chat.emotes.providersTitle')} description={t('chat.emotes.providersDescription')}>
                 <div className="space-y-4">
                     <Toggle checked={c.emotes.decatron} onChange={v => set('emotes', { decatron: v })} label={t('chat.emotes.decatron')} hint={counts['decatron'] !== undefined ? t('chat.emotes.count', { count: counts['decatron'] }) : t('chat.emotes.decatronHint')} />
+                    <Toggle checked={c.emotes.decatronGlobal} onChange={v => set('emotes', { decatronGlobal: v })} label={t('chat.emotes.decatronGlobal')} hint={counts['decatron-global'] !== undefined ? t('chat.emotes.count', { count: counts['decatron-global'] }) : t('chat.emotes.decatronGlobalHint')} />
                     <Toggle checked={c.emotes.sevenTv} onChange={v => set('emotes', { sevenTv: v })} label="7TV" hint={counts['7tv'] !== undefined ? t('chat.emotes.count', { count: counts['7tv'] }) : undefined} />
                     <Toggle checked={c.emotes.bttv} onChange={v => set('emotes', { bttv: v })} label="BetterTTV" hint={counts['bttv'] !== undefined ? t('chat.emotes.count', { count: counts['bttv'] }) : undefined} />
                     <Toggle checked={c.emotes.ffz} onChange={v => set('emotes', { ffz: v })} label="FrankerFaceZ" hint={counts['ffz'] !== undefined ? t('chat.emotes.count', { count: counts['ffz'] }) : undefined} />

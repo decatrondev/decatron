@@ -68,6 +68,8 @@ namespace Decatron.Data
         public DbSet<ChannelEmoteUploader> ChannelEmoteUploaders { get; set; }
         public DbSet<ChannelEmote> ChannelEmotes { get; set; }
         public DbSet<ChannelEmoteReport> ChannelEmoteReports { get; set; }
+        public DbSet<GlobalEmote> GlobalEmotes { get; set; }
+        public DbSet<GlobalEmoteManager> GlobalEmoteManagers { get; set; }
         public DbSet<SoundAlertConfig> SoundAlertConfigs { get; set; }
         public DbSet<SoundAlertFile> SoundAlertFiles { get; set; }
         public DbSet<SoundAlertHistory> SoundAlertHistories { get; set; }

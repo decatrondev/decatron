@@ -2245,7 +2245,9 @@
       "none": "No emotes to show",
       "decatron": "Decatron's own emotes",
       "decatronHint": "The ones your channel's community uploads.",
-      "manageOwn": "Manage my own emotes"
+      "manageOwn": "Manage my own emotes",
+      "decatronGlobal": "Decatron global emotes",
+      "decatronGlobalHint": "The platform's set, visible in every channel. If the name already exists in your channel or in 7TV/BTTV/FFZ, that one wins."
     },
     "filters": {
       "hideTitle": "What is not shown",

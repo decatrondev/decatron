@@ -9,10 +9,10 @@ namespace Decatron.Services.ChatOverlay
     public sealed record EmoteInfo(string Name, string Url, string Provider, bool Animated, bool ZeroWidth);
 
     /// <summary>Qué proveedores externos usa un canal</summary>
-    public sealed record EmoteProviders(bool SevenTv, bool Bttv, bool Ffz, bool Globals, bool Decatron = true)
+    public sealed record EmoteProviders(bool SevenTv, bool Bttv, bool Ffz, bool Globals, bool Decatron = true, bool DecatronGlobal = true)
     {
-        public static readonly EmoteProviders All = new(true, true, true, true, true);
-        public string CacheKey => $"{(SevenTv ? 1 : 0)}{(Bttv ? 1 : 0)}{(Ffz ? 1 : 0)}{(Globals ? 1 : 0)}{(Decatron ? 1 : 0)}";
+        public static readonly EmoteProviders All = new(true, true, true, true, true, true);
+        public string CacheKey => $"{(SevenTv ? 1 : 0)}{(Bttv ? 1 : 0)}{(Ffz ? 1 : 0)}{(Globals ? 1 : 0)}{(Decatron ? 1 : 0)}{(DecatronGlobal ? 1 : 0)}";
     }
 
     /// <summary>
@@ -36,6 +36,9 @@ namespace Decatron.Services.ChatOverlay
 
         private static readonly TimeSpan OwnTtl = TimeSpan.FromSeconds(60);
         private static readonly TimeSpan OwnerLookupTtl = TimeSpan.FromMinutes(5);
+
+        private static readonly TimeSpan GlobalOwnTtl = TimeSpan.FromSeconds(60);
+        private (DateTime At, Dictionary<string, EmoteInfo> Map)? _globalOwn;
 
         private readonly IHttpClientFactory _http;
         private readonly IServiceScopeFactory _scopes;
@@ -69,6 +72,48 @@ namespace Decatron.Services.ChatOverlay
         {
             _own.TryRemove(userId, out _);
             _merged.Clear();
+        }
+
+        /// <summary>Lo cacheado del set global de Decatron queda viejo (se subió, cambió o borró un emote global)</summary>
+        public void InvalidateGlobal()
+        {
+            _globalOwn = null;
+            _merged.Clear();
+        }
+
+        /// <summary>El set global de Decatron: emotes aprobados de la plataforma, iguales para todos los canales</summary>
+        private async Task<Dictionary<string, EmoteInfo>> GetGlobalOwnAsync()
+        {
+            var cached = _globalOwn;
+            if (cached != null && DateTime.UtcNow - cached.Value.At < GlobalOwnTtl) return cached.Value.Map;
+            try
+            {
+                using var scope = _scopes.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<Decatron.Data.DecatronDbContext>();
+                var rows = await db.GlobalEmotes.AsNoTracking().Where(e => e.Status == Decatron.Core.Models.GlobalEmote.Approved).ToListAsync();
+                var map = new Dictionary<string, EmoteInfo>(StringComparer.Ordinal);
+                foreach (var e in rows)
+                    map[e.Name] = new EmoteInfo(e.Name, $"{_publicBase}/uploads/emotes/global/{e.FileKey}/2.webp", "decatron-global", e.Animated, e.ZeroWidth);
+                _globalOwn = (DateTime.UtcNow, map);
+                return map;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "[Emotes] No se pudieron leer los emotes globales de Decatron");
+                return cached?.Map ?? new Dictionary<string, EmoteInfo>(StringComparer.Ordinal);
+            }
+        }
+
+        /// <summary>Nombres de los emotes globales de 7TV, BTTV y FFZ (para avisar en el editor de admin si un nombre choca)</summary>
+        public async Task<HashSet<string>> GetExternalGlobalNamesAsync()
+        {
+            var layers = await Task.WhenAll(
+                GetAsync("ffz:global", GlobalTtl, FetchFfzGlobalAsync),
+                GetAsync("bttv:global", GlobalTtl, FetchBttvGlobalAsync),
+                GetAsync("7tv:global", GlobalTtl, FetchSevenTvGlobalAsync));
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var l in layers) foreach (var k in l.Keys) names.Add(k);
+            return names;
         }
 
         /// <summary>Los emotes propios aprobados de un canal, resueltos por su cuenta de Twitch o de Kick</summary>
@@ -127,7 +172,9 @@ namespace Decatron.Services.ChatOverlay
                 return hit.Map;
 
             var layers = new List<Task<Dictionary<string, EmoteInfo>>>();
-            // De menos a más prioridad: lo último que se aplica gana
+            // De menos a más prioridad: lo último que se aplica gana. Los globales de Decatron van primero:
+            // solo aparecen si el nombre no lo tomó nadie más
+            if (providers.DecatronGlobal) layers.Add(GetGlobalOwnAsync());
             if (providers.Globals)
             {
                 if (providers.Ffz) layers.Add(GetAsync("ffz:global", GlobalTtl, FetchFfzGlobalAsync));

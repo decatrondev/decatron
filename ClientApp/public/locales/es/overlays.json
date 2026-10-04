@@ -2245,7 +2245,9 @@
       "none": "No hay emotes para mostrar",
       "decatron": "Emotes propios de Decatron",
       "decatronHint": "Los que sube la comunidad de tu canal.",
-      "manageOwn": "Administrar mis emotes propios"
+      "manageOwn": "Administrar mis emotes propios",
+      "decatronGlobal": "Emotes globales de Decatron",
+      "decatronGlobalHint": "El set de la plataforma, visible en todos los canales. Si el nombre ya existe en tu canal o en 7TV/BTTV/FFZ, gana ese."
     },
     "filters": {
       "hideTitle": "Qué no se muestra",

@@ -77,6 +77,7 @@ export interface ChatOverlayConfig {
         globals: boolean;
         /** Los emotes propios de Decatron (los que sube la comunidad del canal) */
         decatron: boolean;
+        decatronGlobal: boolean;
         sharedChannels: boolean;
         hidden: string[];
         sizePx: number;
@@ -151,7 +152,7 @@ export const DEFAULT_CHAT_CONFIG: ChatOverlayConfig = {
         separator: ':',
     },
     filters: { hideCommands: true, hideBots: true, blockedUsers: [], blockedWords: [], minRole: 'all' },
-    emotes: { sevenTv: true, bttv: true, ffz: true, globals: true, decatron: true, sharedChannels: true, hidden: [], sizePx: 38 },
+    emotes: { sevenTv: true, bttv: true, ffz: true, globals: true, decatron: true, decatronGlobal: true, sharedChannels: true, hidden: [], sizePx: 38 },
     theme: {
         preset: 'classic',
         containerBg: 'rgba(0,0,0,0)',

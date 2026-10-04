@@ -172,5 +172,39 @@
       "removed": "Retirado"
     },
     "chatNote": "Los emotes del canal se ven en el overlay del stream. En el chat de Twitch los ve quien tenga la extensión de Decatron."
+  },
+  "global": {
+    "title": "Emotes globales de Decatron",
+    "subtitle": "Aparecen en el chat de todos los canales. Si un canal, 7TV, BTTV o FFZ ya usa el mismo nombre, gana el otro.",
+    "upload": "Subir emote global",
+    "name": "Nombre",
+    "file": "Imagen",
+    "zeroWidth": "Se dibuja encima del anterior",
+    "send": "Subir",
+    "uploading": "Subiendo…",
+    "collides": "Ojo: «{{name}}» ya existe como emote global de 7TV, BTTV o FFZ, y ese ganará en el chat.",
+    "empty": "Todavía no hay emotes globales.",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "rename": "Renombrar",
+    "delete": "Borrar",
+    "confirmDelete": "¿Borrar «{{name}}» de todos los canales?",
+    "hidden": "Oculto",
+    "by": "Subido por {{name}}",
+    "people": "Quién puede manejarlos",
+    "peopleHint": "Los admins del sistema siempre pueden. Agrega usuarios de Twitch para darles permiso solo sobre estos emotes.",
+    "loginPlaceholder": "usuario de Twitch",
+    "add": "Agregar",
+    "noPeople": "Nadie más tiene permiso.",
+    "remove": "Quitar",
+    "saved": "Listo",
+    "loadFailed": "No se pudo cargar.",
+    "forbidden": "No tienes permiso para manejar los emotes globales.",
+    "back": "Volver",
+    "errors": {
+      "manager_exists": "Esa persona ya tiene permiso.",
+      "invalid_login": "Usuario de Twitch inválido.",
+      "too_many_managers": "Ya hay demasiadas personas autorizadas."
+    }
   }
 }

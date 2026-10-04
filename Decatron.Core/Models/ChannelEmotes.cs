@@ -68,4 +68,35 @@ namespace Decatron.Core.Models
         [MaxLength(300)] [Column("reason")] public string? Reason { get; set; }
         [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
+
+    /// <summary>Un emote global de la plataforma: se ve en todos los canales. Archivos en emote-assets/global/{file_key}/</summary>
+    [Table("global_emotes")]
+    public class GlobalEmote
+    {
+        public const string Approved = "approved";
+        public const string Hidden = "hidden";
+
+        [Key] [Column("id")] public long Id { get; set; }
+        [Required] [MaxLength(25)] [Column("name")] public string Name { get; set; } = "";
+        [Required] [MaxLength(32)] [Column("file_key")] public string FileKey { get; set; } = "";
+        [Column("animated")] public bool Animated { get; set; }
+        [Column("zero_width")] public bool ZeroWidth { get; set; }
+        [Column("width")] public int Width { get; set; }
+        [Column("height")] public int Height { get; set; }
+        [Column("bytes")] public int Bytes { get; set; }
+        [Required] [MaxLength(10)] [Column("status")] public string Status { get; set; } = Approved;
+        [Column("uploaded_by")] public long UploadedBy { get; set; }
+        [Required] [MaxLength(100)] [Column("uploaded_by_name")] public string UploadedByName { get; set; } = "";
+        [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
+        [Column("updated_at")] public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    }
+
+    [Table("global_emote_managers")]
+    public class GlobalEmoteManager
+    {
+        [Key] [Column("id")] public long Id { get; set; }
+        [Required] [MaxLength(100)] [Column("login")] public string Login { get; set; } = "";
+        [Required] [MaxLength(100)] [Column("added_by")] public string AddedBy { get; set; } = "";
+        [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
 }

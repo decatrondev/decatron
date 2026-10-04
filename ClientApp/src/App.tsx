@@ -189,6 +189,7 @@ import './i18n/config'; // Initialize i18next
 import { BrandProvider } from './brand/BrandContext';
 import { BrandMark } from './brand/BrandMark';
 import BrandAdmin from './pages/admin/BrandAdmin';
+import GlobalEmotesAdmin from './pages/admin/GlobalEmotesAdmin';
 
 function App() {
     return (
@@ -338,6 +339,7 @@ function App() {
                     <Route path="admin/project-analysis" element={<SafeRoute name="Project Analysis"><ProjectAnalysis /></SafeRoute>} />
                     <Route path="admin/fortnite" element={<SafeRoute name="Fortnite Sprites"><AdminFortnite /></SafeRoute>} />
                     <Route path="admin/logo" element={<SafeRoute name="Logo Guide"><LogoGuide /></SafeRoute>} />
+                    <Route path="admin/global-emotes" element={<SafeRoute name="Global Emotes"><GlobalEmotesAdmin /></SafeRoute>} />
                     <Route path="admin/brand" element={<SafeRoute name="Brand Logos"><BrandAdmin /></SafeRoute>} />
                     <Route path="admin/game-overlay-promos" element={<SafeRoute name="Game Overlay Promos"><GameOverlayPromosAdmin /></SafeRoute>} />
 

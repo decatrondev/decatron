@@ -95,7 +95,7 @@ namespace Decatron.Services.ChatOverlay
                     BlockedWords = Strings(filters, "blockedWords").Where(w => w.Length > 0).Select(w => w.ToLowerInvariant()).ToList(),
                     MinRole = minRole,
                     Providers = new EmoteProviders(
-                        Bool(emotes, "sevenTv", true), Bool(emotes, "bttv", true), Bool(emotes, "ffz", true), Bool(emotes, "globals", true), Bool(emotes, "decatron", true)),
+                        Bool(emotes, "sevenTv", true), Bool(emotes, "bttv", true), Bool(emotes, "ffz", true), Bool(emotes, "globals", true), Bool(emotes, "decatron", true), Bool(emotes, "decatronGlobal", true)),
                     SharedChannelEmotes = Bool(emotes, "sharedChannels", true),
                     HiddenEmotes = Strings(emotes, "hidden").ToHashSet(StringComparer.Ordinal)
                 };

@@ -519,6 +519,7 @@ try
     builder.Services.AddSingleton<Decatron.Services.ChatOverlay.ChatBadgeService>();
     builder.Services.AddSingleton<Decatron.Services.ChatOverlay.ChatOverlayService>();
     builder.Services.AddScoped<Decatron.Services.Emotes.ChannelEmoteService>();
+    builder.Services.AddScoped<Decatron.Services.Emotes.GlobalEmoteService>();
     builder.Services.AddSingleton<CommandService>();
     builder.Services.AddSingleton<Decatron.Scripting.Services.ScriptingService>();
     builder.Services.AddHttpClient<EventSubService>();
