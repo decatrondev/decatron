@@ -37,14 +37,18 @@ namespace Decatron.Controllers
         private static string? _cachedPublicKeyPem;
         private static readonly SemaphoreSlim _publicKeyLock = new(1, 1);
 
+        private readonly Services.ChatOverlay.ChatOverlayService _chatOverlay;
+
         public KickWebhookController(
             DecatronDbContext db,
             CommandService commandService,
             Services.Platforms.Kick.KickConnector kickConnector,
             IHttpClientFactory httpClientFactory,
             ISoundAlertTriggerService soundAlertTriggerService,
+            Services.ChatOverlay.ChatOverlayService chatOverlay,
             ILogger<KickWebhookController> logger)
         {
+            _chatOverlay = chatOverlay;
             _db = db;
             _commandService = commandService;
             _kickConnector = kickConnector;
@@ -89,6 +93,9 @@ namespace Decatron.Controllers
                     _logger.LogWarning("[Kick Webhook] chat.message.sent sin broadcaster_id, ignorado");
                     return Ok();
                 }
+
+                // Overlay de chat (no espera: si no hay overlay conectado no hace nada)
+                _ = _chatOverlay.PublishKickAsync(payload);
 
                 // channel = kick_id numerico del broadcaster — ChannelResolver ya
                 // sabe resolver esto (seccion 8.8).

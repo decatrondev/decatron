@@ -363,11 +363,32 @@ namespace Decatron.Services
                 ["chatter_user_id"] = e.ChatterUserId,
                 ["chatter_user_login"] = e.ChatterUserLogin,
                 ["chatter_user_name"] = e.ChatterUserName,
-                ["message"] = new JObject { ["text"] = e.Message?.Text },
+                ["message"] = new JObject { ["text"] = e.Message?.Text, ["fragments"] = BuildFragments(e.Message) },
                 ["source_broadcaster_user_id"] = e.SourceBroadcasterUserId,
+                ["source_broadcaster_user_login"] = e.SourceBroadcasterUserLogin,
+                ["source_broadcaster_user_name"] = e.SourceBroadcasterUserName,
                 ["badges"] = badges,
+                ["color"] = e.Color,
+                ["message_type"] = e.MessageType,
                 ["channel_points_custom_reward_id"] = e.ChannelPointsCustomRewardId
             };
+
+            if (e.SourceBadges != null)
+            {
+                var sourceBadges = new JArray();
+                foreach (var badge in e.SourceBadges)
+                    sourceBadges.Add(new JObject { ["set_id"] = badge.SetId, ["id"] = badge.Id });
+                obj["source_badges"] = sourceBadges;
+            }
+
+            if (e.Reply != null)
+            {
+                obj["reply"] = new JObject
+                {
+                    ["parent_user_name"] = e.Reply.ParentUserName,
+                    ["parent_message_body"] = e.Reply.ParentMessageBody
+                };
+            }
 
             if (e.Cheer != null)
             {
@@ -375,6 +396,27 @@ namespace Decatron.Services
             }
 
             return obj;
+        }
+
+        /// <summary>
+        /// Los trozos del mensaje (texto, emotes de Twitch, cheermotes): el overlay de chat los dibuja y el
+        /// filtro de emotes de la moderación los cuenta. Sin esto, por el conduit solo llegaba el texto plano.
+        /// </summary>
+        private static JArray BuildFragments(TwitchLib.EventSub.Core.Models.Chat.ChatMessage? message)
+        {
+            var fragments = new JArray();
+            if (message?.Fragments == null) return fragments;
+
+            foreach (var f in message.Fragments)
+            {
+                var item = new JObject { ["type"] = f.Type, ["text"] = f.Text };
+                if (f.Emote != null)
+                    item["emote"] = new JObject { ["id"] = f.Emote.Id, ["format"] = new JArray(f.Emote.Format ?? Array.Empty<string>()) };
+                if (f.Cheermote != null)
+                    item["cheermote"] = new JObject { ["prefix"] = f.Cheermote.Prefix, ["bits"] = f.Cheermote.Bits, ["tier"] = f.Cheermote.Tier };
+                fragments.Add(item);
+            }
+            return fragments;
         }
 
         private static JObject BuildFollowJObject(ChannelFollow e) => new()

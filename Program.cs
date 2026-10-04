@@ -514,6 +514,11 @@ try
     builder.Services.AddSingleton<TwitchBotService>();
     builder.Services.AddSingleton<Lazy<TwitchBotService>>(provider =>
         new Lazy<TwitchBotService>(() => provider.GetRequiredService<TwitchBotService>()));
+    builder.Services.AddSingleton<Decatron.Core.Interfaces.IBotListService, Decatron.Services.BotList.BotListService>();
+    builder.Services.AddSingleton<Decatron.Services.ChatOverlay.EmoteCatalogService>();
+    builder.Services.AddSingleton<Decatron.Services.ChatOverlay.ChatBadgeService>();
+    builder.Services.AddSingleton<Decatron.Services.ChatOverlay.ChatOverlayService>();
+    builder.Services.AddScoped<Decatron.Services.Emotes.ChannelEmoteService>();
     builder.Services.AddSingleton<CommandService>();
     builder.Services.AddSingleton<Decatron.Scripting.Services.ScriptingService>();
     builder.Services.AddHttpClient<EventSubService>();
@@ -669,6 +674,28 @@ try
             OnPrepareResponse = ctx => ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable",
         });
         Log.Information($"Sirviendo piezas de la marca desde: {brandAssetsPath}");
+    }
+
+    // Emotes propios de Decatron (fase 3 del plan de chat): los tres tamaños de cada emote, con nombre único por subida
+    var emoteAssetsPath = builder.Configuration["Emotes:AssetsPath"] ?? "/var/www/html/decatron/emote-assets";
+    try { Directory.CreateDirectory(emoteAssetsPath); }
+    catch (Exception ex) { Log.Error(ex, $"No se pudo crear {emoteAssetsPath} (crearla con dueño decatron)"); }
+    if (Directory.Exists(emoteAssetsPath))
+    {
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(emoteAssetsPath),
+            RequestPath = "/uploads/emotes",
+            ServeUnknownFileTypes = false,
+            // Los archivos son .webp y la carpeta cambia con cada subida, así que se pueden guardar para siempre.
+            // Se leen también desde twitch.tv (la extensión): hace falta CORS abierto.
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+                ctx.Context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+            },
+        });
+        Log.Information($"Sirviendo emotes propios desde: {emoteAssetsPath}");
     }
 
     // Servir archivos de Timer Extensible (media para eventos)

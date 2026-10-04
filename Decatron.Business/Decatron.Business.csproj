@@ -64,6 +64,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
+    <!-- Emotes propios: validar y convertir las imágenes que suben los streamers (misma versión que Decatron.csproj) -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="TwitchLib" Version="3.5.3" />
     <!--

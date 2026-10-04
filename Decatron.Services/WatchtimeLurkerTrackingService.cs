@@ -58,12 +58,13 @@ namespace Decatron.Services
             var streamStatusService = scope.ServiceProvider.GetRequiredService<IStreamStatusService>();
             var twitchApiService = scope.ServiceProvider.GetRequiredService<TwitchApiService>();
             var watchTimeService = scope.ServiceProvider.GetRequiredService<IWatchTimeTrackingService>();
+            var botList = scope.ServiceProvider.GetRequiredService<Decatron.Core.Interfaces.IBotListService>();
 
             // Canales con "Contar Lurkers" activo
             var channels = await db.WatchtimeCommandConfigs
                 .AsNoTracking()
                 .Where(c => c.Enabled && c.TrackLurkers)
-                .Join(db.Users.AsNoTracking(), c => c.UserId, u => u.Id, (c, u) => new { u.TwitchId, u.Login })
+                .Join(db.Users.AsNoTracking(), c => c.UserId, u => u.Id, (c, u) => new { u.Id, u.TwitchId, u.Login })
                 .ToListAsync();
 
             foreach (var channel in channels)
@@ -77,9 +78,13 @@ namespace Decatron.Services
                 try
                 {
                     var chatters = await twitchApiService.GetChattersWithIdsAsync(channel.Login);
+                    // Lista de bots: la lista de chatters de Twitch incluye a Nightbot, StreamElements, etc.
+                    var bots = await botList.GetChannelBotsAsync(channel.Id);
                     foreach (var chatter in chatters)
                     {
                         if (string.IsNullOrEmpty(chatter.user_id)) continue;
+                        if (bots.TryGetValue(Decatron.Services.BotList.BotListService.Key("twitch", chatter.user_login ?? ""), out var bot) && bot.SkipCounting)
+                            continue;
                         await watchTimeService.TrackUserPresence(channel.TwitchId, chatter.user_id, chatter.user_login);
                     }
 

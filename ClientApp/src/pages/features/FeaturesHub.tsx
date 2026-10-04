@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Clock, Gift, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages, Gamepad2 } from 'lucide-react';
+import { Clock, Gift, Bell, MessageSquare, DollarSign, Cpu, Settings, Dices, Mic, Zap, Trophy, Languages, Gamepad2, Smile } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../../hooks/usePermissions';
 
@@ -37,6 +37,13 @@ export default function FeaturesHub() {
     }, []);
 
     const cards: FeatureCard[] = [
+        {
+            id: 'emotes',
+            name: 'Emotes propios',
+            description: 'Los emotes de tu comunidad: súbelos, apruébalos y decide quién puede subir los suyos. Se ven en tu overlay de chat',
+            icon: <Smile className="w-6 h-6 text-[#2563eb]" />,
+            route: '/features/emotes'
+        },
         {
             id: 'timers',
             name: 'Timers',

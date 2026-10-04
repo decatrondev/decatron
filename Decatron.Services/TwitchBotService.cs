@@ -30,6 +30,8 @@ namespace Decatron.Services
         private readonly IMessageSender _messageSender;
         private readonly TwitchApiService _apiService;
         private readonly CommandService _commandService;
+        private readonly IBotListService _botList;
+        private readonly Decatron.Services.ChatOverlay.ChatOverlayService _chatOverlay;
 
         private bool _isRunning = false;
         private DateTime _lastReconnectAttempt = DateTime.MinValue;
@@ -45,8 +47,12 @@ namespace Decatron.Services
             IServiceProvider serviceProvider,
             IMessageSender messageSender,
             TwitchApiService apiService,
-            CommandService commandService)
+            CommandService commandService,
+            IBotListService botList,
+            Decatron.Services.ChatOverlay.ChatOverlayService chatOverlay)
         {
+            _chatOverlay = chatOverlay;
+            _botList = botList;
             _client = client;
             _logger = logger;
             _configuration = configuration;
@@ -99,6 +105,11 @@ namespace Decatron.Services
                 _client.Initialize(credentials);
 
                 _client.OnMessageReceived += Client_OnMessageReceived;
+                // Borrados del chat: el overlay de chat quita lo que Twitch quita
+                _client.OnMessageCleared += (_, e) => _ = _chatOverlay.PublishDeletedAsync(e.Channel, e.TargetMessageId);
+                _client.OnUserBanned += (_, e) => _ = _chatOverlay.PublishUserClearedAsync(e.UserBan.Channel, e.UserBan.Username);
+                _client.OnUserTimedout += (_, e) => _ = _chatOverlay.PublishUserClearedAsync(e.UserTimeout.Channel, e.UserTimeout.Username);
+                _client.OnChatCleared += (_, e) => _ = _chatOverlay.PublishChatClearedAsync(e.Channel);
                 _client.OnConnected += Client_OnConnected;
                 _client.OnDisconnected += Client_OnDisconnected;
                 _client.OnJoinedChannel += Client_OnJoinedChannel;
@@ -443,6 +454,15 @@ namespace Decatron.Services
                         dbContext.ChatMessages.Add(chatMessage);
                         await dbContext.SaveChangesAsync();
 
+                        // Lista de bots: un bot (Nightbot, StreamElements...) no cuenta para timers, watchtime
+                        // ni actividad del chat, según lo que el canal tenga configurado
+                        var botFx = await _botList.GetEffectsAsync("twitch", channelInfo.UserId, username);
+                        if (botFx is { SkipCounting: true })
+                        {
+                            _logger.LogDebug("🤖 [BotList] {Bot} es un bot en [{Channel}], no se cuenta", username, channel);
+                            return;
+                        }
+
                         // Incrementar contadores de timers
                         var timerService = scope.ServiceProvider.GetService<ITimerService>();
                         if (timerService != null)
@@ -614,11 +634,17 @@ namespace Decatron.Services
                 await _commandService.ProcessMessageAsync(username, channel, message, userId, messageId,
                     isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster, metadata);
 
+                // Lista de bots: no se saluda ni se lee en voz alta según lo que el canal tenga configurado
+                var botFx = await _botList.GetEffectsAsync("twitch", channelInfo.UserId, username);
+
                 // Mascota: saludo a quien escribe por primera vez (nunca lanza)
                 try
                 {
+                    if (botFx is not { SkipCounting: true })
+                    {
                     var petBridge = scope.ServiceProvider.GetService<Decatron.Services.Pets.PetEventBridge>();
                     if (petBridge != null) await petBridge.OnChatMessageAsync(channel, username);
+                    }
                 }
                 catch (Exception petEx) { _logger.LogWarning(petEx, "[PETS] saludo en [{Channel}]", channel); }
 
@@ -626,7 +652,7 @@ namespace Decatron.Services
                 try
                 {
                     var speakChatService = scope.ServiceProvider.GetService<Decatron.Core.Interfaces.ISpeakChatService>();
-                    if (speakChatService != null)
+                    if (speakChatService != null && botFx is not { SkipSpeech: true })
                     {
                         int bitsAmount = 0;
                         string? channelPointsRewardId = null;

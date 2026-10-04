@@ -44,6 +44,7 @@ namespace Decatron.Services
         private readonly GiveawayService _giveawayService;
         private readonly IGachaService _gachaService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly Decatron.Services.ChatOverlay.ChatOverlayService _chatOverlay;
 
         // Cache para evitar procesar el mismo mensaje de chat dos veces
         private static readonly ConcurrentDictionary<string, DateTime> _processedMessages = new ConcurrentDictionary<string, DateTime>();
@@ -63,8 +64,10 @@ namespace Decatron.Services
             GiveawayService giveawayService,
             IGachaService gachaService,
             IServiceScopeFactory serviceScopeFactory,
-            Decatron.Services.Pets.PetEventBridge petEventBridge)
+            Decatron.Services.Pets.PetEventBridge petEventBridge,
+            Decatron.Services.ChatOverlay.ChatOverlayService chatOverlay)
         {
+            _chatOverlay = chatOverlay;
             _configuration = configuration;
             _logger = logger;
             _twitchBotService = twitchBotService;
@@ -383,6 +386,10 @@ namespace Decatron.Services
                     return;
                 }
                 _processedMessages[messageId] = DateTime.UtcNow;
+
+                // Overlay de chat: sale antes de las validaciones de comandos, porque muestra también los
+                // mensajes del chat compartido (los comandos y la moderación los siguen ignorando)
+                _ = _chatOverlay.PublishTwitchAsync(datosEvento);
 
                 // Extraer badges para determinar roles
                 var badges = datosEvento["badges"] as JArray;

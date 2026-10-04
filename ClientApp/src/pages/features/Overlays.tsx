@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat, ListMusic } from 'lucide-react';
+import { Lock, Users, Settings, Sparkles, Clock, Gift, Volume2, Bell, Music, ChevronDown, Disc3, Gamepad2, Radio, Cat, ListMusic, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
@@ -64,6 +64,15 @@ export default function Overlays() {
     }
 
     const overlays: Overlay[] = [
+        {
+            id: 'chat',
+            name: t('overlays:overlays.chat.name'),
+            description: t('overlays:overlays.chat.description'),
+            status: 'active',
+            icon: <MessageSquare className="w-6 h-6 text-[#2563eb]" />,
+            features: t('overlays:overlays.chat.features', { returnObjects: true } as any),
+            usage: t('overlays:overlays.chat.usage'),
+        },
         {
             id: 'shoutout',
             name: t('overlays:overlays.shoutout.name'),

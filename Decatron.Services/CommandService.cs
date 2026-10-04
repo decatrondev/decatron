@@ -33,6 +33,7 @@ namespace Decatron.Services
         private readonly Decatron.Services.SongRequest.SongRequestChatHandler _songRequestHandler;
         private readonly Dictionary<string, Dictionary<string, string>> _microCommandsCache;
         private readonly Decatron.Services.Pets.PetEventBridge _petEventBridge;
+        private readonly IBotListService _botList;
 
         public CommandService(
             ILogger<CommandService> logger,
@@ -42,8 +43,10 @@ namespace Decatron.Services
             ICommandStateService commandStateService,
             IServiceScopeFactory serviceScopeFactory,
             Decatron.Services.Pets.PetEventBridge petEventBridge,
-            Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler)
+            Decatron.Services.SongRequest.SongRequestChatHandler songRequestHandler,
+            IBotListService botList)
         {
+            _botList = botList;
             _songRequestHandler = songRequestHandler;
             _instanceId = ++_instanceCount;
             _petEventBridge = petEventBridge;
@@ -540,10 +543,24 @@ namespace Decatron.Services
                 // SISTEMA DE MODERACIÓN - Verificar palabras prohibidas
                 // Debe ejecutarse ANTES de procesar comandos
                 // =====================================================
+                // Lista de bots: un bot (Nightbot, StreamElements...) no se sanciona ni dispara comandos,
+                // cada efecto según lo que el canal tenga configurado
+                var platform = metadata != null && metadata.TryGetValue("platform", out var platformValue)
+                    ? platformValue?.ToString() ?? "twitch"
+                    : "twitch";
+                var botFx = await _botList.GetEffectsAsync(platform, channel, username);
+
                 // Si el mensaje salió del chat (borrado, timeout, ban), el comando que traía no se ejecuta
-                if (await CheckMessageModerationAsync(username, channel, chatMessage, userId, messageId,
-                    isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster, metadata))
+                if (botFx is not { SkipModeration: true } &&
+                    await CheckMessageModerationAsync(username, channel, chatMessage, userId, messageId,
+                        isModerator, isLeadModerator, isVip, isSubscriber, isBroadcaster, metadata))
                     return;
+
+                if (botFx is { SkipCommands: true })
+                {
+                    _logger.LogDebug("🤖 [BotList] {Bot} es un bot en [{Channel}], no se ejecutan comandos", username, channel);
+                    return;
+                }
 
                 var parts = chatMessage.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length == 0)

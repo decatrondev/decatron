@@ -33,6 +33,11 @@ import ModerationCommands from './pages/features/moderation/ModerationCommands';
 import SpamFilters from './pages/features/moderation/SpamFilters';
 import RaidProtection from './pages/features/moderation/RaidProtection';
 import ModerationHistory from './pages/features/moderation/ModerationHistory';
+import BotList from './pages/features/BotList';
+import ChatOverlay from './pages/ChatOverlay';
+import ChannelEmotes from './pages/features/ChannelEmotes';
+import ChannelEmotesPublic from './pages/ChannelEmotesPublic';
+import ChatOverlayConfig from './pages/features/ChatOverlayConfig';
 import SoundAlerts from './pages/features/SoundAlerts';
 import DecatronAIConfig from './pages/features/DecatronAIConfig';
 import LiveTranslationConfig from './pages/features/LiveTranslationConfig';
@@ -199,6 +204,7 @@ function App() {
                 <Route path="/translate" element={<><PublicNav /><TranslatePublic /></>} />
 
                 {/* Overlay Routes - No layout for OBS */}
+                <Route path="/overlay/chat" element={<SafeRoute name="Chat Overlay"><ChatOverlay /></SafeRoute>} />
                 <Route path="/overlay/shoutout" element={<SafeRoute name="Shoutout Overlay"><ShoutoutOverlay /></SafeRoute>} />
                 <Route path="/overlay/soundalerts" element={<SafeRoute name="Sound Alerts Overlay"><SoundAlertsOverlay /></SafeRoute>} />
                 <Route path="/overlay/timer" element={<SafeRoute name="Timer Overlay"><TimerOverlay /></SafeRoute>} />
@@ -229,6 +235,7 @@ function App() {
 
                 {/* Public Commands Page - No authentication required */}
                 <Route path="/commands/:channelName" element={<PublicCommandsPage />} />
+                <Route path="/emotes/:channelName" element={<SafeRoute name="Channel Emotes"><ChannelEmotesPublic /></SafeRoute>} />
                 <Route path="/sr/:channelName" element={<SafeRoute name="Song Request Queue"><SongRequestPublicPage /></SafeRoute>} />
                 <Route path="/sr/:channelName/p/:code" element={<SafeRoute name="Song Request Playlist"><SongRequestPlaylistPage /></SafeRoute>} />
                 <Route path="/torneos/:channelName/:editionSlug" element={<SafeRoute name="Tournament Public"><TournamentPublicPage /></SafeRoute>} />
@@ -341,10 +348,13 @@ function App() {
                     <Route path="features/moderation/spam" element={<SafeRoute name="Spam Filters"><SpamFilters /></SafeRoute>} />
                     <Route path="features/moderation/raids" element={<SafeRoute name="Raid Protection"><RaidProtection /></SafeRoute>} />
                     <Route path="features/moderation/history" element={<SafeRoute name="Moderation History"><ModerationHistory /></SafeRoute>} />
+                    <Route path="features/emotes" element={<SafeRoute name="Emotes"><ChannelEmotes /></SafeRoute>} />
+                    <Route path="features/bots" element={<SafeRoute name="Bot List"><BotList /></SafeRoute>} />
 
                     {/* Overlays */}
                     <Route path="overlays" element={<SafeRoute name="Overlays"><Overlays /></SafeRoute>} />
                     <Route path="overlays/shoutout" element={<SafeRoute name="Shoutout"><ShoutoutConfig /></SafeRoute>} />
+                    <Route path="overlays/chat" element={<SafeRoute name="Chat Overlay Config"><ChatOverlayConfig /></SafeRoute>} />
                     <Route path="overlays/timer" element={<SafeRoute name="Timer"><TimerConfig /></SafeRoute>} />
                     <Route path="overlays/sound-alerts" element={<SafeRoute name="Sound Alerts"><SoundAlerts /></SafeRoute>} />
                     <Route path="overlays/goals" element={<SafeRoute name="Goals"><GoalsConfig /></SafeRoute>} />

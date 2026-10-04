@@ -128,6 +128,32 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Insignias del chat (globales si no se pasa canal, o las propias de un canal), con token de app.
+        /// Devuelve el JSON de Helix tal cual, o null si falla.
+        /// </summary>
+        public async Task<string?> GetChatBadgesJsonAsync(string? broadcasterId = null)
+        {
+            try
+            {
+                var url = string.IsNullOrEmpty(broadcasterId)
+                    ? $"{TwitchApiBaseUrl}/chat/badges/global"
+                    : $"{TwitchApiBaseUrl}/chat/badges?broadcaster_id={Uri.EscapeDataString(broadcasterId)}";
+                using var response = await SendWithAppTokenAsync(new HttpRequestMessage(HttpMethod.Get, url));
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Twitch chat/badges devolvió {Status} (canal {Id})", response.StatusCode, broadcasterId ?? "global");
+                    return null;
+                }
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error pidiendo insignias del chat (canal {Id})", broadcasterId ?? "global");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Obtiene el User Access Token de un broadcaster desde la base de datos
         /// </summary>
         private async Task<string?> GetUserAccessTokenAsync(string broadcasterId)

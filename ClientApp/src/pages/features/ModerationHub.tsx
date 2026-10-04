@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning, Siren, History } from 'lucide-react';
+import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning, Siren, History, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FilterSwitch, fetchModerationOverview, saveModerationFilter, type ModerationFilterState, type ModerationPlatform } from './moderation/filterSwitch';
 import { SPAM_FILTERS } from './moderation/SpamFilters';
@@ -57,6 +57,13 @@ const CARDS: ModerationCard[] = [
         description: '!permit, !strikes, !nuke, !panico y más: quién puede usar cada uno',
         icon: <Terminal className="w-6 h-6 shrink-0 text-[#2563eb]" />,
         route: '/features/moderation/commands'
+    },
+    {
+        key: 'bots',
+        name: 'Lista de bots',
+        description: 'Nightbot, StreamElements y otros bots: no cuentan como personas, no activan comandos ni se ven en el overlay de chat',
+        icon: <Bot className="w-6 h-6 shrink-0 text-[#2563eb]" />,
+        route: '/features/bots'
     },
     {
         key: 'history',

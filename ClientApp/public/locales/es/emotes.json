@@ -1,0 +1,176 @@
+{
+  "tabs": {
+    "mine": "Mis emotes",
+    "upload": "Subir",
+    "review": "Revisión",
+    "settings": "Configuración"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "approved": "Activo",
+    "hidden": "Oculto",
+    "rejected": "Rechazado",
+    "removed": "Retirado"
+  },
+  "errors": {
+    "too_large": "El archivo pesa más de 2 MB.",
+    "invalid_name": "El nombre debe empezar con una letra y tener de 2 a 25 letras, números o guiones bajos.",
+    "name_taken": "Ya hay un emote con ese nombre en este canal.",
+    "limit_reached": "Este canal llegó al máximo de emotes de su plan.",
+    "too_many_pending": "Ya tienes el máximo de emotes esperando revisión. Espera a que el streamer revise alguno.",
+    "channel_pending_full": "Este canal tiene demasiados emotes esperando revisión. Intenta más tarde.",
+    "rate_limited": "Subiste muchos emotes seguidos. Espera un rato y vuelve a intentarlo.",
+    "not_allowed": "No tienes permiso para subir emotes a este canal.",
+    "not_found": "No se encontró ese emote.",
+    "not_pending": "Ese emote ya fue revisado.",
+    "not_approved": "Ese emote todavía no está aprobado.",
+    "invalid_mode": "Modo inválido.",
+    "invalid_pending": "El máximo de pendientes debe estar entre 1 y 50.",
+    "invalid_platform": "Plataforma inválida.",
+    "invalid_login": "El usuario solo puede tener letras, números y guiones bajos.",
+    "too_many_uploaders": "Llegaste al máximo de personas permitidas.",
+    "uploader_exists": "Esa persona ya está en la lista.",
+    "invalid_ids": "No hay emotes seleccionados.",
+    "unsupported_format": "Solo se aceptan imágenes PNG, GIF, WebP o JPEG.",
+    "invalid_image": "No se pudo leer la imagen.",
+    "too_small": "La imagen es demasiado chica (mínimo 8×8 píxeles).",
+    "too_big_dimensions": "La imagen es demasiado grande (máximo 2048×2048 píxeles).",
+    "too_many_frames": "La animación tiene demasiados cuadros (máximo 150).",
+    "server_error": "Ocurrió un error. Inténtalo de nuevo."
+  },
+  "upload": {
+    "drop": "Arrastra una imagen aquí o haz clic para elegirla",
+    "hint": "PNG, GIF, WebP o JPEG · hasta 2 MB",
+    "preview": "Así se verá, en pequeño, mediano y grande",
+    "name": "Nombre",
+    "nameHint": "Es lo que se escribe en el chat. Empieza con una letra; de 2 a 25 letras, números o _.",
+    "zeroWidth": "Se dibuja encima del anterior",
+    "zeroWidthHint": "Para emotes que se ponen sobre otro emote (sombreros, efectos).",
+    "done": "¡Listo!",
+    "uploading": "Subiendo…",
+    "submit": "Subir emote"
+  },
+  "panel": {
+    "title": "Emotes propios",
+    "subtitle": "Los emotes de tu comunidad: se ven en el overlay de chat de tu stream y, con la extensión de Decatron, en el chat de Twitch",
+    "back": "Volver",
+    "publicPage": "Página pública",
+    "usage": "{{used}} de {{max}} emotes",
+    "usageHint": "Los emotes pendientes no gastan lugar hasta que se aprueban.",
+    "forbidden": "No tienes permiso para administrar los emotes de este canal.",
+    "loadFailed": "No se pudieron cargar los emotes.",
+    "search": "Buscar emote",
+    "filterAll": "Todos",
+    "empty": "Todavía no hay emotes propios.",
+    "uploadFirst": "Subir el primero",
+    "cannotUpload": "Con la configuración actual, tu cuenta no puede subir emotes. Cambia el modo en Configuración.",
+    "rename": "Cambiar nombre",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "by": "de {{user}}",
+    "overlap": "Encima",
+    "overlapOn": "Encima",
+    "overlapOff": "Normal",
+    "reports": "{{count}} reportes",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "copyName": "Copiar nombre",
+    "delete": "Borrar",
+    "deleteReason": "Vas a borrar un emote de {{user}}. ¿Quieres dejarle un motivo? (opcional)",
+    "deleteConfirm": "¿Borrar el emote {{name}}?"
+  },
+  "review": {
+    "select": "Elegir {{name}}",
+    "reasonPlaceholder": "Motivo (opcional)",
+    "confirmReject": "Rechazar",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "pendingTitle": "Esperando revisión ({{count}})",
+    "pendingDescription": "Cada emote se ve sobre fondo oscuro y claro, como en un chat. Al rechazar, quien lo subió ve el motivo.",
+    "noPending": "No hay emotes esperando revisión.",
+    "selectAll": "Elegir todos",
+    "selectNone": "Quitar la selección",
+    "approveSelected": "Aprobar {{count}}",
+    "rejectSelected": "Rechazar {{count}}",
+    "reportedTitle": "Reportados ({{count}})",
+    "reportedDescription": "Emotes que los viewers reportaron. Puedes descartar el reporte, ocultarlos o borrarlos.",
+    "dismiss": "Descartar reportes",
+    "historyTitle": "Historial",
+    "purge": "Limpiar historial",
+    "reviewedBy": "revisó {{user}}"
+  },
+  "settings": {
+    "title": "Configuración",
+    "ownerOnly": "Solo el streamer y quien tenga control total puede cambiar esta configuración.",
+    "modeTitle": "Quién puede subir emotes",
+    "modeDescription": "Tú decides. Siempre puedes cambiarlo, y lo que ya está subido no se toca.",
+    "modes": {
+      "owner": {
+        "name": "Solo yo",
+        "description": "Solo tú y quien tenga control total suben emotes."
+      },
+      "staff": {
+        "name": "Yo y mis moderadores",
+        "description": "Además, los moderadores con acceso a tu panel. Es el modo de inicio."
+      },
+      "approval": {
+        "name": "Cualquiera, con revisión",
+        "description": "Cualquier viewer con cuenta sube un emote, que queda pendiente hasta que lo apruebes. Los de tu lista de permitidos se publican directo."
+      },
+      "list": {
+        "name": "Solo mi lista",
+        "description": "Solo tú, tus moderadores y las personas de tu lista de permitidos."
+      }
+    },
+    "maxPending": "Pendientes por persona",
+    "maxPendingHint": "Cuántos emotes de una misma persona pueden esperar revisión a la vez.",
+    "saved": "Guardado",
+    "uploadersTitle": "Personas permitidas",
+    "uploadersDescription": "Suben emotes directo, sin revisión, en los modos «Cualquiera, con revisión» y «Solo mi lista».",
+    "uploaderPlaceholder": "Usuario",
+    "add": "Agregar",
+    "remove": "Quitar a {{name}}",
+    "publicTitle": "Página pública",
+    "publicDescription": "Aquí tu comunidad ve los emotes y, si lo permites, sube los suyos. Compártela en tu chat o tu descripción.",
+    "copy": "Copiar",
+    "shownInOverlayHint": "Los emotes activos se ven siempre en el overlay de chat. Se pueden apagar desde la pestaña Emotes de ese overlay."
+  },
+  "public": {
+    "pageTitle": "Emotes de {{name}}",
+    "label": "Emotes del canal",
+    "loading": "Cargando…",
+    "notFound": "No encontramos este canal.",
+    "error": "No se pudieron cargar los emotes.",
+    "search": "Buscar emote",
+    "count": "{{count}} emotes",
+    "empty": "Este canal todavía no tiene emotes propios.",
+    "clickToCopy": "Clic para copiar el nombre",
+    "copied": "¡Copiado!",
+    "report": "Reportar",
+    "reported": "Reportado",
+    "reportPrompt": "¿Por qué reportas el emote {{name}}? (opcional)",
+    "uploadTitle": "Subir un emote",
+    "invite": {
+      "approval": "Inicia sesión para subir un emote. El streamer lo revisará antes de publicarlo.",
+      "list": "Inicia sesión para subir un emote si el streamer te dio permiso."
+    },
+    "cannot": {
+      "owner": "Solo el streamer sube emotes en este canal.",
+      "staff": "Solo el streamer y sus moderadores suben emotes en este canal.",
+      "approval": "Con tu cuenta no puedes subir emotes a este canal.",
+      "list": "En este canal solo suben emotes las personas que el streamer permitió."
+    },
+    "login": "Iniciar sesión",
+    "willPublish": "Tus emotes se publican al instante.",
+    "willReview": "El streamer revisa tus emotes antes de publicarlos. Puedes tener {{left}} más esperando.",
+    "mineTitle": "Mis emotes en este canal",
+    "mineStatus": {
+      "pending": "En revisión",
+      "approved": "Publicado",
+      "hidden": "Oculto",
+      "rejected": "Rechazado",
+      "removed": "Retirado"
+    },
+    "chatNote": "Los emotes del canal se ven en el overlay del stream. En el chat de Twitch los ve quien tenga la extensión de Decatron."
+  }
+}

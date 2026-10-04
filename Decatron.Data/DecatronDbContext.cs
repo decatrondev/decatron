@@ -61,6 +61,13 @@ namespace Decatron.Data
         public DbSet<UserStrike> UserStrikes { get; set; }
         public DbSet<ModerationLog> ModerationLogs { get; set; }
         public DbSet<ModerationFilter> ModerationFilters { get; set; }
+        public DbSet<BotCatalogEntry> BotCatalog { get; set; }
+        public DbSet<ChannelBotEntry> ChannelBotEntries { get; set; }
+        public DbSet<ChatOverlayConfig> ChatOverlayConfigs { get; set; }
+        public DbSet<ChannelEmoteSettings> ChannelEmoteSettings { get; set; }
+        public DbSet<ChannelEmoteUploader> ChannelEmoteUploaders { get; set; }
+        public DbSet<ChannelEmote> ChannelEmotes { get; set; }
+        public DbSet<ChannelEmoteReport> ChannelEmoteReports { get; set; }
         public DbSet<SoundAlertConfig> SoundAlertConfigs { get; set; }
         public DbSet<SoundAlertFile> SoundAlertFiles { get; set; }
         public DbSet<SoundAlertHistory> SoundAlertHistories { get; set; }

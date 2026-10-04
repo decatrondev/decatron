@@ -1,0 +1,176 @@
+{
+  "tabs": {
+    "mine": "My emotes",
+    "upload": "Upload",
+    "review": "Review",
+    "settings": "Settings"
+  },
+  "status": {
+    "pending": "Pending",
+    "approved": "Active",
+    "hidden": "Hidden",
+    "rejected": "Rejected",
+    "removed": "Removed"
+  },
+  "errors": {
+    "too_large": "The file is larger than 2 MB.",
+    "invalid_name": "The name must start with a letter and be 2 to 25 letters, numbers or underscores.",
+    "name_taken": "There is already an emote with that name in this channel.",
+    "limit_reached": "This channel reached its plan's emote limit.",
+    "too_many_pending": "You already have the maximum number of emotes waiting for review. Wait for the streamer to review some.",
+    "channel_pending_full": "This channel has too many emotes waiting for review. Try again later.",
+    "rate_limited": "You uploaded many emotes in a row. Wait a while and try again.",
+    "not_allowed": "You don't have permission to upload emotes to this channel.",
+    "not_found": "That emote was not found.",
+    "not_pending": "That emote was already reviewed.",
+    "not_approved": "That emote is not approved yet.",
+    "invalid_mode": "Invalid mode.",
+    "invalid_pending": "The pending limit must be between 1 and 50.",
+    "invalid_platform": "Invalid platform.",
+    "invalid_login": "The username can only have letters, numbers and underscores.",
+    "too_many_uploaders": "You reached the maximum number of allowed people.",
+    "uploader_exists": "That person is already on the list.",
+    "invalid_ids": "No emotes selected.",
+    "unsupported_format": "Only PNG, GIF, WebP or JPEG images are accepted.",
+    "invalid_image": "The image could not be read.",
+    "too_small": "The image is too small (minimum 8×8 pixels).",
+    "too_big_dimensions": "The image is too big (maximum 2048×2048 pixels).",
+    "too_many_frames": "The animation has too many frames (maximum 150).",
+    "server_error": "Something went wrong. Please try again."
+  },
+  "upload": {
+    "drop": "Drag an image here or click to choose one",
+    "hint": "PNG, GIF, WebP or JPEG · up to 2 MB",
+    "preview": "This is how it will look, small, medium and large",
+    "name": "Name",
+    "nameHint": "It is what gets typed in chat. Starts with a letter; 2 to 25 letters, numbers or _.",
+    "zeroWidth": "Draws on top of the previous one",
+    "zeroWidthHint": "For emotes that go over another emote (hats, effects).",
+    "done": "Done!",
+    "uploading": "Uploading…",
+    "submit": "Upload emote"
+  },
+  "panel": {
+    "title": "Own emotes",
+    "subtitle": "Your community's emotes: they show in your stream's chat overlay and, with the Decatron extension, in the Twitch chat",
+    "back": "Back",
+    "publicPage": "Public page",
+    "usage": "{{used}} of {{max}} emotes",
+    "usageHint": "Pending emotes don't take a slot until they are approved.",
+    "forbidden": "You don't have permission to manage this channel's emotes.",
+    "loadFailed": "The emotes could not be loaded.",
+    "search": "Search emote",
+    "filterAll": "All",
+    "empty": "There are no own emotes yet.",
+    "uploadFirst": "Upload the first one",
+    "cannotUpload": "With the current setup, your account can't upload emotes. Change the mode in Settings.",
+    "rename": "Rename",
+    "save": "Save",
+    "cancel": "Cancel",
+    "by": "by {{user}}",
+    "overlap": "Overlay",
+    "overlapOn": "Overlay",
+    "overlapOff": "Normal",
+    "reports": "{{count}} reports",
+    "hide": "Hide",
+    "show": "Show",
+    "copyName": "Copy name",
+    "delete": "Delete",
+    "deleteReason": "You are about to delete an emote by {{user}}. Do you want to leave a reason? (optional)",
+    "deleteConfirm": "Delete the emote {{name}}?"
+  },
+  "review": {
+    "select": "Select {{name}}",
+    "reasonPlaceholder": "Reason (optional)",
+    "confirmReject": "Reject",
+    "approve": "Approve",
+    "reject": "Reject",
+    "pendingTitle": "Waiting for review ({{count}})",
+    "pendingDescription": "Each emote shows on dark and light backgrounds, like in a chat. When you reject, the uploader sees the reason.",
+    "noPending": "No emotes are waiting for review.",
+    "selectAll": "Select all",
+    "selectNone": "Clear selection",
+    "approveSelected": "Approve {{count}}",
+    "rejectSelected": "Reject {{count}}",
+    "reportedTitle": "Reported ({{count}})",
+    "reportedDescription": "Emotes that viewers reported. You can dismiss the report, hide them or delete them.",
+    "dismiss": "Dismiss reports",
+    "historyTitle": "History",
+    "purge": "Clear history",
+    "reviewedBy": "reviewed by {{user}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "ownerOnly": "Only the streamer and people with full control can change these settings.",
+    "modeTitle": "Who can upload emotes",
+    "modeDescription": "You decide. You can always change it, and what is already uploaded stays as it is.",
+    "modes": {
+      "owner": {
+        "name": "Only me",
+        "description": "Only you and people with full control upload emotes."
+      },
+      "staff": {
+        "name": "Me and my moderators",
+        "description": "Also the moderators with access to your panel. This is the starting mode."
+      },
+      "approval": {
+        "name": "Anyone, with review",
+        "description": "Any viewer with an account uploads an emote that stays pending until you approve it. People on your allowed list publish directly."
+      },
+      "list": {
+        "name": "Only my list",
+        "description": "Only you, your moderators and the people on your allowed list."
+      }
+    },
+    "maxPending": "Pending per person",
+    "maxPendingHint": "How many emotes from the same person can wait for review at once.",
+    "saved": "Saved",
+    "uploadersTitle": "Allowed people",
+    "uploadersDescription": "They upload directly, without review, in the «Anyone, with review» and «Only my list» modes.",
+    "uploaderPlaceholder": "Username",
+    "add": "Add",
+    "remove": "Remove {{name}}",
+    "publicTitle": "Public page",
+    "publicDescription": "Your community sees the emotes here and, if you allow it, uploads their own. Share it in your chat or description.",
+    "copy": "Copy",
+    "shownInOverlayHint": "Active emotes always show in the chat overlay. They can be turned off from that overlay's Emotes tab."
+  },
+  "public": {
+    "pageTitle": "{{name}}'s emotes",
+    "label": "Channel emotes",
+    "loading": "Loading…",
+    "notFound": "We couldn't find this channel.",
+    "error": "The emotes could not be loaded.",
+    "search": "Search emote",
+    "count": "{{count}} emotes",
+    "empty": "This channel doesn't have its own emotes yet.",
+    "clickToCopy": "Click to copy the name",
+    "copied": "Copied!",
+    "report": "Report",
+    "reported": "Reported",
+    "reportPrompt": "Why are you reporting the emote {{name}}? (optional)",
+    "uploadTitle": "Upload an emote",
+    "invite": {
+      "approval": "Sign in to upload an emote. The streamer will review it before publishing it.",
+      "list": "Sign in to upload an emote if the streamer gave you permission."
+    },
+    "cannot": {
+      "owner": "Only the streamer uploads emotes in this channel.",
+      "staff": "Only the streamer and their moderators upload emotes in this channel.",
+      "approval": "Your account can't upload emotes to this channel.",
+      "list": "In this channel only the people the streamer allowed upload emotes."
+    },
+    "login": "Sign in",
+    "willPublish": "Your emotes are published right away.",
+    "willReview": "The streamer reviews your emotes before publishing them. You can have {{left}} more waiting.",
+    "mineTitle": "My emotes in this channel",
+    "mineStatus": {
+      "pending": "In review",
+      "approved": "Published",
+      "hidden": "Hidden",
+      "rejected": "Rejected",
+      "removed": "Removed"
+    },
+    "chatNote": "The channel's emotes show in the stream's overlay. In the Twitch chat they are seen by people with the Decatron extension."
+  }
+}
