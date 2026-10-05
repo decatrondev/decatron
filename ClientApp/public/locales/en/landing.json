@@ -44,49 +44,80 @@
   "copyright": "© 2026 Decatron.net",
   "translate": {
     "hero": {
-      "title": "Hear your favorite streamer in your language",
-      "text": "A Chrome extension that dubs the stream in real time, and only you hear it. The channel, the chat and everyone else stay exactly the same.",
-      "cta": "Install the extension",
-      "how": "How it works",
-      "note": "Free for viewers. No account. Only asks for permission on twitch.tv."
+      "badge": "Decatron for Twitch",
+      "title": "Twitch in your language, with all your emotes",
+      "text": "A free extension that dubs the stream into your language in real time and draws 7TV, BetterTTV, FrankerFaceZ and each Decatron community's emotes in the chat. It only changes what you see and hear.",
+      "firefox": "Install on Firefox",
+      "chrome": "Chrome: coming soon",
+      "modules": "What's included",
+      "note": "Free. No account. Only asks for permission on twitch.tv.",
+      "source": "Open source",
+      "firefoxSoon": "Firefox: coming soon"
     },
     "demo": {
+      "tabTranslation": "Translation",
+      "tabEmotes": "Emotes",
       "stream": "your stream here",
-      "caption": "The 🌐 button shows up next to the player's gear when the channel offers translation."
+      "caption": "The Decatron button shows up next to the player's gear and opens the panel.",
+      "chatTitle": "Stream chat",
+      "chatCaption": "Type \":\" and the first letters to pick an emote without leaving the chat.",
+      "picker": "Emote picker"
+    },
+    "modules": {
+      "title": "Two modules you turn on and off",
+      "translation": {
+        "title": "Live translation",
+        "text": "On channels that offer it, hear the streamer dubbed into your language with captions, while their original voice stays in the background. Only you hear it: the channel and everyone else stay the same."
+      },
+      "emotes": {
+        "title": "Emotes from everywhere",
+        "text": "See 7TV, BetterTTV and FrankerFaceZ emotes in the chat, each Decatron community's own emotes and the platform's global set, without installing other extensions. With a picker when you type \":\"."
+      },
+      "points": {
+        "title": "Channel points",
+        "text": "Automatically claim channel points. On the way.",
+        "soon": "Coming soon"
+      }
     },
     "how": {
       "title": "How it works",
       "install": {
         "title": "Install the extension",
-        "text": "It's added to Chrome and only acts on twitch.tv. No account, no data."
+        "text": "It's added to your browser and only acts on twitch.tv. No account, no data."
       },
-      "pick": {
-        "title": "Pick your language in the player",
-        "text": "If the channel offers translation you'll see a 🌐 button next to the gear. Pick English, Portuguese or whatever the streamer offers."
+      "open": {
+        "title": "Open a Twitch channel",
+        "text": "The Decatron button appears next to the player's gear. Emotes already show in the chat."
       },
-      "listen": {
-        "title": "Listen and read",
-        "text": "The translated voice plays over the original voice at a lower volume, with captions. You can adjust the background volume and the delay."
+      "use": {
+        "title": "Pick and enjoy",
+        "text": "On a channel with translation, choose your language: the translated voice plays over the original one, with captions. Each module can be turned off from the panel."
       }
     },
     "facts": {
       "private": {
-        "title": "Only you hear it",
-        "text": "The translation plays in your browser. The streamer doesn't change anything in the broadcast and other viewers don't notice."
-      },
-      "captions": {
-        "title": "With captions",
-        "text": "Each phrase shows up in text at the pace of the audio; the original too, if you want."
+        "title": "Only you see and hear it",
+        "text": "Everything happens in your browser. The streamer changes nothing on their broadcast and other viewers don't notice."
       },
       "noaccount": {
         "title": "No account, no tracking",
-        "text": "There's no sign-up. Your preferences (language, volume) live in your own Chrome."
+        "text": "No sign-up and no ads. Your preferences live in your own browser."
+      },
+      "open": {
+        "title": "Open source",
+        "text": "The code is published and can be reviewed. Not minified, no surprises."
       }
+    },
+    "global": {
+      "title": "Decatron's global set",
+      "text": "Platform emotes that show in every channel's chat. If you'd like to contribute yours, you can request access.",
+      "cta": "See the global set"
     },
     "streamers": {
       "title": "Are you a streamer?",
-      "text": "Turn on live translation from your Decatron dashboard, install the desktop app that captures your microphone and pick the languages. Viewers from other countries hear you in theirs.",
-      "cta": "Go to the dashboard",
+      "text": "Turn on live translation from your Decatron dashboard, install the desktop app that captures your microphone and pick the languages. Viewers from other countries hear you in theirs. You manage your community's own emotes from the emotes panel.",
+      "cta": "Open the dashboard",
+      "emotes": "Manage my emotes",
       "app": "Download Decatron Desktop"
     },
     "privacy": {

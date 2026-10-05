@@ -44,49 +44,80 @@
   "copyright": "© 2026 Decatron.net",
   "translate": {
     "hero": {
-      "title": "Escucha a tu streamer favorito en tu idioma",
-      "text": "Una extensión para Chrome que dobla el stream en tiempo real y solo tú lo oyes. El canal, el chat y el resto del público siguen igual.",
-      "cta": "Instalar la extensión",
-      "how": "Cómo funciona",
-      "note": "Gratis para los viewers. Sin cuenta. Solo pide permiso en twitch.tv."
+      "badge": "Decatron para Twitch",
+      "title": "Twitch en tu idioma, con todos tus emotes",
+      "text": "Una extensión gratuita que dobla el stream a tu idioma en tiempo real y dibuja en el chat los emotes de 7TV, BetterTTV, FrankerFaceZ y los de cada comunidad de Decatron. Solo cambia lo que ves y oyes tú.",
+      "firefox": "Instalar en Firefox",
+      "chrome": "Chrome: próximamente",
+      "modules": "Qué incluye",
+      "note": "Gratis. Sin cuenta. Solo pide permiso en twitch.tv.",
+      "source": "Código abierto",
+      "firefoxSoon": "Firefox: próximamente"
     },
     "demo": {
+      "tabTranslation": "Traducción",
+      "tabEmotes": "Emotes",
       "stream": "tu stream aquí",
-      "caption": "El botón 🌐 aparece junto al engranaje del player cuando el canal ofrece traducción."
+      "caption": "El botón de Decatron aparece junto al engranaje del player y abre el panel.",
+      "chatTitle": "Chat del stream",
+      "chatCaption": "Escribe «:» y las primeras letras para elegir un emote sin salir del chat.",
+      "picker": "Selector de emotes"
+    },
+    "modules": {
+      "title": "Dos módulos que enciendes y apagas",
+      "translation": {
+        "title": "Traducción en vivo",
+        "text": "En los canales que la ofrecen, escuchas al streamer doblado a tu idioma con subtítulos, mientras su voz original queda de fondo. Solo tú lo oyes: el canal y el resto del público siguen igual."
+      },
+      "emotes": {
+        "title": "Emotes de todas partes",
+        "text": "Ve en el chat los emotes de 7TV, BetterTTV y FrankerFaceZ, los propios de cada comunidad de Decatron y el set global de la plataforma, sin instalar otras extensiones. Con selector al escribir «:»."
+      },
+      "points": {
+        "title": "Puntos de canal",
+        "text": "Reclamar automáticamente los puntos de canal. En camino.",
+        "soon": "Próximamente"
+      }
     },
     "how": {
       "title": "Cómo funciona",
       "install": {
         "title": "Instala la extensión",
-        "text": "Se añade a Chrome y solo actúa en twitch.tv. No pide cuenta ni datos."
+        "text": "Se añade al navegador y solo actúa en twitch.tv. No pide cuenta ni datos."
       },
-      "pick": {
-        "title": "Elige tu idioma en el player",
-        "text": "Si el canal ofrece traducción, verás un botón 🌐 junto al engranaje. Elige inglés, portugués o el que ofrezca el streamer."
+      "open": {
+        "title": "Abre un canal de Twitch",
+        "text": "El botón de Decatron aparece junto al engranaje del player. Los emotes ya se ven en el chat."
       },
-      "listen": {
-        "title": "Escucha y lee",
-        "text": "La voz traducida suena sobre la voz original bajada de volumen, con subtítulos. Puedes ajustar el volumen de fondo y el retraso."
+      "use": {
+        "title": "Elige y disfruta",
+        "text": "En un canal con traducción, elige tu idioma: la voz traducida suena sobre la original, con subtítulos. Cada módulo se apaga desde el panel."
       }
     },
     "facts": {
       "private": {
-        "title": "Solo tú lo oyes",
-        "text": "La traducción se reproduce en tu navegador. El streamer no tiene que cambiar nada de su emisión y los demás viewers no se enteran."
-      },
-      "captions": {
-        "title": "Con subtítulos",
-        "text": "Cada frase aparece escrita al ritmo del audio; si quieres, también la original."
+        "title": "Solo tú lo ves y lo oyes",
+        "text": "Todo ocurre en tu navegador. El streamer no cambia nada de su emisión y los demás viewers no se enteran."
       },
       "noaccount": {
         "title": "Sin cuenta ni rastreo",
-        "text": "No hay registro. Tus preferencias (idioma, volumen) se guardan en tu propio Chrome."
+        "text": "No hay registro ni anuncios. Tus preferencias se guardan en tu propio navegador."
+      },
+      "open": {
+        "title": "Código abierto",
+        "text": "El código está publicado y se puede revisar. Sin minificar, sin sorpresas."
       }
+    },
+    "global": {
+      "title": "El set global de Decatron",
+      "text": "Emotes de la plataforma que se ven en el chat de todos los canales. Si quieres aportar los tuyos, puedes solicitar acceso.",
+      "cta": "Ver el set global"
     },
     "streamers": {
       "title": "¿Eres streamer?",
-      "text": "Activa la traducción en vivo desde tu dashboard de Decatron, instala la app de escritorio que captura tu micrófono y elige los idiomas. Tus viewers de otros países te escuchan en el suyo.",
+      "text": "Activa la traducción en vivo desde tu dashboard de Decatron, instala la app de escritorio que captura tu micrófono y elige los idiomas. Tus viewers de otros países te escuchan en el suyo. Los emotes propios de tu comunidad los gestionas desde el panel de emotes.",
       "cta": "Entrar al dashboard",
+      "emotes": "Gestionar mis emotes",
       "app": "Descargar Decatron Desktop"
     },
     "privacy": {
