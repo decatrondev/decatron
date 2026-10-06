@@ -13,6 +13,7 @@
  * temblor va con un redoble que se acelera hasta que la carta se da vuelta. Sin él,
  * el suspenso era un segundo de silencio entre el arranque y el revelado.
  */
+import { fitLabelFont } from './fitLabel';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FONTS } from '../visualConfig';
 import type { Presentation, PresentationProps } from './types';
@@ -95,7 +96,11 @@ function Card({ segments, visual, spin, phase, onSound, onFinished }: Presentati
     const tipografia = {
         fontFamily: FONTS[visual.font].stack,
         fontWeight: visual.fontWeight,
-        fontSize: Math.max(9, lado * (texto.length > 18 ? 0.10 : texto.length > 10 ? 0.125 : 0.16) * visual.textScale),
+        fontSize: fitLabelFont(
+            texto, lado * 0.8,
+            Math.max(9, lado * (texto.length > 18 ? 0.10 : texto.length > 10 ? 0.125 : 0.16) * visual.textScale),
+            visual, 9,
+        ),
         color: visual.textColor ?? visual.ink,
         ...(visual.textOutline > 0 ? {
             WebkitTextStrokeWidth: `${visual.textOutline}px`,

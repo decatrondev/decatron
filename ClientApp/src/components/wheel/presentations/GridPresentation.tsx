@@ -10,6 +10,7 @@
  * va a caer los últimos saltos no es un defecto: es la tensión de este formato,
  * igual que en un tablero de premios de la tele.
  */
+import { fitLabelFont } from './fitLabel';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { EASINGS, FONTS, type WheelVisual } from '../visualConfig';
 import type { FaceSegment } from '../WheelFace';
@@ -167,7 +168,7 @@ function Celda({ seg, visual, color, anchoPx, activa, dimmed, columna }: {
     const texto = seg.icon ? `${seg.icon} ${etiqueta}` : etiqueta;
 
     const porLargo = texto.length > 16 ? 0.105 : texto.length > 10 ? 0.135 : 0.175;
-    const fontSize = Math.max(7, anchoPx * porLargo * visual.textScale);
+    const fontSize = fitLabelFont(texto, anchoPx * 0.86, Math.max(7, anchoPx * porLargo * visual.textScale), visual, 7);
 
     const clases = ['grid-cell'];
     if (activa) clases.push('is-active');

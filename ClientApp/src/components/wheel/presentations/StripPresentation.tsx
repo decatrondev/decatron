@@ -16,6 +16,7 @@
  * 2. **El servidor ya eligió.** Acá solo se calcula a qué desplazamiento hay que
  *    llegar para que esa celda quede bajo la marca.
  */
+import { fitLabelFont } from './fitLabel';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { EASINGS, FONTS, type WheelVisual } from '../visualConfig';
 import type { FaceSegment } from '../WheelFace';
@@ -242,12 +243,16 @@ function Celda({ seg, visual, color, anchoPx, dimmed, style }: {
     // Etiqueta larga, letra mas chica — el mismo criterio que la rueda, y por lo
     // mismo: que no se desborde de su celda. La escala del streamer multiplica.
     const porLargo = texto.length > 16 ? 0.115 : texto.length > 10 ? 0.145 : 0.185;
-    const fontSize = Math.max(8, anchoPx * porLargo * visual.textScale);
+    const fontSize = fitLabelFont(texto, anchoPx * 0.86, Math.max(8, anchoPx * porLargo * visual.textScale), visual, 8);
 
     return (
         <div
             className={dimmed ? 'strip-cell is-dimmed' : 'strip-cell'}
-            style={{ ...style, background: color, borderColor: visual.ink }}
+            // El relleno va en pixeles de ESTA celda. En CSS era `padding: 4% 3%`, y un
+            // porcentaje de relleno se mide contra el ancho de la PISTA entera, no de la
+            // celda: con cinco celdas el relleno se comia casi un tercio de cada una y
+            // partia hasta palabras de cuatro letras ("BET" / "O").
+            style={{ ...style, background: color, borderColor: visual.ink, padding: anchoPx * 0.04 }}
         >
             <span
                 className="strip-label"
@@ -296,7 +301,7 @@ const CSS = `
     position: absolute;
     display: flex; align-items: center; justify-content: center;
     box-sizing: border-box;
-    padding: 4% 3%;
+    padding: 0;
     border-style: solid; border-width: 0;
     transition: opacity 520ms ease;
     overflow: hidden;
