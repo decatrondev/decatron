@@ -453,7 +453,7 @@ export default function WheelConfig() {
                 wheel={wheel} wheels={wheels} tab={tab} saving={saving} limits={channel.limits}
                 onBack={() => navigate('/overlays')}
                 onOpen={openWheel}
-                onCreate={() => createWheel('prizes')}
+                onCreate={createWheel}
                 onTestSpin={testSpin}
                 onSave={save}
                 t={t}

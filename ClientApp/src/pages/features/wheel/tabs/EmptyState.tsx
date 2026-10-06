@@ -1,8 +1,10 @@
-import { CircleDot, Loader2, Plus } from 'lucide-react';
+import { CircleDot, Loader2, Plus, Ticket } from 'lucide-react';
 
+/** Sin ruedas todavía: se elige el modo al crear, y ya no se puede cambiar. */
 export function EmptyState({ onCreate, saving, t }: {
     onCreate: (mode: 'prizes' | 'raffle') => void;
     saving: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     t: any;
 }) {
     return (
@@ -11,18 +13,30 @@ export function EmptyState({ onCreate, saving, t }: {
             <h2 className="text-xl font-bold text-[#f8fafc]">{t('wheel.empty.title')}</h2>
             <p className="text-sm text-[#94a3b8] mt-2 max-w-md mx-auto">{t('wheel.empty.body')}</p>
 
-            {/* El modo Sorteo esta construido (servicio, comandos, endpoints y pestana)
-                pero NO se ofrece: el usuario decidio que no lo quiere por ahora. Para
-                volver a exponerlo alcanza con dar a elegir el modo aca y en la cabecera;
-                no hay nada mas que rehacer. */}
-            <button
-                onClick={() => onCreate('prizes')}
-                disabled={saving}
-                className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl font-bold inline-flex items-center gap-2 transition-colors"
-            >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                {t('wheel.empty.create')}
-            </button>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 max-w-2xl mx-auto text-left">
+                <button
+                    onClick={() => onCreate('prizes')}
+                    disabled={saving}
+                    className="p-5 bg-[#262626] hover:bg-[#2d2d2d] border border-[#374151] hover:border-blue-500 disabled:opacity-60 rounded-xl transition-colors"
+                >
+                    <span className="flex items-center gap-2 font-bold text-[#f8fafc]">
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        {t('wheel.empty.modePrizes')}
+                    </span>
+                    <span className="block text-xs text-[#94a3b8] mt-1.5">{t('wheel.empty.modePrizesHelp')}</span>
+                </button>
+                <button
+                    onClick={() => onCreate('raffle')}
+                    disabled={saving}
+                    className="p-5 bg-[#262626] hover:bg-[#2d2d2d] border border-[#374151] hover:border-blue-500 disabled:opacity-60 rounded-xl transition-colors"
+                >
+                    <span className="flex items-center gap-2 font-bold text-[#f8fafc]">
+                        <Ticket className="w-4 h-4" />
+                        {t('wheel.empty.modeRaffle')}
+                    </span>
+                    <span className="block text-xs text-[#94a3b8] mt-1.5">{t('wheel.empty.modeRaffleHelp')}</span>
+                </button>
+            </div>
         </div>
     );
 }

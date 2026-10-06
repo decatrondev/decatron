@@ -436,6 +436,25 @@ namespace Decatron.Services
         }
 
         /// <summary>
+        /// Avisa al overlay de una rueda de Sorteo que alguien acaba de inscribirse, para
+        /// que muestre su tarjeta ("fulano se unió · N inscritos") en el momento. Va aparte
+        /// de <c>WheelConfigChanged</c>: ese recarga el pool; este solo anuncia a la persona.
+        /// </summary>
+        public async Task NotifyWheelRaffleJoinAsync(string channel, string slug, string viewer, int count)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"overlay_{channel}")
+                    .SendAsync("WheelRaffleJoin", new { slug, viewer, count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error enviando WheelRaffleJoin a overlay_{channel}");
+            }
+        }
+
+        /// <summary>
         /// Avisa al overlay que arrancó un Happy Hour, para que muestre el indicador
         /// al instante en vez de esperar al resync periódico de 30s.
         /// </summary>

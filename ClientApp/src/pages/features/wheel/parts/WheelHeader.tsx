@@ -1,4 +1,4 @@
-import { ArrowLeft, CircleDot, Loader2, Play, Plus, Save } from 'lucide-react';
+import { ArrowLeft, CircleDot, Loader2, Play, Plus, Save, Ticket } from 'lucide-react';
 import type { TierLimits } from '../hooks/useChannelResources';
 import type { Tab, WheelSummary } from '../model';
 import { FIELD } from '../ui';
@@ -17,7 +17,7 @@ export function WheelHeader({
     limits: TierLimits | null;
     onBack: () => void;
     onOpen: (id: number) => void;
-    onCreate: () => void;
+    onCreate: (mode: 'prizes' | 'raffle') => void;
     onTestSpin: () => void;
     onSave: () => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,13 +75,23 @@ export function WheelHeader({
                     )}
 
                     <button
-                        onClick={onCreate}
+                        onClick={() => onCreate('prizes')}
                         disabled={saving || cupoLleno}
                         className="px-4 py-2.5 bg-[#1B1C1D] border border-[#374151] hover:bg-[#262626] disabled:opacity-40 text-[#f8fafc] rounded-xl transition-colors flex items-center gap-2 font-bold"
                         title={cupoLleno ? t('wheel.quota.reached', { max: limits!.maxWheels }) : t('wheel.newWheel')}
                     >
                         <Plus className="w-4 h-4" />
                         {t('wheel.newWheel')}
+                    </button>
+
+                    <button
+                        onClick={() => onCreate('raffle')}
+                        disabled={saving || cupoLleno}
+                        className="px-4 py-2.5 bg-[#1B1C1D] border border-[#374151] hover:bg-[#262626] disabled:opacity-40 text-[#f8fafc] rounded-xl transition-colors flex items-center gap-2 font-bold"
+                        title={cupoLleno ? t('wheel.quota.reached', { max: limits!.maxWheels }) : t('wheel.empty.modeRaffleHelp')}
+                    >
+                        <Ticket className="w-4 h-4" />
+                        {t('wheel.newRaffle')}
                     </button>
 
                     {/* Probar giro solo tiene sentido editando los gajos: es lo que

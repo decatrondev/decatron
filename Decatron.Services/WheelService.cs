@@ -151,6 +151,23 @@ namespace Decatron.Services
                     .Select(s => new { id = s.Id, label = s.Label, color = s.Color, icon = s.Icon })
                     .ToListAsync();
 
+            // El estado del sorteo que el overlay necesita para decidir si se muestra y
+            // que numero de inscritos poner en la tarjeta. En Premios no hay nada de esto.
+            object? raffle = null;
+            if (wheel.Mode == WheelModes.Raffle)
+            {
+                var cfg = await _db.WheelRaffleConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.WheelId == wheel.Id);
+                var inscritos = await _db.WheelRaffleEntries.AsNoTracking().CountAsync(e => e.WheelId == wheel.Id && !e.HasWon);
+                raffle = new
+                {
+                    isOpen = cfg?.AceptaInscripciones ?? false,
+                    // Una ventana temporizada se cierra sola, sin que nadie escriba nada:
+                    // el overlay necesita la hora para esconderse por su cuenta.
+                    closesAt = cfg is { WindowMode: "timed" } ? cfg.WindowClosesAt : null,
+                    count = inscritos,
+                };
+            }
+
             return new
             {
                 wheel = new
@@ -160,9 +177,11 @@ namespace Decatron.Services
                     name = wheel.Name,
                     mode = wheel.Mode,
                     creditLabel = wheel.CreditLabel,
+                    lang = await IdiomaDelCanalAsync(channelId.Value),
                     visual = ParseJson(wheel.VisualConfig),
                     announce = ParseJson(wheel.AnnounceConfig)
                 },
+                raffle,
                 segments
             };
         }

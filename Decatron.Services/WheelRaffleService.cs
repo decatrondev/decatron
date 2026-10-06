@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -129,6 +129,8 @@ namespace Decatron.Services
             cfg.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
+            // El overlay en modo "mientras la inscripcion esta abierta" aparece con esto.
+            await AvisarOverlayAsync(wheelId);
             return cfg;
         }
 
@@ -141,6 +143,7 @@ namespace Decatron.Services
             cfg.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
+            await AvisarOverlayAsync(wheelId);
             return cfg;
         }
 
@@ -274,14 +277,15 @@ namespace Decatron.Services
 
             // Solo un inscrito nuevo cambia lo que se dibuja; un boleto extra de alguien
             // que ya estaba pesa distinto pero ocupa el mismo gajo.
-            if (esNueva) await AvisarOverlayAsync(wheelId);
+            var tamano = await TamanoDelPoolAsync(wheelId);
+            if (esNueva) await AvisarOverlayAsync(wheelId, viewer, tamano);
 
             return new JoinOutcome
             {
                 Result = JoinResult.Ok,
                 Entries = entrada.Entries,
                 Weight = entrada.Weight,
-                PoolSize = await TamanoDelPoolAsync(wheelId),
+                PoolSize = tamano,
                 Balance = cfg.EntryCostCredits > 0 ? await _wallets.GetBalanceAsync(channelId, viewer) : 0,
                 Cost = cfg.EntryCostCredits,
             };
@@ -452,7 +456,7 @@ namespace Decatron.Services
         /// Avisa al overlay que el pool cambió, para que la rueda en reposo muestre a
         /// los inscritos de ahora y no a los de cuando se abrió la escena.
         /// </summary>
-        private async Task AvisarOverlayAsync(int wheelId)
+        private async Task AvisarOverlayAsync(int wheelId, string? inscrito = null, int tamanoDelPool = 0)
         {
             try
             {
@@ -460,8 +464,15 @@ namespace Decatron.Services
                     .Where(w => w.Id == wheelId)
                     .Join(_db.Users, w => w.ChannelId, u => u.Id, (w, u) => new { w.Slug, u.Login })
                     .FirstOrDefaultAsync();
-                if (destino != null)
-                    await _overlays.NotifyWheelChangedAsync(destino.Login.ToLowerInvariant(), destino.Slug);
+                if (destino == null) return;
+
+                var canal = destino.Login.ToLowerInvariant();
+                await _overlays.NotifyWheelChangedAsync(canal, destino.Slug);
+
+                // La tarjeta de "fulano se unio" va por su propio evento: el aviso de
+                // arriba solo recarga el pool, y no dice QUIEN entro.
+                if (inscrito != null)
+                    await _overlays.NotifyWheelRaffleJoinAsync(canal, destino.Slug, inscrito, tamanoDelPool);
             }
             catch (Exception ex)
             {

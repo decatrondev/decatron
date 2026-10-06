@@ -449,11 +449,11 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         onChange={e => onVisual({ visibility: e.target.value as WheelVisibility })}
                         className={FIELD}
                     >
-                        {WHEEL_VISIBILITIES.map(v => (
+                        {WHEEL_VISIBILITIES.filter(v => v !== 'registration' || mode === 'raffle').map(v => (
                             <option key={v} value={v}>{t(`wheel.look.visibility_${v}`)}</option>
                         ))}
                     </select>
-                    {visual.visibility === 'spin' && (
+                    {visual.visibility !== 'always' && (
                         <select
                             value={visual.visibilityAnimation}
                             onChange={e => onVisual({ visibilityAnimation: e.target.value as LayoutAnimation })}

@@ -64,7 +64,33 @@ interface OverlayData {
     visual: unknown;
     /** `prizes` o `raffle`. Decide que sonidos precargar. */
     mode: string | null;
+    /** Solo en Sorteo: si la inscripcion esta abierta y cuanta gente hay. */
+    raffle: RaffleState | null;
+    /** Idioma del canal, para los textos propios del overlay (la tarjeta de inscripcion). */
+    lang: string;
 }
+
+interface RaffleState {
+    isOpen: boolean;
+    /** Solo en ventana temporizada: cuando se cierra sola. */
+    closesAt: string | null;
+    count: number;
+}
+
+/** Quien acaba de inscribirse, para la tarjeta. */
+interface JoinCard {
+    viewer: string;
+    count: number;
+    key: number;
+}
+
+/** Cuanto se queda en pantalla la tarjeta de "fulano se unio". */
+const TARJETA_JOIN_MS = 4000;
+
+const TEXTOS_JOIN: Record<string, { joined: string; one: string; many: string }> = {
+    es: { joined: 'se unió', one: 'inscrito', many: 'inscritos' },
+    en: { joined: 'joined', one: 'entrant', many: 'entrants' },
+};
 
 /** Cuanto dura la entrada y la salida de la rueda entera en modo `spin`. */
 const ENTRADA_MS = 520;
@@ -88,6 +114,13 @@ export default function WheelOverlay() {
     const [segments, setSegments] = useState<Segment[]>([]);
     const [visualRaw, setVisualRaw] = useState<unknown>(null);
     const [mode, setMode] = useState<string | null>(null);
+    const [raffle, setRaffle] = useState<RaffleState | null>(null);
+    const [lang, setLang] = useState('es');
+    const [joinCard, setJoinCard] = useState<JoinCard | null>(null);
+    const joinTimerRef = useRef<number | null>(null);
+    const joinKeyRef = useRef(0);
+    // Si la inscripcion esta abierta ahora, para los callbacks de timers largos.
+    const abiertaRef = useRef(false);
 
     // El aspecto configurado por el streamer, ya completado con los defaults de
     // Decatron. Si el streamer no toco nada, esto es exactamente el pack de fabrica.
@@ -270,6 +303,8 @@ export default function WheelOverlay() {
         setSegments(data.segments);
         setVisualRaw(data.visual);
         setMode(data.mode);
+        setRaffle(data.raffle);
+        setLang(data.lang);
     }, []);
 
     const reintentoRef = useRef<number | null>(null);
@@ -286,7 +321,7 @@ export default function WheelOverlay() {
                 // La rueda no existe o esta apagada: el overlay se vacia en vez de
                 // quedarse mostrando la ultima que vio. Cuando la enciendan, el aviso
                 // del backend la trae de vuelta.
-                data = { segments: [], visual: null, mode: null };
+                data = { segments: [], visual: null, mode: null, raffle: null, lang: 'es' };
             } else if (!res.ok) {
                 throw new Error(String(res.status));
             } else {
@@ -296,6 +331,8 @@ export default function WheelOverlay() {
                     segments: json.data.segments || [],
                     visual: json.data.wheel?.visual ?? null,
                     mode: json.data.wheel?.mode ?? null,
+                    raffle: json.data.raffle ?? null,
+                    lang: json.data.wheel?.lang ?? 'es',
                 };
             }
             esperaRef.current = 5000;
@@ -352,7 +389,7 @@ export default function WheelOverlay() {
         // En modo `spin` la rueda primero entra y despues gira: girar durante la
         // entrada haria que el espectador se perdiera el arranque.
         const v = visualRef.current;
-        if (v.visibility === 'spin' && !shownRef.current) {
+        if ((v.visibility === 'spin' || v.visibility === 'registration') && !shownRef.current) {
             shownRef.current = true;
             setShown(true);
             setPhase('idle');
@@ -393,7 +430,10 @@ export default function WheelOverlay() {
             const v = visualRef.current;
             // Con giros en cola, en modo `spin` la rueda se queda en pantalla: salir y
             // volver a entrar entre dos giros seguidos se veria como un parpadeo.
-            if (v.visibility === 'spin' && queueRef.current.length === 0) {
+            // `registration` sale igual que `spin`, salvo que la inscripcion siga abierta:
+            // ahi la rueda se queda para que la gente vea como sigue creciendo.
+            const sale = v.visibility === 'spin' || (v.visibility === 'registration' && !abiertaRef.current);
+            if (sale && queueRef.current.length === 0) {
                 shownRef.current = false;
                 setShown(false);
                 window.setTimeout(reposo, v.visibilityAnimation === 'none' ? 0 : SALIDA_MS);
@@ -414,8 +454,44 @@ export default function WheelOverlay() {
     // Al volver despues a "solo al girar", arranca escondida y no con el estado
     // que tenia antes del cambio.
     useEffect(() => {
-        if (visual.visibility === 'always') { shownRef.current = false; setShown(null); }
+        if (visual.visibility !== 'registration') { shownRef.current = false; setShown(null); }
     }, [visual.visibility]);
+
+    // ---- visibilidad `registration`: la rueda sigue a la ventana de inscripcion ----
+    // La ventana temporizada se cierra sola sin que el servidor avise: el overlay se
+    // entera por la hora que viene en los datos.
+    const [vencida, setVencida] = useState(false);
+    useEffect(() => {
+        setVencida(false);
+        if (!raffle?.isOpen || !raffle.closesAt) return;
+        const falta = new Date(raffle.closesAt).getTime() - Date.now();
+        if (falta <= 0) { setVencida(true); return; }
+        const id = window.setTimeout(() => setVencida(true), falta);
+        return () => window.clearTimeout(id);
+    }, [raffle?.isOpen, raffle?.closesAt]);
+
+    const abierta = !!raffle?.isOpen && !vencida;
+    abiertaRef.current = abierta;
+
+    useEffect(() => {
+        if (visual.visibility !== 'registration') return;
+        // En pleno giro manda el giro: al terminar decide si sale (ver handleFinished).
+        if (busyRef.current) return;
+        if (abierta && !shownRef.current) { shownRef.current = true; setShown(true); }
+        else if (!abierta && shownRef.current) { shownRef.current = false; setShown(false); }
+    }, [visual.visibility, abierta]);
+
+    // La tarjeta de "fulano se unio". Un inscrito que llega con la tarjeta puesta la
+    // reemplaza (y reinicia el reloj) en vez de apilarse: diez en un segundo son una
+    // tarjeta con el contador al dia, no diez tarjetas.
+    const mostrarInscrito = useCallback((d: { viewer?: string; count?: number }) => {
+        if (!d?.viewer) return;
+        joinKeyRef.current += 1;
+        setJoinCard({ viewer: d.viewer, count: d.count ?? 0, key: joinKeyRef.current });
+        if (joinTimerRef.current) window.clearTimeout(joinTimerRef.current);
+        joinTimerRef.current = window.setTimeout(() => { joinTimerRef.current = null; setJoinCard(null); }, TARJETA_JOIN_MS);
+    }, []);
+    useEffect(() => () => { if (joinTimerRef.current) window.clearTimeout(joinTimerRef.current); }, []);
 
     useEffect(() => () => { if (startRef.current) window.clearTimeout(startRef.current); }, []);
 
@@ -448,6 +524,9 @@ export default function WheelOverlay() {
                 connection.on('WheelConfigChanged', (data: { slug?: string }) => {
                     if ((data?.slug || '').toLowerCase() === slug) recargarPronto();
                 });
+                connection.on('WheelRaffleJoin', (data: { slug?: string; viewer?: string; count?: number }) => {
+                    if ((data?.slug || '').toLowerCase() === slug) mostrarInscrito(data);
+                });
 
                 connection.onreconnected(async () => {
                     await connection?.invoke('JoinChannel', channel);
@@ -470,7 +549,7 @@ export default function WheelOverlay() {
             if (recarga) window.clearTimeout(recarga);
             connection?.stop();
         };
-    }, [channel, slug, enqueue, loadData]);
+    }, [channel, slug, enqueue, loadData, mostrarInscrito]);
 
     // En modo `spin` la rueda solo se ve mientras hay algo que mostrar.
     const enEscena = visual.visibility === 'always' || shown === true;
@@ -510,7 +589,10 @@ export default function WheelOverlay() {
         canal: channel,
     };
 
+    const textosJoin = TEXTOS_JOIN[lang] ?? TEXTOS_JOIN.es;
+
     return (
+        <>
         <div className={`wheel-stage ${claseEscena}`} data-anim={visual.visibilityAnimation}>
             <style>{buildCss(visual, pres, layout)}</style>
 
@@ -575,7 +657,43 @@ export default function WheelOverlay() {
                 <div className="wheel-mark">Rueda de la Suerte · Decatron</div>
             )}
         </div>
+
+        {/* Fuera del escenario a proposito: con la rueda escondida (modo `spin`) la
+            tarjeta tiene que poder verse igual, es justo cuando la gente se esta
+            inscribiendo. */}
+        {joinCard && (
+            <div className="wheel-join" key={joinCard.key}>
+                <style>{buildJoinCss(visual)}</style>
+                <span className="wheel-join-who">{joinCard.viewer} {textosJoin.joined}</span>
+                <span className="wheel-join-count">
+                    {joinCard.count} {joinCard.count === 1 ? textosJoin.one : textosJoin.many}
+                </span>
+            </div>
+        )}
+        </>
     );
+}
+
+/** La tarjeta de inscripcion del Sorteo. Con los colores y la letra de la rueda. */
+function buildJoinCss(v: WheelVisual): string {
+    return `
+.wheel-join {
+    position: fixed; left: 50%; bottom: 7vh; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 12px 30px; border-radius: 14px; border: 3px solid ${v.accent};
+    background: ${v.ink}; color: ${v.bone};
+    box-shadow: 0 10px 34px rgba(0,0,0,.6);
+    font-family: ${FONTS[v.font].stack};
+    z-index: 8; pointer-events: none;
+    animation: wheel-join-in 380ms cubic-bezier(.22,1,.36,1) both;
+}
+.wheel-join-who { font-weight: ${v.fontWeight}; font-size: clamp(18px, 3vh, 32px); line-height: 1.1; text-align: center; }
+.wheel-join-count { color: ${v.accent}; font-weight: 600; font-size: clamp(12px, 1.8vh, 18px); }
+@keyframes wheel-join-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(18px) scale(.94); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+`;
 }
 
 /**

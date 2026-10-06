@@ -469,9 +469,11 @@ export type Celebration = 'confetti' | 'flash' | 'none';
  *              de mostrar al ganador. Con giros en cola se queda hasta el ultimo:
  *              salir y volver a entrar entre dos giros seguidos se veria como un
  *              parpadeo.
+ *   `registration` - solo en Sorteo: la rueda esta mientras la inscripcion este
+ *              abierta (la gente ve como crece), gira al sortear y sale al cerrar.
  */
-export type WheelVisibility = 'always' | 'spin';
-export const WHEEL_VISIBILITIES: WheelVisibility[] = ['spin', 'always'];
+export type WheelVisibility = 'always' | 'spin' | 'registration';
+export const WHEEL_VISIBILITIES: WheelVisibility[] = ['spin', 'always', 'registration'];
 
 export interface WheelVisual {
     /** Colores de reserva para los gajos que no eligieron uno propio. */
@@ -884,7 +886,9 @@ export function resolveVisual(raw: unknown): WheelVisual {
         textOutlineColor: typeof v.textOutlineColor === 'string' && v.textOutlineColor.trim() !== '' ? v.textOutlineColor : null,
         textUppercase: typeof v.textUppercase === 'boolean' ? v.textUppercase : DEFAULT_VISUAL.textUppercase,
 
-        visibility: v.visibility === 'spin' || v.visibility === 'always' ? v.visibility : DEFAULT_VISUAL.visibility,
+        visibility: v.visibility === 'spin' || v.visibility === 'always' || v.visibility === 'registration'
+            ? v.visibility
+            : DEFAULT_VISUAL.visibility,
         visibilityAnimation: LAYOUT_ANIMATIONS.includes(v.visibilityAnimation as LayoutAnimation)
             ? v.visibilityAnimation as LayoutAnimation
             : DEFAULT_VISUAL.visibilityAnimation,
