@@ -31,6 +31,11 @@ namespace Decatron.Controllers
         {
             if (!_settings.Enabled) return NotFound();
 
+            // Sin cache en ningun escalon: el overlay pide esto cada vez que el streamer
+            // guarda, y una fuente de OBS que se quede con la respuesta vieja es justo el
+            // "tengo que actualizar la fuente a mano" que este aviso viene a evitar.
+            Response.Headers["Cache-Control"] = "no-store";
+
             try
             {
                 if (string.IsNullOrWhiteSpace(channel) || string.IsNullOrWhiteSpace(wheel))

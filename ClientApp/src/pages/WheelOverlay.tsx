@@ -281,7 +281,7 @@ export default function WheelOverlay() {
 
         let data: OverlayData | null;
         try {
-            const res = await fetch(`/api/wheel/overlay?channel=${encodeURIComponent(channel)}&wheel=${encodeURIComponent(slug)}`);
+            const res = await fetch(`/api/wheel/overlay?channel=${encodeURIComponent(channel)}&wheel=${encodeURIComponent(slug)}`, { cache: 'no-store' });
             if (res.status === 404) {
                 // La rueda no existe o esta apagada: el overlay se vacia en vez de
                 // quedarse mostrando la ultima que vio. Cuando la enciendan, el aviso
