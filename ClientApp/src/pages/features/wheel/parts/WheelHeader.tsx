@@ -4,7 +4,7 @@ import type { Tab, WheelSummary } from '../model';
 import { FIELD } from '../ui';
 
 /** Las pestañas sin nada que guardar en bloque: cada fila se resuelve o se edita sola. */
-const SIN_GUARDAR: Tab[] = ['test', 'deliveries', 'history', 'wallets'];
+const SIN_GUARDAR: Tab[] = ['test', 'deliveries', 'history', 'wallets', 'media'];
 
 /** Título, selector de rueda, crear, probar giro y guardar. */
 export function WheelHeader({

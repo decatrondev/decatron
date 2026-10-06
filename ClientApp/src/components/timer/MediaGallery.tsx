@@ -403,7 +403,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                             {filteredFiles.length} archivo(s) | {formatFileSize(storageInfo.used)} de {storageInfo.max < 0 ? 'ilimitado' : formatFileSize(storageInfo.max)}
                         </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                         <button
                             onClick={() => downloadZip()}
                             disabled={filteredFiles.length === 0}

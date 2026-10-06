@@ -1150,6 +1150,12 @@
       "f_videoAudio": "With audio",
       "f_videoVolume": "Volume",
       "videoNote": "The video restarts every time the piece appears. In the panel it always plays muted."
+    },
+    "groups": {
+      "config": "Setup",
+      "operation": "Operations",
+      "design": "Design",
+      "group": "Section"
     }
   },
   "liveTranslation": {

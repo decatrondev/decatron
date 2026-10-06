@@ -27,6 +27,7 @@ import {
 } from './wheel/model';
 import { SegmentsTab } from './wheel/parts/SegmentsTab';
 import { TabNav } from './wheel/parts/TabNav';
+import { defaultTab, readSavedTab, saveTab, tabsForMode } from './wheel/tabGroups';
 import { WheelHeader } from './wheel/parts/WheelHeader';
 import { WheelSidebar } from './wheel/parts/WheelSidebar';
 import { CreditsTab } from './wheel/tabs/CreditsTab';
@@ -54,7 +55,7 @@ export default function WheelConfig() {
     const [segments, setSegments] = useState<Segment[]>([]);
     const [sources, setSources] = useState<Source[]>([]);
     const [msgPack, setMsgPack] = useState<MessagePack | null>(null);
-    const [tab, setTab] = useState<Tab>('segments');
+    const [tab, setTab] = useState<Tab>(() => readSavedTab() ?? 'segments');
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [copied, setCopied] = useState(false);
     // Dispara la celebracion sobre el preview desde el boton de la pestana Aspecto.
@@ -119,9 +120,9 @@ export default function WheelConfig() {
         setSources(fuentes.data.sources || []);
 
         // Una rueda de Sorteo no tiene creditos ni gajos que editar, pero si un pool.
+        // La pestana que no existe en su modo la corrige el efecto de mas abajo.
         if (detalle.data.wheel?.mode === 'raffle') {
             await raffle.load(id);
-            setTab('raffle');
         } else {
             raffle.clear();
         }
@@ -135,6 +136,14 @@ export default function WheelConfig() {
     };
 
     useEffect(() => { loadWheels(); }, [loadWheels]);
+
+    // La pestana se recuerda entre visitas, pero tiene que existir en el modo de la rueda
+    // abierta: la de Sorteo no tiene Gajos ni Creditos y la de Premios no tiene Sorteo.
+    useEffect(() => {
+        if (!wheel) return;
+        if (!tabsForMode(wheel.mode).includes(tab)) setTab(defaultTab(wheel.mode));
+        else saveTab(tab);
+    }, [tab, wheel?.mode, wheel?.id]);
 
     // Al entrar en Historial se piden las dos cosas de una: las tarjetas de arriba y
     // la tabla salen de endpoints distintos porque las metricas usan TODO el historial
@@ -448,7 +457,9 @@ export default function WheelConfig() {
         // El ancho crece por tramos en vez de quedarse en un tope fijo: 1400px en un
         // monitor 4K dejan mas de la mitad de la pantalla vacia, y a ancho completo las
         // filas de gajos se estiran tanto que el ojo pierde de que fila viene cada campo.
-        <div className="space-y-6 w-full max-w-[1400px] 2xl:max-w-[1760px] min-[2600px]:max-w-[2200px] mx-auto">
+        // `panel-scale` agranda todo en 2K/4K (igual que Song Request): sin el, a esas
+        // resoluciones el panel se ve diminuto y deja media pantalla vacia.
+        <div className="panel-scale space-y-6 w-full max-w-[1920px] mx-auto">
             <WheelHeader
                 wheel={wheel} wheels={wheels} tab={tab} saving={saving} limits={channel.limits}
                 onBack={() => navigate('/overlays')}
@@ -476,7 +487,7 @@ export default function WheelConfig() {
                    minimo, asi que un hijo ancho ensancha la rejilla entera en vez de
                    encogerse. Era la mitad del scroll horizontal. La columna del preview
                    crece en pantallas grandes, donde 360px se ven diminutos. */
-                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_420px] gap-6 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
                     <div className="space-y-4 min-w-0">
                         <TabNav wheel={wheel} tab={tab} pendingCount={deliveries.pendingCount} onTab={setTab} t={t} />
 

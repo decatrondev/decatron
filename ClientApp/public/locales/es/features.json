@@ -1150,6 +1150,12 @@
       "f_videoAudio": "Con audio",
       "f_videoVolume": "Volumen",
       "videoNote": "El video vuelve a empezar cada vez que la pieza aparece. En el panel se ve siempre mudo."
+    },
+    "groups": {
+      "config": "Configuración",
+      "operation": "Operación",
+      "design": "Diseño",
+      "group": "Sección"
     }
   },
   "liveTranslation": {
