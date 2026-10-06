@@ -1,4 +1,4 @@
-import { BookOpen, Palette, Settings2, SlidersHorizontal, Terminal, type LucideIcon } from 'lucide-react';
+import { BookOpen, Gauge, Palette, Settings2, SlidersHorizontal, Terminal, type LucideIcon } from 'lucide-react';
 import type { Tab } from './model';
 
 /**
@@ -10,7 +10,7 @@ import type { Tab } from './model';
  * Las pestanas dependen del modo: una rueda de Sorteo no tiene gajos ni creditos y una
  * de Premios no tiene pool. Un grupo sin pestanas en el modo actual no se dibuja.
  */
-export type GroupId = 'guide' | 'config' | 'operation' | 'design' | 'commands';
+export type GroupId = 'guide' | 'config' | 'operation' | 'design' | 'commands' | 'plan';
 
 export interface TabGroup {
     id: GroupId;
@@ -20,7 +20,7 @@ export interface TabGroup {
 }
 
 export const TAB_GROUPS: readonly TabGroup[] = [
-    // Guia y Comandos son grupos de una sola pestana: la barra de segundo nivel no se dibuja.
+    // Guia, Comandos y Plan son grupos de una sola pestana: la barra de segundo nivel no se dibuja.
     { id: 'guide', icon: BookOpen, prizes: ['guide'], raffle: ['guide'] },
     {
         id: 'config', icon: Settings2,
@@ -39,6 +39,7 @@ export const TAB_GROUPS: readonly TabGroup[] = [
         raffle: ['look', 'canvas', 'media'],
     },
     { id: 'commands', icon: Terminal, prizes: ['commands'], raffle: ['commands'] },
+    { id: 'plan', icon: Gauge, prizes: ['plan'], raffle: ['plan'] },
 ];
 
 const tabsOf = (g: TabGroup, mode: string) => (mode === 'raffle' ? g.raffle : g.prizes);

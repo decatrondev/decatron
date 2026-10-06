@@ -111,6 +111,47 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>
+        /// Los topes de la Rueda de TODOS los planes, en orden de menor a mayor, para que
+        /// la pestaña "Plan y límites" pueda decir qué se gana al subir de plan. Es de solo
+        /// lectura y sale de los mismos resolvers que <c>/limits</c> (la tabla de features
+        /// manda y los valores por defecto cubren lo que falte), así que el panel nunca
+        /// muestra una tabla copiada que se quede vieja.
+        ///
+        /// <para>Admin no se lista: no es un plan que se compre. Los tiers amplían
+        /// cantidades, nunca bloquean funciones; por eso aquí solo hay números y la marca
+        /// de agua.</para>
+        /// </summary>
+        [HttpGet("plans")]
+        [RequirePermission("overlays")]
+        public async Task<IActionResult> GetPlans()
+        {
+            if (!_settings.Enabled) return NotFound();
+
+            try
+            {
+                var plans = new List<object>();
+                foreach (var tier in new[] { "free", "supporter", "premium", "fundador" })
+                {
+                    plans.Add(new
+                    {
+                        tier,
+                        maxWheels = await TierResolver.GetWheelLimitAsync(_db, tier),
+                        maxSegments = await TierResolver.GetWheelSegmentLimitAsync(_db, tier),
+                        historyDays = await TierResolver.GetWheelHistoryDaysAsync(_db, tier),
+                        canHideWatermark = TierResolver.PuedeOcultarMarcaDeAgua(tier),
+                    });
+                }
+
+                return Ok(new { success = true, plans });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "🎡 [Rueda] Error leyendo los planes");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
         [HttpPost("wheels")]
         [RequirePermission("overlays")]
         public async Task<IActionResult> CreateWheel([FromBody] CreateWheelDto dto)

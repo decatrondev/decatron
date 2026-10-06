@@ -78,7 +78,7 @@ export interface Source {
     channelPointsRewardId: string | null;
 }
 
-export type Tab = 'guide' | 'commands' | 'segments' | 'credits' | 'limits' | 'messages' | 'test' | 'deliveries'
+export type Tab = 'guide' | 'commands' | 'plan' | 'segments' | 'credits' | 'limits' | 'messages' | 'test' | 'deliveries'
     | 'raffle' | 'look' | 'canvas' | 'media' | 'history' | 'wallets';
 
 /** Una fila del historial. `label` es null si el gajo se borro despues del giro. */

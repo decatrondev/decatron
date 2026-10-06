@@ -594,7 +594,8 @@
       "wallets": "Billeteras",
       "canvas": "Lienzo",
       "guide": "Guía",
-      "commands": "Comandos"
+      "commands": "Comandos",
+      "plan": "Plan y límites"
     },
     "credits": {
       "title": "Como se gana un giro",
@@ -1159,7 +1160,8 @@
       "design": "Diseño",
       "group": "Sección",
       "guide": "Guía",
-      "commands": "Comandos"
+      "commands": "Comandos",
+      "plan": "Plan y límites"
     },
     "guide": {
       "title": "Cómo poner tu rueda en el stream",
@@ -1225,6 +1227,55 @@
         "reset": "Vacía el pool de inscritos, sin avisar en el chat."
       },
       "modNote": "Los comandos de moderación los pueden usar moderadores, Lead Moderator y el streamer. Escribir «!drueda» sin una acción no hace nada."
+    },
+    "plan": {
+      "title": "Plan y límites",
+      "help": "Tu tipo de cuenta y los topes de la Rueda. Los planes amplían cantidades, nunca bloquean funciones.",
+      "yourPlan": "Tu plan: {{plan}}",
+      "tiers": {
+        "free": "Free",
+        "supporter": "Supporter",
+        "premium": "Premium",
+        "fundador": "Fundador",
+        "admin": "Admin"
+      },
+      "unlimited": "Sin tope",
+      "units": {
+        "wheels": "{{n}}",
+        "segments": "{{n}}",
+        "days": "{{n}} días"
+      },
+      "usedOf": "{{used}} de {{max}}",
+      "usedUnlimited": "{{used}} · sin tope",
+      "wheelsOn": "Ruedas encendidas",
+      "wheelsOffNote": "Ruedas apagadas (no gastan cupo): {{n}}.",
+      "segmentsThis": "Gajos de esta rueda",
+      "full": {
+        "wheels": "Llegaste al tope: para encender otra rueda apaga una o sube de plan.",
+        "segments": "Llegaste al tope de gajos de esta rueda."
+      },
+      "history": "Historial visible",
+      "watermark": "Marca de agua de Decatron",
+      "canHide": "Se puede ocultar",
+      "alwaysShown": "Siempre visible",
+      "nextTitle": "Qué se desbloquea con el siguiente plan",
+      "nextIntro": "Con {{plan}} pasas a:",
+      "gain": {
+        "wheels": "Ruedas encendidas",
+        "segments": "Gajos por rueda",
+        "history": "Historial",
+        "watermark": "Ocultar la marca de agua"
+      },
+      "yes": "Sí",
+      "no": "No",
+      "noGain": "El siguiente plan no cambia estos topes.",
+      "topPlan": "Ya estás en el plan más alto: no hay un siguiente nivel.",
+      "loading": "Cargando…",
+      "loadFailed": "No se pudo cargar la comparación de planes.",
+      "noData": "No se pudieron cargar los datos de tu plan.",
+      "compareTitle": "Todos los planes",
+      "current": "Tu plan",
+      "onlyQuantities": "Los planes solo cambian cantidades (ruedas, gajos, historial) y la marca de agua. Todas las funciones de la Rueda están disponibles en todos."
     }
   },
   "liveTranslation": {

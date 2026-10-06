@@ -38,6 +38,7 @@ import { GuideTab } from './wheel/tabs/GuideTab';
 import { HistoryTab } from './wheel/tabs/HistoryTab';
 import { LimitsTab } from './wheel/tabs/LimitsTab';
 import { LookTab } from './wheel/tabs/LookTab';
+import { PlanTab } from './wheel/tabs/PlanTab';
 import { MessagesTab } from './wheel/tabs/MessagesTab';
 import { RaffleTab } from './wheel/tabs/RaffleTab';
 import { TestTab } from './wheel/tabs/TestTab';
@@ -506,6 +507,13 @@ export default function WheelConfig() {
                             <CommandsTab
                                 wheel={wheel} onWheel={patchWheel} sources={sources}
                                 raffle={raffle.raffle} onRaffle={raffle.patch} onNavigate={setTab} t={t}
+                            />
+                        )}
+
+                        {tab === 'plan' && (
+                            <PlanTab
+                                limits={channel.limits} segmentCount={segments.length}
+                                showSegments={wheel.mode !== 'raffle'} t={t}
                             />
                         )}
 

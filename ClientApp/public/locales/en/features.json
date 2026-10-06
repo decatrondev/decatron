@@ -594,7 +594,8 @@
       "wallets": "Wallets",
       "canvas": "Canvas",
       "guide": "Guide",
-      "commands": "Commands"
+      "commands": "Commands",
+      "plan": "Plan and limits"
     },
     "credits": {
       "title": "How a spin is earned",
@@ -1159,7 +1160,8 @@
       "design": "Design",
       "group": "Section",
       "guide": "Guide",
-      "commands": "Commands"
+      "commands": "Commands",
+      "plan": "Plan and limits"
     },
     "guide": {
       "title": "How to put your wheel on stream",
@@ -1225,6 +1227,55 @@
         "reset": "Empties the pool of entrants, without announcing it in chat."
       },
       "modNote": "Moderation commands can be used by moderators, Lead Moderators and the streamer. Typing “!drueda” without an action does nothing."
+    },
+    "plan": {
+      "title": "Plan and limits",
+      "help": "Your account type and the Wheel’s limits. Plans raise quantities and never lock features.",
+      "yourPlan": "Your plan: {{plan}}",
+      "tiers": {
+        "free": "Free",
+        "supporter": "Supporter",
+        "premium": "Premium",
+        "fundador": "Founder",
+        "admin": "Admin"
+      },
+      "unlimited": "No limit",
+      "units": {
+        "wheels": "{{n}}",
+        "segments": "{{n}}",
+        "days": "{{n}} days"
+      },
+      "usedOf": "{{used}} of {{max}}",
+      "usedUnlimited": "{{used}} · no limit",
+      "wheelsOn": "Wheels turned on",
+      "wheelsOffNote": "Wheels turned off (they do not use quota): {{n}}.",
+      "segmentsThis": "Slices in this wheel",
+      "full": {
+        "wheels": "You reached the limit: to turn on another wheel, turn one off or upgrade your plan.",
+        "segments": "You reached this wheel’s slice limit."
+      },
+      "history": "Visible history",
+      "watermark": "Decatron watermark",
+      "canHide": "Can be hidden",
+      "alwaysShown": "Always shown",
+      "nextTitle": "What the next plan unlocks",
+      "nextIntro": "With {{plan}} you get:",
+      "gain": {
+        "wheels": "Wheels turned on",
+        "segments": "Slices per wheel",
+        "history": "History",
+        "watermark": "Hide the watermark"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "noGain": "The next plan does not change these limits.",
+      "topPlan": "You are already on the highest plan: there is no next level.",
+      "loading": "Loading…",
+      "loadFailed": "Could not load the plan comparison.",
+      "noData": "Could not load your plan data.",
+      "compareTitle": "All plans",
+      "current": "Your plan",
+      "onlyQuantities": "Plans only change quantities (wheels, slices, history) and the watermark. Every Wheel feature is available on all of them."
     }
   },
   "liveTranslation": {
