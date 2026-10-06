@@ -664,7 +664,10 @@ export default function WheelOverlay() {
         {joinCard && (
             <div className="wheel-join" key={joinCard.key}>
                 <style>{buildJoinCss(visual)}</style>
-                <span className="wheel-join-who">{joinCard.viewer} {textosJoin.joined}</span>
+                <span className="wheel-join-who">
+                    <span className="wheel-join-name">{joinCard.viewer}</span>
+                    <span className="wheel-join-verb">{textosJoin.joined}</span>
+                </span>
                 <span className="wheel-join-count">
                     {joinCard.count} {joinCard.count === 1 ? textosJoin.one : textosJoin.many}
                 </span>
@@ -678,7 +681,8 @@ export default function WheelOverlay() {
 function buildJoinCss(v: WheelVisual): string {
     return `
 .wheel-join {
-    position: fixed; left: 50%; bottom: 7vh; transform: translateX(-50%);
+    position: fixed; left: 50%; bottom: 14vh; transform: translateX(-50%);
+    max-width: min(70vw, 1100px); box-sizing: border-box;
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     padding: 12px 30px; border-radius: 14px; border: 3px solid ${v.accent};
     background: ${v.ink}; color: ${v.bone};
@@ -687,7 +691,14 @@ function buildJoinCss(v: WheelVisual): string {
     z-index: 8; pointer-events: none;
     animation: wheel-join-in 380ms cubic-bezier(.22,1,.36,1) both;
 }
-.wheel-join-who { font-weight: ${v.fontWeight}; font-size: clamp(18px, 3vh, 32px); line-height: 1.1; text-align: center; }
+.wheel-join-who {
+    font-weight: ${v.fontWeight}; font-size: clamp(18px, 3vh, 32px); line-height: 1.1; text-align: center;
+    display: flex; align-items: baseline; justify-content: center; gap: .35em;
+    max-width: 100%; white-space: nowrap;
+}
+/* El nombre cede espacio y se corta con puntos suspensivos; "se unio" nunca se corta. */
+.wheel-join-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.wheel-join-verb { flex: none; }
 .wheel-join-count { color: ${v.accent}; font-weight: 600; font-size: clamp(12px, 1.8vh, 18px); }
 @keyframes wheel-join-in {
     from { opacity: 0; transform: translateX(-50%) translateY(18px) scale(.94); }

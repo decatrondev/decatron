@@ -165,7 +165,22 @@ function Slice({ index, slice, color, visual, label, icon, dimmed }: {
     // justo lo que este calculo existe para evitar.
     const porLargo = texto.length > 16 ? 15 : texto.length > 10 ? 18 : 21;
     const porAncho = slice < 12 ? 11 : slice < 20 ? 14 : 21;
-    const fontSize = Math.max(6, Math.round(Math.min(porLargo, porAncho) * visual.textScale));
+
+    // Lo que el texto puede ocupar a lo largo del radio: entre el cubo y el aro, con
+    // aire a los dos lados. Es un TOPE y no un tamano mas: la escala del streamer ya
+    // no puede hacer que un nombre largo se salga del disco, que es lo que pasaba con
+    // los nombres de Twitch (hasta 25 letras) en el Sorteo.
+    const LARGO_MAXIMO = 170;
+    const LETRA_MINIMA = 8;
+    const anchoPorLetra = (visual.textUppercase ? 0.62 : 0.53) + visual.textOutline * 0.02;
+    const maxLetras = Math.floor(LARGO_MAXIMO / (anchoPorLetra * LETRA_MINIMA));
+    const corto = texto.length > maxLetras ? `${texto.slice(0, maxLetras - 1)}…` : texto;
+    const topePorLargo = LARGO_MAXIMO / (corto.length * anchoPorLetra);
+
+    const fontSize = Math.max(
+        6,
+        Math.round(Math.min(Math.min(porLargo, porAncho) * visual.textScale, topePorLargo)),
+    );
 
     const colorTexto = visual.textColor ?? ink;
     // El contorno se dibuja DEBAJO del relleno (`paint-order`). Al reves se comeria
@@ -190,7 +205,7 @@ function Slice({ index, slice, color, visual, label, icon, dimmed }: {
                 strokeLinejoin="round"
                 style={{ letterSpacing: '-0.01em', paintOrder: 'stroke fill' }}
             >
-                {texto.length > 22 ? `${texto.slice(0, 21)}…` : texto}
+                {corto}
             </text>
         </g>
     );
