@@ -592,7 +592,9 @@
       "media": "Media",
       "history": "History",
       "wallets": "Wallets",
-      "canvas": "Canvas"
+      "canvas": "Canvas",
+      "guide": "Guide",
+      "commands": "Commands"
     },
     "credits": {
       "title": "How a spin is earned",
@@ -1155,7 +1157,74 @@
       "config": "Setup",
       "operation": "Operations",
       "design": "Design",
-      "group": "Section"
+      "group": "Section",
+      "guide": "Guide",
+      "commands": "Commands"
+    },
+    "guide": {
+      "title": "How to put your wheel on stream",
+      "offWarning": "This wheel is off: it does not answer commands and is not shown in the overlay. Turn it on with the switch in the right-hand column.",
+      "step1Title": "What it is",
+      "step2Title": "Copy the overlay link",
+      "step2Body": "This is the link for this wheel. It has no key: anyone who has it can see the overlay, but cannot change anything.",
+      "step3Title": "Add it to OBS",
+      "obs1": "In OBS, inside your scene, press + under Sources and choose Browser.",
+      "obs2": "Paste the link into the URL field.",
+      "obs3": "Set Width {{width}} and Height {{height}}.",
+      "obs4": "Accept. The background is transparent by default, so your scene shows behind it.",
+      "obsAuto": "This wheel does not use its own canvas: it centers itself and adapts to any source size, although {{width}}×{{height}} is recommended.",
+      "step4Title": "Try it",
+      "nextTitle": "Next steps",
+      "prizes": {
+        "description": "A wheel that spins on screen and hands out prizes to your community.",
+        "what": "Each slice has a weight and a prize. Your viewers collect credits (with bits, subs, gifted subs, donations or channel points), pay for a spin and the bot decides the prize. The overlay only animates the result.",
+        "test": "Press “Test spin” above to watch it spin in your overlay. In the Test tab you can simulate a contribution (bits, subs…) to see how many credits it would give."
+      },
+      "raffle": {
+        "description": "A raffle where the slices are the people who joined.",
+        "what": "People join with a command while entries are open. You or your moderators open and close them, and the bot picks the winner. The overlay only animates the draw.",
+        "test": "Open entries from the Raffle tab, type the command in your chat to join, and draw from there or with “!drueda sortear”."
+      },
+      "go": {
+        "segments": "The slices, their weights and prizes.",
+        "credits": "Where credits come from and what a spin costs.",
+        "limits": "Spin cooldown, caps and spin rules.",
+        "commands": "Chat commands, who can use them and examples.",
+        "messages": "What the bot says in chat.",
+        "look": "Colors, fonts, presentation and sounds.",
+        "canvas": "Where each piece goes on screen.",
+        "test": "Simulate contributions without spending real credits.",
+        "deliveries": "Prizes the bot could not deliver.",
+        "raffle": "Entries, weights and the draw.",
+        "history": "Spins and draws that already happened."
+      }
+    },
+    "commands": {
+      "title": "Chat commands",
+      "prizesHelp": "These are this wheel’s commands with the names it has configured. You can change them right here and press Save.",
+      "raffleHelp": "These are this raffle’s commands. The entry command can be renamed right here and saved; the moderation ones are fixed.",
+      "who": {
+        "everyone": "Everyone",
+        "mods": "Mods, Lead Mod and streamer"
+      },
+      "off": "Off",
+      "sourceOff": "Source off",
+      "aliases": "Also:",
+      "creditsFallback": "credits",
+      "spin": "Spins the wheel and charges the spin price in credits. The bot answers in chat with the prize.",
+      "spinMulti": "With “{{command}} 5” it spins several times in a row (up to {{max}}).",
+      "spinMultiOff": "Multi-spin is off; you can turn it on in",
+      "balance": "Shows how many {{credits}} the person who types it has.",
+      "buy": "Exchanges deca coins for this wheel’s credits. You must give the amount of coins.",
+      "buyNeedsSource": "It only answers if the Deca coins source is on and the person typing it has a Decatron account. Turn it on in",
+      "join": "Enters whoever types it into the raffle, while entries are open.",
+      "mod": {
+        "abrir": "Opens entries and announces the join command in chat.",
+        "cerrar": "Closes entries.",
+        "sortear": "Draws and announces the winner (one message per winner if there are several).",
+        "reset": "Empties the pool of entrants, without announcing it in chat."
+      },
+      "modNote": "Moderation commands can be used by moderators, Lead Moderators and the streamer. Typing “!drueda” without an action does nothing."
     }
   },
   "liveTranslation": {

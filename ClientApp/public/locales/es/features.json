@@ -592,7 +592,9 @@
       "media": "Media",
       "history": "Historial",
       "wallets": "Billeteras",
-      "canvas": "Lienzo"
+      "canvas": "Lienzo",
+      "guide": "Guía",
+      "commands": "Comandos"
     },
     "credits": {
       "title": "Como se gana un giro",
@@ -1155,7 +1157,74 @@
       "config": "Configuración",
       "operation": "Operación",
       "design": "Diseño",
-      "group": "Sección"
+      "group": "Sección",
+      "guide": "Guía",
+      "commands": "Comandos"
+    },
+    "guide": {
+      "title": "Cómo poner tu rueda en el stream",
+      "offWarning": "Esta rueda está apagada: no responde comandos ni se ve en el overlay. Enciéndela con el interruptor de la columna de la derecha.",
+      "step1Title": "Qué es",
+      "step2Title": "Copia el enlace del overlay",
+      "step2Body": "Es el enlace de esta rueda. No lleva clave: cualquiera que lo tenga puede ver el overlay, pero no cambiar nada.",
+      "step3Title": "Agrégalo a OBS",
+      "obs1": "En OBS, dentro de tu escena, pulsa + en Fuentes y elige Navegador.",
+      "obs2": "Pega el enlace en el campo URL.",
+      "obs3": "Pon Ancho {{width}} y Alto {{height}}.",
+      "obs4": "Acepta. El fondo es transparente de fábrica, así que se ve tu escena detrás.",
+      "obsAuto": "Esta rueda no usa lienzo propio: se centra sola y se adapta a cualquier tamaño de fuente, aunque {{width}}×{{height}} es lo recomendado.",
+      "step4Title": "Pruébala",
+      "nextTitle": "Siguientes pasos",
+      "prizes": {
+        "description": "Una rueda que gira en pantalla y reparte premios entre tu gente.",
+        "what": "Cada gajo tiene un peso y un premio. Tus espectadores juntan créditos (con bits, subs, regalos de subs, donaciones o puntos de canal), pagan un giro y el bot decide el premio. El overlay solo anima el resultado.",
+        "test": "Pulsa «Probar giro» arriba para verla girar en tu overlay. En la pestaña Probar puedes simular un aporte (bits, subs…) para ver cuántos créditos daría."
+      },
+      "raffle": {
+        "description": "Un sorteo donde los gajos son las personas inscritas.",
+        "what": "La gente se inscribe con un comando mientras la inscripción está abierta. Tú o tus moderadores la abren y la cierran, y el bot elige al ganador. El overlay solo anima el sorteo.",
+        "test": "Abre la inscripción desde la pestaña Sorteo, escribe el comando en tu chat para inscribirte y sortea desde ahí o con «!drueda sortear»."
+      },
+      "go": {
+        "segments": "Los gajos, sus pesos y premios.",
+        "credits": "De dónde salen los créditos y cuánto cuesta un giro.",
+        "limits": "Espera entre giros, topes y reglas del giro.",
+        "commands": "Los comandos del chat, quién los usa y ejemplos.",
+        "messages": "Lo que dice el bot en el chat.",
+        "look": "Colores, fuentes, presentación y sonidos.",
+        "canvas": "Dónde va cada pieza en la pantalla.",
+        "test": "Simula aportes sin gastar créditos reales.",
+        "deliveries": "Premios que el bot no pudo entregar.",
+        "raffle": "Inscripción, pesos y sorteo.",
+        "history": "Los giros y sorteos que ya pasaron."
+      }
+    },
+    "commands": {
+      "title": "Comandos del chat",
+      "prizesHelp": "Estos son los comandos de esta rueda con los nombres que tiene configurados. Puedes cambiarlos aquí mismo y pulsar Guardar.",
+      "raffleHelp": "Estos son los comandos de este sorteo. El de inscripción se puede renombrar aquí mismo y guardar; los de moderación son fijos.",
+      "who": {
+        "everyone": "Todos",
+        "mods": "Mods, Lead Mod y streamer"
+      },
+      "off": "Apagado",
+      "sourceOff": "Fuente apagada",
+      "aliases": "También:",
+      "creditsFallback": "créditos",
+      "spin": "Gira la rueda y cobra el precio del giro en créditos. El bot responde en el chat con el premio.",
+      "spinMulti": "Con «{{command}} 5» gira varias veces seguidas (hasta {{max}}).",
+      "spinMultiOff": "Los giros múltiples están apagados; se activan en",
+      "balance": "Muestra cuántos {{credits}} tiene quien lo escribe.",
+      "buy": "Cambia deca coins por créditos de esta rueda. Hay que indicar la cantidad de coins.",
+      "buyNeedsSource": "Solo responde si la fuente Deca coins está encendida y quien lo escribe tiene cuenta de Decatron. Se enciende en",
+      "join": "Inscribe en el sorteo a quien lo escribe, mientras la inscripción esté abierta.",
+      "mod": {
+        "abrir": "Abre la inscripción y avisa en el chat con el comando para unirse.",
+        "cerrar": "Cierra la inscripción.",
+        "sortear": "Sortea y anuncia al ganador (un mensaje por ganador si hay varios).",
+        "reset": "Vacía el pool de inscritos, sin avisar en el chat."
+      },
+      "modNote": "Los comandos de moderación los pueden usar moderadores, Lead Moderator y el streamer. Escribir «!drueda» sin una acción no hace nada."
     }
   },
   "liveTranslation": {

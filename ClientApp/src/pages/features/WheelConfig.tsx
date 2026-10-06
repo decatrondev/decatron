@@ -30,9 +30,11 @@ import { TabNav } from './wheel/parts/TabNav';
 import { defaultTab, readSavedTab, saveTab, tabsForMode } from './wheel/tabGroups';
 import { WheelHeader } from './wheel/parts/WheelHeader';
 import { WheelSidebar } from './wheel/parts/WheelSidebar';
+import { CommandsTab } from './wheel/tabs/CommandsTab';
 import { CreditsTab } from './wheel/tabs/CreditsTab';
 import { DeliveriesTab } from './wheel/tabs/DeliveriesTab';
 import { EmptyState } from './wheel/tabs/EmptyState';
+import { GuideTab } from './wheel/tabs/GuideTab';
 import { HistoryTab } from './wheel/tabs/HistoryTab';
 import { LimitsTab } from './wheel/tabs/LimitsTab';
 import { LookTab } from './wheel/tabs/LookTab';
@@ -55,7 +57,7 @@ export default function WheelConfig() {
     const [segments, setSegments] = useState<Segment[]>([]);
     const [sources, setSources] = useState<Source[]>([]);
     const [msgPack, setMsgPack] = useState<MessagePack | null>(null);
-    const [tab, setTab] = useState<Tab>(() => readSavedTab() ?? 'segments');
+    const [tab, setTab] = useState<Tab>(() => readSavedTab() ?? 'guide');
     const [confirmDelete, setConfirmDelete] = useState(false);
     const [copied, setCopied] = useState(false);
     // Dispara la celebracion sobre el preview desde el boton de la pestana Aspecto.
@@ -375,6 +377,8 @@ export default function WheelConfig() {
         if (tab === 'credits') return saveCredits();
         if (tab === 'messages') return saveMessages();
         if (tab === 'raffle') return raffle.save();
+        // Los comandos de una rueda de Sorteo viven en su pool; los de Premios, en la rueda.
+        if (tab === 'commands' && wheel?.mode === 'raffle') return raffle.save();
         // El lienzo vive en el mismo jsonb que el aspecto, asi que guarda igual.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (tab === 'look' || tab === 'canvas') return saveWheelFields({ visualConfig: visual } as any);
@@ -490,6 +494,20 @@ export default function WheelConfig() {
                 <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6 items-start">
                     <div className="space-y-4 min-w-0">
                         <TabNav wheel={wheel} tab={tab} pendingCount={deliveries.pendingCount} onTab={setTab} t={t} />
+
+                        {tab === 'guide' && (
+                            <GuideTab
+                                wheel={wheel} overlayUrl={overlayUrl} copied={copied}
+                                hasLayout={!!visual.layout} onCopy={copyUrl} onNavigate={setTab} t={t}
+                            />
+                        )}
+
+                        {tab === 'commands' && (
+                            <CommandsTab
+                                wheel={wheel} onWheel={patchWheel} sources={sources}
+                                raffle={raffle.raffle} onRaffle={raffle.patch} onNavigate={setTab} t={t}
+                            />
+                        )}
 
                         {tab === 'segments' && (
                             <SegmentsTab

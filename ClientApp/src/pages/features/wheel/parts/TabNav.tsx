@@ -1,11 +1,12 @@
 import {
-    Coins, FlaskConical, History, Image as ImageIcon, Inbox, LayoutTemplate, MessageSquare,
-    Palette, PieChart, ShieldAlert, Ticket, Wallet, type LucideIcon,
+    BookOpen, Coins, FlaskConical, History, Image as ImageIcon, Inbox, LayoutTemplate, MessageSquare,
+    Palette, PieChart, ShieldAlert, Terminal, Ticket, Wallet, type LucideIcon,
 } from 'lucide-react';
 import type { Tab, WheelSummary } from '../model';
 import { groupOfTab, groupsForMode, tabsForGroup, type GroupId } from '../tabGroups';
 
 const TAB_ICONS: Record<Tab, LucideIcon> = {
+    guide: BookOpen, commands: Terminal,
     segments: PieChart, credits: Coins, limits: ShieldAlert, messages: MessageSquare,
     test: FlaskConical, deliveries: Inbox, raffle: Ticket, look: Palette,
     canvas: LayoutTemplate, media: ImageIcon, history: History, wallets: Wallet,
