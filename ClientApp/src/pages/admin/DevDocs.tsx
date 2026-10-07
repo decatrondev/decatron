@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FolderOpen, FileText, ChevronLeft, Loader2, AlertCircle, Home, Clock, HardDrive } from 'lucide-react';
+import { FolderOpen, FileText, ChevronLeft, Loader2, AlertCircle, Home, Clock, HardDrive, Archive, ArchiveRestore, CheckCircle2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import api from '../../services/api';
@@ -37,6 +37,13 @@ interface FileResponse {
     lastModified: string;
 }
 
+/** Archivar y restaurar solo existen para los planes: plans/ <-> archivados/plans/. */
+type MoveAction = 'archive' | 'restore';
+const moveActionOf = (path: string): MoveAction | null => {
+    const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+    return dir === 'plans' ? 'archive' : dir === 'archivados/plans' ? 'restore' : null;
+};
+
 export default function DevDocs() {
     const [currentPath, setCurrentPath] = useState('');
     const [folders, setFolders] = useState<FolderItem[]>([]);
@@ -45,6 +52,10 @@ export default function DevDocs() {
     const [selectedFile, setSelectedFile] = useState<FileResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [notice, setNotice] = useState<string | null>(null);
+    // La confirmacion va en la propia fila: mover un documento no se deshace sin saber donde quedo.
+    const [confirmPath, setConfirmPath] = useState<string | null>(null);
+    const [moving, setMoving] = useState(false);
 
     useEffect(() => {
         loadFolder(currentPath);
@@ -83,6 +94,27 @@ export default function DevDocs() {
         }
     };
 
+    const move = async (path: string, action: MoveAction) => {
+        try {
+            setMoving(true);
+            setError(null);
+            const res = await api.post<{ success: boolean; newPath: string }>('/admin/dev-docs/move', { path, action });
+            const name = path.split('/').pop();
+            setConfirmPath(null);
+            await loadFolder(currentPath);
+            setNotice(action === 'archive'
+                ? `Archivado: ${name} (ahora en ${res.data.newPath.replace(/\/[^/]+$/, '')}/)`
+                : `Restaurado: ${name} (ahora en ${res.data.newPath.replace(/\/[^/]+$/, '')}/)`);
+        } catch (err: any) {
+            setConfirmPath(null);
+            setError(err.response?.data?.message || 'No se pudo mover el documento');
+        } finally {
+            setMoving(false);
+        }
+    };
+
+    const moveLabel = (a: MoveAction) => (a === 'archive' ? 'Archivar' : 'Restaurar');
+
     const formatSize = (bytes: number) => {
         if (bytes < 1024) return `${bytes} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -112,6 +144,14 @@ export default function DevDocs() {
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                     <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </div>
+            )}
+
+            {notice && (
+                <div role="status" className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <p className="text-sm text-green-700 dark:text-green-300 flex-1">{notice}</p>
+                    <button onClick={() => setNotice(null)} className="text-xs font-bold text-green-700 dark:text-green-300 hover:underline">Cerrar</button>
                 </div>
             )}
 
@@ -171,6 +211,20 @@ export default function DevDocs() {
                             <h2 className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{selectedFile.name}</h2>
                         </div>
                         <div className="flex items-center gap-4 text-xs text-gray-500">
+                            {moveActionOf(selectedFile.path) && (() => {
+                                const a = moveActionOf(selectedFile.path)!;
+                                return confirmPath === selectedFile.path ? (
+                                    <span className="flex items-center gap-2 text-sm">
+                                        <span className="text-[#1e293b] dark:text-[#f8fafc] font-medium">¿{moveLabel(a)}?</span>
+                                        <button disabled={moving} onClick={() => move(selectedFile.path, a)} className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold disabled:opacity-50">Sí</button>
+                                        <button disabled={moving} onClick={() => setConfirmPath(null)} className="px-3 py-1 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] font-bold">No</button>
+                                    </span>
+                                ) : (
+                                    <button onClick={() => setConfirmPath(selectedFile.path)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#475569] dark:text-[#cbd5e1] hover:bg-gray-50 dark:hover:bg-[#262626]">
+                                        {a === 'archive' ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />}{moveLabel(a)}
+                                    </button>
+                                );
+                            })()}
                             <span className="flex items-center gap-1"><HardDrive className="w-3.5 h-3.5" />{formatSize(selectedFile.size)}</span>
                             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{formatDate(selectedFile.lastModified)}</span>
                         </div>
@@ -217,24 +271,51 @@ export default function DevDocs() {
                     ))}
 
                     {/* Files */}
-                    {files.map(file => (
-                        <button
-                            key={file.path}
-                            onClick={() => loadFile(file.path)}
-                            className="w-full flex items-center gap-4 px-5 py-4 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all text-left group"
-                        >
-                            <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <FileText className="w-5 h-5 text-blue-500" />
+                    {files.map(file => {
+                        const action = moveActionOf(file.path);
+                        return (
+                            <div
+                                key={file.path}
+                                className="w-full flex items-center bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group"
+                            >
+                                <button
+                                    onClick={() => loadFile(file.path)}
+                                    className="flex-1 min-w-0 flex items-center gap-4 px-5 py-4 text-left"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                                        <FileText className="w-5 h-5 text-blue-500" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{file.name}</h3>
+                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                                            {formatSize(file.size)} &middot; {formatDate(file.lastModified)}
+                                        </p>
+                                    </div>
+                                </button>
+
+                                {action && (
+                                    <div className="pr-4 shrink-0 flex items-center gap-2">
+                                        {confirmPath === file.path ? (
+                                            <>
+                                                <span className="text-sm font-medium text-[#1e293b] dark:text-[#f8fafc]">¿{moveLabel(action)}?</span>
+                                                <button disabled={moving} onClick={() => move(file.path, action)} className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold disabled:opacity-50">Sí</button>
+                                                <button disabled={moving} onClick={() => setConfirmPath(null)} className="px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">No</button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => setConfirmPath(file.path)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#475569] dark:text-[#cbd5e1] hover:bg-gray-50 dark:hover:bg-[#262626]"
+                                            >
+                                                {action === 'archive' ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />}
+                                                {moveLabel(action)}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                {!action && <span className="pr-5 text-gray-400 group-hover:text-blue-500 transition">&rarr;</span>}
                             </div>
-                            <div className="flex-1">
-                                <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{file.name}</h3>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
-                                    {formatSize(file.size)} &middot; {formatDate(file.lastModified)}
-                                </p>
-                            </div>
-                            <span className="text-gray-400 group-hover:text-blue-500 transition">&rarr;</span>
-                        </button>
-                    ))}
+                        );
+                    })}
 
                     {/* Empty state */}
                     {folders.length === 0 && files.length === 0 && (
