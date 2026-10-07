@@ -78,16 +78,6 @@ export function LimitsTab({ wheel, onWheel, t }: {
                         className={`${FIELD} w-28`}
                     />
                 </Row>
-
-                <Row label={t('wheel.limits.maxCoins')} help={t('wheel.limits.maxCoinsHelp')}>
-                    <input
-                        type="number" min={1}
-                        value={wheel.maxCoinsPerHour ?? ''}
-                        placeholder={t('wheel.limits.noLimit')}
-                        onChange={e => onWheel({ maxCoinsPerHour: e.target.value ? Number(e.target.value) : null })}
-                        className={`${FIELD} w-28`}
-                    />
-                </Row>
             </section>
 
             {/* --- reglas del sorteo (Fase 7) --- */}

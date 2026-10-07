@@ -166,7 +166,10 @@ export function SegmentRow({
                                     className={PARAM_FIELD}
                                 >
                                     <option value="nothing">{t('wheel.prizes.nothing')}</option>
-                                    <option value="coins">{t('wheel.prizes.coins')}</option>
+                                    {/* Solo se ofrece si el gajo todavia lo trae (de antes): hay que poder verlo para cambiarlo. */}
+                                    {segment.prize.type === 'coins' && (
+                                        <option value="coins" disabled>{t('wheel.prizes.coins')} · {t('wheel.prizes.retired')}</option>
+                                    )}
                                     <option value="free_spin">{t('wheel.prizes.freeSpin')}</option>
                                     <option value="gacha_pull">{t('wheel.prizes.gachaPull')}</option>
                                     <option value="timer_time">{t('wheel.prizes.timerTime')}</option>

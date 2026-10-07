@@ -39,7 +39,8 @@ export function prizeSummary(
 
     switch (prize.type) {
         case 'coins':
-            return { text: `${nombre} · ${Number(p.amount ?? 0)}`, incomplete: false };
+            // Premio retirado: la Rueda ya no regala deca coins. Se marca para que se cambie.
+            return { text: `${nombre} · ${t('wheel.prizes.retired')}`, incomplete: true };
         case 'free_spin': {
             const otra = Number(p.wheel_id ?? 0) ? wheels.find(w => w.id === Number(p.wheel_id)) : null;
             return { text: `${nombre} · ${Number(p.count ?? 1)}${otra ? ` · ${otra.name}` : ''}`, incomplete: false };
@@ -94,16 +95,8 @@ export function PrizeParams({ prize, onChange, wheels, soundAlerts, t }: {
 
     switch (prize.type) {
         case 'coins':
-            return wrap(
-                <F label={t('wheel.prizes.coinsAmount')}>
-                    <input
-                        type="number" min={1}
-                        value={Number(p.amount ?? 100)}
-                        onChange={e => set({ amount: Number(e.target.value) })}
-                        className={`w-28 ${PARAM_FIELD}`}
-                    />
-                </F>,
-            );
+            // Ya no existe: guardar este gajo falla en el servidor hasta que se elija otro premio.
+            return <p className="text-sm text-amber-300 max-w-md">{t('wheel.prizes.retiredHelp')}</p>;
 
         case 'free_spin':
             return wrap(

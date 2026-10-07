@@ -202,20 +202,6 @@ namespace Decatron.Services
             return v.GetString() ?? porDefecto;
         }
 
-        private static int MontoDeCoins(string? prizeJson)
-        {
-            if (string.IsNullOrWhiteSpace(prizeJson)) return 0;
-            try
-            {
-                using var doc = JsonDocument.Parse(prizeJson);
-                var root = doc.RootElement;
-                if (!root.TryGetProperty("type", out var t) || t.GetString() != WheelPrizeTypes.Coins) return 0;
-                if (!root.TryGetProperty("params", out var p) || !p.TryGetProperty("amount", out var a)) return 0;
-                return a.TryGetInt32(out var v) ? v : 0;
-            }
-            catch { return 0; }
-        }
-
         private async Task MarcarPendienteAsync(
             Wheel wheel, string viewerLogin, long? spinId, string? prizeJson, string? motivo = null)
         {

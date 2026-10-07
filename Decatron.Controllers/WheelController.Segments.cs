@@ -39,6 +39,13 @@ namespace Decatron.Controllers
                 if (dtos.Any(d => string.IsNullOrWhiteSpace(d.Label)))
                     return BadRequest(new { success = false, message = "Todos los gajos necesitan un texto" });
 
+                // Los deca coins los vende la plataforma: la Rueda no puede regalarlos (premio retirado).
+                if (dtos.Any(d => d.Prize is { ValueKind: JsonValueKind.Object } pz
+                                  && pz.TryGetProperty("type", out var tp)
+                                  && tp.ValueKind == JsonValueKind.String
+                                  && tp.GetString() == WheelPrizeTypes.Coins))
+                    return BadRequest(new { success = false, message = "El premio «Coins» ya no existe: los deca coins no se pueden regalar desde la Rueda. Elige otro premio." });
+
                 if (dtos.All(d => !d.IsEnabled || d.Weight <= 0))
                     return BadRequest(new { success = false, message = "Al menos un gajo tiene que estar activo y con peso" });
 

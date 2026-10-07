@@ -35,7 +35,6 @@ export function HistoryTab({ spins, total, page, metrics, filters, historyDays, 
                             [t('wheel.history.mLast7'), metrics.totals.spinsLast7],
                             [t('wheel.history.mLast30'), metrics.totals.spinsLast30],
                             [t('wheel.history.mCredits'), metrics.totals.creditsSpent],
-                            [t('wheel.history.mCoins'), metrics.totals.coinsPaid],
                             [t('wheel.history.mPending'), metrics.totals.pendingDeliveries],
                         ] as const).map(([label, valor]) => (
                             <div key={label} className="bg-[#1B1C1D] border border-[#374151] rounded-xl px-4 py-3">

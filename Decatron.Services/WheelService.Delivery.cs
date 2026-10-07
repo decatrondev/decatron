@@ -55,7 +55,11 @@ namespace Decatron.Services
 
                 return tipo switch
                 {
-                    WheelPrizeTypes.Coins         => await EntregarCoinsAsync(wheel, viewerLogin, spinId, prizeJson, pars),
+                    // RETIRADO: este premio acuñaba deca coins —la moneda que vende la plataforma— con
+                    // `GiveCoinsAsync` (la funcion de regalo de admin, que no le quita nada a nadie), asi que
+                    // cualquier streamer podia fabricarlos. Ya no se puede crear (SaveSegments lo rechaza) y,
+                    // si llegara un gajo viejo, no se entrega nada y queda el aviso en el log.
+                    WheelPrizeTypes.Coins         => PremioRetirado(wheel, viewerLogin, "coins"),
                     WheelPrizeTypes.FreeSpin      => await EntregarFreeSpinAsync(wheel, viewerLogin, pars),
                     WheelPrizeTypes.GachaPull     => await EntregarGachaPullAsync(wheel, channelLogin, viewerLogin, spinId, prizeJson, pars),
                     WheelPrizeTypes.TimerTime     => await EntregarTimerTimeAsync(wheel, channelLogin, viewerLogin, spinId, prizeJson, pars),
@@ -77,42 +81,11 @@ namespace Decatron.Services
         // Los handlers, uno por tipo del catálogo
         // --------------------------------------------------------------------
 
-        /// <summary>Coins a la cuenta de Decatron del espectador, con el techo horario de la rueda.</summary>
-        private async Task<PrizeDelivery> EntregarCoinsAsync(
-            Wheel wheel, string viewerLogin, long? spinId, string prizeJson, JsonElement pars)
+        private PrizeDelivery PremioRetirado(Wheel wheel, string viewerLogin, string tipo)
         {
-            var monto = LeerInt(pars, "amount", 0);
-            if (monto <= 0) return new PrizeDelivery();
-
-            // Techo horario: es el freno que evita que una mala configuración de
-            // pesos vacíe la economía del canal en una tarde.
-            if (wheel.MaxCoinsPerHour.HasValue)
-            {
-                var desde = DateTime.UtcNow.AddHours(-1);
-                var recientes = await _db.WheelSpins
-                    .Where(s2 => s2.WheelId == wheel.Id && s2.CreatedAt >= desde && s2.Id != spinId)
-                    .Select(s2 => s2.ResultPrize)
-                    .ToListAsync();
-
-                var yaRepartidos = recientes.Sum(MontoDeCoins);
-                if (yaRepartidos + monto > wheel.MaxCoinsPerHour.Value)
-                {
-                    _logger.LogWarning(
-                        "🎡 [Rueda] '{Rueda}' llegó a su techo de {Techo} coins/hora ({Ya} repartidos); el premio de {Viewer} queda pendiente",
-                        wheel.Name, wheel.MaxCoinsPerHour.Value, yaRepartidos, viewerLogin);
-                    return await PendienteAsync(wheel, viewerLogin, spinId, prizeJson, "Techo de coins por hora alcanzado");
-                }
-            }
-
-            // Los coins viven en la cuenta de Decatron del espectador. Quien todavía
-            // no tiene cuenta no puede recibirlos, así que el premio queda en la
-            // bandeja del streamer en vez de evaporarse.
-            var viewerUserId = await BuscarUserIdAsync(viewerLogin);
-            if (viewerUserId == null)
-                return await PendienteAsync(wheel, viewerLogin, spinId, prizeJson, "El espectador no tiene cuenta de Decatron");
-
-            await _coins.GiveCoinsAsync(viewerUserId.Value, monto, $"Rueda de la Suerte: {wheel.Name}", null);
-            return new PrizeDelivery { Coins = monto };
+            _logger.LogWarning("🎡 [Rueda] '{Rueda}': el premio '{Tipo}' esta retirado y no se entrego a {Viewer}",
+                wheel.Name, tipo, viewerLogin);
+            return new PrizeDelivery();
         }
 
         /// <summary>

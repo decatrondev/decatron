@@ -586,7 +586,9 @@
       "noSoundAlerts": "You have no sound alerts set up",
       "alertOff": "disabled",
       "type": "Prize type",
-      "template": "Bot message"
+      "template": "Bot message",
+      "retired": "retired",
+      "retiredHelp": "This prize no longer exists: deca coins are sold by Decatron and the Wheel cannot give them away. Pick another prize to be able to save the slice."
     },
     "overlayUrl": {
       "title": "Link for OBS",

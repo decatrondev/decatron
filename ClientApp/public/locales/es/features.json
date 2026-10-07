@@ -586,7 +586,9 @@
       "noSoundAlerts": "No tienes alertas de sonido configuradas",
       "alertOff": "desactivada",
       "type": "Tipo de premio",
-      "template": "Mensaje del bot"
+      "template": "Mensaje del bot",
+      "retired": "retirado",
+      "retiredHelp": "Este premio ya no existe: los deca coins los vende Decatron y la Rueda no puede regalarlos. Elige otro premio para poder guardar el gajo."
     },
     "overlayUrl": {
       "title": "Enlace para OBS",
