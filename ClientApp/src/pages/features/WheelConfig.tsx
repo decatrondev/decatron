@@ -22,7 +22,7 @@ import { useSpinHistory } from './wheel/hooks/useSpinHistory';
 import { useWallets } from './wheel/hooks/useWallets';
 import { useWheelVisual } from './wheel/hooks/useWheelVisual';
 import {
-    emptySegment, normalizeSegment,
+    emptySegment, newUid, normalizeSegment,
     type MessagePack, type Segment, type SimResult, type Source, type Tab, type WheelSummary,
 } from './wheel/model';
 import { SegmentsTab } from './wheel/parts/SegmentsTab';
@@ -361,7 +361,8 @@ export default function WheelConfig() {
                 prize: s.prize,
                 isEnabled: s.isEnabled,
             })));
-            setSegments((data.segments || []).map(normalizeSegment));
+            // Se conserva el `uid` de cada fila: sin eso todas se cerrarian al guardar.
+            setSegments(prev => (data.segments || []).map((x: unknown, i: number) => ({ ...normalizeSegment(x), uid: prev[i]?.uid ?? newUid() })));
             setStatus({ kind: 'ok', text: t('wheel.status.saved') });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
@@ -519,7 +520,7 @@ export default function WheelConfig() {
 
                         {tab === 'segments' && (
                             <SegmentsTab
-                                segments={segments} wheels={wheels} soundAlerts={channel.soundAlerts}
+                                segments={segments} palette={visual.palette} wheels={wheels} soundAlerts={channel.soundAlerts}
                                 limits={channel.limits} onSegments={setSegments} t={t}
                             />
                         )}

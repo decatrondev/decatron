@@ -539,7 +539,21 @@
       "enable": "Mostrar en la rueda",
       "disable": "Ocultar de la rueda",
       "remove": "Quitar gajo",
-      "needTwo": "Una rueda necesita al menos 2 gajos para poder girar."
+      "needTwo": "Una rueda necesita al menos 2 gajos para poder girar.",
+      "secondsShort": "{{n}} s",
+      "pickOne": "falta elegir",
+      "percent": "Probabilidad",
+      "expand": "Abrir detalle",
+      "collapse": "Cerrar detalle",
+      "groupPrize": "Premio",
+      "groupOdds": "Probabilidad y stock",
+      "groupLook": "Aspecto",
+      "oddsLine": "Peso {{weight}}: sale el {{percent}} % de las veces.",
+      "icon": "Icono",
+      "iconNone": "Sin icono",
+      "iconHelp": "Un emoji o texto corto que sale antes del nombre en la rueda.",
+      "duplicate": "Duplicar gajo",
+      "copySuffix": "(copia)"
     },
     "prizes": {
       "nothing": "Sin premio",
@@ -565,7 +579,9 @@
       "targetRandom": "A alguien al azar del chat",
       "pickSoundAlert": "Elige una alerta",
       "noSoundAlerts": "No tienes alertas de sonido configuradas",
-      "alertOff": "desactivada"
+      "alertOff": "desactivada",
+      "type": "Tipo de premio",
+      "template": "Mensaje del bot"
     },
     "overlayUrl": {
       "title": "Enlace para OBS",

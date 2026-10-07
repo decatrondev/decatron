@@ -539,7 +539,21 @@
       "enable": "Show on the wheel",
       "disable": "Hide from the wheel",
       "remove": "Remove slice",
-      "needTwo": "A wheel needs at least 2 slices before it can spin."
+      "needTwo": "A wheel needs at least 2 slices before it can spin.",
+      "secondsShort": "{{n}} s",
+      "pickOne": "pick one",
+      "percent": "Chance",
+      "expand": "Open details",
+      "collapse": "Close details",
+      "groupPrize": "Prize",
+      "groupOdds": "Odds and stock",
+      "groupLook": "Look",
+      "oddsLine": "Weight {{weight}}: comes up {{percent}}% of the time.",
+      "icon": "Icon",
+      "iconNone": "No icon",
+      "iconHelp": "An emoji or short text shown before the name on the wheel.",
+      "duplicate": "Duplicate slice",
+      "copySuffix": "(copy)"
     },
     "prizes": {
       "nothing": "No prize",
@@ -565,7 +579,9 @@
       "targetRandom": "A random chatter",
       "pickSoundAlert": "Pick an alert",
       "noSoundAlerts": "You have no sound alerts set up",
-      "alertOff": "disabled"
+      "alertOff": "disabled",
+      "type": "Prize type",
+      "template": "Bot message"
     },
     "overlayUrl": {
       "title": "Link for OBS",

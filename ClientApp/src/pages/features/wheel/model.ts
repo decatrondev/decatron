@@ -17,6 +17,8 @@ export interface Prize {
 
 export interface Segment {
     id: number;
+    /** Solo del panel (nunca se guarda): identifica la fila aunque `id` sea 0 o se reordene. */
+    uid?: string;
     label: string;
     weight: number;
     color: string | null;
@@ -203,8 +205,11 @@ export interface SimResult {
     spinLabel: string | null;
 }
 
+export const newUid = () => `s${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
+
 export const emptySegment = (index: number): Segment => ({
     id: 0,
+    uid: newUid(),
     label: '',
     weight: 1,
     color: DEFAULT_PALETTE[index % DEFAULT_PALETTE.length],
@@ -219,6 +224,7 @@ export const emptySegment = (index: number): Segment => ({
 export function normalizeSegment(s: any): Segment {
     return {
         id: s.id ?? 0,
+        uid: newUid(),
         label: s.label ?? '',
         weight: Number(s.weight ?? 1),
         color: s.color ?? null,
