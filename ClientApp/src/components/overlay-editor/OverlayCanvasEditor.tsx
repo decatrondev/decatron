@@ -31,6 +31,10 @@ interface Props {
     /** Avisos encima del lienzo. */
     notice?: ReactNode;
     initialSelected?: string;
+    /** Para elegir un elemento desde fuera (por ejemplo, el que se acaba de agregar). Cada cambio de valor lo elige. */
+    selectedId?: string;
+    /** Elementos que, aun elegidos, NO suben al frente (por ejemplo un fondo que cubre todo el lienzo y taparia a los demas). */
+    noRaise?: string[];
     /** Controles extra del elemento elegido (debajo de X/Y/ancho/alto). */
     selectedExtra?: (id: string) => ReactNode;
     /** Botones junto al título de la lista de elementos (por ejemplo, agregar). */
@@ -50,13 +54,14 @@ const LABEL_PX = 20;
  */
 export default function OverlayCanvasEditor({
     canvas, elements, onRectChange, onToggle, children, title, description, notice,
-    initialSelected, selectedExtra, layersActions, onCanvasChange,
+    initialSelected, selectedId, noRaise, selectedExtra, layersActions, onCanvasChange,
 }: Props) {
     const { t } = useTranslation('overlays');
     const host = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
     const [selected, setSelected] = useState<string>(initialSelected ?? elements[0]?.id ?? '');
+    useEffect(() => { if (selectedId) setSelected(selectedId); }, [selectedId]);
     const [snap, setSnap] = useState(true);
     const drag = useRef<{ id: string; handle: Handle | null; startX: number; startY: number; pxPerUnit: number; orig: Rect } | null>(null);
     const { width: cw, height: ch } = canvas;
@@ -152,7 +157,7 @@ export default function OverlayCanvasEditor({
                                     <div
                                         key={e.id}
                                         onPointerDown={startDrag(e, null)}
-                                        style={{ position: 'absolute', left: e.x, top: e.y, width: e.width, height: e.height, cursor: 'move', zIndex: isSel ? 50 : e.zIndex ?? 10 }}
+                                        style={{ position: 'absolute', left: e.x, top: e.y, width: e.width, height: e.height, cursor: 'move', zIndex: isSel && !noRaise?.includes(e.id) ? 50 : e.zIndex ?? 10 }}
                                         className={`group ${isSel ? 'outline outline-2 outline-[#3b82f6]' : 'outline outline-1 outline-dashed outline-white/40 hover:outline-white/80'}`}
                                     >
                                         {/* La etiqueta va encima de la caja si hay lugar; la de los no elegidos solo al pasar el mouse, para que no tapen a otros */}

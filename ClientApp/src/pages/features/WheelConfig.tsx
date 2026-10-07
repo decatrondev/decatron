@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { useLanguage } from '../../contexts/LanguageContext';
 import MediaGallery from '../../components/timer/MediaGallery';
-import LayoutEditor from '../../components/wheel/LayoutEditor';
+import WheelCanvasEditor from '../../components/wheel/WheelCanvasEditor';
 import { useChannelResources } from './wheel/hooks/useChannelResources';
 import type { PanelStatus } from './wheel/hooks/context';
 import { useDeliveries } from './wheel/hooks/useDeliveries';
@@ -575,20 +575,12 @@ export default function WheelConfig() {
                         )}
 
                         {tab === 'canvas' && (
-                            <section className={CARD}>
-                                <div className="px-5 py-4 border-b border-[#374151]">
-                                    <h2 className="font-bold text-[#f8fafc]">{t('wheel.canvas.title')}</h2>
-                                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.canvas.help')}</p>
-                                </div>
-                                <div className="p-5">
-                                    <LayoutEditor
-                                        visual={visual}
-                                        onVisual={patchVisual}
-                                        segments={visiblesParaLienzo}
-                                        t={t}
-                                    />
-                                </div>
-                            </section>
+                            <WheelCanvasEditor
+                                visual={visual}
+                                onVisual={patchVisual}
+                                segments={visiblesParaLienzo}
+                                t={t}
+                            />
                         )}
 
                         {tab === 'media' && (
