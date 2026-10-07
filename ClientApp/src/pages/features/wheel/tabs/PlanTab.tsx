@@ -48,13 +48,13 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
     t: any;
 }) {
     const navigate = useNavigate();
-    const [plans, setPlans] = useState<Plan[] | null>(null);
+    const [allPlans, setAllPlans] = useState<Plan[] | null>(null);
     const [failed, setFailed] = useState(false);
 
     useEffect(() => {
         let alive = true;
         api.get('/wheel/plans')
-            .then(({ data }) => { if (alive && data?.success) setPlans(data.plans || []); else if (alive) setFailed(true); })
+            .then(({ data }) => { if (alive && data?.success) setAllPlans(data.plans || []); else if (alive) setFailed(true); })
             .catch(() => { if (alive) setFailed(true); });
         return () => { alive = false; };
     }, []);
@@ -68,6 +68,9 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
     }
 
     const current = limits.tier;
+    // Fundador ya no se vende: no se ofrece como "siguiente plan" ni en la comparacion. Solo se
+    // muestra a quien ya lo tiene (para que vea su propia columna). El backend lo sigue listando.
+    const plans = allPlans && allPlans.filter(p => p.tier !== 'fundador' || current === 'fundador');
     const idx = plans ? plans.findIndex(p => p.tier === current) : -1;
     const next = plans && idx >= 0 ? plans[idx + 1] : undefined;
 
