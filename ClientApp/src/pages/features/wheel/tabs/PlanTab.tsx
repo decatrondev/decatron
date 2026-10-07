@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
 import api from '../../../../services/api';
 import type { TierLimits } from '../hooks/useChannelResources';
@@ -46,6 +47,7 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     t: any;
 }) {
+    const navigate = useNavigate();
     const [plans, setPlans] = useState<Plan[] | null>(null);
     const [failed, setFailed] = useState(false);
 
@@ -150,6 +152,24 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
                                 ))}
                                 {gains.length === 0 && <li className="text-[#94a3b8]">{t('wheel.plan.noGain')}</li>}
                             </ul>
+
+                            {/* La compra vive en /supporters. Los datos de facturacion los pide
+                                ESA pantalla al pagar (con su aviso y su boton), asi que aqui solo
+                                se cuenta el orden: la comprobacion no se duplica en la Rueda. */}
+                            <div className="pt-1 space-y-2">
+                                <button
+                                    onClick={() => navigate('/supporters')}
+                                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm 3xl:text-base font-bold transition-colors"
+                                >
+                                    {t('wheel.plan.seePlans')}
+                                </button>
+                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">
+                                    {t('wheel.plan.billingNote')}{' '}
+                                    <button className="underline font-bold text-blue-400" onClick={() => navigate('/me/billing')}>
+                                        {t('wheel.plan.billingLink')}
+                                    </button>
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -1275,7 +1275,10 @@
       "noData": "Could not load your plan data.",
       "compareTitle": "All plans",
       "current": "Your plan",
-      "onlyQuantities": "Plans only change quantities (wheels, slices, history) and the watermark. Every Wheel feature is available on all of them."
+      "onlyQuantities": "Plans only change quantities (wheels, slices, history) and the watermark. Every Wheel feature is available on all of them.",
+      "seePlans": "See plans",
+      "billingNote": "Before buying you need your billing details (asked only once).",
+      "billingLink": "Complete them in My account"
     }
   },
   "liveTranslation": {

@@ -1275,7 +1275,10 @@
       "noData": "No se pudieron cargar los datos de tu plan.",
       "compareTitle": "Todos los planes",
       "current": "Tu plan",
-      "onlyQuantities": "Los planes solo cambian cantidades (ruedas, gajos, historial) y la marca de agua. Todas las funciones de la Rueda están disponibles en todos."
+      "onlyQuantities": "Los planes solo cambian cantidades (ruedas, gajos, historial) y la marca de agua. Todas las funciones de la Rueda están disponibles en todos.",
+      "seePlans": "Ver planes",
+      "billingNote": "Antes de comprar necesitas tus datos de facturación (se piden una sola vez).",
+      "billingLink": "Completarlos en Mi cuenta"
     }
   },
   "liveTranslation": {
