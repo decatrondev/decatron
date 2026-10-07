@@ -588,7 +588,8 @@
       "type": "Tipo de premio",
       "template": "Mensaje del bot",
       "retired": "retirado",
-      "retiredHelp": "Este premio ya no existe: los deca coins los vende Decatron y la Rueda no puede regalarlos. Elige otro premio para poder guardar el gajo."
+      "retiredHelp": "Este premio ya no existe: los deca coins los vende Decatron y la Rueda no puede regalarlos. Elige otro premio para poder guardar el gajo.",
+      "pullBonusNote": "Los tiros se regalan en la billetera «bonus» del gachapón: no cuentan como donación ni como compra con coins."
     },
     "overlayUrl": {
       "title": "Enlace para OBS",

@@ -133,7 +133,9 @@ namespace Decatron.Services
             Wheel wheel, string channelLogin, string viewerLogin, long? spinId, string prizeJson, JsonElement pars)
         {
             var cantidad = Math.Max(1, LeerInt(pars, "count", 1));
-            var tipo = LeerString(pars, "pull_type", "coins") == "donation" ? "donation" : "coins";
+            // Los tiros de la Rueda SIEMPRE van a la billetera bonus. Antes el streamer podia elegir
+            // "de coins": regalar tiros del contador que el espectador llena gastando deca coins, o sea
+            // lo que la plataforma vende. Un `pull_type` viejo en el gajo se ignora.
 
             // Sin items configurados el tiro no puede resolverse nunca, así que el
             // premio va a la bandeja en vez de quedar como un saldo que da error.
@@ -157,16 +159,14 @@ namespace Decatron.Services
             }
 
             // Los tiros de la rueda no son dinero: van a la billetera bonus para no
-            // inflar el monto donado ni los hitos por acumulado del gachapón. Los de
-            // coins siguen en su propio contador.
-            if (tipo == "coins") participante.CoinPullsAvailable += cantidad;
-            else participante.BonusPullsAvailable += cantidad;
+            // inflar el monto donado ni los hitos por acumulado del gachapón.
+            participante.BonusPullsAvailable += cantidad;
 
             participante.UpdatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("🎡 [Rueda] {Viewer} ganó {Tiros} tiro(s) de gachapón ({Tipo}) en '{Rueda}'",
-                viewerLogin, cantidad, tipo, wheel.Name);
+            _logger.LogInformation("🎡 [Rueda] {Viewer} ganó {Tiros} tiro(s) de gachapón (bonus) en '{Rueda}'",
+                viewerLogin, cantidad, wheel.Name);
 
             return new PrizeDelivery();
         }

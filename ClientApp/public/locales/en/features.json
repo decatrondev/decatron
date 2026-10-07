@@ -588,7 +588,8 @@
       "type": "Prize type",
       "template": "Bot message",
       "retired": "retired",
-      "retiredHelp": "This prize no longer exists: deca coins are sold by Decatron and the Wheel cannot give them away. Pick another prize to be able to save the slice."
+      "retiredHelp": "This prize no longer exists: deca coins are sold by Decatron and the Wheel cannot give them away. Pick another prize to be able to save the slice.",
+      "pullBonusNote": "Pulls are given in the gacha’s “bonus” wallet: they do not count as a donation or as a purchase with coins."
     },
     "overlayUrl": {
       "title": "Link for OBS",

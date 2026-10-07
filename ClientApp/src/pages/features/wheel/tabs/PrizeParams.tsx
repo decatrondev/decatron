@@ -7,7 +7,7 @@ export function defaultPrizeParams(tipo: PrizeType): Record<string, unknown> {
     switch (tipo) {
         case 'coins':          return { amount: 100 };
         case 'free_spin':      return { count: 1 };
-        case 'gacha_pull':     return { count: 1, pull_type: 'coins' };
+        case 'gacha_pull':     return { count: 1 };
         case 'timer_time':     return { seconds: 60 };
         case 'timeout':        return { target: 'spinner', seconds: 30 };
         case 'sound_alert':    return { sound_alert_id: 0 };
@@ -137,16 +137,8 @@ export function PrizeParams({ prize, onChange, wheels, soundAlerts, t }: {
                             className={`w-24 ${PARAM_FIELD}`}
                         />
                     </F>
-                    <F label={t('wheel.prizes.pullType')}>
-                        <select
-                            value={String(p.pull_type ?? 'coins')}
-                            onChange={e => set({ pull_type: e.target.value })}
-                            className={PARAM_FIELD}
-                        >
-                            <option value="coins">{t('wheel.prizes.pullCoins')}</option>
-                            <option value="donation">{t('wheel.prizes.pullDonation')}</option>
-                        </select>
-                    </F>
+                    {/* Sin selector de tipo: los tiros de la Rueda van siempre a la billetera bonus. */}
+                    <p className="text-sm text-[#94a3b8] max-w-sm pb-2">{t('wheel.prizes.pullBonusNote')}</p>
                 </>,
             );
 
