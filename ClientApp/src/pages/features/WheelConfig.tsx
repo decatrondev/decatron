@@ -520,7 +520,7 @@ export default function WheelConfig() {
 
                         {tab === 'segments' && (
                             <SegmentsTab
-                                segments={segments} palette={visual.palette} wheels={wheels} soundAlerts={channel.soundAlerts}
+                                segments={segments} palette={visual.palette} slug={wheel.slug} wheels={wheels} soundAlerts={channel.soundAlerts}
                                 limits={channel.limits} onSegments={setSegments} t={t}
                             />
                         )}
@@ -551,10 +551,12 @@ export default function WheelConfig() {
                                 entries={raffle.entries}
                                 creditLabel={wheel.creditLabel || 'creditos'}
                                 saving={saving}
+                                slug={wheel.slug}
                                 onConfig={raffle.patch}
                                 onWindow={raffle.setWindow}
                                 onDraw={raffle.draw}
                                 onAdd={raffle.add}
+                                onImport={raffle.importMany}
                                 onRemove={raffle.remove}
                                 onMultiplier={raffle.setMultiplier}
                                 onReset={raffle.reset}

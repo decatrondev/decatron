@@ -70,6 +70,29 @@ export function useRaffleAdmin({ wheel, t, setStatus, setSaving }: PanelCtx) {
         await act(() => api.post(`/wheel/wheels/${wheel!.id}/raffle/entries`, { viewer: viewer.trim() }));
     };
 
+    /**
+     * Alta de muchos nombres a la vez. Usa el mismo endpoint de alta manual de siempre (uno por
+     * nombre, de a 5 en paralelo) y recarga el pool UNA vez al final: `add` lo recargaria por
+     * cada nombre. Devuelve cuantos entraron, cuantos ya estaban o no pudieron entrar por las
+     * reglas del sorteo, y cuantos fallaron de verdad.
+     */
+    const importMany = async (names: string[]) => {
+        if (!wheel) return null;
+        let ok = 0, already = 0, failed = 0;
+        for (let i = 0; i < names.length; i += 5) {
+            const lote = names.slice(i, i + 5);
+            const res = await Promise.allSettled(
+                lote.map(v => api.post(`/wheel/wheels/${wheel.id}/raffle/entries`, { viewer: v })));
+            for (const r of res) {
+                if (r.status === 'rejected') failed++;
+                else if (r.value.data?.result === 'Ok') ok++;
+                else already++;
+            }
+        }
+        await load(wheel.id);
+        return { ok, already, failed };
+    };
+
     const remove = (viewer: string) =>
         act(() => api.delete(`/wheel/wheels/${wheel!.id}/raffle/entries/${encodeURIComponent(viewer)}`));
 
@@ -100,5 +123,5 @@ export function useRaffleAdmin({ wheel, t, setStatus, setSaving }: PanelCtx) {
         }
     };
 
-    return { raffle, entries, clear, load, patch, save, setWindow, add, remove, setMultiplier, reset, draw };
+    return { raffle, entries, clear, load, patch, save, setWindow, add, importMany, remove, setMultiplier, reset, draw };
 }

@@ -553,7 +553,12 @@
       "iconNone": "No icon",
       "iconHelp": "An emoji or short text shown before the name on the wheel.",
       "duplicate": "Duplicate slice",
-      "copySuffix": "(copy)"
+      "copySuffix": "(copy)",
+      "search": "Search slice",
+      "strip": "Chance split",
+      "drag": "Drag to reorder",
+      "dragOff": "Clear the search to reorder",
+      "noMatches": "No slice matches the search."
     },
     "prizes": {
       "nothing": "No prize",
@@ -1295,6 +1300,30 @@
       "seePlans": "See plans",
       "billingNote": "Before buying you need your billing details (asked only once).",
       "billingLink": "Complete them in My account"
+    },
+    "io": {
+      "import": "Import",
+      "export": "Export",
+      "copy": "Copy to clipboard",
+      "download": "Download .csv",
+      "copied": "Copied",
+      "copyFailed": "Could not copy",
+      "openFile": "Open file",
+      "cancel": "Cancel",
+      "nothingYet": "Paste a list or open a file.",
+      "gajosHelp": "One name per line. Optionally add the weight after “;” or a comma: “Big prize;3”. You can paste a spreadsheet column or a file exported from here. Only the name and weight are imported: you pick the prize afterwards on each slice.",
+      "gajosPlaceholder": "Nothing\nSmall prize;5\nBig prize;1",
+      "gajosSummary": "{{count}} slices will be created.",
+      "overLimit": "{{count}} do not fit in your plan’s limit ({{max}} slices per wheel) and will be left out.",
+      "replace": "Replace the current slices",
+      "replaceHelp": "The existing ones are removed. Nothing is saved until you press Save.",
+      "addApply": "Add slices",
+      "replaceApply": "Replace slices",
+      "viewersHelp": "One name per line, or separated by commas. The @ and duplicates are removed. They join as if you had added them by hand: requirements and cost are skipped.",
+      "viewersPlaceholder": "anthonydeca\nsomeviewer\nanotherviewer",
+      "viewersSummary": "{{count}} participants will be added.",
+      "viewersApply": "Add to the raffle",
+      "viewersResult": "Added: {{ok}}. Already in or could not join: {{already}}. Errors: {{failed}}."
     }
   },
   "liveTranslation": {

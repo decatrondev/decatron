@@ -553,7 +553,12 @@
       "iconNone": "Sin icono",
       "iconHelp": "Un emoji o texto corto que sale antes del nombre en la rueda.",
       "duplicate": "Duplicar gajo",
-      "copySuffix": "(copia)"
+      "copySuffix": "(copia)",
+      "search": "Buscar gajo",
+      "strip": "Reparto de probabilidades",
+      "drag": "Arrastra para reordenar",
+      "dragOff": "Quita la búsqueda para reordenar",
+      "noMatches": "Ningún gajo coincide con la búsqueda."
     },
     "prizes": {
       "nothing": "Sin premio",
@@ -1295,6 +1300,30 @@
       "seePlans": "Ver planes",
       "billingNote": "Antes de comprar necesitas tus datos de facturación (se piden una sola vez).",
       "billingLink": "Completarlos en Mi cuenta"
+    },
+    "io": {
+      "import": "Importar",
+      "export": "Exportar",
+      "copy": "Copiar al portapapeles",
+      "download": "Descargar .csv",
+      "copied": "Copiado",
+      "copyFailed": "No se pudo copiar",
+      "openFile": "Abrir archivo",
+      "cancel": "Cancelar",
+      "nothingYet": "Pega una lista o abre un archivo.",
+      "gajosHelp": "Un nombre por línea. Si quieres, escribe el peso después de «;» o de una coma: «Premio grande;3». Puedes pegar una columna de una hoja de cálculo o un archivo exportado desde aquí. Solo se importan el nombre y el peso: el premio se elige después en cada gajo.",
+      "gajosPlaceholder": "Nada\nPremio chico;5\nPremio grande;1",
+      "gajosSummary": "Se crearán {{count}} gajos.",
+      "overLimit": "{{count}} no caben en el tope de tu plan ({{max}} gajos por rueda) y se dejarán fuera.",
+      "replace": "Reemplazar los gajos actuales",
+      "replaceHelp": "Se quitan los que hay ahora. Nada se guarda hasta que pulses Guardar.",
+      "addApply": "Agregar gajos",
+      "replaceApply": "Reemplazar gajos",
+      "viewersHelp": "Un nombre por línea, o separados por comas. Se quita la @ y los repetidos. Entran como si los hubieras agregado a mano: se saltan los requisitos y el costo.",
+      "viewersPlaceholder": "anthonydeca\nunespectador\notroviewer",
+      "viewersSummary": "Se agregarán {{count}} participantes.",
+      "viewersApply": "Agregar al sorteo",
+      "viewersResult": "Agregados: {{ok}}. Ya estaban o no pudieron entrar: {{already}}. Con error: {{failed}}."
     }
   },
   "liveTranslation": {

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Plus, Trash2, Trophy } from 'lucide-react';
 import { type RaffleConfig, type RaffleEntry } from '../model';
+import { parseViewers } from '../namesIO';
+import { ExportMenu, ImportButton, ImportPanel } from '../parts/NamesTools';
 import { CARD, FIELD, Row, Toggle } from '../ui';
 
 /// La pestana del modo Sorteo: reglas, ventana de inscripcion, pool y sorteo.
@@ -8,23 +10,46 @@ import { CARD, FIELD, Row, Toggle } from '../ui';
 /// sortear son tres cosas seguidas, y repartirlas en pestanas obligaria a navegar
 /// mientras el chat espera.
 export function RaffleTab({
-    config, entries, creditLabel, saving,
-    onConfig, onWindow, onDraw, onAdd, onRemove, onMultiplier, onReset, t,
+    config, entries, creditLabel, saving, slug,
+    onConfig, onWindow, onDraw, onAdd, onImport, onRemove, onMultiplier, onReset, t,
 }: {
     config: RaffleConfig;
     entries: RaffleEntry[];
     creditLabel: string;
     saving: boolean;
+    slug: string;
     onConfig: (c: Partial<RaffleConfig>) => void;
     onWindow: (open: boolean) => void;
     onDraw: () => void;
     onAdd: (viewer: string) => void;
+    onImport: (names: string[]) => Promise<{ ok: number; already: number; failed: number } | null>;
     onRemove: (viewer: string) => void;
     onMultiplier: (viewer: string, mult: number) => void;
     onReset: () => void;
     t: any;
 }) {
     const [nuevo, setNuevo] = useState('');
+    const [importando, setImportando] = useState(false);
+    const [texto, setTexto] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const [resultado, setResultado] = useState<string | null>(null);
+    const nombres = parseViewers(texto);
+
+    const importar = async () => {
+        setOcupado(true);
+        const r = await onImport(nombres);
+        setOcupado(false);
+        if (!r) return;
+        setResultado(t('wheel.io.viewersResult', { ok: r.ok, already: r.already, failed: r.failed }));
+        setTexto('');
+        setImportando(false);
+    };
+
+    // El pool completo (tambien los que ya ganaron): es lo que el streamer querria guardar.
+    const textoExportado = () => [
+        'viewer;entradas;peso;gano',
+        ...entries.map(e => `${e.viewer};${e.entries};${e.weight};${e.hasWon ? 1 : 0}`),
+    ].join('\n');
 
     const pool = entries.filter(e => !e.hasWon);
     const ganadores = entries.filter(e => e.hasWon);
@@ -314,7 +339,9 @@ export function RaffleTab({
                         <h2 className="font-bold text-[#f8fafc]">{t('wheel.raffle.poolTitle')}</h2>
                         <p className="text-xs text-[#94a3b8] mt-0.5">{t('wheel.raffle.poolHelp')}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <ImportButton open={importando} onClick={() => { setImportando(v => !v); setResultado(null); }} t={t} />
+                        <ExportMenu text={textoExportado} filename={`rueda-${slug}-inscritos.csv`} disabled={entries.length === 0} t={t} />
                         <input
                             type="text"
                             value={nuevo}
@@ -331,6 +358,23 @@ export function RaffleTab({
                         </button>
                     </div>
                 </div>
+
+                {importando && (
+                    <ImportPanel
+                        help={t('wheel.io.viewersHelp')}
+                        placeholder={t('wheel.io.viewersPlaceholder')}
+                        text={texto}
+                        onText={setTexto}
+                        summary={nombres.length === 0 ? t('wheel.io.nothingYet') : t('wheel.io.viewersSummary', { count: nombres.length })}
+                        applyLabel={t('wheel.io.viewersApply')}
+                        canApply={nombres.length > 0}
+                        busy={ocupado}
+                        onApply={importar}
+                        onClose={() => { setImportando(false); setTexto(''); }}
+                        t={t}
+                    />
+                )}
+                {resultado && <p role="status" className="px-5 py-3 text-sm text-green-300 border-b border-[#374151]">{resultado}</p>}
 
                 {pool.length === 0 ? (
                     <p className="px-5 py-8 text-sm text-[#94a3b8] text-center">{t('wheel.raffle.poolEmpty')}</p>

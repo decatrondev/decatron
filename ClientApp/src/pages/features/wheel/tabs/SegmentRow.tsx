@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ChevronDown, Copy, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, Copy, Eye, EyeOff, GripVertical, Trash2 } from 'lucide-react';
 import { type PrizeType, type Segment, type SoundAlertOption, type WheelSummary } from '../model';
 import { FIELD } from '../ui';
 import { defaultPrizeParams, PARAM_FIELD, PrizeParams, prizeSummary } from './PrizeParams';
@@ -22,7 +22,7 @@ const SWATCH =
  */
 export function SegmentRow({
     segment, color, percentage, open, canMoveUp, canMoveDown, canDuplicate,
-    onToggle, onChange, onRemove, onMoveUp, onMoveDown, onDuplicate, wheels, soundAlerts, t,
+    drag, onToggle, onChange, onRemove, onMoveUp, onMoveDown, onDuplicate, wheels, soundAlerts, t,
 }: {
     segment: Segment;
     /** El color con que se dibuja el gajo: el suyo, o el de la paleta si no tiene (igual que la rueda). */
@@ -32,6 +32,8 @@ export function SegmentRow({
     canMoveUp: boolean;
     canMoveDown: boolean;
     canDuplicate: boolean;
+    /** El asa para reordenar arrastrando. `disabled` mientras la lista esta filtrada. */
+    drag: { onDragStart: (e: React.DragEvent) => void; onDragEnd: () => void; disabled: boolean };
     onToggle: () => void;
     onChange: (changes: Partial<Segment>) => void;
     onRemove: () => void;
@@ -53,10 +55,23 @@ export function SegmentRow({
         <div className={segment.isEnabled ? '' : 'opacity-60'}>
             {/* ------------------------------------------------------------ la fila */}
             <div
-                className="flex flex-wrap items-center gap-x-2.5 gap-y-2 pl-5 pr-3 py-2.5"
+                className="flex flex-wrap items-center gap-x-2.5 gap-y-2 pl-3 pr-3 py-2.5"
                 // La franja del color del gajo: identidad de la fila sin gastar una columna.
                 style={{ boxShadow: `inset 4px 0 0 ${color}` }}
             >
+                {/* HTML5 nativo: en pantallas tactiles no hay arrastre, por eso subir y bajar
+                    siguen en el detalle. */}
+                <span
+                    draggable={!drag.disabled}
+                    onDragStart={drag.onDragStart}
+                    onDragEnd={drag.onDragEnd}
+                    title={drag.disabled ? t('wheel.segments.dragOff') : t('wheel.segments.drag')}
+                    aria-hidden
+                    className={`shrink-0 -mr-1 ${drag.disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
+                >
+                    <GripVertical className="w-4 h-4 text-[#64748b]" />
+                </span>
+
                 <input
                     type="color"
                     value={color}
