@@ -191,6 +191,7 @@ import { BrandMark } from './brand/BrandMark';
 import BrandAdmin from './pages/admin/BrandAdmin';
 import GlobalEmotesAdmin from './pages/admin/GlobalEmotesAdmin';
 import GlobalEmotesPublic from './pages/GlobalEmotesPublic';
+import OverlayAutoUpdate from './components/OverlayAutoUpdate';
 
 function App() {
     return (
@@ -450,6 +451,7 @@ function App() {
                     <Route path="dashboard/docs/permissions" element={<PermissionsDoc />} />
                 </Route>
                         </Routes>
+                        <OverlayAutoUpdate />
                     </LanguageProvider>
                 </PermissionsProvider>
             </ToastProvider>
