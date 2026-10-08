@@ -226,6 +226,47 @@ namespace Decatron.Default.Controllers
         }
 
         /// <summary>
+        /// Qué overlays de Sound Alerts hay conectados en OBS ahora, por variante, y qué canales tiene vinculados la cuenta
+        /// (para armar los enlaces del panel). "mixed" = hay un enlace «Todo» y otro de una sola plataforma (cada alerta
+        /// sonaría dos veces); "repeated" = la misma variante conectada más de una vez. Solo cuenta los overlays nuevos:
+        /// los que siguen abiertos con el código viejo no se identifican ante el servidor.
+        /// </summary>
+        [HttpGet("status")]
+        public async Task<IActionResult> GetStatus()
+        {
+            try
+            {
+                var account = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>()
+                    .ResolveByUserIdAsync(GetChannelOwnerId());
+                if (account == null)
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var counts = OverlayHub.CountOverlayVariants(Decatron.Services.SoundAlertTriggerService.V2Key(account.OverlayKey), "soundalerts");
+                var warnings = new List<string>();
+                if (counts["all"] > 0 && (counts["twitch"] > 0 || counts["kick"] > 0)) warnings.Add("mixed");
+                if (counts.Values.Any(c => c > 1)) warnings.Add("repeated");
+
+                return Ok(new
+                {
+                    success = true,
+                    overlayKey = account.OverlayKey,
+                    hasTwitch = account.HasTwitch,
+                    hasKick = account.HasKick,
+                    total = counts.Values.Sum(),
+                    all = counts["all"],
+                    twitch = counts["twitch"],
+                    kick = counts["kick"],
+                    warnings
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SoundAlerts] Error obteniendo el estado de los overlays");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
         /// A qué grupo unirse y qué muestra este enlace sin <c>?source=</c> (público, sin sesión). El overlay de OBS lo
         /// pregunta al conectarse: el alias de la URL puede ser el login de Twitch o el KickId, y el overlay nuevo se une al
         /// grupo v2 de la cuenta y filtra por plataforma. Un enlace sin <c>source</c> conserva lo de antes: el login de

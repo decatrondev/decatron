@@ -1052,7 +1052,18 @@
       "step3Body": "Use “Test in OBS” below the preview: it sends the selected reward's alert to your overlay.",
       "step4Title": "Make it yours",
       "step4Body": "Change texts, background and animation, and arrange each element on the canvas.",
-      "goEditor": "Go to Editor"
+      "goEditor": "Go to Editor",
+      "linkAll": "All",
+      "linkAllHint": "Twitch and Kick alerts in a single OBS source. This is the one we recommend.",
+      "linkTwitch": "Twitch only",
+      "linkKick": "Kick only",
+      "advancedTitle": "Advanced: one link per platform",
+      "perPlatform": "Only if you want to split alerts by platform (for example, one scene for Twitch and another for Kick). Don't put «All» next to these in the same scene: every alert would play twice.",
+      "linkOtherHint": "This link only shows this channel's alerts. When you link your other channel (Twitch or Kick) in Settings, the «All» link will appear here so you can hear the other channel's alerts too, and this one will keep working the same.",
+      "warnMixedTitle": "Two alert sources overlap",
+      "warnMixed": "The «All» link and a single-platform link are both connected. If they are visible at the same time, every alert will play twice. Remove one of them in OBS.",
+      "warnRepeatedTitle": "The same source is connected more than once",
+      "warnRepeated": "Two identical sources are open in OBS. That is fine if they are in different scenes; if both are visible, every alert will play twice."
     },
     "basic": {
       "title": "General",
@@ -2177,9 +2188,6 @@
       "linkTwitch": "Twitch only",
       "linkKick": "Kick only",
       "advancedTitle": "Advanced: one link per platform",
-      "recommended": "Recommended",
-      "connected": "Connected in OBS",
-      "notConnected": "Not connected",
       "linkOtherHint": "When you link your other channel (Twitch or Kick) in Settings, this same link will also show that chat, with nothing to change in OBS.",
       "warnMixedTitle": "Two chat sources overlap",
       "warnMixed": "The «All» link and a single-platform link are both connected. If they are visible at the same time, every message will show twice. Remove one of them in OBS.",
@@ -2412,5 +2420,10 @@
       "kindDeny": "Forbidden",
       "removeZone": "Remove this zone"
     }
+  },
+  "overlayLinks": {
+    "recommended": "Recommended",
+    "connected": "Connected in OBS",
+    "notConnected": "Not connected"
   }
 }

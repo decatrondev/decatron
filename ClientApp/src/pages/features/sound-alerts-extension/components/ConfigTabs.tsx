@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, ExternalLink, Plus, Eye, EyeOff, Trash2, RotateCcw } from 'lucide-react';
 import { Card, Field, Toggle, Slider, Select, ColorField, CopyButton, inputClass } from '../../../../components/overlay-editor/ui';
+import { LinkRow, Warning, useOverlayStatus } from '../../../../components/overlay-editor/OverlayLinks';
 import type { SoundAlertsConfigState } from '../hooks/useSoundAlertsConfig';
 import type { PlacedLine, TabId } from '../types';
 import {
@@ -11,15 +12,19 @@ import { newLine, placeLines } from '../model';
 
 interface TabProps { cfg: SoundAlertsConfigState }
 
-export function overlayUrl(channel: string) {
-    return `${window.location.origin}/overlay/soundalerts?channel=${channel || 'tu_canal'}`;
+export function overlayUrl(channel: string, source?: 'all' | 'twitch' | 'kick') {
+    return `${window.location.origin}/overlay/soundalerts?channel=${channel || 'tu_canal'}${source ? `&source=${source}` : ''}`;
 }
 
 // ── Guía ───────────────────────────────────────────────────────────────────────
 
 export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: TabId) => void }) {
     const { t } = useTranslation('overlays');
-    const url = overlayUrl(cfg.channelName);
+    const { status, loaded } = useOverlayStatus('/soundalerts/status');
+    const bothLinked = !!status.hasTwitch && !!status.hasKick;
+    // Con los dos canales vinculados, los enlaces salen de la clave de la cuenta; con uno solo se mantiene el de siempre
+    const url = bothLinked && status.overlayKey ? overlayUrl(status.overlayKey, 'all') : overlayUrl(cfg.channelName);
+    const connected = (n: number) => n > 0;
     const assigned = cfg.files.length;
     const step = (n: number, title: string, body: React.ReactNode) => (
         <div className="flex gap-4">
@@ -56,15 +61,40 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
                     {step(2, t('soundAlerts.guide.step2Title'), (
                         <>
                             <p>{t('soundAlerts.guide.step2Body')}</p>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <input readOnly value={url} className={`${inputClass} font-mono text-xs 3xl:text-sm`} onFocus={e => e.currentTarget.select()} />
-                                <div className="flex gap-2">
-                                    <CopyButton text={url} label={t('soundAlerts.guide.copy')} doneLabel={t('soundAlerts.guide.copied')} />
+                            <LinkRow
+                                url={url}
+                                copyLabel={t('soundAlerts.guide.copy')}
+                                copiedLabel={t('soundAlerts.guide.copied')}
+                                name={bothLinked ? t('soundAlerts.guide.linkAll') : undefined}
+                                hint={bothLinked ? t('soundAlerts.guide.linkAllHint') : undefined}
+                                recommended={bothLinked}
+                                connected={bothLinked ? connected(status.all) : connected(status.total)}
+                                loaded={loaded}
+                                extra={bothLinked ? undefined : (
                                     <a href={url} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] flex items-center gap-1.5 shrink-0">
                                         <ExternalLink className="w-4 h-4" /> {t('soundAlerts.guide.open')}
                                     </a>
+                                )}
+                            />
+                            {bothLinked && status.overlayKey && (
+                                <div className="pt-3 mt-1 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                    <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8]">{t('soundAlerts.guide.advancedTitle')}</p>
+                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1 mb-3">{t('soundAlerts.guide.perPlatform')}</p>
+                                    <div className="space-y-3">
+                                        <LinkRow url={overlayUrl(status.overlayKey, 'twitch')} name={t('soundAlerts.guide.linkTwitch')} connected={connected(status.twitch)} loaded={loaded} copyLabel={t('soundAlerts.guide.copy')} copiedLabel={t('soundAlerts.guide.copied')} />
+                                        <LinkRow url={overlayUrl(status.overlayKey, 'kick')} name={t('soundAlerts.guide.linkKick')} connected={connected(status.kick)} loaded={loaded} copyLabel={t('soundAlerts.guide.copy')} copiedLabel={t('soundAlerts.guide.copied')} />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+                            {status.warnings.includes('mixed') && (
+                                <Warning title={t('soundAlerts.guide.warnMixedTitle')} text={t('soundAlerts.guide.warnMixed')} />
+                            )}
+                            {status.warnings.includes('repeated') && !status.warnings.includes('mixed') && (
+                                <Warning title={t('soundAlerts.guide.warnRepeatedTitle')} text={t('soundAlerts.guide.warnRepeated')} />
+                            )}
+                            {loaded && !bothLinked && (status.hasTwitch || status.hasKick) && (
+                                <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('soundAlerts.guide.linkOtherHint')}</p>
+                            )}
                             <ol className="list-decimal pl-5 space-y-1">
                                 <li>{t('soundAlerts.guide.obs1')}</li>
                                 <li>{t('soundAlerts.guide.obs2')}</li>

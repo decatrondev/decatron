@@ -30,7 +30,10 @@ namespace Decatron.Services
         /// Grupo v2 de la cuenta. El overlay nuevo se une solo a este (con JoinChannel("v2:" + clave)) y filtra por
         /// plataforma; el prefijo "v2:" no puede ser parte de un login, así que no choca con ningún canal.
         /// </summary>
-        public static string V2Group(string overlayKey) => $"overlay_v2:{overlayKey}";
+        public static string V2Group(string overlayKey) => $"overlay_{V2Key(overlayKey)}";
+
+        /// <summary>Lo que el overlay pasa a JoinChannel y a RegisterOverlay (el hub le antepone "overlay_" al grupo)</summary>
+        public static string V2Key(string overlayKey) => $"v2:{overlayKey}";
 
         /// <summary>
         /// Emite al grupo de siempre y al v2 de la cuenta, en dos envíos separados: una conexión está en uno solo de los

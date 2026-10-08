@@ -1052,7 +1052,18 @@
       "step3Body": "Usa «Probar en OBS» debajo de la vista previa: manda la alerta de la recompensa elegida a tu overlay.",
       "step4Title": "Dale tu estilo",
       "step4Body": "Cambia textos, fondo y animación, y acomoda cada elemento en el lienzo.",
-      "goEditor": "Ir al Editor"
+      "goEditor": "Ir al Editor",
+      "linkAll": "Todo",
+      "linkAllHint": "Las alertas de Twitch y de Kick en una sola fuente de OBS. Es el que recomendamos.",
+      "linkTwitch": "Solo Twitch",
+      "linkKick": "Solo Kick",
+      "advancedTitle": "Avanzado: un enlace por plataforma",
+      "perPlatform": "Solo si quieres separar las alertas por plataforma (por ejemplo, una escena para Twitch y otra para Kick). No pongas «Todo» junto a estos en la misma escena: cada alerta sonaría repetida.",
+      "linkOtherHint": "Este enlace muestra solo las alertas de este canal. Cuando vincules tu otro canal (Twitch o Kick) en Ajustes, aparecerá aquí el enlace «Todo» para oír también las alertas del otro, y este seguirá funcionando igual.",
+      "warnMixedTitle": "Dos fuentes de alertas se pisan",
+      "warnMixed": "Tienes conectado el enlace «Todo» y también uno de una sola plataforma. Si están visibles a la vez, cada alerta sonará repetida. Quita uno de los dos en OBS.",
+      "warnRepeatedTitle": "La misma fuente está conectada más de una vez",
+      "warnRepeated": "Hay dos fuentes iguales abiertas en OBS. Si están en escenas distintas está bien; si se ven a la vez, cada alerta sonará repetida."
     },
     "basic": {
       "title": "General",
@@ -2177,9 +2188,6 @@
       "linkTwitch": "Solo Twitch",
       "linkKick": "Solo Kick",
       "advancedTitle": "Avanzado: un enlace por plataforma",
-      "recommended": "Recomendado",
-      "connected": "Conectado en OBS",
-      "notConnected": "Sin conexión",
       "linkOtherHint": "Cuando vincules tu otro canal (Twitch o Kick) en Ajustes, este mismo enlace mostrará también ese chat, sin cambiar nada en OBS.",
       "warnMixedTitle": "Dos fuentes de chat se pisan",
       "warnMixed": "Tienes conectado el enlace «Todo» y también uno de una sola plataforma. Si están visibles a la vez, cada mensaje saldrá repetido. Quita uno de los dos en OBS.",
@@ -2412,5 +2420,10 @@
       "kindDeny": "Prohibida",
       "removeZone": "Quitar esta zona"
     }
+  },
+  "overlayLinks": {
+    "recommended": "Recomendado",
+    "connected": "Conectado en OBS",
+    "notConnected": "Sin conexión"
   }
 }
