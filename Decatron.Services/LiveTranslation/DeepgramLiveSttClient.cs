@@ -20,6 +20,7 @@ namespace Decatron.Services.LiveTranslation
         private readonly string _model;
         private readonly string _language;
         private readonly ILogger _logger;
+        private readonly SmartSegmenter? _segmenter;
         private readonly ClientWebSocket _ws = new();
         private readonly CancellationTokenSource _cts = new();
         private Task? _recvLoop;
@@ -31,9 +32,10 @@ namespace Decatron.Services.LiveTranslation
 
         public bool IsOpen => _ws.State == WebSocketState.Open;
 
-        public DeepgramLiveSttClient(string apiKey, string model, string language, ILogger logger)
+        /// <param name="segmenter">Si se da, las frases se cortan por significado (ver <see cref="SmartSegmenter"/>) y no solo por pausa.</param>
+        public DeepgramLiveSttClient(string apiKey, string model, string language, ILogger logger, SmartSegmenter? segmenter = null)
         {
-            _apiKey = apiKey; _model = model; _language = language; _logger = logger;
+            _apiKey = apiKey; _model = model; _language = language; _logger = logger; _segmenter = segmenter;
         }
 
         public async Task ConnectAsync(CancellationToken ct)
@@ -118,7 +120,7 @@ namespace Decatron.Services.LiveTranslation
 
                     // Silencio largo sin que llegara speech_final (el streamer dejó la
                     // frase colgando, o se calló de golpe): lo acumulado sale igual.
-                    if (type == "UtteranceEnd") { Flush(pieces); continue; }
+                    if (type == "UtteranceEnd") { FlushAll(pieces); continue; }
                     if (type != "Results") continue;
 
                     var text = j["channel"]?["alternatives"]?[0]?["transcript"]?.GetValue<string>() ?? "";
@@ -127,18 +129,58 @@ namespace Decatron.Services.LiveTranslation
                     double start = j["start"]?.GetValue<double>() ?? 0;
                     double dur = j["duration"]?.GetValue<double>() ?? 0;
 
-                    if (!isFinal || string.IsNullOrWhiteSpace(text)) continue;
-                    pieces.Add((text, start, start + dur));
-                    if (speechFinal) Flush(pieces);
+                    if (!isFinal || string.IsNullOrWhiteSpace(text))
+                    {
+                        // Un final vacío con speech_final también es una pausa: lo pendiente sale.
+                        if (isFinal && speechFinal) FlushAll(pieces);
+                        continue;
+                    }
+                    if (_segmenter != null)
+                    {
+                        foreach (var u in _segmenter.Push(ParseWords(j, text, start, dur))) UtteranceReady?.Invoke(u);
+                    }
+                    else pieces.Add((text, start, start + dur));
+                    if (speechFinal) FlushAll(pieces);
                 }
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) { error = ex; }
             finally
             {
-                Flush(pieces);   // lo que quedó al cerrar (CloseStream ya hizo que Deepgram lo mandara)
+                FlushAll(pieces);   // lo que quedó al cerrar (CloseStream ya hizo que Deepgram lo mandara)
                 Closed?.Invoke(error);
             }
+        }
+
+        private void FlushAll(List<(string text, double start, double end)> pieces)
+        {
+            if (_segmenter != null)
+            {
+                var rest = _segmenter.Flush();
+                if (rest != null) UtteranceReady?.Invoke(rest);
+                return;
+            }
+            Flush(pieces);
+        }
+
+        /// <summary>Palabras del resultado con su tiempo; si Deepgram no las manda, se reparte el texto en partes iguales.</summary>
+        private static List<SegWord> ParseWords(JsonNode j, string transcript, double start, double dur)
+        {
+            var now = DateTime.UtcNow;
+            var list = new List<SegWord>();
+            var arr = j["channel"]?["alternatives"]?[0]?["words"]?.AsArray();
+            if (arr != null)
+                foreach (var w in arr)
+                {
+                    var t = w?["punctuated_word"]?.GetValue<string>() ?? w?["word"]?.GetValue<string>();
+                    if (string.IsNullOrWhiteSpace(t)) continue;
+                    list.Add(new SegWord(t, w!["start"]?.GetValue<double>() ?? start, w["end"]?.GetValue<double>() ?? start + dur, now));
+                }
+            if (list.Count > 0) return list;
+            var parts = transcript.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < parts.Length; i++)
+                list.Add(new SegWord(parts[i], start + dur * i / parts.Length, start + dur * (i + 1) / parts.Length, now));
+            return list;
         }
 
         private void Flush(List<(string text, double start, double end)> pieces)

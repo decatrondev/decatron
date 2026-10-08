@@ -325,7 +325,10 @@ namespace Decatron.Services.LiveTranslation
 
         internal async Task OpenSttAsync(CancellationToken ct)
         {
-            _stt = new DeepgramLiveSttClient(_mgr.DeepgramKey, _mgr.Options.SttModel, Settings.SourceLanguage, _mgr.Logger);
+            var segmenter = _mgr.Options.SmartSegmentation
+                ? new SmartSegmenter(Settings.SourceLanguage, () => _pipelines.Values.Select(p => p.Pending).DefaultIfEmpty(0).Max())
+                : null;
+            _stt = new DeepgramLiveSttClient(_mgr.DeepgramKey, _mgr.Options.SttModel, Settings.SourceLanguage, _mgr.Logger, segmenter);
             _stt.UtteranceReady += OnUtterance;
             _stt.Closed += OnSttClosed;
             await _stt.ConnectAsync(ct);
@@ -519,6 +522,11 @@ namespace Decatron.Services.LiveTranslation
 
         /// <summary>Hay frases en cola o una en proceso.</summary>
         public bool Busy => _queue.Reader.Count > 0 || _processing;
+        /// <summary>Frases esperando más la que se está procesando: lo que usa el segmentador como presión.</summary>
+        public int Pending => _queue.Reader.Count + (_processing ? 1 : 0);
+        // Frase anterior (original y traducida): contexto para que un trozo cortado a mitad de oración se traduzca bien.
+        private string? _prevSource, _prevTranslated;
+        private double _prevEndSec;
         private volatile bool _processing;
 
         public LanguagePipeline(ChannelSession session, LiveTranslationSessionManager mgr, string lang, ITranslationTtsEngine engine, string voice)
@@ -560,7 +568,12 @@ namespace Decatron.Services.LiveTranslation
         private async Task ProcessAsync(QueuedUtterance q, CancellationToken ct)
         {
             var u = q.U;
-            var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct);
+            // Con el segmentador inteligente un trozo puede empezar o terminar a mitad de oración:
+            // se le da la frase anterior (si fue hace poco) para que la traducción siga el hilo.
+            var useCtx = _mgr.Options.SmartSegmentation && _prevSource != null && u.StartSec - _prevEndSec < 10;
+            var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct,
+                fragment: _mgr.Options.SmartSegmentation, prevSource: useCtx ? _prevSource : null, prevTranslated: useCtx ? _prevTranslated : null);
+            _prevSource = u.Text; _prevTranslated = translated; _prevEndSec = u.EndSec;
 
             var (ok, charged) = await _mgr.ChargeAsync(_session.UserId, translated.Length, _engine.CreditEngine, _voice, _lang);
             if (!ok && _engine.CreditEngine != "standard" && _mgr.StandardEngine is { } standard)

@@ -59,17 +59,32 @@ namespace Decatron.Services.LiveTranslation
             "Gaming terms, usernames, game names and emote names stay untranslated. " +
             "Output ONLY the translation. No quotes, no notes, no explanations.";
 
-        public async Task<string> TranslateAsync(string text, string sourceLang, string targetLang, long userId, string login, CancellationToken ct)
+        private const string FragmentNote =
+            " The utterance may be a fragment that starts or ends in the middle of a longer sentence: translate it as a fragment, never complete it or add words that were not said.";
+        private const string ContextNote =
+            " The user message may begin with a CONTEXT block holding the previous utterance and its translation: it is only there so the new part continues naturally (same terms, same tense, no repetition). Never translate or repeat the CONTEXT block, output only the translation of the part after it.";
+
+        /// <summary>Arma el mensaje del usuario: con contexto, la frase anterior va marcada y aparte del texto a traducir.</summary>
+        internal static string BuildUserMessage(string text, string? prevSource, string? prevTranslated) =>
+            string.IsNullOrWhiteSpace(prevSource)
+                ? text
+                : $"CONTEXT (already translated, do not repeat):\n{prevSource} => {prevTranslated}\n\nTRANSLATE THIS:\n{text}";
+
+        public async Task<string> TranslateAsync(string text, string sourceLang, string targetLang, long userId, string login, CancellationToken ct,
+            bool fragment = false, string? prevSource = null, string? prevTranslated = null)
         {
             var ctx = new AiCallContext(Module, userId, login);
-            var system = SystemPrompt(sourceLang, targetLang);
+            var system = SystemPrompt(sourceLang, targetLang)
+                + (fragment ? FragmentNote : "")
+                + (!string.IsNullOrWhiteSpace(prevSource) ? ContextNote : "");
+            var user = BuildUserMessage(text, prevSource, prevTranslated);
             await _settings.EnsureFreshAsync();
 
             if (_openRouter.IsConfigured)
             {
                 try
                 {
-                    var r = await _openRouter.ChatAsync(_settings.TranslationModel, system, text, ctx,
+                    var r = await _openRouter.ChatAsync(_settings.TranslationModel, system, user, ctx,
                         maxTokens: 256, temperature: 0.2, timeout: OpenRouterTimeout, reasoning: false, ct: ct);
                     return Clean(r.Text);
                 }
@@ -81,7 +96,7 @@ namespace Decatron.Services.LiveTranslation
                 }
             }
 
-            return await TranslateWithGeminiAsync(text, system, ctx, ct);
+            return await TranslateWithGeminiAsync(user, system, ctx, ct);
         }
 
         private async Task<string> TranslateWithGeminiAsync(string text, string system, AiCallContext ctx, CancellationToken ct)

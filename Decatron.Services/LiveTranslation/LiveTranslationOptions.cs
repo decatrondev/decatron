@@ -34,5 +34,12 @@ namespace Decatron.Services.LiveTranslation
 
         /// <summary>Máximo de frases en cola por idioma antes de descartar las más viejas.</summary>
         public int MaxQueuedUtterances { get; set; } = 6;
+
+        /// <summary>
+        /// Corta las frases por significado (final de oración, coma, tope) y no solo por pausa, y pasa
+        /// la frase anterior como contexto al traductor. Apagado = comportamiento anterior. Se cambia
+        /// en appsettings y se aplica a las sesiones nuevas tras reiniciar el backend.
+        /// </summary>
+        public bool SmartSegmentation { get; set; } = false;
     }
 }
