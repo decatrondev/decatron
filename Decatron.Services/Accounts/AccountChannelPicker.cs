@@ -69,6 +69,19 @@ namespace Decatron.Services.Accounts
         }
 
         /// <summary>
+        /// Qué plataforma muestra un enlace según el canal que coincidió, para los módulos donde un enlace sin
+        /// <c>?source=</c> conserva lo de antes (Sound Alerts): login de Twitch = twitch; kick_&lt;id&gt; o KickId = kick.
+        /// Un canal con los dos ids (no existe hoy) muestra todo.
+        /// </summary>
+        public static string OriginVariant(AccountChannel matched)
+        {
+            var hasTwitch = !string.IsNullOrEmpty(matched.TwitchId);
+            var hasKick = !string.IsNullOrEmpty(matched.KickId);
+            if (hasTwitch && hasKick) return OverlayVariant.All;
+            return hasKick ? OverlayVariant.Kick : OverlayVariant.Twitch;
+        }
+
+        /// <summary>
         /// Qué muestra un enlace que no trae <c>?source=</c>. El enlace del login de la cuenta reúne las plataformas
         /// que el streamer activó en Fuentes del panel (así lo promete la pantalla), o sea "all". Solo los alias de
         /// una fila de Kick (kick_&lt;id&gt; o el KickId) siguen mostrando únicamente Kick, como antes de unificar.

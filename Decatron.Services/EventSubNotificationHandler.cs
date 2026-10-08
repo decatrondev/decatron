@@ -552,260 +552,41 @@ namespace Decatron.Services
                     _logger.LogError(speakEx, "❌ [SpeakChat] Error procesando canje en [{Channel}]", broadcasterUserName);
                 }
 
-                // Buscar archivo de sound alert asociado a esta recompensa —
-                // desde la unificacion con la galeria compartida (8 ago 2026),
-                // vive en sound_alert_reward_files (el mapeo) + timer_media_files
-                // (el archivo en si, si no es de sistema). Se resuelve por
-                // twitch_id, no por username: mismo criterio de evitar
-                // colisiones de nombre que ya se aplico en Kick.
-                var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using var conn = new NpgsqlConnection(connectionString);
-                await conn.OpenAsync();
+                // Sound Alerts: el mismo camino que usa Kick y la Rueda (SoundAlertTriggerService), para que una
+                // regla nueva (plataforma, id único del aviso, filtros) viva en un solo sitio. El canal se
+                // resuelve por twitch_id, no por nombre, para evitar colisiones entre plataformas.
+                using var scope = _serviceScopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
+                var channelUserId = await db.Users.AsNoTracking()
+                    .Where(u => u.TwitchId == broadcasterUserId && u.IsActive)
+                    .Select(u => (long?)u.Id)
+                    .FirstOrDefaultAsync();
 
-                const string fileQuery = @"
-                    SELECT sarf.id, tmf.file_type, tmf.file_path, sarf.system_file_path,
-                           sarf.volume, sarf.enabled, sarf.image_path, sarf.image_name,
-                           sarf.show_image, sarf.image_url, sarf.image_source,
-                           sarf.media_file_id, sarf.user_id
-                    FROM sound_alert_reward_files sarf
-                    JOIN users u ON u.id = sarf.user_id
-                    LEFT JOIN timer_media_files tmf ON tmf.id = sarf.media_file_id
-                    WHERE u.twitch_id = @broadcasterId AND sarf.reward_id = @rewardId
-                    LIMIT 1";
-
-                using var fileCmd = new NpgsqlCommand(fileQuery, conn);
-                fileCmd.Parameters.AddWithValue("@broadcasterId", broadcasterUserId);
-                fileCmd.Parameters.AddWithValue("@rewardId", rewardId);
-
-                using var reader = await fileCmd.ExecuteReaderAsync();
-
-                if (!await reader.ReadAsync())
+                if (channelUserId == null)
                 {
-                    _logger.LogInformation($"No hay archivo de sound alert configurado para reward {rewardId} en canal {broadcasterUserName}");
-                    await reader.CloseAsync();
-
-                    await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                        null, redeemerUserName, redeemerUserId, redeemedAt, false, "No hay archivo configurado", broadcasterUserId);
+                    _logger.LogInformation("Canje de {Channel} sin canal registrado, no se dispara sound alert", broadcasterUserName);
                     return;
                 }
 
-                var mappingId = reader.GetInt64(0);
-                var mediaFileType = reader.IsDBNull(1) ? null : reader.GetString(1);
-                var mediaFilePath = reader.IsDBNull(2) ? null : reader.GetString(2);
-                var systemFilePath = reader.IsDBNull(3) ? null : reader.GetString(3);
-                var volume = reader.IsDBNull(4) ? (int?)null : reader.GetInt32(4);
-                var enabled = reader.GetBoolean(5);
-                var imagePath = reader.IsDBNull(6) ? (string?)null : reader.GetString(6);
-                var imageName = reader.IsDBNull(7) ? (string?)null : reader.GetString(7);
-                var showImage = reader.GetBoolean(8);
-                var imageUrlDb = reader.IsDBNull(9) ? (string?)null : reader.GetString(9);
-                var imageSource = reader.GetString(10);
-                var mediaFileId = reader.IsDBNull(11) ? (int?)null : reader.GetInt32(11);
-                var channelUserId = reader.GetInt64(12);
+                var redeemedAtParsed = DateTimeOffset.TryParse(redeemedAt, null, System.Globalization.DateTimeStyles.AssumeUniversal, out var parsed)
+                    ? parsed
+                    : DateTimeOffset.UtcNow;
 
-                await reader.CloseAsync();
-
-                var filePath = mediaFilePath ?? systemFilePath ?? "";
-                var fileType = mediaFileType ?? InferSystemFileType(systemFilePath ?? "");
-
-                _logger.LogInformation($"🎵 [DEBUG] Mapping - Id: {mappingId}, Type: {fileType}, FilePath: {filePath}, EsSistema: {mediaFileId == null}");
-
-                if (!enabled)
-                {
-                    _logger.LogInformation($"Sound alert deshabilitado para reward {rewardId}");
-                    await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                        filePath, redeemerUserName, redeemerUserId, redeemedAt, false, "Alerta deshabilitada", broadcasterUserId);
-                    return;
-                }
-
-                // Obtener configuración global del canal
-                const string configQuery = @"
-                    SELECT global_volume, global_enabled, duration, text_lines, styles, layout,
-                           animation_type, animation_speed, text_outline_enabled, text_outline_color,
-                           text_outline_width
-                    FROM sound_alert_configs
-                    WHERE user_id = @userId
-                    LIMIT 1";
-
-                using var configCmd = new NpgsqlCommand(configQuery, conn);
-                configCmd.Parameters.AddWithValue("@userId", channelUserId);
-
-                using var configReader = await configCmd.ExecuteReaderAsync();
-
-                int globalVolume = 70;
-                bool globalEnabled = true;
-                int duration = 10;
-                string textLines = "[]";
-                string styles = "{}";
-                string layout = "{}";
-                string animationType = "fade";
-                string animationSpeed = "normal";
-                bool textOutlineEnabled = false;
-                string textOutlineColor = "#000000";
-                int textOutlineWidth = 2;
-
-                if (await configReader.ReadAsync())
-                {
-                    globalVolume = configReader.GetInt32(0);
-                    globalEnabled = configReader.GetBoolean(1);
-                    duration = configReader.GetInt32(2);
-                    textLines = configReader.GetString(3);
-                    styles = configReader.GetString(4);
-                    layout = configReader.GetString(5);
-                    animationType = configReader.GetString(6);
-                    animationSpeed = configReader.GetString(7);
-                    textOutlineEnabled = configReader.GetBoolean(8);
-                    textOutlineColor = configReader.GetString(9);
-                    textOutlineWidth = configReader.GetInt32(10);
-                }
-
-                await configReader.CloseAsync();
-
-                if (!globalEnabled)
-                {
-                    _logger.LogInformation($"Sound alerts deshabilitados globalmente para {broadcasterUserName}");
-                    await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                        filePath, redeemerUserName, redeemerUserId, redeemedAt, false, "Sistema deshabilitado", broadcasterUserId);
-                    return;
-                }
-
-                // Incrementar contador de reproducciones — solo si es un
-                // archivo de la galeria compartida (los de sistema no son
-                // filas de BD, no tienen contador que incrementar).
-                if (mediaFileId != null)
-                {
-                    const string updatePlayCountQuery = @"
-                        UPDATE timer_media_files
-                        SET usage_count = usage_count + 1, updated_at = NOW()
-                        WHERE id = @id";
-
-                    using var updateCmd = new NpgsqlCommand(updatePlayCountQuery, conn);
-                    updateCmd.Parameters.AddWithValue("@id", mediaFileId.Value);
-                    await updateCmd.ExecuteNonQueryAsync();
-                }
-
-                // Construir URLs — ToPublicPath funciona igual para ambos casos,
-                // FilePath ya viene relativo a ClientApp/public/ en los dos.
-                var fileUrl = ToPublicPath(filePath);
-                string? imageUrl = null;
-
-                if (showImage)
-                {
-                    if (imageSource == "url" && !string.IsNullOrEmpty(imageUrlDb))
-                    {
-                        imageUrl = imageUrlDb;
-                    }
-                    else if (!string.IsNullOrEmpty(imagePath))
-                    {
-                        imageUrl = ToPublicPath(imagePath);
-                    }
-                }
-
-                _logger.LogInformation($"🎵 [DEBUG] URL Final - FileUrl: {fileUrl}, FileType: {fileType}, EsSistema: {mediaFileId == null}");
-
-                // Enviar alerta a través de SignalR
-                var alertData = new
-                {
-                    type = "soundalert",
-                    redeemer = redeemerUserName,
-                    reward = rewardTitle ?? "",
-                    fileUrl = fileUrl,
-                    fileType = fileType,
-                    imageUrl = imageUrl,
-                    showImage = showImage,
-                    volume = volume ?? globalVolume,
-                    duration = duration,
-                    textLines = textLines,
-                    styles = styles,
-                    layout = layout,
-                    animation = new
-                    {
-                        type = animationType,
-                        speed = animationSpeed
-                    },
-                    textOutline = new
-                    {
-                        enabled = textOutlineEnabled,
-                        color = textOutlineColor,
-                        width = textOutlineWidth
-                    }
-                };
-
-                await _hubContext.Clients.Group($"overlay_{broadcasterUserName.ToLower()}")
-                    .SendAsync("ShowSoundAlert", alertData);
-
-                _logger.LogInformation($"✅ Sound alert enviado por SignalR para {broadcasterUserName} - Reward: {rewardTitle}");
-                LogToFile($"ALERTA ENVIADA: {redeemerUserName} → {rewardTitle} → {Path.GetFileName(filePath)}");
-
-                await RegistrarHistorialCanje(conn, broadcasterUserName, rewardId, rewardTitle ?? "",
-                    filePath, redeemerUserName, redeemerUserId, redeemedAt, true, null, broadcasterUserId);
+                await scope.ServiceProvider.GetRequiredService<Decatron.Core.Interfaces.ISoundAlertTriggerService>().TriggerAsync(
+                    new Decatron.Core.Interfaces.SoundAlertRedemption(
+                        ChannelUserId: channelUserId.Value,
+                        OverlayGroupKey: broadcasterUserName.ToLower(),
+                        RewardId: rewardId,
+                        RewardTitle: rewardTitle ?? "",
+                        RedeemerUsername: redeemerUserName,
+                        RedeemerId: redeemerUserId,
+                        RedeemedAt: redeemedAtParsed));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error procesando evento de canje de Channel Points");
                 LogToFile($"ERROR EN EVENTO CANJE: {ex.Message}");
             }
-        }
-
-        private async Task RegistrarHistorialCanje(NpgsqlConnection conn, string channelName, string rewardId,
-            string rewardTitle, string? filePath, string redeemedBy, string? redeemedById,
-            string? redeemedAt, bool playedSuccessfully, string? errorMessage, string? broadcasterTwitchId = null)
-        {
-            try
-            {
-                const string insertQuery = @"
-                    INSERT INTO sound_alert_history
-                        (channel_name, reward_id, reward_title, file_path, redeemed_by, redeemed_by_id,
-                         redeemed_at, played_successfully, error_message, user_id)
-                    VALUES
-                        (@channelName, @rewardId, @rewardTitle, @filePath, @redeemedBy, @redeemedById,
-                         @redeemedAt, @playedSuccessfully, @errorMessage,
-                         (SELECT id FROM users WHERE twitch_id = @broadcasterTwitchId LIMIT 1))";
-
-                using var cmd = new NpgsqlCommand(insertQuery, conn);
-                cmd.Parameters.AddWithValue("@channelName", channelName.ToLower());
-                cmd.Parameters.AddWithValue("@rewardId", rewardId);
-                cmd.Parameters.AddWithValue("@rewardTitle", rewardTitle);
-                cmd.Parameters.AddWithValue("@filePath", (object?)filePath ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@redeemedBy", redeemedBy);
-                cmd.Parameters.AddWithValue("@redeemedById", (object?)redeemedById ?? DBNull.Value);
-
-                if (!string.IsNullOrEmpty(redeemedAt))
-                {
-                    cmd.Parameters.AddWithValue("@redeemedAt", DateTime.Parse(redeemedAt, null, System.Globalization.DateTimeStyles.AssumeUniversal));
-                }
-                else
-                {
-                    cmd.Parameters.AddWithValue("@redeemedAt", DateTime.UtcNow);
-                }
-
-                cmd.Parameters.AddWithValue("@playedSuccessfully", playedSuccessfully);
-                cmd.Parameters.AddWithValue("@errorMessage", (object?)errorMessage ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@broadcasterTwitchId", (object?)broadcasterTwitchId ?? DBNull.Value);
-
-                await cmd.ExecuteNonQueryAsync();
-
-                _logger.LogInformation($"Historial de canje registrado para {redeemedBy} - {rewardTitle}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error registrando historial de canje");
-            }
-        }
-
-        // Una sola implementación en Decatron.Core: las cuatro copias privadas que
-        // había tenían la misma lógica rota, así que arreglar una sola habría dejado
-        // las otras tres generando URLs invalidas.
-        private static string ToPublicPath(string filePath) =>
-            Decatron.Core.Helpers.MediaPathHelpers.ToPublicPath(filePath);
-
-        /// <summary>Los archivos de sistema no tienen fila de BD con FileType — se infiere de la carpeta (sounds/videos/images), igual que SoundAlertTriggerService.</summary>
-        private static string InferSystemFileType(string systemFilePath)
-        {
-            if (systemFilePath.Contains("/sounds/")) return "sound";
-            if (systemFilePath.Contains("/videos/")) return "video";
-            if (systemFilePath.Contains("/images/")) return "image";
-            return "sound";
         }
 
         private async Task ManejarEventoSeguidor(JObject datosEvento)

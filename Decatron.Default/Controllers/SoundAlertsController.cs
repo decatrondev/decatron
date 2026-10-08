@@ -226,6 +226,37 @@ namespace Decatron.Default.Controllers
         }
 
         /// <summary>
+        /// A qué grupo unirse y qué muestra este enlace sin <c>?source=</c> (público, sin sesión). El overlay de OBS lo
+        /// pregunta al conectarse: el alias de la URL puede ser el login de Twitch o el KickId, y el overlay nuevo se une al
+        /// grupo v2 de la cuenta y filtra por plataforma. Un enlace sin <c>source</c> conserva lo de antes: el login de
+        /// Twitch muestra solo Twitch y el KickId solo Kick; «Todo» lleva <c>source=all</c>.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("resolve/{channel}")]
+        public async Task<IActionResult> ResolveChannel(string channel)
+        {
+            try
+            {
+                var resolved = await HttpContext.RequestServices.GetRequiredService<Decatron.Services.Accounts.AccountChannelResolver>().ResolveAliasAsync(channel);
+                if (resolved == null)
+                    return Ok(new { success = true, found = false });
+
+                return Ok(new
+                {
+                    success = true,
+                    found = true,
+                    overlayKey = resolved.Account.OverlayKey,
+                    variant = Decatron.Services.Accounts.AccountChannelPicker.OriginVariant(resolved.Matched)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[SoundAlerts] Error resolviendo el canal del overlay");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
         /// Obtiene la configuración para el overlay público (sin autenticación)
         /// </summary>
         [AllowAnonymous]
@@ -512,8 +543,8 @@ namespace Decatron.Default.Controllers
                 // Notificar al overlay que la configuración ha cambiado
                 try
                 {
-                    await _hubContext.Clients.Group($"overlay_{username.ToLower()}")
-                        .SendAsync("ConfigurationChanged");
+                    await HttpContext.RequestServices.GetRequiredService<ISoundAlertTriggerService>()
+                        .NotifyConfigChangedAsync(channelOwnerId, username.ToLower());
                     _logger.LogInformation($"🎵 [SoundAlerts] Evento ConfigurationChanged enviado al overlay de {username}");
                 }
                 catch (Exception signalREx)
@@ -1303,8 +1334,8 @@ namespace Decatron.Default.Controllers
                 };
 
                 // Enviar a través de SignalR
-                await _hubContext.Clients.Group($"overlay_{username}")
-                    .SendAsync("ShowSoundAlert", alertData);
+                await HttpContext.RequestServices.GetRequiredService<ISoundAlertTriggerService>()
+                    .SendAlertAsync(channelOwnerId, username, alertData);
 
                 _logger.LogInformation($"🎵 [SoundAlerts] Alerta de prueba enviada para {username}");
 

@@ -2,9 +2,12 @@ using Decatron.Core.Interfaces;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Decatron.Hubs;
+using Decatron.Services.Accounts;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Decatron.Services
 {
@@ -12,13 +15,52 @@ namespace Decatron.Services
     {
         private readonly DecatronDbContext _db;
         private readonly IHubContext<OverlayHub> _hubContext;
+        private readonly AccountChannelResolver _accounts;
         private readonly ILogger<SoundAlertTriggerService> _logger;
 
-        public SoundAlertTriggerService(DecatronDbContext db, IHubContext<OverlayHub> hubContext, ILogger<SoundAlertTriggerService> logger)
+        public SoundAlertTriggerService(DecatronDbContext db, IHubContext<OverlayHub> hubContext, AccountChannelResolver accounts, ILogger<SoundAlertTriggerService> logger)
         {
             _db = db;
             _hubContext = hubContext;
+            _accounts = accounts;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Grupo v2 de la cuenta. El overlay nuevo se une solo a este (con JoinChannel("v2:" + clave)) y filtra por
+        /// plataforma; el prefijo "v2:" no puede ser parte de un login, así que no choca con ningún canal.
+        /// </summary>
+        public static string V2Group(string overlayKey) => $"overlay_v2:{overlayKey}";
+
+        /// <summary>
+        /// Emite al grupo de siempre y al v2 de la cuenta, en dos envíos separados: una conexión está en uno solo de los
+        /// dos, así que nunca recibe el aviso dos veces (SignalR sí duplicaría con una lista de grupos).
+        /// </summary>
+        private async Task EmitAsync(long channelUserId, string legacyKey, string method, params object[] args)
+        {
+            await _hubContext.Clients.Group($"overlay_{legacyKey}").SendCoreAsync(method, args);
+            var account = await _accounts.ResolveByUserIdAsync(channelUserId);
+            if (account != null)
+                await _hubContext.Clients.Group(V2Group(account.OverlayKey)).SendCoreAsync(method, args);
+        }
+
+        public async Task SendAlertAsync(long channelUserId, string legacyKey, object alertData)
+        {
+            var node = JsonSerializer.SerializeToNode(alertData) as JsonObject ?? new JsonObject();
+            if (node["id"] == null) node["id"] = Guid.NewGuid().ToString("N");
+            if (node["platform"] == null) node["platform"] = await PlatformOfAsync(channelUserId);
+            await EmitAsync(channelUserId, legacyKey, "ShowSoundAlert", node);
+        }
+
+        public Task NotifyConfigChangedAsync(long channelUserId, string legacyKey) =>
+            EmitAsync(channelUserId, legacyKey, "ConfigurationChanged");
+
+        /// <summary>De qué plataforma es el canal que recibió el canje: lo filtra cada overlay según su variante (todo / twitch / kick)</summary>
+        private async Task<string> PlatformOfAsync(long channelUserId)
+        {
+            var account = await _accounts.ResolveByUserIdAsync(channelUserId);
+            var origin = account?.Members.FirstOrDefault(m => m.UserId == channelUserId);
+            return origin?.Platform == "kick" ? "kick" : "twitch";
         }
 
         public async Task TriggerAsync(SoundAlertRedemption redemption)
@@ -55,6 +97,9 @@ namespace Decatron.Services
                 var alertData = new
                 {
                     type = "soundalert",
+                    // Id único del aviso: el overlay descarta uno que ya reprodujo (protección contra el doble sonido)
+                    id = Guid.NewGuid().ToString("N"),
+                    platform = await PlatformOfAsync(redemption.ChannelUserId),
                     redeemer = redemption.RedeemerUsername,
                     reward = redemption.RewardTitle,
                     fileUrl,
@@ -79,7 +124,9 @@ namespace Decatron.Services
                     }
                 };
 
-                await _hubContext.Clients.Group($"overlay_{redemption.OverlayGroupKey}").SendAsync("ShowSoundAlert", alertData);
+                // Al grupo de siempre (idéntico a antes, para los overlays que ya están puestos en OBS) y al grupo v2 de la
+                // cuenta (el overlay nuevo, que filtra por plataforma). Nunca una lista de grupos: ver EmitAsync.
+                await EmitAsync(redemption.ChannelUserId, redemption.OverlayGroupKey, "ShowSoundAlert", alertData);
 
                 if (mapping.MediaFile != null)
                 {

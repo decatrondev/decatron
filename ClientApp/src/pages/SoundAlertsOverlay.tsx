@@ -8,6 +8,9 @@ import type { AlertContent, AlertDesign } from './features/sound-alerts-extensio
 
 interface SoundAlertData extends AlertContent {
     type: string;
+    /** Id único del aviso y plataforma de origen (twitch | kick): los trae el servidor desde Sound Alerts unificado */
+    id?: string;
+    platform?: string;
     fileType: 'sound' | 'video' | 'image';
     volume: number;
     duration: number;
@@ -20,10 +23,14 @@ interface SoundAlertData extends AlertContent {
 
 /** Tope de canjes en espera: evita juntar horas de alertas si el overlay estuvo trabado. */
 const MAX_QUEUE = 100;
+/** Cuánto se recuerda el id de un aviso ya recibido, para no reproducirlo dos veces */
+const SEEN_TTL_MS = 2 * 60 * 1000;
 
 export default function SoundAlertsOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
+    // ?source=all|twitch|kick. Sin source, el enlace conserva lo de antes: el login de Twitch muestra solo Twitch y el KickId solo Kick
+    const sourceParam = (searchParams.get('source') || '').toLowerCase();
 
     const [isVisible, setIsVisible] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
@@ -59,6 +66,11 @@ export default function SoundAlertsOverlay() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const [autoplayUnlocked, setAutoplayUnlocked] = useState(false);
+    // A qué grupo se une este overlay y qué plataforma deja pasar (null = todas). Se fijan al resolver el canal
+    const groupRef = useRef(channel);
+    const variantRef = useRef<string | null>(null);
+    const v2Ref = useRef(false);
+    const seenRef = useRef<Map<string, number>>(new Map());
 
     // Desbloquear autoplay con el primer clic
     useEffect(() => {
@@ -115,6 +127,47 @@ export default function SoundAlertsOverlay() {
         };
     }, [channel]);
 
+    /**
+     * Pregunta al servidor a qué grupo unirse. Con respuesta, el overlay va al grupo v2 de la cuenta y filtra por plataforma;
+     * sin ella (servidor caído, canal desconocido) se comporta como siempre: se une al grupo del enlace y muestra todo.
+     * Se vuelve a preguntar en cada conexión, así una fuente de OBS que lleva días abierta se pone al día sola.
+     */
+    const resolveChannel = async () => {
+        v2Ref.current = false;
+        groupRef.current = channel;
+        variantRef.current = null;
+        try {
+            const res = await fetch(`/api/soundalerts/resolve/${encodeURIComponent(channel)}`);
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json.success || !json.found || !json.overlayKey) return;
+            const explicit = ['all', 'twitch', 'kick'].includes(sourceParam) ? sourceParam : null;
+            const variant = explicit ?? json.variant ?? 'all';
+            v2Ref.current = true;
+            groupRef.current = `v2:${json.overlayKey}`;
+            variantRef.current = variant === 'all' ? null : variant;
+        } catch { /* se queda con el comportamiento de siempre */ }
+    };
+
+    const joinGroup = async (connection: signalR.HubConnection) => {
+        await connection.invoke('JoinChannel', groupRef.current);
+        // Para que el servidor y el panel sepan qué overlay hay conectado y con qué variante
+        await connection.invoke('RegisterOverlay', groupRef.current, 'soundalerts');
+        if (v2Ref.current) await connection.invoke('SetOverlayVariant', variantRef.current ?? 'all');
+    };
+
+    /** Descarta un aviso ya reproducido (mismo id) o de otra plataforma que la de este overlay */
+    const accept = (data: SoundAlertData): boolean => {
+        const now = Date.now();
+        if (data.id) {
+            for (const [id, at] of seenRef.current) if (now - at > SEEN_TTL_MS) seenRef.current.delete(id);
+            if (seenRef.current.has(data.id)) return false;
+            seenRef.current.set(data.id, now);
+        }
+        if (v2Ref.current && variantRef.current && data.platform && data.platform !== variantRef.current) return false;
+        return true;
+    };
+
     const loadConfiguration = async () => {
         if (!channel) {
             console.warn('No channel specified, using default configuration');
@@ -161,7 +214,7 @@ export default function SoundAlertsOverlay() {
                 .build();
 
             // CRÍTICO: Configurar listeners ANTES de conectar
-            connection.on('ShowSoundAlert', (data) => enqueue(data));
+            connection.on('ShowSoundAlert', (data: SoundAlertData) => { if (accept(data)) enqueue(data); });
 
             // Ignorar mensajes del timer para evitar warnings en consola
             connection.on('TimerTick', () => {});
@@ -175,7 +228,8 @@ export default function SoundAlertsOverlay() {
             connection.onreconnected(async (connectionId) => {
                 try {
                     await loadConfiguration();
-                    await connection.invoke('JoinChannel', channel);
+                    await resolveChannel();
+                    await joinGroup(connection);
                 } catch (err) {
                     console.error('❌ [SOUNDALERT] Error al re-unirse al canal:', err);
                 }
@@ -192,9 +246,10 @@ export default function SoundAlertsOverlay() {
                 setTimeout(setupSignalRConnection, 5000);
             });
 
+            await resolveChannel();
             await connection.start();
 
-            await connection.invoke('JoinChannel', channel);
+            await joinGroup(connection);
 
             connectionRef.current = connection;
         } catch (err) {

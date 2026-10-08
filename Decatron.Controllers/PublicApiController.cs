@@ -658,7 +658,8 @@ namespace Decatron.Controllers
                 }
             };
 
-            await _hubContext.Clients.Group($"overlay_{username}").SendAsync("ShowSoundAlert", alertData);
+            await HttpContext.RequestServices.GetRequiredService<ISoundAlertTriggerService>()
+                .SendAlertAsync(userId, username, alertData);
 
             _logger.LogInformation("Sound alert '{RewardTitle}' triggered via API for channel {Channel}", mapping.RewardTitle, username);
 
