@@ -12,6 +12,7 @@ import { CANVAS, CHAT_PRESETS, type BubbleMovement, type BubbleShape, type Bubbl
 import { sampleMessage } from '../../../../components/chat-overlay/sample';
 import type { FeedItem } from '../../../../components/chat-overlay/useChatFeed';
 import type { ChatOverlayConfigState } from '../hooks/useChatOverlayConfig';
+import { useChatOverlayStatus } from '../hooks/useChatOverlayStatus';
 
 export type ChatTabId = 'guide' | 'general' | 'bubbles' | 'messages' | 'sources' | 'emotes' | 'filters' | 'theme' | 'text' | 'animations' | 'editor';
 
@@ -68,6 +69,41 @@ function Stack({ children }: { children: ReactNode }) {
     return <div className="space-y-5">{children}</div>;
 }
 
+/** Un enlace de OBS con su estado: conectado en OBS ahora o sin conexión */
+function LinkRow({ url, name, hint, recommended, connected, loaded }: { url: string; name?: string; hint?: string; recommended?: boolean; connected: boolean; loaded: boolean }) {
+    const { t } = useTranslation('overlays');
+    return (
+        <div>
+            {(name || loaded) && (
+                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    {name && <span className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{name}</span>}
+                    {recommended && <span className="px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#2563eb] dark:text-[#93c5fd]">{t('chat.guide.recommended')}</span>}
+                    {loaded && (
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold ${connected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8]'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-500' : 'bg-[#94a3b8]'}`} />
+                            {connected ? t('chat.guide.connected') : t('chat.guide.notConnected')}
+                        </span>
+                    )}
+                </div>
+            )}
+            {hint && <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mb-2">{hint}</p>}
+            <div className="flex gap-2">
+                <input className={`${inputClass} font-mono`} readOnly value={url} onFocus={e => e.currentTarget.select()} />
+                <CopyButton text={url} label={t('chat.guide.copy')} doneLabel={t('chat.guide.copied')} />
+            </div>
+        </div>
+    );
+}
+
+function Warning({ title, text }: { title: string; text: string }) {
+    return (
+        <div role="alert" className="mt-5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3">
+            <p className="text-sm 3xl:text-base font-bold text-amber-800 dark:text-amber-300">{title}</p>
+            <p className="text-sm 3xl:text-base text-amber-800/90 dark:text-amber-200/90 mt-1">{text}</p>
+        </div>
+    );
+}
+
 // ── Guía ───────────────────────────────────────────────────────────────────
 
 export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: ChatTabId) => void }) {
@@ -75,6 +111,9 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Cha
     const [botsOpen, setBotsOpen] = useState(false);
     const [test, setTest] = useState<{ state: 'idle' | 'sending' | 'ok' | 'none' | 'error' }>({ state: 'idle' });
     const steps = ['step1', 'step2', 'step3', 'step4'] as const;
+    const { status, loaded } = useChatOverlayStatus();
+    const bothLinked = cfg.channel.hasTwitch && cfg.channel.hasKick;
+    const connected = (n: number) => n > 0;
 
     const sendTest = async () => {
         setTest({ state: 'sending' });
@@ -89,20 +128,32 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Cha
     return (
         <Stack>
             <Card title={t('chat.guide.urlTitle')} description={t('chat.guide.urlDescription')}>
-                <div className="flex gap-2">
-                    <input className={`${inputClass} font-mono`} readOnly value={cfg.overlayUrl} onFocus={e => e.currentTarget.select()} />
-                    <CopyButton text={cfg.overlayUrl} label={t('chat.guide.copy')} doneLabel={t('chat.guide.copied')} />
-                </div>
-                {cfg.channel.hasTwitch && cfg.channel.hasKick && (
-                    <div className="mt-4 space-y-2">
-                        <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('chat.guide.perPlatform')}</p>
-                        {(['twitch', 'kick'] as const).map(p => (
-                            <div key={p} className="flex gap-2">
-                                <input className={`${inputClass} font-mono`} readOnly value={`${cfg.overlayUrl}&source=${p}`} onFocus={e => e.currentTarget.select()} />
-                                <CopyButton text={`${cfg.overlayUrl}&source=${p}`} label={t('chat.guide.copy')} doneLabel={t('chat.guide.copied')} />
-                            </div>
-                        ))}
+                <LinkRow
+                    url={cfg.overlayUrl}
+                    name={bothLinked ? t('chat.guide.linkAll') : undefined}
+                    hint={bothLinked ? t('chat.guide.linkAllHint') : undefined}
+                    recommended={bothLinked}
+                    connected={connected(status.all)}
+                    loaded={loaded}
+                />
+                {bothLinked && (
+                    <div className="mt-5 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                        <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8]">{t('chat.guide.advancedTitle')}</p>
+                        <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1 mb-3">{t('chat.guide.perPlatform')}</p>
+                        <div className="space-y-3">
+                            <LinkRow url={`${cfg.overlayUrl}&source=twitch`} name={t('chat.guide.linkTwitch')} connected={connected(status.twitch)} loaded={loaded} />
+                            <LinkRow url={`${cfg.overlayUrl}&source=kick`} name={t('chat.guide.linkKick')} connected={connected(status.kick)} loaded={loaded} />
+                        </div>
                     </div>
+                )}
+                {status.warnings.includes('mixed') && (
+                    <Warning title={t('chat.guide.warnMixedTitle')} text={t('chat.guide.warnMixed')} />
+                )}
+                {status.warnings.includes('repeated') && !status.warnings.includes('mixed') && (
+                    <Warning title={t('chat.guide.warnRepeatedTitle')} text={t('chat.guide.warnRepeated')} />
+                )}
+                {!bothLinked && cfg.channel.hasTwitch !== cfg.channel.hasKick && (
+                    <p className="mt-4 text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('chat.guide.linkOtherHint')}</p>
                 )}
             </Card>
 

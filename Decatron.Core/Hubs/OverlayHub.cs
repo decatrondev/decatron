@@ -26,6 +26,29 @@ namespace Decatron.Hubs
         /// </summary>
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Channel, string Type)> _connections = new();
 
+        /// <summary>
+        /// Qué variante mostró cada overlay multiplataforma al conectarse ("all", "twitch" o "kick"). Es aparte de
+        /// <c>_connections</c> para no cambiarle la forma a los demás módulos; solo lo llama quien lo necesite.
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _variants = new();
+
+        /// <summary>
+        /// Cuántos overlays de un tipo hay conectados a un canal, por variante. Los que no declararon variante
+        /// (un overlay abierto con código viejo) cuentan como "all".
+        /// </summary>
+        public static Dictionary<string, int> CountOverlayVariants(string channel, string type)
+        {
+            var result = new Dictionary<string, int> { ["all"] = 0, ["twitch"] = 0, ["kick"] = 0 };
+            foreach (var kv in _connections)
+            {
+                if (!string.Equals(kv.Value.Channel, channel, StringComparison.OrdinalIgnoreCase) ||
+                    !string.Equals(kv.Value.Type, type, StringComparison.OrdinalIgnoreCase)) continue;
+                var variant = _variants.TryGetValue(kv.Key, out var v) && result.ContainsKey(v) ? v : "all";
+                result[variant]++;
+            }
+            return result;
+        }
+
         public static bool HasActiveClients(string channel) => _activeChannels.TryGetValue(channel, out var count) && count > 0;
         public static IEnumerable<string> GetActiveChannels() => _activeChannels.Where(kv => kv.Value > 0).Select(kv => kv.Key);
 
@@ -83,6 +106,14 @@ namespace Decatron.Hubs
             return Task.CompletedTask;
         }
 
+        /// <summary>Qué variante muestra esta conexión ("all", "twitch" o "kick"). Se llama después de RegisterOverlay</summary>
+        public Task SetOverlayVariant(string variant)
+        {
+            var v = (variant ?? "").Trim().ToLowerInvariant();
+            if (v is "all" or "twitch" or "kick") _variants[Context.ConnectionId] = v;
+            return Task.CompletedTask;
+        }
+
         public async Task LeaveChannel(string channel)
         {
             try
@@ -90,6 +121,7 @@ namespace Decatron.Hubs
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"overlay_{channel}");
                 _activeChannels.AddOrUpdate(channel, 0, (_, count) => Math.Max(0, count - 1));
                 _connections.TryRemove(Context.ConnectionId, out _);
+                _variants.TryRemove(Context.ConnectionId, out _);
                 _logger.LogInformation("Client {ConnectionId} left overlay_{Channel} (active: {Count})", Context.ConnectionId, channel, _activeChannels.GetValueOrDefault(channel));
             }
             catch (Exception ex)
@@ -118,6 +150,7 @@ namespace Decatron.Hubs
                 // Una fuente de OBS que se cierra no llama a LeaveChannel: simplemente
                 // desaparece. Sin esto el contador solo subía, y un canal sin nadie
                 // mirando seguía diciendo que tenía ocho overlays conectados.
+                _variants.TryRemove(Context.ConnectionId, out _);
                 if (_connections.TryRemove(Context.ConnectionId, out var info))
                 {
                     _activeChannels.AddOrUpdate(info.Channel, 0, (_, count) => Math.Max(0, count - 1));

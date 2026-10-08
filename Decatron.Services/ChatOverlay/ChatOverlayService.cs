@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Decatron.Core.Interfaces;
+using Decatron.Services.Accounts;
 using Decatron.Data;
 using Decatron.Hubs;
 using Microsoft.AspNetCore.SignalR;
@@ -23,28 +24,34 @@ namespace Decatron.Services.ChatOverlay
     {
         public const string OverlayType = "chat";
         private static readonly TimeSpan ConfigTtl = TimeSpan.FromSeconds(30);
-        private static readonly TimeSpan TargetTtl = TimeSpan.FromMinutes(5);
         private static readonly Regex KickEmoteTag = new(@"\[emote:(\d+):([^\]]*)\]", RegexOptions.Compiled);
 
         private readonly IHubContext<OverlayHub> _hub;
         private readonly IServiceScopeFactory _scopes;
         private readonly IBotListService _bots;
+        private readonly AccountChannelResolver _accounts;
         private readonly EmoteCatalogService _emotes;
         private readonly ChatBadgeService _badges;
         private readonly ILogger<ChatOverlayService> _logger;
 
-        /// <summary>A qué canal interno pertenece una cuenta de chat</summary>
-        private sealed record Target(long UserId, string Login, string? TwitchId, string? KickId);
+        /// <summary>
+        /// A qué cuenta pertenece un mensaje. UserId y Login son los de la fila principal (su config y su grupo de
+        /// SignalR); TwitchId y KickId son los de toda la cuenta (para juntar los emotes de los dos canales);
+        /// OriginUserId es la fila por la que entró el mensaje (su lista de bots).
+        /// </summary>
+        private sealed record Target(long UserId, string Login, string? TwitchId, string? KickId, long OriginUserId);
 
-        private readonly ConcurrentDictionary<string, (DateTime At, Target? Value)> _targets = new();
+        /// <summary>El canal de chat de una cuenta, tal como lo ve el panel</summary>
+        public sealed record ChatChannel(string Login, string? TwitchId, string? KickId, long PrincipalUserId, bool HasTwitch, bool HasKick);
         private readonly ConcurrentDictionary<long, (DateTime At, ChatOverlayServerConfig Config)> _configs = new();
 
         public ChatOverlayService(IHubContext<OverlayHub> hub, IServiceScopeFactory scopes, IBotListService bots,
-            EmoteCatalogService emotes, ChatBadgeService badges, ILogger<ChatOverlayService> logger)
+            AccountChannelResolver accounts, EmoteCatalogService emotes, ChatBadgeService badges, ILogger<ChatOverlayService> logger)
         {
             _hub = hub;
             _scopes = scopes;
             _bots = bots;
+            _accounts = accounts;
             _emotes = emotes;
             _badges = badges;
             _logger = logger;
@@ -52,11 +59,12 @@ namespace Decatron.Services.ChatOverlay
 
         public void InvalidateConfig(long userId) => _configs.TryRemove(userId, out _);
 
-        /// <summary>El canal interno de un usuario (para endpoints que ya conocen el user_id)</summary>
-        public async Task<(string Login, string? TwitchId, string? KickId)?> GetChannelAsync(long userId)
+        /// <summary>La cuenta de un usuario (para endpoints que ya conocen el user_id): login de la fila principal e ids de toda la cuenta</summary>
+        public async Task<ChatChannel?> GetChannelAsync(long userId)
         {
-            var t = await ResolveTargetAsync($"id:{userId}", db => db.Users.Where(u => u.Id == userId && u.IsActive));
-            return t == null ? null : (t.Login, t.TwitchId, t.KickId);
+            var account = await _accounts.ResolveByUserIdAsync(userId);
+            return account == null ? null
+                : new ChatChannel(account.OverlayKey, account.TwitchId, account.KickId, account.Principal.UserId, account.HasTwitch, account.HasKick);
         }
 
         public Task RefreshEmotesAsync(string? twitchId, string? kickId)
@@ -81,8 +89,7 @@ namespace Decatron.Services.ChatOverlay
                 if (string.IsNullOrEmpty(broadcasterLogin) || string.IsNullOrEmpty(messageId) || string.IsNullOrEmpty(chatterLogin))
                     return;
 
-                var target = await ResolveTargetAsync($"tw:{broadcasterLogin}",
-                    db => db.Users.Where(u => u.Login == broadcasterLogin && u.IsActive));
+                var target = ToTarget(await _accounts.ResolveLoginAsync(broadcasterLogin));
                 if (target == null || !HasOverlay(target.Login)) return;
 
                 var cfg = await GetConfigAsync(target.UserId);
@@ -98,7 +105,7 @@ namespace Decatron.Services.ChatOverlay
 
                 if (cfg.HideBots)
                 {
-                    var fx = await _bots.GetEffectsAsync("twitch", target.UserId, chatterLogin);
+                    var fx = await _bots.GetEffectsAsync("twitch", target.OriginUserId, chatterLogin);
                     if (fx is { HideOverlay: true }) return;
                 }
 
@@ -185,16 +192,16 @@ namespace Decatron.Services.ChatOverlay
         public async Task<bool> SendTestAsync(long userId, string text)
         {
             var channel = await GetChannelAsync(userId);
-            if (channel == null || !HasOverlay(channel.Value.Login)) return false;
+            if (channel == null || !HasOverlay(channel.Login)) return false;
 
             var fragments = new JArray { new JObject { ["type"] = "text", ["text"] = text + " " },
                 new JObject { ["type"] = "emote", ["text"] = "Kappa", ["emote"] = new JObject { ["id"] = "25", ["format"] = new JArray("static") } } };
             var evt = new JObject
             {
                 ["message_id"] = $"test-{Guid.NewGuid():N}",
-                ["broadcaster_user_id"] = channel.Value.TwitchId ?? "0",
-                ["broadcaster_user_login"] = channel.Value.Login,
-                ["broadcaster_user_name"] = channel.Value.Login,
+                ["broadcaster_user_id"] = channel.TwitchId ?? "0",
+                ["broadcaster_user_login"] = channel.Login,
+                ["broadcaster_user_name"] = channel.Login,
                 ["chatter_user_id"] = "0",
                 ["chatter_user_login"] = "decatron",
                 ["chatter_user_name"] = "Decatron",
@@ -223,7 +230,7 @@ namespace Decatron.Services.ChatOverlay
                 var kickId = Str(broadcaster, "user_id");
                 if (string.IsNullOrEmpty(kickId)) return;
 
-                var target = await ResolveTargetAsync($"kick:{kickId}", db => db.Users.Where(u => u.KickId == kickId && u.IsActive));
+                var target = ToTarget(await _accounts.ResolveKickIdAsync(kickId));
                 if (target == null || !HasOverlay(target.Login)) return;
 
                 var cfg = await GetConfigAsync(target.UserId);
@@ -235,7 +242,7 @@ namespace Decatron.Services.ChatOverlay
 
                 if (cfg.HideBots)
                 {
-                    var fx = await _bots.GetEffectsAsync("kick", target.UserId, userKey);
+                    var fx = await _bots.GetEffectsAsync("kick", target.OriginUserId, userKey);
                     if (fx is { HideOverlay: true }) return;
                 }
 
@@ -316,7 +323,7 @@ namespace Decatron.Services.ChatOverlay
             try
             {
                 var login = twitchChannel.TrimStart('#').ToLowerInvariant();
-                var target = await ResolveTargetAsync($"tw:{login}", db => db.Users.Where(u => u.Login == login && u.IsActive));
+                var target = ToTarget(await _accounts.ResolveLoginAsync(login));
                 if (target == null || !HasOverlay(target.Login)) return;
                 await _hub.Clients.Group($"overlay_{target.Login}").SendAsync(method, payload);
             }
@@ -422,34 +429,25 @@ namespace Decatron.Services.ChatOverlay
 
         private static string Truncate(string s, int max) => s.Length <= max ? s : s[..max] + "…";
 
-        private static string? Str(JsonElement el, string name) =>
-            el.ValueKind == JsonValueKind.Object && el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+        /// <summary>Un campo como texto. Kick manda los ids (user_id) como número, no como texto: se leen igual</summary>
+        private static string? Str(JsonElement el, string name)
+        {
+            if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(name, out var v)) return null;
+            return v.ValueKind switch
+            {
+                JsonValueKind.String => v.GetString(),
+                JsonValueKind.Number => v.GetRawText(),
+                _ => null
+            };
+        }
 
         // ═══════════════════════════════════════════════════════════════
         // CACHÉS
         // ═══════════════════════════════════════════════════════════════
 
-        private async Task<Target?> ResolveTargetAsync(string key, Func<DecatronDbContext, IQueryable<Core.Models.User>> query)
-        {
-            if (_targets.TryGetValue(key, out var hit) && DateTime.UtcNow - hit.At < TargetTtl)
-                return hit.Value;
-            try
-            {
-                using var scope = _scopes.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<DecatronDbContext>();
-                var row = await query(db).AsNoTracking()
-                    .Select(u => new { u.Id, u.Login, u.TwitchId, u.KickId })
-                    .FirstOrDefaultAsync();
-                var value = row == null ? null : new Target(row.Id, row.Login.ToLowerInvariant(), row.TwitchId, row.KickId);
-                _targets[key] = (DateTime.UtcNow, value);
-                return value;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "[ChatOverlay] No se pudo resolver el canal {Key}", key);
-                return null;
-            }
-        }
+        private static Target? ToTarget(ResolvedAlias? resolved) =>
+            resolved == null ? null
+                : new Target(resolved.Account.Principal.UserId, resolved.Account.OverlayKey, resolved.Account.TwitchId, resolved.Account.KickId, resolved.Matched.UserId);
 
         private async Task<ChatOverlayServerConfig> GetConfigAsync(long userId)
         {

@@ -517,6 +517,7 @@ try
     builder.Services.AddSingleton<Decatron.Core.Interfaces.IBotListService, Decatron.Services.BotList.BotListService>();
     builder.Services.AddSingleton<Decatron.Services.ChatOverlay.EmoteCatalogService>();
     builder.Services.AddSingleton<Decatron.Services.ChatOverlay.ChatBadgeService>();
+    builder.Services.AddSingleton<Decatron.Services.Accounts.AccountChannelResolver>();
     builder.Services.AddSingleton<Decatron.Services.ChatOverlay.ChatOverlayService>();
     builder.Services.AddScoped<Decatron.Services.Emotes.ChannelEmoteService>();
     builder.Services.AddScoped<Decatron.Services.Emotes.GlobalEmoteService>();

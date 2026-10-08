@@ -9,12 +9,16 @@ import { useGoogleFonts } from '../components/music-overlay/utils';
 
 // Overlay de chat de OBS (.dev/plans/CHAT_OVERLAY_EMOTES_PLAN.md, fase 1). Recibe los mensajes ya resueltos por el
 // servidor (emotes, insignias, filtros, bots) y los dibuja con el mismo renderer que la vista previa del editor.
-// ?channel=<login>  [&source=twitch|kick]  El source deja pasar solo los mensajes de esa plataforma.
+// ?channel=<login>  [&source=all|twitch|kick]
+// El servidor emite siempre al grupo de la fila principal de la cuenta (.dev/plans/CHAT_UNIFICADO_PLAN.md, fase 2),
+// así que al cargar se pregunta a qué clave unirse y qué mostraba ese enlace antes de unificar:
+// sin source, un enlace viejo conserva su plataforma (login de Twitch = Twitch, kick_<id> = Kick);
+// source=all muestra las dos y source=twitch|kick filtra.
 
 export default function ChatOverlay() {
     const [searchParams] = useSearchParams();
     const channel = searchParams.get('channel') || '';
-    const source = searchParams.get('source');
+    const sourceParam = searchParams.get('source');
 
     const [config, setConfig] = useState<ChatOverlayConfig>(DEFAULT_CHAT_CONFIG);
     const feed = useChatFeed(config);
@@ -24,8 +28,8 @@ export default function ChatOverlay() {
     const active = config.mode === 'bubbles' ? bubbles : feed;
     sink.current = { push: active.push, remove: active.remove, removeUser: active.removeUser, clear: active.clear };
     const feedRef = sink;
-    const sourceRef = useRef(source);
-    sourceRef.current = source;
+    // Plataforma que deja pasar este overlay: null = todas. Se fija al resolver el canal
+    const sourceRef = useRef<string | null>(null);
 
     useGoogleFonts([config.text.fontFamily], 'chat-fonts');
 
@@ -43,6 +47,26 @@ export default function ChatOverlay() {
         let connection: signalR.HubConnection | null = null;
         let retry: number | undefined;
 
+        // Clave real del grupo: puede no ser la del enlace (kick_<id>, KickId) si la cuenta tiene otro canal principal
+        let overlayKey = channel;
+
+        const resolveChannel = async () => {
+            let legacyVariant: string | null = null;
+            try {
+                const res = await fetch(`/api/chat-overlay/resolve/${encodeURIComponent(channel)}`);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && json.found) {
+                        overlayKey = json.overlayKey || channel;
+                        legacyVariant = json.variant || null;
+                    }
+                }
+            } catch { /* sin respuesta se usa el enlace tal cual, como antes */ }
+            const explicit = ['all', 'twitch', 'kick'].includes((sourceParam || '').toLowerCase()) ? (sourceParam as string).toLowerCase() : null;
+            const variant = explicit ?? legacyVariant;
+            sourceRef.current = variant && variant !== 'all' ? variant : null;
+        };
+
         const loadConfiguration = async () => {
             try {
                 const res = await fetch(`/api/chat-overlay/config/overlay/${encodeURIComponent(channel)}`);
@@ -53,14 +77,19 @@ export default function ChatOverlay() {
         };
 
         const join = async (c: signalR.HubConnection) => {
-            await c.invoke('JoinChannel', channel);
+            await c.invoke('JoinChannel', overlayKey);
             // Sin esto el servidor no sabe que hay un overlay de chat y no manda nada
-            await c.invoke('RegisterOverlay', channel, 'chat');
+            await c.invoke('RegisterOverlay', overlayKey, 'chat');
+            // Para que el panel muestre qué fuentes hay en OBS y avise si dos se pisan
+            await c.invoke('SetOverlayVariant', sourceRef.current ?? 'all');
         };
 
         const connect = async () => {
             if (closed) return;
             try {
+                // Cada conexión vuelve a preguntar: si el servidor cambió (reinicio, cuenta vinculada), la fuente de OBS se pone al día sola
+                await resolveChannel();
+                if (closed) return;
                 connection = new signalR.HubConnectionBuilder()
                     .withUrl(`${window.location.origin}/hubs/overlay`, { withCredentials: false })
                     .withAutomaticReconnect()
@@ -94,7 +123,7 @@ export default function ChatOverlay() {
             window.clearTimeout(retry);
             connection?.stop();
         };
-    }, [channel]);
+    }, [channel, sourceParam]);
 
     return config.mode === 'bubbles'
         ? <BubblesStage engine={bubbles} config={config} />

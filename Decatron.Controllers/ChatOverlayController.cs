@@ -5,6 +5,7 @@ using Decatron.Attributes;
 using Decatron.Core.Models;
 using Decatron.Data;
 using Decatron.Hubs;
+using Decatron.Services.Accounts;
 using Decatron.Services.ChatOverlay;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,15 +29,17 @@ namespace Decatron.Controllers
 
         private readonly DecatronDbContext _db;
         private readonly ChatOverlayService _chatOverlay;
+        private readonly AccountChannelResolver _accounts;
         private readonly EmoteCatalogService _emotes;
         private readonly IHubContext<OverlayHub> _hub;
         private readonly ILogger<ChatOverlayController> _logger;
 
-        public ChatOverlayController(DecatronDbContext db, ChatOverlayService chatOverlay, EmoteCatalogService emotes,
+        public ChatOverlayController(DecatronDbContext db, ChatOverlayService chatOverlay, AccountChannelResolver accounts, EmoteCatalogService emotes,
             IHubContext<OverlayHub> hub, ILogger<ChatOverlayController> logger)
         {
             _db = db;
             _chatOverlay = chatOverlay;
+            _accounts = accounts;
             _emotes = emotes;
             _hub = hub;
             _logger = logger;
@@ -72,16 +75,17 @@ namespace Decatron.Controllers
                 if (channel == null)
                     return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                var json = await _db.ChatOverlayConfigs.AsNoTracking().Where(c => c.UserId == ownerId).Select(c => c.Config).FirstOrDefaultAsync();
+                // La config es una por cuenta: la de la fila principal, se entre por el canal que se entre
+                var json = await _db.ChatOverlayConfigs.AsNoTracking().Where(c => c.UserId == channel.PrincipalUserId).Select(c => c.Config).FirstOrDefaultAsync();
                 return Ok(new
                 {
                     success = true,
                     config = json == null ? (JsonElement?)null : JsonDocument.Parse(json).RootElement,
                     channel = new
                     {
-                        login = channel.Value.Login,
-                        hasTwitch = !string.IsNullOrEmpty(channel.Value.TwitchId),
-                        hasKick = !string.IsNullOrEmpty(channel.Value.KickId)
+                        login = channel.Login,
+                        hasTwitch = channel.HasTwitch,
+                        hasKick = channel.HasKick
                     }
                 });
             }
@@ -117,18 +121,18 @@ namespace Decatron.Controllers
                 if (channel == null)
                     return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                var row = await _db.ChatOverlayConfigs.FirstOrDefaultAsync(c => c.UserId == ownerId);
+                var row = await _db.ChatOverlayConfigs.FirstOrDefaultAsync(c => c.UserId == channel.PrincipalUserId);
                 if (row == null)
                 {
-                    row = new ChatOverlayConfig { UserId = ownerId };
+                    row = new ChatOverlayConfig { UserId = channel.PrincipalUserId };
                     _db.ChatOverlayConfigs.Add(row);
                 }
                 row.Config = json;
                 row.UpdatedAt = DateTime.Now;
                 await _db.SaveChangesAsync();
 
-                _chatOverlay.InvalidateConfig(ownerId);
-                await _hub.Clients.Group($"overlay_{channel.Value.Login}").SendAsync("ConfigurationChanged");
+                _chatOverlay.InvalidateConfig(channel.PrincipalUserId);
+                await _hub.Clients.Group($"overlay_{channel.Login}").SendAsync("ConfigurationChanged");
                 return Ok(new { success = true });
             }
             catch (JsonException)
@@ -142,18 +146,70 @@ namespace Decatron.Controllers
             }
         }
 
-        /// <summary>GET /api/chat-overlay/config/overlay/{channel} - La que lee el overlay de OBS (público, sin sesión)</summary>
+        /// <summary>
+        /// GET /api/chat-overlay/status - Qué fuentes de chat hay conectadas en OBS ahora, por variante, y si se pisan.
+        /// "mixed" = hay un enlace Todo y otro de una sola plataforma (cada mensaje saldría dos veces);
+        /// "repeated" = la misma variante conectada más de una vez (sirve si están en escenas distintas).
+        /// </summary>
+        [HttpGet("status")]
+        [RequirePermission("moderation")]
+        public async Task<IActionResult> GetStatus()
+        {
+            try
+            {
+                var channel = await _chatOverlay.GetChannelAsync(GetChannelOwnerId());
+                if (channel == null)
+                    return NotFound(new { success = false, message = "Canal no encontrado" });
+
+                var counts = OverlayHub.CountOverlayVariants(channel.Login, ChatOverlayService.OverlayType);
+                var total = counts.Values.Sum();
+                var warnings = new List<string>();
+                if (counts["all"] > 0 && (counts["twitch"] > 0 || counts["kick"] > 0)) warnings.Add("mixed");
+                if (counts.Values.Any(c => c > 1)) warnings.Add("repeated");
+                return Ok(new { success = true, total, all = counts["all"], twitch = counts["twitch"], kick = counts["kick"], warnings });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo el estado de las fuentes del overlay de chat");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/chat-overlay/resolve/{channel} - A qué clave unirse y qué mostraba ese enlace antes (público, sin sesión).
+        /// El overlay de OBS lo pregunta al cargar: el alias de la URL puede ser el login de Twitch, kick_&lt;id&gt; o el KickId,
+        /// pero el servidor emite siempre al grupo de la fila principal de la cuenta.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("resolve/{channel}")]
+        public async Task<IActionResult> ResolveChannel(string channel)
+        {
+            try
+            {
+                var resolved = await _accounts.ResolveAliasAsync(channel);
+                if (resolved == null)
+                    return Ok(new { success = true, found = false });
+                return Ok(new { success = true, found = true, overlayKey = resolved.Account.OverlayKey, variant = resolved.LegacyVariant });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resolviendo el canal del overlay de chat");
+                return StatusCode(500, new { success = false, message = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>GET /api/chat-overlay/config/overlay/{channel} - La que lee el overlay de OBS (público, sin sesión). Una por cuenta: la de la fila principal</summary>
         [AllowAnonymous]
         [HttpGet("config/overlay/{channel}")]
         public async Task<IActionResult> GetOverlayConfig(string channel)
         {
             try
             {
-                var login = channel.ToLowerInvariant();
-                var userId = await _db.Users.AsNoTracking().Where(u => u.Login == login && u.IsActive).Select(u => (long?)u.Id).FirstOrDefaultAsync();
-                if (userId == null)
+                var resolved = await _accounts.ResolveAliasAsync(channel);
+                if (resolved == null)
                     return Ok(new { success = true, config = (object?)null });
 
+                var userId = resolved.Account.Principal.UserId;
                 var json = await _db.ChatOverlayConfigs.AsNoTracking().Where(c => c.UserId == userId).Select(c => c.Config).FirstOrDefaultAsync();
                 return Ok(new { success = true, config = json == null ? (JsonElement?)null : JsonDocument.Parse(json).RootElement });
             }
@@ -197,7 +253,7 @@ namespace Decatron.Controllers
                 if (channel == null)
                     return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                var map = await _emotes.GetMapAsync(channel.Value.TwitchId, channel.Value.KickId, EmoteProviders.All);
+                var map = await _emotes.GetMapAsync(channel.TwitchId, channel.KickId, EmoteProviders.All);
                 var emotes = map.Values
                     .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
                     .Select(e => new { name = e.Name, url = e.Url, provider = e.Provider, animated = e.Animated });
@@ -221,7 +277,7 @@ namespace Decatron.Controllers
                 if (channel == null)
                     return NotFound(new { success = false, message = "Canal no encontrado" });
 
-                await _chatOverlay.RefreshEmotesAsync(channel.Value.TwitchId, channel.Value.KickId);
+                await _chatOverlay.RefreshEmotesAsync(channel.TwitchId, channel.KickId);
                 return Ok(new { success = true });
             }
             catch (Exception ex)

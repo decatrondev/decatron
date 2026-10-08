@@ -72,6 +72,7 @@ export default function Overlays() {
             icon: <MessageSquare className="w-6 h-6 text-[#2563eb]" />,
             features: t('overlays:overlays.chat.features', { returnObjects: true } as any),
             usage: t('overlays:overlays.chat.usage'),
+            kickReady: true, // Chat unificado Twitch + Kick (.dev/plans/CHAT_UNIFICADO_PLAN.md)
         },
         {
             id: 'shoutout',
