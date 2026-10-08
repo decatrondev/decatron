@@ -27,7 +27,7 @@ namespace Decatron.Services.LiveTranslation
         bool Active, string Login, string SourceLanguage, IReadOnlyList<string> Languages,
         IReadOnlyDictionary<string, int> Listeners, IReadOnlyList<string> ActivePipelines,
         double SpeechSeconds, int Segments, long CreditsUsed, DateTime? StartedAt, string? LastError,
-        string? Notice = null);
+        string? Notice = null, IReadOnlyList<LanguageLatency>? Latency = null);
 
     /// <summary>
     /// Dueño de todas las sesiones de traducción en vivo del servidor. Singleton.
@@ -481,7 +481,8 @@ namespace Decatron.Services.LiveTranslation
         public ChannelStatus Snapshot() => new(
             true, Login, Settings.SourceLanguage, Settings.TargetLanguageList,
             TranslationHub.ListenersByLanguage(Login), _pipelines.Keys.ToList(),
-            _speechSeconds, _segments, CreditsUsed, StartedAt, _lastError, _notice);
+            _speechSeconds, _segments, CreditsUsed, StartedAt, _lastError, _notice,
+            _pipelines.Values.Select(p => p.Latency).OrderBy(l => l.Lang).ToList());
 
         /// <summary>Lo que ve la extensión: sin créditos ni errores internos.</summary>
         public object PublicStatus() => new
@@ -498,13 +499,21 @@ namespace Decatron.Services.LiveTranslation
 
     // ═════════════════════════════════════════════════════════════════════════
 
-    internal record QueuedUtterance(long Seq, Utterance U);
+    internal record QueuedUtterance(long Seq, Utterance U)
+    {
+        public DateTime EnqueuedUtc { get; } = DateTime.UtcNow;
+    }
+
+    /// <summary>Una frase ya traducida y cobrada, lista para que la etapa de voz la emita.</summary>
+    internal sealed record SpeakItem(
+        QueuedUtterance Q, string Text, ITranslationTtsEngine Engine, string Voice,
+        double QueueWaitMs, double TranslateMs, DateTime ReadyUtc);
 
     /// <summary>
-    /// Traduce y sintetiza en orden para un idioma. Un solo worker por idioma para que
-    /// los segmentos salgan en el orden en que se dijeron; si el streamer habla más
-    /// rápido de lo que el pipeline procesa, se descartan las frases más viejas y se
-    /// avisa al espectador, antes que acumular retraso.
+    /// Traduce y sintetiza en orden para un idioma, en dos etapas que trabajan a la vez
+    /// (<see cref="TwoStageWorker{TIn,TMid}"/>): mientras suena la frase N ya se traduce la N+1.
+    /// Si el hablante va más rápido de lo que el pipeline procesa, se descartan las frases más
+    /// viejas y se avisa al espectador, antes que acumular retraso.
     /// </summary>
     internal sealed class LanguagePipeline : IDisposable
     {
@@ -514,65 +523,61 @@ namespace Decatron.Services.LiveTranslation
         // Mutables: si se acaban los créditos premium, el pipeline cae a Piper y sigue.
         private ITranslationTtsEngine _engine;
         private string _voice;
-        private readonly Channel<QueuedUtterance> _queue;
+        private readonly TwoStageWorker<QueuedUtterance, SpeakItem> _worker;
         private readonly CancellationTokenSource _cts;
+        private readonly CancellationToken _token;   // copia: tras Dispose, _cts.Token lanzaría ObjectDisposedException
         private readonly string _group;
+        private readonly LatencyTracker _latency = new();
+        private int _dropped;
 
         public DateTime LastListenerUtc { get; set; } = DateTime.UtcNow;
 
-        /// <summary>Hay frases en cola o una en proceso.</summary>
-        public bool Busy => _queue.Reader.Count > 0 || _processing;
-        /// <summary>Frases esperando más la que se está procesando: lo que usa el segmentador como presión.</summary>
-        public int Pending => _queue.Reader.Count + (_processing ? 1 : 0);
+        /// <summary>Hay frases en cola, traduciéndose o sonando.</summary>
+        public bool Busy => _worker.Busy;
+        /// <summary>Frases realmente atrasadas: lo que usa el segmentador como presión.</summary>
+        public int Pending => _worker.Pending;
+        public LanguageLatency Latency => _latency.Snapshot(_lang, Volatile.Read(ref _dropped));
+
         // Frase anterior (original y traducida): contexto para que un trozo cortado a mitad de oración se traduzca bien.
+        // Solo la etapa de traducción las toca, y esa etapa es secuencial.
         private string? _prevSource, _prevTranslated;
         private double _prevEndSec;
-        private volatile bool _processing;
 
         public LanguagePipeline(ChannelSession session, LiveTranslationSessionManager mgr, string lang, ITranslationTtsEngine engine, string voice)
         {
             _session = session; _mgr = mgr; _lang = lang; _engine = engine; _voice = voice;
             _group = TranslationHub.GroupName(session.Login, lang);
             _cts = CancellationTokenSource.CreateLinkedTokenSource(session.Token);
-            _queue = Channel.CreateBounded<QueuedUtterance>(new BoundedChannelOptions(mgr.Options.MaxQueuedUtterances)
-            {
-                FullMode = BoundedChannelFullMode.DropOldest,
-                SingleReader = true,
-            }, dropped => _ = Notify("SegmentDropped", new { seq = dropped.Seq, lang = _lang }));
-            _ = Task.Run(WorkerAsync);
-        }
-
-        public void Enqueue(QueuedUtterance q) => _queue.Writer.TryWrite(q);
-
-        private async Task WorkerAsync()
-        {
-            var ct = _cts.Token;
-            try
-            {
-                await foreach (var q in _queue.Reader.ReadAllAsync(ct))
+            _token = _cts.Token;
+            _worker = new TwoStageWorker<QueuedUtterance, SpeakItem>(
+                mgr.Options.MaxQueuedUtterances, 2, PrepareAsync, SpeakAsync,
+                dropped =>
                 {
-                    _processing = true;
-                    try { await ProcessAsync(q, ct); }
-                    catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
-                    catch (Exception ex)
-                    {
-                        _session.SetError($"{_lang}: {ex.Message}");
-                        _mgr.Logger.LogWarning(ex, "[LiveTranslation] {Login}/{Lang} falló seq {Seq}", _session.Login, _lang, q.Seq);
-                    }
-                    finally { _processing = false; }
-                }
-            }
-            catch (OperationCanceledException) { }
+                    Interlocked.Increment(ref _dropped);
+                    _ = Notify("SegmentDropped", new { seq = dropped.Seq, lang = _lang });
+                },
+                (item, ex) =>
+                {
+                    var seq = item is QueuedUtterance qu ? qu.Seq : (item as SpeakItem)?.Q.Seq;
+                    _session.SetError($"{_lang}: {ex.Message}");
+                    _mgr.Logger.LogWarning(ex, "[LiveTranslation] {Login}/{Lang} falló seq {Seq}", _session.Login, _lang, seq);
+                },
+                _token);
         }
 
-        private async Task ProcessAsync(QueuedUtterance q, CancellationToken ct)
+        public void Enqueue(QueuedUtterance q) => _worker.Enqueue(q);
+
+        /// <summary>Etapa A: traduce y cobra. Devuelve null si se acabaron los créditos (la sesión se corta).</summary>
+        private async Task<SpeakItem?> PrepareAsync(QueuedUtterance q, CancellationToken ct)
         {
             var u = q.U;
+            var started = DateTime.UtcNow;
             // Con el segmentador inteligente un trozo puede empezar o terminar a mitad de oración:
             // se le da la frase anterior (si fue hace poco) para que la traducción siga el hilo.
             var useCtx = _mgr.Options.SmartSegmentation && _prevSource != null && u.StartSec - _prevEndSec < 10;
             var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct,
                 fragment: _mgr.Options.SmartSegmentation, prevSource: useCtx ? _prevSource : null, prevTranslated: useCtx ? _prevTranslated : null);
+            var translateMs = (DateTime.UtcNow - started).TotalMilliseconds;
             _prevSource = u.Text; _prevTranslated = translated; _prevEndSec = u.EndSec;
 
             var (ok, charged) = await _mgr.ChargeAsync(_session.UserId, translated.Length, _engine.CreditEngine, _voice, _lang);
@@ -590,9 +595,20 @@ namespace Decatron.Services.LiveTranslation
             {
                 _session.SetError("Sin créditos");
                 _mgr.RequestStop(_session, "no_credits");
-                return;
+                return null;
             }
             _session.AddTtsUsage(_lang, translated.Length, charged);
+
+            // Motor y voz se congelan en la frase: si la etapa A cae a Piper para la siguiente,
+            // esta (que puede estar esperando turno) sale con lo que se le cobró.
+            return new SpeakItem(q, translated, _engine, _voice, (started - q.EnqueuedUtc).TotalMilliseconds, translateMs, DateTime.UtcNow);
+        }
+
+        /// <summary>Etapa B: emite el texto y el audio al grupo, en el orden en que se dijeron.</summary>
+        private async Task SpeakAsync(SpeakItem item, CancellationToken ct)
+        {
+            var q = item.Q; var u = q.U;
+            var speakStart = DateTime.UtcNow;
 
             // Cuánto tardó Deepgram en cerrar la frase desde que el streamer calló: el audio
             // llega en tiempo real, así que "fin de habla" ≈ primer frame + t1.
@@ -601,17 +617,24 @@ namespace Decatron.Services.LiveTranslation
             var start = new
             {
                 seq = q.Seq, lang = _lang, t0 = u.StartSec, t1 = u.EndSec,
-                source = u.Text, text = translated, sttAt = u.FinalAtUtc,
+                source = u.Text, text = item.Text, sttAt = u.FinalAtUtc,
                 sttLag = sttLag.HasValue ? sttLag.Value - streamLag : (double?)null,  // solo Deepgram
                 streamLag,                                                              // solo la app/red
             };
             await Notify("SegmentStart", start);
 
             long bytes = 0;
+            double? firstChunkMs = null, endToEndMs = null;
             try
             {
-                await foreach (var chunk in _engine.SynthesizeAsync(translated, _voice, ct))
+                await foreach (var chunk in item.Engine.SynthesizeAsync(item.Text, item.Voice, ct))
                 {
+                    if (firstChunkMs == null)
+                    {
+                        var now = DateTime.UtcNow;
+                        firstChunkMs = (now - speakStart).TotalMilliseconds;
+                        endToEndMs = (now - u.FinalAtUtc).TotalMilliseconds;
+                    }
                     bytes += chunk.Length;
                     await Notify("SegmentChunk", new { seq = q.Seq, data = Convert.ToBase64String(chunk.Span) });
                 }
@@ -623,15 +646,18 @@ namespace Decatron.Services.LiveTranslation
                 throw;
             }
             await Notify("SegmentEnd", new { seq = q.Seq, bytes, error = false });
+
+            if (firstChunkMs != null)
+                _latency.Add(item.QueueWaitMs, item.TranslateMs, (speakStart - item.ReadyUtc).TotalMilliseconds, firstChunkMs.Value, endToEndMs!.Value);
         }
 
         private Task Notify(string method, object payload) =>
-            _mgr.Hub.Clients.Group(_group).SendAsync(method, payload, _cts.Token);
+            _mgr.Hub.Clients.Group(_group).SendAsync(method, payload, _token);
 
         public void Dispose()
         {
             _cts.Cancel();
-            _queue.Writer.TryComplete();
+            _worker.Dispose();
             _cts.Dispose();
         }
     }

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Languages, Loader2, Square, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 
+interface LangLatency { lang: string; samples: number; queueWaitMs: number; translateMs: number; readyWaitMs: number; ttsFirstMs: number; endToEndMs: number; endToEndMaxMs: number; dropped: number }
+
 interface Overview {
     days: number;
     sessions: number;
@@ -13,7 +15,7 @@ interface Overview {
     creditsByEngine: { engine: string | null; credits: number; entries: number; chars: number }[];
     estimatedCostUsd: { stt: number; tts: number; total: number };
     byStreamer: { userId: number; login: string; sessions: number; speechSeconds: number; credits: number; peakListeners: number }[];
-    active: { login: string; languages: string[]; listeners: Record<string, number>; activePipelines: string[]; speechSeconds: number; segments: number; creditsUsed: number; startedAt: string; lastError: string | null }[];
+    active: { login: string; languages: string[]; listeners: Record<string, number>; activePipelines: string[]; speechSeconds: number; segments: number; creditsUsed: number; startedAt: string; lastError: string | null; latency?: LangLatency[] }[];
     limits: Record<string, string | number>;
     tariff: { sttCreditsPerSecond: number; ttsCreditsPerChar: Record<string, number>; note: string };
 }
@@ -112,7 +114,7 @@ export default function LiveTranslationAdmin() {
                         <h2 className={h2}>Traduciendo ahora ({data.active.length})</h2>
                         {data.active.length === 0 ? <p className={muted}>Ningún canal activo.</p> : (
                             <table className="w-full text-sm">
-                                <thead><tr className="text-left text-[#64748b] dark:text-[#94a3b8]"><th className="py-1">Canal</th><th>Idiomas (oyentes)</th><th>Hablado</th><th>Frases</th><th>Créditos</th><th>Desde</th><th></th></tr></thead>
+                                <thead><tr className="text-left text-[#64748b] dark:text-[#94a3b8]"><th className="py-1">Canal</th><th>Idiomas (oyentes)</th><th>Hablado</th><th>Frases</th><th title="Desde que el STT cierra la frase hasta que sale el primer audio (media de las últimas 20). Pasa el cursor para ver el desglose por etapa.">Retraso</th><th>Créditos</th><th>Desde</th><th></th></tr></thead>
                                 <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
                                     {data.active.map(a => (
                                         <tr key={a.login} className="border-t border-[#f1f5f9] dark:border-[#26262c]">
@@ -120,6 +122,18 @@ export default function LiveTranslationAdmin() {
                                             <td>{a.languages.map(l => `${l.toUpperCase()} ${a.listeners[l] ?? 0}${a.activePipelines.includes(l) ? '●' : ''}`).join(' · ')}</td>
                                             <td>{fmtMin(a.speechSeconds / 60)}</td>
                                             <td>{a.segments}</td>
+                                            <td>
+                                                {(a.latency ?? []).filter(l => l.samples > 0).length === 0 ? <span className={muted}>—</span> : (
+                                                    <div className="flex flex-col gap-0.5">
+                                                        {(a.latency ?? []).filter(l => l.samples > 0).map(l => (
+                                                            <span key={l.lang} className="whitespace-nowrap" title={`Cola ${(l.queueWaitMs / 1000).toFixed(1)} s · Traducción ${(l.translateMs / 1000).toFixed(1)} s · Espera de voz ${(l.readyWaitMs / 1000).toFixed(1)} s · Primer audio ${(l.ttsFirstMs / 1000).toFixed(1)} s · ${l.samples} frases`}>
+                                                                {l.lang.toUpperCase()} {(l.endToEndMs / 1000).toFixed(1)} s <span className={muted}>(máx {(l.endToEndMaxMs / 1000).toFixed(1)})</span>
+                                                                {l.dropped > 0 && <span className="text-red-500"> · {l.dropped} perdidas</span>}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </td>
                                             <td>{a.creditsUsed.toLocaleString()}</td>
                                             <td>{new Date(a.startedAt).toLocaleTimeString()}</td>
                                             <td className="text-right"><button onClick={() => stop(a.login)} className="px-2 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-xs inline-flex items-center gap-1"><Square className="w-3 h-3" /> Cortar</button></td>
