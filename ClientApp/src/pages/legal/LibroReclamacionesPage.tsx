@@ -68,7 +68,7 @@ export default function LibroReclamacionesPage() {
                         <p><strong>Dirección:</strong> Av. El Sol 468, Rímac, Lima, Perú</p>
                         <p><strong>Teléfono:</strong> +51 959 724 105</p>
                         <p><strong>Email:</strong> support@decatron.net</p>
-                        <p><strong>Rubro:</strong> Servicios digitales — Bot de Twitch</p>
+                        <p><strong>Rubro:</strong> Servicios digitales — Bot para Twitch y Kick</p>
                     </div>
                 </div>
 

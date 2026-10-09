@@ -44,7 +44,8 @@ interface TierDef {
     monthlyPrice: number;
     permanentPrice: number | null;
     highlighted: boolean;
-    benefitKeys: string[];
+    /** Extras propios del tier que no son un límite medible (badge, sección, roadmap). */
+    perkKeys: string[];
 }
 
 const TIERS: TierDef[] = [
@@ -60,15 +61,7 @@ const TIERS: TierDef[] = [
         monthlyPrice: 5,
         permanentPrice: null,
         highlighted: false,
-        benefitKeys: [
-            'supporterBenefits0',
-            'supporterBenefits1',
-            'supporterBenefits2',
-            'supporterBenefits3',
-            'supporterBenefits4',
-            'supporterBenefits5',
-            'supporterBenefits6',
-        ],
+        perkKeys: ['supporterBenefits6'],
     },
     {
         id: 'premium',
@@ -82,15 +75,7 @@ const TIERS: TierDef[] = [
         monthlyPrice: 15,
         permanentPrice: null,
         highlighted: true,
-        benefitKeys: [
-            'premiumBenefits0',
-            'premiumBenefits1',
-            'premiumBenefits2',
-            'premiumBenefits3',
-            'premiumBenefits4',
-            'premiumBenefits5',
-            'premiumBenefits6',
-        ],
+        perkKeys: ['premiumBenefits6'],
     },
     {
         id: 'fundador',
@@ -104,14 +89,7 @@ const TIERS: TierDef[] = [
         monthlyPrice: 25,
         permanentPrice: 100,
         highlighted: false,
-        benefitKeys: [
-            'fundadorBenefits0',
-            'fundadorBenefits1',
-            'fundadorBenefits2',
-            'fundadorBenefits3',
-            'fundadorBenefits4',
-            'fundadorBenefits5',
-        ],
+        perkKeys: ['fundadorBenefits3', 'fundadorBenefits4', 'fundadorBenefits5'],
     },
 ];
 
@@ -200,6 +178,21 @@ interface DiscountValidation {
 function TierCards() {
     const { t } = useTranslation('supporters');
     const [billingType, setBillingType] = useState<'monthly' | 'permanent'>('monthly');
+    // Los beneficios de cada tarjeta salen de los límites que el bot aplica de verdad (mismo endpoint de la tabla)
+    const [limits, setLimits] = useState<{ tiers: string[]; rows: Record<string, Record<string, number>> } | null>(null);
+    useEffect(() => { api.get('/supporters/tier-limits').then(r => setLimits(r.data)).catch(() => {}); }, []);
+    const benefitsFor = (tierId: string): string[] => {
+        const out: string[] = [];
+        const v = (row: string) => limits?.rows[row]?.[tierId];
+        const fmtSize = (b: number) => b >= 1024 ** 3 ? `${+(b / 1024 ** 3).toFixed(1)} GB` : `${Math.round(b / 1024 ** 2)} MB`;
+        if (v('songPlaylists') !== undefined) out.push(t('bPlaylists', { n: v('songPlaylists') }));
+        if (v('wheels') !== undefined) out.push(v('wheels')! < 0 ? t('bWheelsUnlimited') : t('bWheels', { n: v('wheels') }));
+        if (v('gamesAccounts') !== undefined) out.push(t('bGames', { n: v('gamesAccounts') }));
+        if (v('storageBytes') !== undefined) out.push(t('bStorage', { size: fmtSize(v('storageBytes')!) }));
+        if (v('pollyChars') !== undefined && v('pollyChars')! > 0) out.push(t('bVoice', { n: v('pollyChars')!.toLocaleString() }));
+        if (v('songHidePromo')) out.push(t('bHidePromo'));
+        return out;
+    };
     const [successTier, setSuccessTier] = useState<string | null>(null);
 
     /*
@@ -800,14 +793,14 @@ function TierCards() {
 
                                 {/* Benefits */}
                                 <ul className="space-y-3 mb-6">
-                                    {tier.benefitKeys.map(key => (
-                                        <li key={key} className="flex items-start gap-2.5">
+                                    {[...benefitsFor(tier.id), ...tier.perkKeys.map(k => t(k))].map(text => (
+                                        <li key={text} className="flex items-start gap-2.5">
                                             <Check
                                                 className="w-4 h-4 mt-0.5 shrink-0"
                                                 style={{ color: tier.color }}
                                             />
                                             <span className="text-sm text-[#64748b] dark:text-[#94a3b8] leading-tight">
-                                                {t(key)}
+                                                {text}
                                             </span>
                                         </li>
                                     ))}

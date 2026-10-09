@@ -7,8 +7,8 @@ export default function DevolucionesPage() {
                     <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#12151c] dark:text-white">
                         Política de Cambios y Devoluciones
                     </h1>
-                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Decatron — Bot de Twitch</p>
-                    <p className="mt-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">Última actualización: Junio 2026</p>
+                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Decatron — Bot para Twitch y Kick</p>
+                    <p className="mt-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">Última actualización: Octubre 2026</p>
                 </header>
 
                 {/* Content */}
@@ -27,13 +27,19 @@ export default function DevolucionesPage() {
                     <section>
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">2. Naturaleza del Servicio</h2>
                         <p className="mb-3">
-                            Decatron es un <strong>bot de Twitch completamente gratuito</strong>. Todas las
-                            funcionalidades principales están disponibles sin costo alguno para todos los usuarios.
+                            Decatron es un <strong>bot gratuito para Twitch y Kick</strong>. Todas las
+                            funcionalidades están disponibles sin costo alguno para todos los usuarios; los planes de
+                            supporter solo amplían cantidades.
                         </p>
                         <p>
                             El programa de <strong>"Supporters"</strong> consiste en contribuciones voluntarias
                             que los usuarios pueden realizar para apoyar el desarrollo continuo del proyecto.
                             Estas contribuciones no constituyen una compra de bienes o servicios.
+                        </p>
+                        <p className="mt-3">
+                            Las funciones de inteligencia artificial, voz premium y traducción en vivo consumen
+                            <strong> créditos</strong>, que se pueden adquirir. Los créditos se acreditan de forma
+                            automática al confirmarse el pago y no son reembolsables una vez acreditados.
                         </p>
                     </section>
 
@@ -42,6 +48,11 @@ export default function DevolucionesPage() {
                         <p className="mb-3">
                             Dado que las contribuciones de supporters son <strong>aportes voluntarios</strong> y
                             no compras de bienes o servicios, estas <strong>no son reembolsables</strong>.
+                        </p>
+                        <p className="mb-3">
+                            El tier de supporter se asigna <strong>de forma automática</strong> al confirmarse el pago.
+                            Si por algún motivo no se refleja en tu cuenta, se corrige la asignación; no corresponde
+                            reembolso por ese motivo.
                         </p>
                         <p className="mb-3">Al realizar una contribución, el usuario reconoce que:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">

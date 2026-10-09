@@ -169,16 +169,27 @@ export function SupWhy() {
 export function SupFounders({ supporters }: { supporters: PublicSupporter[] }) {
     const { t, i18n } = useTranslation('supporters');
     const founders = supporters.filter(s => s.tier === 'fundador' && s.isPermanent);
+    const creator = supporters.find(s => s.tier === 'admin');
     return (
         <section className="relative z-10 py-20">
             <div className={wrap}>
                 <p className={tag}># {TIER_META.fundador.emoji} {t('founderLabel')}</p>
                 <h2 className={h2}>{t('foundersTitle')}</h2>
                 <p className="text-[#8b93a3] mt-2 mb-10 3xl:text-lg">{founders.length ? t('foundersSubtitle') : t('foundersEmptySubtitle')}</p>
-                {founders.length === 0 ? (
+                {founders.length === 0 && !creator ? (
                     <a href="#tiers" className="inline-flex px-6 py-3 rounded-md border border-amber-400/40 text-amber-300 font-bold hover:bg-amber-400/10 transition-colors">{t('foundersYourName')}</a>
                 ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 3xl:gap-6">
+                        {creator && (
+                            <a href={`https://twitch.tv/${creator.twitchLogin}`} target="_blank" rel="noopener noreferrer"
+                               className="flex items-center gap-5 p-5 rounded-lg border border-pub-accent/40 bg-pub-surface hover:border-pub-accent transition-colors">
+                                <Avatar s={creator} size={80} ring="#2f6bff" />
+                                <div className="min-w-0">
+                                    <p className="text-lg font-extrabold text-white truncate">{creator.displayName}</p>
+                                    <p className="font-mono text-xs text-pub-accent-hi mt-1">{t('creatorLabel')}</p>
+                                </div>
+                            </a>
+                        )}
                         {founders.map(f => (
                             <a key={f.twitchLogin} href={`https://twitch.tv/${f.twitchLogin}`} target="_blank" rel="noopener noreferrer"
                                className="group flex items-center gap-5 p-5 rounded-lg border border-amber-400/25 bg-pub-surface hover:border-amber-400/60 transition-colors">

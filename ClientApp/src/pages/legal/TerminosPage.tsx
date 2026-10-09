@@ -7,8 +7,8 @@ export default function TerminosPage() {
                     <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#12151c] dark:text-white">
                         Términos y Condiciones
                     </h1>
-                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Decatron — Bot de Twitch</p>
-                    <p className="mt-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">Última actualización: Junio 2026</p>
+                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Decatron — Bot para Twitch y Kick</p>
+                    <p className="mt-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">Última actualización: Octubre 2026</p>
                 </header>
 
                 {/* Content */}
@@ -27,7 +27,7 @@ export default function TerminosPage() {
                     <section>
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">2. Aceptación de Términos</h2>
                         <p>
-                            Al utilizar el bot Decatron en Twitch, aceptas estos Términos y Condiciones.
+                            Al utilizar el bot Decatron en Twitch o Kick, aceptas estos Términos y Condiciones.
                             Si no estás de acuerdo, no utilices el servicio.
                         </p>
                     </section>
@@ -35,13 +35,19 @@ export default function TerminosPage() {
                     <section>
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">3. Descripción del Servicio</h2>
                         <p className="mb-3">
-                            Decatron es un <strong>bot de Twitch completamente gratuito</strong> que ofrece funcionalidades
-                            de moderación, comandos personalizados, overlays, alertas, sistema de economía virtual,
-                            inteligencia artificial y más para streamers.
+                            Decatron es un <strong>bot gratuito para Twitch y Kick</strong> que ofrece funcionalidades
+                            de moderación, comandos personalizados, overlays, alertas, song request, traducción en vivo,
+                            sistema de economía virtual, inteligencia artificial y más para streamers.
+                        </p>
+                        <p className="mb-3">
+                            Todas las funcionalidades están disponibles para todos los usuarios y no requieren ningún
+                            pago. No existen suscripciones obligatorias.
                         </p>
                         <p>
-                            El uso del bot y todas sus funcionalidades principales es gratuito y no requiere
-                            ningún pago. No existen suscripciones obligatorias.
+                            Las funciones que le cuestan dinero a la plataforma (inteligencia artificial, voz premium y
+                            traducción en vivo) consumen <strong>créditos</strong>. Cada canal recibe un saldo base y puede
+                            adquirir créditos adicionales. Los créditos adquiridos se acreditan de forma automática al
+                            confirmarse el pago y no son reembolsables.
                         </p>
                     </section>
 
@@ -88,8 +94,8 @@ export default function TerminosPage() {
                     <section>
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">7. Cuenta y Autenticación</h2>
                         <p className="mb-3">
-                            El acceso al bot se realiza mediante autenticación OAuth con tu cuenta de Twitch.
-                            Eres responsable de mantener la seguridad de tu cuenta de Twitch.
+                            El acceso al bot se realiza mediante autenticación OAuth con tu cuenta de Twitch, Kick o Discord.
+                            Eres responsable de mantener la seguridad de tus cuentas de Twitch, Kick y Discord.
                         </p>
                         <p>
                             El proveedor no almacena contraseñas de Twitch. Solo se almacenan los tokens
@@ -101,7 +107,7 @@ export default function TerminosPage() {
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">8. Uso Aceptable</h2>
                         <p className="mb-3">Al utilizar Decatron, te comprometes a NO:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
-                            <li>Usar el bot para actividades ilegales o que violen los términos de Twitch.</li>
+                            <li>Usar el bot para actividades ilegales o que violen los términos de Twitch o Kick.</li>
                             <li>Intentar explotar vulnerabilidades técnicas del servicio.</li>
                             <li>Usar el bot para spam, acoso o contenido inapropiado.</li>
                             <li>Revender o comercializar el acceso al bot.</li>

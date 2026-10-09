@@ -7,8 +7,8 @@ export default function PrivacidadPage() {
                     <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#12151c] dark:text-white">
                         Política de Privacidad
                     </h1>
-                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Decatron — Bot de Twitch</p>
-                    <p className="mt-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">Última actualización: Junio 2026</p>
+                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Decatron — Bot para Twitch y Kick</p>
+                    <p className="mt-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">Última actualización: Octubre 2026</p>
                 </header>
 
                 {/* Content */}
@@ -28,10 +28,10 @@ export default function PrivacidadPage() {
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">2. Datos que Recopilamos</h2>
                         <p className="mb-3">Recopilamos los siguientes datos personales:</p>
 
-                        <h3 className="font-semibold text-[#1e293b] dark:text-white mt-4 mb-2">2.1 Datos de cuenta de Twitch (vía OAuth)</h3>
+                        <h3 className="font-semibold text-[#1e293b] dark:text-white mt-4 mb-2">2.1 Datos de cuenta de Twitch, Kick o Discord (vía OAuth)</h3>
                         <ul className="list-disc list-inside space-y-1 ml-4">
-                            <li>Nombre de usuario de Twitch</li>
-                            <li>ID de usuario de Twitch</li>
+                            <li>Nombre de usuario de Twitch, Kick o Discord</li>
+                            <li>ID de usuario en cada plataforma</li>
                             <li>Correo electrónico asociado a la cuenta</li>
                             <li>Imagen de perfil</li>
                             <li>Token de acceso OAuth (para operación del bot)</li>
@@ -43,6 +43,7 @@ export default function PrivacidadPage() {
                             <li>Comandos personalizados creados</li>
                             <li>Estadísticas de uso del canal</li>
                             <li>Historial de interacciones con el bot</li>
+                            <li>Audio del micrófono del streamer, solo cuando activa la traducción en vivo, para generar la transcripción, la traducción y la voz</li>
                         </ul>
 
                         <h3 className="font-semibold text-[#1e293b] dark:text-white mt-4 mb-2">2.3 Datos de pago (solo Supporters)</h3>
@@ -50,6 +51,7 @@ export default function PrivacidadPage() {
                             <li>Correo electrónico de PayPal o datos proporcionados a Culqi</li>
                             <li>Monto y fecha de la contribución</li>
                             <li>ID de transacción del procesador de pagos</li>
+                            <li>Datos de facturación que registras para emitir tu comprobante: nombre o razón social, documento de identidad o RUC, dirección y correo</li>
                         </ul>
                         <p className="mt-2 text-sm italic">
                             Nota: No almacenamos números de tarjeta de crédito/débito. Los datos de pago
@@ -61,7 +63,7 @@ export default function PrivacidadPage() {
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">3. Finalidad del Tratamiento</h2>
                         <p className="mb-3">Utilizamos los datos recopilados para:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
-                            <li>Operar el bot de Twitch y sus funcionalidades.</li>
+                            <li>Operar el bot en Twitch y Kick y sus funcionalidades.</li>
                             <li>Gestionar las cuentas de usuario y sus configuraciones.</li>
                             <li>Procesar las contribuciones voluntarias de supporters.</li>
                             <li>Gestionar los beneficios del programa de supporters.</li>
@@ -75,10 +77,11 @@ export default function PrivacidadPage() {
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">4. Terceros con Acceso a Datos</h2>
                         <p className="mb-3">Compartimos datos con los siguientes servicios de terceros:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
-                            <li><strong>Twitch API:</strong> Autenticación y operación del bot en la plataforma.</li>
+                            <li><strong>Twitch API, Kick API y Discord API:</strong> Autenticación y operación del bot en cada plataforma.</li>
                             <li><strong>PayPal:</strong> Procesamiento de pagos en USD para supporters.</li>
                             <li><strong>Culqi:</strong> Procesamiento de pagos en PEN (tarjeta y Yape) para supporters.</li>
-                            <li><strong>Amazon Web Services (AWS Polly):</strong> Generación de texto a voz (TTS) para funcionalidades del bot.</li>
+                            <li><strong>Amazon Web Services (AWS Polly) y Deepgram:</strong> Generación de texto a voz (TTS) y transcripción de voz a texto para funcionalidades del bot.</li>
+                            <li><strong>Google (Gemini) y OpenRouter:</strong> Traducción y respuestas de inteligencia artificial, que reciben el texto necesario para generarlas.</li>
                         </ul>
                         <p className="mt-3">
                             Cada tercero tiene su propia política de privacidad. No vendemos ni compartimos
