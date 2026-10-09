@@ -431,3 +431,27 @@ body.dark-mode {
 /* mismas esquinas y sin sombras que el resto de vistas públicas (tarjetas rounded-lg) */
 .docs-pub :is(.rounded-2xl, .rounded-3xl, .rounded-xl) { border-radius: 0.5rem; }
 .docs-pub :is(.shadow-xl, .shadow-lg, .shadow-2xl, .shadow-md) { box-shadow: none; }
+
+/* ===== Barras de scroll de todo el sitio =====
+   Finas, redondeadas, sin flechas ni riel; tenues en reposo, más visibles al pasar el mouse sobre el
+   recuadro y azules solo mientras se arrastran. Los grises son semitransparentes: se adaptan a cualquier
+   fondo (claro, grafito o tarjetas). Los scrolls ocultos a propósito (scrollbar-width:none) siguen ocultos. */
+:root { --sb-rest: rgba(100, 116, 139, .30); --sb-hover: rgba(100, 116, 139, .55); --sb-active: #2563eb; }
+.dark { --sb-rest: rgba(139, 147, 163, .26); --sb-hover: rgba(139, 147, 163, .50); --sb-active: #5b8cff; }
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--sb-rest); border: 3px solid transparent; background-clip: padding-box; border-radius: 999px; }
+*:hover::-webkit-scrollbar-thumb { background: var(--sb-hover); background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:active { background: var(--sb-active); background-clip: padding-box; }
+*::-webkit-scrollbar-button, *::-webkit-scrollbar-corner { display: none; width: 0; height: 0; }
+/* Firefox: no admite el efecto completo; versión fina con los mismos colores */
+@supports not selector(::-webkit-scrollbar) {
+    * { scrollbar-width: thin; scrollbar-color: var(--sb-rest) transparent; }
+    *:hover { scrollbar-color: var(--sb-hover) transparent; }
+}
+/* Franja de la barra de la PÁGINA: del color de fondo de la base (si no, el fondo blanco del navegador asoma
+   detrás de la barra transparente en modo oscuro). Solo pinta la barra: los overlays de OBS no la tienen. */
+:root { --sb-gutter: #f6f7fa; }
+.dark { --sb-gutter: #0b0d12; }
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: var(--sb-gutter); }
+@supports not selector(::-webkit-scrollbar) { html { scrollbar-color: var(--sb-rest) var(--sb-gutter); } }
