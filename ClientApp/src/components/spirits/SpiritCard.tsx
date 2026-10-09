@@ -68,7 +68,7 @@ export default function SpiritCard({ item, onClick, interactive = false, variant
     const borderColor = isObtained ? RARITY_BORDER[sprite.rarity] : 'transparent';
     const surface = panel
         ? (isObtained ? 'bg-white dark:bg-[#262626]' : 'bg-[#f1f5f9] dark:bg-[#1B1C1D] !border-[#e2e8f0] dark:!border-[#374151]')
-        : (isObtained ? 'bg-[#18181b]' : 'bg-[#111114] !border-[#27272a]');
+        : (isObtained ? 'bg-pub-raised' : 'bg-pub-surface !border-pub-border');
     const glowStyle = isObtained ? RARITY_GLOW[sprite.rarity] : undefined;
 
     return (
@@ -94,7 +94,7 @@ export default function SpiritCard({ item, onClick, interactive = false, variant
             {/* Obtained badge */}
             {isObtained && (
                 <div className="absolute top-2 left-2 z-10">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shadow-lg ${panel ? 'bg-emerald-500 shadow-emerald-500/40' : 'bg-[#39ff14] shadow-[#39ff14]/40'}`}>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shadow-lg ${panel ? 'bg-emerald-500 shadow-emerald-500/40' : 'bg-emerald-400 shadow-emerald-400/40'}`}>
                         <Check className={`w-3 h-3 ${panel ? 'text-white' : 'text-black'}`} strokeWidth={3} />
                     </div>
                 </div>
@@ -112,7 +112,7 @@ export default function SpiritCard({ item, onClick, interactive = false, variant
                         style={isObtained && glowStyle ? { filter: `drop-shadow(0 0 6px ${RARITY_BORDER[sprite.rarity]}80)` } : undefined}
                     />
                 ) : (
-                    <div className={`w-full h-full rounded-xl flex items-center justify-center ${panel ? 'bg-[#e2e8f0] dark:bg-[#374151]' : 'bg-[#27272a]'}`}>
+                    <div className={`w-full h-full rounded-xl flex items-center justify-center ${panel ? 'bg-[#e2e8f0] dark:bg-[#374151]' : 'bg-pub-border'}`}>
                         <span className="text-[#374151] text-xs">?</span>
                     </div>
                 )}
@@ -135,7 +135,7 @@ export default function SpiritCard({ item, onClick, interactive = false, variant
                 <span className={`inline-block text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                     isObtained
                         ? ((panel ? RARITY_BADGE_PANEL : RARITY_BADGE)[sprite.rarity] ?? 'bg-gray-500/20 text-gray-400')
-                        : (panel ? 'bg-[#e2e8f0] dark:bg-[#374151] text-[#94a3b8] dark:text-[#64748b]' : 'bg-[#27272a] text-[#52525b]')
+                        : (panel ? 'bg-[#e2e8f0] dark:bg-[#374151] text-[#94a3b8] dark:text-[#64748b]' : 'bg-pub-border text-[#52525b]')
                 }`}>
                     {sprite.rarity}
                 </span>

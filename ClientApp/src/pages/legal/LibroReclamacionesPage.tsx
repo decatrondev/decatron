@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Send, CheckCircle } from 'lucide-react';
+import { Send, CheckCircle } from 'lucide-react';
 
 export default function LibroReclamacionesPage() {
     const [form, setForm] = useState({
@@ -46,26 +46,22 @@ export default function LibroReclamacionesPage() {
         setSubmitted(true);
     };
 
-    const inputClasses = "w-full px-4 py-3 rounded-lg bg-white dark:bg-[#111214] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] dark:placeholder-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-colors";
+    const inputClasses = "w-full px-4 py-3 rounded-lg bg-white dark:bg-pub-bg border border-[#dfe3ea] dark:border-pub-border text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] dark:placeholder-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-colors";
     const labelClasses = "block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-1.5";
 
     return (
-        <div className="py-12 px-4">
-            <div className="max-w-3xl mx-auto">
+        <article className="max-w-3xl 3xl:max-w-4xl">
                 {/* Header */}
-                <div className="text-center mb-10">
-                    <div className="w-16 h-16 rounded-full bg-[#2563eb] flex items-center justify-center mx-auto mb-4">
-                        <BookOpen className="w-8 h-8 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                <header className="mb-10 pb-8 border-b border-[#dfe3ea] dark:border-pub-border">
+                    <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#12151c] dark:text-white">
                         Libro de Reclamaciones
                     </h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">Conforme a la Ley N° 29571 — Código de Protección y Defensa del Consumidor</p>
-                </div>
+                    <p className="mt-3 text-[#5b6475] dark:text-[#8b93a3]">Conforme a la Ley N° 29571 — Código de Protección y Defensa del Consumidor</p>
+                </header>
 
                 {/* Provider Info Card */}
                 <div className="bg-[#2563eb]/10 dark:bg-[#2563eb]/5 border border-[#2563eb]/30 rounded-xl p-5 mb-8">
-                    <h2 className="text-lg font-bold text-[#2563eb] mb-3">Datos del Proveedor</h2>
+                    <h2 className="text-lg font-bold text-[#2563eb] dark:text-pub-accent-hi mb-3">Datos del Proveedor</h2>
                     <div className="grid sm:grid-cols-2 gap-2 text-sm text-[#475569] dark:text-[#cbd5e1]">
                         <p><strong>Razón social:</strong> Anthony Adrian Chaparro Salas</p>
                         <p><strong>RUC:</strong> 10705423950</p>
@@ -77,7 +73,7 @@ export default function LibroReclamacionesPage() {
                 </div>
 
                 {submitted ? (
-                    <div className="bg-[#f8fafc] dark:bg-[#1e293b] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151] text-center space-y-4">
+                    <div className="bg-white dark:bg-pub-surface rounded-lg p-8 border border-[#dfe3ea] dark:border-pub-border text-center space-y-4">
                         <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
                         <h2 className="text-2xl font-bold text-[#1e293b] dark:text-white">
                             Reclamo Enviado
@@ -95,10 +91,10 @@ export default function LibroReclamacionesPage() {
                         </button>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="bg-[#f8fafc] dark:bg-[#1e293b] rounded-2xl p-6 md:p-8 space-y-6 border border-[#e2e8f0] dark:border-[#374151]">
+                    <form onSubmit={handleSubmit} className="bg-white dark:bg-pub-surface rounded-lg p-6 md:p-8 space-y-6 border border-[#dfe3ea] dark:border-pub-border">
                         {/* Consumer Data */}
                         <div>
-                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-white mb-4 pb-2 border-b border-[#e2e8f0] dark:border-[#374151]">
+                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-white mb-4 pb-2 border-b border-[#dfe3ea] dark:border-pub-border">
                                 Datos del Consumidor
                             </h2>
                             <div className="grid sm:grid-cols-2 gap-4">
@@ -166,7 +162,7 @@ export default function LibroReclamacionesPage() {
 
                         {/* Complaint Type */}
                         <div>
-                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-white mb-4 pb-2 border-b border-[#e2e8f0] dark:border-[#374151]">
+                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-white mb-4 pb-2 border-b border-[#dfe3ea] dark:border-pub-border">
                                 Tipo de Solicitud
                             </h2>
                             <div className="flex gap-4">
@@ -203,7 +199,7 @@ export default function LibroReclamacionesPage() {
 
                         {/* Description */}
                         <div>
-                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-white mb-4 pb-2 border-b border-[#e2e8f0] dark:border-[#374151]">
+                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-white mb-4 pb-2 border-b border-[#dfe3ea] dark:border-pub-border">
                                 Detalle
                             </h2>
                             <div className="space-y-4">
@@ -235,7 +231,7 @@ export default function LibroReclamacionesPage() {
                         </div>
 
                         {/* Legal Notice */}
-                        <div className="text-xs text-[#94a3b8] dark:text-[#475569] bg-[#f1f5f9] dark:bg-[#111214] rounded-lg p-4">
+                        <div className="text-xs text-[#94a3b8] dark:text-[#475569] bg-[#f1f5f9] dark:bg-pub-bg rounded-lg p-4">
                             <p>
                                 De acuerdo con el artículo 150° de la Ley N° 29571, el proveedor deberá dar
                                 respuesta al reclamo en un plazo máximo de treinta (30) días calendario.
@@ -254,7 +250,6 @@ export default function LibroReclamacionesPage() {
                         </button>
                     </form>
                 )}
-            </div>
-        </div>
+        </article>
     );
 }

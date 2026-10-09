@@ -52,12 +52,12 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
     };
 
     const dark = tone === 'public';
-    const box = dark ? 'border-[#27272a] bg-[#111114] text-[#d4d4d8]' : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc]';
+    const box = dark ? 'border-pub-border bg-pub-surface text-[#d4d4d8]' : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc]';
     const muted = dark ? 'text-[#a1a1aa]' : 'text-[#64748b] dark:text-[#94a3b8]';
     const input = dark
-        ? 'bg-[#0a0a0f] border border-[#27272a] text-white focus:border-[#39ff14]/60'
+        ? 'bg-pub-bg border border-pub-border text-white focus:border-pub-accent/60'
         : 'bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-[#2563eb]/40';
-    const accent = dark ? 'bg-[#39ff14] hover:bg-[#2fe010] text-black' : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white';
+    const accent = dark ? 'bg-pub-accent hover:bg-pub-accent-hi text-white' : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white';
 
     return (
         <div className={`rounded-2xl border p-5 3xl:p-6 space-y-5 ${box}`}>
@@ -71,7 +71,7 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
                 role="button"
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
-                className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors ${drag ? (dark ? 'border-[#39ff14]' : 'border-[#2563eb]') : (dark ? 'border-[#3f3f46]' : 'border-[#cbd5e1] dark:border-[#4b5563]')}`}
+                className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors ${drag ? (dark ? 'border-pub-accent' : 'border-[#2563eb]') : (dark ? 'border-[#3f3f46]' : 'border-[#cbd5e1] dark:border-[#4b5563]')}`}
             >
                 <Upload className={`w-8 h-8 mx-auto mb-2 ${muted}`} />
                 <p className="font-semibold text-sm 3xl:text-base">{file ? file.name : t('upload.drop')}</p>
@@ -83,7 +83,7 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
                 <div>
                     <p className={`text-xs 3xl:text-sm font-bold uppercase mb-2 ${muted}`}>{t('upload.preview')}</p>
                     <div className="flex flex-wrap gap-3">
-                        {(['#18181b', '#ffffff'] as const).map(bg => (
+                        {(['#171b24', '#ffffff'] as const).map(bg => (
                             <div key={bg} className="flex items-end gap-3 rounded-xl p-3" style={{ background: bg }}>
                                 {[28, 56, 112].map(h => <img key={h} src={preview} alt="" style={{ height: h, width: 'auto', maxWidth: h * 4 }} />)}
                             </div>

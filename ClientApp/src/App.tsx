@@ -202,7 +202,7 @@ function App() {
                     <LanguageProvider>
                         <Routes>
                 {/* Public Routes */}
-                <Route path="/" element={<><PublicNav /><Index /></>} />
+                <Route path="/" element={<Index />} />
                 <Route path="/login" element={<><PublicNav /><Login /></>} />
                 <Route path="/translate" element={<><PublicNav /><TranslatePublic /></>} />
 

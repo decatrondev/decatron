@@ -342,7 +342,7 @@ export function useListenPlayer(channel: string, code: string, items: PublicPlay
 
 type ListenController = ReturnType<typeof useListenPlayer>;
 
-const iconBtn = 'p-2.5 4xl:p-3 rounded-full text-[#d4d4d8] hover:text-white hover:bg-[#18181b] transition-colors disabled:opacity-40';
+const iconBtn = 'p-2.5 4xl:p-3 rounded-full text-[#d4d4d8] hover:text-white hover:bg-pub-raised transition-colors disabled:opacity-40';
 
 /** El reproductor con sus controles (la lista de canciones va aparte). */
 export function ListenPlayerView({ controller, hasPlayable }: { controller: ListenController; hasPlayable: boolean }) {
@@ -352,7 +352,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
     const volumeBeforeMute = useRef(80);
 
     return (
-        <div className="mb-6 4xl:mb-10 rounded-xl border border-[#27272a] bg-[#111114] overflow-hidden">
+        <div className="mb-6 4xl:mb-10 rounded-xl border border-pub-border bg-pub-surface overflow-hidden">
             <div className="aspect-video w-full bg-black max-h-[60vh] mx-auto">
                 <div ref={c.host} className="w-full h-full" />
             </div>
@@ -376,7 +376,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                         onChange={e => c.seek(Number(e.target.value))}
                         disabled={!c.now}
                         aria-label={t('songRequestPublic.listen.progress')}
-                        className="flex-1 accent-[#39ff14]"
+                        className="flex-1 accent-pub-accent"
                     />
                     <span className="w-12 tabular-nums">{formatDuration(Math.floor(c.duration)) || '0:00'}</span>
                 </div>
@@ -384,14 +384,14 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                 {/* Botones */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-1">
-                        <button className={`${iconBtn} ${c.shuffle ? '!text-[#39ff14]' : ''}`} onClick={c.toggleShuffle} title={t('songRequestPublic.listen.shuffle')} aria-pressed={c.shuffle}>
+                        <button className={`${iconBtn} ${c.shuffle ? '!text-pub-accent-hi' : ''}`} onClick={c.toggleShuffle} title={t('songRequestPublic.listen.shuffle')} aria-pressed={c.shuffle}>
                             <Shuffle className="w-5 h-5 4xl:w-6 4xl:h-6" />
                         </button>
                         <button className={iconBtn} onClick={c.prev} title={t('songRequestPublic.listen.prev')} disabled={!hasPlayable}>
                             <SkipBack className="w-5 h-5 4xl:w-6 4xl:h-6" />
                         </button>
                         <button
-                            className="p-3 4xl:p-4 rounded-full bg-[#39ff14] text-black hover:bg-[#6bff4d] transition-colors disabled:opacity-40"
+                            className="p-3 4xl:p-4 rounded-full bg-pub-accent text-white hover:bg-pub-accent-hi transition-colors disabled:opacity-40"
                             onClick={c.toggle}
                             disabled={!hasPlayable}
                             title={c.playing ? t('songRequestPublic.listen.pause') : t('songRequestPublic.listen.play')}
@@ -401,7 +401,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                         <button className={iconBtn} onClick={c.next} title={t('songRequestPublic.listen.next')} disabled={!hasPlayable}>
                             <SkipForward className="w-5 h-5 4xl:w-6 4xl:h-6" />
                         </button>
-                        <button className={`${iconBtn} ${c.repeat !== 'off' ? '!text-[#39ff14]' : ''}`} onClick={c.cycleRepeat} title={t(`songRequestPublic.listen.repeat.${c.repeat}`)}>
+                        <button className={`${iconBtn} ${c.repeat !== 'off' ? '!text-pub-accent-hi' : ''}`} onClick={c.cycleRepeat} title={t(`songRequestPublic.listen.repeat.${c.repeat}`)}>
                             {c.repeat === 'one' ? <Repeat1 className="w-5 h-5 4xl:w-6 4xl:h-6" /> : <Repeat className="w-5 h-5 4xl:w-6 4xl:h-6" />}
                         </button>
                     </div>
@@ -419,7 +419,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                             value={c.volume}
                             onChange={e => c.setVolume(Number(e.target.value))}
                             aria-label={t('songRequestPublic.listen.volume')}
-                            className="flex-1 min-w-0 accent-[#39ff14]"
+                            className="flex-1 min-w-0 accent-pub-accent"
                         />
                     </div>
                 </div>

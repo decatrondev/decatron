@@ -55,7 +55,7 @@ export function useObjectUrl(file: File | null): string | null {
 
 const BACKGROUNDS = {
     light: '#ffffff',
-    dark: '#18181b',
+    dark: '#171b24',
     checker: 'repeating-conic-gradient(#d4d4d8 0% 25%, #f4f4f5 0% 50%) 50% / 12px 12px',
 };
 

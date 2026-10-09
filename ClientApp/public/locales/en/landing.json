@@ -134,5 +134,28 @@
       ],
       "contact": "Privacy questions:"
     }
-  }
+  },
+  "heroTag": "bot for Twitch, Kick and more",
+  "terminalLive": "live chat",
+  "terminalPrompt": "Type a command…",
+  "connected": "Decatron connected",
+  "youtubeNotConnected": "YouTube is not connected yet.",
+  "youtubeJoin": "It joins this terminal as soon as it is ready.",
+  "stripLabel": "in your chat right now",
+  "navCommands": "Commands",
+  "navSupporters": "Supporters",
+  "navDocs": "Docs",
+  "spiritsBadge": "Fortnite Spirit Tracker",
+  "spiritsTitle": "Track your spirit collection with your community",
+  "spiritsBody": "Browse the 61+ Fortnite Spirits, mark the ones you have, share your progress and compete on the global leaderboard — all integrated with Twitch and Discord.",
+  "spiritsF1": "!spirits on Twitch",
+  "spiritsF2": "/spirits on Discord",
+  "spiritsF3": "Visual gallery",
+  "spiritsF4": "Global leaderboard",
+  "spiritsGallery": "View gallery",
+  "spiritsSignup": "Sign up free",
+  "footerTerms": "Terms and conditions",
+  "footerPrivacy": "Privacy policy",
+  "footerRefunds": "Refunds",
+  "footerClaims": "Complaints book"
 }

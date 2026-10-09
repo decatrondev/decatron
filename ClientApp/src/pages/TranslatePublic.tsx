@@ -51,13 +51,13 @@ function ChatDemo({ emotes }: { emotes: GlobalEmote[] }) {
                 ))}
             </div>
             <div className="px-3 pb-3">
-                <div className="mb-2 rounded-lg bg-[#18181b] border border-white/10 p-2 w-48">
+                <div className="mb-2 rounded-lg bg-pub-raised border border-white/10 p-2 w-48">
                     <div className="text-[10px] uppercase tracking-wider text-white/40 mb-1">{t('translate.demo.picker')}</div>
                     {(emotes.length ? emotes.slice(0, 3) : []).map(e => (
                         <div key={e.id} className="flex items-center gap-2 py-0.5 text-xs text-white/80"><img src={e.urls.x2} alt="" className="h-5" />{e.name}</div>
                     ))}
                 </div>
-                <div className="rounded-md bg-[#18181b] border border-white/10 px-3 py-2 text-sm text-white/80"><span className="text-[#bf94ff]">:</span>{(emotes[0]?.name ?? 'emo').slice(0, 3).toLowerCase()}<span className="animate-pulse">|</span></div>
+                <div className="rounded-md bg-pub-raised border border-white/10 px-3 py-2 text-sm text-white/80"><span className="text-[#bf94ff]">:</span>{(emotes[0]?.name ?? 'emo').slice(0, 3).toLowerCase()}<span className="animate-pulse">|</span></div>
             </div>
         </div>
     );

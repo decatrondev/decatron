@@ -62,13 +62,13 @@ export default function PublicCommandsPage() {
         .filter(g => g.list.length > 0);
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f] text-[#d4d4d8] font-mono relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] font-mono relative overflow-x-hidden">
             {/* Textura de fondo: scanlines + grid sutil */}
             <div
                 className="pointer-events-none fixed inset-0 opacity-[0.04]"
                 style={{
                     backgroundImage:
-                        'linear-gradient(#39ff14 1px, transparent 1px), linear-gradient(90deg, #39ff14 1px, transparent 1px)',
+                        'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
                     backgroundSize: '40px 40px',
                 }}
             />
@@ -82,17 +82,17 @@ export default function PublicCommandsPage() {
             <div className="relative max-w-3xl mx-auto px-5 py-14 sm:py-20">
                 {/* Prompt header */}
                 <div className="mb-10 animate-[fadeInUp_0.5s_ease-out]">
-                    <p className="text-[#39ff14] text-sm mb-2">
+                    <p className="text-pub-accent-hi text-sm mb-2">
                         <span className="opacity-60">guest@decatron</span>
                         <span className="opacity-40">:</span>
                         <span className="opacity-90">~</span>
                         <span className="opacity-40">$</span>{' '}
                         <span className="text-[#d4d4d8]">./comandos --canal={channelName}</span>
-                        <span className="inline-block w-2 h-4 bg-[#39ff14] ml-1 align-middle animate-[blink_1s_step-end_infinite]" />
+                        <span className="inline-block w-2 h-4 bg-pub-accent ml-1 align-middle animate-[blink_1s_step-end_infinite]" />
                     </p>
                     <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                         {displayName || channelName}
-                        <span className="text-[#39ff14]">_</span>
+                        <span className="text-pub-accent-hi">_</span>
                     </h1>
                     <p className="text-sm text-[#71717a] mt-2">
                         {status === 'ok' && `${items.length} comando${items.length === 1 ? '' : 's'} disponible${items.length === 1 ? '' : 's'} en este canal`}
@@ -104,19 +104,19 @@ export default function PublicCommandsPage() {
                 )}
 
                 {status === 'notfound' && (
-                    <div className="border border-[#3f3f46] rounded-lg p-6 bg-[#111114]">
+                    <div className="border border-[#3f3f46] rounded-lg p-6 bg-pub-surface">
                         <p className="text-red-400 text-sm">error: canal "{channelName}" no encontrado</p>
                     </div>
                 )}
 
                 {status === 'error' && (
-                    <div className="border border-[#3f3f46] rounded-lg p-6 bg-[#111114]">
+                    <div className="border border-[#3f3f46] rounded-lg p-6 bg-pub-surface">
                         <p className="text-red-400 text-sm">error: no se pudo cargar la lista de comandos</p>
                     </div>
                 )}
 
                 {status === 'ok' && items.length === 0 && (
-                    <div className="border border-[#3f3f46] rounded-lg p-6 bg-[#111114]">
+                    <div className="border border-[#3f3f46] rounded-lg p-6 bg-pub-surface">
                         <p className="text-[#71717a] text-sm"># este canal todavía no tiene comandos públicos</p>
                     </div>
                 )}
@@ -128,34 +128,34 @@ export default function PublicCommandsPage() {
                         style={{ animationDelay: `${100 + gi * 80}ms` }}
                     >
                         <div className="flex items-center gap-2 mb-3">
-                            <span className="text-[#39ff14] text-xs">#</span>
+                            <span className="text-pub-accent-hi text-xs">#</span>
                             <span className="text-xs uppercase tracking-widest text-[#a1a1aa] font-bold">
                                 {CATEGORY_LABELS[group.category]}
                             </span>
                             <span className="text-[#3f3f46] text-xs">({group.list.length})</span>
-                            <span className="flex-1 border-t border-dashed border-[#27272a] ml-2" />
+                            <span className="flex-1 border-t border-dashed border-pub-border ml-2" />
                         </div>
 
                         {group.category === 'songrequest' && (
                             <a
                                 href={`/sr/${(channelName || '').toLowerCase()}`}
-                                className="inline-block mb-3 text-xs text-[#39ff14] hover:underline"
+                                className="inline-block mb-3 text-xs text-pub-accent-hi hover:underline"
                             >
                                 → cómo pedir canciones en este canal, con ejemplos y la cola en vivo
                             </a>
                         )}
 
-                        <div className="border-l-2 border-[#27272a] pl-4 space-y-1">
+                        <div className="border-l-2 border-pub-border pl-4 space-y-1">
                             {group.list.map((item, i) => (
                                 <div
                                     key={`${item.category}-${item.name}-${i}`}
-                                    className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-1.5 hover:bg-[#111114] hover:pl-2 -ml-2 pr-2 rounded transition-all"
+                                    className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-1.5 hover:bg-pub-surface hover:pl-2 -ml-2 pr-2 rounded transition-all"
                                 >
                                     <span className="text-white font-bold text-sm">
                                         {item.name}
                                     </span>
                                     {item.restriction && RESTRICTION_LABELS[item.restriction] && (
-                                        <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-[#39ff14]/10 text-[#39ff14] border border-[#39ff14]/20">
+                                        <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-pub-accent/10 text-pub-accent-hi border border-pub-accent/20">
                                             {RESTRICTION_LABELS[item.restriction]}
                                         </span>
                                     )}
@@ -170,9 +170,9 @@ export default function PublicCommandsPage() {
                     </div>
                 ))}
 
-                <div className="mt-16 pt-6 border-t border-[#27272a] text-xs text-[#3f3f46] flex items-center justify-between flex-wrap gap-2">
+                <div className="mt-16 pt-6 border-t border-pub-border text-xs text-[#3f3f46] flex items-center justify-between flex-wrap gap-2">
                     <span>generado por decatron bot</span>
-                    <span className="text-[#39ff14]/60">{window.location.host}</span>
+                    <span className="text-pub-accent-hi/60">{window.location.host}</span>
                 </div>
             </div>
 

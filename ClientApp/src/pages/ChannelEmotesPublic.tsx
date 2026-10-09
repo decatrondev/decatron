@@ -25,7 +25,7 @@ interface Me {
 }
 
 const STATUS_TONE: Record<string, string> = {
-    approved: 'text-[#39ff14] border-[#39ff14]/30',
+    approved: 'text-emerald-400 border-emerald-400/30',
     hidden: 'text-[#a1a1aa] border-[#3f3f46]',
     pending: 'text-amber-400 border-amber-400/30',
     rejected: 'text-red-400 border-red-400/30',
@@ -111,14 +111,14 @@ export default function ChannelEmotesPublic() {
         : null;
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f] text-[#d4d4d8] relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] relative overflow-x-hidden">
             <div className="relative max-w-3xl 3xl:max-w-5xl 4xl:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 4xl:py-24">
                 <header className="flex items-center gap-4 4xl:gap-6 mb-8 4xl:mb-12">
                     {data?.channel.avatarUrl
-                        ? <img src={data.channel.avatarUrl} alt="" className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full border-2 border-[#39ff14]/40 shrink-0" />
-                        : <div className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full bg-[#18181b] border-2 border-[#27272a] shrink-0" />}
+                        ? <img src={data.channel.avatarUrl} alt="" className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full border-2 border-pub-accent/40 shrink-0" />
+                        : <div className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full bg-pub-raised border-2 border-pub-border shrink-0" />}
                     <div className="min-w-0">
-                        <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#39ff14]/80">{t('public.label')}</p>
+                        <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-pub-accent-hi/80">{t('public.label')}</p>
                         <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-white truncate">{data?.channel.displayName ?? channel}</h1>
                     </div>
                 </header>
@@ -134,7 +134,7 @@ export default function ChannelEmotesPublic() {
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder={t('public.search')}
-                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-xl bg-[#111114] border border-[#27272a] text-white text-sm 3xl:text-base focus:outline-none focus:border-[#39ff14]/60"
+                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-xl bg-pub-surface border border-pub-border text-white text-sm 3xl:text-base focus:outline-none focus:border-pub-accent/60"
                             />
                             <span className="font-mono text-xs 3xl:text-sm text-[#71717a]">{t('public.count', { count: data.emotes.length })}</span>
                         </div>
@@ -144,7 +144,7 @@ export default function ChannelEmotesPublic() {
                         ) : (
                             <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] 3xl:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] 4xl:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
                                 {shown.map(e => (
-                                    <div key={e.id} className="group relative rounded-xl border border-[#27272a] bg-[#111114] p-3 flex flex-col items-center gap-2 hover:border-[#39ff14]/40 transition-colors">
+                                    <div key={e.id} className="group relative rounded-xl border border-pub-border bg-pub-surface p-3 flex flex-col items-center gap-2 hover:border-pub-accent/40 transition-colors">
                                         <button type="button" onClick={() => copy(e.name)} className="flex flex-col items-center gap-2 w-full" title={t('public.clickToCopy')}>
                                             <EmoteThumb src={e.urls.x2} name={e.name} height={48} bg="dark" />
                                             <span className="font-mono text-xs 3xl:text-sm font-bold text-white truncate max-w-full">{copied === e.name ? t('public.copied') : e.name}</span>
@@ -167,14 +167,14 @@ export default function ChannelEmotesPublic() {
 
                         <section className="mt-12">
                             <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#a1a1aa] font-bold">
-                                <span className="text-[#39ff14]">#</span>{t('public.uploadTitle')}
+                                <span className="text-pub-accent-hi">#</span>{t('public.uploadTitle')}
                             </h2>
 
                             {!loggedIn && (
                                 modeAllowsViewers ? (
-                                    <div className="rounded-2xl border border-[#27272a] bg-[#111114] p-5 space-y-3">
+                                    <div className="rounded-2xl border border-pub-border bg-pub-surface p-5 space-y-3">
                                         <p className="text-sm 3xl:text-base">{t(`public.invite.${data.uploadMode}`)}</p>
-                                        <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-[#39ff14] hover:bg-[#2fe010] text-black font-bold text-sm 3xl:text-base">{t('public.login')}</a>
+                                        <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hi text-white font-bold text-sm 3xl:text-base">{t('public.login')}</a>
                                     </div>
                                 ) : (
                                     <p className="text-sm 3xl:text-base text-[#a1a1aa]">{t(`public.cannot.${data.uploadMode}`)}</p>
@@ -195,14 +195,14 @@ export default function ChannelEmotesPublic() {
                         {loggedIn && me && me.mine.length > 0 && (
                             <section className="mt-10">
                                 <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#a1a1aa] font-bold">
-                                    <span className="text-[#39ff14]">#</span>{t('public.mineTitle')}
+                                    <span className="text-pub-accent-hi">#</span>{t('public.mineTitle')}
                                 </h2>
                                 <div className="space-y-2">
                                     {me.mine.map(e => (
-                                        <div key={e.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[#27272a] bg-[#111114] p-3">
+                                        <div key={e.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-pub-border bg-pub-surface p-3">
                                             {e.status !== 'removed' && e.status !== 'rejected'
                                                 ? <EmoteThumb src={e.urls.x2} name={e.name} height={36} bg="dark" />
-                                                : <span className="w-12 h-12 rounded-lg bg-[#18181b] shrink-0" />}
+                                                : <span className="w-12 h-12 rounded-lg bg-pub-raised shrink-0" />}
                                             <div className="min-w-0 flex-1">
                                                 <p className="font-mono text-sm font-bold text-white truncate">{e.name}</p>
                                                 <p className="text-xs text-[#71717a]">{formatBytes(e.bytes)}{e.reason ? ` · ${e.reason}` : ''}</p>

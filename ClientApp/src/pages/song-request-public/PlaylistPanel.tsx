@@ -48,7 +48,7 @@ export function PlaylistPanel({ channel, playlist, loginRedirect, listMaxHeight 
         <>
             {playlist.numbered && (
                 <p className="px-4 pb-2 text-xs 3xl:text-sm 4xl:text-base text-[#a1a1aa]">
-                    {t('songRequestPublic.requestByNumber')} <code className="font-mono text-[#39ff14]">{t('songRequestPublic.requestByNumberCmd')}</code>
+                    {t('songRequestPublic.requestByNumber')} <code className="font-mono text-pub-accent-hi">{t('songRequestPublic.requestByNumberCmd')}</code>
                 </p>
             )}
             {playlist.open && (
@@ -64,14 +64,14 @@ export function PlaylistPanel({ channel, playlist, loginRedirect, listMaxHeight 
             ) : items.length === 0 ? (
                 <p className="px-4 pb-3 text-sm 3xl:text-base text-[#71717a]">{t('songRequestPublic.playlistEmpty')}</p>
             ) : (
-                <ol className={`divide-y divide-[#1f1f23] border-t border-[#1f1f23] ${listMaxHeight ? 'max-h-[32rem] 4xl:max-h-[48rem] overflow-y-auto' : ''}`}>
+                <ol className={`divide-y divide-pub-border-soft border-t border-pub-border-soft ${listMaxHeight ? 'max-h-[32rem] 4xl:max-h-[48rem] overflow-y-auto' : ''}`}>
                     {items.map(item => (
                 <li key={item.id} className="flex items-center">
-                    <a href={item.track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 flex items-center gap-3 4xl:gap-5 py-2 4xl:py-3 px-4 hover:bg-[#111114] transition-colors">
+                    <a href={item.track.url ?? undefined} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 flex items-center gap-3 4xl:gap-5 py-2 4xl:py-3 px-4 hover:bg-pub-surface transition-colors">
                         <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#52525b] w-9 4xl:w-12 text-right shrink-0">#{item.number}</span>
                         {item.track.thumbnailUrl
-                            ? <img src={item.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] object-cover rounded shrink-0 bg-[#18181b]" />
-                            : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] rounded shrink-0 bg-[#18181b]" />}
+                            ? <img src={item.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] object-cover rounded shrink-0 bg-pub-raised" />
+                            : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] rounded shrink-0 bg-pub-raised" />}
                         <div className="min-w-0 flex-1">
                             <p className="text-white text-sm 3xl:text-base 4xl:text-xl truncate">{item.track.title}</p>
                             <p className="text-xs 3xl:text-sm 4xl:text-base text-[#71717a] truncate">
@@ -92,8 +92,8 @@ export function PlaylistPanel({ channel, playlist, loginRedirect, listMaxHeight 
                             onClick={() => vote(item.id)}
                             title={contributor ? t('songRequestPublic.vote') : t('songRequestPublic.loginToVote')}
                             className={`mr-3 shrink-0 flex items-center gap-1 px-2 py-1 rounded font-mono text-xs 3xl:text-sm 4xl:text-base border transition-colors ${myVotes.has(item.id)
-                                ? 'border-[#39ff14] text-[#39ff14] bg-[#39ff14]/10'
-                                : 'border-[#27272a] text-[#a1a1aa] hover:border-[#39ff14]/60'}`}
+                                ? 'border-pub-accent text-pub-accent-hi bg-pub-accent/10'
+                                : 'border-pub-border text-[#a1a1aa] hover:border-pub-accent/60'}`}
                         >
                             ▲ {item.votes}
                         </button>
@@ -154,7 +154,7 @@ export function ContributeBox({ channel, playlist, contributor, onAdded }: { cha
                 {playlist.review && ` ${t('songRequestPublic.req.review')}`}
             </p>
             {contributor === undefined ? (
-                <a href={loginUrl} className="inline-block px-4 py-2 rounded-lg bg-[#39ff14] text-black font-bold text-sm 3xl:text-base 4xl:text-lg hover:brightness-110">
+                <a href={loginUrl} className="inline-block px-4 py-2 rounded-lg bg-pub-accent text-white font-bold text-sm 3xl:text-base 4xl:text-lg hover:brightness-110">
                     {t('songRequestPublic.loginToAdd')}
                 </a>
             ) : contributor === null ? (
@@ -167,9 +167,9 @@ export function ContributeBox({ channel, playlist, contributor, onAdded }: { cha
                             onChange={e => setInput(e.target.value)}
                             maxLength={500}
                             placeholder={t('songRequestPublic.addPlaceholder')}
-                            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-[#111114] border border-[#27272a] text-white text-sm 3xl:text-base 4xl:text-lg placeholder:text-[#52525b] focus:outline-none focus:border-[#39ff14]"
+                            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-pub-surface border border-pub-border text-white text-sm 3xl:text-base 4xl:text-lg placeholder:text-[#52525b] focus:outline-none focus:border-pub-accent"
                         />
-                        <button type="submit" disabled={busy || !input.trim()} className="px-4 py-2 rounded-lg bg-[#39ff14] text-black font-bold text-sm 3xl:text-base 4xl:text-lg disabled:opacity-50 shrink-0">
+                        <button type="submit" disabled={busy || !input.trim()} className="px-4 py-2 rounded-lg bg-pub-accent text-white font-bold text-sm 3xl:text-base 4xl:text-lg disabled:opacity-50 shrink-0">
                             {busy ? t('songRequestPublic.adding') : t('songRequestPublic.add')}
                         </button>
                     </form>
@@ -178,7 +178,7 @@ export function ContributeBox({ channel, playlist, contributor, onAdded }: { cha
                     </p>
                 </>
             )}
-            {result && <p className={`text-sm 3xl:text-base ${result.ok ? 'text-[#39ff14]' : 'text-red-400'}`}>{result.text}</p>}
+            {result && <p className={`text-sm 3xl:text-base ${result.ok ? 'text-emerald-400' : 'text-red-400'}`}>{result.text}</p>}
         </div>
     );
 }

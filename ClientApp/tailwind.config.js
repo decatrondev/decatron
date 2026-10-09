@@ -20,6 +20,17 @@ export default {
                 '5xl': '3840px', // 4K / UHD
             },
             colors: {
+                // Base común de todas las vistas públicas (portada, legales, /sprites, /sr, comandos, emotes).
+                // Un solo lugar para el fondo, las superficies y el azul de marca.
+                pub: {
+                    bg: '#0b0d12',
+                    surface: '#12151c',
+                    raised: '#171b24',
+                    border: '#222733',
+                    'border-soft': '#1b1f29',
+                    accent: '#2f6bff',
+                    'accent-hi': '#5b8cff',
+                },
                 // Azul profesional (accent)
                 accent: {
                     DEFAULT: '#2563eb',

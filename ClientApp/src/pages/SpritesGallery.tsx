@@ -124,9 +124,9 @@ export default function SpritesGallery() {
 
             {!isLoggedIn && showGuestBanner && !dismissedBanner && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-                    <div className="bg-[#111114] border border-[#39ff14]/40 rounded-lg p-4 shadow-2xl shadow-black/60">
+                    <div className="bg-pub-surface border border-pub-accent/40 rounded-lg p-4 shadow-2xl shadow-black/60">
                         <div className="flex items-start gap-3">
-                            <Zap className="w-5 h-5 text-[#39ff14] flex-shrink-0 mt-0.5" />
+                            <Zap className="w-5 h-5 text-pub-accent-hi flex-shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
                                 <p className="font-bold text-white text-sm">
                                     {localKeys.size === 1 ? t('public.guest_one') : t('public.guest_many', { count: localKeys.size })}
@@ -156,7 +156,7 @@ export default function SpritesGallery() {
                     )}
                 >
                     {!isLoggedIn && (
-                        <a href="/login" className="inline-block font-mono text-xs 3xl:text-sm text-[#39ff14] hover:underline">{t('public.save_progress')}</a>
+                        <a href="/login" className="inline-block font-mono text-xs 3xl:text-sm text-pub-accent-hi hover:underline">{t('public.save_progress')}</a>
                     )}
                 </ProgressPanel>
             ) : (
@@ -175,7 +175,7 @@ export default function SpritesGallery() {
                         <div key={item.sprite.id} className="relative">
                             {pendingKey === item.sprite.spriteKey && (
                                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 rounded-xl">
-                                    <Loader className="w-5 h-5 animate-spin text-[#39ff14]" />
+                                    <Loader className="w-5 h-5 animate-spin text-pub-accent-hi" />
                                 </div>
                             )}
                             <SpiritCard item={item} interactive onClick={() => handleToggle(item)} />

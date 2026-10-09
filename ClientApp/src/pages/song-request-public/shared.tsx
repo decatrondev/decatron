@@ -47,7 +47,7 @@ export function formatDuration(seconds: number | null | undefined): string {
 export function SectionTitle({ children }: { children: React.ReactNode }) {
     return (
         <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#a1a1aa] font-bold">
-            <span className="text-[#39ff14]">#</span>
+            <span className="text-pub-accent-hi">#</span>
             {children}
         </h2>
     );
@@ -55,7 +55,7 @@ export function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export function Chip({ tone, children }: { tone: 'green' | 'red' | 'amber'; children: React.ReactNode }) {
     const styles = {
-        green: 'bg-[#39ff14]/10 text-[#39ff14] border-[#39ff14]/25',
+        green: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/25',
         red: 'bg-red-500/10 text-red-400 border-red-500/25',
         amber: 'bg-amber-400/10 text-amber-300 border-amber-400/25',
     }[tone];
@@ -64,7 +64,7 @@ export function Chip({ tone, children }: { tone: 'green' | 'red' | 'amber'; chil
 
 export function Notice({ text, tone }: { text: string; tone?: 'error' }) {
     return (
-        <div className="rounded-lg border border-[#27272a] bg-[#111114] p-5 4xl:p-8">
+        <div className="rounded-lg border border-pub-border bg-pub-surface p-5 4xl:p-8">
             <p className={`text-sm 3xl:text-base 4xl:text-lg ${tone === 'error' ? 'text-red-400' : 'text-[#a1a1aa]'}`}>{text}</p>
         </div>
     );

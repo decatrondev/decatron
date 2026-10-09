@@ -22,7 +22,7 @@ function ChannelCard({ channel }: { channel: CarouselChannel }) {
             href={channelUrl(channel)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-3 w-36 3xl:w-44 4xl:w-52 shrink-0 rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-5 3xl:p-6 4xl:p-7 hover:border-[#2563eb] hover:-translate-y-1 transition-all"
+            className="flex flex-col items-center gap-3 w-36 3xl:w-44 4xl:w-52 shrink-0 rounded-lg border border-[#e2e8f0] dark:border-pub-border bg-white dark:bg-pub-surface p-5 3xl:p-6 4xl:p-7 hover:border-[#2563eb] hover:-translate-y-1 transition-all"
         >
             <img
                 src={channel.avatarUrl}
@@ -61,9 +61,9 @@ export default function ChannelsCarousel() {
     const track = [...channels, ...channels];
 
     return (
-        <section className="py-16 overflow-hidden bg-white dark:bg-[#1B1C1D]">
-            <h2 className="font-display text-3xl 3xl:text-4xl 4xl:text-5xl font-bold mb-10 3xl:mb-14 text-center text-[#1e293b] dark:text-[#f8fafc] px-4">
-                <span className="text-[#2563eb]">&gt;</span> {t('channelsCarouselHeading')}
+        <section className="relative z-10 py-20 overflow-hidden border-t border-pub-border">
+            <h2 className="font-extrabold tracking-tight text-3xl 3xl:text-4xl 4xl:text-5xl mb-10 3xl:mb-14 max-w-7xl 3xl:max-w-[1600px] mx-auto px-5 sm:px-8 text-[#1e293b] dark:text-white">
+                {t('channelsCarouselHeading')}
             </h2>
             <div className="flex gap-6 3xl:gap-8 4xl:gap-10 w-max animate-marquee">
                 {track.map((channel, i) => (

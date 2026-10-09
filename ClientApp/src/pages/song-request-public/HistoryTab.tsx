@@ -56,19 +56,19 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
     return (
         <div>
             <p className="mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a]">{t('songRequestPublic.history.count', { count: total })}</p>
-            <ol className="divide-y divide-[#1f1f23] border-y border-[#1f1f23]">
+            <ol className="divide-y divide-pub-border-soft border-y border-pub-border-soft">
                 {rows.map(row => (
                     <li key={row.id}>
                         <a
                             href={row.originUrl ?? row.track.url ?? undefined}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-3 4xl:gap-5 py-3 4xl:py-4 px-2 -mx-2 rounded hover:bg-[#111114] transition-colors"
+                            className="flex items-center gap-3 4xl:gap-5 py-3 4xl:py-4 px-2 -mx-2 rounded hover:bg-pub-surface transition-colors"
                         >
                             {row.track.thumbnailUrl ? (
-                                <img src={row.track.thumbnailUrl} alt="" loading="lazy" className="w-20 h-[45px] 3xl:w-24 3xl:h-[54px] 4xl:w-32 4xl:h-[72px] object-cover rounded shrink-0 bg-[#18181b]" />
+                                <img src={row.track.thumbnailUrl} alt="" loading="lazy" className="w-20 h-[45px] 3xl:w-24 3xl:h-[54px] 4xl:w-32 4xl:h-[72px] object-cover rounded shrink-0 bg-pub-raised" />
                             ) : (
-                                <div className="w-20 h-[45px] 3xl:w-24 3xl:h-[54px] 4xl:w-32 4xl:h-[72px] rounded shrink-0 bg-[#18181b]" />
+                                <div className="w-20 h-[45px] 3xl:w-24 3xl:h-[54px] 4xl:w-32 4xl:h-[72px] rounded shrink-0 bg-pub-raised" />
                             )}
                             <div className="min-w-0 flex-1">
                                 <p className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{row.track.title}</p>
@@ -99,7 +99,7 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
                 <button
                     disabled={loading}
                     onClick={() => load(page + 1, false)}
-                    className="mt-4 w-full py-2.5 rounded border border-[#27272a] font-mono text-xs 3xl:text-sm 4xl:text-base text-[#a1a1aa] hover:border-[#39ff14]/60 hover:text-white disabled:opacity-50 transition-colors"
+                    className="mt-4 w-full py-2.5 rounded border border-pub-border font-mono text-xs 3xl:text-sm 4xl:text-base text-[#a1a1aa] hover:border-pub-accent/60 hover:text-white disabled:opacity-50 transition-colors"
                 >
                     {loading ? t('songRequestPublic.loading') : t('songRequestPublic.history.more')}
                 </button>

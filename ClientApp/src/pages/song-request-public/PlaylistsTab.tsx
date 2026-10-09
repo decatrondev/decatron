@@ -37,12 +37,12 @@ export default function PlaylistsTab({ channel, activePlaylistId }: { channel: s
     return (
         <div className="space-y-2">
             {playlists.map(p => (
-                <div key={p.id} id={`playlist-${p.id}`} className="border border-[#1f1f23] rounded-lg scroll-mt-6">
-                    <button onClick={() => setOpenId(prev => (prev === p.id ? null : p.id))} className="w-full flex items-center justify-between gap-3 px-4 py-3 4xl:py-4 text-left hover:bg-[#111114] rounded-lg transition-colors">
+                <div key={p.id} id={`playlist-${p.id}`} className="border border-pub-border-soft rounded-lg scroll-mt-6">
+                    <button onClick={() => setOpenId(prev => (prev === p.id ? null : p.id))} className="w-full flex items-center justify-between gap-3 px-4 py-3 4xl:py-4 text-left hover:bg-pub-surface rounded-lg transition-colors">
                         <span className="flex items-center gap-2 min-w-0">
                             <span className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{p.name}</span>
                             {p.isActive && <span className="shrink-0 px-1.5 py-0.5 rounded border border-amber-400/50 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-amber-300">▶ {t('songRequestPublic.playing')}</span>}
-                            {p.open && <span className="shrink-0 px-1.5 py-0.5 rounded border border-[#39ff14]/40 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-[#39ff14]">{t('songRequestPublic.collaborative')}</span>}
+                            {p.open && <span className="shrink-0 px-1.5 py-0.5 rounded border border-pub-accent/40 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-pub-accent-hi">{t('songRequestPublic.collaborative')}</span>}
                         </span>
                         <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">
                             {t('songRequestPublic.songs', { count: p.count })} {openId === p.id ? '▴' : '▾'}
@@ -53,7 +53,7 @@ export default function PlaylistsTab({ channel, activePlaylistId }: { channel: s
                             <PlaylistPanel channel={channel} playlist={p} loginRedirect={`/sr/${channel}?tab=playlists`} onChanged={loadPlaylists} />
                             <a
                                 href={`/sr/${channel}/p/${p.code}`}
-                                className="block px-4 py-2.5 border-t border-[#1f1f23] font-mono text-xs 3xl:text-sm 4xl:text-base text-[#39ff14] hover:underline"
+                                className="block px-4 py-2.5 border-t border-pub-border-soft font-mono text-xs 3xl:text-sm 4xl:text-base text-pub-accent-hi hover:underline"
                             >
                                 {t('songRequestPublic.openPlaylistPage')} →
                             </a>

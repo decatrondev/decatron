@@ -110,12 +110,12 @@ export default function SongRequestPublicPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f] text-[#d4d4d8] relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] relative overflow-x-hidden">
             <div
                 className="pointer-events-none fixed inset-0 opacity-[0.04]"
                 style={{
                     backgroundImage:
-                        'linear-gradient(#39ff14 1px, transparent 1px), linear-gradient(90deg, #39ff14 1px, transparent 1px)',
+                        'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
                     backgroundSize: '40px 40px',
                 }}
             />
@@ -124,12 +124,12 @@ export default function SongRequestPublicPage() {
                 {/* Encabezado */}
                 <header className="flex items-center gap-4 4xl:gap-6 mb-8 4xl:mb-12">
                     {avatarUrl ? (
-                        <img src={avatarUrl} alt="" className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full border-2 border-[#39ff14]/40 shrink-0" />
+                        <img src={avatarUrl} alt="" className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full border-2 border-pub-accent/40 shrink-0" />
                     ) : (
-                        <div className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full bg-[#18181b] border-2 border-[#27272a] shrink-0" />
+                        <div className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full bg-pub-raised border-2 border-pub-border shrink-0" />
                     )}
                     <div className="min-w-0">
-                        <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#39ff14]/80">
+                        <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-pub-accent-hi/80">
                             {t('songRequestPublic.title')}
                         </p>
                         <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-white truncate">
@@ -155,14 +155,14 @@ export default function SongRequestPublicPage() {
                             {state.stopped
                                 ? <Chip tone="amber">{t('songRequestPublic.stopped')}</Chip>
                                 : state.paused && <Chip tone="amber">{t('songRequestPublic.paused')}</Chip>}
-                            <span className={`flex items-center gap-1.5 ml-auto ${connected ? 'text-[#39ff14]' : 'text-[#52525b]'}`}>
-                                <span className={`w-2 h-2 rounded-full ${connected ? 'bg-[#39ff14] animate-pulse' : 'bg-[#52525b]'}`} />
+                            <span className={`flex items-center gap-1.5 ml-auto ${connected ? 'text-emerald-400' : 'text-[#52525b]'}`}>
+                                <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-[#52525b]'}`} />
                                 {t('songRequestPublic.live')}
                             </span>
                         </div>
 
                         {/* Pestañas */}
-                        <nav role="tablist" className="flex mb-8 4xl:mb-12 border-b border-[#27272a] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <nav role="tablist" className="flex mb-8 4xl:mb-12 border-b border-pub-border overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             {TABS.map(id => (
                                 <button
                                     key={id}
@@ -170,7 +170,7 @@ export default function SongRequestPublicPage() {
                                     aria-selected={tab === id}
                                     onClick={() => setTab(id)}
                                     className={`shrink-0 px-2.5 sm:px-4 py-2.5 4xl:px-6 4xl:py-3.5 font-mono text-[11px] sm:text-xs 3xl:text-sm 4xl:text-base uppercase tracking-wider sm:tracking-widest border-b-2 -mb-px transition-colors ${tab === id
-                                        ? 'border-[#39ff14] text-[#39ff14]'
+                                        ? 'border-pub-accent text-pub-accent-hi'
                                         : 'border-transparent text-[#71717a] hover:text-[#d4d4d8]'}`}
                                 >
                                     {tabLabel[id]}
@@ -185,9 +185,9 @@ export default function SongRequestPublicPage() {
                     </>
                 )}
 
-                <footer className="mt-16 pt-6 border-t border-[#27272a] font-mono text-xs 3xl:text-sm text-[#3f3f46] flex items-center justify-between flex-wrap gap-2">
+                <footer className="mt-16 pt-6 border-t border-pub-border font-mono text-xs 3xl:text-sm text-[#3f3f46] flex items-center justify-between flex-wrap gap-2">
                     <span>{t('songRequestPublic.footer')}</span>
-                    <span className="text-[#39ff14]/60">{window.location.host}</span>
+                    <span className="text-pub-accent-hi/60">{window.location.host}</span>
                 </footer>
             </div>
 
