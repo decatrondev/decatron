@@ -32,6 +32,7 @@ namespace Decatron.Controllers
         private readonly Decatron.Services.Desktop.DesktopConnectionRegistry _desktop;
         private readonly Decatron.Services.AI.AiSettingsCache _aiSettings;
         private readonly ILogger<LiveTranslationController> _logger;
+        private readonly Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> _optsMonitor;
 
         public LiveTranslationController(
             DecatronDbContext db,
@@ -39,9 +40,10 @@ namespace Decatron.Controllers
             ITtsCreditService credits,
             Decatron.Services.Desktop.DesktopConnectionRegistry desktop,
             Decatron.Services.AI.AiSettingsCache aiSettings,
-            ILogger<LiveTranslationController> logger)
+            ILogger<LiveTranslationController> logger,
+            Microsoft.Extensions.Options.IOptionsMonitor<LiveTranslationOptions> optsMonitor)
         {
-            _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _aiSettings = aiSettings; _logger = logger;
+            _db = db; _mgr = mgr; _credits = credits; _desktop = desktop; _aiSettings = aiSettings; _logger = logger; _optsMonitor = optsMonitor;
         }
 
         // ─────────────────────────────────────────────────────────────────────
@@ -78,6 +80,7 @@ namespace Decatron.Controllers
                 languages = row.TargetLanguages.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
                 backgroundVolume = row.BackgroundVolume,
                 startedAt = status?.StartedAt,
+                tuning = _optsMonitor.CurrentValue.ClientTuning.Sanitized(),
             });
         }
 
