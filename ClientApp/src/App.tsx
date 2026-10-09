@@ -55,6 +55,7 @@ import Finance from './pages/admin/Finance';
 import EmailManagement from './pages/admin/EmailManagement/index';
 import DevDocs from './pages/admin/DevDocs';
 import TtsLab from './pages/admin/TtsLab';
+import DesignGuide from './pages/admin/DesignGuide';
 import TtsCreditsAdmin from './pages/admin/TtsCreditsAdmin';
 import LiveTranslationAdmin from './pages/admin/LiveTranslationAdmin';
 import AiCostsAdmin from './pages/admin/AiCostsAdmin';
@@ -339,6 +340,7 @@ function App() {
                     <Route path="admin/email" element={<SafeRoute name="Email"><EmailManagement /></SafeRoute>} />
                     <Route path="admin/dev-docs" element={<SafeRoute name="Dev Docs"><DevDocs /></SafeRoute>} />
                     <Route path="admin/tts-lab" element={<SafeRoute name="TTS Lab"><TtsLab /></SafeRoute>} />
+                    <Route path="admin/estilo" element={<SafeRoute name="Design Guide"><DesignGuide /></SafeRoute>} />
                     <Route path="admin/finance" element={<SafeRoute name="Finanzas"><Finance /></SafeRoute>} />
                     <Route path="admin/tts-credits" element={<SafeRoute name="TTS Credits"><TtsCreditsAdmin /></SafeRoute>} />
                     <Route path="admin/live-translation" element={<SafeRoute name="Live Translation Admin"><LiveTranslationAdmin /></SafeRoute>} />

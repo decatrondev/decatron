@@ -135,6 +135,14 @@ export default function AdminHub() {
             ready: true
         },
         {
+            id: 'estilo',
+            name: 'Guía de estilo',
+            description: 'Referencia de todos los componentes y sus estados, en claro y oscuro (vista previa del sistema de diseño)',
+            icon: <Palette className="w-6 h-6 text-[#2563eb]" />,
+            route: '/admin/estilo',
+            ready: true
+        },
+        {
             id: 'tts-lab',
             name: 'Laboratorio de voces',
             description: 'Compara las voces de Piper (gratis, en el servidor) con Polly: calidad, tiempo y coste',
