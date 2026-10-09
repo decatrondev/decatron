@@ -12,6 +12,7 @@ Complete reference for all Decatron v2 overlay types, OBS setup instructions, co
 - [Event Alerts Overlay](#event-alerts-overlay)
 - [Sound Alerts Overlay](#sound-alerts-overlay)
 - [Now Playing Overlay](#now-playing-overlay)
+- [Song Request Overlay](#song-request-overlay)
 - [Tips Overlay](#tips-overlay)
 - [Goals Overlay](#goals-overlay)
 - [Shoutout Overlay](#shoutout-overlay)
@@ -66,6 +67,8 @@ Replace `{channel_name}` with your Twitch username (lowercase).
 | Tips | `/overlay/tips?channel={name}` | 1920x1080 |
 | Goals | `/overlay/goals?channel={name}` | 1920x1080 |
 | Shoutout | `/overlay/shoutout?channel={name}` | 1000x300 |
+| Song Request (player) | `/overlay/songrequest?channel={name}&key={playerKey}` | Canvas size set in the dashboard |
+| Song Request (display only) | `/overlay/songrequest?channel={name}` | Canvas size set in the dashboard |
 
 > **Tip:** You can find the exact overlay URL with your channel pre-filled in each feature's configuration page on the dashboard. Look for the "Copy Overlay URL" button.
 
@@ -371,6 +374,29 @@ Some visual features are locked behind subscription tiers:
 | `GET` | `/api/spotify/authorize-url` | JWT | Get Spotify OAuth URL |
 | `GET` | `/api/spotify/callback` | Anonymous | Spotify OAuth callback |
 | `GET` | `/api/spotify/status` | JWT | Check Spotify connection status |
+
+---
+
+## Song Request Overlay
+
+The queue player for [Song Request](COMMANDS.md#song-request-commands). It comes in two forms, each with its own design:
+
+| Form | URL | What it does |
+|------|-----|--------------|
+| Player | `/overlay/songrequest?channel={name}&key={playerKey}` | The one that plays the audio. The queue does not advance without it. `{playerKey}` is private to the channel: do not share it, and regenerate it from the dashboard if it leaks. |
+| Display only | `/overlay/songrequest?channel={name}` | Shows "now playing" without audio, for another scene |
+
+### Design
+
+The design tabs (Theme, Elements, Typography, Animations, Editor) share the music-overlay engine: ready-made themes, per-element typography, entry/exit animations, a visual canvas editor with starting layouts, and saved templates. The number of saved templates depends on the supporter tier. The overlay design is served publicly (without the player key) at `GET /api/public/song-request/{channel}/overlay`.
+
+### Real-time
+
+The player, the display overlay, the dashboard and the public queue page all listen to the `SongRequestHub` SignalR hub (`/hubs/songrequest`).
+
+### Audio and VODs
+
+Requested music can mute Twitch VODs. In OBS, enable "Control audio via OBS" on the player source, leave it on a single track in Advanced Audio Properties, and set a different track for "Twitch VOD Track".
 
 ---
 

@@ -24,6 +24,7 @@ Complete reference for every API endpoint exposed by Decatron. All endpoints are
 - [Event Alerts](#event-alerts)
 - [Follow Alerts (Legacy)](#follow-alerts-legacy)
 - [Sound Alerts](#sound-alerts)
+- [Song Request (Public)](#song-request-public)
 - [Tips / Donations](#tips--donations)
 - [Supporters / Subscriptions](#supporters--subscriptions)
 - [Giveaway](#giveaway)
@@ -359,6 +360,34 @@ Automated chat message timers (e.g., periodic reminders).
 | GET | `/api/soundalerts/system-files` | Yes (JWT) | Lists available system files (scans directories) |
 | POST | `/api/soundalerts/assign-system-file` | Yes (JWT) | Assigns a system file to a reward |
 | POST | `/api/soundalerts/test` | Yes (JWT) | Sends a test alert via SignalR |
+
+---
+
+## Song Request (Public)
+
+Public endpoints of the Song Request module, used by the public queue page `/sr/{channel}`, the playlist page and the overlays. The dashboard endpoints under `/api/song-request/...` are authenticated and are not listed here.
+
+### SongRequestController
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | `/api/public/song-request/{channel}` | No | Public queue: channel name, avatar and the live state (current song, queue, mode) |
+| GET | `/api/public/song-request/{channel}/guide` | No | What the "How to request" guide needs: permissions, limits and which playlist `!sr #n` refers to |
+| GET | `/api/public/song-request/{channel}/history` | No | Recent history of what played |
+| GET | `/api/public/song-request/{channel}/overlay` | No | Overlay design (never includes the player key) |
+| GET | `/api/public/song-request/{channel}/playlists` | No | The channel's public playlists |
+| GET | `/api/public/song-request/{channel}/playlists/{code}` | No | One playlist and its songs (public or link-only; private ones answer like a missing one) |
+| POST | `/api/public/song-request/{channel}/playlists/{code}/listen` | No | Anonymous listening signal for the listening stats |
+
+Viewer actions require a signed-in viewer (Twitch or Kick session):
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/song-request/public/{channel}/me` | The account (platform and name) the viewer would contribute with on this channel, or `null` |
+| POST | `/api/song-request/public/{channel}/playlists/{code}/items` | Add a song to a collaborative playlist |
+| POST | `/api/song-request/public/{channel}/playlists/{code}/items/{itemId}/request` | Request a playlist song to the queue (same rules as `!sr`) |
+| POST | `/api/song-request/public/{channel}/playlists/{code}/items/{itemId}/vote` | Vote on a playlist song |
+| GET | `/api/song-request/public/{channel}/playlists/{code}/my-votes` | The viewer's votes in a playlist |
 
 ---
 

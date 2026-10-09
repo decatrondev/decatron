@@ -803,7 +803,7 @@ erDiagram
 
 ## 7. Module Map
 
-All 21 modules identified in the codebase audit:
+All 21 modules identified in the codebase audit (Song Request, #22, was added later):
 
 | # | Module | Description | Key Backend Files | Key Frontend Files | Approx. Lines |
 |---|--------|-------------|-------------------|-------------------|---------------|
@@ -828,6 +828,7 @@ All 21 modules identified in the codebase audit:
 | 19 | **SignalR / Overlays** | Real-time hub, overlay notification service (consumed by 32 files) | `OverlayHub.cs` (132), `OverlayNotificationService.cs` (379) | -- | ~510 |
 | 20 | **Database** | EF Core DbContext (78 DbSets), repositories, manual SQL migrations | `DecatronDbContext.cs` (1389), `BotTokenRepository.cs`, `UserRepository.cs`, 7 migration scripts | -- | ~2,100 |
 | 21 | **Frontend Shared** | Router, API service, contexts, hooks, Layout, overlays, docs, developer portal, Gacha pages | `App.tsx`, `api.ts`, `PermissionsContext.tsx`, `Layout.tsx`, 20+ shared components, 8 overlay pages | All shared frontend | ~8,500 |
+| 22 | **Song Request** | Chat-driven song queue on Twitch and Kick: link/search resolvers (YouTube, SoundCloud; Spotify, Apple Music and Deezer links are matched on YouTube), request modes, filters, blacklists, review inbox, collaborative playlists with voting, listening stats, per-tier limits, public queue and playlist pages, OBS player overlay | `SongRequestController`, `Decatron.Services/SongRequest/*` (`SongResolverService`, `SongRequestChatHandler`, `SongRequestService`, `SongRequestLibraryService`, `SongRequestHub`, `SongRequestTierLimits`), Decatron Desktop channels `SongImportDesktopChannel` and `DownloadsDesktopChannel` | `SongRequestConfig.tsx`, `song-request-extension/`, `SongRequestOverlay.tsx`, `SongRequestPublicPage.tsx`, `SongRequestPlaylistPage.tsx` | -- |
 
 **Estimated total codebase:** ~120,000+ lines across backend and frontend.
 

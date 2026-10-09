@@ -11,6 +11,7 @@ Complete reference for all Decatron v2 bot commands, the custom commands system,
 - [Custom Commands](#custom-commands)
 - [Scripting System](#scripting-system)
 - [Micro Commands](#micro-commands)
+- [Song Request Commands](#song-request-commands)
 - [Moderation System](#moderation-system)
 - [Giveaway Commands](#giveaway-commands)
 - [Goals Commands](#goals-commands)
@@ -351,6 +352,90 @@ flowchart TD
 | `GET` | `/api/commands/microcommands/search/{command}` | Search for a micro command |
 | `GET` | `/api/commands/microcommands/check-availability/{command}` | Check if a command name is available |
 | `GET` | `/api/commands/microcommands/search-games?q=&limit=` | Search games (autocomplete) |
+
+---
+
+## Song Request Commands
+
+Song Request lets viewers request songs from chat on Twitch and Kick, or from the public page `/sr/{channel}`. A request accepts a YouTube, SoundCloud, Spotify, Deezer or Apple Music link, or a song name. Songs go to a queue that plays in an OBS overlay (see [Song Request Overlay](OVERLAYS.md#song-request-overlay)).
+
+The commands below are generated from the same source the dashboard and the public page use. **Default access** is the minimum role: that role and the ones above it can use the command, and anyone with full control on the dashboard counts as the streamer. Each channel can change it in the dashboard (Overlays → Song Request → Commands).
+
+#### Request and check
+
+| Command | Default access | Description |
+|---|---|---|
+| `!sr <link or name>` | Everyone | Requests a song with a YouTube, Spotify, SoundCloud, Deezer or Apple Music link, or by typing its name. (Also: `!songrequest`) |
+| `!sr #<number>` | Everyone | Requests to the queue, by its number, a song from the background playlist. |
+| `!wrongsong` | Everyone | Removes your last request from the queue, in case you got it wrong. |
+| `!song` | Everyone | Says which song is playing, with the link. (Also: `!currentsong`) |
+| `!lastsong` | Everyone | Says which song played before, with the link. (Also: `!prevsong`) |
+| `!queue` | Everyone | Shows the next songs and the link to the queue. |
+| `!myqueue` | Everyone | Says where your requests are in the queue. |
+| `!skip` | Everyone | Votes to skip the song that's playing (request or playlist); it's skipped with 3 votes. |
+| `!srvolume` | Everyone | Says the music volume. |
+
+#### Background playlist
+
+| Command | Default access | Description |
+|---|---|---|
+| `!pl` | Everyone | Says which playlist is in the background and which number is playing. |
+| `!playlist [name]` | Everyone | Gives the link to listen to the channel's public playlists; with a name, that playlist's link. |
+| `!plplay <playlist \| #number>` | Lead Mods+ | With a name, sets that playlist as background (it plays when there are no requests). With #number it jumps right away to that song of the background playlist; if a request is playing, right after it. They can be combined: !plplay chill #19. (Also: `!srplay`) |
+| `!plstop` | Lead Mods+ | Stops the background playlist: when the queue is empty nothing plays. !plplay off works too. |
+| `!plnext` | Mods+ | Moves to the next song of the background playlist. It doesn't skip requests (use !skip). |
+| `!plshuffle [on \| off]` | Lead Mods+ | The background playlist plays in random order (on) or in order (off); with nothing, it toggles. |
+| `!pladd <playlist> <link or name>` | Per playlist | Adds a song to a collaborative playlist. If only one is open, the playlist name isn't needed. Each playlist decides who can add. |
+
+#### Player
+
+They work on whatever is playing: requests and the background playlist.
+
+| Command | Default access | Description |
+|---|---|---|
+| `!skip` | Mods+ | Skips the song that's playing (request or playlist), without a vote. (Also: `!srskip`, `!srnext`) |
+| `!srpause · !srresume` | Lead Mods+ | Pauses or resumes the music. The overlay stays visible; !srresume also leaves a stop. |
+| `!srstop` | Lead Mods+ | Silence and overlay hidden, without losing the song or the queue. !srresume shows it again and continues where it left off. New requests don't resume it by themselves. |
+| `!srvolume <0-100>` | Lead Mods+ | Changes the music volume. |
+| `!srvideo · !srcover` | Lead Mods+ | The player shows the video or the cover, without stopping the music. |
+
+#### Queue
+
+| Command | Default access | Description |
+|---|---|---|
+| `!srclear` | Lead Mods+ | Clears the request queue. The one playing keeps going and anything waiting for review is untouched. |
+| `!srremove <position>` | Mods+ | Removes the request at that queue position. |
+| `!srpromote <position>` | Mods+ | Moves the request at that position to the front of the queue. |
+
+#### Review
+
+| Command | Default access | Description |
+|---|---|---|
+| `!srapprove [number]` | Mods+ | Approves what is waiting for review by its number in the inbox; with no number, the oldest. |
+| `!srreject [number]` | Mods+ | Rejects what is waiting for review by its number in the inbox; with no number, the oldest. |
+
+#### Manage
+
+| Command | Default access | Description |
+|---|---|---|
+| `!srmode <open \| playlists \| review \| closed>` | Lead Mods+ | Changes the request mode instantly: open, playlists only, with review or closed. With nothing, says the current mode. (Also: `abiertos`, `revisión`, `cerrados`) |
+| `!sropen · !srclose` | Lead Mods+ | Opens or closes requests. |
+| `!srban [@user]` | Lead Mods+ | With nothing, bans the song that's playing and skips it; with @user, bans that person. |
+| `!srunban @usuario` | Lead Mods+ | Lifts a user's ban so they can request again. Song and artist bans are lifted in the dashboard. |
+
+
+#### Request modes
+
+`!srmode <open | playlists | review | closed>` changes how `!sr` requests come in:
+
+| Mode | Behavior |
+|------|----------|
+| `open` | Any song that passes the filters is accepted |
+| `playlists` | Only songs from the channel's playlists (and `!sr #number`) |
+| `review` | Each request waits for a moderator to approve it (`!srapprove` / `!srreject`) |
+| `closed` | No requests are accepted |
+
+The full user guide (setup, filters, playlists, design) lives in the dashboard documentation under Song Request.
 
 ---
 
