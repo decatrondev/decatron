@@ -1,6 +1,6 @@
 import { Music } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { DocSections, asArray, type DocSectionData } from '../../components/docs/DocBlocks';
+import { ModuleDoc } from './ModuleDoc';
 import type { DocScope } from './registry';
 import {
     GUIDE_COMMANDS,
@@ -12,8 +12,6 @@ import {
 // Páginas de Song Request. El texto vive en public/locales/{es,en}/docs-sr.json (una clave por página).
 // La lista de comandos sale de commandGuide.ts + commands.json → srGuide: la misma fuente del panel y de /sr.
 export type SrPage = 'overview' | 'setup' | 'requests' | 'playlists' | 'commands' | 'overlay' | 'library';
-
-interface PageData { title?: string; subtitle?: string; sections?: DocSectionData[]; tail?: DocSectionData[] }
 
 // Permisos por defecto de SongRequestSettings.Permissions (backend)
 const DEFAULT_PERMISSIONS: GuidePermissions = {
@@ -27,29 +25,10 @@ const DEFAULT_PERMISSIONS: GuidePermissions = {
 const DEFAULT_SKIP_VOTES = 3;
 
 export function SongRequestDoc({ page, scope }: { page: SrPage; scope: DocScope }) {
-    const { t } = useTranslation('docs-sr');
-    const raw = t(page, { returnObjects: true });
-    // Mientras carga el namespace, t() devuelve el texto de la clave
-    const data: PageData = raw && typeof raw === 'object' ? (raw as PageData) : {};
-
     return (
-        <div className="space-y-8">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
-                <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Music className="w-8 h-8 text-[#2563eb]" />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{data.title}</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">{data.subtitle}</p>
-                    </div>
-                </div>
-            </div>
-
-            <DocSections sections={asArray<DocSectionData>(data.sections)} scope={scope} />
+        <ModuleDoc ns="docs-sr" page={page} scope={scope} icon={Music}>
             {page === 'commands' && <CommandList />}
-            {page === 'commands' && <DocSections sections={asArray<DocSectionData>(data.tail)} scope={scope} />}
-        </div>
+        </ModuleDoc>
     );
 }
 

@@ -1,0 +1,1234 @@
+{
+  "overview": {
+    "title": "Rueda y Sorteo",
+    "subtitle": "Una rueda en pantalla que reparte premios o elige ganadores",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La Rueda de Decatron es una rueda que gira en tu stream. Tú decides qué hay en cada gajo y cuánta probabilidad tiene; el bot decide el resultado y el overlay solo lo anima."
+          },
+          {
+            "t": "p",
+            "x": "Puedes tener varias ruedas en tu canal. Cada una es de uno de dos tipos:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Tipo",
+              "Cómo funciona"
+            ],
+            "rows": [
+              [
+                "Rueda de Premios",
+                "Tus viewers ganan giros aportando al canal (bits, subs de regalo, donaciones o puntos del canal), giran y se llevan el premio del gajo."
+              ],
+              [
+                "Rueda de Sorteo",
+                "La gente se inscribe con un comando mientras la inscripción está abierta, y la rueda saca un ganador entre los inscritos."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "viewers",
+        "title": "Para tus viewers",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "En la rueda de premios juntan créditos aportando al canal y giran con !dgirar (o la rueda gira sola cuando juntan lo necesario). Con !dcreditos ven su saldo.",
+              "En la rueda de sorteo se inscriben con !djoin mientras la inscripción esté abierta.",
+              "Ven el giro y el resultado en el overlay, y el bot lo anuncia en el chat."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Los nombres de los comandos se pueden cambiar en el panel; estos son los que vienen por defecto."
+          }
+        ]
+      },
+      {
+        "id": "streamer",
+        "title": "Para ti",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Premios con peso, stock y distintos tipos: sin premio, mensaje manual, giros gratis, tiros de gachapón, tiempo al timer, timeout y alertas de sonido.",
+              "Reglas anti-farmeo: espera entre giros, tope de giros por viewer y por stream, no repetir y piedad.",
+              "Sorteos con boletos, costo en créditos, requisitos (subs, followers, watchtime) y pesos para premiar a quien más apoya.",
+              "Aspecto totalmente tuyo: colores, animación, sonidos y un editor visual, además de un historial con estadísticas."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "En OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada rueda tiene un enlace para agregarlo como Fuente de navegador. El enlace no lleva clave: quien lo tenga puede ver el overlay, pero no cambiar nada. El fondo es transparente."
+          }
+        ]
+      },
+      {
+        "id": "gratis",
+        "title": "Es gratis",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Todas las funciones de la Rueda están disponibles para todos. Los planes de apoyo solo amplían cantidades. Además, en los planes Gratis y Supporter la rueda lleva una marca de agua de Decatron que se puede ocultar desde Premium."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheels",
+              "wheelSegments",
+              "wheelHistoryDays"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "empezar",
+        "title": "Cómo empezar",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Inicia sesión en Decatron con Twitch o Kick.",
+              "Ve a Overlays → Rueda de la Suerte y crea tu primera rueda (de premios o de sorteo).",
+              "Agrega los gajos o configura la inscripción, enciende la rueda y copia su enlace a OBS."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "La guía paso a paso está en la documentación con cuenta."
+          },
+          {
+            "t": "link",
+            "to": "wheel-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Rueda: puesta en marcha",
+    "subtitle": "Crea tu rueda, agrégala a OBS y pruébala",
+    "sections": [
+      {
+        "id": "crear",
+        "title": "Crear una rueda",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Ve a Overlays → Rueda de la Suerte. Si todavía no tienes ninguna, el panel te invita a crear la primera y te pide elegir el tipo:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Tipo",
+              "Para qué sirve"
+            ],
+            "rows": [
+              [
+                "Rueda de Premios",
+                "Los viewers ganan giros aportando al canal y se llevan el premio del gajo."
+              ],
+              [
+                "Rueda de Sorteo",
+                "La gente se inscribe y la rueda saca un ganador entre los participantes."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Puedes tener varias ruedas, cada una con su nombre, su enlace y su configuración. Cuántas puedes tener encendidas a la vez depende de tu plan; las apagadas no gastan cupo."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheels",
+              "wheelSegments"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "encender",
+        "title": "Encender la rueda",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Una rueda apagada no responde a los comandos ni se ve en el overlay. Enciéndela con el interruptor de la columna de la derecha del panel."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Si llegas al máximo de ruedas encendidas de tu plan, apaga una para encender otra."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Agregar la rueda a OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "En la Guía de la rueda copia el «Enlace para OBS».",
+              "En OBS, dentro de tu escena, pulsa + en Fuentes y elige Navegador.",
+              "Pega el enlace en el campo URL y pon el Ancho y el Alto que indica el panel.",
+              "Acepta. El fondo es transparente de fábrica, así que se ve tu escena detrás."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El enlace de la rueda no lleva clave: cualquiera que lo tenga puede ver el overlay, pero no cambiar nada. Cada rueda tiene su propio enlace."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "Probarla",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Pulsa «Probar giro» arriba para verla girar en tu overlay. El giro de prueba no se guarda en el historial."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "La pestaña Probar es distinta: simula un aporte (bits, subs…) pero acredita de verdad, gasta de verdad y gira de verdad en tu overlay. Úsala con un nombre de prueba si no quieres tocar el saldo de nadie."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Las pestañas del panel",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Para qué sirve"
+            ],
+            "rows": [
+              [
+                "Gajos",
+                "Los gajos, sus pesos y premios."
+              ],
+              [
+                "Créditos",
+                "De dónde salen los créditos y cuánto cuesta un giro."
+              ],
+              [
+                "Disparadores y topes",
+                "Cómo se dispara el giro, espera entre giros, topes y reglas."
+              ],
+              [
+                "Sorteo",
+                "Inscripción, pesos y sorteo."
+              ],
+              [
+                "Comandos",
+                "Los comandos del chat, quién los usa y ejemplos."
+              ],
+              [
+                "Mensajes",
+                "Lo que dice el bot en el chat."
+              ],
+              [
+                "Aspecto",
+                "Colores, fuentes, presentación y sonidos."
+              ],
+              [
+                "Editor",
+                "Dónde va cada pieza en la pantalla."
+              ],
+              [
+                "Media",
+                "Tu biblioteca de imágenes y sonidos para la rueda."
+              ],
+              [
+                "Probar",
+                "Simula aportes (acredita de verdad)."
+              ],
+              [
+                "Entregas",
+                "Premios que el bot no pudo entregar."
+              ],
+              [
+                "Billeteras",
+                "El saldo de créditos de cada viewer."
+              ],
+              [
+                "Historial",
+                "Los giros y sorteos que ya pasaron."
+              ],
+              [
+                "Plan y límites",
+                "Los topes de tu plan."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada rueda tiene sus páginas en esta documentación:"
+          },
+          {
+            "t": "link",
+            "to": "wheel-prizes"
+          },
+          {
+            "t": "link",
+            "to": "wheel-credits"
+          },
+          {
+            "t": "link",
+            "to": "wheel-raffle"
+          },
+          {
+            "t": "link",
+            "to": "wheel-commands"
+          },
+          {
+            "t": "link",
+            "to": "wheel-look"
+          }
+        ]
+      }
+    ]
+  },
+  "prizes": {
+    "title": "Rueda: gajos y premios",
+    "subtitle": "Probabilidades, stock, tipos de premio y entregas",
+    "sections": [
+      {
+        "id": "gajos",
+        "title": "Gajos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada gajo tiene un nombre, un peso, un premio, un color y, si quieres, un icono. Una rueda necesita al menos 2 gajos para poder girar."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Peso",
+                "Define la probabilidad. Con peso 3 el gajo sale el porcentaje que el panel te muestra («Peso 3: sale el X % de las veces»). La franja «Reparto de probabilidades» lo resume."
+              ],
+              [
+                "Color e icono",
+                "El color del gajo y un emoji o texto corto que sale antes del nombre."
+              ],
+              [
+                "Mostrar / ocultar",
+                "Un gajo oculto no aparece en la rueda."
+              ],
+              [
+                "Duplicar, subir, bajar y arrastrar",
+                "Para ordenar los gajos. Con una búsqueda activa no se puede reordenar."
+              ],
+              [
+                "Buscar",
+                "Filtra la lista de gajos por nombre."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El número de gajos por rueda depende de tu plan."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheelSegments"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stock",
+        "title": "Stock",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Un gajo puede tener stock limitado para que un premio no salga siempre. Con «Con stock» eliges un total y/o un tope por persona, y la ventana en la que se cuenta: para siempre, por stream o por día. El panel muestra cuántos quedan."
+          },
+          {
+            "t": "p",
+            "x": "Si se agota, ese gajo deja de poder salir."
+          }
+        ]
+      },
+      {
+        "id": "premios",
+        "title": "Tipos de premio",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Premio",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Sin premio",
+                "El gajo no entrega nada."
+              ],
+              [
+                "Mensaje manual",
+                "El bot anuncia el texto que escribas (puedes usar {user} para el nombre y {wheel} para la rueda) y tú entregas el premio a mano: siempre queda en Entregas como pendiente."
+              ],
+              [
+                "Giros gratis",
+                "Regala giros: eliges cuántos y de qué rueda (esta misma u otra). Se acreditan como créditos del viewer: no gira de inmediato, para no encadenar animaciones."
+              ],
+              [
+                "Tiros de gachapón",
+                "Regala tiros del gachapón. Se entregan en la billetera «bonus»: no cuentan como donación ni como compra con coins."
+              ],
+              [
+                "Tiempo al timer",
+                "Suma segundos al timer de tu stream."
+              ],
+              [
+                "Timeout",
+                "Pone un timeout de los segundos que elijas: al que giró o a alguien al azar del chat."
+              ],
+              [
+                "Alerta de sonido",
+                "Dispara una de tus alertas de sonido (la eliges de la lista; si no tienes ninguna, el panel te lo avisa)."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada premio tiene un «Mensaje del bot»: lo que anuncia el bot al ganar. Si no escribes uno, usa el de la pestaña Mensajes."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "El premio «Coins» ya no existe: los deca coins los vende Decatron y la rueda no puede regalarlos. Si una rueda antigua tenía un gajo con ese premio, el panel lo marca como «retirado» y te pide elegir otro para poder guardar."
+          }
+        ]
+      },
+      {
+        "id": "entregas",
+        "title": "Entregas pendientes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cuando el bot no puede entregar un premio por sí solo (por ejemplo un mensaje manual, o un premio que falló), queda en la pestaña Entregas con el motivo: te dice si hay algo que arreglar o si solo hay que cumplirlo a mano."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Filtra entre «Pendientes» y «Todas».",
+              "Márcala como «Entregado» cuando la cumplas, o «Cancelar».",
+              "Si te equivocaste, «reabrir» la deja de nuevo como pendiente."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "importar",
+        "title": "Importar y exportar gajos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Con «Importar» puedes crear gajos pegando una lista o abriendo un archivo: un nombre por línea y, si quieres, el peso después de «;» o de una coma (por ejemplo «Premio grande;3»). Sirve una columna de una hoja de cálculo."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Solo se importan el nombre y el peso: el premio se elige después en cada gajo.",
+              "Puedes agregarlos a los que ya tienes o reemplazarlos; nada se guarda hasta que pulses Guardar.",
+              "Los que no caben en el tope de tu plan se dejan fuera.",
+              "«Exportar» copia la lista al portapapeles o la descarga como .csv."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "credits": {
+    "title": "Rueda: créditos y giros",
+    "subtitle": "De dónde salen los giros, cómo se disparan y qué los frena",
+    "sections": [
+      {
+        "id": "creditos",
+        "title": "Cómo se gana un giro",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la rueda de premios, tus viewers juntan créditos y gastan una cantidad por cada giro. En la pestaña Créditos decides las reglas:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Cómo se llaman tus créditos",
+                "El nombre que ve tu gente en el chat: fichas, puntos, tickets…"
+              ],
+              [
+                "Cuesta un giro",
+                "Cuántos créditos gasta cada tirada."
+              ],
+              [
+                "Guardar lo que no alcanza",
+                "Encendido, los aportes chicos se van sumando hasta llegar al precio. Apagado, cada aporte tiene que alcanzar por sí solo."
+              ],
+              [
+                "Qué pasa con el sobrante",
+                "Cuando un aporte pasa del precio pero no llega al siguiente giro: «Se pierde» o «Se guarda para después»."
+              ],
+              [
+                "Si un aporte alcanza para varios giros",
+                "«Todas las que alcancen», «Solo una» o «Que decida el espectador»."
+              ],
+              [
+                "Los créditos caducan",
+                "«Nunca» o «Al cerrar el stream» (el saldo se vacía cuando terminas de transmitir)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "fuentes",
+        "title": "De dónde salen los créditos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Enciende lo que quieras aceptar y pon cuánto vale: «por cada X, tantos créditos». Cada fuente puede tener un tope por evento."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Fuente",
+              "Detalle"
+            ],
+            "rows": [
+              [
+                "Bits",
+                "Por cada X bits."
+              ],
+              [
+                "Subs de regalo",
+                "Por cada sub regalado. Aquí puedes poner un multiplicador para Tier 2 y Tier 3 (es la única fuente por la que Twitch informa el tier); se aplica antes del tope por evento."
+              ],
+              [
+                "Donaciones",
+                "Por cada monto donado."
+              ],
+              [
+                "Puntos del canal",
+                "Eliges qué recompensas de puntos dan créditos y cuántos (puedes tener varias: una barata y una premium, por ejemplo). Sin elegir una recompensa, no se acredita nada."
+              ],
+              [
+                "Deca coins",
+                "El viewer cambia sus propios deca coins por créditos con el comando de compra. Solo responde si esta fuente está encendida y quien lo escribe tiene cuenta de Decatron."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "disparadores",
+        "title": "Cómo se dispara el giro",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Comando en el chat (por defecto !dgirar). Si lo apagas, solo se gira desde el panel.",
+              "Comando para ver el saldo (por defecto !dcreditos).",
+              "Comando de compra (por defecto !dcomprar), que cambia deca coins por créditos.",
+              "«Girar solo»: apenas alguien junta el precio, la rueda gira sin que tenga que escribir nada. Es un giro por aporte, para no encadenar animaciones."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "topes",
+        "title": "Topes anti-farmeo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Son frenos para que una mala configuración de pesos no vacíe tu economía en una tarde."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Tope",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Espera entre giros",
+                "Cuánto tiene que esperar el mismo viewer antes de volver a girar, en segundos. 0 = sin espera."
+              ],
+              [
+                "Giros por viewer y stream",
+                "Cuántos giros puede hacer una misma persona en un stream. Vacío = sin tope."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "Reglas del giro",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Regla",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "No repetir",
+                "Evita que salga dos veces seguidas lo mismo: desactivado, por viewer o en toda la rueda. Si la regla dejaría un solo gajo posible, se ignora: mejor repetir que no girar."
+              ],
+              [
+                "Piedad",
+                "Tras varios giros seguidos sin premio, el siguiente no puede volver a ser «nada». Cuenta por viewer."
+              ],
+              [
+                "Girar varias veces",
+                "Permite gastar varios giros de una, hasta un máximo. En el chat: !dgirar 5. Cada giro es un sorteo aparte (el stock se gasta entre uno y otro); se cobra todo junto o nada, y el bot responde con un solo mensaje de resumen."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Ninguna regla cambia el dibujo: la rueda sigue mostrando todos sus gajos, salgan o no."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "Probar con un aporte",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Probar dispara un aporte contra la rueda sin esperar a que alguien done: eliges la fuente, la cantidad y de parte de quién. Te dice si acreditó, para cuántos giros alcanza y qué salió."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "No es un ensayo: acredita, gasta y gira de verdad en tu overlay. Si no quieres tocar el saldo de nadie, usa un nombre de prueba."
+          }
+        ]
+      },
+      {
+        "id": "billeteras",
+        "title": "Billeteras",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Billeteras muestra el saldo de créditos de cada viewer (también su histórico y su última actividad). Son del canal y no de una rueda: quien aporta una vez puede gastar en cualquiera de tus ruedas."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Al editar un saldo, escribe el número que quieres que quede: se fija, no se suma. El histórico nunca baja, ni siquiera al corregir un saldo a mano."
+          }
+        ]
+      }
+    ]
+  },
+  "raffle": {
+    "title": "Rueda: sorteo",
+    "subtitle": "Inscripción, requisitos, pesos y cómo se elige al ganador",
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la rueda de sorteo los gajos son las personas inscritas. La gente se inscribe con un comando mientras la inscripción está abierta; tú o tus moderadores la abren y la cierran, y el bot elige al ganador. El overlay solo anima el sorteo."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Abre la inscripción desde la pestaña Sorteo (o con !drueda abrir en el chat).",
+              "Tus viewers escriben el comando para entrar (por defecto !djoin).",
+              "Cierra la inscripción y sortea (con el botón Sortear o con !drueda sortear)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "inscripcion",
+        "title": "Reglas de inscripción",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Comando para entrar",
+                "Lo que escribe el viewer. Se puede renombrar; se valida contra los comandos reservados."
+              ],
+              [
+                "Ventana de inscripción",
+                "«Manual»: la abres y cierras tú. «Temporizada»: se cierra sola pasados los segundos que pongas. «Siempre abierta»: no se cierra nunca."
+              ],
+              [
+                "Boletos por persona",
+                "Cuántas veces puede entrar la misma persona. Cada boleto suma peso."
+              ],
+              [
+                "Costo en créditos",
+                "Cuántos créditos cuesta un boleto. 0 = gratis."
+              ]
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Requisitos"
+          },
+          {
+            "t": "p",
+            "x": "Definen quién puede entrar. El alta manual desde el panel se los salta."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Solo subs.",
+              "Solo followers.",
+              "Watchtime mínimo (en minutos; 0 = sin mínimo)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pesos",
+        "title": "Pesos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada entrada arranca en 1 (o en sus boletos) y se multiplica por lo que actives. Al guardar, se recalcula el pool entero."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Peso",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Por watchtime",
+                "Un punto de multiplicador por cada X minutos vistos, hasta un tope."
+              ],
+              [
+                "Por ser sub",
+                "Multiplicador para los subs del canal."
+              ],
+              [
+                "Por tier de supporter",
+                "Usa el tier de supporter de Decatron, no el tier de sub de Twitch (el chat no informa el tier)."
+              ],
+              [
+                "Por coins gastados",
+                "Usa el total gastado de la cuenta de Decatron, que es global y no por canal."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sorteo",
+        "title": "Cómo se sortea",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Un ganador",
+                "Saca uno solo."
+              ],
+              [
+                "Varios de una tanda",
+                "Saca N ganadores cada vez que sorteas."
+              ],
+              [
+                "Sacar y seguir",
+                "Saca uno y sigue sacando."
+              ],
+              [
+                "Sacar al ganador del pool",
+                "Si lo apagas, el ganador puede volver a salir en el próximo sorteo."
+              ],
+              [
+                "Vaciar el pool al terminar el stream",
+                "Se aplica cuando Twitch avisa que el stream cerró."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Hacen falta al menos 2 participantes para sortear. Si hay varios ganadores, el bot envía un mensaje por ganador."
+          }
+        ]
+      },
+      {
+        "id": "pool",
+        "title": "Participantes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Sorteo muestra el pool: quién está dentro, con cuántos boletos y la probabilidad real de cada uno con los pesos actuales. Puedes dar de alta a alguien a mano, ponerle un multiplicador manual o quitarlo, y ver quiénes ya ganaron."
+          },
+          {
+            "t": "h3",
+            "x": "Importar una lista"
+          },
+          {
+            "t": "p",
+            "x": "Pega los nombres (uno por línea o separados por comas) y se agregan al sorteo. Se quita la @ y los repetidos. Entran como si los hubieras agregado a mano: se saltan los requisitos y el costo."
+          }
+        ]
+      },
+      {
+        "id": "cual",
+        "title": "¿Cuál sorteo uso?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron tiene tres formas parecidas de sortear. Elige según lo que necesites:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Es ideal para",
+              "Cómo se usa"
+            ],
+            "rows": [
+              [
+                "Sorteo de la rueda",
+                "Un sorteo visual en pantalla, con boletos, costo en créditos y pesos (watchtime, sub, tier de supporter, coins gastados).",
+                "Pestaña Sorteo de una rueda de sorteo; los viewers entran con !djoin."
+              ],
+              [
+                "Módulo Sorteos",
+                "Un giveaway con requisitos de participación, pesos e historial, con su propio overlay.",
+                "Funciones → Sorteos; los viewers entran con !join."
+              ],
+              [
+                "Comando !raffle",
+                "Un sorteo rápido solo desde el chat.",
+                "!raffle create <nombre>, !raffle join, !raffle close y !raffle draw (crear, cerrar, sortear y repetir son para streamer y moderadores)."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "giveaway"
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Rueda: comandos y mensajes",
+    "subtitle": "Los comandos del chat y lo que responde el bot",
+    "sections": [
+      {
+        "id": "comandos",
+        "title": "Comandos del chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Estos son los nombres que vienen por defecto. Puedes cambiarlos en el panel (el de girar, saldo, compra e inscripción); los de moderación son fijos."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Quién",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "!dgirar",
+                "Todos",
+                "Gira la rueda y cobra el precio del giro en créditos; el bot responde con el premio. Con !dgirar 5 gira varias veces seguidas (hasta el máximo que configures; si los giros múltiples están apagados, se activan en Disparadores y topes)."
+              ],
+              [
+                "!dcreditos",
+                "Todos",
+                "Muestra cuántos créditos tiene quien lo escribe."
+              ],
+              [
+                "!dcomprar <coins>",
+                "Todos",
+                "Cambia deca coins por créditos de la rueda; hay que indicar la cantidad de coins. Solo responde si la fuente Deca coins está encendida y quien lo escribe tiene cuenta de Decatron."
+              ],
+              [
+                "!djoin",
+                "Todos",
+                "Inscribe en el sorteo a quien lo escribe, mientras la inscripción esté abierta."
+              ],
+              [
+                "!drueda abrir",
+                "Mods, Lead Mod y streamer",
+                "Abre la inscripción y avisa en el chat con el comando para unirse."
+              ],
+              [
+                "!drueda cerrar",
+                "Mods, Lead Mod y streamer",
+                "Cierra la inscripción."
+              ],
+              [
+                "!drueda sortear",
+                "Mods, Lead Mod y streamer",
+                "Sortea y anuncia al ganador (un mensaje por ganador si hay varios)."
+              ],
+              [
+                "!drueda reset",
+                "Mods, Lead Mod y streamer",
+                "Vacía el pool de inscritos, sin avisar en el chat."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Escribir !drueda sin una acción no hace nada. Si tienes varias ruedas de sorteo, los comandos de moderación actúan sobre la que esté activa."
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Mensajes del bot",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Mensajes cambias lo que dice el bot en cada situación. Cada campo trae el texto de Decatron: escribe el tuyo para reemplazarlo, o bórralo para volver al original. Se editan en el idioma de tu canal (se cambia en Configuración)."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Situación",
+              "Cuándo se usa"
+            ],
+            "rows": [
+              [
+                "Cuando alguien gana",
+                "Resultado de un giro."
+              ],
+              [
+                "Cuando el premio lo entregas tú",
+                "Premios manuales que quedan en Entregas."
+              ],
+              [
+                "Cuando gira varias veces de una",
+                "Resumen de un giro múltiple."
+              ],
+              [
+                "Cuando junta giros y decide cuántos gasta",
+                "Si dejas que el viewer elija cuántos giros gastar."
+              ],
+              [
+                "Cuando compra créditos con deca coins",
+                "Compra con !dcomprar; hay avisos aparte si no le alcanzan los coins, si quiso comprar muy poco o si no tiene cuenta de Decatron."
+              ],
+              [
+                "Saldo",
+                "Respuesta de !dcreditos, cuando le alcanza y cuando no."
+              ],
+              [
+                "Quiso girar y no le alcanza / muy seguido / sin giros del stream",
+                "Cuando no puede girar."
+              ],
+              [
+                "La rueda está apagada",
+                "Cuando alguien usa un comando con la rueda apagada."
+              ],
+              [
+                "Sorteo",
+                "Alguien entró, inscripción cerrada, ya estaba dentro, solo subs, hay que seguir el canal, falta watchtime, se abrió la inscripción, el ganador y no hay suficientes participantes."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Si escribes una variable que no existe, saldrá tal cual en el chat: el panel te avisa antes de guardar. Usa «Agregar al final» para insertar las variables válidas."
+          }
+        ]
+      }
+    ]
+  },
+  "look": {
+    "title": "Rueda: aspecto, historial y plan",
+    "subtitle": "Diseño del overlay, estadísticas y límites",
+    "sections": [
+      {
+        "id": "aspecto",
+        "title": "Aspecto",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Aspecto decides cómo se ve y suena la rueda:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Sección",
+              "Qué puedes cambiar"
+            ],
+            "rows": [
+              [
+                "Colores",
+                "Acento, tinta, hueso y fondo (o transparente) y la paleta de los gajos."
+              ],
+              [
+                "Centro",
+                "Una imagen para el centro de la rueda."
+              ],
+              [
+                "Movimiento",
+                "Duración del giro, vueltas, curva de frenado (easing) y segundos que se muestra el resultado."
+              ],
+              [
+                "Visibilidad",
+                "Cuándo se ve: solo al girar, siempre o, en la rueda de sorteo, durante la inscripción; con su animación."
+              ],
+              [
+                "Celebración",
+                "Confeti, destello o ninguna."
+              ],
+              [
+                "Sonidos",
+                "Uno por evento: inicio del giro, tic, desaceleración, resultado y celebración, y en el sorteo el sorteo y el ganador. Cada uno puede usar el sonido por defecto, silenciarse o ser tu propio archivo, con volumen maestro."
+              ],
+              [
+                "Tipografía",
+                "La fuente de los textos."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "La marca de agua de Decatron aparece siempre en los planes Gratis y Supporter; desde Premium puedes ocultarla."
+          }
+        ]
+      },
+      {
+        "id": "editor",
+        "title": "Editor",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En el Editor colocas cada pieza en la pantalla: la rueda, el ganador, la marca de agua, el fondo y la celebración, y puedes agregar tus propios textos e imágenes. Cada pieza tiene su posición y tamaño, cuándo se ve (siempre, mientras gira o al revelarse), sus animaciones de entrada y salida y su orden en capas."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Los textos tienen plantilla con variables, tamaño, grosor, contorno, color, alineación, relleno, redondeo y mayúsculas.",
+              "Las imágenes se ajustan (cubrir, contener o rellenar) y tienen opacidad; si pones un video puedes repetirlo y elegir su volumen.",
+              "Hay cuadrícula para alinear y un botón para restablecer."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El tamaño recomendado para la fuente de OBS aparece en el propio Editor y en la Guía."
+          }
+        ]
+      },
+      {
+        "id": "media",
+        "title": "Media",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Es tu biblioteca de siempre, filtrada por la categoría «wheel». Lo que subas aquí lo puedes elegir en Aspecto. La cuota de almacenamiento es la de tu plan, no una aparte para la rueda."
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "Historial",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Historial lista los giros (y sorteos) que ya pasaron: cuándo, quién, qué salió, con qué disparador (comando, panel, automático o sorteo), cuántos créditos y si se entregó."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Filtra por fechas, viewer, disparador y estado de entrega.",
+              "Arriba ves métricas: giros en total, últimos 7 y 30 días, créditos gastados y entregas pendientes.",
+              "«Qué salió y qué debería salir» compara la frecuencia real con la probabilidad que configuraste. Con pocos giros las dos barras difieren bastante: el azar tarda en parecerse a su propia tabla.",
+              "«Quién más gira» muestra a los viewers más activos.",
+              "«Exportar CSV» descarga el historial."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Tu plan define cuántos días del historial se ven. No se borra nada: si subes de plan, reaparece entero."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheelHistoryDays"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "title": "Plan y límites",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La pestaña Plan y límites muestra tu plan y los topes de la Rueda (ruedas encendidas, gajos por rueda, historial y marca de agua) y qué ganarías con el siguiente plan. Los planes solo cambian cantidades y la marca de agua: todas las funciones están en todos."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheels",
+              "wheelSegments",
+              "wheelHistoryDays"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ruleta": {
+    "title": "Ruleta (!ruleta)",
+    "subtitle": "Un mini-juego de chat con timeout aleatorio",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La Ruleta es un comando de chat tipo ruleta rusa: quien lo escribe se apunta a sí mismo, o a otro usuario, y hay una probabilidad configurable de que reciba un timeout. Se configura en Comandos → Ruleta."
+          },
+          {
+            "t": "code",
+            "x": "!ruleta           (te apuntas a ti mismo)\n!ruleta @usuario  (le apuntas a otro)"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "No es la Rueda de la Suerte: la Rueda reparte premios en un overlay, la Ruleta es un comando de chat que da timeouts."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "El timeout se aplica con la API de Twitch, así que el bot necesita ser moderador de tu canal."
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Configuración",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Comando",
+                "El nombre del comando (por defecto !ruleta) y si está activo."
+              ],
+              [
+                "Probabilidad de bala",
+                "Probabilidad de que el disparo dé timeout (por defecto 17 %)."
+              ],
+              [
+                "Timeout mínimo y máximo",
+                "Los segundos del timeout (por defecto 60). Si son distintos, se elige al azar entre los dos."
+              ],
+              [
+                "Cooldown global y por usuario",
+                "Segundos de espera entre usos (por defecto 10 y 30). 0 = sin espera."
+              ],
+              [
+                "Permisos",
+                "Quién puede usar el comando: Todos, Suscriptores, VIPs, Moderadores, Lead Moderators o solo el streamer (por defecto, Todos)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "objetivos",
+        "title": "Objetivos y usuarios especiales",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "«Permitir apuntarse a uno mismo»: si lo apagas, !ruleta sin objetivo no funciona y el bot avisa.",
+              "«Permitir apuntar a moderadores»: Twitch no deja dar timeout directo a un moderador; con esto activo, el bot le quita el mod, aplica el timeout y se lo restaura solo al terminar.",
+              "El streamer siempre es inmune.",
+              "Protegidos: usuarios que nunca pueden ser el objetivo.",
+              "Bloqueados: usuarios que no pueden usar el comando, sin importar su nivel de permisos."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Mensajes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Puedes escribir varios mensajes para cuando el disparo da en el blanco y para cuando falla; el bot elige uno al azar. Variables: {shooter} (quien dispara), {target} (el objetivo) y {seconds} (los segundos del timeout)."
+          },
+          {
+            "t": "p",
+            "x": "Con «apuntarse a uno mismo» activo, tienes mensajes aparte para cuando alguien se apunta a sí mismo."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "La animación en el overlay de OBS todavía no está disponible: el panel la marca como «Próximamente»."
+          }
+        ]
+      }
+    ]
+  }
+}

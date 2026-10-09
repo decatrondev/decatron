@@ -56,7 +56,8 @@
     "overlays": "Overlays",
     "settings": "Settings",
     "modules": "Modules",
-    "song-request": "Song Request"
+    "song-request": "Song Request",
+    "wheel": "Wheel and Raffle"
   },
   "layout": {
     "documentation": "Documentation",
@@ -277,6 +278,38 @@
     "sr-library": {
       "title": "History and downloads",
       "description": "History, stats and downloads"
+    },
+    "wheel-overview": {
+      "title": "Wheel and Raffle",
+      "description": "A wheel that hands out prizes or picks winners"
+    },
+    "wheel-setup": {
+      "title": "Setup",
+      "description": "Create your wheel, add it to OBS and test it"
+    },
+    "wheel-prizes": {
+      "title": "Segments and prizes",
+      "description": "Probabilities, stock, prizes and deliveries"
+    },
+    "wheel-credits": {
+      "title": "Credits and spins",
+      "description": "Where spins come from and what limits them"
+    },
+    "wheel-raffle": {
+      "title": "Raffle",
+      "description": "Sign-ups, requirements, weights and winner"
+    },
+    "wheel-commands": {
+      "title": "Commands and messages",
+      "description": "Chat commands and bot replies"
+    },
+    "wheel-look": {
+      "title": "Look, history and plan",
+      "description": "Design, statistics and limits"
+    },
+    "ruleta": {
+      "title": "Roulette",
+      "description": "Chat mini-game with a random timeout"
     }
   },
   "microCommands": {
@@ -361,7 +394,10 @@
       "songItems": "Songs per playlist",
       "songHistoryDays": "History days",
       "songTemplates": "Your own design templates",
-      "songHidePromo": "Hide the Decatron card"
+      "songHidePromo": "Hide the Decatron card",
+      "wheels": "Wheels turned on",
+      "wheelSegments": "Segments per wheel",
+      "wheelHistoryDays": "Wheel history days"
     },
     "unlimited": "No limit",
     "yes": "Yes",

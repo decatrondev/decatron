@@ -120,6 +120,7 @@ import ScriptingCommandsDoc from './pages/docs/ScriptingCommandsDoc';
 import ShoutoutOverlayDoc from './pages/docs/ShoutoutOverlayDoc';
 import GachaOverlayDoc from './pages/docs/GachaOverlayDoc';
 import { SongRequestDoc } from './pages/docs/SongRequestDoc';
+import { WheelDoc } from './pages/docs/WheelDoc';
 // Public docs
 import About from './pages/docs/public/About';
 import GettingStarted from './pages/docs/public/GettingStarted';
@@ -284,6 +285,7 @@ function App() {
                     <Route path="overlays/shoutout" element={<ShoutoutOverlayDoc />} />
                     <Route path="overlays/gacha" element={<GachaOverlayDoc />} />
                     <Route path="song-request" element={<SongRequestDoc page="overview" scope="public" />} />
+                    <Route path="wheel" element={<WheelDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -435,6 +437,13 @@ function App() {
                     <Route path="dashboard/docs/song-request/commands" element={<SongRequestDoc page="commands" scope="private" />} />
                     <Route path="dashboard/docs/song-request/overlay" element={<SongRequestDoc page="overlay" scope="private" />} />
                     <Route path="dashboard/docs/song-request/library" element={<SongRequestDoc page="library" scope="private" />} />
+                    <Route path="dashboard/docs/wheel/setup" element={<WheelDoc page="setup" scope="private" />} />
+                    <Route path="dashboard/docs/wheel/prizes" element={<WheelDoc page="prizes" scope="private" />} />
+                    <Route path="dashboard/docs/wheel/credits" element={<WheelDoc page="credits" scope="private" />} />
+                    <Route path="dashboard/docs/wheel/raffle" element={<WheelDoc page="raffle" scope="private" />} />
+                    <Route path="dashboard/docs/wheel/commands" element={<WheelDoc page="commands" scope="private" />} />
+                    <Route path="dashboard/docs/wheel/look" element={<WheelDoc page="look" scope="private" />} />
+                    <Route path="dashboard/docs/commands/ruleta" element={<WheelDoc page="ruleta" scope="private" />} />
                     {/* Features */}
                     <Route path="dashboard/docs/features/timer" element={<TimerDoc />} />
                     <Route path="dashboard/docs/features/event-alerts" element={<EventAlertsDoc />} />

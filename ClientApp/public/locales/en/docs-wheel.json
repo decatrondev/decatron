@@ -1,0 +1,1234 @@
+{
+  "overview": {
+    "title": "Wheel and Raffle",
+    "subtitle": "An on-screen wheel that hands out prizes or picks winners",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron's Wheel spins on your stream. You decide what's in each segment and how likely it is; the bot decides the result and the overlay only animates it."
+          },
+          {
+            "t": "p",
+            "x": "You can have several wheels on your channel. Each one is one of two types:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Type",
+              "How it works"
+            ],
+            "rows": [
+              [
+                "Prize Wheel",
+                "Your viewers earn spins by supporting the channel (bits, gifted subs, donations or channel points), spin, and win the segment's prize."
+              ],
+              [
+                "Raffle Wheel",
+                "People sign up with a command while sign-ups are open, and the wheel picks a winner among them."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "viewers",
+        "title": "For your viewers",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "On the prize wheel they collect credits by supporting the channel and spin with !dgirar (or the wheel spins on its own when they collect enough). With !dcreditos they see their balance.",
+              "On the raffle wheel they sign up with !djoin while sign-ups are open.",
+              "They see the spin and the result on the overlay, and the bot announces it in chat."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Command names can be changed in the dashboard; these are the defaults."
+          }
+        ]
+      },
+      {
+        "id": "streamer",
+        "title": "For you",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Prizes with weight, stock and several types: no prize, manual message, free spins, gacha pulls, time added to the timer, timeout and sound alerts.",
+              "Anti-farming rules: wait between spins, a cap on spins per viewer and per stream, no-repeat and pity.",
+              "Raffles with tickets, a credit cost, requirements (subs, followers, watchtime) and weights to reward those who support you most.",
+              "A look that's entirely yours: colors, animation, sounds and a visual editor, plus a history with statistics."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "In OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each wheel has a link to add as a Browser Source. The link has no key: anyone who has it can see the overlay but not change anything. The background is transparent."
+          }
+        ]
+      },
+      {
+        "id": "gratis",
+        "title": "It's free",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every Wheel feature is available to everyone. Support plans only raise quantities. Also, on the Free and Supporter plans the wheel carries a Decatron watermark that can be hidden from Premium."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheels",
+              "wheelSegments",
+              "wheelHistoryDays"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "empezar",
+        "title": "Getting started",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Sign in to Decatron with Twitch or Kick.",
+              "Go to Overlays → Wheel of Fortune and create your first wheel (prizes or raffle).",
+              "Add the segments or set up sign-ups, turn the wheel on and copy its link to OBS."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "The step-by-step guide is in the documentation for signed-in users."
+          },
+          {
+            "t": "link",
+            "to": "wheel-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Wheel: setup",
+    "subtitle": "Create your wheel, add it to OBS and test it",
+    "sections": [
+      {
+        "id": "crear",
+        "title": "Creating a wheel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Go to Overlays → Wheel of Fortune. If you don't have any yet, the dashboard invites you to create the first one and asks you to pick the type:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Type",
+              "What it's for"
+            ],
+            "rows": [
+              [
+                "Prize Wheel",
+                "Viewers earn spins by supporting the channel and win the segment's prize."
+              ],
+              [
+                "Raffle Wheel",
+                "People sign up and the wheel picks a winner among the participants."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "You can have several wheels, each with its own name, link and settings. How many can be on at once depends on your plan; wheels that are off don't use up quota."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheels",
+              "wheelSegments"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "encender",
+        "title": "Turning the wheel on",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A wheel that's off doesn't answer commands or show on the overlay. Turn it on with the switch in the right-hand column of the dashboard."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "If you reach your plan's maximum of wheels turned on, turn one off to turn another on."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Adding the wheel to OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "In the wheel's Guide, copy the “OBS link”.",
+              "In OBS, inside your scene, click + in Sources and choose Browser.",
+              "Paste the link in the URL field and set the Width and Height shown in the dashboard.",
+              "Accept. The background is transparent out of the box, so your scene shows behind it."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The wheel link has no key: anyone who has it can see the overlay but not change anything. Each wheel has its own link."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "Testing it",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Click “Test spin” at the top to watch it spin on your overlay. The test spin isn't saved to the history."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "The Test tab is different: it simulates a contribution (bits, subs…) but it really credits, really spends and really spins on your overlay. Use a test name if you don't want to touch anyone's balance."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "The dashboard tabs",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it's for"
+            ],
+            "rows": [
+              [
+                "Segments",
+                "The segments, their weights and prizes."
+              ],
+              [
+                "Credits",
+                "Where credits come from and what a spin costs."
+              ],
+              [
+                "Triggers and limits",
+                "How the spin is triggered, wait between spins, caps and rules."
+              ],
+              [
+                "Raffle",
+                "Sign-ups, weights and drawing."
+              ],
+              [
+                "Commands",
+                "The chat commands, who uses them and examples."
+              ],
+              [
+                "Messages",
+                "What the bot says in chat."
+              ],
+              [
+                "Look",
+                "Colors, fonts, presentation and sounds."
+              ],
+              [
+                "Editor",
+                "Where each piece goes on screen."
+              ],
+              [
+                "Media",
+                "Your library of images and sounds for the wheel."
+              ],
+              [
+                "Test",
+                "Simulates contributions (it credits for real)."
+              ],
+              [
+                "Deliveries",
+                "Prizes the bot couldn't deliver."
+              ],
+              [
+                "Wallets",
+                "Each viewer's credit balance."
+              ],
+              [
+                "History",
+                "Spins and raffles that already happened."
+              ],
+              [
+                "Plan and limits",
+                "Your plan's caps."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each part of the wheel has its own page in this documentation:"
+          },
+          {
+            "t": "link",
+            "to": "wheel-prizes"
+          },
+          {
+            "t": "link",
+            "to": "wheel-credits"
+          },
+          {
+            "t": "link",
+            "to": "wheel-raffle"
+          },
+          {
+            "t": "link",
+            "to": "wheel-commands"
+          },
+          {
+            "t": "link",
+            "to": "wheel-look"
+          }
+        ]
+      }
+    ]
+  },
+  "prizes": {
+    "title": "Wheel: segments and prizes",
+    "subtitle": "Probabilities, stock, prize types and deliveries",
+    "sections": [
+      {
+        "id": "gajos",
+        "title": "Segments",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each segment has a name, a weight, a prize, a color and, if you want, an icon. A wheel needs at least 2 segments to spin."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Weight",
+                "Sets the probability. The dashboard shows it (“Weight 3: comes up X % of the time”). The “Probability split” strip summarizes it."
+              ],
+              [
+                "Color and icon",
+                "The segment's color and an emoji or short text shown before the name."
+              ],
+              [
+                "Show / hide",
+                "A hidden segment doesn't appear on the wheel."
+              ],
+              [
+                "Duplicate, up, down and drag",
+                "To order the segments. You can't reorder while a search is active."
+              ],
+              [
+                "Search",
+                "Filters the segment list by name."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The number of segments per wheel depends on your plan."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheelSegments"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stock",
+        "title": "Stock",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "A segment can have limited stock so a prize doesn't come up all the time. With “With stock” you pick a total and/or a per-person cap, and the window it's counted in: forever, per stream or per day. The dashboard shows how many are left."
+          },
+          {
+            "t": "p",
+            "x": "Once it runs out, that segment can no longer come up."
+          }
+        ]
+      },
+      {
+        "id": "premios",
+        "title": "Prize types",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Prize",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "No prize",
+                "The segment delivers nothing."
+              ],
+              [
+                "Manual message",
+                "The bot announces the text you write (you can use {user} for the name and {wheel} for the wheel) and you hand out the prize yourself: it always stays in Deliveries as pending."
+              ],
+              [
+                "Free spins",
+                "Gives away spins: you choose how many and for which wheel (this one or another). They're credited as the viewer's credits: it doesn't spin right away, to avoid chaining animations."
+              ],
+              [
+                "Gacha pulls",
+                "Gives away gacha pulls. They're delivered to the “bonus” wallet: they don't count as a donation or as a purchase with coins."
+              ],
+              [
+                "Time to the timer",
+                "Adds seconds to your stream timer."
+              ],
+              [
+                "Timeout",
+                "Applies a timeout of the seconds you choose: to whoever spun or to a random person in chat."
+              ],
+              [
+                "Sound alert",
+                "Triggers one of your sound alerts (you pick it from the list; if you have none, the dashboard tells you)."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each prize has a “Bot message”: what the bot announces when it's won. If you don't write one, it uses the one in the Messages tab."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "The “Coins” prize no longer exists: Decatron sells deca coins and the wheel can't give them away. If an older wheel had a segment with that prize, the dashboard marks it “retired” and asks you to pick another to be able to save."
+          }
+        ]
+      },
+      {
+        "id": "entregas",
+        "title": "Pending deliveries",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "When the bot can't deliver a prize on its own (for example a manual message, or a prize that failed), it stays in the Deliveries tab with the reason: it tells you whether something needs fixing or you just have to do it by hand."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Filter between “Pending” and “All”.",
+              "Mark it “Delivered” when you've done it, or “Cancel”.",
+              "If you made a mistake, “reopen” sets it back to pending."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "importar",
+        "title": "Importing and exporting segments",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With “Import” you can create segments by pasting a list or opening a file: one name per line and, if you want, the weight after “;” or a comma (for example “Big prize;3”). A spreadsheet column works."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Only the name and weight are imported: the prize is chosen afterwards on each segment.",
+              "You can add them to the ones you have or replace them; nothing is saved until you click Save.",
+              "Segments that don't fit your plan's limit are left out.",
+              "“Export” copies the list to the clipboard or downloads it as .csv."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "credits": {
+    "title": "Wheel: credits and spins",
+    "subtitle": "Where spins come from, how they trigger and what holds them back",
+    "sections": [
+      {
+        "id": "creditos",
+        "title": "How a spin is earned",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On the prize wheel, your viewers collect credits and spend an amount per spin. In the Credits tab you set the rules:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "What your credits are called",
+                "The name your people see in chat: tokens, points, tickets…"
+              ],
+              [
+                "A spin costs",
+                "How many credits each spin spends."
+              ],
+              [
+                "Keep what isn't enough",
+                "On, small contributions add up until they reach the price. Off, each contribution has to be enough on its own."
+              ],
+              [
+                "What happens to the leftover",
+                "When a contribution goes past the price but doesn't reach the next spin: “It's lost” or “Kept for later”."
+              ],
+              [
+                "If one contribution covers several spins",
+                "“As many as it covers”, “Only one” or “Let the viewer decide”."
+              ],
+              [
+                "Credits expire",
+                "“Never” or “When the stream ends” (the balance is emptied when you stop streaming)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "fuentes",
+        "title": "Where credits come from",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Turn on what you want to accept and set what it's worth: “for every X, this many credits”. Each source can have a per-event cap."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Source",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "Bits",
+                "For every X bits."
+              ],
+              [
+                "Gifted subs",
+                "For every gifted sub. Here you can set a multiplier for Tier 2 and Tier 3 (it's the only source where Twitch reports the tier); it applies before the per-event cap."
+              ],
+              [
+                "Donations",
+                "For every amount donated."
+              ],
+              [
+                "Channel points",
+                "You choose which point rewards give credits and how many (you can have several: a cheap one and a premium one, for example). If no reward is chosen, nothing is credited."
+              ],
+              [
+                "Deca coins",
+                "The viewer exchanges their own deca coins for credits with the buy command. It only answers if this source is on and the person has a Decatron account."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "disparadores",
+        "title": "How the spin is triggered",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Chat command (default !dgirar). If you turn it off, you can only spin from the dashboard.",
+              "Command to check the balance (default !dcreditos).",
+              "Buy command (default !dcomprar), which exchanges deca coins for credits.",
+              "“Spin automatically”: as soon as someone collects the price, the wheel spins without them typing anything. It's one spin per contribution, to avoid chaining animations."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "topes",
+        "title": "Anti-farming caps",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They're brakes so a bad weight setup doesn't empty your economy in an afternoon."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Cap",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Wait between spins",
+                "How long the same viewer has to wait before spinning again, in seconds. 0 = no wait."
+              ],
+              [
+                "Spins per viewer and stream",
+                "How many spins one person can make in a stream. Empty = no cap."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reglas",
+        "title": "Spin rules",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Rule",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "No repeat",
+                "Stops the same thing coming up twice in a row: off, per viewer or on the whole wheel. If the rule would leave a single possible segment, it's ignored: better to repeat than not to spin."
+              ],
+              [
+                "Pity",
+                "After several spins in a row with no prize, the next one can't be “nothing” again. Counted per viewer."
+              ],
+              [
+                "Spin several times",
+                "Lets people spend several spins at once, up to a maximum. In chat: !dgirar 5. Each spin is a separate draw (stock is used up between them); everything is charged together or nothing is, and the bot answers with a single summary message."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "No rule changes the drawing: the wheel keeps showing all its segments, whether they can come up or not."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "Testing with a contribution",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Test tab fires a contribution at the wheel without waiting for someone to donate: you pick the source, the amount and who it's from. It tells you whether it credited, how many spins it covers and what came out."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "It's not a rehearsal: it really credits, spends and spins on your overlay. If you don't want to touch anyone's balance, use a test name."
+          }
+        ]
+      },
+      {
+        "id": "billeteras",
+        "title": "Wallets",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Wallets tab shows each viewer's credit balance (plus their lifetime total and last activity). They belong to the channel, not to a wheel: someone who contributes once can spend on any of your wheels."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "When editing a balance, type the number you want it to end up as: it's set, not added. The lifetime total never goes down, not even when you correct a balance by hand."
+          }
+        ]
+      }
+    ]
+  },
+  "raffle": {
+    "title": "Wheel: raffle",
+    "subtitle": "Sign-ups, requirements, weights and how the winner is picked",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "On the raffle wheel the segments are the people who signed up. People sign up with a command while sign-ups are open; you or your moderators open and close them, and the bot picks the winner. The overlay only animates the raffle."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Open sign-ups from the Raffle tab (or with !drueda abrir in chat).",
+              "Your viewers type the entry command (default !djoin).",
+              "Close sign-ups and draw (with the Draw button or with !drueda sortear)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "inscripcion",
+        "title": "Sign-up rules",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Entry command",
+                "What the viewer types. It can be renamed; it's checked against reserved commands."
+              ],
+              [
+                "Sign-up window",
+                "“Manual”: you open and close it. “Timed”: it closes itself after the seconds you set. “Always open”: it never closes."
+              ],
+              [
+                "Tickets per person",
+                "How many times the same person can enter. Each ticket adds weight."
+              ],
+              [
+                "Credit cost",
+                "How many credits a ticket costs. 0 = free."
+              ]
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Requirements"
+          },
+          {
+            "t": "p",
+            "x": "They define who can enter. Manual sign-up from the dashboard skips them."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Subs only.",
+              "Followers only.",
+              "Minimum watchtime (in minutes; 0 = no minimum)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pesos",
+        "title": "Weights",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each entry starts at 1 (or at its tickets) and is multiplied by whatever you turn on. When you save, the whole pool is recalculated."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Weight",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "By watchtime",
+                "One multiplier point for every X minutes watched, up to a cap."
+              ],
+              [
+                "By being a sub",
+                "A multiplier for the channel's subs."
+              ],
+              [
+                "By supporter tier",
+                "Uses the Decatron supporter tier, not the Twitch sub tier (chat doesn't report the tier)."
+              ],
+              [
+                "By coins spent",
+                "Uses the total spent on the Decatron account, which is global, not per channel."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sorteo",
+        "title": "How it's drawn",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "One winner",
+                "Picks just one."
+              ],
+              [
+                "Several in a batch",
+                "Picks N winners each time you draw."
+              ],
+              [
+                "Pick and keep going",
+                "Picks one and keeps picking."
+              ],
+              [
+                "Remove the winner from the pool",
+                "If you turn it off, the winner can come up again in the next draw."
+              ],
+              [
+                "Empty the pool when the stream ends",
+                "Applies when Twitch reports the stream closed."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "At least 2 participants are needed to draw. If there are several winners, the bot sends one message per winner."
+          }
+        ]
+      },
+      {
+        "id": "pool",
+        "title": "Participants",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Raffle tab shows the pool: who's in, with how many tickets and each person's real probability with the current weights. You can add someone by hand, give them a manual multiplier or remove them, and see who already won."
+          },
+          {
+            "t": "h3",
+            "x": "Importing a list"
+          },
+          {
+            "t": "p",
+            "x": "Paste the names (one per line or separated by commas) and they're added to the raffle. The @ and duplicates are removed. They enter as if you had added them by hand: requirements and cost are skipped."
+          }
+        ]
+      },
+      {
+        "id": "cual",
+        "title": "Which raffle should I use?",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron has three similar ways to draw. Pick according to what you need:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "Ideal for",
+              "How it's used"
+            ],
+            "rows": [
+              [
+                "Wheel raffle",
+                "A visual on-screen raffle, with tickets, a credit cost and weights (watchtime, sub, supporter tier, coins spent).",
+                "Raffle tab of a raffle wheel; viewers enter with !djoin."
+              ],
+              [
+                "Giveaways module",
+                "A giveaway with entry requirements, weights and history, with its own overlay.",
+                "Features → Giveaways; viewers enter with !join."
+              ],
+              [
+                "!raffle command",
+                "A quick raffle straight from chat.",
+                "!raffle create <name>, !raffle join, !raffle close and !raffle draw (create, close, draw and reroll are for the streamer and moderators)."
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "giveaway"
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Wheel: commands and messages",
+    "subtitle": "The chat commands and what the bot answers",
+    "sections": [
+      {
+        "id": "comandos",
+        "title": "Chat commands",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "These are the default names. You can change them in the dashboard (spin, balance, buy and sign-up); the moderation ones are fixed."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "Who",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "!dgirar",
+                "Everyone",
+                "Spins the wheel and charges the spin price in credits; the bot answers with the prize. With !dgirar 5 it spins several times in a row (up to the maximum you set; if multi-spins are off, turn them on in Triggers and limits)."
+              ],
+              [
+                "!dcreditos",
+                "Everyone",
+                "Shows how many credits the sender has."
+              ],
+              [
+                "!dcomprar <coins>",
+                "Everyone",
+                "Exchanges deca coins for wheel credits; you must give the amount of coins. It only answers if the Deca coins source is on and the sender has a Decatron account."
+              ],
+              [
+                "!djoin",
+                "Everyone",
+                "Signs the sender up for the raffle while sign-ups are open."
+              ],
+              [
+                "!drueda abrir",
+                "Mods, Lead Mod and streamer",
+                "Opens sign-ups and announces the join command in chat."
+              ],
+              [
+                "!drueda cerrar",
+                "Mods, Lead Mod and streamer",
+                "Closes sign-ups."
+              ],
+              [
+                "!drueda sortear",
+                "Mods, Lead Mod and streamer",
+                "Draws and announces the winner (one message per winner if there are several)."
+              ],
+              [
+                "!drueda reset",
+                "Mods, Lead Mod and streamer",
+                "Empties the pool of entrants, without announcing it in chat."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Typing !drueda without an action does nothing. If you have several raffle wheels, the moderation commands act on the active one."
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Bot messages",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Messages tab you change what the bot says in each situation. Each field comes with Decatron's text: write yours to replace it, or delete it to go back to the original. They're edited in your channel's language (changed in Settings)."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Situation",
+              "When it's used"
+            ],
+            "rows": [
+              [
+                "When someone wins",
+                "The result of a spin."
+              ],
+              [
+                "When you deliver the prize",
+                "Manual prizes that stay in Deliveries."
+              ],
+              [
+                "When they spin several times at once",
+                "Summary of a multi-spin."
+              ],
+              [
+                "When they collect spins and decide how many to spend",
+                "If you let the viewer choose how many spins to spend."
+              ],
+              [
+                "When they buy credits with deca coins",
+                "Purchase with !dcomprar; there are separate notices if they don't have enough coins, tried to buy too little or have no Decatron account."
+              ],
+              [
+                "Balance",
+                "The answer to !dcreditos, when it's enough and when it isn't."
+              ],
+              [
+                "Tried to spin and can't afford it / too often / out of stream spins",
+                "When they can't spin."
+              ],
+              [
+                "The wheel is off",
+                "When someone uses a command while the wheel is off."
+              ],
+              [
+                "Raffle",
+                "Someone joined, sign-ups closed, already in, subs only, must follow the channel, missing watchtime, sign-ups opened, the winner and not enough participants."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "If you type a variable that doesn't exist, it will show up as-is in chat: the dashboard warns you before saving. Use “Add to the end” to insert valid variables."
+          }
+        ]
+      }
+    ]
+  },
+  "look": {
+    "title": "Wheel: look, history and plan",
+    "subtitle": "Overlay design, statistics and limits",
+    "sections": [
+      {
+        "id": "aspecto",
+        "title": "Look",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Look tab you decide how the wheel looks and sounds:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Section",
+              "What you can change"
+            ],
+            "rows": [
+              [
+                "Colors",
+                "Accent, ink, bone and background (or transparent) and the segment palette."
+              ],
+              [
+                "Center",
+                "An image for the center of the wheel."
+              ],
+              [
+                "Motion",
+                "Spin duration, turns, easing curve and how many seconds the result is shown."
+              ],
+              [
+                "Visibility",
+                "When it's visible: only while spinning, always or, on the raffle wheel, during sign-ups; with its animation."
+              ],
+              [
+                "Celebration",
+                "Confetti, flash or none."
+              ],
+              [
+                "Sounds",
+                "One per event: spin start, tick, slowdown, result and celebration, and on the raffle the draw and the winner. Each can use the default sound, be muted or be your own file, with a master volume."
+              ],
+              [
+                "Typography",
+                "The font of the texts."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The Decatron watermark always shows on the Free and Supporter plans; from Premium you can hide it."
+          }
+        ]
+      },
+      {
+        "id": "editor",
+        "title": "Editor",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Editor you place each piece on screen: the wheel, the winner, the watermark, the background and the celebration, and you can add your own texts and images. Each piece has its position and size, when it's visible (always, while spinning or when revealed), its entry and exit animations and its layer order."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Texts have a template with variables, size, weight, outline, color, alignment, padding, rounding and uppercase.",
+              "Images are fitted (cover, contain or fill) and have opacity; if you add a video you can loop it and choose its volume.",
+              "There's a grid to align things and a reset button."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The recommended size for the OBS source appears in the Editor itself and in the Guide."
+          }
+        ]
+      },
+      {
+        "id": "media",
+        "title": "Media",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It's your usual library, filtered by the “wheel” category. What you upload here you can pick in Look. The storage quota is your plan's, not a separate one for the wheel."
+          }
+        ]
+      },
+      {
+        "id": "historial",
+        "title": "History",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The History tab lists the spins (and raffles) that already happened: when, who, what came out, with which trigger (command, dashboard, automatic or raffle), how many credits and whether it was delivered."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Filter by dates, viewer, trigger and delivery status.",
+              "At the top you see metrics: total spins, last 7 and 30 days, credits spent and pending deliveries.",
+              "“What came out and what should come out” compares the real frequency with the probability you set. With few spins the two bars differ a lot: chance takes a while to look like its own table.",
+              "“Who spins the most” shows the most active viewers.",
+              "“Export CSV” downloads the history."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Your plan sets how many days of history are shown. Nothing is deleted: if you upgrade, it all reappears."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheelHistoryDays"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "title": "Plan and limits",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The Plan and limits tab shows your plan and the Wheel's caps (wheels on, segments per wheel, history and watermark) and what you'd gain with the next plan. Plans only change quantities and the watermark: every feature is in all of them."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "wheels",
+              "wheelSegments",
+              "wheelHistoryDays"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ruleta": {
+    "title": "Roulette (!ruleta)",
+    "subtitle": "A chat mini-game with a random timeout",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Roulette is a Russian-roulette style chat command: whoever types it aims at themselves, or at another user, and there's a configurable chance they get a timeout. It's set up in Commands → Roulette."
+          },
+          {
+            "t": "code",
+            "x": "!ruleta           (you aim at yourself)\n!ruleta @user     (you aim at someone else)"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "It's not the Wheel of Fortune: the Wheel hands out prizes on an overlay, Roulette is a chat command that gives timeouts."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "The timeout is applied through the Twitch API, so the bot needs to be a moderator of your channel."
+          }
+        ]
+      },
+      {
+        "id": "config",
+        "title": "Settings",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Command",
+                "The command name (default !ruleta) and whether it's on."
+              ],
+              [
+                "Bullet chance",
+                "The chance that the shot lands a timeout (default 17 %)."
+              ],
+              [
+                "Minimum and maximum timeout",
+                "The timeout seconds (default 60). If they differ, one is picked at random between the two."
+              ],
+              [
+                "Global and per-user cooldown",
+                "Seconds to wait between uses (default 10 and 30). 0 = no wait."
+              ],
+              [
+                "Permissions",
+                "Who can use the command: Everyone, Subscribers, VIPs, Moderators, Lead Moderators or streamer only (default Everyone)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "objetivos",
+        "title": "Targets and special users",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "“Allow aiming at yourself”: if you turn it off, !ruleta without a target doesn't work and the bot says so.",
+              "“Allow aiming at moderators”: Twitch doesn't allow a direct timeout on a moderator; with this on, the bot removes their mod status, applies the timeout and restores it automatically when it ends.",
+              "The streamer is always immune.",
+              "Protected: users who can never be the target.",
+              "Blocked: users who can't use the command, regardless of their permission level."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Messages",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You can write several messages for when the shot hits and for when it misses; the bot picks one at random. Variables: {shooter} (who shoots), {target} (the target) and {seconds} (the timeout seconds)."
+          },
+          {
+            "t": "p",
+            "x": "With “aim at yourself” on, you have separate messages for when someone aims at themselves."
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "The animation on the OBS overlay isn't available yet: the dashboard marks it “Coming soon”."
+          }
+        ]
+      }
+    ]
+  }
+}

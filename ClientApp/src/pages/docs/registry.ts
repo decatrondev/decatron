@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
     Clock, Bell, Gift, Target, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
-    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle,
+    BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair,
 } from 'lucide-react';
 
 // REGISTRO ÚNICO de las páginas de documentación. De aquí salen el menú lateral, las tarjetas de
@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -60,6 +60,7 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'commands-custom', scopes: both, group: 'commands', path: 'commands/custom', icon: MessageSquare, color: 'green' },
     { id: 'commands-micro', scopes: both, group: 'commands', path: 'commands/microcommands', icon: Zap, color: 'yellow' },
     { id: 'commands-scripting', scopes: both, group: 'commands', path: 'commands/scripting', icon: Code, color: 'purple' },
+    { id: 'ruleta', scopes: priv, group: 'commands', path: 'commands/ruleta', icon: Crosshair, color: 'red' },
 
     // — Referencia —
     { id: 'variables', scopes: both, group: 'reference', path: 'variables', icon: Variable, color: 'blue' },
@@ -89,6 +90,16 @@ export const DOC_PAGES: DocPage[] = [
 
     // — Módulos (visión general pública) —
     { id: 'sr-overview', scopes: pub, group: 'modules', path: 'song-request', icon: Music, color: 'blue' },
+
+    { id: 'wheel-overview', scopes: pub, group: 'modules', path: 'wheel', icon: Disc, color: 'blue' },
+
+    // — Rueda y Sorteo: manual con cuenta —
+    { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
+    { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
+    { id: 'wheel-credits', scopes: priv, group: 'wheel', path: 'wheel/credits', icon: Coins, color: 'blue' },
+    { id: 'wheel-raffle', scopes: priv, group: 'wheel', path: 'wheel/raffle', icon: Trophy, color: 'blue' },
+    { id: 'wheel-commands', scopes: priv, group: 'wheel', path: 'wheel/commands', icon: MessageSquareText, color: 'blue' },
+    { id: 'wheel-look', scopes: priv, group: 'wheel', path: 'wheel/look', icon: Palette, color: 'blue' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

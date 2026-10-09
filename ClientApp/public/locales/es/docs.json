@@ -56,7 +56,8 @@
     "overlays": "Overlays",
     "settings": "Configuración",
     "modules": "Módulos",
-    "song-request": "Song Request"
+    "song-request": "Song Request",
+    "wheel": "Rueda y Sorteo"
   },
   "layout": {
     "documentation": "Documentación",
@@ -277,6 +278,38 @@
     "sr-library": {
       "title": "Historial y descargas",
       "description": "Historial, estadísticas y descargas"
+    },
+    "wheel-overview": {
+      "title": "Rueda y Sorteo",
+      "description": "Una rueda que reparte premios o elige ganadores"
+    },
+    "wheel-setup": {
+      "title": "Puesta en marcha",
+      "description": "Crea tu rueda, agrégala a OBS y pruébala"
+    },
+    "wheel-prizes": {
+      "title": "Gajos y premios",
+      "description": "Probabilidades, stock, premios y entregas"
+    },
+    "wheel-credits": {
+      "title": "Créditos y giros",
+      "description": "De dónde salen los giros y qué los frena"
+    },
+    "wheel-raffle": {
+      "title": "Sorteo",
+      "description": "Inscripción, requisitos, pesos y ganador"
+    },
+    "wheel-commands": {
+      "title": "Comandos y mensajes",
+      "description": "Comandos del chat y respuestas del bot"
+    },
+    "wheel-look": {
+      "title": "Aspecto, historial y plan",
+      "description": "Diseño, estadísticas y límites"
+    },
+    "ruleta": {
+      "title": "Ruleta",
+      "description": "Mini-juego de chat con timeout aleatorio"
     }
   },
   "microCommands": {
@@ -361,7 +394,10 @@
       "songItems": "Canciones por playlist",
       "songHistoryDays": "Días de historial",
       "songTemplates": "Plantillas de diseño propias",
-      "songHidePromo": "Ocultar la tarjeta de Decatron"
+      "songHidePromo": "Ocultar la tarjeta de Decatron",
+      "wheels": "Ruedas encendidas",
+      "wheelSegments": "Gajos por rueda",
+      "wheelHistoryDays": "Días de historial de la rueda"
     },
     "unlimited": "Sin tope",
     "yes": "Sí",
