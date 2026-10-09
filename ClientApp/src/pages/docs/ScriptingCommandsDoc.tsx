@@ -5,14 +5,14 @@ export default function ScriptingCommandsDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151] shadow-xl">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Code className="w-8 h-8 text-green-600" />
+                    <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center border border-ds-border">
+                        <Code className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-gray-900 dark:text-white">Comandos con Scripts</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <h1 className="text-4xl font-black text-ds-text">Comandos con Scripts</h1>
+                        <p className="text-ds-soft mt-1">
                             Crea comandos personalizados con lógica avanzada usando scripting
                         </p>
                     </div>
@@ -20,33 +20,33 @@ export default function ScriptingCommandsDoc() {
             </div>
 
             {/* Introducción */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Rocket className="w-6 h-6 text-green-600" />
+            <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                <h2 className="text-2xl font-black text-ds-text mb-4 flex items-center gap-2">
+                    <Rocket className="w-6 h-6 text-ds-accent-text" />
                     ¿Qué son los Scripts?
                 </h2>
-                <p className="text-gray-800 dark:text-gray-200 mb-4">
+                <p className="text-ds-text mb-4">
                     Los <strong>Scripts</strong> son comandos que ejecutan código con lógica avanzada, dándote
                     control total sobre el comportamiento del bot.
                 </p>
-                <p className="text-gray-800 dark:text-gray-200">
+                <p className="text-ds-text">
                     Con scripts puedes:
                 </p>
-                <ul className="mt-3 space-y-2 text-gray-800 dark:text-gray-200">
+                <ul className="mt-3 space-y-2 text-ds-text">
                     <li className="flex gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-ds-ok">✓</span>
                         <span>Usar variables y almacenar valores</span>
                     </li>
                     <li className="flex gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-ds-ok">✓</span>
                         <span>Implementar lógica condicional con when/then/end</span>
                     </li>
                     <li className="flex gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-ds-ok">✓</span>
                         <span>Generar números aleatorios y hacer picks</span>
                     </li>
                     <li className="flex gap-2">
-                        <span className="text-green-600">✓</span>
+                        <span className="text-ds-ok">✓</span>
                         <span>Crear contadores y sistemas interactivos</span>
                     </li>
                 </ul>
@@ -61,9 +61,9 @@ export default function ScriptingCommandsDoc() {
                 />
 
                 <div className="mt-4 space-y-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Declaraciones</h3>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-bold text-ds-text mb-4">Declaraciones</h3>
+                        <p className="text-ds-soft mb-4">
                             Un script está compuesto por declaraciones que se ejecutan en orden:
                         </p>
                         <CodeBlock
@@ -77,10 +77,10 @@ end`}
                         />
                     </div>
 
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Variables</h3>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
-                            Usa <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">set</code> para declarar variables y <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">$(nombre)</code> para usarlas:
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-bold text-ds-text mb-4">Variables</h3>
+                        <p className="text-ds-soft mb-4">
+                            Usa <code className="bg-ds-bg px-2 py-1 rounded text-sm">set</code> para declarar variables y <code className="bg-ds-bg px-2 py-1 rounded text-sm">$(nombre)</code> para usarlas:
                         </p>
                         <CodeBlock
                             language="javascript"
@@ -90,11 +90,11 @@ send "Hola $(nombre), tienes $(edad) años"`}
                         />
                     </div>
 
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Condicionales</h3>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
-                            Usa <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">when/then/end</code> para lógica condicional.
-                            Para manejar multiples condiciones, usa bloques <code className="bg-[#f1f5f9] dark:bg-[#262626] px-2 py-1 rounded text-sm">when</code> separados:
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-bold text-ds-text mb-4">Condicionales</h3>
+                        <p className="text-ds-soft mb-4">
+                            Usa <code className="bg-ds-bg px-2 py-1 rounded text-sm">when/then/end</code> para lógica condicional.
+                            Para manejar multiples condiciones, usa bloques <code className="bg-ds-bg px-2 py-1 rounded text-sm">when</code> separados:
                         </p>
                         <CodeBlock
                             language="javascript"
@@ -196,12 +196,12 @@ end`}
 
             {/* Operadores */}
             <section>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Operadores</h3>
+                <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                    <h3 className="text-xl font-bold text-ds-text mb-4">Operadores</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <h4 className="font-bold text-[#2563eb] dark:text-[#60a5fa] mb-2">Comparación</h4>
-                            <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200 font-mono">
+                            <h4 className="font-bold text-ds-accent-text mb-2">Comparación</h4>
+                            <ul className="space-y-1 text-sm text-ds-text font-mono">
                                 <li>== &nbsp;&nbsp;Igual a</li>
                                 <li>!= &nbsp;&nbsp;Diferente de</li>
                                 <li>&gt; &nbsp;&nbsp;&nbsp;Mayor que</li>
@@ -211,8 +211,8 @@ end`}
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-bold text-[#2563eb] dark:text-[#60a5fa] mb-2">Aritméticos</h4>
-                            <ul className="space-y-1 text-sm text-gray-800 dark:text-gray-200 font-mono">
+                            <h4 className="font-bold text-ds-accent-text mb-2">Aritméticos</h4>
+                            <ul className="space-y-1 text-sm text-ds-text font-mono">
                                 <li>+ &nbsp;&nbsp;&nbsp;Suma</li>
                                 <li>- &nbsp;&nbsp;&nbsp;Resta</li>
                             </ul>
@@ -322,12 +322,12 @@ end`}
             </section>
 
             {/* Seguridad */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
+            <div className="bg-ds-raised border border-ds-border rounded-lg p-6">
+                <h3 className="text-xl font-bold text-ds-accent-text mb-3 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5" />
                     Límites y Restricciones
                 </h3>
-                <ul className="space-y-2 text-blue-800 dark:text-blue-300">
+                <ul className="space-y-2 text-ds-accent-text">
                     <li className="flex gap-2">
                         <span>•</span>
                         <span>Los scripts tienen un tiempo máximo de ejecución de 5 segundos</span>
@@ -348,11 +348,11 @@ end`}
             </div>
 
             {/* Consejos */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-purple-900 dark:text-purple-300 mb-3">
+            <div className="bg-ds-surface border border-ds-border rounded-lg p-6">
+                <h3 className="text-xl font-bold text-ds-accent-text mb-3">
                     💡 Consejos y Mejores Prácticas
                 </h3>
-                <ul className="space-y-2 text-purple-800 dark:text-purple-300">
+                <ul className="space-y-2 text-ds-accent-text">
                     <li className="flex gap-2">
                         <span>•</span>
                         <span>Usa el botón "Validar" en el editor para verificar la sintaxis antes de guardar</span>
@@ -389,9 +389,9 @@ interface ExampleCardProps {
 
 function ExampleCard({ title, description, code, category }: ExampleCardProps) {
     const categoryColors = {
-        basic: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300',
-        intermediate: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300',
-        advanced: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300'
+        basic: 'bg-ds-raised border-ds-border text-ds-accent-text ',
+        intermediate: 'bg-ds-raised border-ds-border text-ds-accent-text ',
+        advanced: 'bg-ds-raised border-ds-border text-ds-accent-text '
     };
 
     const categoryLabels = {
@@ -409,16 +409,16 @@ function ExampleCard({ title, description, code, category }: ExampleCardProps) {
     const Icon = categoryIcons[category];
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+        <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
             <div className={`px-6 py-4 border-b ${categoryColors[category]} border`}>
                 <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
+                    <h3 className="text-xl font-bold text-ds-text">{title}</h3>
                     <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${categoryColors[category]}`}>
                         <Icon className="w-3 h-3" />
                         {categoryLabels[category]}
                     </span>
                 </div>
-                <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mt-1">{description}</p>
+                <p className="text-ds-soft text-sm mt-1">{description}</p>
             </div>
             <div className="p-6">
                 <CodeBlock code={code} language="javascript" />
@@ -437,20 +437,20 @@ interface VariableCardProps {
 
 function VariableCard({ name, type, description, example }: VariableCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 hover:shadow-lg transition-all">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-4 transition-all">
             <div className="flex items-center justify-between mb-2">
-                <code className="text-base font-bold text-green-600 dark:text-green-400">
+                <code className="text-base font-bold text-ds-accent-text">
                     {name}
                 </code>
-                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-xs font-mono">
+                <span className="px-2 py-1 bg-ds-bg text-ds-text rounded text-xs font-mono">
                     {type}
                 </span>
             </div>
-            <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mb-3">
+            <p className="text-ds-soft text-sm mb-3">
                 {description}
             </p>
-            <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-lg p-2 border border-[#e2e8f0] dark:border-[#374151]">
-                <code className="text-xs text-gray-800 dark:text-[#f8fafc] font-mono">
+            <div className="bg-ds-bg rounded-lg p-2 border border-ds-border">
+                <code className="text-xs text-ds-text font-mono">
                     {example}
                 </code>
             </div>
@@ -467,15 +467,15 @@ interface FunctionCardProps {
 
 function FunctionCard({ name, description, example }: FunctionCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 hover:shadow-lg transition-all">
-            <code className="text-base font-bold text-purple-600 dark:text-purple-400 block mb-2">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-4 transition-all">
+            <code className="text-base font-bold text-ds-accent-text block mb-2">
                 {name}
             </code>
-            <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mb-3">
+            <p className="text-ds-soft text-sm mb-3">
                 {description}
             </p>
-            <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-lg p-2 border border-[#e2e8f0] dark:border-[#374151]">
-                <code className="text-xs text-purple-600 dark:text-purple-400 font-mono">
+            <div className="bg-ds-bg rounded-lg p-2 border border-ds-border">
+                <code className="text-xs text-ds-accent-text font-mono">
                     {example}
                 </code>
             </div>
@@ -492,16 +492,16 @@ interface SectionHeaderProps {
 
 function SectionHeader({ icon, title, description }: SectionHeaderProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <div className="text-green-600">
+                <div className="w-12 h-12 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="text-ds-accent-text">
                         {icon}
                     </div>
                 </div>
                 <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">{title}</h2>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mt-1">{description}</p>
+                    <h2 className="text-2xl font-black text-ds-text">{title}</h2>
+                    <p className="text-ds-soft text-sm mt-1">{description}</p>
                 </div>
             </div>
         </div>

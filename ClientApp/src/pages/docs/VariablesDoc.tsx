@@ -6,14 +6,14 @@ export default function VariablesDoc() {
     return (
         <div className="space-y-8">
             {/* Header con colores del sistema */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151] shadow-xl">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Hash className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center border border-ds-border">
+                        <Hash className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-gray-900 dark:text-white">Sistema de Variables</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <h1 className="text-4xl font-black text-ds-text">Sistema de Variables</h1>
+                        <p className="text-ds-soft mt-1">
                             Placeholders dinámicos para comandos interactivos
                         </p>
                     </div>
@@ -282,13 +282,13 @@ export default function VariablesDoc() {
             </section>
 
             {/* Ejemplos Completos */}
-            <section className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <section className="bg-ds-bg rounded-lg p-6 border border-ds-border">
+                <h3 className="text-2xl font-black text-ds-text mb-4">
                     💡 Ejemplos de Comandos Completos
                 </h3>
                 <div className="space-y-4">
                     <div>
-                        <h4 className="font-bold text-[#64748b] dark:text-[#f8fafc] mb-3">Crear comandos con variables:</h4>
+                        <h4 className="font-bold text-ds-soft mb-3">Crear comandos con variables:</h4>
                         <CodeBlock
                             code={`# Comando de saludo personalizado
 !crear !hola Hola $(user)! Bienvenido al stream de $(channel)
@@ -305,7 +305,7 @@ export default function VariablesDoc() {
                     </div>
 
                     <div>
-                        <h4 className="font-bold text-[#64748b] dark:text-[#f8fafc] mb-3">Ejecutar comandos:</h4>
+                        <h4 className="font-bold text-ds-soft mb-3">Ejecutar comandos:</h4>
                         <CodeBlock
                             code={`# Comando sin argumentos
 !followage
@@ -324,11 +324,11 @@ export default function VariablesDoc() {
             </section>
 
             {/* Tips */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-blue-900 dark:text-blue-300 mb-3">
+            <div className="bg-ds-raised border border-ds-border rounded-lg p-6">
+                <h3 className="text-xl font-bold text-ds-accent-text mb-3">
                     💡 Consejos
                 </h3>
-                <ul className="space-y-2 text-blue-800 dark:text-blue-300">
+                <ul className="space-y-2 text-ds-accent-text">
                     <li className="flex gap-2">
                         <span>•</span>
                         <span>Las variables se resuelven en tiempo real cuando se ejecuta el comando</span>
@@ -360,12 +360,12 @@ interface StatCardProps {
 
 function StatCard({ icon, count, label }: StatCardProps) {
     return (
-        <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-xl p-3 text-center border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all">
-            <div className="flex items-center justify-center mb-1 text-[#2563eb]">
+        <div className="bg-ds-bg rounded-lg p-3 text-center border border-ds-border hover:border-ds-accent transition-all">
+            <div className="flex items-center justify-center mb-1 text-ds-accent-text">
                 {icon}
             </div>
-            <div className="text-2xl font-black text-gray-900 dark:text-white">{count}</div>
-            <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">{label}</div>
+            <div className="text-2xl font-black text-ds-text">{count}</div>
+            <div className="text-xs text-ds-soft">{label}</div>
         </div>
     );
 }
@@ -380,16 +380,16 @@ interface SectionHeaderProps {
 
 function SectionHeader({ icon, title, description }: SectionHeaderProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <div className="text-[#2563eb]">
+                <div className="w-12 h-12 bg-ds-raised rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="text-ds-accent-text">
                         {icon}
                     </div>
                 </div>
                 <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">{title}</h2>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mt-1">{description}</p>
+                    <h2 className="text-2xl font-black text-ds-text">{title}</h2>
+                    <p className="text-ds-soft text-sm mt-1">{description}</p>
                 </div>
             </div>
         </div>

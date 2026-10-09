@@ -7,23 +7,23 @@ export default function DecatronChatDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center">
-                        <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <MessageSquare className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Decatron Chat
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Chat privado con la IA de Decatron desde tu dashboard
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/decatron-chat"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir al chat
                     <ArrowRight className="w-4 h-4" />
@@ -92,32 +92,32 @@ export default function DecatronChatDoc() {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-[#f8fafc] dark:bg-[#374151] border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Caracteristica</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Decatron Chat</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Decatron AI</th>
+                            <tr className="bg-ds-bg border-b border-ds-border">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Caracteristica</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Decatron Chat</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Decatron AI</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <tbody className="divide-y divide-ds-border">
                             <tr>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">Donde funciona</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Dashboard (privado)</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Chat de Twitch (publico)</td>
+                                <td className="px-4 py-3 text-sm font-medium text-ds-text">Donde funciona</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Dashboard (privado)</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Chat de Twitch (publico)</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">Quien lo usa</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Solo el streamer</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Viewers del chat</td>
+                                <td className="px-4 py-3 text-sm font-medium text-ds-text">Quien lo usa</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Solo el streamer</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Viewers del chat</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">Historial</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Conversaciones guardadas</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Contexto por sesion</td>
+                                <td className="px-4 py-3 text-sm font-medium text-ds-text">Historial</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Conversaciones guardadas</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Contexto por sesion</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">Comando</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Interfaz de chat</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">!ai en el chat</td>
+                                <td className="px-4 py-3 text-sm font-medium text-ds-text">Comando</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Interfaz de chat</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">!ai en el chat</td>
                             </tr>
                         </tbody>
                     </table>
@@ -141,12 +141,12 @@ export default function DecatronChatDoc() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
     return (
-        <div className="p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-3">
+        <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
                 {icon}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -154,23 +154,23 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode; titl
 function StepItem({ number, text }: { number: number; text: string }) {
     return (
         <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-7 h-7 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-xs">
+            <div className="flex-shrink-0 w-7 h-7 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-xs">
                 {number}
             </div>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{text}</p>
+            <p className="text-sm text-ds-soft">{text}</p>
         </div>
     );
 }
 
 function ActionItem({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
     return (
-        <div className="flex items-start gap-3 p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+        <div className="flex items-start gap-3 p-4 bg-ds-surface rounded-lg border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text flex-shrink-0">
                 {icon}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
         </div>
     );

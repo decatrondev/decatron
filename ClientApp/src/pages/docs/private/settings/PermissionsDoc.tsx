@@ -7,16 +7,16 @@ export default function PermissionsDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
-                        <Shield className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Shield className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Sistema de Permisos
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Controla quien puede usar que funciones
                         </p>
                     </div>
@@ -73,16 +73,16 @@ export default function PermissionsDoc() {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-[#f8fafc] dark:bg-[#374151] border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Funcion</th>
-                                <th className="px-4 py-3 text-center text-sm font-bold text-gray-900 dark:text-white">Everyone</th>
-                                <th className="px-4 py-3 text-center text-sm font-bold text-gray-900 dark:text-white">Follower</th>
-                                <th className="px-4 py-3 text-center text-sm font-bold text-gray-900 dark:text-white">Sub</th>
-                                <th className="px-4 py-3 text-center text-sm font-bold text-gray-900 dark:text-white">Mod</th>
-                                <th className="px-4 py-3 text-center text-sm font-bold text-gray-900 dark:text-white">Broadcaster</th>
+                            <tr className="bg-ds-bg border-b border-ds-border">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Funcion</th>
+                                <th className="px-4 py-3 text-center text-sm font-bold text-ds-text">Everyone</th>
+                                <th className="px-4 py-3 text-center text-sm font-bold text-ds-text">Follower</th>
+                                <th className="px-4 py-3 text-center text-sm font-bold text-ds-text">Sub</th>
+                                <th className="px-4 py-3 text-center text-sm font-bold text-ds-text">Mod</th>
+                                <th className="px-4 py-3 text-center text-sm font-bold text-ds-text">Broadcaster</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <tbody className="divide-y divide-ds-border">
                             <PermissionRow
                                 feature="Usar comandos basicos"
                                 permissions={[true, true, true, true, true]}
@@ -222,23 +222,23 @@ interface PermissionLevelProps {
 }
 
 const colorMap: Record<string, string> = {
-    gold: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
-    green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
-    pink: 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400',
-    purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-    blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-    gray: 'bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400',
+    gold: 'bg-ds-raised text-ds-accent-text ',
+    green: 'bg-ds-raised text-ds-accent-text',
+    pink: 'bg-ds-raised text-ds-accent-text ',
+    purple: 'bg-ds-raised text-ds-accent-text ',
+    blue: 'bg-ds-raised text-ds-accent-text ',
+    gray: 'bg-ds-bg text-ds-soft ',
 };
 
 function PermissionLevel({ icon, level, description, color }: PermissionLevelProps) {
     return (
-        <div className="flex items-center gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className={`w-10 h-10 ${colorMap[color]} rounded-lg flex items-center justify-center`}>
                 {icon}
             </div>
             <div className="flex-1">
-                <div className="font-bold text-gray-900 dark:text-white">{level}</div>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</div>
+                <div className="font-bold text-ds-text">{level}</div>
+                <div className="text-sm text-ds-soft">{description}</div>
             </div>
         </div>
     );
@@ -252,13 +252,13 @@ interface PermissionRowProps {
 function PermissionRow({ feature, permissions }: PermissionRowProps) {
     return (
         <tr>
-            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{feature}</td>
+            <td className="px-4 py-3 text-sm text-ds-text">{feature}</td>
             {permissions.map((allowed, index) => (
                 <td key={index} className="px-4 py-3 text-center">
                     {allowed ? (
-                        <Check className="w-5 h-5 text-green-500 mx-auto" />
+                        <Check className="w-5 h-5 text-ds-ok mx-auto" />
                     ) : (
-                        <X className="w-5 h-5 text-red-500 mx-auto" />
+                        <X className="w-5 h-5 text-ds-danger mx-auto" />
                     )}
                 </td>
             ))}
@@ -274,12 +274,12 @@ interface CommandPermissionProps {
 
 function CommandPermission({ command, level, description }: CommandPermissionProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div>
-                <code className="text-[#2563eb] font-mono font-bold">{command}</code>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{description}</p>
+                <code className="text-ds-accent-text font-mono font-bold">{command}</code>
+                <p className="text-sm text-ds-soft mt-1">{description}</p>
             </div>
-            <span className="px-3 py-1 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] text-sm font-medium rounded-lg">
+            <span className="px-3 py-1 bg-ds-bg text-ds-soft text-sm font-medium rounded-lg">
                 {level}
             </span>
         </div>
@@ -293,9 +293,9 @@ interface DashboardAccessProps {
 
 function DashboardAccess({ section, modAccess }: DashboardAccessProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <span className="font-medium text-gray-900 dark:text-white">{section}</span>
-            <div className={`px-3 py-1 rounded-lg text-sm font-medium ${modAccess ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <span className="font-medium text-ds-text">{section}</span>
+            <div className={`px-3 py-1 rounded-lg text-sm font-medium ${modAccess ? 'bg-ds-ok/10 text-ds-ok' : 'bg-ds-danger/10 text-ds-danger'}`}>
                 {modAccess ? 'Mods pueden' : 'Solo broadcaster'}
             </div>
         </div>
@@ -310,13 +310,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );

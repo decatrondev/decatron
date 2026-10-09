@@ -11,23 +11,23 @@ export default function GachaDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center">
-                        <Dice6 className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Dice6 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Sistema Gacha
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Configura tu sistema de cartas coleccionables
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/gacha"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -206,16 +206,16 @@ export default function GachaDoc() {
                         </p>
                     </Step>
                 </div>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <h4 className="font-bold text-gray-900 dark:text-white mb-3">Eventos de sonido</h4>
+                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <h4 className="font-bold text-ds-text mb-3">Eventos de sonido</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {[
                             'drum_roll', 'flash', 'reveal_1', 'reveal_2', 'reveal_3',
                             'reveal_4', 'reveal_5', 'win', 'ambient'
                         ].map((name) => (
-                            <div key={name} className="flex items-center gap-2 text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                <Music className="w-3 h-3 text-orange-500" />
-                                <code className="text-xs bg-[#f8fafc] dark:bg-[#374151] px-1.5 py-0.5 rounded">{name}</code>
+                            <div key={name} className="flex items-center gap-2 text-sm text-ds-soft">
+                                <Music className="w-3 h-3 text-ds-accent-text" />
+                                <code className="text-xs bg-ds-bg px-1.5 py-0.5 rounded">{name}</code>
                             </div>
                         ))}
                     </div>
@@ -310,9 +310,9 @@ export default function GachaDoc() {
                 </div>
                 <DocAlert type="info" title="Aliases">
                     Cada comando puede tener aliases personalizados. Por ejemplo, puedes crear
-                    <code className="mx-1 px-1 bg-blue-100 dark:bg-blue-900/30 rounded text-xs">!pull</code>
+                    <code className="mx-1 px-1 bg-ds-raised rounded text-xs">!pull</code>
                     como alias de
-                    <code className="mx-1 px-1 bg-blue-100 dark:bg-blue-900/30 rounded text-xs">!gcpull</code>.
+                    <code className="mx-1 px-1 bg-ds-raised rounded text-xs">!gcpull</code>.
                     Configuralos en la pestana Comandos.
                 </DocAlert>
             </DocSection>
@@ -345,12 +345,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400 mb-3">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
                 {icon}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -363,13 +363,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -383,13 +383,13 @@ interface TabCardProps {
 
 function TabCard({ icon, name, description }: TabCardProps) {
     return (
-        <div className="flex items-start gap-3 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400">
+        <div className="flex items-start gap-3 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text">
                 {icon}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-0.5">{name}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text mb-0.5">{name}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
         </div>
     );
@@ -404,17 +404,17 @@ interface IntegrationCardProps {
 
 function IntegrationCard({ icon, name, description, example }: IntegrationCardProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400">
+                <div className="flex-shrink-0 w-8 h-8 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text">
                     {icon}
                 </div>
                 <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white">{name}</h4>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                    <h4 className="font-bold text-ds-text">{name}</h4>
+                    <p className="text-sm text-ds-soft">{description}</p>
                 </div>
             </div>
-            <code className="flex-shrink-0 text-xs bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] px-2 py-1 rounded ml-4">
+            <code className="flex-shrink-0 text-xs bg-ds-bg text-ds-soft px-2 py-1 rounded ml-4">
                 {example}
             </code>
         </div>
@@ -429,14 +429,14 @@ interface CommandCardProps {
 
 function CommandCard({ command, description, permission }: CommandCardProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className="flex items-center gap-3">
-                <code className="text-sm font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded">
+                <code className="text-sm font-bold text-ds-accent-text bg-ds-raised px-2 py-1 rounded">
                     {command}
                 </code>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
-            <span className="flex-shrink-0 text-xs bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] px-2 py-1 rounded ml-4">
+            <span className="flex-shrink-0 text-xs bg-ds-bg text-ds-soft px-2 py-1 rounded ml-4">
                 {permission}
             </span>
         </div>

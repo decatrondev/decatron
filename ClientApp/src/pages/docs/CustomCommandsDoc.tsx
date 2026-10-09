@@ -5,14 +5,14 @@ export default function CustomCommandsDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151] shadow-xl">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Edit3 className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center border border-ds-border">
+                        <Edit3 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-gray-900 dark:text-white">Comandos Personalizados</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <h1 className="text-4xl font-black text-ds-text">Comandos Personalizados</h1>
+                        <p className="text-ds-soft mt-1">
                             Crea comandos únicos adaptados a las necesidades de tu canal
                         </p>
                     </div>
@@ -20,16 +20,16 @@ export default function CustomCommandsDoc() {
             </div>
 
             {/* Introducción */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                <h2 className="text-2xl font-black text-ds-text mb-4">
                     ¿Qué son los Comandos Personalizados?
                 </h2>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
+                <p className="text-ds-soft mb-4">
                     Los comandos personalizados te permiten crear respuestas automáticas únicas para tu canal.
-                    Puedes usar <strong className="text-gray-900 dark:text-white">variables del sistema</strong> para
+                    Puedes usar <strong className="text-ds-text">variables del sistema</strong> para
                     hacer tus comandos dinámicos e interactivos.
                 </p>
-                <p className="text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-ds-soft">
                     A diferencia de los comandos por defecto, tú tienes control total sobre estos comandos:
                     crear, editar, duplicar o eliminarlos cuando quieras.
                 </p>
@@ -45,42 +45,42 @@ export default function CustomCommandsDoc() {
 
                 <div className="mt-4 space-y-4">
                     {/* Método 1: Dashboard */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span className="bg-[#2563eb] text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-bold text-ds-text mb-4 flex items-center gap-2">
+                            <span className="bg-ds-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
                             Desde el Dashboard
                         </h3>
-                        <ol className="space-y-3 text-[#64748b] dark:text-[#94a3b8]">
+                        <ol className="space-y-3 text-ds-soft">
                             <li className="flex gap-3">
-                                <span className="font-bold text-[#2563eb]">1.</span>
-                                <span>Ve a <strong className="text-gray-900 dark:text-white">Comandos → Personalizados</strong> en el menú lateral</span>
+                                <span className="font-bold text-ds-accent-text">1.</span>
+                                <span>Ve a <strong className="text-ds-text">Comandos → Personalizados</strong> en el menú lateral</span>
                             </li>
                             <li className="flex gap-3">
-                                <span className="font-bold text-[#2563eb]">2.</span>
-                                <span>Haz clic en el botón <strong className="text-gray-900 dark:text-white">"+ Nuevo Comando"</strong></span>
+                                <span className="font-bold text-ds-accent-text">2.</span>
+                                <span>Haz clic en el botón <strong className="text-ds-text">"+ Nuevo Comando"</strong></span>
                             </li>
                             <li className="flex gap-3">
-                                <span className="font-bold text-[#2563eb]">3.</span>
+                                <span className="font-bold text-ds-accent-text">3.</span>
                                 <span>Rellena el formulario con el nombre y la respuesta del comando</span>
                             </li>
                             <li className="flex gap-3">
-                                <span className="font-bold text-[#2563eb]">4.</span>
+                                <span className="font-bold text-ds-accent-text">4.</span>
                                 <span>Configura opciones adicionales (cooldown, permisos, alias)</span>
                             </li>
                             <li className="flex gap-3">
-                                <span className="font-bold text-[#2563eb]">5.</span>
+                                <span className="font-bold text-ds-accent-text">5.</span>
                                 <span>Guarda y ¡listo! Tu comando está activo</span>
                             </li>
                         </ol>
                     </div>
 
                     {/* Método 2: Chat */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span className="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h3 className="text-xl font-bold text-ds-text mb-4 flex items-center gap-2">
+                            <span className="bg-ds-accent text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
                             Desde el Chat (solo moderadores)
                         </h3>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
+                        <p className="text-ds-soft mb-4">
                             Los moderadores pueden crear comandos directamente desde el chat usando:
                         </p>
                         <CodeBlock
@@ -195,36 +195,36 @@ export default function CustomCommandsDoc() {
             </section>
 
             {/* Opciones Avanzadas */}
-            <section className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <section className="bg-ds-bg rounded-lg p-6 border border-ds-border">
+                <h3 className="text-2xl font-black text-ds-text mb-4">
                     ⚙️ Opciones Avanzadas
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Cooldown</h4>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">
+                        <h4 className="font-bold text-ds-text mb-2">Cooldown</h4>
+                        <p className="text-ds-soft text-sm">
                             Define cuántos segundos deben pasar antes de que el comando pueda usarse nuevamente.
                             Evita spam en el chat.
                         </p>
                     </div>
 
                     <div>
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Permisos</h4>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">
+                        <h4 className="font-bold text-ds-text mb-2">Permisos</h4>
+                        <p className="text-ds-soft text-sm">
                             Controla quién puede usar el comando: Todos, Solo Subs, Moderadores, o Solo Broadcaster.
                         </p>
                     </div>
 
                     <div>
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Alias</h4>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">
+                        <h4 className="font-bold text-ds-text mb-2">Alias</h4>
+                        <p className="text-ds-soft text-sm">
                             Crea nombres alternativos para el mismo comando. Ejemplo: !dc como alias de !discord
                         </p>
                     </div>
 
                     <div>
-                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">Activar/Desactivar</h4>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] text-sm">
+                        <h4 className="font-bold text-ds-text mb-2">Activar/Desactivar</h4>
+                        <p className="text-ds-soft text-sm">
                             Desactiva temporalmente comandos sin eliminarlos. Útil para eventos especiales.
                         </p>
                     </div>
@@ -232,11 +232,11 @@ export default function CustomCommandsDoc() {
             </section>
 
             {/* Consejos */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-blue-900 dark:text-blue-300 mb-3">
+            <div className="bg-ds-raised border border-ds-border rounded-lg p-6">
+                <h3 className="text-xl font-bold text-ds-accent-text mb-3">
                     💡 Consejos
                 </h3>
-                <ul className="space-y-2 text-blue-800 dark:text-blue-300">
+                <ul className="space-y-2 text-ds-accent-text">
                     <li className="flex gap-2">
                         <span>•</span>
                         <span>Usa variables del sistema como $(user), $(channel), $(count) para comandos dinámicos</span>
@@ -269,27 +269,27 @@ interface ExampleCardProps {
 
 function ExampleCard({ title, command, response, category }: ExampleCardProps) {
     const categoryColors: Record<string, string> = {
-        'Información': 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400',
-        'Interactivo': 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400',
-        'Contador': 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+        'Información': 'bg-ds-raised text-ds-accent-text ',
+        'Interactivo': 'bg-ds-raised text-ds-accent-text ',
+        'Contador': 'bg-ds-raised text-ds-accent-text '
     };
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden hover:shadow-lg transition-all">
+        <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden transition-all">
             <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
+                    <h4 className="font-bold text-ds-text">{title}</h4>
                     <span className={`px-2 py-1 rounded-lg text-xs font-bold ${categoryColors[category]}`}>
                         {category}
                     </span>
                 </div>
 
-                <code className="block text-sm font-bold text-[#2563eb] bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg mb-2">
+                <code className="block text-sm font-bold text-ds-accent-text bg-ds-raised px-3 py-2 rounded-lg mb-2">
                     {command}
                 </code>
 
-                <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-lg p-3 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-sm text-gray-800 dark:text-[#f8fafc] font-mono">
+                <div className="bg-ds-bg rounded-lg p-3 border border-ds-border">
+                    <p className="text-sm text-ds-text font-mono">
                         {response}
                     </p>
                 </div>
@@ -308,13 +308,13 @@ interface ActionCardProps {
 
 function ActionCard({ icon, title, description, action }: ActionCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151] hover:shadow-lg transition-all">
-            <div className="w-12 h-12 bg-[#2563eb] bg-opacity-10 rounded-xl flex items-center justify-center mb-4 text-[#2563eb]">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border transition-all">
+            <div className="w-12 h-12 bg-ds-raised rounded-lg flex items-center justify-center mb-4 text-ds-accent-text">
                 {icon}
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
-            <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mb-3">{description}</p>
-            <p className="text-[#2563eb] text-sm font-semibold">{action}</p>
+            <h3 className="text-lg font-bold text-ds-text mb-2">{title}</h3>
+            <p className="text-ds-soft text-sm mb-3">{description}</p>
+            <p className="text-ds-accent-text text-sm font-semibold">{action}</p>
         </div>
     );
 }
@@ -328,16 +328,16 @@ interface SectionHeaderProps {
 
 function SectionHeader({ icon, title, description }: SectionHeaderProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <div className="text-[#2563eb]">
+                <div className="w-12 h-12 bg-ds-raised rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="text-ds-accent-text">
                         {icon}
                     </div>
                 </div>
                 <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">{title}</h2>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mt-1">{description}</p>
+                    <h2 className="text-2xl font-black text-ds-text">{title}</h2>
+                    <p className="text-ds-soft text-sm mt-1">{description}</p>
                 </div>
             </div>
         </div>

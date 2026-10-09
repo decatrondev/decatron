@@ -7,23 +7,23 @@ export default function ModerationDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center">
-                        <Shield className="w-8 h-8 text-red-600 dark:text-red-400" />
+                    <div className="w-16 h-16 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center">
+                        <Shield className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Moderacion
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Filtros automaticos y acciones de moderacion
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/moderation/banned-words"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -163,20 +163,20 @@ export default function ModerationDoc() {
                     Ademas de palabras, puedes filtrar:
                 </p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Links:</strong> Bloquear enlaces no autorizados
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Mayusculas:</strong> Limitar mensajes en CAPS
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Emotes:</strong> Limitar cantidad de emotes
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Repeticion:</strong> Detectar spam repetitivo
                     </li>
                 </ul>
@@ -188,20 +188,20 @@ export default function ModerationDoc() {
                     Todas las acciones de moderacion se registran:
                 </p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Usuario afectado
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Mensaje original
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Razon de la accion
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Fecha y hora
                     </li>
                 </ul>
@@ -221,13 +221,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -241,13 +241,13 @@ interface StrikeLevelProps {
 
 function StrikeLevel({ level, action, description }: StrikeLevelProps) {
     return (
-        <div className="flex items-center gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className="w-20 text-center">
-                <span className="text-sm font-bold text-red-600 dark:text-red-400">{level}</span>
+                <span className="text-sm font-bold text-ds-text">{level}</span>
             </div>
             <div className="flex-1">
-                <div className="font-bold text-gray-900 dark:text-white">{action}</div>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</div>
+                <div className="font-bold text-ds-text">{action}</div>
+                <div className="text-sm text-ds-soft">{description}</div>
             </div>
         </div>
     );
@@ -261,18 +261,18 @@ interface SeverityCardProps {
 }
 
 const severityColors: Record<string, string> = {
-    yellow: 'bg-yellow-500',
-    orange: 'bg-orange-500',
-    red: 'bg-red-500',
+    yellow: 'bg-ds-accent/40',
+    orange: 'bg-ds-accent/70',
+    red: 'bg-ds-accent',
 };
 
 function SeverityCard({ level, color, description, example }: SeverityCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className={`w-full h-2 ${severityColors[color]} rounded-full mb-3`} />
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{level}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-2">{description}</p>
-            <span className="text-xs bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] px-2 py-1 rounded">
+            <h4 className="font-bold text-ds-text mb-1">{level}</h4>
+            <p className="text-sm text-ds-soft mb-2">{description}</p>
+            <span className="text-xs bg-ds-bg text-ds-soft px-2 py-1 rounded">
                 {example}
             </span>
         </div>
@@ -287,17 +287,17 @@ interface ImmunityOptionProps {
 
 function ImmunityOption({ role, immune, configurable }: ImmunityOptionProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-[#64748b]" />
-                <span className="font-medium text-gray-900 dark:text-white">{role}</span>
+                <Users className="w-5 h-5 text-ds-soft" />
+                <span className="font-medium text-ds-text">{role}</span>
                 {configurable && (
-                    <span className="text-xs bg-blue-50 dark:bg-blue-900/20 text-[#2563eb] px-2 py-0.5 rounded">
+                    <span className="text-xs bg-ds-raised text-ds-accent-text px-2 py-0.5 rounded">
                         Configurable
                     </span>
                 )}
             </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-bold ${immune ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+            <div className={`px-3 py-1 rounded-full text-xs font-bold ${immune ? 'bg-ds-ok/10 text-ds-ok' : 'bg-ds-danger/10 text-ds-danger'}`}>
                 {immune ? 'Inmune' : 'No inmune'}
             </div>
         </div>
@@ -311,9 +311,9 @@ interface ActionCardProps {
 
 function ActionCard({ action, description }: ActionCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <h4 className="font-bold text-gray-900 dark:text-white">{action}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <h4 className="font-bold text-ds-text">{action}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }

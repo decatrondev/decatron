@@ -7,16 +7,16 @@ export default function FAQ() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
-                        <HelpCircle className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <HelpCircle className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-4xl font-black text-ds-text">
                             Preguntas Frecuentes
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Respuestas a las dudas mas comunes sobre Decatron
                         </p>
                     </div>
@@ -54,7 +54,7 @@ export default function FAQ() {
                     <div className="mt-4">
                         <Link
                             to="/docs/getting-started"
-                            className="inline-flex items-center gap-2 text-[#2563eb] font-medium hover:underline"
+                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
                         >
                             Ver guia completa
                             <ExternalLink className="w-4 h-4" />
@@ -103,7 +103,7 @@ export default function FAQ() {
                     <div className="mt-4">
                         <Link
                             to="/docs/commands/custom"
-                            className="inline-flex items-center gap-2 text-[#2563eb] font-medium hover:underline"
+                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
                         >
                             Ver documentacion de comandos
                             <ExternalLink className="w-4 h-4" />
@@ -117,7 +117,7 @@ export default function FAQ() {
                     <div className="mt-4">
                         <Link
                             to="/docs/variables"
-                            className="inline-flex items-center gap-2 text-[#2563eb] font-medium hover:underline"
+                            className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
                         >
                             Ver todas las variables
                             <ExternalLink className="w-4 h-4" />
@@ -171,17 +171,17 @@ export default function FAQ() {
             </FAQSection>
 
             {/* Contact CTA */}
-            <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151] text-center">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <div className="bg-ds-bg rounded-lg p-8 border border-ds-border text-center">
+                <h2 className="text-2xl font-black text-ds-text mb-4">
                     No encontraste lo que buscabas?
                 </h2>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
+                <p className="text-ds-soft mb-6">
                     Revisa la documentacion completa o contactanos directamente.
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                     <Link
                         to="/docs"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                     >
                         Ver documentacion
                     </Link>
@@ -199,7 +199,7 @@ interface FAQSectionProps {
 function FAQSection({ title, children }: FAQSectionProps) {
     return (
         <div>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">{title}</h2>
+            <h2 className="text-2xl font-black text-ds-text mb-4">{title}</h2>
             <div className="space-y-3">
                 {children}
             </div>
@@ -217,20 +217,20 @@ function FAQItem({ question, answer, children }: FAQItemProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+        <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-[#f8fafc] dark:hover:bg-[#374151]/50 transition-colors"
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-ds-bg transition-colors"
             >
-                <span className="font-bold text-gray-900 dark:text-white pr-4">{question}</span>
+                <span className="font-bold text-ds-text pr-4">{question}</span>
                 {isOpen ? (
-                    <ChevronUp className="w-5 h-5 text-[#64748b] flex-shrink-0" />
+                    <ChevronUp className="w-5 h-5 text-ds-soft flex-shrink-0" />
                 ) : (
-                    <ChevronDown className="w-5 h-5 text-[#64748b] flex-shrink-0" />
+                    <ChevronDown className="w-5 h-5 text-ds-soft flex-shrink-0" />
                 )}
             </button>
             {isOpen && (
-                <div className="px-4 pb-4 text-[#64748b] dark:text-[#94a3b8]">
+                <div className="px-4 pb-4 text-ds-soft">
                     {answer && <p>{answer}</p>}
                     {children}
                 </div>

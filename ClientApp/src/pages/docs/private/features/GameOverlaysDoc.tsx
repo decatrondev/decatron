@@ -6,21 +6,21 @@ import DocSection from '../../../../components/docs/DocSection';
 export default function GameOverlaysDoc() {
     return (
         <div className="space-y-8">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
-                        <Gamepad2 className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Gamepad2 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Game Overlays</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">Tu rango, sesión y últimas partidas en pantalla, del juego que estás jugando</p>
+                        <h1 className="text-3xl font-black text-ds-text">Game Overlays</h1>
+                        <p className="text-ds-soft">Tu rango, sesión y últimas partidas en pantalla, del juego que estás jugando</p>
                     </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                    <Link to="/overlays/games" className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                    <Link to="/overlays/games" className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors">
                         Ir a configuración <ArrowRight className="w-4 h-4" />
                     </Link>
-                    <a href="/demo/game-overlay" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-[#f1f5f9] dark:bg-[#262626] text-gray-900 dark:text-white font-bold rounded-lg">
+                    <a href="/demo/game-overlay" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-ds-bg text-ds-text font-bold rounded-lg">
                         Ver demo
                     </a>
                 </div>
@@ -89,7 +89,7 @@ export default function GameOverlaysDoc() {
 
             <DocSection title="Privacidad">
                 <div className="flex items-start gap-3">
-                    <Shield className="w-5 h-5 text-green-500 mt-0.5" />
+                    <Shield className="w-5 h-5 text-ds-accent-text mt-0.5" />
                     <p>Solo se muestran cuentas verificadas del propio streamer. Los datos se consultan únicamente mientras el canal está en vivo (y una
                         vez al abrir el overlay), con caché compartida para no abusar de las APIs.</p>
                 </div>
@@ -104,26 +104,26 @@ export default function GameOverlaysDoc() {
                 </ul>
             </DocSection>
 
-            <div className="flex items-center gap-2 text-sm text-[#64748b] dark:text-[#94a3b8]"><Monitor className="w-4 h-4" /> <span>Tamaño recomendado de la fuente en OBS: el del lienzo configurado (1920×1080 por defecto).</span></div>
+            <div className="flex items-center gap-2 text-sm text-ds-soft"><Monitor className="w-4 h-4" /> <span>Tamaño recomendado de la fuente en OBS: el del lienzo configurado (1920×1080 por defecto).</span></div>
         </div>
     );
 }
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
     return (
-        <div className="p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3">{icon}</div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+        <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">{icon}</div>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
 
 function Cmd({ name, alias, desc }: { name: string; alias: string; desc: string }) {
     return (
-        <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/50 rounded-lg">
-            <div className="flex items-center gap-2"><code className="font-bold text-gray-900 dark:text-white">{name}</code><span className="text-[11px] text-[#64748b] dark:text-[#94a3b8]">{alias}</span></div>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1 flex items-start gap-1"><MessageSquare className="w-3.5 h-3.5 mt-0.5 shrink-0" />{desc}</p>
+        <div className="p-3 bg-ds-bg rounded-lg">
+            <div className="flex items-center gap-2"><code className="font-bold text-ds-text">{name}</code><span className="text-[11px] text-ds-soft">{alias}</span></div>
+            <p className="text-sm text-ds-soft mt-1 flex items-start gap-1"><MessageSquare className="w-3.5 h-3.5 mt-0.5 shrink-0" />{desc}</p>
         </div>
     );
 }

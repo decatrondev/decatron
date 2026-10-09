@@ -1,6 +1,7 @@
 import { useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
-import { dsVars, type DsTheme } from './tokens';
+import { dsVars, type DsTheme, type ResolvedDesign } from './tokens';
+import { getActiveDesign } from '../../design/runtime';
 import './ds.css';
 
 // Librería de componentes de Decatron. Los estilos viven en ds.css y leen variables (tokens.ts).
@@ -11,9 +12,9 @@ const cx = (...c: (string | false | undefined | null)[]) => c.filter(Boolean).jo
 export type DsForce = 'hover' | 'focus' | 'active';
 const forceCls = (f?: DsForce) => f ? `is-${f}` : undefined;
 
-export function DsRoot({ theme, children, className, ambient = false }: { theme: DsTheme; children: ReactNode; className?: string; ambient?: boolean }) {
+export function DsRoot({ theme, children, className, ambient = false, design }: { theme: DsTheme; children: ReactNode; className?: string; ambient?: boolean; design?: ResolvedDesign }) {
     return (
-        <div className={cx('ds-root', theme === 'dark' && 'dark', className)} style={dsVars(theme)} data-ds-theme={theme}>
+        <div className={cx('ds-root', theme === 'dark' && 'dark', className)} style={dsVars(theme, design ?? getActiveDesign())} data-ds-theme={theme}>
             {ambient && <div className="ds-ambient" aria-hidden />}
             <div style={{ position: 'relative' }}>{children}</div>
         </div>

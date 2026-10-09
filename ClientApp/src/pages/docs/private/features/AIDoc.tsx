@@ -7,23 +7,23 @@ export default function AIDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center">
-                        <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Decatron AI
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Inteligencia artificial para tu stream
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/decatron-ai"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -121,20 +121,20 @@ export default function AIDoc() {
                     Decatron AI puede ayudar con la moderacion:
                 </p>
                 <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Detectar contenido toxico incluso sin palabras prohibidas
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Entender contexto y sarcasmo
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Advertir antes de tomar acciones
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Aprender de las decisiones de los moderadores
                     </li>
                 </ul>
@@ -149,16 +149,16 @@ export default function AIDoc() {
                 <p className="mb-4">
                     Configura respuestas automaticas para preguntas frecuentes:
                 </p>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <h4 className="font-bold text-gray-900 dark:text-white mb-3">Ejemplo</h4>
+                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <h4 className="font-bold text-ds-text mb-3">Ejemplo</h4>
                     <div className="space-y-2 text-sm">
                         <div>
-                            <span className="text-purple-500 font-bold">Usuario:</span>
-                            <span className="text-[#64748b] dark:text-[#94a3b8] ml-2">que PC usas?</span>
+                            <span className="text-ds-accent-text font-bold">Usuario:</span>
+                            <span className="text-ds-soft ml-2">que PC usas?</span>
                         </div>
                         <div>
-                            <span className="text-[#2563eb] font-bold">Decatron AI:</span>
-                            <span className="text-[#64748b] dark:text-[#94a3b8] ml-2">
+                            <span className="text-ds-accent-text font-bold">Decatron AI:</span>
+                            <span className="text-ds-soft ml-2">
                                 @Usuario, el streamer usa una RTX 4090, Ryzen 9 7950X y 64GB de RAM.
                             </span>
                         </div>
@@ -176,16 +176,16 @@ export default function AIDoc() {
                     Configura limites para evitar spam:
                 </p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Cooldown:</strong> Tiempo entre respuestas (por usuario)
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Limite global:</strong> Maximo de respuestas por minuto
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Solo mencion:</strong> Responder solo cuando la mencionan
                     </li>
                 </ul>
@@ -217,12 +217,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-purple-50 dark:bg-purple-900/20 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
                 {icon}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -235,13 +235,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -255,10 +255,10 @@ interface CommandCardProps {
 
 function CommandCard({ command, description, example }: CommandCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <code className="text-[#2563eb] font-mono font-bold">{command}</code>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1 mb-2">{description}</p>
-            <div className="text-xs bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] px-2 py-1 rounded">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <code className="text-ds-accent-text font-mono font-bold">{command}</code>
+            <p className="text-sm text-ds-soft mt-1 mb-2">{description}</p>
+            <div className="text-xs bg-ds-bg text-ds-soft px-2 py-1 rounded">
                 Ejemplo: {example}
             </div>
         </div>
@@ -273,12 +273,12 @@ interface PersonalityOptionProps {
 
 function PersonalityOption({ title, description, example }: PersonalityOptionProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
-            <span className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 px-2 py-1 rounded">
+            <span className="text-xs bg-ds-raised text-ds-accent-text px-2 py-1 rounded">
                 {example}
             </span>
         </div>

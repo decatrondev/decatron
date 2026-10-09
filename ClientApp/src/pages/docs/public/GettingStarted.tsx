@@ -7,18 +7,18 @@ export default function GettingStarted() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
-                <h1 className="text-4xl font-black text-gray-900 dark:text-white mb-4">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
+                <h1 className="text-4xl font-black text-ds-text mb-4">
                     Como empezar con Decatron
                 </h1>
-                <p className="text-xl text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-xl text-ds-soft">
                     En solo 5 minutos tendras tu bot configurado y funcionando en tu canal de Twitch.
                 </p>
             </div>
 
             {/* Requisitos previos */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
+                <h2 className="text-2xl font-black text-ds-text mb-4">
                     Requisitos previos
                 </h2>
                 <ul className="space-y-3">
@@ -30,7 +30,7 @@ export default function GettingStarted() {
 
             {/* Pasos */}
             <div className="space-y-6">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white">
+                <h2 className="text-2xl font-black text-ds-text">
                     Guia paso a paso
                 </h2>
 
@@ -43,9 +43,9 @@ export default function GettingStarted() {
                     <div className="mt-4 space-y-4">
                         <Link
                             to="/login"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-[#9147ff] text-white font-bold rounded-lg hover:bg-[#772ce8] transition-colors"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                         >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <svg className="w-5 h-5" viewBox="0 24" fill="currentColor">
                                 <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
                             </svg>
                             Conectar con Twitch
@@ -103,25 +103,25 @@ export default function GettingStarted() {
                     description="Los overlays son elementos visuales que puedes agregar a tu stream en OBS."
                 >
                     <div className="mt-4 space-y-4">
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Para agregar el overlay del timer a OBS:
                         </p>
                         <ol className="space-y-3 ml-4">
                             <li className="flex items-start gap-3">
-                                <span className="flex-shrink-0 w-6 h-6 bg-[#2563eb] text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                                <span className="text-[#64748b] dark:text-[#94a3b8]">Abre OBS Studio y ve a la escena donde quieres el overlay</span>
+                                <span className="flex-shrink-0 w-6 h-6 bg-ds-accent text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                                <span className="text-ds-soft">Abre OBS Studio y ve a la escena donde quieres el overlay</span>
                             </li>
                             <li className="flex items-start gap-3">
-                                <span className="flex-shrink-0 w-6 h-6 bg-[#2563eb] text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                                <span className="text-[#64748b] dark:text-[#94a3b8]">Haz clic en "+" en Fuentes y selecciona "Navegador"</span>
+                                <span className="flex-shrink-0 w-6 h-6 bg-ds-accent text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                                <span className="text-ds-soft">Haz clic en "+" en Fuentes y selecciona "Navegador"</span>
                             </li>
                             <li className="flex items-start gap-3">
-                                <span className="flex-shrink-0 w-6 h-6 bg-[#2563eb] text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                                <span className="text-[#64748b] dark:text-[#94a3b8]">Copia la URL del overlay desde tu dashboard</span>
+                                <span className="flex-shrink-0 w-6 h-6 bg-ds-accent text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                                <span className="text-ds-soft">Copia la URL del overlay desde tu dashboard</span>
                             </li>
                             <li className="flex items-start gap-3">
-                                <span className="flex-shrink-0 w-6 h-6 bg-[#2563eb] text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                                <span className="text-[#64748b] dark:text-[#94a3b8]">Pega la URL en OBS y ajusta el tamaño (1920x1080 recomendado)</span>
+                                <span className="flex-shrink-0 w-6 h-6 bg-ds-accent text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                                <span className="text-ds-soft">Pega la URL en OBS y ajusta el tamaño (1920x1080 recomendado)</span>
                             </li>
                         </ol>
                         <DocAlert type="tip" title="Consejo">
@@ -132,22 +132,22 @@ export default function GettingStarted() {
             </div>
 
             {/* Siguiente paso */}
-            <div className="bg-gradient-to-r from-[#2563eb] to-blue-700 rounded-2xl p-8 text-white">
+            <div className="bg-ds-surface border border-ds-border rounded-lg p-8 text-ds-text">
                 <h2 className="text-2xl font-black mb-4">Siguiente paso</h2>
-                <p className="text-blue-100 mb-6">
+                <p className="text-ds-soft mb-6">
                     Ya tienes lo basico configurado. Ahora explora todas las features que Decatron tiene para ofrecer.
                 </p>
                 <div className="flex flex-wrap gap-4">
                     <Link
                         to="/docs/features"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#2563eb] font-bold rounded-lg hover:bg-blue-50 transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         Ver todas las features
                         <ArrowRight className="w-5 h-5" />
                     </Link>
                     <Link
                         to="/docs/commands/default"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-bold rounded-lg hover:bg-white/30 transition-colors"
+                        className="ds-btn ds-btn--secondary ds-btn--lg"
                     >
                         Comandos por defecto
                     </Link>
@@ -165,10 +165,10 @@ interface RequirementProps {
 function Requirement({ text, optional }: RequirementProps) {
     return (
         <li className="flex items-center gap-3">
-            <CheckCircle className={`w-5 h-5 flex-shrink-0 ${optional ? 'text-[#64748b]' : 'text-green-500'}`} />
-            <span className="text-[#64748b] dark:text-[#94a3b8]">
+            <CheckCircle className={`w-5 h-5 flex-shrink-0 ${optional ? 'text-ds-soft' : 'text-ds-ok'}`} />
+            <span className="text-ds-soft">
                 {text}
-                {optional && <span className="ml-2 text-xs bg-[#f8fafc] dark:bg-[#374151] px-2 py-0.5 rounded">Opcional</span>}
+                {optional && <span className="ml-2 text-xs bg-ds-bg px-2 py-0.5 rounded">Opcional</span>}
             </span>
         </li>
     );
@@ -183,14 +183,14 @@ interface StepProps {
 
 function Step({ number, title, description, children }: StepProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
             <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-black text-xl">
+                <div className="flex-shrink-0 w-12 h-12 bg-ds-accent text-white rounded-full flex items-center justify-center font-black text-xl">
                     {number}
                 </div>
                 <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                    <h3 className="text-xl font-bold text-ds-text mb-2">{title}</h3>
+                    <p className="text-ds-soft">{description}</p>
                     {children}
                 </div>
             </div>
@@ -205,9 +205,9 @@ interface ConfigItemProps {
 
 function ConfigItem({ title, description }: ConfigItemProps) {
     return (
-        <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-lg p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+        <div className="bg-ds-bg rounded-lg p-4 border border-ds-border">
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -227,20 +227,20 @@ function CommandExample({ command, response }: CommandExampleProps) {
     };
 
     return (
-        <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-lg p-4 border border-[#e2e8f0] dark:border-[#374151] mb-4">
+        <div className="bg-ds-bg rounded-lg p-4 border border-ds-border mb-4">
             <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-[#64748b] dark:text-[#94a3b8]">Comando:</span>
+                <span className="text-sm font-medium text-ds-soft">Comando:</span>
                 <button
                     onClick={handleCopy}
-                    className="p-1 hover:bg-white dark:hover:bg-[#374151] rounded transition-colors"
+                    className="p-1 hover:bg-hover:bg-ds-bg rounded transition-colors"
                     title="Copiar comando"
                 >
-                    {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-[#64748b]" />}
+                    {copied ? <Check className="w-4 h-4 text-ds-ok" /> : <Copy className="w-4 h-4 text-ds-soft" />}
                 </button>
             </div>
-            <code className="block text-[#2563eb] font-mono text-lg mb-3">{command}</code>
-            <div className="text-sm font-medium text-[#64748b] dark:text-[#94a3b8] mb-1">Respuesta:</div>
-            <code className="block text-gray-800 dark:text-[#f8fafc] font-mono">{response}</code>
+            <code className="block text-ds-accent-text font-mono text-lg mb-3">{command}</code>
+            <div className="text-sm font-medium text-ds-soft mb-1">Respuesta:</div>
+            <code className="block text-ds-text font-mono">{response}</code>
         </div>
     );
 }

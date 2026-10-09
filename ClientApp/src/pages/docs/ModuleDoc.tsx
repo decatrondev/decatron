@@ -22,14 +22,14 @@ export function ModuleDoc({ ns, page, scope, icon: Icon, children }: {
 
     return (
         <div className="space-y-8">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Icon className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center border border-ds-border">
+                        <Icon className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{data.title}</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">{data.subtitle}</p>
+                        <h1 className="text-3xl font-black text-ds-text">{data.title}</h1>
+                        <p className="text-ds-soft">{data.subtitle}</p>
                     </div>
                 </div>
             </div>

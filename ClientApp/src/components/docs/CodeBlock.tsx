@@ -20,13 +20,13 @@ export default function CodeBlock({ code, language = 'bash' }: CodeBlockProps) {
             <div className="absolute top-3 right-3 z-10">
                 <button
                     onClick={handleCopy}
-                    className="p-2 bg-[#374151] hover:bg-[#4b5563] text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-2 bg-ds-raised hover:bg-ds-bg border border-ds-border text-ds-text rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                     title="Copiar código"
                 >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </button>
             </div>
-            <pre className="bg-[#f8fafc] dark:bg-[#1B1C1D] text-gray-800 dark:text-[#e2e8f0] rounded-xl p-6 overflow-x-auto border border-[#e2e8f0] dark:border-[#374151]">
+            <pre className="bg-ds-bg text-ds-text rounded-lg p-6 overflow-x-auto border border-ds-border">
                 <code className={`language-${language} text-sm font-mono`}>{code}</code>
             </pre>
         </div>

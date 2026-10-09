@@ -6,17 +6,17 @@ import DocSection from '../../../../components/docs/DocSection';
 export default function PetsDoc() {
     return (
         <div className="space-y-8">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
-                        <Cat className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Cat className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">Mascota</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">Un gato 3D que vive en tu stream</p>
+                        <h1 className="text-3xl font-black text-ds-text">Mascota</h1>
+                        <p className="text-ds-soft">Un gato 3D que vive en tu stream</p>
                     </div>
                 </div>
-                <Link to="/overlays/pets" className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                <Link to="/overlays/pets" className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors">
                     Ir a configuración <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
@@ -81,10 +81,10 @@ export default function PetsDoc() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
     return (
-        <div className="p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3">{icon}</div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+        <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">{icon}</div>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }

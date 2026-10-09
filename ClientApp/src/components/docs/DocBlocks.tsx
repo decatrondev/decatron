@@ -41,7 +41,7 @@ function Block({ b, scope }: { b: DocBlock; scope: DocScope }) {
         case 'p':
             return <p>{b.x}</p>;
         case 'h3':
-            return <h3 className="text-lg font-bold text-gray-900 dark:text-white pt-2">{b.x}</h3>;
+            return <h3 className="text-lg font-bold text-ds-text pt-2">{b.x}</h3>;
         case 'ul':
             return <ul className="list-disc pl-6 space-y-2">{asArray<string>(b.items).map(x => <li key={x}>{x}</li>)}</ul>;
         case 'ol':
@@ -52,20 +52,20 @@ function Block({ b, scope }: { b: DocBlock; scope: DocScope }) {
             return <CodeBlock code={b.x} />;
         case 'table':
             return (
-                <div className="rounded-lg border border-[#e2e8f0] dark:border-[#374151] overflow-x-auto">
+                <div className="rounded-lg border border-ds-border overflow-x-auto">
                     <table className="w-full text-sm">
                         {b.head && (
                             <thead>
-                                <tr className="border-b border-[#e2e8f0] dark:border-[#374151] text-left text-gray-900 dark:text-white">
+                                <tr className="border-b border-ds-border text-left text-ds-text">
                                     {b.head.map(h => <th key={h} className="px-4 py-2 font-bold">{h}</th>)}
                                 </tr>
                             </thead>
                         )}
-                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <tbody className="divide-y divide-ds-border">
                             {asArray<string[]>(b.rows).map((row, ri) => (
                                 <tr key={ri} className="align-top">
                                     {row.map((cell, ci) => (
-                                        <td key={ci} className={`px-4 py-2 ${ci === 0 ? 'font-medium text-gray-900 dark:text-white' : ''}`}>{cell}</td>
+                                        <td key={ci} className={`px-4 py-2 ${ci === 0 ? 'font-medium text-ds-text' : ''}`}>{cell}</td>
                                     ))}
                                 </tr>
                             ))}
@@ -79,7 +79,7 @@ function Block({ b, scope }: { b: DocBlock; scope: DocScope }) {
             const target: DocScope = page.scopes.includes(scope) ? scope : page.scopes[0];
             return (
                 <p>
-                    <Link to={docUrl(target, page.path)} className="font-bold text-[#2563eb] dark:text-pub-accent-hi hover:underline">
+                    <Link to={docUrl(target, page.path)} className="font-bold text-ds-accent-text hover:underline">
                         {t(`pages.${page.id}.title`)} →
                     </Link>
                 </p>
@@ -139,18 +139,18 @@ function TierLimitsTable({ rows }: { rows: string[] }) {
     };
 
     return (
-        <div className="rounded-lg border border-[#e2e8f0] dark:border-[#374151] overflow-x-auto">
+        <div className="rounded-lg border border-ds-border overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-[#e2e8f0] dark:border-[#374151] text-left text-gray-900 dark:text-white">
+                    <tr className="border-b border-ds-border text-left text-ds-text">
                         <th className="px-4 py-2 font-bold">{t('limits.title')}</th>
                         {data.tiers.map(tier => <th key={tier} className="px-4 py-2 font-bold">{t(`limits.tiers.${tier}`)}</th>)}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                <tbody className="divide-y divide-ds-border">
                     {rows.filter(r => data.rows[r]).map(r => (
                         <tr key={r}>
-                            <td className="px-4 py-2 font-medium text-gray-900 dark:text-white">{t(`limits.rows.${r}`)}</td>
+                            <td className="px-4 py-2 font-medium text-ds-text">{t(`limits.rows.${r}`)}</td>
                             {data.tiers.map(tier => <td key={tier} className="px-4 py-2">{fmt(r, data.rows[r][tier])}</td>)}
                         </tr>
                     ))}

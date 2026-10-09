@@ -20,18 +20,18 @@ export default function MicrocommandsDoc() {
 
     return (
         <div className="space-y-8">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <Zap className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-bg rounded-lg flex items-center justify-center border border-ds-border">
+                        <Zap className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{t('microCommands.title')}</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">{t('microCommands.subtitle')}</p>
+                        <h1 className="text-3xl font-black text-ds-text">{t('microCommands.title')}</h1>
+                        <p className="text-ds-soft">{t('microCommands.subtitle')}</p>
                     </div>
                 </div>
                 {isDashboard && (
-                    <Link to="/commands/microcommands" className="inline-flex mt-5 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">
+                    <Link to="/commands/microcommands" className="inline-flex mt-5 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors">
                         {t('microCommands.goToPanel')}
                     </Link>
                 )}
@@ -45,34 +45,34 @@ export default function MicrocommandsDoc() {
                 <ol className="list-decimal pl-6 space-y-2">
                     {list('how').map(step => <li key={step}>{step}</li>)}
                 </ol>
-                <p className="font-medium text-gray-900 dark:text-white">{t('microCommands.example')}</p>
+                <p className="font-medium text-ds-text">{t('microCommands.example')}</p>
                 <CodeBlock code={t('microCommands.exampleCode')} />
             </DocSection>
 
             <DocSection title={t('microCommands.whoTitle')}>
                 <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 mt-1 text-[#2563eb] flex-shrink-0" />
+                    <Users className="w-5 h-5 mt-1 text-ds-accent-text flex-shrink-0" />
                     <p>{t('microCommands.who')}</p>
                 </div>
             </DocSection>
 
             <DocSection title={t('microCommands.createTitle')}>
-                <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
-                    <LayoutDashboard className="w-5 h-5 text-[#2563eb]" />{t('microCommands.panelTitle')}
+                <h3 className="flex items-center gap-2 text-lg font-bold text-ds-text">
+                    <LayoutDashboard className="w-5 h-5 text-ds-accent-text" />{t('microCommands.panelTitle')}
                 </h3>
                 <ol className="list-decimal pl-6 space-y-2">
                     {list('panel').map(step => <li key={step}>{step}</li>)}
                 </ol>
                 <DocAlert type="info">{t('microCommands.panelNote')}</DocAlert>
 
-                <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white pt-2">
-                    <Terminal className="w-5 h-5 text-[#2563eb]" />{t('microCommands.chatTitle')}
+                <h3 className="flex items-center gap-2 text-lg font-bold text-ds-text pt-2">
+                    <Terminal className="w-5 h-5 text-ds-accent-text" />{t('microCommands.chatTitle')}
                 </h3>
                 <p>{t('microCommands.chatIntro')}</p>
-                <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] divide-y divide-[#e2e8f0] dark:divide-[#374151] overflow-hidden">
+                <div className="rounded-lg border border-ds-border divide-y divide-ds-border overflow-hidden">
                     {rows.map(([cmd, desc]) => (
                         <div key={cmd} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 px-4 py-3">
-                            <code className="font-mono text-sm font-bold text-[#2563eb] dark:text-pub-accent-hi sm:w-64 flex-shrink-0">{cmd}</code>
+                            <code className="font-mono text-sm font-bold text-ds-accent-text sm:w-64 flex-shrink-0">{cmd}</code>
                             <span className="text-sm">{desc}</span>
                         </div>
                     ))}
@@ -87,14 +87,14 @@ export default function MicrocommandsDoc() {
 
             <DocSection title={t('microCommands.panelAccessTitle')}>
                 <div className="flex items-start gap-3">
-                    <ShieldCheck className="w-5 h-5 mt-1 text-[#2563eb] flex-shrink-0" />
+                    <ShieldCheck className="w-5 h-5 mt-1 text-ds-accent-text flex-shrink-0" />
                     <p>{t('microCommands.panelAccess')}</p>
                 </div>
             </DocSection>
 
             <DocSection title={t('microCommands.reqTitle')}>
                 <div className="flex items-start gap-3">
-                    <ListChecks className="w-5 h-5 mt-1 text-[#2563eb] flex-shrink-0" />
+                    <ListChecks className="w-5 h-5 mt-1 text-ds-accent-text flex-shrink-0" />
                     <ul className="list-disc pl-5 space-y-2">
                         {list('req').map(r => <li key={r}>{r}</li>)}
                     </ul>

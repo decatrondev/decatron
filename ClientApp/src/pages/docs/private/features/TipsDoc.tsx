@@ -7,23 +7,23 @@ export default function TipsDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center">
-                        <DollarSign className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    <div className="w-16 h-16 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center">
+                        <DollarSign className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Donaciones / Tips
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Recibe donaciones con PayPal y alertas personalizadas
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/tips"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -82,26 +82,26 @@ export default function TipsDoc() {
                     La pagina de donacion es personalizable:
                 </p>
                 <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Logo:</strong> Tu imagen de perfil o logo personalizado
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Colores:</strong> Personaliza el tema de la pagina
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Mensaje:</strong> Texto de bienvenida personalizado
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Montos sugeridos:</strong> Botones con montos predefinidos
                     </li>
                 </ul>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-2">Tu enlace de donacion:</p>
-                    <code className="text-[#2563eb] font-mono">https://twitch.decatron.net/tip/tu-canal</code>
+                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <p className="text-sm text-ds-soft mb-2">Tu enlace de donacion:</p>
+                    <code className="text-ds-accent-text font-mono">https://twitch.decatron.net/tip/tu-canal</code>
                 </div>
             </DocSection>
 
@@ -139,19 +139,19 @@ export default function TipsDoc() {
                 <p className="mb-4">
                     Las donaciones pueden extender automaticamente el timer:
                 </p>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <h4 className="font-bold text-gray-900 dark:text-white mb-3">Ejemplo de configuracion</h4>
+                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <h4 className="font-bold text-ds-text mb-3">Ejemplo de configuracion</h4>
                     <ul className="space-y-2">
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-green-500">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             $1 = 1 minuto extra
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-green-500">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             $5 = 10 minutos extra
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-green-500">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             $10 = 30 minutos extra
                         </li>
                     </ul>
@@ -167,20 +167,20 @@ export default function TipsDoc() {
                     Accede al historial completo de donaciones:
                 </p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Fecha y hora
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Nombre del donante
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Monto
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Mensaje (si incluyo uno)
                     </li>
                 </ul>
@@ -211,12 +211,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center text-green-600 dark:text-green-400 mb-3">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
                 {icon}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -229,13 +229,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -249,12 +249,12 @@ interface AlertOptionProps {
 
 function AlertOption({ title, description, example }: AlertOptionProps) {
     return (
-        <div className="flex items-center justify-between bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-center justify-between bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
-            <code className="text-xs bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] px-2 py-1 rounded">
+            <code className="text-xs bg-ds-bg text-ds-soft px-2 py-1 rounded">
                 {example}
             </code>
         </div>

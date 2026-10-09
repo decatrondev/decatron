@@ -7,23 +7,23 @@ export default function GoalsDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center">
-                        <Target className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    <div className="w-16 h-16 bg-ds-raised border border-ds-border rounded-lg flex items-center justify-center">
+                        <Target className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Metas / Goals
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Crea metas interactivas con overlay en tiempo real
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/overlays/goals"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -86,19 +86,19 @@ export default function GoalsDoc() {
                 <p className="mb-4">
                     Las metas pueden integrarse con el timer de Decatron:
                 </p>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <h4 className="font-bold text-gray-900 dark:text-white mb-3">Ejemplo: Meta de tiempo</h4>
+                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <h4 className="font-bold text-ds-text mb-3">Ejemplo: Meta de tiempo</h4>
                     <ul className="space-y-2">
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-green-500">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             Cada nuevo sub agrega 5 minutos al timer
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-green-500">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             100 bits agregan 1 minuto
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-green-500">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             Cada $5 de donacion agregan 10 minutos
                         </li>
                     </ul>
@@ -139,39 +139,39 @@ export default function GoalsDoc() {
                 <p className="mb-4">
                     El overlay muestra el progreso de la meta en tiempo real:
                 </p>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
                     <div className="mb-4">
                         <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[#64748b] dark:text-[#94a3b8]">Meta de Subs</span>
-                            <span className="font-bold text-gray-900 dark:text-white">75 / 100</span>
+                            <span className="text-ds-soft">Meta de Subs</span>
+                            <span className="font-bold text-ds-text">75 / 100</span>
                         </div>
-                        <div className="h-4 bg-[#f8fafc] dark:bg-[#374151] rounded-full overflow-hidden">
-                            <div className="h-full w-3/4 bg-gradient-to-r from-green-500 to-green-600 rounded-full" />
+                        <div className="h-4 bg-ds-bg rounded-full overflow-hidden">
+                            <div className="h-full w-3/4 bg-ds-accent rounded-full" />
                         </div>
                     </div>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] text-center">
+                    <p className="text-sm text-ds-soft text-center">
                         Ejemplo de barra de progreso
                     </p>
                 </div>
                 <div className="mt-4 space-y-2">
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">
+                    <p className="text-ds-soft">
                         Personaliza el overlay con:
                     </p>
                     <ul className="space-y-1">
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-[#2563eb]">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             Colores personalizados
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-[#2563eb]">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             Animaciones al avanzar
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-[#2563eb]">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             Texto personalizado
                         </li>
-                        <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                            <span className="text-[#2563eb]">•</span>
+                        <li className="flex items-center gap-2 text-ds-soft">
+                            <span className="text-ds-accent-text">•</span>
                             Mostrar/ocultar porcentaje
                         </li>
                     </ul>
@@ -226,13 +226,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -246,21 +246,21 @@ interface SourceCardProps {
 }
 
 const colorMap: Record<string, string> = {
-    purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-    yellow: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
-    green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
-    blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+    purple: 'bg-ds-raised text-ds-accent-text ',
+    yellow: 'bg-ds-raised text-ds-accent-text ',
+    green: 'bg-ds-raised text-ds-accent-text',
+    blue: 'bg-ds-raised text-ds-accent-text ',
 };
 
 function SourceCard({ icon, title, description, color }: SourceCardProps) {
     return (
-        <div className="flex items-start gap-3 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex items-start gap-3 bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className={`w-10 h-10 ${colorMap[color]} rounded-lg flex items-center justify-center flex-shrink-0`}>
                 {icon}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
         </div>
     );
@@ -273,11 +273,11 @@ interface MilestoneExampleProps {
 
 function MilestoneExample({ percentage, action }: MilestoneExampleProps) {
     return (
-        <div className="flex items-center gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-12 h-12 bg-green-500 text-white rounded-lg flex items-center justify-center font-bold text-sm">
+        <div className="flex items-center gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-12 h-12 bg-ds-accent text-white rounded-lg flex items-center justify-center font-bold text-sm">
                 {percentage}
             </div>
-            <div className="text-[#64748b] dark:text-[#94a3b8]">{action}</div>
+            <div className="text-ds-soft">{action}</div>
         </div>
     );
 }
@@ -289,9 +289,9 @@ interface CommandCardProps {
 
 function CommandCard({ command, description }: CommandCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <code className="text-[#2563eb] font-mono font-bold">{command}</code>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{description}</p>
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <code className="text-ds-accent-text font-mono font-bold">{command}</code>
+            <p className="text-sm text-ds-soft mt-1">{description}</p>
         </div>
     );
 }

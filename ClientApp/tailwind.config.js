@@ -21,16 +21,35 @@ export default {
             },
             colors: {
                 // Base común de todas las vistas públicas (portada, legales, /sprites, /sr, comandos, emotes).
-                // Un solo lugar para el fondo, las superficies y el azul de marca.
+                // Los valores viven en components/ds/tokens.ts y se inyectan como variables CSS (--pub-*, canales r g b).
                 pub: {
-                    bg: '#0b0d12',
-                    surface: '#12151c',
-                    raised: '#171b24',
-                    border: '#222733',
-                    'border-soft': '#1b1f29',
-                    accent: '#3161d8',
-                    'accent-hi': '#6e94ed',
-                    'accent-hover': '#2653c5',
+                    bg: 'rgb(var(--pub-bg) / <alpha-value>)',
+                    surface: 'rgb(var(--pub-surface) / <alpha-value>)',
+                    raised: 'rgb(var(--pub-raised) / <alpha-value>)',
+                    border: 'rgb(var(--pub-border) / <alpha-value>)',
+                    'border-soft': 'rgb(var(--pub-border-soft) / <alpha-value>)',
+                    accent: 'rgb(var(--pub-accent) / <alpha-value>)',
+                    'accent-hi': 'rgb(var(--pub-accent-hi) / <alpha-value>)',
+                    'accent-hover': 'rgb(var(--pub-accent-hover) / <alpha-value>)',
+                },
+                // Colores semánticos del sistema de diseño (siguen el tema claro/oscuro solos): bg-ds-surface, text-ds-soft…
+                ds: {
+                    bg: 'rgb(var(--dc-bg) / <alpha-value>)',
+                    surface: 'rgb(var(--dc-surface) / <alpha-value>)',
+                    raised: 'rgb(var(--dc-raised) / <alpha-value>)',
+                    input: 'rgb(var(--dc-input) / <alpha-value>)',
+                    border: 'rgb(var(--dc-border) / <alpha-value>)',
+                    'border-soft': 'rgb(var(--dc-border-soft) / <alpha-value>)',
+                    text: 'rgb(var(--dc-text) / <alpha-value>)',
+                    soft: 'rgb(var(--dc-soft) / <alpha-value>)',
+                    faint: 'rgb(var(--dc-faint) / <alpha-value>)',
+                    accent: 'rgb(var(--dc-accent) / <alpha-value>)',
+                    'accent-hover': 'rgb(var(--dc-accent-hover) / <alpha-value>)',
+                    'accent-text': 'rgb(var(--dc-accent-text) / <alpha-value>)',
+                    'on-accent': 'rgb(var(--dc-on-accent) / <alpha-value>)',
+                    ok: 'rgb(var(--dc-ok) / <alpha-value>)',
+                    warn: 'rgb(var(--dc-warn) / <alpha-value>)',
+                    danger: 'rgb(var(--dc-danger) / <alpha-value>)',
                 },
                 // Azul profesional (accent)
                 accent: {

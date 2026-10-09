@@ -5,7 +5,9 @@ import {
     DsRoot, Button, IconButton, Field, Input, Textarea, Select, Switch, Checkbox, Tabs, Segmented, Card, Badge, Alert,
     Progress, Spinner, Eyebrow, Table, Modal, Toast, Empty,
 } from '../../components/ds';
-import { DS_COLORS, DS_SHAPE, type DsTheme } from '../../components/ds/tokens';
+import type { DsTheme } from '../../components/ds/tokens';
+import { getActiveDesign } from '../../design/runtime';
+import DesignEditor from './DesignEditor';
 
 /**
  * Guía de estilo viva (solo dueño). Fase 0 del sistema de diseño: SIN conectar a ninguna página ni a la base de datos.
@@ -48,6 +50,7 @@ export default function DesignGuide() {
     const [seg, setSeg] = useState('mes');
     const [sw, setSw] = useState(true);
     const [loadingBtn, setLoadingBtn] = useState(false);
+    const [mode, setMode] = useState<'guia' | 'editor'>('guia');
 
     useEffect(() => {
         api.get('/admin/decatron-ai/check-owner').then(r => setAccess(r.data?.isOwner === true ? 'ok' : 'no')).catch(() => setAccess('no'));
@@ -56,13 +59,17 @@ export default function DesignGuide() {
     if (access === 'loading') return <p style={{ padding: 32 }}>...</p>;
     if (access === 'no') return <p style={{ padding: 32 }}>Esta guía es solo para el dueño del sistema.</p>;
 
-    const c = DS_COLORS[theme];
+    const design = getActiveDesign();
+    const c = design.colors[theme];
+    const DS_SHAPE = design.shape;
     const pairs: [string, string, string][] = [
         ['Texto sobre fondo', c.text, c.bg], ['Texto sobre superficie', c.text, c.surface], ['Texto de apoyo sobre superficie', c.soft, c.surface],
         ['Texto tenue sobre fondo', c.faint, c.bg], ['Azul (texto) sobre superficie', c.accentText, c.surface], ['Texto del botón principal', c.onAccent, c.accent],
         ['Botón principal al pasar el mouse', c.onAccent, c.accentHover], ['Estado correcto sobre superficie', c.ok, c.surface],
         ['Aviso sobre superficie', c.warn, c.surface], ['Error sobre superficie', c.danger, c.surface],
     ];
+
+    if (mode === 'editor') return <DsRoot theme={theme}><DesignEditor onClose={() => setMode('guia')} /></DsRoot>;
 
     return (
         <DsRoot theme={theme} className="" >
@@ -77,13 +84,13 @@ export default function DesignGuide() {
                 <main>
                     <header style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 8 }}>
                         <div>
-                            <Eyebrow>sistema de diseño · fase 0</Eyebrow>
+                            <Eyebrow>sistema de diseño</Eyebrow>
                             <h1 className="ds-h1">Guía de estilo</h1>
                             <p className="ds-card-text" style={{ marginTop: 8, maxWidth: 640 }}>
-                                Referencia de todos los componentes y sus estados. Es una vista previa: nada de esto está conectado todavía a las páginas ni a la base de datos.
+                                Referencia de todos los componentes y sus estados, con los valores que están publicados hoy. Para cambiarlos usa «Editar valores».
                             </p>
                         </div>
-                        <div><Segmented items={[{ id: 'dark', label: 'Oscuro' }, { id: 'light', label: 'Claro' }]} value={theme} onChange={v => setTheme(v as DsTheme)} /></div>
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}><Button variant="secondary" onClick={() => setMode('editor')}>Editar valores</Button><Segmented items={[{ id: 'dark', label: 'Oscuro' }, { id: 'light', label: 'Claro' }]} value={theme} onChange={v => setTheme(v as DsTheme)} /></div>
                     </header>
 
                     <Block id="principios" eyebrow="reglas" title="Principios" note="Lo que no cambia en ninguna pantalla.">

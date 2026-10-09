@@ -8,16 +8,16 @@ export default function OverlaysGuide() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center">
-                        <Monitor className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Monitor className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Configurar Overlays en OBS
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Guia paso a paso para agregar overlays de Decatron a tu stream
                         </p>
                     </div>
@@ -82,37 +82,37 @@ export default function OverlaysGuide() {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-[#f8fafc] dark:bg-[#374151] border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Overlay</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Ancho</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Alto</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Notas</th>
+                            <tr className="bg-ds-bg border-b border-ds-border">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Overlay</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Ancho</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Alto</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Notas</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <tbody className="divide-y divide-ds-border">
                             <tr>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Timer</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">1920</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">1080</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Pantalla completa</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Timer</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Alertas</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">1920</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">1080</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Pantalla completa</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Alertas</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Metas</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">800</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">200</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Barra horizontal</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Metas</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">800</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">200</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Barra horizontal</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Shoutout</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">1920</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">1080</td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">Pantalla completa</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Shoutout</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
                             </tr>
                         </tbody>
                     </table>
@@ -232,13 +232,13 @@ interface StepCardProps {
 
 function StepCard({ number, title, description }: StepCardProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
         </div>
     );
@@ -255,18 +255,18 @@ function OverlayCard({ icon, title, description, configPath }: OverlayCardProps)
     return (
         <Link
             to={configPath}
-            className="flex items-start gap-3 p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-colors group"
+            className="flex items-start gap-3 p-4 bg-ds-surface rounded-lg border border-ds-border hover:border-ds-accent transition-colors group"
         >
-            <div className="w-10 h-10 bg-[#f8fafc] dark:bg-[#374151] rounded-lg flex items-center justify-center text-[#2563eb] flex-shrink-0">
+            <div className="w-10 h-10 bg-ds-bg rounded-lg flex items-center justify-center text-ds-accent-text flex-shrink-0">
                 {icon}
             </div>
             <div className="flex-1">
-                <h4 className="font-bold text-gray-900 dark:text-white group-hover:text-[#2563eb] transition-colors">
+                <h4 className="font-bold text-ds-text group-hover:text-ds-accent-text transition-colors">
                     {title}
                 </h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
-            <ExternalLink className="w-4 h-4 text-[#64748b] group-hover:text-[#2563eb] transition-colors" />
+            <ExternalLink className="w-4 h-4 text-ds-soft group-hover:text-ds-accent-text transition-colors" />
         </Link>
     );
 }
@@ -278,12 +278,12 @@ interface TroubleshootItemProps {
 
 function TroubleshootItem({ problem, solutions }: TroubleshootItemProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <h4 className="font-bold text-gray-900 dark:text-white mb-2">{problem}</h4>
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <h4 className="font-bold text-ds-text mb-2">{problem}</h4>
             <ul className="space-y-1">
                 {solutions.map((solution, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb] mt-1">•</span>
+                    <li key={index} className="flex items-start gap-2 text-sm text-ds-soft">
+                        <span className="text-ds-accent-text mt-1">•</span>
                         {solution}
                     </li>
                 ))}

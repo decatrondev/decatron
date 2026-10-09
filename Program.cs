@@ -539,6 +539,7 @@ try
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayConfigService>();
     builder.Services.AddScoped<Decatron.Services.GameData.GameOverlayPromoService>();
     builder.Services.AddScoped<Decatron.Services.Brand.BrandService>(); // Logos de la marca editables desde /admin/brand
+    builder.Services.AddScoped<Decatron.Services.Design.DesignService>(); // Editor de valores de diseño de /admin/estilo
     // Song Request (.dev/plans/SONG_REQUEST_PLAN.md): un servicio nuevo = registrar su ITrackResolver y/o ITrackSource
     builder.Services.AddSingleton<Decatron.Services.SongRequest.YtDlpRunner>();
     builder.Services.AddSingleton<Decatron.Services.SongRequest.YouTubeTrackSource>();

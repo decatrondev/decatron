@@ -7,23 +7,23 @@ export default function GiveawayDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-pink-50 dark:bg-pink-900/20 rounded-2xl flex items-center justify-center">
-                        <Gift className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Gift className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Sorteos / Giveaways
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Sistema completo de sorteos con requisitos y pesos
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/giveaways"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -43,7 +43,7 @@ export default function GiveawayDoc() {
                         <p>Configura quien puede participar: todos, solo followers, solo subs, etc.</p>
                     </Step>
                     <Step number={4} title="Inicia el sorteo">
-                        <p>Usa el comando <code className="text-[#2563eb]">!raffle</code> o el boton en el dashboard para iniciar.</p>
+                        <p>Usa el comando <code className="text-ds-accent-text">!raffle</code> o el boton en el dashboard para iniciar.</p>
                     </Step>
                 </div>
             </DocSection>
@@ -153,26 +153,26 @@ export default function GiveawayDoc() {
                     El overlay muestra informacion del sorteo en tiempo real:
                 </p>
                 <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Nombre del premio
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Numero de participantes
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Tiempo restante (si tiene limite)
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Animacion al seleccionar ganador
                     </li>
                 </ul>
                 <Link
                     to="/dashboard/docs/overlays"
-                    className="inline-flex items-center gap-2 text-[#2563eb] font-medium hover:underline"
+                    className="inline-flex items-center gap-2 text-ds-accent-text font-medium hover:underline"
                 >
                     Como agregar el overlay a OBS
                     <ArrowRight className="w-4 h-4" />
@@ -185,20 +185,20 @@ export default function GiveawayDoc() {
                     Decatron guarda un registro de todos los sorteos realizados:
                 </p>
                 <ul className="space-y-2">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Fecha y hora del sorteo
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Premio sorteado
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Ganador
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-[#2563eb]">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         Numero total de participantes
                     </li>
                 </ul>
@@ -233,13 +233,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -253,13 +253,13 @@ interface RequirementCardProps {
 
 function RequirementCard({ icon, title, description }: RequirementCardProps) {
     return (
-        <div className="flex items-start gap-3 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-pink-50 dark:bg-pink-900/20 rounded-lg flex items-center justify-center text-pink-600 dark:text-pink-400 flex-shrink-0">
+        <div className="flex items-start gap-3 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text flex-shrink-0">
                 {icon}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
         </div>
     );
@@ -273,13 +273,13 @@ interface WeightExampleProps {
 
 function WeightExample({ tier, weight, description }: WeightExampleProps) {
     return (
-        <div className="flex items-center gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-12 h-12 bg-[#2563eb] text-white rounded-lg flex items-center justify-center font-bold">
+        <div className="flex items-center gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-12 h-12 bg-ds-accent text-white rounded-lg flex items-center justify-center font-bold">
                 {weight}
             </div>
             <div className="flex-1">
-                <div className="font-bold text-gray-900 dark:text-white">{tier}</div>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</div>
+                <div className="font-bold text-ds-text">{tier}</div>
+                <div className="text-sm text-ds-soft">{description}</div>
             </div>
         </div>
     );
@@ -292,9 +292,9 @@ interface CommandCardProps {
 
 function CommandCard({ command, description }: CommandCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <code className="text-[#2563eb] font-mono font-bold">{command}</code>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{description}</p>
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <code className="text-ds-accent-text font-mono font-bold">{command}</code>
+            <p className="text-sm text-ds-soft mt-1">{description}</p>
         </div>
     );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import DocsFrame from '../../../components/docs/DocsFrame';
 import DocsLanguageSwitch from '../../../components/docs/DocsLanguageSwitch';
 import { DOC_GROUP_ORDER, docUrl, pagesFor, type DocGroup } from '../registry';
 
@@ -40,9 +41,9 @@ export default function PrivateDocsLayout() {
                             type="button"
                             onClick={() => setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }))}
                             aria-expanded={open}
-                            className="w-full flex items-center justify-between px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-white transition-colors"
+                            className="w-full flex items-center justify-between px-3 py-1 font-mono text-xs font-semibold text-ds-soft hover:text-ds-text transition-colors"
                         >
-                            <span>{t(`groups.${group}`)}</span>
+                            <span># {t(`groups.${group}`)}</span>
                             <ChevronRight className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`} />
                         </button>
                         {open && (
@@ -57,8 +58,8 @@ export default function PrivateDocsLayout() {
                                             aria-current={active ? 'page' : undefined}
                                             className={`block border-l-2 pl-3 pr-2 py-1.5 text-sm leading-snug transition-colors ${
                                                 active
-                                                    ? 'border-[#2563eb] text-[#2563eb] dark:text-[#60a5fa] font-semibold'
-                                                    : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-white'
+                                                    ? 'border-ds-accent text-ds-accent-text font-semibold'
+                                                    : 'border-ds-border text-ds-soft hover:text-ds-text'
                                             }`}
                                         >
                                             {t(`pages.${page.id}.title`)}
@@ -74,31 +75,31 @@ export default function PrivateDocsLayout() {
     );
 
     return (
-        <div className="space-y-6">
+        <DocsFrame bleed className="panel-scale space-y-6">
             {/* Barra fija: sigue al scroll para tener siempre a mano Atrás, las migas y el idioma.
                 Los márgenes y el top negativos igualan el padding del contenedor del panel (p-4 sm:p-6 xl:p-8): la barra cubre hasta el borde. El índice (top 4.25rem) queda justo debajo. */}
-            <div className="sticky -top-4 sm:-top-6 xl:-top-8 z-20 -mx-4 sm:-mx-6 xl:-mx-8 -mt-4 sm:-mt-6 xl:-mt-8 px-4 sm:px-6 xl:px-8 pt-4 sm:pt-6 xl:pt-8 pb-3 bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151] flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="sticky -top-4 sm:-top-6 xl:-top-8 z-20 -mx-4 sm:-mx-6 xl:-mx-8 -mt-4 sm:-mt-6 xl:-mt-8 px-4 sm:px-6 xl:px-8 pt-4 sm:pt-6 xl:pt-8 pb-3 bg-ds-bg/90 backdrop-blur border-b border-ds-border flex flex-wrap items-center gap-x-4 gap-y-2">
                 <button
                     type="button"
                     onClick={goBack}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-sm font-semibold text-[#475569] dark:text-[#cbd5e1] hover:border-[#2563eb] hover:text-[#2563eb] transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-ds-border text-sm font-semibold text-ds-text hover:border-ds-accent hover:text-ds-accent-text transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />{t('layout.back')}
                 </button>
-                <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-[#64748b] dark:text-[#94a3b8] min-w-0">
-                    <Link to="/dashboard" className="inline-flex items-center gap-1.5 hover:text-[#2563eb] transition-colors">
+                <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-sm text-ds-soft min-w-0">
+                    <Link to="/dashboard" className="inline-flex items-center gap-1.5 hover:text-ds-accent-text transition-colors">
                         <LayoutDashboard className="w-4 h-4" />{t('layout.backToDashboard')}
                     </Link>
                     <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                     {isHome ? (
-                        <span className="font-semibold text-gray-900 dark:text-white">{t('pages.help-center.title')}</span>
+                        <span className="font-semibold text-ds-text">{t('pages.help-center.title')}</span>
                     ) : (
                         <>
-                            <Link to={docUrl('private', '')} className="hover:text-[#2563eb] transition-colors">{t('pages.help-center.title')}</Link>
+                            <Link to={docUrl('private', '')} className="hover:text-ds-accent-text transition-colors">{t('pages.help-center.title')}</Link>
                             {current && (
                                 <>
                                     <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                                    <span className="font-semibold text-gray-900 dark:text-white truncate">{t(`pages.${current.id}.title`)}</span>
+                                    <span className="font-semibold text-ds-text truncate">{t(`pages.${current.id}.title`)}</span>
                                 </>
                             )}
                         </>
@@ -112,13 +113,13 @@ export default function PrivateDocsLayout() {
                     <div className="sticky top-[4.25rem] max-h-[calc(100vh-11rem)] overflow-y-auto pr-2">{index}</div>
                 </aside>
                 <div className="min-w-0">
-                    <details className="lg:hidden mb-6 rounded-lg border border-[#e2e8f0] dark:border-[#374151] p-3">
-                        <summary className="cursor-pointer text-sm font-semibold text-gray-900 dark:text-white">{t('layout.index')}</summary>
+                    <details className="lg:hidden mb-6 rounded-lg border border-ds-border p-3">
+                        <summary className="cursor-pointer text-sm font-semibold text-ds-text">{t('layout.index')}</summary>
                         <div className="mt-3">{index}</div>
                     </details>
                     <Outlet />
                 </div>
             </div>
-        </div>
+        </DocsFrame>
     );
 }

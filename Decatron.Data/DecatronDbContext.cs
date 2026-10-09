@@ -151,6 +151,7 @@ namespace Decatron.Data
         public DbSet<Core.Models.GameOverlays.GameOverlayPromoSettings> GameOverlayPromoSettings { get; set; }
         public DbSet<Core.Models.Brand.BrandAsset> BrandAssets { get; set; }
         public DbSet<Core.Models.Brand.BrandSlot> BrandSlots { get; set; }
+        public DbSet<Core.Models.Design.DesignVersion> DesignVersions { get; set; }
         public DbSet<Core.Models.SongRequest.SongTrack> SongTracks { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestConfig> SongRequestConfigs { get; set; }
         public DbSet<Core.Models.SongRequest.SongRequestQueueItem> SongRequestQueue { get; set; }

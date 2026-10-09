@@ -42,31 +42,31 @@ function CommandList() {
                 if (!commands.length) return null;
                 return (
                     <section key={group}>
-                        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2 pb-2 border-b border-[#e2e8f0] dark:border-[#374151]">
+                        <h2 className="text-2xl font-black text-ds-text mb-2 pb-2 border-b border-ds-border">
                             {t(`srGuide.groups.${group}`)}
                         </h2>
                         {t(`srGuide.groupNotes.${group}`, { defaultValue: '' }) && (
-                            <p className="mb-3 text-[#64748b] dark:text-[#94a3b8]">{t(`srGuide.groupNotes.${group}`)}</p>
+                            <p className="mb-3 text-ds-soft">{t(`srGuide.groupNotes.${group}`)}</p>
                         )}
-                        <div className="rounded-lg border border-[#e2e8f0] dark:border-[#374151] divide-y divide-[#e2e8f0] dark:divide-[#374151] overflow-hidden">
+                        <div className="rounded-lg border border-ds-border divide-y divide-ds-border overflow-hidden">
                             {commands.map(cmd => {
                                 const role = roleFor(cmd, DEFAULT_PERMISSIONS);
                                 return (
                                     <div key={cmd.id} className="p-4 grid grid-cols-1 lg:grid-cols-[minmax(0,20rem)_1fr] gap-x-6 gap-y-2">
                                         <div className="flex flex-wrap items-center gap-2 min-w-0">
-                                            <code className="font-mono text-sm font-bold text-[#2563eb] dark:text-pub-accent-hi break-all">{t(`srGuide.cmd.${cmd.id}.syntax`)}</code>
-                                            <span className="shrink-0 px-1.5 py-0.5 rounded border border-[#e2e8f0] dark:border-[#374151] text-xs font-semibold text-[#64748b] dark:text-[#94a3b8]">
+                                            <code className="font-mono text-sm font-bold text-ds-accent-text break-all">{t(`srGuide.cmd.${cmd.id}.syntax`)}</code>
+                                            <span className="shrink-0 px-1.5 py-0.5 rounded border border-ds-border text-xs font-semibold text-ds-soft">
                                                 {role ? t(`srGuide.badges.${role}`) : t('srGuide.badges.playlist')}
                                             </span>
                                         </div>
                                         <div className="min-w-0 space-y-2">
-                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t(`srGuide.cmd.${cmd.id}.text`, { votes: DEFAULT_SKIP_VOTES })}</p>
+                                            <p className="text-sm text-ds-soft">{t(`srGuide.cmd.${cmd.id}.text`, { votes: DEFAULT_SKIP_VOTES })}</p>
                                             <div className="flex flex-wrap items-center gap-1.5">
                                                 {cmd.examples.map(ex => (
-                                                    <code key={ex} className="px-1.5 py-0.5 rounded bg-[#eef1f6] dark:bg-pub-raised font-mono text-xs text-gray-800 dark:text-[#e6e9ef]">{ex}</code>
+                                                    <code key={ex} className="px-1.5 py-0.5 rounded bg-ds-bg font-mono text-xs text-ds-text">{ex}</code>
                                                 ))}
                                                 {cmd.aliases && (
-                                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                    <span className="text-xs text-ds-soft">
                                                         {t('srGuide.aliases')} <span className="font-mono">{cmd.aliases.join(' · ')}</span>
                                                     </span>
                                                 )}

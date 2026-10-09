@@ -13,20 +13,20 @@ function CollapsibleSection({ title, children, defaultOpen = false }: { title: s
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden my-4">
+        <div className="border border-ds-border rounded-lg overflow-hidden my-4">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center gap-2 px-4 py-3 bg-[#f8fafc] dark:bg-[#374151]/50 hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors text-left"
+                className="w-full flex items-center gap-2 px-4 py-3 bg-ds-bg hover:bg-ds-raised transition-colors text-left"
             >
                 {isOpen ? (
-                    <ChevronDown className="w-5 h-5 text-[#64748b]" />
+                    <ChevronDown className="w-5 h-5 text-ds-soft" />
                 ) : (
-                    <ChevronRight className="w-5 h-5 text-[#64748b]" />
+                    <ChevronRight className="w-5 h-5 text-ds-soft" />
                 )}
-                <span className="font-bold text-gray-900 dark:text-white">{title}</span>
+                <span className="font-bold text-ds-text">{title}</span>
             </button>
             {isOpen && (
-                <div className="p-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                <div className="p-4 border-t border-ds-border">
                     {children}
                 </div>
             )}
@@ -36,21 +36,21 @@ function CollapsibleSection({ title, children, defaultOpen = false }: { title: s
 
 function EndpointCard({ method, path, description, scope }: { method: string; path: string; description: string; scope?: string }) {
     const methodColors: Record<string, string> = {
-        GET: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-        POST: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-        PUT: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
-        DELETE: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+        GET: 'bg-ds-raised text-ds-accent-text ',
+        POST: 'bg-ds-raised text-ds-accent-text ',
+        PUT: 'bg-ds-raised text-ds-accent-text ',
+        DELETE: 'bg-ds-raised text-ds-accent-text ',
     };
 
     return (
-        <div className="p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
             <div className="flex items-center gap-2 mb-2">
                 <span className={`px-2 py-1 text-xs font-bold rounded ${methodColors[method] || ''}`}>{method}</span>
-                <code className="text-sm font-mono text-gray-900 dark:text-white">{path}</code>
+                <code className="text-sm font-mono text-ds-text">{path}</code>
             </div>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <p className="text-sm text-ds-soft">{description}</p>
             {scope && (
-                <span className="inline-block mt-2 text-xs px-2 py-1 bg-[#f8fafc] dark:bg-[#374151] text-[#2563eb] rounded font-mono">
+                <span className="inline-block mt-2 text-xs px-2 py-1 bg-ds-bg text-ds-accent-text rounded font-mono">
                     {scope}
                 </span>
             )}
@@ -60,32 +60,32 @@ function EndpointCard({ method, path, description, scope }: { method: string; pa
 
 function ScopeTable({ title, icon, color, scopes }: { title: string; icon: React.ReactNode; color: string; scopes: { scope: string; description: string }[] }) {
     const colorMap: Record<string, string> = {
-        blue: 'text-blue-600 dark:text-blue-400',
-        orange: 'text-orange-600 dark:text-orange-400',
-        red: 'text-red-600 dark:text-red-400',
+        blue: 'text-ds-accent-text ',
+        orange: 'text-ds-accent-text ',
+        red: 'bg-ds-raised text-ds-accent-text',
     };
 
     return (
         <div className="mb-6">
-            <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-ds-text mb-4">
                 {icon}
                 {title}
             </h3>
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="bg-[#f8fafc] dark:bg-[#374151] border-b border-[#e2e8f0] dark:border-[#374151]">
-                            <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Scope</th>
-                            <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Descripcion</th>
+                        <tr className="bg-ds-bg border-b border-ds-border">
+                            <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Scope</th>
+                            <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Descripcion</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                    <tbody className="divide-y divide-ds-border">
                         {scopes.map((s) => (
                             <tr key={s.scope}>
                                 <td className="px-4 py-3 text-sm">
                                     <code className={`${colorMap[color]} font-mono`}>{s.scope}</code>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">{s.description}</td>
+                                <td className="px-4 py-3 text-sm text-ds-soft">{s.description}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -99,21 +99,21 @@ export default function ApiDocs() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center">
-                        <Code2 className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Code2 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Decatron API
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Documentacion para desarrolladores
                         </p>
                     </div>
                 </div>
-                <p className="text-[#64748b] dark:text-[#94a3b8] max-w-2xl">
+                <p className="text-ds-soft max-w-2xl">
                     Integra Decatron en tus aplicaciones usando nuestra API REST con autenticacion OAuth2.
                     Controla timers, alertas, comandos y mas.
                 </p>
@@ -123,15 +123,15 @@ export default function ApiDocs() {
             <DocSection title="Inicio Rapido">
                 <div className="space-y-4">
                     <StepCard number={1} title="Registra tu aplicacion">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                            Ve al <Link to="/developer" className="text-[#2563eb] hover:underline font-medium">Developer Portal</Link> y
-                            crea una nueva aplicacion. Obtendras un <code className="px-2 py-0.5 bg-[#f8fafc] dark:bg-[#374151] rounded text-sm">client_id</code> y
-                            un <code className="px-2 py-0.5 bg-[#f8fafc] dark:bg-[#374151] rounded text-sm">client_secret</code>.
+                        <p className="text-sm text-ds-soft">
+                            Ve al <Link to="/developer" className="text-ds-accent-text hover:underline font-medium">Developer Portal</Link> y
+                            crea una nueva aplicacion. Obtendras un <code className="px-2 py-0.5 bg-ds-bg rounded text-sm">client_id</code> y
+                            un <code className="px-2 py-0.5 bg-ds-bg rounded text-sm">client_secret</code>.
                         </p>
                     </StepCard>
 
                     <StepCard number={2} title="Obtener autorizacion del usuario">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+                        <p className="text-sm text-ds-soft mb-3">
                             Redirige al usuario a la pagina de autorizacion:
                         </p>
                         <CodeBlock language="url" code={`https://twitch.decatron.net/oauth/authorize?
@@ -143,7 +143,7 @@ export default function ApiDocs() {
                     </StepCard>
 
                     <StepCard number={3} title="Intercambiar codigo por tokens">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+                        <p className="text-sm text-ds-soft mb-3">
                             Cuando el usuario autorice, sera redirigido a tu redirect_uri con un codigo:
                         </p>
                         <CodeBlock language="bash" code={`curl -X POST https://twitch.decatron.net/oauth/token \\
@@ -153,7 +153,7 @@ export default function ApiDocs() {
   -d "redirect_uri=https://tuapp.com/callback" \\
   -d "client_id=TU_CLIENT_ID" \\
   -d "client_secret=TU_CLIENT_SECRET"`} />
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-3 mb-2">Respuesta:</p>
+                        <p className="text-sm text-ds-soft mt-3 mb-2">Respuesta:</p>
                         <CodeBlock language="json" code={`{
   "access_token": "deca_abc123...",
   "token_type": "Bearer",
@@ -164,7 +164,7 @@ export default function ApiDocs() {
                     </StepCard>
 
                     <StepCard number={4} title="Usar la API">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+                        <p className="text-sm text-ds-soft mb-3">
                             Incluye el token en el header Authorization:
                         </p>
                         <CodeBlock language="bash" code={`curl https://twitch.decatron.net/api/v1/timer \\
@@ -175,13 +175,13 @@ export default function ApiDocs() {
 
             {/* Authentication */}
             <DocSection title="Autenticacion">
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">
+                <p className="text-ds-soft mb-4">
                     Decatron usa OAuth 2.0 con el flujo Authorization Code. Este es el flujo mas seguro
                     para aplicaciones que pueden mantener un secreto.
                 </p>
 
-                <div className="p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] mb-4">
-                    <h4 className="font-bold text-gray-900 dark:text-white mb-4">Flujo de Autorizacion</h4>
+                <div className="p-4 bg-ds-surface rounded-lg border border-ds-border mb-4">
+                    <h4 className="font-bold text-ds-text mb-4">Flujo de Autorizacion</h4>
                     <div className="space-y-3">
                         {[
                             'Tu app redirige al usuario a /oauth/authorize',
@@ -191,17 +191,17 @@ export default function ApiDocs() {
                             'Usa el access_token para llamar a la API',
                         ].map((step, i) => (
                             <div key={i} className="flex items-start gap-3">
-                                <span className="w-6 h-6 bg-[#2563eb] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                <span className="w-6 h-6 bg-ds-accent text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                                     {i + 1}
                                 </span>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{step}</p>
+                                <p className="text-sm text-ds-soft">{step}</p>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 <CollapsibleSection title="PKCE (Proof Key for Code Exchange)">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+                    <p className="text-sm text-ds-soft mb-3">
                         Para aplicaciones publicas (mobile, SPA), usa PKCE para mayor seguridad:
                     </p>
                     <CodeBlock language="javascript" code={`// Generar code_verifier (random string)
@@ -225,7 +225,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                 </CollapsibleSection>
 
                 <CollapsibleSection title="Refrescar Tokens">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+                    <p className="text-sm text-ds-soft mb-3">
                         Los access tokens expiran en 1 hora. Usa el refresh token para obtener uno nuevo:
                     </p>
                     <CodeBlock language="bash" code={`curl -X POST https://twitch.decatron.net/oauth/token \\
@@ -237,7 +237,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                 </CollapsibleSection>
 
                 <CollapsibleSection title="Revocar Tokens">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-3">
+                    <p className="text-sm text-ds-soft mb-3">
                         Para invalidar un token (ej: cuando el usuario cierra sesion):
                     </p>
                     <CodeBlock language="bash" code={`curl -X POST https://twitch.decatron.net/oauth/revoke \\
@@ -248,13 +248,13 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
 
             {/* Scopes */}
             <DocSection title="Scopes (Permisos)">
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
+                <p className="text-ds-soft mb-6">
                     Los scopes definen que puede hacer tu aplicacion. Solicita solo los que necesitas.
                 </p>
 
                 <ScopeTable
                     title="Lectura (read:*)"
-                    icon={<Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+                    icon={<Eye className="w-5 h-5 text-ds-accent-text" />}
                     color="blue"
                     scopes={[
                         { scope: 'read:profile', description: 'Informacion basica del usuario' },
@@ -269,7 +269,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
 
                 <ScopeTable
                     title="Escritura (write:*)"
-                    icon={<Edit3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
+                    icon={<Edit3 className="w-5 h-5 text-ds-accent-text" />}
                     color="orange"
                     scopes={[
                         { scope: 'write:timer', description: 'Modificar configuracion del timer' },
@@ -282,7 +282,7 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
 
                 <ScopeTable
                     title="Acciones (action:*)"
-                    icon={<Zap className="w-5 h-5 text-red-600 dark:text-red-400" />}
+                    icon={<Zap className="w-5 h-5 text-ds-accent-text" />}
                     color="red"
                     scopes={[
                         { scope: 'action:timer', description: 'Iniciar/pausar/detener timer' },
@@ -333,13 +333,13 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-[#f8fafc] dark:bg-[#374151] border-b border-[#e2e8f0] dark:border-[#374151]">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Codigo</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Error</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-900 dark:text-white">Descripcion</th>
+                            <tr className="bg-ds-bg border-b border-ds-border">
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Codigo</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Error</th>
+                                <th className="px-4 py-3 text-left text-sm font-bold text-ds-text">Descripcion</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <tbody className="divide-y divide-ds-border">
                             <ErrorRow code="400" color="yellow" error="invalid_request" description="Parametros faltantes o invalidos" />
                             <ErrorRow code="401" color="yellow" error="invalid_token" description="Token invalido o expirado" />
                             <ErrorRow code="403" color="yellow" error="insufficient_scope" description="El token no tiene los scopes necesarios" />
@@ -353,33 +353,33 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
 
             {/* Rate Limits */}
             <DocSection title="Rate Limits">
-                <div className="p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            <span className="text-sm text-[#64748b] dark:text-[#94a3b8]"><strong className="text-gray-900 dark:text-white">100 requests/minuto</strong> por token</span>
+                            <CheckCircle className="w-5 h-5 text-ds-ok" />
+                            <span className="text-sm text-ds-soft"><strong className="text-ds-text">100 requests/minuto</strong> por token</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            <span className="text-sm text-[#64748b] dark:text-[#94a3b8]"><strong className="text-gray-900 dark:text-white">10 requests/segundo</strong> burst maximo</span>
+                            <CheckCircle className="w-5 h-5 text-ds-ok" />
+                            <span className="text-sm text-ds-soft"><strong className="text-ds-text">10 requests/segundo</strong> burst maximo</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            <span className="text-sm text-[#64748b] dark:text-[#94a3b8]">Headers de respuesta incluyen <code className="px-2 py-0.5 bg-[#f8fafc] dark:bg-[#374151] rounded text-xs">X-RateLimit-*</code></span>
+                            <CheckCircle className="w-5 h-5 text-ds-ok" />
+                            <span className="text-sm text-ds-soft">Headers de respuesta incluyen <code className="px-2 py-0.5 bg-ds-bg rounded text-xs">X-RateLimit-*</code></span>
                         </div>
                     </div>
                 </div>
             </DocSection>
 
             {/* Support */}
-            <div className="bg-gradient-to-r from-[#2563eb] to-blue-700 rounded-2xl p-8 text-white text-center">
+            <div className="bg-ds-surface border border-ds-border rounded-lg p-8 text-ds-text text-center">
                 <h2 className="text-2xl font-black mb-4">Necesitas ayuda?</h2>
-                <p className="text-blue-100 mb-6">
+                <p className="text-ds-soft mb-6">
                     Si tienes preguntas o problemas con la API, consulta las preguntas frecuentes.
                 </p>
                 <Link
                     to="/docs/faq"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#2563eb] font-bold rounded-lg hover:bg-blue-50 transition-colors"
+                    className="ds-btn ds-btn--primary ds-btn--lg"
                 >
                     Ver FAQ
                 </Link>
@@ -390,12 +390,12 @@ const authUrl = \`https://twitch.decatron.net/oauth/authorize?
 
 function StepCard({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
     return (
-        <div className="p-5 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="p-5 bg-ds-surface rounded-lg border border-ds-border">
             <div className="flex items-center gap-3 mb-3">
-                <span className="w-7 h-7 bg-[#2563eb] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                <span className="w-7 h-7 bg-ds-accent text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {number}
                 </span>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
+                <h4 className="font-bold text-ds-text">{title}</h4>
             </div>
             {children}
         </div>
@@ -403,14 +403,14 @@ function StepCard({ number, title, children }: { number: number; title: string; 
 }
 
 function ErrorRow({ code, color, error, description }: { code: string; color: string; error: string; description: string }) {
-    const colorClass = color === 'red' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400';
+    const colorClass = color === 'red' ? 'text-ds-accent-text ' : 'text-ds-accent-text ';
     return (
         <tr>
             <td className={`px-4 py-3 text-sm font-bold ${colorClass}`}>{code}</td>
             <td className="px-4 py-3 text-sm">
-                <code className="text-sm font-mono text-gray-900 dark:text-white">{error}</code>
+                <code className="text-sm font-mono text-ds-text">{error}</code>
             </td>
-            <td className="px-4 py-3 text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</td>
+            <td className="px-4 py-3 text-sm text-ds-soft">{description}</td>
         </tr>
     );
 }

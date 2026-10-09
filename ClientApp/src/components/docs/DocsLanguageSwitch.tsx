@@ -13,7 +13,7 @@ export default function DocsLanguageSwitch() {
         <div
             role="group"
             aria-label={t('layout.language')}
-            className="inline-flex rounded-lg border border-[#dfe3ea] dark:border-pub-border overflow-hidden"
+            className="inline-flex rounded-lg border border-ds-border overflow-hidden"
         >
             {AVAILABLE_LANGUAGES.map(lang => {
                 const active = currentLanguage === lang.code;
@@ -26,8 +26,8 @@ export default function DocsLanguageSwitch() {
                         onClick={() => { if (!active) changeLanguage(lang.code as Language).catch(() => {}); }}
                         className={`px-3 py-1.5 text-xs font-bold uppercase transition-colors ${
                             active
-                                ? 'bg-[#2563eb] dark:bg-pub-accent text-white'
-                                : 'text-[#5b6475] dark:text-[#8b93a3] hover:bg-black/5 dark:hover:bg-white/5'
+                                ? 'bg-ds-accent text-white'
+                                : 'text-ds-soft hover:bg-ds-raised'
                         }`}
                     >
                         {lang.code}

@@ -5,33 +5,33 @@ export default function About() {
     return (
         <div className="space-y-8">
             {/* Hero Section */}
-            <div className="bg-gradient-to-br from-[#2563eb] to-blue-700 rounded-2xl p-10 text-white">
+            <div className="bg-ds-surface border border-ds-border rounded-lg p-10 text-ds-text">
                 <div className="flex items-center gap-4 mb-6">
-                    <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
+                    <div className="w-20 h-20 bg-ds-bg border border-ds-border text-ds-accent-text rounded-lg flex items-center justify-center">
                         <Bot className="w-12 h-12" />
                     </div>
                     <div>
                         <h1 className="text-4xl md:text-5xl font-black mb-2">Decatron</h1>
-                        <p className="text-xl text-blue-100">
+                        <p className="text-xl text-ds-soft">
                             El bot de Twitch mas completo para streamers
                         </p>
                     </div>
                 </div>
-                <p className="text-lg text-blue-100 max-w-3xl">
+                <p className="text-lg text-ds-soft max-w-3xl">
                     Decatron es una plataforma todo-en-uno que te permite gestionar comandos, overlays,
                     alertas, sorteos, metas y mucho mas. Diseñado por streamers, para streamers.
                 </p>
                 <div className="flex flex-wrap gap-4 mt-8">
                     <Link
                         to="/docs/getting-started"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#2563eb] font-bold rounded-lg hover:bg-blue-50 transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         Comenzar ahora
                         <ArrowRight className="w-5 h-5" />
                     </Link>
                     <Link
                         to="/docs/features"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-bold rounded-lg hover:bg-white/30 transition-colors"
+                        className="ds-btn ds-btn--secondary ds-btn--lg"
                     >
                         Ver todas las features
                     </Link>
@@ -39,11 +39,11 @@ export default function About() {
             </div>
 
             {/* Para quien es */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
+                <h2 className="text-2xl font-black text-ds-text mb-4">
                     Para quien es Decatron?
                 </h2>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-6">
+                <p className="text-ds-soft mb-6">
                     Decatron esta diseñado para streamers de Twitch que buscan:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -68,7 +68,7 @@ export default function About() {
 
             {/* Principales caracteristicas */}
             <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">
+                <h2 className="text-2xl font-black text-ds-text mb-6">
                     Principales caracteristicas
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -116,17 +116,17 @@ export default function About() {
             </div>
 
             {/* CTA Final */}
-            <div className="bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151] text-center">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
+            <div className="bg-ds-bg rounded-lg p-8 border border-ds-border text-center">
+                <h2 className="text-2xl font-black text-ds-text mb-4">
                     Listo para empezar?
                 </h2>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-6 max-w-xl mx-auto">
+                <p className="text-ds-soft mb-6 max-w-xl mx-auto">
                     Conecta tu cuenta de Twitch y comienza a usar Decatron en minutos.
                     Es gratis y no requiere tarjeta de credito.
                 </p>
                 <Link
                     to="/login"
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Conectar con Twitch
                     <ArrowRight className="w-5 h-5" />
@@ -144,12 +144,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center text-[#2563eb] mb-4">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+            <div className="w-12 h-12 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-4">
                 {icon}
             </div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h3 className="text-lg font-bold text-ds-text mb-2">{title}</h3>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -161,11 +161,11 @@ interface TargetAudienceProps {
 
 function TargetAudience({ title, description }: TargetAudienceProps) {
     return (
-        <div className="flex items-start gap-3 p-4 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-2 h-2 bg-[#2563eb] rounded-full mt-2 flex-shrink-0" />
+        <div className="flex items-start gap-3 p-4 bg-ds-bg rounded-lg border border-ds-border">
+            <div className="w-2 h-2 bg-ds-accent rounded-full mt-2 flex-shrink-0" />
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+                <h4 className="font-bold text-ds-text">{title}</h4>
+                <p className="text-sm text-ds-soft">{description}</p>
             </div>
         </div>
     );

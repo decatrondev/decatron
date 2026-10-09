@@ -12,14 +12,14 @@ export default function DocsHome() {
 
     return (
         <div className="space-y-8">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
-                        <Book className="w-8 h-8 text-[#2563eb]" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Book className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{t('home.title')}</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">{t('home.subtitle')}</p>
+                        <h1 className="text-3xl font-black text-ds-text">{t('home.title')}</h1>
+                        <p className="text-ds-soft">{t('home.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -28,11 +28,11 @@ export default function DocsHome() {
             <Section title={t('home.commands')} pages={pagesFor('public', 'commands')} cols="md:grid-cols-2" />
 
             <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">{t('home.features')}</h2>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-4">{t('home.featuresText')}</p>
+                <h2 className="text-2xl font-black text-ds-text mb-4">{t('home.features')}</h2>
+                <p className="text-ds-soft mb-4">{t('home.featuresText')}</p>
                 <Link
                     to={docUrl('public', 'features')}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     <Grid className="w-4 h-4" />
                     {t('home.viewAll')}
@@ -42,14 +42,14 @@ export default function DocsHome() {
 
             <Section title={t('home.reference')} pages={pagesFor('public', 'reference')} cols="md:grid-cols-2 lg:grid-cols-4" />
 
-            <div className="bg-[#f8fafc] dark:bg-[#374151]/30 rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                <h2 className="text-xl font-black text-gray-900 dark:text-white mb-4">{t('home.quick')}</h2>
+            <div className="bg-ds-bg rounded-lg p-6 border border-ds-border">
+                <h2 className="text-xl font-black text-ds-text mb-4">{t('home.quick')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {QUICK_STEPS.map((key, i) => (
-                        <div key={key} className="flex flex-col items-center text-center p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                            <div className="w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm mb-2">{i + 1}</div>
-                            <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{t(`home.steps.${key}.0`)}</h4>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{t(`home.steps.${key}.1`)}</p>
+                        <div key={key} className="flex flex-col items-center text-center p-4 bg-ds-surface rounded-lg border border-ds-border">
+                            <div className="w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm mb-2">{i + 1}</div>
+                            <h4 className="font-bold text-ds-text text-sm mb-1">{t(`home.steps.${key}.0`)}</h4>
+                            <p className="text-xs text-ds-soft">{t(`home.steps.${key}.1`)}</p>
                         </div>
                     ))}
                 </div>
@@ -62,7 +62,7 @@ function Section({ title, pages, cols }: { title: string; pages: DocPage[]; cols
     if (pages.length === 0) return null;
     return (
         <div>
-            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">{title}</h2>
+            <h2 className="text-2xl font-black text-ds-text mb-4">{title}</h2>
             <div className={`grid grid-cols-1 ${cols} gap-4`}>
                 {pages.map(page => <DocCard key={page.id} page={page} />)}
             </div>
@@ -76,17 +76,17 @@ function DocCard({ page }: { page: DocPage }) {
     return (
         <Link
             to={docUrl('public', page.path)}
-            className="group block p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all"
+            className="group block p-4 bg-ds-surface rounded-lg border border-ds-border hover:border-ds-accent transition-all"
         >
             <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-[#eef1f6] dark:bg-pub-raised text-[#2563eb] dark:text-pub-accent-hi rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-ds-bg text-ds-accent-text rounded-lg flex items-center justify-center flex-shrink-0">
                     <Icon className="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-[#2563eb] transition-colors">
+                    <h3 className="font-bold text-ds-text group-hover:text-ds-accent-text transition-colors">
                         {t(`pages.${page.id}.title`)}
                     </h3>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t(`pages.${page.id}.description`)}</p>
+                    <p className="text-sm text-ds-soft">{t(`pages.${page.id}.description`)}</p>
                 </div>
             </div>
         </Link>

@@ -6,53 +6,31 @@ interface DocAlertProps {
     children: React.ReactNode;
 }
 
+// Aviso neutro: borde completo tenue, tinte mínimo y color solo en el icono (sin barra lateral).
+// El color de estado (verde/ámbar) solo se usa en éxito y advertencia; info y consejo llevan el azul de la marca.
 const alertStyles = {
-    info: {
-        bg: 'bg-blue-50 dark:bg-blue-900/20',
-        border: 'border-blue-200 dark:border-blue-800',
-        icon: <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
-        title: 'text-blue-800 dark:text-blue-300',
-        text: 'text-blue-700 dark:text-blue-400'
-    },
-    warning: {
-        bg: 'bg-amber-50 dark:bg-amber-900/20',
-        border: 'border-amber-200 dark:border-amber-800',
-        icon: <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
-        title: 'text-amber-800 dark:text-amber-300',
-        text: 'text-amber-700 dark:text-amber-400'
-    },
-    success: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        border: 'border-green-200 dark:border-green-800',
-        icon: <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />,
-        title: 'text-green-800 dark:text-green-300',
-        text: 'text-green-700 dark:text-green-400'
-    },
-    tip: {
-        bg: 'bg-purple-50 dark:bg-purple-900/20',
-        border: 'border-purple-200 dark:border-purple-800',
-        icon: <Lightbulb className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
-        title: 'text-purple-800 dark:text-purple-300',
-        text: 'text-purple-700 dark:text-purple-400'
-    }
+    info: { tone: 'border-ds-border bg-ds-raised', icon: <Info className="w-5 h-5 text-ds-accent-text" /> },
+    warning: { tone: 'border-ds-warn/30 bg-ds-warn/5', icon: <AlertTriangle className="w-5 h-5 text-ds-warn" /> },
+    success: { tone: 'border-ds-ok/30 bg-ds-ok/5', icon: <CheckCircle className="w-5 h-5 text-ds-ok" /> },
+    tip: { tone: 'border-ds-border bg-ds-raised', icon: <Lightbulb className="w-5 h-5 text-ds-accent-text" /> },
 };
 
 export default function DocAlert({ type, title, children }: DocAlertProps) {
     const style = alertStyles[type];
 
     return (
-        <div className={`${style.bg} ${style.border} border rounded-xl p-4`}>
+        <div className={`${style.tone} border rounded-lg p-4`}>
             <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-0.5">
                     {style.icon}
                 </div>
                 <div className="flex-1">
                     {title && (
-                        <h4 className={`font-bold mb-1 ${style.title}`}>
+                        <h4 className="font-bold mb-1 text-ds-text">
                             {title}
                         </h4>
                     )}
-                    <div className={style.text}>
+                    <div className="text-ds-soft">
                         {children}
                     </div>
                 </div>

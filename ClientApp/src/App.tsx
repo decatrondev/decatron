@@ -196,6 +196,7 @@ import BrandAdmin from './pages/admin/BrandAdmin';
 import GlobalEmotesAdmin from './pages/admin/GlobalEmotesAdmin';
 import GlobalEmotesPublic from './pages/GlobalEmotesPublic';
 import OverlayAutoUpdate from './components/OverlayAutoUpdate';
+import PreviewBanner from './design/PreviewBanner';
 
 function App() {
     return (
@@ -204,6 +205,7 @@ function App() {
             <ToastProvider>
                 <PermissionsProvider>
                     <LanguageProvider>
+                        <PreviewBanner />
                         <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Index />} />

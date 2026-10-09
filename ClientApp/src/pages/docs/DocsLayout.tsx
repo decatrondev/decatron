@@ -4,6 +4,7 @@ import { Bot, Menu, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BrandMark } from '../../brand/BrandMark';
 import ThemeToggle from '../../components/ThemeToggle';
+import DocsFrame from '../../components/docs/DocsFrame';
 import DocsLanguageSwitch from '../../components/docs/DocsLanguageSwitch';
 import { DOC_GROUP_ORDER, docUrl, pagesFor } from './registry';
 
@@ -66,7 +67,7 @@ export default function DocsLayout() {
                 if (!items.length) return null;
                 return (
                     <div key={group}>
-                        <p className="px-3 mb-2 font-mono text-xs font-semibold text-[#5b6475] dark:text-[#8b93a3]"># {t(`groups.${group}`)}</p>
+                        <p className="px-3 mb-2 font-mono text-xs font-semibold text-ds-soft"># {t(`groups.${group}`)}</p>
                         <div className="space-y-0.5">
                             {items.map(page => {
                                 const to = docUrl('public', page.path);
@@ -78,8 +79,8 @@ export default function DocsLayout() {
                                         aria-current={isActive ? 'page' : undefined}
                                         className={`block border-l-2 pl-3 pr-2 py-1.5 text-sm leading-snug transition-colors ${
                                             isActive
-                                                ? 'border-[#2563eb] dark:border-pub-accent text-[#2563eb] dark:text-pub-accent-hi font-semibold'
-                                                : 'border-[#dfe3ea] dark:border-pub-border text-[#5b6475] dark:text-[#8b93a3] hover:text-[#12151c] dark:hover:text-white'
+                                                ? 'border-ds-accent text-ds-accent-text font-semibold'
+                                                : 'border-ds-border text-ds-soft hover:text-ds-text '
                                         }`}
                                     >
                                         {t(`pages.${page.id}.title`)}
@@ -94,31 +95,22 @@ export default function DocsLayout() {
     );
 
     return (
-        <div className="docs-pub min-h-screen flex flex-col bg-[#f6f7fa] dark:bg-pub-bg text-[#12151c] dark:text-[#e6e9ef]">
-            {/* Cuadrícula tenue del fondo, igual que la portada, SR y Sprites (solo en oscuro) */}
-            <div
-                aria-hidden="true"
-                className="pointer-events-none fixed inset-0 opacity-[0.04] hidden dark:block"
-                style={{
-                    backgroundImage: 'linear-gradient(#3161d8 1px, transparent 1px), linear-gradient(90deg, #3161d8 1px, transparent 1px)',
-                    backgroundSize: '40px 40px',
-                }}
-            />
-            <header className="sticky top-0 z-40 bg-[#f6f7fa]/90 dark:bg-pub-bg/90 backdrop-blur border-b border-[#dfe3ea] dark:border-pub-border">
+        <DocsFrame fixed className="min-h-screen flex flex-col">
+            <header className="sticky top-0 z-40 bg-ds-bg/90 backdrop-blur border-b border-ds-border">
                 <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
                         <button
                             onClick={() => setMenuOpen(o => !o)}
                             aria-label={t('layout.menu')}
                             aria-expanded={menuOpen}
-                            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-ds-raised transition-colors"
                         >
                             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
-                        <Link to="/" className="flex items-center gap-2 text-xl font-black text-[#2563eb] dark:text-white">
+                        <Link to="/" className="flex items-center gap-2 text-xl font-black text-ds-text">
                             <BrandMark slot="legal-header" fallback={<><Bot className="w-7 h-7" /><span className="hidden sm:inline">Decatron</span></>} />
                         </Link>
-                        <Link to="/docs" className="hidden sm:inline font-mono text-xs font-semibold text-[#5b6475] dark:text-[#8b93a3] hover:text-[#2563eb] dark:hover:text-pub-accent-hi transition-colors">
+                        <Link to="/docs" className="hidden sm:inline font-mono text-xs font-semibold text-ds-soft hover:text-ds-accent-text transition-colors">
                             # {t('layout.documentation')}
                         </Link>
                     </div>
@@ -127,7 +119,7 @@ export default function DocsLayout() {
                         <ThemeToggle />
                         <Link
                             to={isLoggedIn ? '/dashboard' : '/login'}
-                            className="px-3 sm:px-4 py-2 text-sm font-bold whitespace-nowrap rounded-lg text-white bg-[#2563eb] dark:bg-pub-accent hover:opacity-90 transition-opacity"
+                            className="ds-btn ds-btn--primary ds-btn--sm"
                         >
                             {isLoggedIn ? t('layout.goToDashboard') : t('layout.login')}
                         </Link>
@@ -136,7 +128,7 @@ export default function DocsLayout() {
             </header>
 
             {menuOpen && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setMenuOpen(false)} />}
-            <aside className={`fixed lg:hidden top-[57px] bottom-0 left-0 z-30 w-72 overflow-y-auto p-5 bg-[#f6f7fa] dark:bg-pub-bg border-r border-[#dfe3ea] dark:border-pub-border transition-transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed lg:hidden top-[57px] bottom-0 left-0 z-30 w-72 overflow-y-auto p-5 bg-ds-bg border-r border-ds-border transition-transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="sm:hidden mb-5"><DocsLanguageSwitch /></div>
                 {sidebar}
             </aside>
@@ -144,23 +136,23 @@ export default function DocsLayout() {
             <main className="flex-1 relative">
                 <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-8 lg:py-12 grid lg:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_200px] gap-8 xl:gap-10">
                     <aside className="hidden lg:block">
-                        <div className="sticky top-24 max-h-[calc((100vh-7rem)/var(--z))] overflow-y-auto pr-2">{sidebar}</div>
+                        <div className="sticky top-24 max-h-[calc((100vh-7rem)/var(--z,1))] overflow-y-auto pr-2">{sidebar}</div>
                     </aside>
                     <div ref={bodyRef} className="min-w-0">
                         <Outlet />
                     </div>
                     <aside className="hidden xl:block">
                         {toc.length >= 3 && (
-                            <nav aria-label="Contenido" className="sticky top-24 max-h-[calc((100vh-7rem)/var(--z))] overflow-y-auto space-y-1 text-sm">
-                                <p className="font-mono text-xs font-semibold text-[#5b6475] dark:text-[#8b93a3] mb-2"># {t('layout.onThisPage')}</p>
+                            <nav aria-label="Contenido" className="sticky top-24 max-h-[calc((100vh-7rem)/var(--z,1))] overflow-y-auto space-y-1 text-sm">
+                                <p className="font-mono text-xs font-semibold text-ds-soft mb-2"># {t('layout.onThisPage')}</p>
                                 {toc.map(i => (
                                     <a
                                         key={i.id}
                                         href={`#${i.id}`}
                                         className={`block border-l-2 pl-3 py-1.5 leading-snug transition-colors ${
                                             active === i.id
-                                                ? 'border-[#2563eb] dark:border-pub-accent text-[#2563eb] dark:text-pub-accent-hi font-semibold'
-                                                : 'border-[#dfe3ea] dark:border-pub-border text-[#5b6475] dark:text-[#8b93a3] hover:text-[#12151c] dark:hover:text-white'
+                                                ? 'border-ds-accent text-ds-accent-text font-semibold'
+                                                : 'border-ds-border text-ds-soft hover:text-ds-text '
                                         }`}
                                     >
                                         {i.text}
@@ -172,12 +164,12 @@ export default function DocsLayout() {
                 </div>
             </main>
 
-            <footer className="relative border-t border-[#dfe3ea] dark:border-pub-border">
-                <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">
+            <footer className="relative border-t border-ds-border">
+                <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-ds-soft">
                     <span>&copy; {new Date().getFullYear()} Decatron</span>
-                    <a href="mailto:support@decatron.net" className="hover:text-[#2563eb] dark:hover:text-pub-accent-hi transition-colors">support@decatron.net</a>
+                    <a href="mailto:support@decatron.net" className="hover:text-ds-accent-text transition-colors">support@decatron.net</a>
                 </div>
             </footer>
-        </div>
+        </DocsFrame>
     );
 }

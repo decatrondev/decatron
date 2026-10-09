@@ -7,23 +7,23 @@ export default function SoundAlertsDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center">
-                        <Volume2 className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Volume2 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Sound Alerts
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Sonidos, videos e imágenes con los puntos del canal
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/overlays/sound-alerts"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -107,9 +107,9 @@ export default function SoundAlertsDoc() {
 
 function DocItem({ label, children }: { label: string; children: React.ReactNode }) {
     return (
-        <li className="flex items-start gap-2 text-[#64748b] dark:text-[#94a3b8]">
-            <span className="text-[#2563eb]">•</span>
-            <span><strong className="text-gray-900 dark:text-white">{label}:</strong> {children}</span>
+        <li className="flex items-start gap-2 text-ds-soft">
+            <span className="text-ds-accent-text">•</span>
+            <span><strong className="text-ds-text">{label}:</strong> {children}</span>
         </li>
     );
 }
@@ -122,12 +122,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400 mb-3">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
                 {icon}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -140,13 +140,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-[#2563eb] text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -161,21 +161,21 @@ interface FormatCardProps {
 
 function FormatCard({ icon, title, formats, maxSize }: FormatCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#f8fafc] dark:bg-[#374151] rounded-lg flex items-center justify-center text-[#2563eb]">
+                <div className="w-10 h-10 bg-ds-bg rounded-lg flex items-center justify-center text-ds-accent-text">
                     {icon}
                 </div>
-                <h4 className="font-bold text-gray-900 dark:text-white">{title}</h4>
+                <h4 className="font-bold text-ds-text">{title}</h4>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
                 {formats.map((format, index) => (
-                    <span key={index} className="px-2 py-1 bg-[#f8fafc] dark:bg-[#374151] text-xs text-[#64748b] dark:text-[#94a3b8] rounded">
+                    <span key={index} className="px-2 py-1 bg-ds-bg text-xs text-ds-soft rounded">
                         {format}
                     </span>
                 ))}
             </div>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <p className="text-sm text-ds-soft">
                 Tamaño maximo: {maxSize}
             </p>
         </div>

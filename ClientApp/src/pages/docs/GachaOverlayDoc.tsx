@@ -7,23 +7,23 @@ export default function GachaOverlayDoc() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-8 border border-ds-border">
                 <div className="flex items-center gap-4 mb-4">
-                    <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center">
-                        <Dice6 className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                    <div className="w-16 h-16 bg-ds-raised rounded-lg flex items-center justify-center">
+                        <Dice6 className="w-8 h-8 text-ds-accent-text" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">
+                        <h1 className="text-3xl font-black text-ds-text">
                             Sistema Gacha
                         </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-ds-soft">
                             Juego de coleccion de cartas para tu stream de Twitch
                         </p>
                     </div>
                 </div>
                 <Link
                     to="/features/gacha"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-ds-accent text-white font-bold rounded-lg hover:bg-ds-accent-hover transition-colors"
                 >
                     Ir a configuracion
                     <ArrowRight className="w-4 h-4" />
@@ -107,34 +107,34 @@ export default function GachaOverlayDoc() {
                     Como viewer, hay varias formas de obtener pulls (tiradas) para coleccionar cartas:
                 </p>
                 <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-orange-600">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Donar:</strong> Cada donacion otorga pulls segun el monto configurado por el streamer
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-orange-600">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Bits:</strong> Usa bits en el canal para recibir pulls automaticamente
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-orange-600">•</span>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
                         <strong>Suscribirse:</strong> Suscripciones y gift subs otorgan pulls
                     </li>
-                    <li className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]">
-                        <span className="text-orange-600">•</span>
-                        <strong>DecaCoins:</strong> Compra pulls con tus DecaCoins usando <code className="bg-[#f8fafc] dark:bg-[#374151] px-1.5 py-0.5 rounded text-xs">!gcbuy</code>
+                    <li className="flex items-center gap-2 text-ds-soft">
+                        <span className="text-ds-accent-text">•</span>
+                        <strong>DecaCoins:</strong> Compra pulls con tus DecaCoins usando <code className="bg-ds-bg px-1.5 py-0.5 rounded text-xs">!gcbuy</code>
                     </li>
                 </ul>
                 <p className="mb-4">
                     Usa los comandos de chat para tirar cartas, ver tu coleccion y mas.
                     Tambien puedes ver tu coleccion completa en la web:
                 </p>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-2">Pagina de coleccion:</p>
-                    <code className="text-orange-600 font-mono text-sm">https://twitch.decatron.net/gacha/collection?channel=CANAL&user=USUARIO</code>
+                <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <p className="text-sm text-ds-soft mb-2">Pagina de coleccion:</p>
+                    <code className="text-ds-accent-text font-mono text-sm">https://twitch.decatron.net/gacha/collection?channel=CANAL&user=USUARIO</code>
                 </div>
-                <div className="mt-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-2">Configuracion de privacidad:</p>
-                    <code className="text-orange-600 font-mono text-sm">https://twitch.decatron.net/me/gacha</code>
+                <div className="mt-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+                    <p className="text-sm text-ds-soft mb-2">Configuracion de privacidad:</p>
+                    <code className="text-ds-accent-text font-mono text-sm">https://twitch.decatron.net/me/gacha</code>
                 </div>
             </DocSection>
 
@@ -146,43 +146,43 @@ export default function GachaOverlayDoc() {
                 <div className="space-y-2">
                     <RarityRow
                         name="Comun"
-                        color="bg-gray-100 dark:bg-gray-800"
-                        textColor="text-gray-600 dark:text-gray-400"
-                        borderColor="border-gray-300 dark:border-gray-600"
+                        color="bg-ds-bg "
+                        textColor="text-ds-soft "
+                        borderColor="border-ds-border "
                         stars={1}
-                        starColor="text-gray-400"
+                        starColor="text-ds-soft"
                     />
                     <RarityRow
                         name="Poco Comun"
-                        color="bg-green-50 dark:bg-green-900/20"
-                        textColor="text-green-700 dark:text-green-400"
-                        borderColor="border-green-300 dark:border-green-700"
+                        color="bg-ds-raised "
+                        textColor="text-ds-accent-text "
+                        borderColor="border-ds-border "
                         stars={2}
-                        starColor="text-green-500"
+                        starColor="text-ds-accent-text"
                     />
                     <RarityRow
                         name="Raro"
-                        color="bg-blue-50 dark:bg-blue-900/20"
-                        textColor="text-blue-700 dark:text-blue-400"
-                        borderColor="border-blue-300 dark:border-blue-700"
+                        color="bg-ds-raised "
+                        textColor="text-ds-accent-text "
+                        borderColor="border-ds-border "
                         stars={3}
-                        starColor="text-blue-500"
+                        starColor="text-ds-accent-text"
                     />
                     <RarityRow
                         name="Epico"
-                        color="bg-purple-50 dark:bg-purple-900/20"
-                        textColor="text-purple-700 dark:text-purple-400"
-                        borderColor="border-purple-300 dark:border-purple-700"
+                        color="bg-ds-raised "
+                        textColor="text-ds-accent-text "
+                        borderColor="border-ds-border "
                         stars={4}
-                        starColor="text-purple-500"
+                        starColor="text-ds-accent-text"
                     />
                     <RarityRow
                         name="Legendario"
-                        color="bg-amber-50 dark:bg-amber-900/20"
-                        textColor="text-amber-700 dark:text-amber-400"
-                        borderColor="border-amber-300 dark:border-amber-700"
+                        color="bg-ds-raised "
+                        textColor="text-ds-accent-text "
+                        borderColor="border-ds-border "
                         stars={5}
-                        starColor="text-amber-500"
+                        starColor="text-ds-accent-text"
                     />
                 </div>
             </DocSection>
@@ -265,12 +265,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon, title, description }: FeatureCardProps) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400 mb-3">
+        <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="w-10 h-10 bg-ds-raised rounded-lg flex items-center justify-center text-ds-accent-text mb-3">
                 {icon}
             </div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{description}</p>
+            <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+            <p className="text-sm text-ds-soft">{description}</p>
         </div>
     );
 }
@@ -283,13 +283,13 @@ interface StepProps {
 
 function Step({ number, title, children }: StepProps) {
     return (
-        <div className="flex gap-4 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
-            <div className="flex-shrink-0 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+        <div className="flex gap-4 bg-ds-surface rounded-lg p-4 border border-ds-border">
+            <div className="flex-shrink-0 w-8 h-8 bg-ds-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>
-                <h4 className="font-bold text-gray-900 dark:text-white mb-1">{title}</h4>
-                <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">{children}</div>
+                <h4 className="font-bold text-ds-text mb-1">{title}</h4>
+                <div className="text-sm text-ds-soft">{children}</div>
             </div>
         </div>
     );
@@ -303,17 +303,17 @@ interface CommandRowProps {
 
 function CommandRow({ command, description, badge }: CommandRowProps) {
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white dark:bg-[#1B1C1D] rounded-xl p-4 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-ds-surface rounded-lg p-4 border border-ds-border">
             <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
-                <code className="text-sm font-mono text-orange-600 dark:text-orange-400 font-bold">{command}</code>
+                <Terminal className="w-4 h-4 text-ds-accent-text flex-shrink-0" />
+                <code className="text-sm font-mono text-ds-accent-text font-bold">{command}</code>
                 {badge && (
-                    <span className="text-[10px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-bold bg-ds-raised text-ds-accent-text px-1.5 py-0.5 rounded">
                         {badge}
                     </span>
                 )}
             </div>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] sm:text-right">{description}</p>
+            <p className="text-sm text-ds-soft sm:text-right">{description}</p>
         </div>
     );
 }
@@ -329,7 +329,7 @@ interface RarityRowProps {
 
 function RarityRow({ name, color, textColor, borderColor, stars, starColor }: RarityRowProps) {
     return (
-        <div className={`flex items-center justify-between ${color} rounded-xl p-4 border ${borderColor}`}>
+        <div className={`flex items-center justify-between ${color} rounded-lg p-4 border ${borderColor}`}>
             <div className="flex items-center gap-3">
                 <span className={`font-bold ${textColor}`}>{name}</span>
             </div>
@@ -338,7 +338,7 @@ function RarityRow({ name, color, textColor, borderColor, stars, starColor }: Ra
                     <Star key={i} className={`w-4 h-4 ${starColor} fill-current`} />
                 ))}
                 {Array.from({ length: 5 - stars }).map((_, i) => (
-                    <Star key={`empty-${i}`} className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                    <Star key={`empty-${i}`} className="w-4 h-4 text-ds-soft" />
                 ))}
             </div>
         </div>
