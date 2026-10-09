@@ -39,6 +39,8 @@
 | Scripting Engine | Proprietary DSL with variables, conditionals (`when...then...end`), functions (`roll`, `pick`, `count`) |
 | Micro Commands | Quick game-category shortcuts (e.g., `!lol` to set "League of Legends") |
 | Song Request | Viewers request songs from chat (`!sr`) on Twitch and Kick with YouTube, SoundCloud, Spotify, Deezer or Apple Music links or a song name. Live queue, request modes (open / playlists only / review / closed), filters and blacklists, collaborative playlists, and a public page at `/sr/{channel}` |
+| Wheel and Raffle | On-screen wheel in two types: prize wheels (viewers earn spins from bits, gifted subs, donations, channel points or deca coins and win weighted prizes) and raffle wheels (sign-ups with tickets, requirements and weights, then a draw). Credits wallets, anti-farming caps, deliveries and history |
+| Roulette (`!ruleta`) | Chat mini-game: configurable chance of a random timeout on yourself or on another user, with protected and blocked lists |
 | Chat Moderation | Banned words with wildcards, 5-level strike escalation, VIP/sub immunity, whitelist |
 | AI Chat (`!ia`) | Multi-provider AI (Google Gemini + OpenRouter) with fallback, per-channel config, cooldowns |
 | Private AI Chat | Dashboard-embedded AI conversations with configurable providers and admin audit |
@@ -60,6 +62,7 @@ All overlays connect via SignalR for real-time updates and are added as OBS Brow
 | :mega: Shoutout | Visual shoutout with Twitch clip download (via yt-dlp), profile display, customizable layout |
 | :gift: Giveaway | Live giveaway overlay with participant counter |
 | :musical_note: Song Request | Queue player (plays audio) plus an optional display-only "now playing" overlay, each with its own theme, templates and visual editor; powered by the `SongRequestHub` SignalR hub |
+| :ferris_wheel: Wheel | Prize or raffle wheel overlay with its own look, sounds and visual canvas editor; the result is decided by the bot and the overlay only animates it |
 
 ### Integrations / Integraciones
 
@@ -534,6 +537,7 @@ All overlays are accessed as OBS Browser Sources with the format:
 | Giveaway | `/overlay/giveaway?channel={name}` | 800x600 |
 | Song Request (player) | `/overlay/songrequest?channel={name}&key={playerKey}` | Canvas size set in the dashboard |
 | Song Request (display only) | `/overlay/songrequest?channel={name}` | Canvas size set in the dashboard |
+| Wheel | `/overlay/rueda?channel={name}&wheel={slug}` | Size shown in the dashboard |
 
 ---
 

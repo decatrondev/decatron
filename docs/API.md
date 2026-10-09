@@ -25,6 +25,7 @@ Complete reference for every API endpoint exposed by Decatron. All endpoints are
 - [Follow Alerts (Legacy)](#follow-alerts-legacy)
 - [Sound Alerts](#sound-alerts)
 - [Song Request (Public)](#song-request-public)
+- [Wheel (Public)](#wheel-public)
 - [Tips / Donations](#tips--donations)
 - [Supporters / Subscriptions](#supporters--subscriptions)
 - [Giveaway](#giveaway)
@@ -388,6 +389,18 @@ Viewer actions require a signed-in viewer (Twitch or Kick session):
 | POST | `/api/song-request/public/{channel}/playlists/{code}/items/{itemId}/request` | Request a playlist song to the queue (same rules as `!sr`) |
 | POST | `/api/song-request/public/{channel}/playlists/{code}/items/{itemId}/vote` | Vote on a playlist song |
 | GET | `/api/song-request/public/{channel}/playlists/{code}/my-votes` | The viewer's votes in a playlist |
+
+---
+
+## Wheel (Public)
+
+### WheelController (`/api/wheel`)
+
+Only the public overlay endpoint is listed; the dashboard endpoints under `/api/wheel/...` are authenticated.
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| GET | `/api/wheel/overlay?channel={name}&wheel={slug}` | No | Data the overlay needs to draw a wheel (segments, look, state). Never cached. Returns 400 without `channel` and `wheel`, and 404 if the wheel does not exist |
 
 ---
 

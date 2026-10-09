@@ -12,6 +12,8 @@ Complete reference for all Decatron v2 bot commands, the custom commands system,
 - [Scripting System](#scripting-system)
 - [Micro Commands](#micro-commands)
 - [Song Request Commands](#song-request-commands)
+- [Wheel and Raffle Commands](#wheel-and-raffle-commands)
+- [Roulette Command](#roulette-command)
 - [Moderation System](#moderation-system)
 - [Giveaway Commands](#giveaway-commands)
 - [Goals Commands](#goals-commands)
@@ -436,6 +438,42 @@ They work on whatever is playing: requests and the background playlist.
 | `closed` | No requests are accepted |
 
 The full user guide (setup, filters, playlists, design) lives in the dashboard documentation under Song Request.
+
+---
+
+## Wheel and Raffle Commands
+
+The Wheel module has two wheel types: **prize wheels** (viewers earn spins with credits and win the prize of the segment that comes up) and **raffle wheels** (viewers sign up and the wheel picks a winner). The bot decides the result; the overlay (see [Wheel Overlay](OVERLAYS.md#wheel-overlay)) only animates it.
+
+These are the default names. The spin, balance, buy and sign-up commands can be renamed per wheel in the dashboard; the moderation ones are fixed.
+
+| Command | Access | Description |
+|---------|--------|-------------|
+| `!dgirar` | Everyone | Spins the wheel and charges the spin price in credits. `!dgirar 5` spins several times in a row (up to the configured maximum) and is charged together |
+| `!dcreditos` | Everyone | Shows the sender's credit balance |
+| `!dcomprar <coins>` | Everyone | Exchanges the sender's deca coins for credits. Only answers if the "Deca coins" source is on and the sender has a Decatron account |
+| `!djoin` | Everyone | Signs the sender up for the raffle while sign-ups are open |
+| `!drueda abrir` | Mods, Lead Moderators, streamer | Opens sign-ups and announces the join command |
+| `!drueda cerrar` | Mods, Lead Moderators, streamer | Closes sign-ups |
+| `!drueda sortear` | Mods, Lead Moderators, streamer | Draws and announces the winner (one message per winner) |
+| `!drueda reset` | Mods, Lead Moderators, streamer | Empties the pool of entrants without announcing it |
+
+Credits come from bits, gifted subs, donations, channel point rewards or deca coins, with a configurable price per spin, anti-farming caps (wait between spins, spins per viewer per stream) and spin rules (no repeat, pity, multi-spin). Prize types: no prize, manual message, free spins, gacha pulls, timer time, timeout and sound alert. Raffles support tickets, a credit cost, requirements (subs, followers, minimum watchtime) and weights (watchtime, sub, supporter tier, coins spent). The full user guide lives in the dashboard documentation under Wheel.
+
+---
+
+## Roulette Command
+
+`!ruleta` is a Russian-roulette style chat mini-game, separate from the Wheel. The sender aims at themselves (`!ruleta`) or at another user (`!ruleta @user`), and there is a configurable chance (17% by default) of a timeout. The timeout is applied through the Twitch API, so the bot must be a moderator of the channel.
+
+| Setting | Description |
+|---------|-------------|
+| Chance and timeout | Hit chance, and a minimum and maximum timeout in seconds (random between them) |
+| Cooldowns | Global and per-user, in seconds |
+| Permissions | Everyone, Subscribers, VIPs, Moderators, Lead Moderators or streamer only |
+| Targets | Allow aiming at yourself; allow aiming at moderators (the bot removes the mod role, applies the timeout and restores it automatically) |
+| Special users | Protected users can never be targeted; blocked users cannot use the command. The streamer is always immune |
+| Messages | Several hit/miss messages (and separate self-target ones) with `{shooter}`, `{target}` and `{seconds}` |
 
 ---
 

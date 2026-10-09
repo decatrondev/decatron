@@ -13,6 +13,7 @@ Complete reference for all Decatron v2 overlay types, OBS setup instructions, co
 - [Sound Alerts Overlay](#sound-alerts-overlay)
 - [Now Playing Overlay](#now-playing-overlay)
 - [Song Request Overlay](#song-request-overlay)
+- [Wheel Overlay](#wheel-overlay)
 - [Tips Overlay](#tips-overlay)
 - [Goals Overlay](#goals-overlay)
 - [Shoutout Overlay](#shoutout-overlay)
@@ -69,6 +70,7 @@ Replace `{channel_name}` with your Twitch username (lowercase).
 | Shoutout | `/overlay/shoutout?channel={name}` | 1000x300 |
 | Song Request (player) | `/overlay/songrequest?channel={name}&key={playerKey}` | Canvas size set in the dashboard |
 | Song Request (display only) | `/overlay/songrequest?channel={name}` | Canvas size set in the dashboard |
+| Wheel | `/overlay/rueda?channel={name}&wheel={slug}` | Size shown in the dashboard |
 
 > **Tip:** You can find the exact overlay URL with your channel pre-filled in each feature's configuration page on the dashboard. Look for the "Copy Overlay URL" button.
 
@@ -397,6 +399,20 @@ The player, the display overlay, the dashboard and the public queue page all lis
 ### Audio and VODs
 
 Requested music can mute Twitch VODs. In OBS, enable "Control audio via OBS" on the player source, leave it on a single track in Advanced Audio Properties, and set a different track for "Twitch VOD Track".
+
+---
+
+## Wheel Overlay
+
+The overlay of a prize or raffle wheel (see [Wheel and Raffle Commands](COMMANDS.md#wheel-and-raffle-commands)). Every wheel has its own link:
+
+`/overlay/rueda?channel={name}&wheel={slug}`
+
+The link carries no key: anyone who has it can see the overlay but cannot change anything. The background is transparent. The overlay data is public and uncached, served by `GET /api/wheel/overlay?channel={name}&wheel={slug}`; the bot decides every result and the overlay only animates it.
+
+### Look
+
+Colors and palette, center image, spin motion (duration, turns, easing), visibility (while spinning, always, or during sign-ups on raffle wheels), celebration (confetti, flash or none), per-event sounds and typography, plus a canvas editor to place the wheel, winner card, watermark, background and your own text and image pieces. The Decatron watermark can be hidden from the Premium tier.
 
 ---
 

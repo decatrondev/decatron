@@ -803,7 +803,7 @@ erDiagram
 
 ## 7. Module Map
 
-All 21 modules identified in the codebase audit (Song Request, #22, was added later):
+All 21 modules identified in the codebase audit (Song Request, #22, and Wheel, #23, were added later):
 
 | # | Module | Description | Key Backend Files | Key Frontend Files | Approx. Lines |
 |---|--------|-------------|-------------------|-------------------|---------------|
@@ -829,6 +829,7 @@ All 21 modules identified in the codebase audit (Song Request, #22, was added la
 | 20 | **Database** | EF Core DbContext (78 DbSets), repositories, manual SQL migrations | `DecatronDbContext.cs` (1389), `BotTokenRepository.cs`, `UserRepository.cs`, 7 migration scripts | -- | ~2,100 |
 | 21 | **Frontend Shared** | Router, API service, contexts, hooks, Layout, overlays, docs, developer portal, Gacha pages | `App.tsx`, `api.ts`, `PermissionsContext.tsx`, `Layout.tsx`, 20+ shared components, 8 overlay pages | All shared frontend | ~8,500 |
 | 22 | **Song Request** | Chat-driven song queue on Twitch and Kick: link/search resolvers (YouTube, SoundCloud; Spotify, Apple Music and Deezer links are matched on YouTube), request modes, filters, blacklists, review inbox, collaborative playlists with voting, listening stats, per-tier limits, public queue and playlist pages, OBS player overlay | `SongRequestController`, `Decatron.Services/SongRequest/*` (`SongResolverService`, `SongRequestChatHandler`, `SongRequestService`, `SongRequestLibraryService`, `SongRequestHub`, `SongRequestTierLimits`), Decatron Desktop channels `SongImportDesktopChannel` and `DownloadsDesktopChannel` | `SongRequestConfig.tsx`, `song-request-extension/`, `SongRequestOverlay.tsx`, `SongRequestPublicPage.tsx`, `SongRequestPlaylistPage.tsx` | -- |
+| 23 | **Wheel and Raffle** | Prize wheels and raffle wheels: weighted segments with stock, prize delivery (free spins, gacha pulls, timer time, timeout, sound alerts, manual messages) with a pending-deliveries queue, credit wallets per channel fed by bits, gifted subs, donations, channel points and deca coins, anti-farming caps and spin rules, raffles with tickets, requirements and weights, spin history and statistics, per-tier limits, public overlay. Includes the separate `!ruleta` timeout mini-game | `WheelController` (partial classes: Segments, Spins, Deliveries, History, Messages, Overlay, Raffle, Credits), `WheelService` (+ Delivery, Rules, Spins), `WheelWalletService`, `WheelRaffleService`, `Decatron.Default/Commands/WheelCommands.cs`, `RuletaCommand`, `RuletaController`, `RuletaBackgroundService` | `WheelConfig.tsx`, `features/wheel/`, `WheelOverlay.tsx`, `commands/RuletaConfig.tsx` | -- |
 
 **Estimated total codebase:** ~120,000+ lines across backend and frontend.
 
