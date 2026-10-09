@@ -75,45 +75,45 @@ export default function ChannelSwitcher() {
 
     return (
         <div className="relative">
-            <button onClick={() => setOpen(!open)} className="flex items-center gap-3 px-4 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg hover:border-[#2563eb] transition-colors">
+            <button onClick={() => setOpen(!open)} className="flex items-center gap-3 px-4 py-2 bg-ds-bg border border-ds-border rounded-lg hover:border-ds-accent transition-colors">
                 <img src={current.profileImageUrl} alt={current.displayName} className="w-8 h-8 rounded-full" />
                 <div className="text-left">
-                    <div className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">{current.displayName}</div>
-                    <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">{current.isOwner ? t('layout:channelSwitcher.owner') : current.accessLevel}</div>
+                    <div className="font-bold text-sm text-ds-text">{current.displayName}</div>
+                    <div className="text-xs text-ds-soft">{current.isOwner ? t('layout:channelSwitcher.owner') : current.accessLevel}</div>
                 </div>
                 <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-64 bg-ds-surface border border-ds-border rounded-lg z-50 overflow-hidden">
                     {/* Lista de canales */}
                     <div className="max-h-64 overflow-y-auto">
                         {channels.map(ch => (
-                            <button key={ch.channelId} onClick={() => switchChannel(ch.channelId)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] transition-colors border-b border-[#e2e8f0] dark:border-[#374151] last:border-b-0">
+                            <button key={ch.channelId} onClick={() => switchChannel(ch.channelId)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-ds-bg transition-colors border-b border-ds-border last:border-b-0">
                                 <img src={ch.profileImageUrl} alt={ch.displayName} className="w-10 h-10 rounded-full" />
                                 <div className="text-left flex-1">
-                                    <div className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc]">{ch.displayName}</div>
-                                    <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">{ch.isOwner ? t('layout:channelSwitcher.owner') : ch.accessLevel}</div>
+                                    <div className="font-bold text-sm text-ds-text">{ch.displayName}</div>
+                                    <div className="text-xs text-ds-soft">{ch.isOwner ? t('layout:channelSwitcher.owner') : ch.accessLevel}</div>
                                 </div>
                             </button>
                         ))}
                     </div>
 
                     {/* Separador */}
-                    <div className="border-t-2 border-[#e2e8f0] dark:border-[#374151]"></div>
+                    <div className="border-t-2 border-ds-border"></div>
 
                     {/* Botones de acción */}
                     <div className="py-1">
                         {/* Botón de Configuración - solo visible con control_total */}
                         {hasMinimumLevel('control_total') && (
-                            <button onClick={handleSettings} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] transition-colors text-[#1e293b] dark:text-[#f8fafc]">
+                            <button onClick={handleSettings} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-ds-bg transition-colors text-ds-text">
                                 <Settings className="w-5 h-5" />
                                 <span className="font-semibold">{t('layout:channelSwitcher.settings')}</span>
                             </button>
                         )}
 
                         {/* Botón de Cerrar Sesión */}
-                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400">
+                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-ds-danger/10 transition-colors text-ds-danger">
                             <LogOut className="w-5 h-5" />
                             <span className="font-semibold">{t('layout:channelSwitcher.logout')}</span>
                         </button>

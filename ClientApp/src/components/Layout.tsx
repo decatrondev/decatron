@@ -68,10 +68,10 @@ export default function Layout() {
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
     return (
-        <div className="flex h-screen bg-white dark:bg-[#1B1C1D] overflow-hidden">
+        <div className="flex h-screen bg-ds-bg overflow-hidden">
             {/* Sidebar */}
-            <aside className={`panel-scale fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f8fafc] dark:bg-[#1B1C1D] border-r border-[#e2e8f0] dark:border-[#374151] transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
-                <div className="p-6 border-b border-[#e2e8f0] dark:border-[#374151] flex-shrink-0">
+            <aside className={`panel-scale fixed md:static inset-y-0 left-0 z-50 w-64 bg-ds-surface border-r border-ds-border transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform flex flex-col`}>
+                <div className="p-6 border-b border-ds-border flex-shrink-0">
                     <Link to="/dashboard" className="flex items-center">
                         <BrandMark slot="panel-sidebar" fallback={<img src={decatronLockup} alt="Decatron" className="h-10 object-contain" />} />
                     </Link>
@@ -79,8 +79,8 @@ export default function Layout() {
 
                 <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
                     {/* User Card */}
-                    <Link to="/me" className="flex items-center gap-3 p-3 mb-2 rounded-xl bg-white dark:bg-[#374151]/30 border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] dark:hover:border-[#2563eb] transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-[#374151] flex items-center justify-center text-sm font-bold text-white overflow-hidden flex-shrink-0">
+                    <Link to="/me" className="flex items-center gap-3 p-3 mb-2 rounded-lg bg-ds-bg border border-ds-border hover:border-ds-accent transition-colors">
+                        <div className="w-10 h-10 rounded-full bg-ds-raised border border-ds-border flex items-center justify-center text-sm font-bold text-ds-text overflow-hidden flex-shrink-0">
                             {profileImage ? (
                                 <img src={profileImage} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -88,8 +88,8 @@ export default function Layout() {
                             )}
                         </div>
                         <div className="min-w-0">
-                            <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{displayName}</p>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="font-bold text-sm text-ds-text truncate">{displayName}</p>
+                            <p className="text-xs text-ds-soft">
                                 {isDiscordOnly ? 'Discord' : hasTwitchAccess && authProvider === 'both' ? 'Twitch + Discord' : 'Twitch'}
                             </p>
                         </div>
@@ -97,18 +97,18 @@ export default function Layout() {
 
                     {/* Mi Perfil — Single button, hub page */}
                     <NavLink to="/me" icon={<User />} label="Mi Perfil" active={location.pathname === '/me' || location.pathname.startsWith('/me/') && !location.pathname.startsWith('/me/spirits')} />
-                    <NavLink to="/me/spirits" icon={<Zap className="text-[#7B61FF]" />} label="Fortnite Spirits" active={location.pathname === '/me/spirits'} />
+                    <NavLink to="/me/spirits" icon={<Zap className="text-ds-accent-text" />} label="Fortnite Spirits" active={location.pathname === '/me/spirits'} />
 
                     {/* Dashboard & Settings */}
-                    <hr className="my-2 border-[#e2e8f0] dark:border-[#374151]" />
+                    <hr className="my-2 border-ds-border" />
                     <NavLink to="/dashboard" icon={<Home />} label={t('layout:navigation.dashboard')} active={location.pathname === '/dashboard'} />
                     <NavLink to="/settings" icon={<Settings />} label={t('layout:navigation.settings')} active={location.pathname === '/settings'} />
 
                     {/* ========== PANEL STREAMER ========== */}
                     {(hasTwitchAccess || !isDiscordOnly) && (
                         <>
-                            <hr className="my-2 border-[#e2e8f0] dark:border-[#374151]" />
-                            <p className="px-4 text-xs font-bold text-[#94a3b8] dark:text-[#64748b] uppercase tracking-wider">Panel Streamer</p>
+                            <hr className="my-2 border-ds-border" />
+                            <p className="px-4 text-xs font-bold text-ds-soft uppercase tracking-wider">Panel Streamer</p>
 
                             {/* Comandos: ya verificado que resuelve el canal de forma
                                 generica (sesion/claim/JWT), sirve para Kick tal cual.
@@ -146,7 +146,7 @@ export default function Layout() {
                         </>
                     )}
 
-                    <hr className="my-4 border-[#e2e8f0] dark:border-[#374151]" />
+                    <hr className="my-4 border-ds-border" />
 
                     {/* Docs */}
                     <NavLink to="/dashboard/docs" icon={<Book />} label={t('layout:navigation.documentation.title')} active={location.pathname.startsWith('/dashboard/docs')} />
@@ -157,7 +157,7 @@ export default function Layout() {
                             notifyTokenRemoved();
                             navigate('/login');
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-ds-danger/10 transition-colors text-ds-danger"
                     >
                         <LogOut className="w-5 h-5" />
                         <span className="font-semibold">{t('layout:navigation.logout')}</span>
@@ -168,9 +168,9 @@ export default function Layout() {
             {/* Main Content */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
                 {/* Navbar */}
-                <nav className="panel-scale bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151] px-6 py-4 flex items-center justify-between">
+                <nav className="panel-scale bg-ds-surface border-b border-ds-border px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={toggleSidebar} className="md:hidden p-2 hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] rounded-lg">
+                        <button onClick={toggleSidebar} className="md:hidden p-2 hover:bg-ds-bg rounded-lg">
                             <Menu className="w-6 h-6" />
                         </button>
                         <ThemeToggle />
@@ -185,8 +185,8 @@ export default function Layout() {
 
                 {/* Token Expiration Warning Banner */}
                 {tokenStatus.isExpiringSoon && (
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-6 py-3">
-                        <div className="flex items-center gap-3 text-yellow-800 dark:text-yellow-400">
+                    <div className="bg-ds-warn/10 border-b border-ds-warn/30 px-6 py-3">
+                        <div className="flex items-center gap-3 text-ds-warn">
                             <Clock className="w-5 h-5 animate-pulse" />
                             <div className="flex-1">
                                 <p className="font-semibold">{t('layout:tokenExpiration.title')}</p>
@@ -196,7 +196,7 @@ export default function Layout() {
                             </div>
                             <button
                                 onClick={() => window.location.href = '/api/auth/login'}
-                                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors text-sm font-semibold"
+                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-colors text-sm font-semibold"
                             >
                                 {t('layout:tokenExpiration.renewButton')}
                             </button>
@@ -213,7 +213,7 @@ export default function Layout() {
                 <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 xl:p-8">
                     {permissionsLoading ? (
                         <div className="flex items-center justify-center h-32">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2563eb]"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ds-accent"></div>
                         </div>
                     ) : (
                         <Outlet />
@@ -234,7 +234,7 @@ interface NavLinkProps {
 
 function NavLink({ to, icon, label, active, id }: NavLinkProps) {
     return (
-        <Link to={to} id={id} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-gray-700 dark:text-[#f8fafc] hover:bg-white dark:hover:bg-[#1B1C1D]'}`}>
+        <Link to={to} id={id} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${active ? 'bg-ds-accent text-white' : 'text-ds-text hover:bg-ds-bg'}`}>
             {icon}
             <span className="font-semibold">{label}</span>
         </Link>
@@ -252,9 +252,9 @@ function SubNavLink({ to, label, comingSoon }: SubNavLinkProps) {
 
     if (comingSoon) {
         return (
-            <div className="flex items-center justify-between px-4 py-2 rounded-lg text-sm text-[#64748b] dark:text-[#94a3b8] cursor-not-allowed opacity-60">
+            <div className="flex items-center justify-between px-4 py-2 rounded-lg text-sm text-ds-soft cursor-not-allowed opacity-60">
                 <span>{label}</span>
-                <span className="px-2 py-0.5 text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full">
+                <span className="px-2 py-0.5 text-xs font-bold bg-ds-raised border border-ds-border text-ds-soft rounded-full">
                     {t('layout:comingSoon')}
                 </span>
             </div>
@@ -262,7 +262,7 @@ function SubNavLink({ to, label, comingSoon }: SubNavLinkProps) {
     }
 
     return (
-        <Link to={to} className="block px-4 py-2 rounded-lg text-sm text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#1B1C1D] hover:text-[#2563eb] transition-colors">
+        <Link to={to} className="block px-4 py-2 rounded-lg text-sm text-ds-soft hover:bg-ds-bg hover:text-ds-accent-text transition-colors">
             {label}
         </Link>
     );
