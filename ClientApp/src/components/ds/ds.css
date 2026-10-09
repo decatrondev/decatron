@@ -111,14 +111,16 @@ select.ds-input { appearance: none; padding-right: 36px; background-image: url("
 .ds-badge--danger { color: var(--ds-danger); border-color: color-mix(in srgb, var(--ds-danger) 35%, transparent); background: color-mix(in srgb, var(--ds-danger) 12%, transparent); }
 
 /* ── Aviso ────────────────────────────────────────────── */
-.ds-alert { display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: var(--ds-radius); border: 1px solid var(--ds-border); border-left-width: 3px; background: var(--ds-surface); font-size: 14px; line-height: 1.5; }
-.ds-alert svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+/* Borde completo y tenue del color del estado, tinte mínimo de fondo y el color solo en el icono. Sin barra lateral. */
+.ds-alert { --alert-c: var(--ds-accent-text); display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: var(--ds-radius);
+    border: 1px solid color-mix(in srgb, var(--alert-c) 30%, var(--ds-border)); background: color-mix(in srgb, var(--alert-c) 6%, var(--ds-surface)); font-size: 14px; line-height: 1.5; }
+.ds-alert svg { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--alert-c); }
 .ds-alert-title { font-weight: 700; }
 .ds-alert-body { color: var(--ds-soft); }
-.ds-alert--info { border-left-color: var(--ds-accent); } .ds-alert--info svg { color: var(--ds-accent-text); }
-.ds-alert--ok { border-left-color: var(--ds-ok); } .ds-alert--ok svg { color: var(--ds-ok); }
-.ds-alert--warn { border-left-color: var(--ds-warn); } .ds-alert--warn svg { color: var(--ds-warn); }
-.ds-alert--danger { border-left-color: var(--ds-danger); } .ds-alert--danger svg { color: var(--ds-danger); }
+.ds-alert--info { --alert-c: var(--ds-accent-text); }
+.ds-alert--ok { --alert-c: var(--ds-ok); }
+.ds-alert--warn { --alert-c: var(--ds-warn); }
+.ds-alert--danger { --alert-c: var(--ds-danger); }
 
 /* ── Tabla ────────────────────────────────────────────── */
 .ds-table-wrap { overflow-x: auto; border: 1px solid var(--ds-border); border-radius: var(--ds-radius-lg); }

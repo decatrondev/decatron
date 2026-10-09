@@ -16,14 +16,14 @@ export const DS_COLORS: Record<DsTheme, DsColors> = {
         bg: '#0b0d12', surface: '#12151c', raised: '#171b24', input: '#0b0d12',
         border: '#222733', borderSoft: '#1b1f29',
         text: '#e6e9ef', soft: '#8b93a3', faint: '#7a8394',
-        accent: '#2c66f5', accentHover: '#2557d6', accentText: '#5b8cff', onAccent: '#ffffff',
+        accent: '#3161d8', accentHover: '#2653c5', accentText: '#6e94ed', onAccent: '#ffffff',
         ok: '#34d399', warn: '#fbbf24', danger: '#f87171', dangerSolid: '#dc2626', dangerHover: '#ef4444',
     },
     light: {
         bg: '#f6f7fa', surface: '#ffffff', raised: '#ffffff', input: '#ffffff',
         border: '#dfe3ea', borderSoft: '#eceff4',
         text: '#12151c', soft: '#5b6475', faint: '#6b7385',
-        accent: '#2563eb', accentHover: '#1d4ed8', accentText: '#2563eb', onAccent: '#ffffff',
+        accent: '#2f5fc6', accentHover: '#274fa5', accentText: '#2f5fc6', onAccent: '#ffffff',
         ok: '#059669', warn: '#b45309', danger: '#dc2626', dangerSolid: '#dc2626', dangerHover: '#b91c1c',
     },
 };
