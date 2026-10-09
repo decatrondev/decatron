@@ -36,7 +36,7 @@ export default function Features() {
                 <FeatureCard
                     icon={<Zap className="w-6 h-6" />}
                     title="Micro Comandos"
-                    description="Comandos rapidos con sintaxis simplificada. Perfectos para respuestas simples sin configuracion compleja."
+                    description="Atajos de chat para cambiar la categoría del stream. Escribes !apex y el stream pasa a Apex Legends."
                     link="/docs/commands/microcommands"
                     color="yellow"
                 />

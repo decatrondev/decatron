@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useState, useEffect, useMemo } from 'react';
 import api from '../../services/api';
+import { COMMAND_GROUPS, getCommandGroup, KICK_COMING_SOON, KICK_UNAVAILABLE } from '../../config/defaultCommandsCatalog';
 
 interface Command {
     name: string;
@@ -25,56 +26,16 @@ function parseJwtClaims(token: string | null): Record<string, string> {
     } catch { return {}; }
 }
 
-// Comandos que dependen de una API de Twitch sin equivalente todavia armado del
-// lado de Kick — ver .dev/plans/UNIFICACION_MULTIPLATAFORMA_PLAN.md seccion 8.17
-// (6 ago 2026) para el detalle de por que cada uno cae en un grupo distinto.
-//
-// "Proximamente": Kick YA expone la API que hace falta (PATCH /public/v1/channels
-// para titulo y categoria) — es trabajo pendiente nuestro, prometer fecha es razonable.
-const KICK_COMING_SOON = new Set(['title', 'game']);
-// "No disponible en Kick": la API publica de Kick no tiene el dato que estos
-// comandos necesitan (followers/followed_at, clips) — no hay nada que podamos
-// construir hoy del lado nuestro, asi que no se promete fecha.
-//
-// "ia" NO va aca: el modelo de lenguaje (Gemini/OpenRouter) se llama siempre,
-// sin depender de Twitch. Solo el sub-caso de "elegi a alguien del chat" pide
-// la lista de chatters de Twitch — si esa llamada falla, el comando sigue
-// respondiendo igual sin ese contexto (ver DecatronAICommand.cs). El comando
-// completo funciona en Kick, no aplica ninguno de los dos estados.
-const KICK_UNAVAILABLE = new Set(['followage', 'so']);
-
-// Categorías de comandos para mejor organización
+// Grupos y estados de Kick: viven en config/defaultCommandsCatalog.ts, compartido con la documentación.
+// Aquí solo se asigna el icono y el color de cada grupo.
 const COMMAND_CATEGORIES: Record<string, { icon: React.ReactNode; color: string; commands: string[] }> = {
-    stream: {
-        icon: <Zap className="w-4 h-4" />,
-        color: 'text-purple-500',
-        commands: ['title', 't', 'game', 'g']
-    },
-    timer: {
-        icon: <Clock className="w-4 h-4" />,
-        color: 'text-blue-500',
-        commands: ['dstart', 'dpause', 'dplay', 'dreset', 'dstop', 'dtimer']
-    },
-    community: {
-        icon: <Users className="w-4 h-4" />,
-        color: 'text-green-500',
-        commands: ['so', 'raffle', 'join', 'followage', 'ia']
-    },
-    games: {
-        icon: <Gamepad2 className="w-4 h-4" />,
-        color: 'text-amber-500',
-        commands: ['rango', 'lp', 'sesion', 'ultimas', 'cuentas', 'juego', 'setrango', 'rankup', 'rankdown', 'win', 'loss', 'matchup', 'build', 'coach', 'vs', 'duo', 'pool', 'meta', 'pred', 'predtop']
-    }
+    stream: { icon: <Zap className="w-4 h-4" />, color: 'text-purple-500', commands: COMMAND_GROUPS.stream },
+    timer: { icon: <Clock className="w-4 h-4" />, color: 'text-blue-500', commands: COMMAND_GROUPS.timer },
+    community: { icon: <Users className="w-4 h-4" />, color: 'text-green-500', commands: COMMAND_GROUPS.community },
+    games: { icon: <Gamepad2 className="w-4 h-4" />, color: 'text-amber-500', commands: COMMAND_GROUPS.games }
 };
 
-function getCommandCategory(commandName: string): string {
-    for (const [category, data] of Object.entries(COMMAND_CATEGORIES)) {
-        if (data.commands.includes(commandName)) {
-            return category;
-        }
-    }
-    return 'community';
-}
+const getCommandCategory = getCommandGroup;
 
 export default function DefaultCommands() {
     const { t } = useTranslation(['commands', 'common']);
