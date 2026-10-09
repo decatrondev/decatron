@@ -72,8 +72,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     setError(null);
 
     try {
-      // Update in backend (this is the source of truth)
-      await updateUserLanguage(newLanguage);
+      // Update in backend (this is the source of truth). Un visitante sin sesión no tiene
+      // preferencia guardada en el servidor: solo se recuerda en este navegador.
+      if (localStorage.getItem('token')) {
+        await updateUserLanguage(newLanguage);
+      }
 
       // Store last language for persistence across logout/login
       localStorage.setItem('lastLanguage', newLanguage);

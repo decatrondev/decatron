@@ -1,0 +1,372 @@
+{
+  "defaultCommands": {
+    "title": "Default commands",
+    "subtitle": "Commands Decatron ships ready to use in your channel",
+    "intro": "Default commands come with the bot. You don't need to create them: you can turn them on or off one by one from Commands → Default in the dashboard. The description, aliases and examples on this page are the same ones you see in the dashboard.",
+    "groups": {
+      "stream": {
+        "title": "Channel",
+        "description": "View or change the stream title and category"
+      },
+      "timer": {
+        "title": "Timer",
+        "description": "Control the stream timer from chat"
+      },
+      "community": {
+        "title": "Community",
+        "description": "Shoutouts, giveaways, follow time, roulette and AI"
+      },
+      "games": {
+        "title": "Games and coach",
+        "description": "Rank, matches and LoL Coach data for the games overlay"
+      }
+    },
+    "aliases": "Aliases",
+    "examples": "Usage examples",
+    "who": "Who can use it",
+    "access": {
+      "everyone": "All viewers",
+      "modsStreamer": "The streamer and moderators",
+      "changeMods": "View it: everyone. Change it: the streamer and moderators",
+      "raffle": "Join and check status: everyone. Create, close, draw and reroll: the streamer and moderators",
+      "viewMods": "View it: everyone. Set it: the streamer and moderators",
+      "coach": "Everyone, with 30 seconds between uses (moderators have no wait)",
+      "configurable": "Defined by the settings of the related module"
+    },
+    "kick": {
+      "soon": "Coming soon on Kick",
+      "unavailable": "Not available on Kick"
+    },
+    "kickNote": "Commands marked \"Coming soon on Kick\" already have the API they need and are waiting to be built. Those marked \"Not available on Kick\" depend on data Kick doesn't offer today.",
+    "tipsTitle": "Tips",
+    "tips": {
+      "toggle": "You can turn each default command on or off from Commands → Default. If you turn the whole bot off, no command answers.",
+      "aliases": "Aliases work exactly like the main command.",
+      "language": "Bot replies use the language you choose in the channel settings."
+    },
+    "othersTitle": "Commands from other modules",
+    "others": "Each module (moderation, Song Request, Wheel, Spirits, Watchtime and others) has its own chat commands. They are explained in that module's guide.",
+    "empty": "The command list could not be loaded."
+  },
+  "groups": {
+    "start": "Start",
+    "commands": "Commands",
+    "reference": "Reference",
+    "features": "Module guides",
+    "overlays": "Overlays",
+    "settings": "Settings",
+    "modules": "Modules",
+    "song-request": "Song Request"
+  },
+  "layout": {
+    "documentation": "Documentation",
+    "goToDashboard": "Go to dashboard",
+    "login": "Sign in",
+    "language": "Language",
+    "menu": "Menu",
+    "onThisPage": "On this page"
+  },
+  "home": {
+    "title": "Decatron documentation",
+    "subtitle": "Your guide to using the bot",
+    "start": "Getting started",
+    "commands": "Commands",
+    "features": "Features",
+    "featuresText": "Detailed guides for every module are available in the dashboard.",
+    "viewAll": "See all features",
+    "reference": "Reference",
+    "quick": "Quick start",
+    "steps": {
+      "connect": [
+        "Connect your account",
+        "Sign in with Twitch or Kick"
+      ],
+      "configure": [
+        "Set up the bot",
+        "Language and permissions"
+      ],
+      "test": [
+        "Try a command",
+        "Type !title in chat"
+      ],
+      "overlays": [
+        "Add overlays",
+        "Timer, alerts and more"
+      ]
+    }
+  },
+  "help": {
+    "search": "Search the documentation…",
+    "popular": "Popular guides",
+    "modules": "Module guides",
+    "noResults": "No guides found for \"{{query}}\"",
+    "commandsTitle": "Commands documentation",
+    "guide": "View guide",
+    "quick": {
+      "overlays-guide": "How to add overlays to OBS",
+      "timer": "Set up the timer",
+      "event-alerts": "Event alerts",
+      "giveaway": "Create a giveaway"
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Documentation",
+      "description": "Everything to use Decatron"
+    },
+    "help-center": {
+      "title": "Help center",
+      "description": "Decatron guides and documentation"
+    },
+    "about": {
+      "title": "What is Decatron?",
+      "description": "Discover what the bot can do"
+    },
+    "getting-started": {
+      "title": "Getting started",
+      "description": "Step-by-step guide to set up your bot"
+    },
+    "features": {
+      "title": "Features",
+      "description": "Everything you can do with Decatron"
+    },
+    "faq": {
+      "title": "FAQ",
+      "description": "Common questions and fixes"
+    },
+    "commands-default": {
+      "title": "Default commands",
+      "description": "The commands the bot ships with"
+    },
+    "commands-custom": {
+      "title": "Custom commands",
+      "description": "Create your own commands with variables"
+    },
+    "commands-micro": {
+      "title": "Micro commands",
+      "description": "Chat shortcuts to change the category"
+    },
+    "commands-scripting": {
+      "title": "Scripts",
+      "description": "Conditional logic and variables"
+    },
+    "variables": {
+      "title": "Variables",
+      "description": "Dynamic values for your commands"
+    },
+    "overlay-shoutout": {
+      "title": "Shoutout overlay",
+      "description": "Promote other channels on your stream"
+    },
+    "overlay-gacha": {
+      "title": "Gacha system",
+      "description": "Collectible cards with an overlay"
+    },
+    "api": {
+      "title": "API reference",
+      "description": "REST API with OAuth2 for integrations"
+    },
+    "timer": {
+      "title": "Timer",
+      "description": "Timers with overlay and alerts"
+    },
+    "event-alerts": {
+      "title": "Event alerts",
+      "description": "Visual and audio alerts for your channel"
+    },
+    "giveaway": {
+      "title": "Giveaways",
+      "description": "Giveaways with entry requirements"
+    },
+    "goals": {
+      "title": "Goals",
+      "description": "Goals with a real-time overlay"
+    },
+    "sound-alerts": {
+      "title": "Sound Alerts",
+      "description": "Sound alerts for your stream"
+    },
+    "tips": {
+      "title": "Donations",
+      "description": "Receive donations with PayPal"
+    },
+    "shoutout": {
+      "title": "Shoutouts",
+      "description": "Channel promotions"
+    },
+    "moderation": {
+      "title": "Moderation",
+      "description": "Filters and automatic actions"
+    },
+    "ai": {
+      "title": "Decatron AI",
+      "description": "Artificial intelligence in your chat"
+    },
+    "now-playing": {
+      "title": "Now Playing",
+      "description": "Music on stream"
+    },
+    "game-overlays": {
+      "title": "Game Overlays",
+      "description": "Rank, session and matches on screen"
+    },
+    "live-overlay": {
+      "title": "Live match",
+      "description": "Champion select, coach and prediction from Decatron Desktop"
+    },
+    "pets": {
+      "title": "Pet",
+      "description": "A 3D cat that lives on your stream"
+    },
+    "decatron-chat": {
+      "title": "Decatron Chat",
+      "description": "Private chat with AI"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Stream statistics and data"
+    },
+    "followers": {
+      "title": "Followers",
+      "description": "Follower list and management"
+    },
+    "developer": {
+      "title": "Developer portal",
+      "description": "Build apps with the API"
+    },
+    "gacha": {
+      "title": "Gacha system",
+      "description": "Collectible cards with an overlay"
+    },
+    "overlays-guide": {
+      "title": "Overlays in OBS",
+      "description": "How to add Decatron overlays to your stream"
+    },
+    "settings": {
+      "title": "Bot settings",
+      "description": "Customize how the bot behaves"
+    },
+    "permissions": {
+      "title": "Permissions",
+      "description": "Access levels, roles and feature control"
+    },
+    "sr-overview": {
+      "title": "Song Request",
+      "description": "Your viewers request songs and they play on your stream"
+    },
+    "sr-setup": {
+      "title": "Setup",
+      "description": "Turn it on, add it to OBS and share the queue"
+    },
+    "sr-requests": {
+      "title": "Requests and review",
+      "description": "Modes, limits, filters, bans and review"
+    },
+    "sr-playlists": {
+      "title": "Playlists",
+      "description": "Background, sharing, collaborative and votes"
+    },
+    "sr-commands": {
+      "title": "Commands",
+      "description": "Every chat command and its permissions"
+    },
+    "sr-overlay": {
+      "title": "Overlay design",
+      "description": "Themes, elements, animations and editor"
+    },
+    "sr-library": {
+      "title": "History and downloads",
+      "description": "History, stats and downloads"
+    }
+  },
+  "microCommands": {
+    "title": "Micro commands",
+    "subtitle": "Chat shortcuts to change the stream category",
+    "whatTitle": "What is a micro command?",
+    "what": "A micro command is a short command you choose, for example !apex, that switches the stream category to a game you assigned to it. Instead of typing !game Apex Legends, you type !apex.",
+    "howTitle": "How it works",
+    "how": [
+      "You create the micro command and assign it a game or category.",
+      "The streamer or a moderator types the command in chat.",
+      "Decatron changes the stream category and replies with the category that was set."
+    ],
+    "example": "Chat example",
+    "exampleCode": "AnthonyDeca: !g set !apex Apex Legends\nDecatron: Micro command !apex created for: Apex Legends\n\nModerator: !apex\nDecatron: Category changed to: Apex Legends! (using !apex)",
+    "whoTitle": "Who can use them",
+    "who": "Only the streamer and the channel moderators. If anyone else types a micro command, the bot tells them they don't have permission.",
+    "createTitle": "How to create them",
+    "panelTitle": "From the dashboard",
+    "panel": [
+      "Go to Commands → Micro commands.",
+      "Click “Create micro command”.",
+      "Type the command name without the “!” (for example: lol, cs, val). The prefix is added for you.",
+      "Search for the game and pick it from the list.",
+      "Click “Create”."
+    ],
+    "panelNote": "If you create a micro command with a name that already exists, it is updated with the new game. To change the game of an existing one use “Edit”: the command name can't be changed.",
+    "chatTitle": "From chat with !g",
+    "chatIntro": "The !g command shows and changes the category, and also manages micro commands. It is for the streamer and moderators only.",
+    "chatRows": [
+      [
+        "!g",
+        "Shows the current category"
+      ],
+      [
+        "!g Just Chatting",
+        "Changes the category directly"
+      ],
+      [
+        "!g set !apex Apex Legends",
+        "Creates or updates the !apex micro command"
+      ],
+      [
+        "!g remove !apex",
+        "Deletes the !apex micro command"
+      ],
+      [
+        "!g list",
+        "Lists the channel's micro commands"
+      ],
+      [
+        "!g help",
+        "Shows !g help"
+      ]
+    ],
+    "rulesTitle": "Name rules",
+    "rules": [
+      "After the “!” only letters and numbers are allowed, with no spaces or symbols.",
+      "These names are reserved and can't be used: !g, !game, !set, !remove, !delete, !list, !help, !title and !t."
+    ],
+    "panelAccessTitle": "Dashboard permissions",
+    "panelAccess": "To view, create and edit micro commands you need the “Commands” access level or higher. To delete them you need “Moderation” or higher.",
+    "reqTitle": "Requirements",
+    "req": [
+      "The default command !game must be turned on in your channel (Commands → Default). If it is off, micro commands don't respond.",
+      "Today micro commands change the category on Twitch. On Kick, changing the category is coming soon, same as !game."
+    ],
+    "countersTitle": "Looking for counters?",
+    "counters": "Micro commands don't count anything. For a counter (deaths, wins…) create a custom command with the $(count) variable.",
+    "goToPanel": "Go to Micro commands"
+  },
+  "limits": {
+    "title": "What each plan raises",
+    "tiers": {
+      "free": "Free",
+      "supporter": "Supporter",
+      "premium": "Premium",
+      "fundador": "Founder"
+    },
+    "rows": {
+      "songPlaylists": "Playlists",
+      "songItems": "Songs per playlist",
+      "songHistoryDays": "History days",
+      "songTemplates": "Your own design templates",
+      "songHidePromo": "Hide the Decatron card"
+    },
+    "unlimited": "No limit",
+    "yes": "Yes",
+    "no": "No",
+    "loading": "Loading…",
+    "error": "The limits couldn't be loaded right now."
+  }
+}

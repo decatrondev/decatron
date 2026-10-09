@@ -30,7 +30,7 @@ i18n
     lng: getInitialLng(),
 
     // Namespaces (translation files)
-    ns: ['common', 'settings', 'layout', 'dashboard', 'overlays', 'commands', 'analytics', 'login', 'landing', 'supporters', 'tips', 'features', 'spirits', 'games', 'emotes'],
+    ns: ['common', 'settings', 'layout', 'dashboard', 'overlays', 'commands', 'analytics', 'login', 'landing', 'supporters', 'tips', 'features', 'spirits', 'games', 'emotes', 'docs'],
     defaultNS: 'common',
 
     // Backend options for loading translations

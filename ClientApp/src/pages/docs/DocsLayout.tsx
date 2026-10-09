@@ -1,255 +1,183 @@
-import { Bot, Book, Plug, Menu, X, ChevronRight, HelpCircle, Rocket, Grid, MessageSquare } from 'lucide-react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Bot, Menu, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { BrandMark } from '../../brand/BrandMark';
 import ThemeToggle from '../../components/ThemeToggle';
+import DocsLanguageSwitch from '../../components/docs/DocsLanguageSwitch';
+import { DOC_GROUP_ORDER, docUrl, pagesFor } from './registry';
+
+// Marco de las docs públicas (tipo 1): base común azul/grafito (tokens pub-*), modo claro y oscuro
+// para lectura larga, y escala en pantallas grandes con .panel-scale. El índice de la derecha se
+// arma solo con los h2 de cada página.
+
+const slug = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export default function DocsLayout() {
-    const location = useLocation();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [startOpen, setStartOpen] = useState(true);
-    const [commandsOpen, setCommandsOpen] = useState(false);
-    const [overlaysOpen, setOverlaysOpen] = useState(false);
-    const [referenceOpen, setReferenceOpen] = useState(false);
+    const { t } = useTranslation('docs');
+    const { pathname } = useLocation();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const bodyRef = useRef<HTMLDivElement>(null);
+    const [toc, setToc] = useState<{ id: string; text: string }[]>([]);
+    const [active, setActive] = useState('');
     const isLoggedIn = !!localStorage.getItem('token');
 
-    // Auto-expand sections based on current path
+    useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+    // Índice a partir de los h2 de la página; se rearma cuando cambia el contenido (textos que cargan después)
     useEffect(() => {
-        if (location.pathname.includes('/docs/commands')) {
-            setCommandsOpen(true);
-        }
-        if (location.pathname.includes('/docs/overlays') || location.pathname.includes('/docs/variables')) {
-            setReferenceOpen(true);
-        }
-    }, [location.pathname]);
+        const root = bodyRef.current;
+        if (!root) return;
+        let io: IntersectionObserver | undefined;
+        let timer: number | undefined;
+
+        const build = () => {
+            io?.disconnect();
+            const used = new Set<string>();
+            const heads = Array.from(root.querySelectorAll<HTMLElement>('h2'));
+            const items = heads.map(h => {
+                let id = h.id || slug(h.textContent ?? '');
+                while (!id || used.has(id)) id = `${id || 's'}-${used.size}`;
+                used.add(id);
+                h.id = id;
+                h.classList.add('scroll-mt-28');
+                return { id, text: h.textContent ?? '' };
+            });
+            setToc(prev => (JSON.stringify(prev) === JSON.stringify(items) ? prev : items));
+            if (!items.length) return;
+            io = new IntersectionObserver(entries => {
+                const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+                if (visible) setActive(visible.target.id);
+            }, { rootMargin: '-96px 0px -65% 0px' });
+            heads.forEach(h => io!.observe(h));
+        };
+
+        const schedule = () => { window.clearTimeout(timer); timer = window.setTimeout(build, 150); };
+        const mo = new MutationObserver(schedule);
+        mo.observe(root, { childList: true, subtree: true, characterData: true });
+        schedule();
+        return () => { mo.disconnect(); io?.disconnect(); window.clearTimeout(timer); };
+    }, [pathname]);
+
+    const sidebar = (
+        <nav aria-label={t('layout.documentation')} className="space-y-6">
+            {DOC_GROUP_ORDER.public.map(group => {
+                const items = pagesFor('public', group);
+                if (!items.length) return null;
+                return (
+                    <div key={group}>
+                        <p className="px-3 mb-2 font-mono text-xs font-semibold text-[#5b6475] dark:text-[#8b93a3]"># {t(`groups.${group}`)}</p>
+                        <div className="space-y-0.5">
+                            {items.map(page => {
+                                const to = docUrl('public', page.path);
+                                const isActive = pathname === to;
+                                return (
+                                    <Link
+                                        key={page.id}
+                                        to={to}
+                                        aria-current={isActive ? 'page' : undefined}
+                                        className={`block border-l-2 pl-3 pr-2 py-1.5 text-sm leading-snug transition-colors ${
+                                            isActive
+                                                ? 'border-[#2563eb] dark:border-pub-accent text-[#2563eb] dark:text-pub-accent-hi font-semibold'
+                                                : 'border-[#dfe3ea] dark:border-pub-border text-[#5b6475] dark:text-[#8b93a3] hover:text-[#12151c] dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {t(`pages.${page.id}.title`)}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+        </nav>
+    );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#1B1C1D]">
-            {/* Header */}
-            <header className="sticky top-0 z-40 bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151]">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+        <div className="docs-pub min-h-screen flex flex-col bg-[#f6f7fa] dark:bg-pub-bg text-[#12151c] dark:text-[#e6e9ef]">
+            {/* Cuadrícula tenue del fondo, igual que la portada, SR y Sprites (solo en oscuro) */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none fixed inset-0 opacity-[0.04] hidden dark:block"
+                style={{
+                    backgroundImage: 'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
+                    backgroundSize: '40px 40px',
+                }}
+            />
+            <header className="sticky top-0 z-40 bg-[#f6f7fa]/90 dark:bg-pub-bg/90 backdrop-blur border-b border-[#dfe3ea] dark:border-pub-border">
+                <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
                         <button
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="lg:hidden p-2 hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] rounded-lg transition-colors"
+                            onClick={() => setMenuOpen(o => !o)}
+                            aria-label={t('layout.menu')}
+                            aria-expanded={menuOpen}
+                            className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                         >
-                            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
-                        <Link to="/" className="flex items-center gap-2 text-2xl font-black text-[#2563eb]">
-                            <Bot className="w-8 h-8" />
-                            <span>Decatron</span>
+                        <Link to="/" className="flex items-center gap-2 text-xl font-black text-[#2563eb] dark:text-white">
+                            <BrandMark slot="legal-header" fallback={<><Bot className="w-7 h-7" /><span className="hidden sm:inline">Decatron</span></>} />
                         </Link>
-                        <span className="hidden sm:block px-3 py-1 bg-[#f8fafc] dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] rounded-lg text-sm font-semibold">
-                            Documentación
-                        </span>
+                        <Link to="/docs" className="hidden sm:inline font-mono text-xs font-semibold text-[#5b6475] dark:text-[#8b93a3] hover:text-[#2563eb] dark:hover:text-pub-accent-hi transition-colors">
+                            # {t('layout.documentation')}
+                        </Link>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                        <div className="hidden sm:block"><DocsLanguageSwitch /></div>
                         <ThemeToggle />
-                        {isLoggedIn ? (
-                            <Link
-                                to="/dashboard"
-                                className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
-                            >
-                                Ir al Dashboard
-                            </Link>
-                        ) : (
-                            <Link
-                                to="/login"
-                                className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-lg transition-all"
-                            >
-                                Iniciar Sesión
-                            </Link>
-                        )}
+                        <Link
+                            to={isLoggedIn ? '/dashboard' : '/login'}
+                            className="px-3 sm:px-4 py-2 text-sm font-bold whitespace-nowrap rounded-lg text-white bg-[#2563eb] dark:bg-pub-accent hover:opacity-90 transition-opacity"
+                        >
+                            {isLoggedIn ? t('layout.goToDashboard') : t('layout.login')}
+                        </Link>
                     </div>
                 </div>
             </header>
 
-            <div className="flex">
-                {/* Sidebar */}
-                <aside className={`fixed lg:sticky top-[4.5rem] left-0 z-30 w-64 h-[calc(100vh-4.5rem)] bg-[#f8fafc] dark:bg-[#1B1C1D] border-r border-[#e2e8f0] dark:border-[#374151] overflow-y-auto transition-transform ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                } lg:translate-x-0`}>
-                    <nav className="p-4 space-y-1">
-                        {/* Inicio Section */}
-                        <div className="mb-4">
-                            <button
-                                onClick={() => setStartOpen(!startOpen)}
-                                className="w-full flex items-center justify-between px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider"
-                            >
-                                <span>Inicio</span>
-                                <ChevronRight className={`w-3 h-3 transition-transform ${startOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {startOpen && (
-                                <div className="mt-1 space-y-1">
-                                    <DocNavLink
-                                        to="/docs"
-                                        icon={<Book className="w-5 h-5" />}
-                                        label="Documentacion"
-                                        active={location.pathname === '/docs'}
-                                    />
-                                    <DocNavLink
-                                        to="/docs/about"
-                                        icon={<HelpCircle className="w-5 h-5" />}
-                                        label="Que es Decatron?"
-                                        active={location.pathname === '/docs/about'}
-                                    />
-                                    <DocNavLink
-                                        to="/docs/getting-started"
-                                        icon={<Rocket className="w-5 h-5" />}
-                                        label="Como Empezar"
-                                        active={location.pathname === '/docs/getting-started'}
-                                    />
-                                    <DocNavLink
-                                        to="/docs/features"
-                                        icon={<Grid className="w-5 h-5" />}
-                                        label="Features"
-                                        active={location.pathname === '/docs/features'}
-                                    />
-                                    <DocNavLink
-                                        to="/docs/faq"
-                                        icon={<MessageSquare className="w-5 h-5" />}
-                                        label="FAQ"
-                                        active={location.pathname === '/docs/faq'}
-                                    />
-                                </div>
-                            )}
-                        </div>
+            {menuOpen && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setMenuOpen(false)} />}
+            <aside className={`fixed lg:hidden top-[57px] bottom-0 left-0 z-30 w-72 overflow-y-auto p-5 bg-[#f6f7fa] dark:bg-pub-bg border-r border-[#dfe3ea] dark:border-pub-border transition-transform ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="sm:hidden mb-5"><DocsLanguageSwitch /></div>
+                {sidebar}
+            </aside>
 
-                        {/* Comandos Dropdown */}
-                        <div>
-                            <button
-                                onClick={() => setCommandsOpen(!commandsOpen)}
-                                className="w-full flex items-center justify-between px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider"
-                            >
-                                <span>Comandos</span>
-                                <ChevronRight className={`w-3 h-3 transition-transform ${commandsOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {commandsOpen && (
-                                <div className="mt-1 space-y-1">
-                                    <SubNavLink to="/docs/commands/default" label="Comandos por Defecto" />
-                                    <SubNavLink to="/docs/commands/custom" label="Comandos Personalizados" />
-                                    <SubNavLink to="/docs/commands/microcommands" label="Micro Comandos" />
-                                    <SubNavLink to="/docs/commands/scripting" label="Scripts" />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Referencia Dropdown */}
-                        <div>
-                            <button
-                                onClick={() => setReferenceOpen(!referenceOpen)}
-                                className="w-full flex items-center justify-between px-4 py-2 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider"
-                            >
-                                <span>Referencia</span>
-                                <ChevronRight className={`w-3 h-3 transition-transform ${referenceOpen ? 'rotate-90' : ''}`} />
-                            </button>
-                            {referenceOpen && (
-                                <div className="mt-1 space-y-1">
-                                    <SubNavLink to="/docs/variables" label="Variables" />
-                                    <SubNavLink to="/docs/overlays/shoutout" label="Shoutout Overlay" />
-                                    <SubNavLink to="/docs/overlays/gacha" label="Sistema Gacha" />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* API Reference */}
-                        <DocNavLink
-                            to="/docs/api"
-                            icon={<Plug className="w-5 h-5" />}
-                            label="API Reference"
-                            active={location.pathname === '/docs/api'}
-                        />
-                    </nav>
-                </aside>
-
-                {/* Mobile Overlay */}
-                {sidebarOpen && (
-                    <div
-                        className="fixed inset-0 bg-black/50 z-20 lg:hidden"
-                        onClick={() => setSidebarOpen(false)}
-                    />
-                )}
-
-                {/* Main Content */}
-                <main className="flex-1 w-full min-w-0 px-4 py-8 lg:px-8">
-                    <div className="max-w-7xl mx-auto">
+            <main className="flex-1 relative">
+                <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-8 lg:py-12 grid lg:grid-cols-[230px_minmax(0,1fr)] xl:grid-cols-[230px_minmax(0,1fr)_200px] gap-8 xl:gap-10">
+                    <aside className="hidden lg:block">
+                        <div className="sticky top-24 max-h-[calc((100vh-7rem)/var(--z))] overflow-y-auto pr-2">{sidebar}</div>
+                    </aside>
+                    <div ref={bodyRef} className="min-w-0">
                         <Outlet />
                     </div>
-                </main>
-            </div>
-        </div>
-    );
-}
-
-interface DocNavLinkProps {
-    to: string;
-    icon: React.ReactNode;
-    label: string;
-    active?: boolean;
-    comingSoon?: boolean;
-}
-
-function DocNavLink({ to, icon, label, active, comingSoon }: DocNavLinkProps) {
-    if (comingSoon) {
-        return (
-            <div className="relative">
-                <div className="flex items-center gap-3 px-4 py-3 text-[#64748b] dark:text-[#94a3b8] cursor-not-allowed opacity-60 rounded-lg">
-                    {icon}
-                    <span className="font-medium">{label}</span>
-                    <span className="ml-auto px-2 py-0.5 text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full">
-                        Pronto
-                    </span>
+                    <aside className="hidden xl:block">
+                        {toc.length >= 3 && (
+                            <nav aria-label="Contenido" className="sticky top-24 max-h-[calc((100vh-7rem)/var(--z))] overflow-y-auto space-y-1 text-sm">
+                                <p className="font-mono text-xs font-semibold text-[#5b6475] dark:text-[#8b93a3] mb-2"># {t('layout.onThisPage')}</p>
+                                {toc.map(i => (
+                                    <a
+                                        key={i.id}
+                                        href={`#${i.id}`}
+                                        className={`block border-l-2 pl-3 py-1.5 leading-snug transition-colors ${
+                                            active === i.id
+                                                ? 'border-[#2563eb] dark:border-pub-accent text-[#2563eb] dark:text-pub-accent-hi font-semibold'
+                                                : 'border-[#dfe3ea] dark:border-pub-border text-[#5b6475] dark:text-[#8b93a3] hover:text-[#12151c] dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {i.text}
+                                    </a>
+                                ))}
+                            </nav>
+                        )}
+                    </aside>
                 </div>
-            </div>
-        );
-    }
+            </main>
 
-    return (
-        <Link
-            to={to}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
-                active
-                    ? 'bg-[#2563eb] text-white'
-                    : 'text-gray-700 dark:text-[#f8fafc] hover:bg-white dark:hover:bg-[#1B1C1D]'
-            }`}
-        >
-            {icon}
-            <span>{label}</span>
-        </Link>
-    );
-}
-
-// Componente para sub-navegación
-interface SubNavLinkProps {
-    to: string;
-    label: string;
-    comingSoon?: boolean;
-}
-
-function SubNavLink({ to, label, comingSoon }: SubNavLinkProps) {
-    const location = useLocation();
-    const active = location.pathname === to;
-
-    if (comingSoon) {
-        return (
-            <div className="block px-4 py-2 rounded-lg text-sm text-[#64748b] dark:text-[#94a3b8] cursor-not-allowed opacity-60 flex items-center justify-between">
-                <span>{label}</span>
-                <span className="px-2 py-0.5 text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full">
-                    Pronto
-                </span>
-            </div>
-        );
-    }
-
-    return (
-        <Link
-            to={to}
-            className={`block px-4 py-2 rounded-lg text-sm transition-colors ${
-                active
-                    ? 'bg-[#2563eb] text-white font-medium'
-                    : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#1B1C1D] hover:text-[#2563eb]'
-            }`}
-        >
-            {label}
-        </Link>
+            <footer className="relative border-t border-[#dfe3ea] dark:border-pub-border">
+                <div className="panel-scale max-w-[1400px] 3xl:max-w-[1700px] mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">
+                    <span>&copy; {new Date().getFullYear()} Decatron</span>
+                    <a href="mailto:support@decatron.net" className="hover:text-[#2563eb] dark:hover:text-pub-accent-hi transition-colors">support@decatron.net</a>
+                </div>
+            </footer>
+        </div>
     );
 }

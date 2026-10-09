@@ -162,15 +162,11 @@ export default function FAQ() {
             <FAQSection title="Soporte">
                 <FAQItem
                     question="Como reporto un bug?"
-                    answer="Puedes reportar bugs a traves de nuestro Discord o creando un issue en GitHub. Incluye todos los detalles posibles: que estabas haciendo, que esperabas que pasara, y que paso realmente."
+                    answer="Puedes reportar bugs creando un issue en el repositorio de GitHub. Incluye todos los detalles posibles: que estabas haciendo, que esperabas que pasara, y que paso realmente."
                 />
                 <FAQItem
                     question="Donde puedo pedir nuevas features?"
-                    answer="Las sugerencias de features son bienvenidas en nuestro Discord o GitHub. Revisamos todas las sugerencias y priorizamos las mas pedidas por la comunidad."
-                />
-                <FAQItem
-                    question="Hay un servidor de Discord?"
-                    answer="Si, tenemos un servidor de Discord donde puedes obtener ayuda, reportar bugs, sugerir features y conectar con otros streamers que usan Decatron."
+                    answer="Las sugerencias de features son bienvenidas como issues en GitHub. Revisamos todas las sugerencias y priorizamos las mas pedidas por la comunidad."
                 />
             </FAQSection>
 

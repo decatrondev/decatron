@@ -1,0 +1,372 @@
+{
+  "defaultCommands": {
+    "title": "Comandos por defecto",
+    "subtitle": "Comandos que Decatron trae listos en tu canal",
+    "intro": "Los comandos por defecto vienen incluidos con el bot. No necesitas crearlos: puedes activarlos o desactivarlos uno por uno desde Comandos → Por defecto en el panel. La descripción, los alias y los ejemplos de esta página son los mismos que ves en el panel.",
+    "groups": {
+      "stream": {
+        "title": "Canal",
+        "description": "Consultar o cambiar el título y la categoría del stream"
+      },
+      "timer": {
+        "title": "Temporizador",
+        "description": "Controlar el timer del stream desde el chat"
+      },
+      "community": {
+        "title": "Comunidad",
+        "description": "Shoutouts, sorteos, tiempo de seguimiento, ruleta e IA"
+      },
+      "games": {
+        "title": "Juegos y coach",
+        "description": "Rango, partidas y datos del Coach de LoL para el overlay de juegos"
+      }
+    },
+    "aliases": "Alias",
+    "examples": "Ejemplos de uso",
+    "who": "Quién puede usarlo",
+    "access": {
+      "everyone": "Todos los espectadores",
+      "modsStreamer": "El streamer y los moderadores",
+      "changeMods": "Consultarlo: todos. Cambiarlo: el streamer y los moderadores",
+      "raffle": "Unirse y ver el estado: todos. Crear, cerrar, sortear y repetir: el streamer y los moderadores",
+      "viewMods": "Verlo: todos. Fijarlo: el streamer y los moderadores",
+      "coach": "Todos, con 30 segundos entre usos (los moderadores no tienen espera)",
+      "configurable": "Lo define la configuración del módulo correspondiente"
+    },
+    "kick": {
+      "soon": "Próximamente en Kick",
+      "unavailable": "No disponible en Kick"
+    },
+    "kickNote": "Los comandos marcados con «Próximamente en Kick» ya tienen la API necesaria y están pendientes de construir. Los marcados con «No disponible en Kick» dependen de datos que Kick no ofrece hoy.",
+    "tipsTitle": "Consejos",
+    "tips": {
+      "toggle": "Puedes activar o desactivar cada comando por defecto desde Comandos → Por defecto. Si apagas el bot completo, ningún comando responde.",
+      "aliases": "Los alias funcionan igual que el comando principal.",
+      "language": "Las respuestas del bot salen en el idioma que elijas en la configuración del canal."
+    },
+    "othersTitle": "Comandos de otros módulos",
+    "others": "Cada módulo (moderación, Song Request, Rueda, Spirits, Watchtime y otros) trae sus propios comandos de chat. Se explican en la guía de ese módulo.",
+    "empty": "No se pudo cargar la lista de comandos."
+  },
+  "groups": {
+    "start": "Inicio",
+    "commands": "Comandos",
+    "reference": "Referencia",
+    "features": "Guías de módulos",
+    "overlays": "Overlays",
+    "settings": "Configuración",
+    "modules": "Módulos",
+    "song-request": "Song Request"
+  },
+  "layout": {
+    "documentation": "Documentación",
+    "goToDashboard": "Ir al panel",
+    "login": "Iniciar sesión",
+    "language": "Idioma",
+    "menu": "Menú",
+    "onThisPage": "En esta página"
+  },
+  "home": {
+    "title": "Documentación de Decatron",
+    "subtitle": "Tu guía para usar el bot",
+    "start": "Para empezar",
+    "commands": "Comandos",
+    "features": "Funciones",
+    "featuresText": "Guías detalladas de cada módulo disponibles en el panel.",
+    "viewAll": "Ver todas las funciones",
+    "reference": "Referencia",
+    "quick": "Inicio rápido",
+    "steps": {
+      "connect": [
+        "Conecta tu cuenta",
+        "Inicia sesión con Twitch o Kick"
+      ],
+      "configure": [
+        "Configura el bot",
+        "Idioma y permisos"
+      ],
+      "test": [
+        "Prueba un comando",
+        "Escribe !title en el chat"
+      ],
+      "overlays": [
+        "Agrega overlays",
+        "Timer, alertas y más"
+      ]
+    }
+  },
+  "help": {
+    "search": "Buscar en la documentación…",
+    "popular": "Guías populares",
+    "modules": "Guías de módulos",
+    "noResults": "No se encontraron guías para «{{query}}»",
+    "commandsTitle": "Documentación de comandos",
+    "guide": "Ver guía",
+    "quick": {
+      "overlays-guide": "Cómo agregar overlays a OBS",
+      "timer": "Configurar el timer",
+      "event-alerts": "Alertas de eventos",
+      "giveaway": "Crear un sorteo"
+    }
+  },
+  "pages": {
+    "home": {
+      "title": "Documentación",
+      "description": "Todo para usar Decatron"
+    },
+    "help-center": {
+      "title": "Centro de ayuda",
+      "description": "Guías y documentación de Decatron"
+    },
+    "about": {
+      "title": "¿Qué es Decatron?",
+      "description": "Conoce las capacidades del bot"
+    },
+    "getting-started": {
+      "title": "Cómo empezar",
+      "description": "Guía paso a paso para configurar tu bot"
+    },
+    "features": {
+      "title": "Funciones",
+      "description": "Todo lo que puedes hacer con Decatron"
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "description": "Dudas comunes y soluciones"
+    },
+    "commands-default": {
+      "title": "Comandos por defecto",
+      "description": "Los comandos que el bot trae listos"
+    },
+    "commands-custom": {
+      "title": "Comandos personalizados",
+      "description": "Crea tus propios comandos con variables"
+    },
+    "commands-micro": {
+      "title": "Micro comandos",
+      "description": "Atajos de chat para cambiar la categoría"
+    },
+    "commands-scripting": {
+      "title": "Scripts",
+      "description": "Lógica condicional y variables"
+    },
+    "variables": {
+      "title": "Variables",
+      "description": "Valores dinámicos para tus comandos"
+    },
+    "overlay-shoutout": {
+      "title": "Overlay de shoutout",
+      "description": "Promoción de otros canales en tu stream"
+    },
+    "overlay-gacha": {
+      "title": "Sistema Gacha",
+      "description": "Cartas coleccionables con overlay"
+    },
+    "api": {
+      "title": "Referencia de la API",
+      "description": "API REST con OAuth2 para integraciones"
+    },
+    "timer": {
+      "title": "Timer",
+      "description": "Temporizadores con overlay y alertas"
+    },
+    "event-alerts": {
+      "title": "Alertas de eventos",
+      "description": "Alertas visuales y de audio de tu canal"
+    },
+    "giveaway": {
+      "title": "Sorteos",
+      "description": "Sorteos con requisitos de participación"
+    },
+    "goals": {
+      "title": "Metas",
+      "description": "Metas con overlay en tiempo real"
+    },
+    "sound-alerts": {
+      "title": "Sound Alerts",
+      "description": "Alertas de sonido para tu stream"
+    },
+    "tips": {
+      "title": "Donaciones",
+      "description": "Recibe donaciones con PayPal"
+    },
+    "shoutout": {
+      "title": "Shoutouts",
+      "description": "Promociones de canales"
+    },
+    "moderation": {
+      "title": "Moderación",
+      "description": "Filtros y acciones automáticas"
+    },
+    "ai": {
+      "title": "Decatron IA",
+      "description": "Inteligencia artificial en tu chat"
+    },
+    "now-playing": {
+      "title": "Now Playing",
+      "description": "Música en el stream"
+    },
+    "game-overlays": {
+      "title": "Game Overlays",
+      "description": "Rango, sesión y partidas en pantalla"
+    },
+    "live-overlay": {
+      "title": "Partida en vivo",
+      "description": "Selección, coach y predicción desde Decatron Desktop"
+    },
+    "pets": {
+      "title": "Mascota",
+      "description": "Un gato 3D que vive en tu stream"
+    },
+    "decatron-chat": {
+      "title": "Decatron Chat",
+      "description": "Chat privado con IA"
+    },
+    "analytics": {
+      "title": "Analíticas",
+      "description": "Estadísticas y datos del stream"
+    },
+    "followers": {
+      "title": "Seguidores",
+      "description": "Lista y gestión de seguidores"
+    },
+    "developer": {
+      "title": "Portal de desarrolladores",
+      "description": "Crea apps con la API"
+    },
+    "gacha": {
+      "title": "Sistema Gacha",
+      "description": "Cartas coleccionables con overlay"
+    },
+    "overlays-guide": {
+      "title": "Overlays en OBS",
+      "description": "Cómo agregar los overlays de Decatron a tu stream"
+    },
+    "settings": {
+      "title": "Configuración del bot",
+      "description": "Personaliza el comportamiento del bot"
+    },
+    "permissions": {
+      "title": "Permisos",
+      "description": "Niveles de acceso, roles y control de funciones"
+    },
+    "sr-overview": {
+      "title": "Song Request",
+      "description": "Tus viewers piden canciones y suenan en tu stream"
+    },
+    "sr-setup": {
+      "title": "Puesta en marcha",
+      "description": "Activa el módulo, OBS y la cola pública"
+    },
+    "sr-requests": {
+      "title": "Pedidos y revisión",
+      "description": "Modos, límites, filtros, vetos y revisión"
+    },
+    "sr-playlists": {
+      "title": "Playlists",
+      "description": "Fondo, compartir, colaborativas y votos"
+    },
+    "sr-commands": {
+      "title": "Comandos",
+      "description": "Todos los comandos de chat y sus permisos"
+    },
+    "sr-overlay": {
+      "title": "Diseño del overlay",
+      "description": "Temas, elementos, animaciones y editor"
+    },
+    "sr-library": {
+      "title": "Historial y descargas",
+      "description": "Historial, estadísticas y descargas"
+    }
+  },
+  "microCommands": {
+    "title": "Micro comandos",
+    "subtitle": "Atajos de chat para cambiar la categoría del stream",
+    "whatTitle": "¿Qué es un micro comando?",
+    "what": "Un micro comando es un comando corto que tú eliges, por ejemplo !apex, y que cambia la categoría del stream a un juego que le asignaste. En lugar de escribir !game Apex Legends, escribes !apex.",
+    "howTitle": "Cómo funciona",
+    "how": [
+      "Creas el micro comando y le asignas un juego o categoría.",
+      "El streamer o un moderador escribe el comando en el chat.",
+      "Decatron cambia la categoría del stream y responde con la categoría que quedó."
+    ],
+    "example": "Ejemplo en el chat",
+    "exampleCode": "AnthonyDeca: !g set !apex Apex Legends\nDecatron: Micro comando !apex creado para: Apex Legends\n\nModerador: !apex\nDecatron: ¡Categoría cambiada a: Apex Legends! (usando !apex)",
+    "whoTitle": "Quién puede usarlos",
+    "who": "Solo el streamer y los moderadores del canal. Si otra persona escribe un micro comando, el bot le avisa que no tiene permiso.",
+    "createTitle": "Cómo crearlos",
+    "panelTitle": "Desde el panel",
+    "panel": [
+      "Ve a Comandos → Micro comandos.",
+      "Pulsa «Crear micro comando».",
+      "Escribe el nombre del comando sin el «!» (por ejemplo: lol, cs, val). El prefijo se agrega solo.",
+      "Busca el juego y elígelo de la lista.",
+      "Pulsa «Crear»."
+    ],
+    "panelNote": "Si creas un micro comando con un nombre que ya existe, se actualiza con el nuevo juego. Para cambiar el juego de uno existente usa «Editar»: el nombre del comando no se puede modificar.",
+    "chatTitle": "Desde el chat con !g",
+    "chatIntro": "El comando !g sirve para ver y cambiar la categoría, y también para gestionar micro comandos. Es solo para el streamer y los moderadores.",
+    "chatRows": [
+      [
+        "!g",
+        "Muestra la categoría actual"
+      ],
+      [
+        "!g Just Chatting",
+        "Cambia la categoría directamente"
+      ],
+      [
+        "!g set !apex Apex Legends",
+        "Crea o actualiza el micro comando !apex"
+      ],
+      [
+        "!g remove !apex",
+        "Elimina el micro comando !apex"
+      ],
+      [
+        "!g list",
+        "Lista los micro comandos del canal"
+      ],
+      [
+        "!g help",
+        "Muestra la ayuda de !g"
+      ]
+    ],
+    "rulesTitle": "Reglas del nombre",
+    "rules": [
+      "Después del «!» solo se permiten letras y números, sin espacios ni símbolos.",
+      "Estos nombres están reservados y no se pueden usar: !g, !game, !set, !remove, !delete, !list, !help, !title y !t."
+    ],
+    "panelAccessTitle": "Permisos en el panel",
+    "panelAccess": "Para ver, crear y editar micro comandos hace falta el nivel de acceso «Comandos» o superior. Para eliminarlos hace falta «Moderación» o superior.",
+    "reqTitle": "Requisitos",
+    "req": [
+      "El comando por defecto !game debe estar activado en tu canal (Comandos → Por defecto). Si está desactivado, los micro comandos no responden.",
+      "Hoy los micro comandos cambian la categoría en Twitch. En Kick el cambio de categoría está próximamente, igual que !game."
+    ],
+    "countersTitle": "¿Buscas contadores?",
+    "counters": "Los micro comandos no cuentan nada. Para un contador (muertes, victorias…) crea un comando personalizado con la variable $(count).",
+    "goToPanel": "Ir a Micro comandos"
+  },
+  "limits": {
+    "title": "Qué amplía cada plan",
+    "tiers": {
+      "free": "Gratis",
+      "supporter": "Supporter",
+      "premium": "Premium",
+      "fundador": "Fundador"
+    },
+    "rows": {
+      "songPlaylists": "Playlists",
+      "songItems": "Canciones por playlist",
+      "songHistoryDays": "Días de historial",
+      "songTemplates": "Plantillas de diseño propias",
+      "songHidePromo": "Ocultar la tarjeta de Decatron"
+    },
+    "unlimited": "Sin tope",
+    "yes": "Sí",
+    "no": "No",
+    "loading": "Cargando…",
+    "error": "No se pudieron cargar los límites ahora mismo."
+  }
+}
