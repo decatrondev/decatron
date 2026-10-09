@@ -75,7 +75,9 @@ export default function PrivateDocsLayout() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {/* Barra fija: sigue al scroll para tener siempre a mano Atrás, las migas y el idioma.
+                Los márgenes y el top negativos igualan el padding del contenedor del panel (p-4 sm:p-6 xl:p-8): la barra cubre hasta el borde. El índice (top 4.25rem) queda justo debajo. */}
+            <div className="sticky -top-4 sm:-top-6 xl:-top-8 z-20 -mx-4 sm:-mx-6 xl:-mx-8 -mt-4 sm:-mt-6 xl:-mt-8 px-4 sm:px-6 xl:px-8 pt-4 sm:pt-6 xl:pt-8 pb-3 bg-white dark:bg-[#1B1C1D] border-b border-[#e2e8f0] dark:border-[#374151] flex flex-wrap items-center gap-x-4 gap-y-2">
                 <button
                     type="button"
                     onClick={goBack}
@@ -107,7 +109,7 @@ export default function PrivateDocsLayout() {
 
             <div className="grid lg:grid-cols-[220px_minmax(0,1fr)] gap-8">
                 <aside className="hidden lg:block">
-                    <div className="pr-2">{index}</div>
+                    <div className="sticky top-[4.25rem] max-h-[calc(100vh-11rem)] overflow-y-auto pr-2">{index}</div>
                 </aside>
                 <div className="min-w-0">
                     <details className="lg:hidden mb-6 rounded-lg border border-[#e2e8f0] dark:border-[#374151] p-3">
