@@ -1,0 +1,105 @@
+import { Music } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { DocSections, asArray, type DocSectionData } from '../../components/docs/DocBlocks';
+import type { DocScope } from './registry';
+import {
+    GUIDE_COMMANDS,
+    GUIDE_GROUPS,
+    roleFor,
+    type GuidePermissions,
+} from '../features/song-request-extension/commandGuide';
+
+// Páginas de Song Request. El texto vive en public/locales/{es,en}/docs-sr.json (una clave por página).
+// La lista de comandos sale de commandGuide.ts + commands.json → srGuide: la misma fuente del panel y de /sr.
+export type SrPage = 'overview' | 'setup' | 'requests' | 'playlists' | 'commands' | 'overlay' | 'library';
+
+interface PageData { title?: string; subtitle?: string; sections?: DocSectionData[]; tail?: DocSectionData[] }
+
+// Permisos por defecto de SongRequestSettings.Permissions (backend)
+const DEFAULT_PERMISSIONS: GuidePermissions = {
+    request: 'everyone',
+    skip: 'moderator',
+    manage: 'lead_moderator',
+    review: 'moderator',
+    playlist: 'everyone',
+};
+// Votos para saltar por defecto (SongRequestSettings.SkipVotesRequired)
+const DEFAULT_SKIP_VOTES = 3;
+
+export function SongRequestDoc({ page, scope }: { page: SrPage; scope: DocScope }) {
+    const { t } = useTranslation('docs-sr');
+    const raw = t(page, { returnObjects: true });
+    // Mientras carga el namespace, t() devuelve el texto de la clave
+    const data: PageData = raw && typeof raw === 'object' ? (raw as PageData) : {};
+
+    return (
+        <div className="space-y-8">
+            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 border border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-[#f8fafc] dark:bg-[#1B1C1D] rounded-2xl flex items-center justify-center border border-[#e2e8f0] dark:border-[#374151]">
+                        <Music className="w-8 h-8 text-[#2563eb]" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-gray-900 dark:text-white">{data.title}</h1>
+                        <p className="text-[#64748b] dark:text-[#94a3b8]">{data.subtitle}</p>
+                    </div>
+                </div>
+            </div>
+
+            <DocSections sections={asArray<DocSectionData>(data.sections)} scope={scope} />
+            {page === 'commands' && <CommandList />}
+            {page === 'commands' && <DocSections sections={asArray<DocSectionData>(data.tail)} scope={scope} />}
+        </div>
+    );
+}
+
+function CommandList() {
+    const { t } = useTranslation('commands');
+
+    return (
+        <div className="space-y-8">
+            {GUIDE_GROUPS.map(group => {
+                const commands = GUIDE_COMMANDS.filter(c => c.group === group);
+                if (!commands.length) return null;
+                return (
+                    <section key={group}>
+                        <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2 pb-2 border-b border-[#e2e8f0] dark:border-[#374151]">
+                            {t(`srGuide.groups.${group}`)}
+                        </h2>
+                        {t(`srGuide.groupNotes.${group}`, { defaultValue: '' }) && (
+                            <p className="mb-3 text-[#64748b] dark:text-[#94a3b8]">{t(`srGuide.groupNotes.${group}`)}</p>
+                        )}
+                        <div className="rounded-lg border border-[#e2e8f0] dark:border-[#374151] divide-y divide-[#e2e8f0] dark:divide-[#374151] overflow-hidden">
+                            {commands.map(cmd => {
+                                const role = roleFor(cmd, DEFAULT_PERMISSIONS);
+                                return (
+                                    <div key={cmd.id} className="p-4 grid grid-cols-1 lg:grid-cols-[minmax(0,20rem)_1fr] gap-x-6 gap-y-2">
+                                        <div className="flex flex-wrap items-center gap-2 min-w-0">
+                                            <code className="font-mono text-sm font-bold text-[#2563eb] dark:text-pub-accent-hi break-all">{t(`srGuide.cmd.${cmd.id}.syntax`)}</code>
+                                            <span className="shrink-0 px-1.5 py-0.5 rounded border border-[#e2e8f0] dark:border-[#374151] text-xs font-semibold text-[#64748b] dark:text-[#94a3b8]">
+                                                {role ? t(`srGuide.badges.${role}`) : t('srGuide.badges.playlist')}
+                                            </span>
+                                        </div>
+                                        <div className="min-w-0 space-y-2">
+                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t(`srGuide.cmd.${cmd.id}.text`, { votes: DEFAULT_SKIP_VOTES })}</p>
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                {cmd.examples.map(ex => (
+                                                    <code key={ex} className="px-1.5 py-0.5 rounded bg-[#eef1f6] dark:bg-pub-raised font-mono text-xs text-gray-800 dark:text-[#e6e9ef]">{ex}</code>
+                                                ))}
+                                                {cmd.aliases && (
+                                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                        {t('srGuide.aliases')} <span className="font-mono">{cmd.aliases.join(' · ')}</span>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+            })}
+        </div>
+    );
+}

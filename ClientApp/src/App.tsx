@@ -119,6 +119,7 @@ import MicrocommandsDoc from './pages/docs/MicrocommandsDoc';
 import ScriptingCommandsDoc from './pages/docs/ScriptingCommandsDoc';
 import ShoutoutOverlayDoc from './pages/docs/ShoutoutOverlayDoc';
 import GachaOverlayDoc from './pages/docs/GachaOverlayDoc';
+import { SongRequestDoc } from './pages/docs/SongRequestDoc';
 // Public docs
 import About from './pages/docs/public/About';
 import GettingStarted from './pages/docs/public/GettingStarted';
@@ -282,6 +283,7 @@ function App() {
                     <Route path="commands/scripting" element={<ScriptingCommandsDoc />} />
                     <Route path="overlays/shoutout" element={<ShoutoutOverlayDoc />} />
                     <Route path="overlays/gacha" element={<GachaOverlayDoc />} />
+                    <Route path="song-request" element={<SongRequestDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -427,6 +429,12 @@ function App() {
                     <Route path="dashboard/docs/overlays" element={<OverlaysGuide />} />
                     <Route path="dashboard/docs/overlays/shoutout" element={<ShoutoutOverlayDoc />} />
                     <Route path="dashboard/docs/overlays/gacha" element={<GachaOverlayDoc />} />
+                    <Route path="dashboard/docs/song-request/setup" element={<SongRequestDoc page="setup" scope="private" />} />
+                    <Route path="dashboard/docs/song-request/requests" element={<SongRequestDoc page="requests" scope="private" />} />
+                    <Route path="dashboard/docs/song-request/playlists" element={<SongRequestDoc page="playlists" scope="private" />} />
+                    <Route path="dashboard/docs/song-request/commands" element={<SongRequestDoc page="commands" scope="private" />} />
+                    <Route path="dashboard/docs/song-request/overlay" element={<SongRequestDoc page="overlay" scope="private" />} />
+                    <Route path="dashboard/docs/song-request/library" element={<SongRequestDoc page="library" scope="private" />} />
                     {/* Features */}
                     <Route path="dashboard/docs/features/timer" element={<TimerDoc />} />
                     <Route path="dashboard/docs/features/event-alerts" element={<EventAlertsDoc />} />

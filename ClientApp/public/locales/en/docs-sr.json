@@ -1,0 +1,1053 @@
+{
+  "overview": {
+    "title": "Song Request",
+    "subtitle": "Your viewers request songs and they play on your stream",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request is Decatron's module that lets your viewers request songs from chat or from the web. Songs join a queue and play in an OBS overlay that you add once."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "It works on Twitch and Kick.",
+              "Viewers request with a YouTube, SoundCloud, Spotify, Deezer or Apple Music link, or by typing the song name.",
+              "Your viewers see the live queue on a public page for your channel (decatron.net/sr/your-channel).",
+              "You can build playlists: one plays in the background when the queue is empty, and others can be shared so your viewers listen to them or add to them.",
+              "You set the rules: who can request, limits, filters, blacklists and, if you want, review every request before it plays."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "viewers",
+        "title": "For your viewers",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They request with !sr in chat. With !song they see what's playing, with !queue the queue, and with !wrongsong they remove their last request. On your channel's public page they see the queue, how to request, your playlists and the history."
+          },
+          {
+            "t": "code",
+            "x": "!sr daft punk one more time\n!sr https://youtu.be/dQw4w9WgXcQ"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "When a playlist is public, your viewers can also listen to it in the browser, vote on its songs and request them to the stream with a button (signing in with Twitch or Kick), if you allow it."
+          }
+        ]
+      },
+      {
+        "id": "streamer",
+        "title": "For you",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "You control the queue from the dashboard: pause, skip, remove, move to the top and ban.",
+              "Request rules: modes (open, playlists only, with review or closed), limits, duration and view filters, and blacklists for songs, artists and users.",
+              "The overlay design is yours: themes, templates, typography, animations and a visual editor.",
+              "History, listening stats and audio or video downloads with Decatron Desktop."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "empezar",
+        "title": "Getting started",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Sign in to Decatron with Twitch or Kick.",
+              "Go to Overlays → Song Request and turn the module on in the Basic tab.",
+              "Copy the player URL and add it to OBS as a Browser Source.",
+              "Share the public queue with your viewers."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "The complete step-by-step guide is in the documentation for signed-in users."
+          },
+          {
+            "t": "link",
+            "to": "sr-setup"
+          }
+        ]
+      },
+      {
+        "id": "gratis",
+        "title": "It's free",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every Song Request feature is free. Support plans only raise quantities:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songPlaylists",
+              "songItems",
+              "songHistoryDays",
+              "songTemplates",
+              "songHidePromo"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Song Request: setup",
+    "subtitle": "Turn the module on, add the player to OBS and share the queue",
+    "sections": [
+      {
+        "id": "antes",
+        "title": "Before you start",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request lives in Overlays → Song Request. The Guide tab in the dashboard summarizes these same steps."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The module is free. Support plans only raise quantities (playlists, songs per playlist, history and templates)."
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "Step 1: turn the module on",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Basic tab turn on “Song Request active” and save. From then on !sr works in your chat."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "With the module off, the commands don't answer. If you have your own commands with the same name (!song, !queue…), they keep working."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Step 2: add the player to OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "In the Guide tab copy the “Player URL (plays sound)”.",
+              "In OBS, add a Browser Source and paste the URL.",
+              "Use the canvas size shown under the preview."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The player is the overlay that plays the sound: without it the queue doesn't advance. In the Queue tab, the indicator reads “Player connected” or “No player”."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "title": "Private key",
+            "x": "The player URL contains a private key: don't show it on screen or share it. If it leaks, click “Generate new player key” in Basic: the old URL stops working and you'll have to paste the new one in OBS."
+          },
+          {
+            "t": "p",
+            "x": "If you'd rather not use OBS, click “Listen here” in the Queue tab: that browser becomes the player and the OBS one goes silent. When you turn it off, OBS plays again on its own."
+          }
+        ]
+      },
+      {
+        "id": "vod",
+        "title": "Step 3: protect your VODs from copyright",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Requested music can mute your VODs. OBS lets it play live without being recorded in the VOD:"
+          },
+          {
+            "t": "ol",
+            "items": [
+              "In the player source, check “Control audio via OBS”.",
+              "In Audio Mixer → Advanced Audio Properties, leave that source on a single track (for example track 2).",
+              "In Settings → Stream (Twitch), turn on “Twitch VOD Track” and pick a different track from the music one.",
+              "That way your viewers hear the music live and the VOD stays without it."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sonando",
+        "title": "Step 4 (optional): “Now playing”",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you want to show the song in another scene or place without duplicating the audio, use the “Now playing URL (display only)”. It has its own design and plays no sound."
+          }
+        ]
+      },
+      {
+        "id": "compartir",
+        "title": "Step 5: share the queue",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Your viewers see the live queue on your public page (decatron.net/sr/your-channel); the dashboard shows the link under “Public queue for your viewers”. With !queue you share it in chat: it shows the next songs and the queue link."
+          }
+        ]
+      },
+      {
+        "id": "controles",
+        "title": "Controlling the queue",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Queue tab you see what's playing and what's next, and you can:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Action",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Pause / Resume",
+                "Pauses the song and picks it back up."
+              ],
+              [
+                "Skip",
+                "Moves on to the next song."
+              ],
+              [
+                "Stop and hide",
+                "Silence and hidden overlay; when you resume it shows again and plays where it left off."
+              ],
+              [
+                "Close / Open requests",
+                "Closes or opens !sr requests."
+              ],
+              [
+                "Add a song",
+                "With a link or the name; it tells you which position it took. What you add from the dashboard doesn't go through the filters."
+              ],
+              [
+                "Move to the top",
+                "Puts a song first in the queue."
+              ],
+              [
+                "Remove",
+                "Takes it out of the queue."
+              ],
+              [
+                "Ban",
+                "Bans the song, the artist or channel, or the person who requested it."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Almost all of this can also be done from chat. See the commands:"
+          },
+          {
+            "t": "link",
+            "to": "sr-commands"
+          }
+        ]
+      }
+    ]
+  },
+  "requests": {
+    "title": "Song Request: requests, filters and review",
+    "subtitle": "Who can request, what is accepted and how to review it",
+    "sections": [
+      {
+        "id": "modos",
+        "title": "Request mode",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Change with one click how !sr requests come in, for example when you start a ranked game. It applies instantly, from the Queue tab or with !srmode in chat."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Mode",
+              "What happens",
+              "Chat"
+            ],
+            "rows": [
+              [
+                "Open",
+                "Any song that passes the filters gets in.",
+                "!srmode open"
+              ],
+              [
+                "Playlists only",
+                "Only songs from your playlists (and !sr #number).",
+                "!srmode playlists"
+              ],
+              [
+                "With review",
+                "Every request waits for a mod to approve it.",
+                "!srmode review"
+              ],
+              [
+                "Closed",
+                "No requests are accepted.",
+                "!srmode closed"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "With !sropen and !srclose you also open and close requests."
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Limits",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They keep a raid from filling the queue. They're set in Basic. You and anyone with full control have no limit. For all of them, 0 means no limit."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Limit",
+              "What it controls"
+            ],
+            "rows": [
+              [
+                "Songs in the queue",
+                "How many songs fit at once (50 by default)."
+              ],
+              [
+                "Requests per user",
+                "How many of their songs a viewer can have in the queue (3 by default)."
+              ],
+              [
+                "Requests per user per hour",
+                "Counts what was requested in the last hour, even if it already played."
+              ],
+              [
+                "Songs in !queue",
+                "How many songs the bot lists in chat (3 by default)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "filtros",
+        "title": "Filters",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Filters are in the Filters tab and only apply to viewers: they don't apply to you, to anyone with full control, or to what you add from the dashboard."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Filter",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Maximum duration (minutes)",
+                "Rejects longer songs. E.g.: 6 = up to 6 minutes."
+              ],
+              [
+                "Accept unknown duration",
+                "Some unlisted videos don't report their length. When on, they're accepted and the player cuts them at the maximum; when off, they're rejected with a chat notice."
+              ],
+              [
+                "Minimum YouTube views",
+                "If the view count isn't known, it's accepted."
+              ],
+              [
+                "Don't repeat for (minutes)",
+                "A song that already played isn't accepted again until that time passes."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "These are always rejected, regardless of filters: live streams, premieres, private videos and videos that can't be played outside YouTube."
+          },
+          {
+            "t": "h3",
+            "x": "Where requests can come from"
+          },
+          {
+            "t": "p",
+            "x": "Limit !sr to your playlists when you don't want just any song on stream. “Any song” accepts everything that passes the filters; “Only songs from my playlists” accepts only those in your “Only you and your mods” or “with review” playlists (open collaborative ones don't count, since anyone can fill them). !sr #number always works."
+          }
+        ]
+      },
+      {
+        "id": "listas-negras",
+        "title": "Blacklists",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "What's banned can't be requested. Ban from the Blacklists tab, from the Queue tab or from chat with !srban."
+          },
+          {
+            "t": "table",
+            "head": [
+              "List",
+              "What it bans"
+            ],
+            "rows": [
+              [
+                "Songs",
+                "One specific song. Paste the link (YouTube, Spotify, SoundCloud, Deezer or Apple Music) or the name."
+              ],
+              [
+                "Artists and channels",
+                "All songs from a YouTube channel. Paste the link of any song by them."
+              ],
+              [
+                "Users",
+                "Viewers who can't request. Banning them removes their pending requests."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "permisos",
+        "title": "Permissions by role",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Commands tab you choose the minimum role for each group of commands. That role and the ones above it can use them. Whoever has full control on your dashboard counts as the streamer."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Group",
+              "Commands",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Request and look up",
+                "!sr, !wrongsong, !queue, !song, !lastsong, !myqueue and voting !skip",
+                "Everyone"
+              ],
+              [
+                "Skip and remove",
+                "direct !skip (also !srskip and !srnext), !srremove and !srpromote",
+                "Moderators"
+              ],
+              [
+                "Manage",
+                "!sropen, !srclose, !srclear, !srpause, !srstop, !srresume, !srban, !srunban, !srvideo, !srcover, !srplay and !srmode",
+                "Lead Moderators"
+              ],
+              [
+                "Review pending",
+                "!srapprove and !srreject",
+                "Moderators"
+              ],
+              [
+                "Link to playlists",
+                "!playlist",
+                "Everyone"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Available roles are: Everyone, Subscribers, VIPs, Moderators, Lead Moderators and Streamer only."
+          }
+        ]
+      },
+      {
+        "id": "votacion",
+        "title": "Skip voting",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you turn it on, viewers can vote !skip and, with enough votes, the song is skipped (3 votes by default). Those with skip permission do it directly. It's set in the Commands tab."
+          }
+        ]
+      },
+      {
+        "id": "revision",
+        "title": "Request review",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decide what gets in before it plays: with “Review !sr requests before they enter the queue” (or the “With review” mode), every request waits in the Review tab until someone approves it."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Anyone with the “Review pending” permission can approve (by default, Moderators and up).",
+              "You, those who can approve and trusted viewers skip the review.",
+              "When approving or rejecting, the viewer is told in chat. You can also reject without notifying.",
+              "In chat: !srapprove 2 or !srreject 2 (the number on the left of the inbox).",
+              "From the inbox you can trust a viewer and approve everything of theirs, or ban them (everything of theirs is removed from the inbox and the queue).",
+              "For playlists, review is chosen on each one (Playlists tab → Who can add)."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Trusted viewers"
+          },
+          {
+            "t": "p",
+            "x": "Their requests and contributions go straight in, without review. Each playlist's requirements still apply. Add or remove viewers from the Review tab."
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Bot messages",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Messages tab you change what the bot answers in each situation (song added, full queue, banned user, limits, pending requests, playlist commands…). Leave a field empty to use the default message. Each message can be muted (the bot says nothing) or restored. The dashboard shows the variables you can use in each one."
+          }
+        ]
+      }
+    ]
+  },
+  "playlists": {
+    "title": "Song Request: playlists",
+    "subtitle": "Background playlist, shareable lists and your viewers' contributions",
+    "sections": [
+      {
+        "id": "basico",
+        "title": "What they are",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Playlists let you build several lists (for example for ranked games, for chatting or the community's best). One of them can play in the background. They're managed in the Playlists tab."
+          },
+          {
+            "t": "p",
+            "x": "How many playlists and how many songs per playlist you can have depends on your plan:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songPlaylists",
+              "songItems"
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Going down a plan deletes nothing: what you already have stays, you just can't add above the limit."
+          }
+        ]
+      },
+      {
+        "id": "visibilidad",
+        "title": "Who sees it",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Visibility",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Public (listed)",
+                "Shows on your public page and in !playlist, and can be listened to with its link."
+              ],
+              [
+                "Link only",
+                "Doesn't show in any list: whoever has the link can listen. You or a mod share it; !playlist doesn't give it."
+              ],
+              [
+                "Private",
+                "Only you see it, in the dashboard."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Each playlist has a link to listen to it (decatron.net/sr/your-channel/p/code). If it leaked, “Generate new link” makes the old one stop working instantly."
+          }
+        ]
+      },
+      {
+        "id": "fondo",
+        "title": "Background playlist",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It plays when the queue is empty. Requests always go first: if one comes in, it plays as soon as the current song ends. Without a background playlist, nothing plays when the queue is empty."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Pick the background playlist from the Playlists tab (“Play in background”) or with !plplay <playlist> in chat; stop it with !plstop.",
+              "!plnext moves to the next background song and !plshuffle turns random order on or off.",
+              "“Random order” makes it play at random instead of in order.",
+              "With !sr #number a viewer requests, by its number, a song from the background playlist to the queue; with !plplay #number you jump to that song."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "sr-commands"
+          }
+        ]
+      },
+      {
+        "id": "agregar",
+        "title": "Adding songs",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "From the dashboard you add with a link or the song name, from the history with “Add to a playlist”, or by importing a whole playlist."
+          },
+          {
+            "t": "h3",
+            "x": "Importing playlists"
+          },
+          {
+            "t": "p",
+            "x": "Importing needs Decatron Desktop open and linked: the app reads the list and searches each song on YouTube from your PC, so YouTube doesn't block the bot."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "YouTube and Deezer import in full; Spotify, up to 100 songs; Apple Music is also supported.",
+              "While importing you see progress: checked, added, already there, not found and rejected.",
+              "If Decatron Desktop closes halfway, what was added stays saved: open the app and click “Resume”; only the missing ones are searched.",
+              "You can cancel the import."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Songs that don't get in come with a reason:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Reason",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Not found on YouTube",
+                "Decatron Desktop couldn't find that song."
+              ],
+              [
+                "Desktop without yt-dlp",
+                "The app doesn't have the download tools ready yet."
+              ],
+              [
+                "The video no longer exists",
+                "It was deleted or is unavailable."
+              ],
+              [
+                "Can't be put in the overlay",
+                "The video owner doesn't allow playing it outside YouTube."
+              ],
+              [
+                "Banned song or channel",
+                "It's in your blacklists."
+              ],
+              [
+                "The playlist hit its limit",
+                "You reached your plan's maximum."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "colaborativas",
+        "title": "Who can add",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each playlist defines who can add songs, with !pladd <playlist> <song> in chat or from your public page:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Option",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Only you and your mods",
+                "You do it from the dashboard; your mods, with !pladd in chat."
+              ],
+              [
+                "Collaborative",
+                "Viewers who meet the requirements add directly. You and your mods skip the requirements."
+              ],
+              [
+                "Collaborative with review",
+                "Viewers propose and it sits in the Review tab until someone approves. Your mods and trusted viewers go straight in."
+              ]
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Requirements for viewers"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Requirement",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Minimum role",
+                "With a role other than “Everyone”, adding from the public page isn't possible (it can't tell if someone is a sub, VIP or mod there): chat only."
+              ],
+              [
+                "Account age (days)",
+                "0 = no minimum."
+              ],
+              [
+                "Days following the channel",
+                "0 = no minimum."
+              ],
+              [
+                "Songs per viewer",
+                "How many each one can add."
+              ],
+              [
+                "Chat song limit",
+                "Among all viewers. 0 = up to your plan's limit."
+              ],
+              [
+                "Minutes between a viewer's songs",
+                "The wait between one contribution and the next."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Account age and days following can only be verified on Twitch: if you use them, adding won't be possible on Kick."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Song Request filters (duration, views) and blacklists also apply."
+          }
+        ]
+      },
+      {
+        "id": "votos",
+        "title": "Viewer votes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If the playlist is public and you turn on “Viewer votes”, your viewers vote on their favorite songs on your page: one vote per song per person, signed in with Twitch or Kick."
+          },
+          {
+            "t": "p",
+            "x": "“Most voted first” makes votes decide the order: when playing in order, in !sr #number and on the page. While it's on, you can't drag to reorder."
+          }
+        ]
+      },
+      {
+        "id": "web",
+        "title": "The listening page",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each public playlist has its own page (decatron.net/sr/your-channel/p/code) where your viewers can:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Listen to the playlist in the browser, with play, pause, previous, next, shuffle, repeat and volume.",
+              "Request a song to the stream with the “Request” button, which does the same as !sr for that song: same limits, mode, review and bans. Whoever requests must sign in with Twitch or Kick.",
+              "Vote on songs, if you turned on votes."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "You can turn off requests from the web in the Commands tab with “Allow requesting from the playlist page”."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "On phones the audio stops when the screen turns off (a YouTube limit): viewers must keep the screen on."
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Song Request: commands",
+    "subtitle": "Every chat command and who can use it",
+    "sections": [
+      {
+        "id": "sobre",
+        "title": "How to read this list",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The list comes from the same source the dashboard and your channel's public page use, so it's always up to date. The permission you see is the default one: in Song Request → Commands you change it for your channel."
+          },
+          {
+            "t": "p",
+            "x": "A permission is the minimum role: that role and the ones above it can use the command. Whoever has full control on your dashboard counts as the streamer."
+          }
+        ]
+      }
+    ],
+    "tail": [
+      {
+        "id": "publicos",
+        "title": "Public commands",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In Commands → Public you can hide commands from your public page. If you hide a Song Request command, it also stops appearing in the “How to request” guide on your /sr page."
+          }
+        ]
+      }
+    ]
+  },
+  "overlay": {
+    "title": "Song Request: overlay design",
+    "subtitle": "Themes, elements, typography, animations and visual editor",
+    "sections": [
+      {
+        "id": "dos",
+        "title": "Two overlays",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request has two overlays, each with its own design: the Player (the one that plays sound and holds the private key) and “Now playing” (display only, no audio)."
+          },
+          {
+            "t": "p",
+            "x": "In the design tabs, the “Editing” selector switches between the two. “Copy design to…” copies one design onto the other (it replaces the target's, with confirmation). What you see in the preview is what shows up in OBS."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Design tabs",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "Theme",
+                "Ready-made themes (Decatron, Neon, Light minimal, Vinyl, Glass, Arcade and No background) that change colors, fonts and background without moving the elements. You also adjust background and border color, rounding, blur, accent color and shadow."
+              ],
+              [
+                "Elements",
+                "Turn on what you want to see: background, video, cover, equalizer, title, artist, album, requested by, progress bar, time, next, queue and service."
+              ],
+              [
+                "Typography",
+                "Per element: font, color, size, weight, alignment, shadow, spacing, uppercase and “Scroll if it doesn't fit” for long titles."
+              ],
+              [
+                "Animations",
+                "How the new song enters (none, fade, rise, from the right, zoom or flip), its duration, the overlay's entry and exit, hiding it when nothing plays and freezing it on pause."
+              ],
+              [
+                "Editor",
+                "Drag each element and resize it from the corners, with an optional grid and arrow keys (1 px; with Shift, 10 px). This is also where you pick the canvas size and a starting layout."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Starting layouts are Card, Bar, Vertical, With video, Minimal and Text only. They replace the positions and size of all elements, but keep your colors and fonts."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "The canvas size is the overlay's size: use the same one in OBS's Browser Source."
+          }
+        ]
+      },
+      {
+        "id": "video",
+        "title": "Video or cover",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The player can show the YouTube video or just the cover. With !srvideo and !srcover you switch between them without cutting the music (those who can manage). Without the video, the player keeps playing: you just don't see it."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "If the video and the cover take the same spot, the video covers the cover. Move one of them in the Editor, or turn the cover off in Elements."
+          }
+        ]
+      },
+      {
+        "id": "plantillas",
+        "title": "My templates",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Save the full design of the overlay you're editing to reuse whenever you want (Save, Apply and Delete). How many templates of your own you can have depends on your plan:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songTemplates"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "promo",
+        "title": "Decatron card",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "From time to time it appears for a few seconds over the overlay with the Decatron logo and a message. It's managed in Basic with “Show the Decatron card on overlays”. On the free plan it always shows; from Supporter you can hide it."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songHidePromo"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "library": {
+    "title": "Song Request: history, stats and downloads",
+    "subtitle": "What played, who's listening and how to download audio or video",
+    "sections": [
+      {
+        "id": "historial",
+        "title": "History",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the History tab you see what played on your channel. You can mark favorites, put them back in the queue or add them to a playlist."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Each song says how it ended: Finished, Skipped, Error or Removed.",
+              "“Delete history” keeps your favorites.",
+              "Your plan sets how many days of history are shown; favorites are always shown and nothing is deleted:"
+            ]
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songHistoryDays"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "estadisticas",
+        "title": "Listening stats",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "How many people listen to your playlists in their browser (on the playlist page). What plays on the stream isn't included in these numbers."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Listening now, unique listeners, listens (songs heard for at least 30 seconds), time listened and requests from the web.",
+              "Filters by period and by playlist, a per-day chart and a per-playlist breakdown.",
+              "Most listened, with how many times each played on stream in the same period.",
+              "Songs that can't be played outside YouTube: listeners skip them because the video owner doesn't allow embedding. You can swap them for another version."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "It's anonymous: each browser has its own random id. Neither the IP nor the listener's account is stored, and ids are deleted after 100 days; per-day totals are kept. Days are counted in UTC."
+          }
+        ]
+      },
+      {
+        "id": "descargas",
+        "title": "Downloads",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Download video or audio from the Downloads tab. Paste a YouTube, Spotify, SoundCloud, Deezer, Apple Music or other site link (or type a song name). It downloads on your PC with Decatron Desktop, using your connection, so YouTube doesn't block it."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "You need Decatron Desktop installed, linked to your channel and open. Files stay on the PC where the app runs."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Paste the link and click “Analyze”.",
+              "Pick Video or Audio only, the quality and the format.",
+              "Optional: trim a section (m:ss format or seconds), save the thumbnail and add subtitles (up to 5; they go inside the video).",
+              "Click “Download” and follow the live progress in the downloads list."
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Format",
+              "Notes"
+            ],
+            "rows": [
+              [
+                "MP4",
+                "Compatible with everything."
+              ],
+              [
+                "WebM",
+                "Video."
+              ],
+              [
+                "MP3, M4A (AAC), Opus, WAV",
+                "Audio only; WAV is uncompressed."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "The first time the app downloads yt-dlp and ffmpeg (about 100 MB on Windows); it can take a couple of minutes. After that yt-dlp updates itself.",
+              "From the list you can show the file or open the folder on the PC and clear the finished ones.",
+              "If Desktop is an older version, open it again: it updates itself on startup."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The most common errors: Desktop disconnected or not responding, unsupported site, private or age-restricted video, unavailable, site that blocked the download, full disk or no permission to write to the folder."
+          }
+        ]
+      }
+    ]
+  }
+}

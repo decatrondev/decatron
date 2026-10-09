@@ -1,0 +1,1053 @@
+{
+  "overview": {
+    "title": "Song Request",
+    "subtitle": "Tus viewers piden canciones y suenan en tu stream",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request es el módulo de Decatron para que tus viewers pidan canciones desde el chat o desde la web. Las canciones entran a una cola y suenan en un overlay de OBS que tú agregas una sola vez."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Funciona en Twitch y en Kick.",
+              "Se pide con un link de YouTube, SoundCloud, Spotify, Deezer o Apple Music, o escribiendo el nombre de la canción.",
+              "Tus viewers ven la cola en vivo en una página pública de tu canal (decatron.net/sr/tu-canal).",
+              "Puedes armar playlists: una suena de fondo cuando la cola está vacía y otras se comparten para que tus viewers las escuchen o las completen.",
+              "Tú pones las reglas: quién puede pedir, límites, filtros, listas negras y, si quieres, revisar cada pedido antes de que suene."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "viewers",
+        "title": "Para tus viewers",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Piden con !sr en el chat. Con !song ven qué suena, con !queue la cola y con !wrongsong quitan su último pedido. En la página pública de tu canal ven la cola, cómo pedir, tus playlists y el historial."
+          },
+          {
+            "t": "code",
+            "x": "!sr daft punk one more time\n!sr https://youtu.be/dQw4w9WgXcQ"
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Cuando una playlist es pública, tus viewers también pueden escucharla en el navegador, votar sus canciones y pedirlas al stream con un botón (iniciando sesión con Twitch o Kick), si tú lo permites."
+          }
+        ]
+      },
+      {
+        "id": "streamer",
+        "title": "Para ti",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Controlas la cola desde el panel: pausar, saltar, quitar, subir al primer lugar y vetar.",
+              "Reglas de pedido: modos (abiertos, solo de playlists, con revisión o cerrados), límites, filtros por duración y vistas, y listas negras de canciones, artistas y usuarios.",
+              "El diseño del overlay es tuyo: temas, plantillas, tipografía, animaciones y un editor visual.",
+              "Historial, estadísticas de escucha y descargas de audio o video con Decatron Desktop."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "empezar",
+        "title": "Cómo empezar",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Inicia sesión en Decatron con Twitch o Kick.",
+              "Ve a Overlays → Song Request y enciende el módulo en la pestaña Básico.",
+              "Copia la URL del reproductor y agrégala a OBS como Fuente de navegador.",
+              "Comparte la cola pública con tus viewers."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "La guía completa, paso a paso, está en la documentación con cuenta."
+          },
+          {
+            "t": "link",
+            "to": "sr-setup"
+          }
+        ]
+      },
+      {
+        "id": "gratis",
+        "title": "Es gratis",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Todas las funciones de Song Request son gratis. Los planes de apoyo solo amplían cantidades:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songPlaylists",
+              "songItems",
+              "songHistoryDays",
+              "songTemplates",
+              "songHidePromo"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Song Request: puesta en marcha",
+    "subtitle": "Activa el módulo, agrega el reproductor a OBS y comparte la cola",
+    "sections": [
+      {
+        "id": "antes",
+        "title": "Antes de empezar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request está en Overlays → Song Request. La pestaña Guía del panel resume estos mismos pasos."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El módulo es gratis. Los planes de apoyo solo amplían cantidades (playlists, canciones por playlist, historial y plantillas)."
+          }
+        ]
+      },
+      {
+        "id": "activar",
+        "title": "Paso 1: activa el módulo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Básico enciende «Song Request activo» y guarda. Desde ese momento !sr funciona en tu chat."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Con el módulo apagado los comandos no responden. Si tienes comandos propios con el mismo nombre (!song, !queue…), siguen funcionando."
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Paso 2: agrega el reproductor a OBS",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "En la pestaña Guía copia la «URL del reproductor (suena)».",
+              "En OBS, agrega una Fuente de navegador y pega la URL.",
+              "Usa el tamaño del lienzo que ves bajo la vista previa."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El reproductor es el overlay que suena: sin él la cola no avanza. En la pestaña Cola, el indicador dice «Reproductor conectado» o «Sin reproductor»."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "title": "Clave privada",
+            "x": "La URL del reproductor lleva una clave privada: no la muestres en pantalla ni la compartas. Si se filtra, en Básico pulsa «Generar clave nueva del reproductor»: la URL anterior deja de funcionar y tendrás que pegar la nueva en OBS."
+          },
+          {
+            "t": "p",
+            "x": "Si prefieres no usar OBS, en la pestaña Cola pulsa «Escuchar aquí»: ese navegador pasa a ser el reproductor y el de OBS se calla. Al apagarlo, OBS vuelve a sonar solo."
+          }
+        ]
+      },
+      {
+        "id": "vod",
+        "title": "Paso 3: protege tus VODs del copyright",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La música pedida puede silenciar tus VODs. OBS permite que suene en vivo sin quedar grabada en el VOD:"
+          },
+          {
+            "t": "ol",
+            "items": [
+              "En la fuente del reproductor marca «Controlar audio mediante OBS».",
+              "En Mezclador de audio → Propiedades de audio avanzadas, deja esa fuente solo en una pista (por ejemplo la 2).",
+              "En Ajustes → Emisión (Twitch) activa «Pista para VOD de Twitch» y elige una pista distinta a la de la música.",
+              "Así tus viewers escuchan la música en directo y el VOD queda sin ella."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sonando",
+        "title": "Paso 4 (opcional): «Sonando ahora»",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si quieres mostrar la canción en otra escena o en otro lugar sin duplicar el audio, usa la «URL de Sonando ahora (solo muestra)». Tiene su propio diseño y no reproduce sonido."
+          }
+        ]
+      },
+      {
+        "id": "compartir",
+        "title": "Paso 5: comparte la cola",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tus viewers ven la cola en vivo en tu página pública (decatron.net/sr/tu-canal); el panel te muestra el enlace en «Cola pública para tus viewers». Con !queue la compartes en el chat: muestra las próximas canciones y el link a la cola."
+          }
+        ]
+      },
+      {
+        "id": "controles",
+        "title": "Controlar la cola",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Cola ves lo que suena y lo que viene, y puedes:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Acción",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Pausar / Reanudar",
+                "Pone en pausa la canción y la retoma."
+              ],
+              [
+                "Saltar",
+                "Pasa a la siguiente canción."
+              ],
+              [
+                "Detener y ocultar",
+                "Silencio y overlay oculto; al reanudar se ve de nuevo y suena donde se quedó."
+              ],
+              [
+                "Cerrar / Abrir pedidos",
+                "Cierra o abre los pedidos de !sr."
+              ],
+              [
+                "Agregar una canción",
+                "Con un link o el nombre; te dice en qué posición quedó. Lo que agregas desde el panel no pasa por los filtros."
+              ],
+              [
+                "Subir al primer lugar",
+                "Pone una canción de la cola de primera."
+              ],
+              [
+                "Quitar",
+                "La saca de la cola."
+              ],
+              [
+                "Vetar",
+                "Veta la canción, al artista o canal, o a quien la pidió."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Casi todo esto también se hace desde el chat. Mira los comandos:"
+          },
+          {
+            "t": "link",
+            "to": "sr-commands"
+          }
+        ]
+      }
+    ]
+  },
+  "requests": {
+    "title": "Song Request: pedidos, filtros y revisión",
+    "subtitle": "Quién puede pedir, qué se acepta y cómo revisarlo",
+    "sections": [
+      {
+        "id": "modos",
+        "title": "Modo de pedidos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cambia de un clic cómo entran los pedidos de !sr, por ejemplo al empezar una ranked. Se aplica al instante, desde la pestaña Cola o con !srmode en el chat."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Modo",
+              "Qué pasa",
+              "Chat"
+            ],
+            "rows": [
+              [
+                "Abiertos",
+                "Entra cualquier canción que pase los filtros.",
+                "!srmode open"
+              ],
+              [
+                "Solo de playlists",
+                "Solo canciones de tus playlists (y !sr #número).",
+                "!srmode playlists"
+              ],
+              [
+                "Con revisión",
+                "Cada pedido espera a que un mod lo apruebe.",
+                "!srmode review"
+              ],
+              [
+                "Cerrados",
+                "No se aceptan pedidos.",
+                "!srmode closed"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Con !sropen y !srclose también abres y cierras los pedidos."
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "Límites",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Sirven para que un raid no llene la cola. Se configuran en Básico. Tú y quien tenga control total no tienen límite. En todos, 0 significa sin límite."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Límite",
+              "Qué controla"
+            ],
+            "rows": [
+              [
+                "Canciones en la cola",
+                "Cuántas canciones caben a la vez (por defecto 50)."
+              ],
+              [
+                "Pedidos por usuario",
+                "Cuántas canciones suyas puede tener un viewer en la cola (por defecto 3)."
+              ],
+              [
+                "Pedidos por usuario por hora",
+                "Cuenta lo pedido en la última hora, aunque ya haya sonado."
+              ],
+              [
+                "Canciones en !queue",
+                "Cuántas canciones lista el bot en el chat (por defecto 3)."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "filtros",
+        "title": "Filtros",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los filtros están en la pestaña Filtros y solo aplican a los viewers: no te aplican a ti, a quien tiene control total ni a lo que agregas desde el panel."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Filtro",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Duración máxima (minutos)",
+                "Rechaza canciones más largas. Ej.: 6 = hasta 6 minutos."
+              ],
+              [
+                "Aceptar duración desconocida",
+                "Algunos videos no listados no informan su duración. Si está encendido se aceptan y el reproductor las corta al llegar al máximo; apagado, se rechazan con un aviso en el chat."
+              ],
+              [
+                "Vistas mínimas en YouTube",
+                "Si no se sabe cuántas vistas tiene, se acepta."
+              ],
+              [
+                "No repetir durante (minutos)",
+                "Una canción que ya sonó no se acepta de nuevo hasta que pase ese tiempo."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Siempre se rechazan, sin importar los filtros: transmisiones en vivo, estrenos, videos privados y los que no se pueden reproducir fuera de YouTube."
+          },
+          {
+            "t": "h3",
+            "x": "De dónde se puede pedir"
+          },
+          {
+            "t": "p",
+            "x": "Limita !sr a tus playlists cuando no quieres cualquier canción en el stream. «Cualquier canción» acepta todo lo que pase los filtros; «Solo canciones de mis playlists» acepta solo las de tus playlists de «Solo tú y tus mods» o «con revisión» (las colaborativas abiertas no cuentan, porque cualquiera las llena). !sr #número siempre vale."
+          }
+        ]
+      },
+      {
+        "id": "listas-negras",
+        "title": "Listas negras",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Lo vetado no se puede pedir. Se veta desde la pestaña Listas negras, desde la pestaña Cola o desde el chat con !srban."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Lista",
+              "Qué veta"
+            ],
+            "rows": [
+              [
+                "Canciones",
+                "Una canción concreta. Pega el link (YouTube, Spotify, SoundCloud, Deezer o Apple Music) o el nombre."
+              ],
+              [
+                "Artistas y canales",
+                "Todas las canciones de un canal de YouTube. Pega el link de cualquier canción suya."
+              ],
+              [
+                "Usuarios",
+                "Viewers que no pueden pedir. Al vetarlos se quitan sus pedidos pendientes."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "permisos",
+        "title": "Permisos por rol",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Comandos eliges el rol mínimo para cada grupo de comandos. Ese rol y los que están por encima pueden usarlos. Quien tiene control total en tu dashboard cuenta como el streamer."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Grupo",
+              "Comandos",
+              "Por defecto"
+            ],
+            "rows": [
+              [
+                "Pedir y consultar",
+                "!sr, !wrongsong, !queue, !song, !lastsong, !myqueue y votar !skip",
+                "Todos"
+              ],
+              [
+                "Saltar y quitar",
+                "!skip directo (también !srskip y !srnext), !srremove y !srpromote",
+                "Moderadores"
+              ],
+              [
+                "Administrar",
+                "!sropen, !srclose, !srclear, !srpause, !srstop, !srresume, !srban, !srunban, !srvideo, !srcover, !srplay y !srmode",
+                "Lead Moderators"
+              ],
+              [
+                "Revisar pendientes",
+                "!srapprove y !srreject",
+                "Moderadores"
+              ],
+              [
+                "Enlace a las playlists",
+                "!playlist",
+                "Todos"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los roles disponibles son: Todos, Suscriptores, VIPs, Moderadores, Lead Moderators y Solo el streamer."
+          }
+        ]
+      },
+      {
+        "id": "votacion",
+        "title": "Votación para saltar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si la activas, los viewers pueden votar !skip y, con suficientes votos, la canción se salta (por defecto 3 votos). Quienes tienen permiso de saltar lo hacen directo. Se configura en la pestaña Comandos."
+          }
+        ]
+      },
+      {
+        "id": "revision",
+        "title": "Revisión de pedidos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decide qué entra antes de que suene: con «Revisar los pedidos de !sr antes de que entren a la cola» (o con el modo «Con revisión»), cada pedido espera en la pestaña Revisión hasta que alguien lo apruebe."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Pueden aprobar los que tengan el permiso «Revisar pendientes» (por defecto, Moderadores y más).",
+              "Tú, quienes pueden aprobar y los viewers de confianza no pasan por revisión.",
+              "Al aprobar o rechazar se le avisa al viewer en el chat. También puedes rechazar sin avisar.",
+              "En el chat: !srapprove 2 o !srreject 2 (el número de la izquierda en la bandeja).",
+              "Desde la bandeja puedes confiar en un viewer y aprobar todo lo suyo, o vetarlo (se quita todo lo suyo de la bandeja y de la cola).",
+              "Para las playlists, la revisión se elige en cada una (pestaña Playlists → Quién puede agregar)."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Viewers de confianza"
+          },
+          {
+            "t": "p",
+            "x": "Sus pedidos y aportes entran directo, sin revisión. Los requisitos de cada playlist igual se aplican. Agrega o quita viewers desde la pestaña Revisión."
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Mensajes del bot",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Mensajes cambias lo que responde el bot a cada situación (canción agregada, cola llena, usuario vetado, límites, pedidos pendientes, comandos de playlist…). Deja un campo vacío para usar el mensaje por defecto. Cada mensaje se puede silenciar (el bot no responde nada) o restaurar. El panel muestra las variables que puedes usar en cada uno."
+          }
+        ]
+      }
+    ]
+  },
+  "playlists": {
+    "title": "Song Request: playlists",
+    "subtitle": "Playlist de fondo, listas para compartir y aportes de tus viewers",
+    "sections": [
+      {
+        "id": "basico",
+        "title": "Qué son",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las playlists te dejan armar varias listas (por ejemplo para rankeds, para charlar o lo mejor de la comunidad). Una de ellas puede sonar de fondo. Se administran en la pestaña Playlists."
+          },
+          {
+            "t": "p",
+            "x": "Cuántas playlists y cuántas canciones por playlist puedes tener depende de tu plan:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songPlaylists",
+              "songItems"
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Bajar de plan no borra nada: lo que ya tienes se queda y solo no puedes agregar por encima del tope."
+          }
+        ]
+      },
+      {
+        "id": "visibilidad",
+        "title": "Quién la ve",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Visibilidad",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "Pública (sale en la lista)",
+                "Sale en tu página pública y en !playlist, y se escucha con su enlace."
+              ],
+              [
+                "Solo con enlace",
+                "No sale en ninguna lista: la escucha quien tenga el enlace. Lo compartes tú o un mod; !playlist no lo da."
+              ],
+              [
+                "Privada",
+                "Solo la ves tú en el panel."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada playlist tiene un enlace para escucharla (decatron.net/sr/tu-canal/p/código). Si se filtró, «Generar enlace nuevo» hace que el anterior deje de funcionar al instante."
+          }
+        ]
+      },
+      {
+        "id": "fondo",
+        "title": "Playlist de fondo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Suena cuando la cola está vacía. Los pedidos siempre van antes: si llega uno, suena apenas termine la canción actual. Sin playlist de fondo, con la cola vacía no suena nada."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Elige la playlist de fondo desde la pestaña Playlists («Poner de fondo») o con !plplay <playlist> en el chat; se para con !plstop.",
+              "!plnext pasa a la siguiente canción de fondo y !plshuffle activa o desactiva el orden aleatorio.",
+              "«Orden aleatorio» hace que suene al azar en vez de en orden.",
+              "Con !sr #número un viewer pide a la cola, por su número, una canción de la playlist de fondo; con !plplay #número saltas a esa canción."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "sr-commands"
+          }
+        ]
+      },
+      {
+        "id": "agregar",
+        "title": "Agregar canciones",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Desde el panel agregas con un link o el nombre de la canción, desde el historial con «Agregar a una playlist», o importando una playlist completa."
+          },
+          {
+            "t": "h3",
+            "x": "Importar playlists"
+          },
+          {
+            "t": "p",
+            "x": "Se importa con Decatron Desktop abierto y vinculado: la app lee la lista y busca cada canción en YouTube desde tu PC, así YouTube no bloquea al bot."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "YouTube y Deezer se importan completas; Spotify, hasta 100 canciones; también se admite Apple Music.",
+              "Mientras importa ves el avance: revisadas, agregadas, ya estaban, sin encontrar y rechazadas.",
+              "Si se cierra Decatron Desktop a la mitad, lo agregado queda guardado: abre la app y pulsa «Retomar»; solo se buscan las que faltan.",
+              "Puedes cancelar la importación."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Las canciones que no entran se explican con un motivo:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Motivo",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "No se encontró en YouTube",
+                "Decatron Desktop no halló esa canción."
+              ],
+              [
+                "Desktop sin yt-dlp",
+                "La app aún no tiene las herramientas de descarga listas."
+              ],
+              [
+                "El video ya no existe",
+                "Se borró o no está disponible."
+              ],
+              [
+                "No se puede poner en el overlay",
+                "El dueño del video no permite reproducirlo fuera de YouTube."
+              ],
+              [
+                "Canción o canal vetado",
+                "Está en tus listas negras."
+              ],
+              [
+                "La playlist llegó al tope",
+                "Alcanzaste el máximo de tu plan."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "colaborativas",
+        "title": "Quién puede agregar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada playlist define quién puede sumar canciones, con !pladd <playlist> <canción> en el chat o desde tu página pública:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Opción",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "Solo tú y tus mods",
+                "Tú lo haces desde el panel; tus mods, con !pladd en el chat."
+              ],
+              [
+                "Colaborativa",
+                "Los viewers que cumplan los requisitos agregan directo. Tú y tus mods no pasan por los requisitos."
+              ],
+              [
+                "Colaborativa con revisión",
+                "Los viewers proponen y queda en la pestaña Revisión hasta que alguien lo apruebe. Tus mods y los viewers de confianza entran directo."
+              ]
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Requisitos para los viewers"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Requisito",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Rol mínimo",
+                "Con un rol distinto a «Todos», desde la página pública no se puede agregar (ahí no se sabe si es sub, VIP o mod): solo por el chat."
+              ],
+              [
+                "Antigüedad de la cuenta (días)",
+                "0 = sin mínimo."
+              ],
+              [
+                "Días siguiendo el canal",
+                "0 = sin mínimo."
+              ],
+              [
+                "Canciones por viewer",
+                "Cuántas puede agregar cada uno."
+              ],
+              [
+                "Tope de canciones del chat",
+                "Entre todos los viewers. 0 = hasta el tope de tu plan."
+              ],
+              [
+                "Minutos entre canciones de un viewer",
+                "El tiempo de espera entre un aporte y el siguiente."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "La antigüedad de la cuenta y los días siguiendo el canal solo se pueden verificar en Twitch: si los usas, en Kick no se podrá agregar."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "También se aplican los filtros (duración, vistas) y las listas negras de Song Request."
+          }
+        ]
+      },
+      {
+        "id": "votos",
+        "title": "Votos de los viewers",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si la playlist es pública y activas «Votos de los viewers», tus viewers votan sus canciones favoritas en tu página: un voto por canción y por persona, con sesión de Twitch o Kick."
+          },
+          {
+            "t": "p",
+            "x": "«Más votadas primero» hace que el orden lo den los votos: al sonar en orden, en !sr #número y en la página. Mientras esté prendido no se puede arrastrar para reordenar."
+          }
+        ]
+      },
+      {
+        "id": "web",
+        "title": "La página para escuchar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada playlist pública tiene su página (decatron.net/sr/tu-canal/p/código) donde tus viewers pueden:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Escuchar la playlist en el navegador, con reproducir, pausa, anterior, siguiente, aleatorio, repetir y volumen.",
+              "Pedir una canción al stream con el botón «Pedir», que hace lo mismo que !sr de esa canción: mismos límites, modo, revisión y vetos. Quien pide necesita iniciar sesión con Twitch o Kick.",
+              "Votar canciones, si activaste los votos."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Puedes apagar los pedidos desde la web en la pestaña Comandos con «Permitir pedir desde la página de la playlist»."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "En el celular el audio se corta al apagar la pantalla (límite de YouTube): los viewers deben dejar la pantalla encendida."
+          }
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "title": "Song Request: comandos",
+    "subtitle": "Todos los comandos de chat y quién puede usarlos",
+    "sections": [
+      {
+        "id": "sobre",
+        "title": "Cómo leer esta lista",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La lista sale de la misma fuente que usa el panel y la página pública de tu canal, así que siempre está al día. El permiso que ves es el que viene por defecto: en Song Request → Comandos lo cambias para tu canal."
+          },
+          {
+            "t": "p",
+            "x": "Un permiso es el rol mínimo: ese rol y los que están por encima pueden usar el comando. Quien tiene control total en tu dashboard cuenta como el streamer."
+          }
+        ]
+      }
+    ],
+    "tail": [
+      {
+        "id": "publicos",
+        "title": "Comandos públicos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En Comandos → Públicos puedes ocultar comandos de tu página pública. Si ocultas un comando de Song Request, tampoco aparece en la guía «Cómo pedir» de tu página /sr."
+          }
+        ]
+      }
+    ]
+  },
+  "overlay": {
+    "title": "Song Request: diseño del overlay",
+    "subtitle": "Temas, elementos, tipografía, animaciones y editor visual",
+    "sections": [
+      {
+        "id": "dos",
+        "title": "Dos overlays",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Song Request tiene dos overlays, cada uno con su propio diseño: el Reproductor (el que suena y lleva la clave privada) y «Sonando ahora» (solo muestra, sin audio)."
+          },
+          {
+            "t": "p",
+            "x": "En las pestañas de diseño, el selector «Editando» cambia entre los dos. «Copiar diseño a…» pasa el diseño de uno al otro (reemplaza el del destino, con confirmación). Lo que ves en la vista previa es lo que sale en OBS."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Pestañas de diseño",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Tema",
+                "Temas listos (Decatron, Neón, Minimal claro, Vinilo, Cristal, Arcade y Sin fondo) que cambian colores, fuentes y fondo sin tocar la posición de los elementos. También ajustas color y borde del fondo, redondeo, desenfoque, color de acento y sombra."
+              ],
+              [
+                "Elementos",
+                "Enciendes lo que quieres ver: fondo, video, portada, ecualizador, título, artista, álbum, quién la pidió, barra de progreso, tiempo, siguiente, cola y servicio."
+              ],
+              [
+                "Tipografía",
+                "Por elemento: fuente, color, tamaño, grosor, alineación, sombra, espaciado, mayúsculas y «Desplazar si no entra» para los títulos largos."
+              ],
+              [
+                "Animaciones",
+                "Cómo entra la canción nueva (sin animación, aparecer, subir, desde la derecha, zoom o girar), su duración, la entrada y salida del overlay, ocultarlo cuando no suena nada y congelarlo en pausa."
+              ],
+              [
+                "Editor",
+                "Arrastras cada elemento y cambias su tamaño desde las esquinas, con cuadrícula opcional y flechas (1 px; con Shift, 10 px). Aquí también eliges el tamaño del lienzo y un diseño de partida."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los diseños de partida son Tarjeta, Barra, Vertical, Con video, Mínima y Solo texto. Reemplazan las posiciones y el tamaño de todos los elementos, pero conservan tus colores y fuentes."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El tamaño del lienzo es el tamaño del overlay: usa el mismo en la Fuente de navegador de OBS."
+          }
+        ]
+      },
+      {
+        "id": "video",
+        "title": "Video o portada",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El reproductor puede mostrar el video de YouTube o solo la portada. Con !srvideo y !srcover cambias entre uno y otro sin cortar la música (quienes pueden administrar). Sin el video, el reproductor sigue sonando igual: solo no se ve."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Si el video y la portada ocupan el mismo lugar, el video tapa la portada. Mueve una de las dos en el Editor, o apaga la portada en Elementos."
+          }
+        ]
+      },
+      {
+        "id": "plantillas",
+        "title": "Mis plantillas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Guarda el diseño completo del overlay que estás editando para reutilizarlo cuando quieras (Guardar, Aplicar y Borrar). Cuántas plantillas propias puedes tener depende de tu plan:"
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songTemplates"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "promo",
+        "title": "Tarjeta de Decatron",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada cierto tiempo aparece unos segundos sobre el overlay con el logo de Decatron y un mensaje. Se maneja en Básico con «Mostrar la tarjeta de Decatron en los overlays». En el plan gratis va siempre; desde Supporter puedes ocultarla."
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songHidePromo"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "library": {
+    "title": "Song Request: historial, estadísticas y descargas",
+    "subtitle": "Lo que sonó, quién te escucha y cómo bajar audio o video",
+    "sections": [
+      {
+        "id": "historial",
+        "title": "Historial",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña Historial ves lo que sonó en tu canal. Puedes marcar favoritas, volver a ponerlas en la cola o sumarlas a una playlist."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Cada canción dice cómo terminó: Terminó, Saltada, Error o Quitada.",
+              "«Borrar historial» conserva las favoritas.",
+              "Tu plan define cuántos días del historial se ven; las favoritas se ven siempre y no se borra nada:"
+            ]
+          },
+          {
+            "t": "limits",
+            "rows": [
+              "songHistoryDays"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "estadisticas",
+        "title": "Estadísticas de escucha",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cuánta gente escucha tus playlists en su navegador (en la página de la playlist). Lo que suena en el stream no entra en estas cifras."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Escuchando ahora, oyentes únicos, escuchas (canciones oídas al menos 30 segundos), tiempo escuchado y pedidos desde la web.",
+              "Filtros por período y por playlist, gráfico por día y por playlist.",
+              "Más escuchadas, con cuántas veces sonó cada una en el stream en el mismo período.",
+              "Canciones que no se pueden reproducir fuera de YouTube: los oyentes las saltan porque el dueño del video no permite incrustarlas. Puedes cambiarlas por otra versión."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Es anónimo: cada navegador tiene un id aleatorio propio. No se guarda la IP ni la cuenta de quien escucha, y los ids se borran a los 100 días; los totales por día se conservan. Los días se cuentan en UTC."
+          }
+        ]
+      },
+      {
+        "id": "descargas",
+        "title": "Descargas",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Descarga video o audio desde la pestaña Descargas. Pega un link de YouTube, Spotify, SoundCloud, Deezer, Apple Music u otro sitio (o escribe el nombre de una canción). Se descarga en tu PC con Decatron Desktop y con tu conexión, para que YouTube no lo bloquee."
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Necesitas Decatron Desktop instalado, vinculado a tu canal y abierto. Los archivos quedan en la PC donde corre la app."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Pega el link y pulsa «Analizar».",
+              "Elige Video o Solo audio, la calidad y el formato.",
+              "Opcional: recorta un tramo (formato m:ss o segundos), guarda la miniatura y agrega subtítulos (hasta 5; van dentro del video).",
+              "Pulsa «Descargar» y sigue el avance en vivo en la lista de descargas."
+            ]
+          },
+          {
+            "t": "table",
+            "head": [
+              "Formato",
+              "Notas"
+            ],
+            "rows": [
+              [
+                "MP4",
+                "Compatible con todo."
+              ],
+              [
+                "WebM",
+                "Video."
+              ],
+              [
+                "MP3, M4A (AAC), Opus, WAV",
+                "Solo audio; WAV va sin comprimir."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "La primera vez la app descarga yt-dlp y ffmpeg (unos 100 MB en Windows); puede tardar un par de minutos. Después yt-dlp se actualiza solo.",
+              "Desde la lista puedes mostrar el archivo o abrir la carpeta en la PC y limpiar las terminadas.",
+              "Si Desktop es de una versión anterior, ábrelo de nuevo: se actualiza solo al arrancar."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Los errores más comunes: Desktop desconectado o sin responder, sitio no soportado, video privado o con restricción de edad, no disponible, sitio que bloqueó la descarga, disco lleno o sin permiso para escribir en la carpeta."
+          }
+        ]
+      }
+    ]
+  }
+}
