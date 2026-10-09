@@ -22,7 +22,7 @@ function ChannelCard({ channel }: { channel: CarouselChannel }) {
             href={channelUrl(channel)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-3 w-36 3xl:w-44 4xl:w-52 shrink-0 rounded-lg border border-[#e2e8f0] dark:border-pub-border bg-white dark:bg-pub-surface p-5 3xl:p-6 4xl:p-7 hover:border-[#2563eb] hover:-translate-y-1 transition-all"
+            className="flex flex-col items-center gap-3 w-36 3xl:w-44 4xl:w-52 shrink-0 rounded-lg border border-[#e2e8f0] dark:border-pub-border bg-white dark:bg-pub-surface p-5 3xl:p-6 4xl:p-7 hover:border-[#2f5fc6] hover:-translate-y-1 transition-all"
         >
             <img
                 src={channel.avatarUrl}

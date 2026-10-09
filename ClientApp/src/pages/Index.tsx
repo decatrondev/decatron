@@ -23,15 +23,15 @@ const PLATFORMS: { key: PlatformKey; label: string; disabled?: boolean }[] = [
 const TERMINAL_LOGS: Record<PlatformKey, { user: string; color: string; text: string; isBot?: boolean }[]> = {
     twitch: [
         { user: 'cositas_tv', color: '#ff8a8a', text: '!so morenitalol' },
-        { user: 'Decatron', color: '#5b8cff', text: '🎥 Shoutout a morenitalol — dale una visita en twitch.tv/morenitalol', isBot: true },
+        { user: 'Decatron', color: '#6e94ed', text: '🎥 Shoutout a morenitalol — dale una visita en twitch.tv/morenitalol', isBot: true },
         { user: 'nightowl99', color: '#c4b5fd', text: '!rank' },
-        { user: 'Decatron', color: '#5b8cff', text: '📊 nightowl99 — Nivel 12 · 4,350 XP', isBot: true },
+        { user: 'Decatron', color: '#6e94ed', text: '📊 nightowl99 — Nivel 12 · 4,350 XP', isBot: true },
     ],
     kick: [
         { user: 'zowie_vt', color: '#7ddba6', text: '!gacha' },
-        { user: 'Decatron', color: '#5b8cff', text: '🎰 zowie_vt desbloqueó Striker Holofoil (Épico)', isBot: true },
+        { user: 'Decatron', color: '#6e94ed', text: '🎰 zowie_vt desbloqueó Striker Holofoil (Épico)', isBot: true },
         { user: 'elkiwivikingo', color: '#f9c74f', text: '!watchtime' },
-        { user: 'Decatron', color: '#5b8cff', text: '⏱️ elkiwivikingo lleva 18h 40m viendo este canal', isBot: true },
+        { user: 'Decatron', color: '#6e94ed', text: '⏱️ elkiwivikingo lleva 18h 40m viendo este canal', isBot: true },
     ],
     youtube: [],
 };
@@ -64,7 +64,7 @@ function PlatformTerminal() {
     const typed = useTyped(firstBot >= 0 ? log[firstBot].text : '');
 
     return (
-        <div className="w-full rounded-lg border border-pub-border bg-pub-bg/90 backdrop-blur-sm shadow-[0_20px_60px_-20px_rgba(47,107,255,0.45)] overflow-hidden">
+        <div className="w-full rounded-lg border border-pub-border bg-pub-bg/90 backdrop-blur-sm shadow-[0_20px_60px_-20px_rgba(49,97,216,0.45)] overflow-hidden">
             <div className="flex items-center justify-between border-b border-pub-border pr-4">
                 <div role="tablist" className="flex">
                     {PLATFORMS.map(p => (
@@ -117,7 +117,7 @@ function PlatformTerminal() {
             <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-t border-pub-border font-mono text-xs text-[#3f4652]">
                 <span>$</span>
                 <span className="flex-1">{t('terminalPrompt')}</span>
-                <span className="text-[#5b8cff]">{t('connected')}</span>
+                <span className="text-[#6e94ed]">{t('connected')}</span>
             </div>
         </div>
     );
@@ -168,7 +168,7 @@ export default function Index() {
             <div
                 className="pointer-events-none absolute inset-x-0 top-0 h-[900px] opacity-[0.07]"
                 style={{
-                    backgroundImage: 'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
+                    backgroundImage: 'linear-gradient(#3161d8 1px, transparent 1px), linear-gradient(90deg, #3161d8 1px, transparent 1px)',
                     backgroundSize: '44px 44px',
                     maskImage: 'radial-gradient(ellipse 70% 70% at 60% 30%, #000 30%, transparent 75%)',
                     WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 60% 30%, #000 30%, transparent 75%)',
@@ -185,19 +185,19 @@ export default function Index() {
                     <Link to="/supporters" className="hover:text-white transition-colors">{t('navSupporters')}</Link>
                     <Link to="/docs" className="hover:text-white transition-colors">{t('navDocs')}</Link>
                 </nav>
-                <Link to="/login" className="px-4 py-2 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white text-sm font-bold transition-colors">{t('loginButton')}</Link>
+                <Link to="/login" className="px-4 py-2 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white text-sm font-bold transition-colors">{t('loginButton')}</Link>
             </header>
 
             {/* Hero */}
             <section className={`relative z-10 ${wrap} pt-10 sm:pt-16 pb-16 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-6 items-center`}>
                 <div className="space-y-7">
                     <p className="font-mono text-sm text-pub-accent-hi"><span className="text-[#8b93a3]">#</span> {t('heroTag')}</p>
-                    <h1 className="font-extrabold tracking-tight leading-[0.95] text-white text-[clamp(3rem,8vw,6.75rem)]">
+                    <h1 className="font-extrabold tracking-tight leading-[0.95] text-white text-[clamp(2.75rem,6.4vw,6.25rem)]">
                         {headA}{headB.length > 0 && <>,<br />{headB.join(', ')}</>}
                     </h1>
                     <p className="text-lg 3xl:text-xl text-[#8b93a3] max-w-lg leading-relaxed">{t('heroDescription')}</p>
                     <div className="flex flex-wrap gap-3">
-                        <Link to="/login" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white font-bold transition-colors">
+                        <Link to="/login" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white font-bold transition-colors">
                             {t('loginButton')} <Zap className="w-4 h-4" />
                         </Link>
                         <a href="#comandos" className="px-6 py-3.5 rounded-md border border-pub-border hover:border-pub-accent/60 text-[#e6e9ef] font-bold transition-colors">{t('viewCommands')}</a>
@@ -215,7 +215,7 @@ export default function Index() {
                 <div className="relative">
                     <div
                         className="absolute inset-0 blur-3xl opacity-70"
-                        style={{ background: 'radial-gradient(circle at 55% 40%, rgba(47,107,255,0.45), rgba(56,189,248,0.12) 45%, transparent 70%)' }}
+                        style={{ background: 'radial-gradient(circle at 55% 40%, rgba(49,97,216,0.45), rgba(56,189,248,0.12) 45%, transparent 70%)' }}
                     />
                     <BrandMark
                         slot="landing-hero"
@@ -309,7 +309,7 @@ export default function Index() {
                             ))}
                         </ul>
                         <div className="flex flex-wrap gap-3">
-                            <Link to="/sprites" className="px-6 py-3 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white font-bold transition-colors">{t('spiritsGallery')}</Link>
+                            <Link to="/sprites" className="px-6 py-3 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white font-bold transition-colors">{t('spiritsGallery')}</Link>
                             <Link to="/login" className="px-6 py-3 rounded-md border border-pub-border hover:border-pub-accent/60 text-[#e6e9ef] font-bold transition-colors">{t('spiritsSignup')}</Link>
                         </div>
                     </div>
@@ -334,7 +334,7 @@ export default function Index() {
                         ))}
                         <div className="col-span-4 mt-2 flex items-center gap-3">
                             <div className="flex-1 h-1.5 bg-pub-border rounded-full overflow-hidden">
-                                <div className="h-full rounded-full bg-pub-accent shadow-[0_0_10px_rgba(47,107,255,0.5)]" style={{ width: '62%' }} />
+                                <div className="h-full rounded-full bg-pub-accent shadow-[0_0_10px_rgba(49,97,216,0.5)]" style={{ width: '62%' }} />
                             </div>
                             <span className="font-mono text-xs font-bold text-pub-accent-hi">5/8 · 62%</span>
                         </div>
@@ -348,7 +348,7 @@ export default function Index() {
                     <Heart className="w-10 h-10 3xl:w-12 3xl:h-12 text-pub-accent-hi mx-auto" />
                     <h2 className={sectionTitle}>{t('ctaHeading')}</h2>
                     <p className="text-[#8b93a3] text-lg 3xl:text-xl leading-relaxed">{t('ctaDescription')}</p>
-                    <Link to="/supporters" className="inline-flex items-center gap-2 px-8 py-4 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white font-bold transition-colors">{t('ctaButton')}</Link>
+                    <Link to="/supporters" className="inline-flex items-center gap-2 px-8 py-4 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white font-bold transition-colors">{t('ctaButton')}</Link>
                 </div>
             </section>
 

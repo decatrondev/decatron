@@ -18,7 +18,7 @@ export interface PublicSupporter {
 }
 
 export const TIER_META: Record<string, { label: string; emoji: string; color: string }> = {
-    supporter: { label: 'Supporter', emoji: '⚡', color: '#3b82f6' },
+    supporter: { label: 'Supporter', emoji: '⚡', color: '#3a67c8' },
     premium:   { label: 'Premium',   emoji: '💎', color: '#8b5cf6' },
     fundador:  { label: 'Fundador',  emoji: '🌟', color: '#f59e0b' },
 };
@@ -29,7 +29,7 @@ const h2 = 'font-extrabold tracking-tight text-white text-3xl 3xl:text-4xl';
 
 function Avatar({ s, size, ring }: { s: PublicSupporter; size: number; ring?: string }) {
     const [broken, setBroken] = useState(false);
-    const color = ring ?? TIER_META[s.tier]?.color ?? '#2f6bff';
+    const color = ring ?? TIER_META[s.tier]?.color ?? '#3161d8';
     const style = { width: size, height: size, boxShadow: `0 0 0 2px #0b0d12, 0 0 0 4px ${color}` };
     if (s.avatarUrl && !broken) {
         return <img src={s.avatarUrl} alt={s.displayName} loading="lazy" onError={() => setBroken(true)} className="rounded-full object-cover shrink-0 bg-pub-raised" style={style} />;
@@ -51,7 +51,7 @@ export function SupBackdrop() {
         <div
             className="pointer-events-none absolute inset-x-0 top-0 h-[900px] opacity-[0.07]"
             style={{
-                backgroundImage: 'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
+                backgroundImage: 'linear-gradient(#3161d8 1px, transparent 1px), linear-gradient(90deg, #3161d8 1px, transparent 1px)',
                 backgroundSize: '44px 44px',
                 maskImage: 'radial-gradient(ellipse 70% 70% at 60% 30%, #000 30%, transparent 75%)',
                 WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 60% 30%, #000 30%, transparent 75%)',
@@ -71,7 +71,7 @@ export function SupNav() {
                 <span className="text-xl font-extrabold tracking-tight text-white">Decatron</span>
             </Link>
             {logged ? (
-                <a href="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white text-sm font-bold transition-colors">
+                <a href="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white text-sm font-bold transition-colors">
                     <ExternalLink className="w-4 h-4" />{t('navDashboard')}
                 </a>
             ) : (
@@ -100,7 +100,7 @@ export function SupHero({ config, supporters }: { config: PublicConfig; supporte
                 <p className="text-xl 3xl:text-2xl text-white/90 font-semibold max-w-xl">{config.tagline || t('defaultTagline')}</p>
                 <p className="text-lg 3xl:text-xl text-[#8b93a3] max-w-xl leading-relaxed">{config.description || t('defaultDescription')}</p>
                 <div className="flex flex-wrap gap-3">
-                    <a href="#tiers" className="px-6 py-3.5 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white font-bold transition-colors">{t('viewPlans')}</a>
+                    <a href="#tiers" className="px-6 py-3.5 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white font-bold transition-colors">{t('viewPlans')}</a>
                     <a href="#donar" className="px-6 py-3.5 rounded-md border border-pub-border hover:border-pub-accent/60 text-[#e6e9ef] font-bold transition-colors">{t('donateFreely')}</a>
                 </div>
                 {config.showProgressBar && config.monthlyRaised > 0 && (
@@ -110,7 +110,7 @@ export function SupHero({ config, supporters }: { config: PublicConfig; supporte
                             <span>{t('goal')} ${config.monthlyGoal}</span>
                         </div>
                         <div className="h-1.5 rounded-full bg-pub-border overflow-hidden" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
-                            <div className="h-full rounded-full bg-pub-accent shadow-[0_0_10px_rgba(47,107,255,0.5)]" style={{ width: `${progress}%` }} />
+                            <div className="h-full rounded-full bg-pub-accent shadow-[0_0_10px_rgba(49,97,216,0.5)]" style={{ width: `${progress}%` }} />
                         </div>
                     </div>
                 )}
@@ -118,7 +118,7 @@ export function SupHero({ config, supporters }: { config: PublicConfig; supporte
 
             {/* Las personas que ya apoyan son la imagen del hero */}
             <div className="relative flex flex-col items-center gap-8">
-                <div className="absolute inset-0 blur-3xl opacity-60 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 45%, rgba(47,107,255,0.4), rgba(56,189,248,0.1) 45%, transparent 70%)' }} />
+                <div className="absolute inset-0 blur-3xl opacity-60 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 45%, rgba(49,97,216,0.4), rgba(56,189,248,0.1) 45%, transparent 70%)' }} />
                 {shown.length > 0 ? (
                     <>
                         <div className="relative flex flex-wrap justify-center gap-x-4 gap-y-6 max-w-md">
@@ -183,7 +183,7 @@ export function SupFounders({ supporters }: { supporters: PublicSupporter[] }) {
                         {creator && (
                             <a href={`https://twitch.tv/${creator.twitchLogin}`} target="_blank" rel="noopener noreferrer"
                                className="flex items-center gap-5 p-5 rounded-lg border border-pub-accent/40 bg-pub-surface hover:border-pub-accent transition-colors">
-                                <Avatar s={creator} size={80} ring="#2f6bff" />
+                                <Avatar s={creator} size={80} ring="#3161d8" />
                                 <div className="min-w-0">
                                     <p className="text-lg font-extrabold text-white truncate">{creator.displayName}</p>
                                     <p className="font-mono text-xs text-pub-accent-hi mt-1">{t('creatorLabel')}</p>
@@ -296,7 +296,7 @@ export function SupWall({ supporters, loading }: { supporters: PublicSupporter[]
                         <Heart className="w-8 h-8 text-pub-accent-hi mx-auto mb-3" />
                         <p className="font-bold text-white">{t('wallEmptyTitle')}</p>
                         <p className="text-sm text-[#8b93a3] mt-1">{t('wallEmptyBody')}</p>
-                        <a href="#tiers" className="inline-flex mt-5 px-5 py-2.5 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white font-bold text-sm transition-colors">{t('viewPlans')}</a>
+                        <a href="#tiers" className="inline-flex mt-5 px-5 py-2.5 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white font-bold text-sm transition-colors">{t('viewPlans')}</a>
                     </div>
                 ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -351,7 +351,7 @@ export function SupFinalCTA() {
                 <h2 className={h2}>{t('footerCtaTitle')}</h2>
                 <p className="text-[#8b93a3] text-lg 3xl:text-xl leading-relaxed">{t('footerCtaSubtitle')}</p>
                 <div className="flex flex-wrap justify-center gap-3">
-                    <a href="#tiers" className="px-8 py-3.5 rounded-md bg-pub-accent hover:bg-pub-accent-hi text-white font-bold transition-colors">{t('supportNow')}</a>
+                    <a href="#tiers" className="px-8 py-3.5 rounded-md bg-pub-accent hover:bg-pub-accent-hover text-white font-bold transition-colors">{t('supportNow')}</a>
                     <Link to="/" className="px-8 py-3.5 rounded-md border border-pub-border hover:border-pub-accent/60 text-[#e6e9ef] font-bold transition-colors">{t('goToDecatron')}</Link>
                 </div>
             </div>

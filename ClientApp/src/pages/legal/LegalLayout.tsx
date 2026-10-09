@@ -46,11 +46,11 @@ export default function LegalLayout() {
         <div className="min-h-screen flex flex-col bg-[#f6f7fa] dark:bg-pub-bg text-[#12151c] dark:text-[#e6e9ef]">
             <header className="sticky top-0 z-50 bg-[#f6f7fa]/90 dark:bg-pub-bg/90 backdrop-blur border-b border-[#dfe3ea] dark:border-pub-border">
                 <div className="panel-scale max-w-6xl 3xl:max-w-[1500px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-                    <Link to="/" className="flex items-center gap-2 text-xl font-black text-[#2563eb] dark:text-white">
+                    <Link to="/" className="flex items-center gap-2 text-xl font-black text-[#2f5fc6] dark:text-white">
                         <BrandMark slot="legal-header" fallback={<><Bot className="w-7 h-7" /><span>Decatron</span></>} />
                     </Link>
                     <div className="flex items-center gap-4">
-                        <Link to="/" className="hidden sm:flex items-center gap-2 text-sm font-medium text-[#5b6475] dark:text-[#8b93a3] hover:text-[#2563eb] dark:hover:text-pub-accent-hi transition-colors">
+                        <Link to="/" className="hidden sm:flex items-center gap-2 text-sm font-medium text-[#5b6475] dark:text-[#8b93a3] hover:text-[#2f5fc6] dark:hover:text-pub-accent-hi transition-colors">
                             <ArrowLeft className="w-4 h-4" />Volver al inicio
                         </Link>
                         <ThemeToggle />
@@ -63,7 +63,7 @@ export default function LegalLayout() {
                             to={d.to}
                             className={({ isActive }) => `shrink-0 px-3 sm:px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
                                 isActive
-                                    ? 'border-[#2563eb] dark:border-pub-accent text-[#2563eb] dark:text-pub-accent-hi'
+                                    ? 'border-[#2f5fc6] dark:border-pub-accent text-[#2f5fc6] dark:text-pub-accent-hi'
                                     : 'border-transparent text-[#5b6475] dark:text-[#8b93a3] hover:text-[#12151c] dark:hover:text-white'
                             }`}
                         >
@@ -84,7 +84,7 @@ export default function LegalLayout() {
                                         href={`#${i.id}`}
                                         className={`block border-l-2 pl-3 py-1.5 leading-snug transition-colors ${
                                             active === i.id
-                                                ? 'border-[#2563eb] dark:border-pub-accent text-[#2563eb] dark:text-pub-accent-hi font-semibold'
+                                                ? 'border-[#2f5fc6] dark:border-pub-accent text-[#2f5fc6] dark:text-pub-accent-hi font-semibold'
                                                 : 'border-[#dfe3ea] dark:border-pub-border text-[#5b6475] dark:text-[#8b93a3] hover:text-[#12151c] dark:hover:text-white'
                                         }`}
                                     >
@@ -103,7 +103,7 @@ export default function LegalLayout() {
             <footer className="border-t border-[#dfe3ea] dark:border-pub-border">
                 <div className="panel-scale max-w-6xl 3xl:max-w-[1500px] mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-[#5b6475] dark:text-[#8b93a3]">
                     <span>&copy; {new Date().getFullYear()} Decatron. Todos los derechos reservados.</span>
-                    <a href="mailto:support@decatron.net" className="hover:text-[#2563eb] dark:hover:text-pub-accent-hi transition-colors">support@decatron.net</a>
+                    <a href="mailto:support@decatron.net" className="hover:text-[#2f5fc6] dark:hover:text-pub-accent-hi transition-colors">support@decatron.net</a>
                 </div>
             </footer>
         </div>

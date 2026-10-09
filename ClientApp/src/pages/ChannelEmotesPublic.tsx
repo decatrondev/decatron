@@ -174,7 +174,7 @@ export default function ChannelEmotesPublic() {
                                 modeAllowsViewers ? (
                                     <div className="rounded-2xl border border-pub-border bg-pub-surface p-5 space-y-3">
                                         <p className="text-sm 3xl:text-base">{t(`public.invite.${data.uploadMode}`)}</p>
-                                        <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hi text-white font-bold text-sm 3xl:text-base">{t('public.login')}</a>
+                                        <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hover text-white font-bold text-sm 3xl:text-base">{t('public.login')}</a>
                                     </div>
                                 ) : (
                                     <p className="text-sm 3xl:text-base text-[#a1a1aa]">{t(`public.cannot.${data.uploadMode}`)}</p>

@@ -116,7 +116,7 @@ export default function PrivacidadPage() {
                         </ul>
                         <p className="mt-3">
                             Para ejercer estos derechos, envía un correo a{' '}
-                            <a href="mailto:support@decatron.net" className="text-[#2563eb] dark:text-pub-accent-hi hover:underline">
+                            <a href="mailto:support@decatron.net" className="text-[#2f5fc6] dark:text-pub-accent-hi hover:underline">
                                 support@decatron.net
                             </a>
                             {' '}indicando tu nombre de usuario de Twitch y el derecho que deseas ejercer.
@@ -161,11 +161,11 @@ export default function PrivacidadPage() {
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">11. Contacto</h2>
                         <p>
                             Para consultas sobre privacidad o protección de datos, contáctanos en:{' '}
-                            <a href="mailto:support@decatron.net" className="text-[#2563eb] dark:text-pub-accent-hi hover:underline">
+                            <a href="mailto:support@decatron.net" className="text-[#2f5fc6] dark:text-pub-accent-hi hover:underline">
                                 support@decatron.net
                             </a>
                             {' '}o al teléfono{' '}
-                            <a href="tel:+51959724105" className="text-[#2563eb] dark:text-pub-accent-hi hover:underline">
+                            <a href="tel:+51959724105" className="text-[#2f5fc6] dark:text-pub-accent-hi hover:underline">
                                 +51 959 724 105
                             </a>.
                         </p>

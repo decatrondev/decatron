@@ -75,7 +75,7 @@ export default function GlobalEmotesPublic() {
                     {!loggedIn && (
                         <div className="rounded-2xl border border-pub-border bg-pub-surface p-5 space-y-3">
                             <p className="text-sm 3xl:text-base">{t('global.loginText')}</p>
-                            <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hi text-white font-bold text-sm 3xl:text-base">{t('global.loginButton')}</a>
+                            <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hover text-white font-bold text-sm 3xl:text-base">{t('global.loginButton')}</a>
                         </div>
                     )}
                     {loggedIn && access === 'checking' && <p className="font-mono text-sm text-[#71717a] animate-pulse">{t('global.loading')}</p>}

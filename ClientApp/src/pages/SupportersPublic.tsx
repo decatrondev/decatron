@@ -26,7 +26,7 @@ const DEFAULT_CONFIG: PublicConfig = {
     showProgressBar: true,
     showSupportersWall: true,
     showFoundersSection: true,
-    heroFrom: '#2563eb',
+    heroFrom: '#2f5fc6',
     heroTo: '#7c3aed',
 };
 
@@ -53,7 +53,7 @@ const TIERS: TierDef[] = [
         id: 'supporter',
         name: 'Supporter',
         badgeEmoji: '\u26a1',
-        color: '#3b82f6',
+        color: '#3a67c8',
         bgLight: 'bg-blue-50',
         bgDark: 'dark:bg-blue-950/30',
         borderActive: 'border-blue-400',
@@ -447,13 +447,13 @@ function TierCards() {
                     <div className="inline-flex items-center bg-[#f8fafc] dark:bg-pub-bg border border-[#e2e8f0] dark:border-pub-border rounded-xl p-1 gap-0.5">
                         <button
                             onClick={() => handleBillingChange('monthly')}
-                            className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${billingType === 'monthly' ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-sm' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#374151]'}`}
+                            className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${billingType === 'monthly' ? 'bg-gradient-to-r from-[#2f5fc6] to-[#3a67c8] text-white shadow-sm' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#374151]'}`}
                         >
                             {t('billingMonthly')}
                         </button>
                         <button
                             onClick={() => handleBillingChange('permanent')}
-                            className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${billingType === 'permanent' ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-sm' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#374151]'}`}
+                            className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${billingType === 'permanent' ? 'bg-gradient-to-r from-[#2f5fc6] to-[#3a67c8] text-white shadow-sm' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#374151]'}`}
                         >
                             {t('billingPermanent')}
                             <span className="bg-amber-400 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">&infin;</span>
@@ -466,7 +466,7 @@ function TierCards() {
                     {!showCodeInput ? (
                         <button
                             onClick={() => setShowCodeInput(true)}
-                            className="text-xs text-[#64748b] dark:text-[#94a3b8] underline underline-offset-2 hover:text-[#2563eb] transition-colors"
+                            className="text-xs text-[#64748b] dark:text-[#94a3b8] underline underline-offset-2 hover:text-[#2f5fc6] transition-colors"
                         >
                             {t('haveDiscountCode')}
                         </button>
@@ -478,12 +478,12 @@ function TierCards() {
                                     value={codeInput}
                                     onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeValidation(null); setCodeError(null); }}
                                     placeholder={t('discountPlaceholder')}
-                                    className="flex-1 px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-pub-border bg-white dark:bg-pub-bg text-[#1e293b] dark:text-[#f8fafc] text-sm font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                                    className="flex-1 px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-pub-border bg-white dark:bg-pub-bg text-[#1e293b] dark:text-[#f8fafc] text-sm font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-[#2f5fc6]"
                                 />
                                 <button
                                     onClick={() => handleValidateCode(TIERS[0].id)}
                                     disabled={validatingCode || !codeInput.trim()}
-                                    className="px-4 py-2 bg-[#2563eb] text-white text-sm font-bold rounded-xl hover:bg-[#1d4ed8] disabled:opacity-50 transition-colors flex items-center gap-1.5"
+                                    className="px-4 py-2 bg-[#2f5fc6] text-white text-sm font-bold rounded-xl hover:bg-[#274fa5] disabled:opacity-50 transition-colors flex items-center gap-1.5"
                                 >
                                     {validatingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : t('applyCode')}
                                 </button>
@@ -532,7 +532,7 @@ function TierCards() {
 
                             {!needsLogin && previewLoading && (
                                 <div className="flex items-center justify-center py-10">
-                                    <Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" />
+                                    <Loader2 className="w-6 h-6 animate-spin text-[#2f5fc6]" />
                                 </div>
                             )}
 
@@ -540,7 +540,7 @@ function TierCards() {
                             {needsLogin && (
                                 <div className="space-y-4">
                                     <div className="flex items-start gap-2 text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-pub-raised border border-[#e2e8f0] dark:border-pub-border rounded-xl px-4 py-3">
-                                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#2563eb]" />
+                                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#2f5fc6]" />
                                         <span>{t('previewNeedsLogin')}</span>
                                     </div>
                                     <div className="flex gap-2">
@@ -554,7 +554,7 @@ function TierCards() {
                                             sin eso, el comprador se pierde en el dashboard. */}
                                         <a
                                             href="/login?redirect=supporters"
-                                            className="flex-1 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black text-center hover:bg-[#1d4ed8] transition-colors"
+                                            className="flex-1 py-2.5 rounded-xl bg-[#2f5fc6] text-white text-sm font-black text-center hover:bg-[#274fa5] transition-colors"
                                         >
                                             {t('previewGoToLogin')}
                                         </a>
@@ -571,7 +571,7 @@ function TierCards() {
                                     </div>
                                     <a
                                         href="/me/billing"
-                                        className="block w-full py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black text-center hover:bg-[#1d4ed8] transition-colors"
+                                        className="block w-full py-2.5 rounded-xl bg-[#2f5fc6] text-white text-sm font-black text-center hover:bg-[#274fa5] transition-colors"
                                     >
                                         {t('previewGoToProfile')}
                                     </a>
@@ -615,13 +615,13 @@ function TierCards() {
                                         <div className="grid grid-cols-2 gap-2">
                                             <button
                                                 onClick={() => cambiarFactura(false)}
-                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8]'}`}
+                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-[#2f5fc6] text-[#2f5fc6] bg-[#2f5fc6]/5' : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8]'}`}
                                             >
                                                 {t('previewWantBoleta')}
                                             </button>
                                             <button
                                                 onClick={() => cambiarFactura(true)}
-                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8]'}`}
+                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-[#2f5fc6] text-[#2f5fc6] bg-[#2f5fc6]/5' : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8]'}`}
                                             >
                                                 {t('previewWantFactura')}
                                             </button>
@@ -668,7 +668,7 @@ function TierCards() {
                                         <button
                                             onClick={confirmCheckout}
                                             disabled={tierChange ? !tierChange.allowed : false}
-                                            className="flex-1 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black hover:bg-[#1d4ed8] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#2563eb]"
+                                            className="flex-1 py-2.5 rounded-xl bg-[#2f5fc6] text-white text-sm font-black hover:bg-[#274fa5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#2f5fc6]"
                                         >
                                             {t('invoiceContinue')}
                                         </button>
@@ -706,7 +706,7 @@ function TierCards() {
                             <div className="flex flex-col sm:flex-row gap-2">
                                 <a
                                     href="/me/invoices"
-                                    className="flex-1 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black hover:bg-[#1d4ed8] transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl bg-[#2f5fc6] text-white text-sm font-black hover:bg-[#274fa5] transition-colors"
                                 >
                                     {t('purchaseDoneGoToInvoices')}
                                 </a>
@@ -990,8 +990,8 @@ function FreeDonation() {
                             onClick={() => setAmount(String(p))}
                             className={`px-4 py-2 rounded-xl font-black text-sm transition-all border-2 ${
                                 numAmount === p
-                                    ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white border-transparent shadow-md'
-                                    : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8] bg-white dark:bg-pub-bg hover:border-[#2563eb] dark:hover:border-[#2563eb]'
+                                    ? 'bg-gradient-to-r from-[#2f5fc6] to-[#3a67c8] text-white border-transparent shadow-md'
+                                    : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8] bg-white dark:bg-pub-bg hover:border-[#2f5fc6] dark:hover:border-[#2f5fc6]'
                             }`}
                         >
                             ${p}
@@ -1001,7 +1001,7 @@ function FreeDonation() {
 
                 {/* Custom amount input */}
                 <div className={`flex items-center gap-2 max-w-xs mx-auto mb-6 border-2 rounded-2xl px-4 py-3 bg-white dark:bg-pub-bg transition-colors ${
-                    inputFocused ? 'border-[#2563eb]' : 'border-[#e2e8f0] dark:border-pub-border'
+                    inputFocused ? 'border-[#2f5fc6]' : 'border-[#e2e8f0] dark:border-pub-border'
                 }`}>
                     <span className="text-2xl font-black text-[#64748b] dark:text-[#94a3b8]">$</span>
                     <input
@@ -1022,7 +1022,7 @@ function FreeDonation() {
                 <button
                     onClick={handleDonate}
                     disabled={!isValid || loading}
-                    className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white font-black py-4 rounded-2xl text-base hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:translate-y-0"
+                    className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#2f5fc6] to-[#3a67c8] text-white font-black py-4 rounded-2xl text-base hover:from-[#274fa5] hover:to-[#2f5fc6] disabled:opacity-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:translate-y-0"
                 >
                     {loading ? (
                         <><Loader2 className="w-5 h-5 animate-spin" /> {t('redirecting')}</>

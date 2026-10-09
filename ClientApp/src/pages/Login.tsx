@@ -86,7 +86,7 @@ export default function Login() {
             <div
                 className="pointer-events-none absolute inset-x-0 top-0 h-[900px] opacity-[0.07]"
                 style={{
-                    backgroundImage: 'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
+                    backgroundImage: 'linear-gradient(#3161d8 1px, transparent 1px), linear-gradient(90deg, #3161d8 1px, transparent 1px)',
                     backgroundSize: '44px 44px',
                     maskImage: 'radial-gradient(ellipse 70% 70% at 50% 30%, #000 30%, transparent 75%)',
                     WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 50% 30%, #000 30%, transparent 75%)',
@@ -179,7 +179,7 @@ export default function Login() {
                 <aside className="hidden lg:block relative">
                     <div
                         className="absolute -inset-10 blur-3xl opacity-50 pointer-events-none"
-                        style={{ background: 'radial-gradient(circle at 70% 20%, rgba(47,107,255,0.35), transparent 65%)' }}
+                        style={{ background: 'radial-gradient(circle at 70% 20%, rgba(49,97,216,0.35), transparent 65%)' }}
                     />
                     <div className="relative">
                         <p className="font-mono text-sm text-pub-accent-hi mb-2"><span className="text-[#8b93a3]">#</span> decatron</p>

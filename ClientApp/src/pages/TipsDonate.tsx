@@ -312,7 +312,7 @@ export default function TipsDonate() {
                 backgroundImage: `url(${config.pageBackgroundImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
-            } : { backgroundImage: `radial-gradient(ellipse 80% 45% at 50% 0%, ${config.pageAccentColor || '#2f6bff'}40, transparent 70%)` }}
+            } : { backgroundImage: `radial-gradient(ellipse 80% 45% at 50% 0%, ${config.pageAccentColor || '#3161d8'}40, transparent 70%)` }}
         >
             <div className="max-w-lg mx-auto">
                 {/* Header */}

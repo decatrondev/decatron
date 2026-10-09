@@ -100,7 +100,7 @@ export default function DocsLayout() {
                 aria-hidden="true"
                 className="pointer-events-none fixed inset-0 opacity-[0.04] hidden dark:block"
                 style={{
-                    backgroundImage: 'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
+                    backgroundImage: 'linear-gradient(#3161d8 1px, transparent 1px), linear-gradient(90deg, #3161d8 1px, transparent 1px)',
                     backgroundSize: '40px 40px',
                 }}
             />

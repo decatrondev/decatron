@@ -183,7 +183,7 @@ export default function DesignGuide() {
                         <Row label="etiquetas"><Badge>Neutra</Badge><Badge tone="accent">Activa</Badge><Badge tone="ok">Correcto</Badge><Badge tone="warn">Aviso</Badge><Badge tone="danger">Error</Badge></Row>
                     </Block>
 
-                    <Block id="avisos" eyebrow="componente" title="Avisos" note="Caja neutra con un filo de color solo en el borde izquierdo y el icono.">
+                    <Block id="avisos" eyebrow="componente" title="Avisos" note="Borde completo y tenue del color del estado, un tinte mínimo de fondo y el color solo en el icono. Sin barra lateral.">
                         <div style={{ display: 'grid', gap: 10, maxWidth: 640 }}>
                             <Alert tone="info" title="Información">Los cambios se aplican en unos segundos.</Alert>
                             <Alert tone="ok" title="Guardado">La configuración se guardó correctamente.</Alert>

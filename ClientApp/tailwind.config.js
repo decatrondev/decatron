@@ -28,8 +28,9 @@ export default {
                     raised: '#171b24',
                     border: '#222733',
                     'border-soft': '#1b1f29',
-                    accent: '#2f6bff',
-                    'accent-hi': '#5b8cff',
+                    accent: '#3161d8',
+                    'accent-hi': '#6e94ed',
+                    'accent-hover': '#2653c5',
                 },
                 // Azul profesional (accent)
                 accent: {

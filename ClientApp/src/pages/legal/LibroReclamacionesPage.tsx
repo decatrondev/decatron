@@ -46,7 +46,7 @@ export default function LibroReclamacionesPage() {
         setSubmitted(true);
     };
 
-    const inputClasses = "w-full px-4 py-3 rounded-lg bg-white dark:bg-pub-bg border border-[#dfe3ea] dark:border-pub-border text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] dark:placeholder-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-colors";
+    const inputClasses = "w-full px-4 py-3 rounded-lg bg-white dark:bg-pub-bg border border-[#dfe3ea] dark:border-pub-border text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] dark:placeholder-[#475569] focus:outline-none focus:ring-2 focus:ring-[#2f5fc6] focus:border-transparent transition-colors";
     const labelClasses = "block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-1.5";
 
     return (
@@ -60,8 +60,8 @@ export default function LibroReclamacionesPage() {
                 </header>
 
                 {/* Provider Info Card */}
-                <div className="bg-[#2563eb]/10 dark:bg-[#2563eb]/5 border border-[#2563eb]/30 rounded-xl p-5 mb-8">
-                    <h2 className="text-lg font-bold text-[#2563eb] dark:text-pub-accent-hi mb-3">Datos del Proveedor</h2>
+                <div className="bg-[#2f5fc6]/10 dark:bg-[#2f5fc6]/5 border border-[#2f5fc6]/30 rounded-xl p-5 mb-8">
+                    <h2 className="text-lg font-bold text-[#2f5fc6] dark:text-pub-accent-hi mb-3">Datos del Proveedor</h2>
                     <div className="grid sm:grid-cols-2 gap-2 text-sm text-[#475569] dark:text-[#cbd5e1]">
                         <p><strong>Razón social:</strong> Anthony Adrian Chaparro Salas</p>
                         <p><strong>RUC:</strong> 10705423950</p>
@@ -85,7 +85,7 @@ export default function LibroReclamacionesPage() {
                         </p>
                         <button
                             onClick={() => setSubmitted(false)}
-                            className="mt-4 px-6 py-3 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg transition-colors"
+                            className="mt-4 px-6 py-3 bg-[#2f5fc6] hover:bg-[#274fa5] text-white font-bold rounded-lg transition-colors"
                         >
                             Enviar otro reclamo
                         </button>
@@ -166,7 +166,7 @@ export default function LibroReclamacionesPage() {
                                 Tipo de Solicitud
                             </h2>
                             <div className="flex gap-4">
-                                <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-colors text-center ${form.tipo === 'reclamo' ? 'border-[#2563eb] bg-[#2563eb]/10 dark:bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'}`}>
+                                <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-colors text-center ${form.tipo === 'reclamo' ? 'border-[#2f5fc6] bg-[#2f5fc6]/10 dark:bg-[#2f5fc6]/5' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'}`}>
                                     <input
                                         type="radio"
                                         name="tipo"
@@ -180,7 +180,7 @@ export default function LibroReclamacionesPage() {
                                         Disconformidad con el servicio recibido
                                     </p>
                                 </label>
-                                <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-colors text-center ${form.tipo === 'queja' ? 'border-[#2563eb] bg-[#2563eb]/10 dark:bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'}`}>
+                                <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-colors text-center ${form.tipo === 'queja' ? 'border-[#2f5fc6] bg-[#2f5fc6]/10 dark:bg-[#2f5fc6]/5' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'}`}>
                                     <input
                                         type="radio"
                                         name="tipo"
@@ -243,7 +243,7 @@ export default function LibroReclamacionesPage() {
                         {/* Submit */}
                         <button
                             type="submit"
-                            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold rounded-lg transition-colors"
+                            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#2f5fc6] hover:bg-[#274fa5] text-white font-bold rounded-lg transition-colors"
                         >
                             <Send className="w-5 h-5" />
                             Enviar Reclamo

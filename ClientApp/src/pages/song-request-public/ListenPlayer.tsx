@@ -391,7 +391,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                             <SkipBack className="w-5 h-5 4xl:w-6 4xl:h-6" />
                         </button>
                         <button
-                            className="p-3 4xl:p-4 rounded-full bg-pub-accent text-white hover:bg-pub-accent-hi transition-colors disabled:opacity-40"
+                            className="p-3 4xl:p-4 rounded-full bg-pub-accent text-white hover:bg-pub-accent-hover transition-colors disabled:opacity-40"
                             onClick={c.toggle}
                             disabled={!hasPlayable}
                             title={c.playing ? t('songRequestPublic.listen.pause') : t('songRequestPublic.listen.play')}

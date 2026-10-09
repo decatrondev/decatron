@@ -6,7 +6,7 @@ import type { SpriteCollectionItem } from './SpiritCard';
 import { RARITIES, THEMES, type SpiritFilters, type StatusFilter } from './useSpiritFilters';
 
 // Piezas compartidas de /sprites y /sprites/:usuario, con el mismo lenguaje visual que /sr/:canal
-// (fondo #0b0d12 con cuadrícula azul, acento #2f6bff, títulos mono con "#", pestañas subrayadas).
+// (fondo #0b0d12 con cuadrícula azul, acento #3161d8, títulos mono con "#", pestañas subrayadas).
 
 export const RARITY_COLOR: Record<string, string> = {
     Rare: '#60A5FA', Special: '#34D399', Epic: '#C084FC', Legendary: '#F59E0B', Mythic: '#F43F5E',
@@ -21,7 +21,7 @@ export function PublicShell({ brand, actions, children }: { brand: ReactNode; ac
             <div
                 className="pointer-events-none fixed inset-0 opacity-[0.04]"
                 style={{
-                    backgroundImage: 'linear-gradient(#2f6bff 1px, transparent 1px), linear-gradient(90deg, #2f6bff 1px, transparent 1px)',
+                    backgroundImage: 'linear-gradient(#3161d8 1px, transparent 1px), linear-gradient(90deg, #3161d8 1px, transparent 1px)',
                     backgroundSize: '40px 40px',
                 }}
             />
@@ -52,7 +52,7 @@ export function PageTitle({ eyebrow, title }: { eyebrow: string; title: string }
 }
 
 export const linkButton = 'px-3 py-2 text-sm 3xl:text-base font-semibold text-[#a1a1aa] hover:text-white transition-colors';
-export const primaryButton = 'px-4 py-2 rounded-md text-sm 3xl:text-base font-bold bg-pub-accent text-white hover:bg-pub-accent-hi transition-colors';
+export const primaryButton = 'px-4 py-2 rounded-md text-sm 3xl:text-base font-bold bg-pub-accent text-white hover:bg-pub-accent-hover transition-colors';
 
 export function ProgressPanel({ items, badge, children }: {
     items: SpriteCollectionItem[]; badge?: ReactNode; children?: ReactNode;
@@ -82,7 +82,7 @@ export function ProgressPanel({ items, badge, children }: {
                     <span className="font-mono text-xl 3xl:text-2xl font-bold text-pub-accent-hi tabular-nums">{percentage}%</span>
                 </div>
                 <div className="h-1.5 bg-pub-border rounded-full overflow-hidden" role="progressbar" aria-valuenow={percentage} aria-valuemin={0} aria-valuemax={100}>
-                    <div className="h-full rounded-full bg-pub-accent shadow-[0_0_10px_rgba(47,107,255,0.5)] transition-all duration-700" style={{ width: `${percentage}%` }} />
+                    <div className="h-full rounded-full bg-pub-accent shadow-[0_0_10px_rgba(49,97,216,0.5)] transition-all duration-700" style={{ width: `${percentage}%` }} />
                 </div>
                 {byRarity.length > 0 && (
                     <ul className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs 3xl:text-sm text-[#a1a1aa]">

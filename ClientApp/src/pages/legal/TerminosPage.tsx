@@ -162,11 +162,11 @@ export default function TerminosPage() {
                         <h2 className="text-xl font-bold tracking-tight text-[#12151c] dark:text-white mb-3">14. Contacto</h2>
                         <p>
                             Para consultas sobre estos términos, contáctanos en:{' '}
-                            <a href="mailto:support@decatron.net" className="text-[#2563eb] dark:text-pub-accent-hi hover:underline">
+                            <a href="mailto:support@decatron.net" className="text-[#2f5fc6] dark:text-pub-accent-hi hover:underline">
                                 support@decatron.net
                             </a>
                             {' '}o al teléfono{' '}
-                            <a href="tel:+51959724105" className="text-[#2563eb] dark:text-pub-accent-hi hover:underline">
+                            <a href="tel:+51959724105" className="text-[#2f5fc6] dark:text-pub-accent-hi hover:underline">
                                 +51 959 724 105
                             </a>.
                         </p>

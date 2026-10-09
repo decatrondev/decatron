@@ -57,7 +57,7 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
     const input = dark
         ? 'bg-pub-bg border border-pub-border text-white focus:border-pub-accent/60'
         : 'bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-[#2563eb]/40';
-    const accent = dark ? 'bg-pub-accent hover:bg-pub-accent-hi text-white' : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white';
+    const accent = dark ? 'bg-pub-accent hover:bg-pub-accent-hover text-white' : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white';
 
     return (
         <div className={`rounded-2xl border p-5 3xl:p-6 space-y-5 ${box}`}>
