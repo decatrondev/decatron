@@ -27,3 +27,6 @@
     background: linear-gradient(90deg, #7B61FF, #A78BFA);
     box-shadow: 0 0 12px rgba(123, 97, 255, 0.5);
 }
+
+/* Vistas públicas de spirits: en 4K sin escalado del sistema se agranda todo junto (igual que /sr/:canal) */
+@media (min-width: 3200px) { .spirits-page { zoom: 1.6; } }

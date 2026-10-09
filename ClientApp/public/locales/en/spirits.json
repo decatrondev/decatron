@@ -24,7 +24,18 @@
     "no_account": "You don't have a Decatron account. Sign up at twitch.decatron.net",
     "marked": "{{name}} obtained!",
     "unmarked": "{{name}} unmarked",
-    "error": "Error updating"
+    "error": "Error updating",
+    "managing": "You're managing @{{channel}}'s spirits (full control delegated). Switch channels to go back to yours.",
+    "new_one": "1 new spirit since your last visit",
+    "new_many": "{{count}} new spirits since your last visit",
+    "new_more": "(+{{count}} more)",
+    "dismiss": "Dismiss",
+    "progress_title": "Your progress",
+    "by_rarity": "By rarity",
+    "notify_title": "New spirit alerts",
+    "notify_twitch": "In Twitch chat when the stream starts",
+    "notify_discord": "By Discord direct message",
+    "link_discord": "Link account"
   },
   "progress": {
     "obtained": "obtained",
@@ -43,5 +54,29 @@
     "clear": "Clear filters",
     "count": "{{count}} spirits"
   },
-  "no_spirits": "No spirits found"
+  "no_spirits": "No spirits found",
+  "card": {
+    "soon": "Soon"
+  },
+  "public": {
+    "login": "Log in",
+    "signup": "Sign up free",
+    "track": "Track your collection",
+    "hint": "Tap a spirit to mark the ones you have",
+    "unsaved": "Not saved",
+    "save_progress": "Sign up to save your progress",
+    "progress": "Progress",
+    "by_rarity": "By rarity",
+    "guest_one": "1 spirit marked. Without an account it is not saved.",
+    "guest_many": "{{count}} spirits marked. Without an account they are not saved.",
+    "guest_body": "Sign up free with Twitch or Discord to save your progress and compete on the leaderboard.",
+    "guest_cta": "Create a free account",
+    "guest_later": "Not now",
+    "cta_title": "Do you have your own Fortnite Spirits?",
+    "cta_body": "Sign up for Decatron with Twitch or Discord, track your collection, share it and compete on the leaderboard.",
+    "cta_button": "Get started free",
+    "footer": "Decatron spirit tracker",
+    "current": "current",
+    "unreleased": "Unreleased"
+  }
 }

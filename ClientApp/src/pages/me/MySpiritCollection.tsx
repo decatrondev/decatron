@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Search, Filter, Trophy, Share2, Check, X, Loader, Sparkles, MessageCircle } from 'lucide-react';
+import { Loader2, Search, Trophy, Share2, Check, X, Loader, Sparkles, MessageCircle } from 'lucide-react';
 import api from '../../services/api';
 import SpiritCard, { type SpriteData, type SpriteCollectionItem } from '../../components/spirits/SpiritCard';
-import '../../components/spirits/spirits.css';
 
 const RARITIES = ['Rare', 'Special', 'Epic', 'Legendary', 'Mythic'];
 const THEMES   = ['Basic', 'Gold', 'Candy', 'Galaxy', 'Gem', 'Holofoil', 'Cube', 'Rift/Cube', 'Cheat', 'Quack', 'Hacker'];
@@ -156,6 +155,10 @@ export default function MySpiritCollection() {
         const found = [...new Set(collection.map(c => c.sprite.season).filter((s): s is string => !!s))];
         return found.sort((a, b) => a === currentSeason ? -1 : b === currentSeason ? 1 : a.localeCompare(b));
     }, [collection]);
+    const byRarity = useMemo(() => RARITIES.map(r => {
+        const all = collection.filter(c => c.sprite.rarity === r && !c.sprite.isUnreleased);
+        return { rarity: r, have: all.filter(c => c.isObtained).length, total: all.length };
+    }).filter(r => r.total > 0), [collection]);
     const percentage = total > 0 ? Math.round(obtained / total * 100) : 0;
     const hasFilters = !!(filterChar || filterRarity || filterTheme || filterSeason !== currentSeason || search || showUnreleased || statusFilter !== 'all');
 
@@ -174,260 +177,264 @@ export default function MySpiritCollection() {
         });
     }, [collection, statusFilter, filterChar, filterRarity, filterTheme, filterSeason, search, showUnreleased]);
 
+    const RARITY_COLOR: Record<string, string> = {
+        Rare: '#60A5FA', Special: '#34D399', Epic: '#C084FC', Legendary: '#F59E0B', Mythic: '#F43F5E',
+    };
+
+    const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
+    const field = 'px-3 py-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#3b82f6]';
+    const muted = 'text-[#64748b] dark:text-[#94a3b8]';
+    const activeBtn = 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg';
+    const idleBtn = 'bg-[#f8fafc] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]';
+
+    const Toggle = ({ on, disabled, onChange, label }: { on: boolean; disabled?: boolean; onChange: (v: boolean) => void; label: React.ReactNode }) => (
+        <button
+            type="button"
+            role="switch"
+            aria-checked={on}
+            disabled={disabled}
+            onClick={() => onChange(!on)}
+            className={`w-full flex items-center justify-between gap-3 py-2 text-left ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        >
+            <span className="text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc]">{label}</span>
+            <span className={`relative w-10 h-6 rounded-full flex-shrink-0 transition-colors ${on ? 'bg-[#2563eb]' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-4' : ''}`} />
+            </span>
+        </button>
+    );
+
     if (loading) return (
         <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#7B61FF]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#3b82f6]" />
         </div>
     );
 
+    const clearFilters = () => {
+        setFilterChar(''); setFilterRarity(''); setFilterTheme(''); setFilterSeason(currentSeason);
+        setSearch(''); setShowUnreleased(false); setStatusFilter('all');
+    };
+
     return (
-        <div className="space-y-6 bg-[#0A0C14] min-h-screen -m-6 p-6">
+        <div className="panel-scale max-w-[1920px] mx-auto space-y-6">
 
             {/* Gestionando canal ajeno (control_total delegado) */}
             {managingChannel && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-2.5 text-xs font-bold text-amber-300">
-                    Estás gestionando los spirits de <span className="text-amber-200">@{managingChannel}</span> (control total delegado) — cambiá de canal para volver a los tuyos.
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-sm 3xl:text-base font-bold text-amber-700 dark:text-amber-300">
+                    {t('my.managing', { channel: managingChannel })}
                 </div>
             )}
 
             {/* Toast */}
             {toast && (
-                <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl text-sm font-bold transition-all ${
+                <div role="status" className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl text-sm font-bold ${
                     toast.type === 'ok'
-                        ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                        : 'bg-rose-500/20 border border-rose-500/40 text-rose-300'
+                        ? 'bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                        : 'bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
                 }`}>
                     {toast.type === 'ok' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     {toast.msg}
                 </div>
             )}
 
-            {/* Header */}
-            <div className="flex items-start justify-between flex-wrap gap-4">
+            {/* Encabezado */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-spirit text-3xl font-black text-white">{t('my.title')}</h1>
-                    <p className="text-[#9CA3AF] text-sm mt-1">{t('my.subtitle')}</p>
+                    <h1 className="text-3xl 3xl:text-4xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('my.title')}</h1>
+                    <p className={`text-sm 3xl:text-base mt-1 ${muted}`}>{t('my.subtitle')}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     {username && (
                         <button
                             onClick={copyLink}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#111827] border border-[#1E2A3B] text-[#9CA3AF] rounded-xl text-sm font-bold hover:border-[#7B61FF]/50 transition-colors"
+                            className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors shadow-lg text-sm 3xl:text-base font-bold text-[#64748b] dark:text-[#94a3b8]"
                         >
-                            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
                             {copied ? t('my.copied') : t('my.share')}
                         </button>
                     )}
                     <Link
                         to="/sprites"
-                        className="px-4 py-2 bg-[#7B61FF] hover:bg-[#6D54E8] text-white rounded-xl text-sm font-bold transition-colors"
+                        className="px-6 py-3 rounded-xl font-bold shadow-lg text-sm 3xl:text-base bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white transition-all"
                     >
                         {t('my.see_gallery')}
                     </Link>
                 </div>
             </div>
 
-            {/* Banner: spirits nuevos desde tu ultima visita */}
+            {/* Spirits nuevos desde la última visita */}
             {showNewBanner && newSprites.length > 0 && (
-                <div className="bg-gradient-to-r from-[#7B61FF]/20 to-transparent border border-[#7B61FF]/40 rounded-2xl p-4 flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-[#7B61FF] flex-shrink-0 mt-0.5" />
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-[#2563eb] dark:text-[#60a5fa] flex-shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                        <p className="font-bold text-white text-sm">
-                            {newSprites.length === 1
-                                ? '1 spirit nuevo desde tu última visita'
-                                : `${newSprites.length} spirits nuevos desde tu última visita`}
+                        <p className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc]">
+                            {newSprites.length === 1 ? t('my.new_one') : t('my.new_many', { count: newSprites.length })}
                         </p>
-                        <p className="text-[#A78BFA] text-xs mt-0.5 truncate">
+                        <p className="text-xs 3xl:text-sm mt-0.5 text-blue-700 dark:text-blue-300 truncate">
                             {newSprites.slice(0, 8).map(s => s.name).join(', ')}
-                            {newSprites.length > 8 ? ` (+${newSprites.length - 8} más)` : ''}
+                            {newSprites.length > 8 ? ` ${t('my.new_more', { count: newSprites.length - 8 })}` : ''}
                         </p>
                     </div>
-                    <button onClick={() => setShowNewBanner(false)} className="text-[#4B5563] hover:text-white transition-colors flex-shrink-0">
+                    <button onClick={() => setShowNewBanner(false)} aria-label={t('my.dismiss')} className={`${muted} hover:text-[#1e293b] dark:hover:text-white transition-colors flex-shrink-0`}>
                         <X className="w-4 h-4" />
                     </button>
                 </div>
             )}
 
-            {/* Avisos de spirits nuevos */}
-            {prefsLoaded && (
-                <div className="bg-[#111827] rounded-2xl border border-[#1E2A3B] p-4 space-y-2">
-                    <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">Avisarme cuando salgan spirits nuevos</p>
-                    <label className={`flex items-center gap-3 py-1.5 ${savingPrefs ? 'opacity-60' : 'cursor-pointer'}`}>
-                        <input
-                            type="checkbox"
-                            checked={notifyTwitchChat}
-                            disabled={savingPrefs}
-                            onChange={e => savePrefs(e.target.checked, notifyDiscordDm)}
-                            className="w-4 h-4 rounded border-[#1E2A3B] text-[#7B61FF] focus:ring-[#7B61FF] bg-[#0A0C14]"
-                        />
-                        <span className="text-sm text-[#F9FAFB]">En el chat de Twitch cuando prenda stream</span>
-                    </label>
-                    <label className={`flex items-center gap-3 py-1.5 ${savingPrefs || !hasDiscordLinked ? 'opacity-60' : 'cursor-pointer'}`}>
-                        <input
-                            type="checkbox"
-                            checked={notifyDiscordDm}
-                            disabled={savingPrefs || !hasDiscordLinked}
-                            onChange={e => savePrefs(notifyTwitchChat, e.target.checked)}
-                            className="w-4 h-4 rounded border-[#1E2A3B] text-[#7B61FF] focus:ring-[#7B61FF] bg-[#0A0C14]"
-                        />
-                        <span className="text-sm text-[#F9FAFB] flex items-center gap-1.5">
-                            <MessageCircle className="w-3.5 h-3.5 text-[#5865F2]" /> Por Discord (DM)
-                        </span>
-                        {!hasDiscordLinked && (
-                            <Link to="/settings" className="text-xs text-[#7B61FF] hover:text-[#A78BFA] font-semibold">
-                                vincular cuenta →
-                            </Link>
-                        )}
-                    </label>
-                </div>
-            )}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
 
-            {/* Progress */}
-            <div className="bg-[#111827] rounded-2xl border border-[#1E2A3B] p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Trophy className="w-5 h-5 text-[#7B61FF]" />
-                        <span className="font-spirit text-2xl font-black text-white">
-                            {obtained} <span className="text-[#4B5563] text-lg">/ {total}</span>
-                        </span>
-                    </div>
-                    <span className="font-spirit text-xl font-black text-[#7B61FF]">{percentage}%</span>
-                </div>
-                <div className="h-2 bg-[#0A0C14] rounded-full overflow-hidden">
-                    <div
-                        className="h-full spirit-progress-bar rounded-full transition-all duration-700"
-                        style={{ width: `${percentage}%` }}
-                    />
-                </div>
-                <div className="flex gap-4 text-xs text-[#4B5563]">
-                    <span><span className="text-[#34D399] font-bold">{obtained}</span> {t('progress.obtained')}</span>
-                    <span><span className="text-[#374151] font-bold">{total - obtained}</span> {t('progress.missing')}</span>
-                </div>
-            </div>
+                {/* Columna principal: filtros + colección */}
+                <div className="xl:col-span-2 space-y-6 min-w-0 order-2 xl:order-1">
 
-            {/* Filters */}
-            <div className="bg-[#111827] rounded-2xl border border-[#1E2A3B] p-4 space-y-3">
-                <div className="flex items-center gap-2 bg-[#0A0C14] border border-[#1E2A3B] rounded-xl px-3 py-2">
-                    <Search className="w-4 h-4 text-[#4B5563] flex-shrink-0" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder={t('filters.search_placeholder')}
-                        className="flex-1 bg-transparent text-sm text-[#F9FAFB] placeholder-[#4B5563] focus:outline-none"
-                    />
-                </div>
+                    <div className={`${card} p-4 space-y-4`}>
+                        <div className="flex flex-wrap gap-2">
+                            {(['all', 'obtained', 'missing'] as StatusFilter[]).map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => setStatusFilter(s)}
+                                    className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${statusFilter === s ? activeBtn : idleBtn}`}
+                                >
+                                    {s === 'all' ? t('filters.all') : s === 'obtained' ? t('filters.obtained') : t('filters.missing')}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setShowUnreleased(v => !v)}
+                                aria-pressed={showUnreleased}
+                                className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${showUnreleased ? 'bg-amber-400 text-black shadow-lg' : idleBtn}`}
+                            >
+                                {t('filters.unreleased')}
+                            </button>
+                        </div>
 
-                <div className="flex flex-wrap gap-2">
-                    <div className="flex items-center gap-1 text-[#4B5563]">
-                        <Filter className="w-3.5 h-3.5" />
-                    </div>
-
-                    {(['all', 'obtained', 'missing'] as StatusFilter[]).map(s => (
-                        <button
-                            key={s}
-                            onClick={() => setStatusFilter(s)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                statusFilter === s
-                                    ? s === 'obtained' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                      : s === 'missing' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                      : 'bg-[#7B61FF]/20 text-[#A78BFA] border border-[#7B61FF]/30'
-                                    : 'bg-[#0A0C14] border border-[#1E2A3B] text-[#4B5563]'
-                            }`}
-                        >
-                            {s === 'all' ? t('filters.all') : s === 'obtained' ? t('filters.obtained') : t('filters.missing')}
-                        </button>
-                    ))}
-
-                    <select
-                        value={filterChar}
-                        onChange={e => setFilterChar(e.target.value)}
-                        className="px-3 py-1.5 bg-[#0A0C14] border border-[#1E2A3B] rounded-lg text-xs text-[#9CA3AF] focus:outline-none [&>option]:bg-[#111827]"
-                    >
-                        <option value="">{t('filters.all_characters')}</option>
-                        {characters.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-
-                    <select
-                        value={filterRarity}
-                        onChange={e => setFilterRarity(e.target.value)}
-                        className="px-3 py-1.5 bg-[#0A0C14] border border-[#1E2A3B] rounded-lg text-xs text-[#9CA3AF] focus:outline-none [&>option]:bg-[#111827]"
-                    >
-                        <option value="">{t('filters.all_rarities')}</option>
-                        {RARITIES.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
-
-                    <select
-                        value={filterTheme}
-                        onChange={e => setFilterTheme(e.target.value)}
-                        className="px-3 py-1.5 bg-[#0A0C14] border border-[#1E2A3B] rounded-lg text-xs text-[#9CA3AF] focus:outline-none [&>option]:bg-[#111827]"
-                    >
-                        <option value="">{t('filters.all_themes')}</option>
-                        {THEMES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-
-                    <select
-                        value={filterSeason}
-                        onChange={e => setFilterSeason(e.target.value)}
-                        className="px-3 py-1.5 bg-[#0A0C14] border border-[#1E2A3B] rounded-lg text-xs text-[#9CA3AF] focus:outline-none [&>option]:bg-[#111827]"
-                    >
-                        <option value="">{t('filters.all_seasons')}</option>
-                        {seasons.map(s => (
-                            <option key={s} value={s}>
-                                {s === currentSeason ? `${s} (actual)` : s}
-                            </option>
-                        ))}
-                    </select>
-
-                    <button
-                        onClick={() => setShowUnreleased(v => !v)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            showUnreleased
-                                ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                                : 'bg-[#0A0C14] border border-[#1E2A3B] text-[#4B5563]'
-                        }`}
-                    >
-                        {t('filters.unreleased')}
-                    </button>
-
-                    {hasFilters && (
-                        <button
-                            onClick={() => { setFilterChar(''); setFilterRarity(''); setFilterTheme(''); setFilterSeason(currentSeason); setSearch(''); setShowUnreleased(false); setStatusFilter('all'); }}
-                            className="px-3 py-1.5 bg-[#7B61FF]/10 border border-[#7B61FF]/30 text-[#7B61FF] rounded-lg text-xs font-bold hover:bg-[#7B61FF]/20 transition-colors"
-                        >
-                            {t('filters.clear')}
-                        </button>
-                    )}
-
-                    <span className="ml-auto text-xs text-[#4B5563] self-center">
-                        {t('filters.count', { count: filtered.length })}
-                    </span>
-                </div>
-            </div>
-
-            {/* Grid */}
-            {filtered.length === 0 ? (
-                <div className="text-center py-20 text-[#4B5563]">
-                    <p className="font-bold">{t('no_spirits')}</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                    {filtered.map(item => (
-                        <div key={item.sprite.id} className="relative">
-                            {pendingKey === item.sprite.spriteKey && (
-                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-2xl">
-                                    <Loader className="w-5 h-5 animate-spin text-[#7B61FF]" />
-                                </div>
-                            )}
-                            <SpiritCard
-                                item={item}
-                                interactive
-                                onClick={() => handleToggle(item)}
+                        <div className="flex items-center gap-2 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[#3b82f6]">
+                            <Search className={`w-4 h-4 flex-shrink-0 ${muted}`} />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder={t('filters.search_placeholder')}
+                                className="flex-1 bg-transparent text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] focus:outline-none"
                             />
                         </div>
-                    ))}
+
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            <select value={filterChar} onChange={e => setFilterChar(e.target.value)} className={field}>
+                                <option value="">{t('filters.all_characters')}</option>
+                                {characters.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <select value={filterRarity} onChange={e => setFilterRarity(e.target.value)} className={field}>
+                                <option value="">{t('filters.all_rarities')}</option>
+                                {RARITIES.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                            <select value={filterTheme} onChange={e => setFilterTheme(e.target.value)} className={field}>
+                                <option value="">{t('filters.all_themes')}</option>
+                                {THEMES.map(th => <option key={th} value={th}>{th}</option>)}
+                            </select>
+                            <select value={filterSeason} onChange={e => setFilterSeason(e.target.value)} className={field}>
+                                <option value="">{t('filters.all_seasons')}</option>
+                                {seasons.map(se => (
+                                    <option key={se} value={se}>{se === currentSeason ? `${se} (actual)` : se}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs 3xl:text-sm">
+                            <span className={`font-bold ${muted}`}>{t('filters.count', { count: filtered.length })}</span>
+                            {hasFilters && (
+                                <button onClick={clearFilters} className="font-bold text-[#2563eb] dark:text-[#60a5fa] hover:underline">
+                                    {t('filters.clear')}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {filtered.length === 0 ? (
+                        <div className={`${card} text-center py-16 ${muted}`}>
+                            <p className="font-bold">{t('no_spirits')}</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(116px, 1fr))' }}>
+                            {filtered.map(item => (
+                                <div key={item.sprite.id} className="relative">
+                                    {pendingKey === item.sprite.spriteKey && (
+                                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-2xl">
+                                            <Loader className="w-5 h-5 animate-spin text-white" />
+                                        </div>
+                                    )}
+                                    <SpiritCard item={item} interactive variant="panel" onClick={() => handleToggle(item)} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            )}
+
+                {/* Columna lateral: progreso, rarezas, avisos */}
+                <div className="xl:col-span-1 min-w-0 space-y-6 order-1 xl:order-2 xl:sticky xl:top-4">
+
+                    <div className={`${card} p-5 space-y-4`}>
+                        <div className="flex items-center gap-2">
+                            <Trophy className="w-5 h-5 text-[#2563eb] dark:text-[#60a5fa]" />
+                            <h2 className="text-base 3xl:text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{t('my.progress_title')}</h2>
+                        </div>
+                        <div className="flex items-end justify-between">
+                            <span className="text-4xl 3xl:text-5xl font-black text-[#1e293b] dark:text-[#f8fafc] tabular-nums">
+                                {obtained}<span className={`text-xl 3xl:text-2xl font-bold ${muted}`}> / {total}</span>
+                            </span>
+                            <span className="text-2xl 3xl:text-3xl font-black text-[#2563eb] dark:text-[#60a5fa] tabular-nums">{percentage}%</span>
+                        </div>
+                        <div className="h-2.5 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden" role="progressbar" aria-valuenow={percentage} aria-valuemin={0} aria-valuemax={100}>
+                            <div className="h-full rounded-full bg-gradient-to-r from-[#2563eb] to-[#3b82f6] transition-all duration-700" style={{ width: `${percentage}%` }} />
+                        </div>
+                        <div className={`flex gap-4 text-xs 3xl:text-sm ${muted}`}>
+                            <span><span className="text-green-600 dark:text-green-400 font-bold">{obtained}</span> {t('progress.obtained')}</span>
+                            <span><span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{total - obtained}</span> {t('progress.missing')}</span>
+                        </div>
+
+                        {byRarity.length > 0 && (
+                            <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-2.5">
+                                <h3 className={`text-xs 3xl:text-sm font-bold ${muted}`}>{t('my.by_rarity')}</h3>
+                                {byRarity.map(r => (
+                                    <div key={r.rarity} className="space-y-1">
+                                        <div className="flex items-center justify-between text-xs 3xl:text-sm">
+                                            <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{r.rarity}</span>
+                                            <span className={`tabular-nums ${muted}`}>{r.have} / {r.total}</span>
+                                        </div>
+                                        <div className="h-1.5 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${r.total ? (r.have / r.total) * 100 : 0}%`, background: RARITY_COLOR[r.rarity] }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {prefsLoaded && (
+                        <div className={`${card} p-5`}>
+                            <h2 className="text-base 3xl:text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">{t('my.notify_title')}</h2>
+                            <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                                <Toggle
+                                    on={notifyTwitchChat}
+                                    disabled={savingPrefs}
+                                    onChange={v => savePrefs(v, notifyDiscordDm)}
+                                    label={t('my.notify_twitch')}
+                                />
+                                <div>
+                                    <Toggle
+                                        on={notifyDiscordDm}
+                                        disabled={savingPrefs || !hasDiscordLinked}
+                                        onChange={v => savePrefs(notifyTwitchChat, v)}
+                                        label={<span className="inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-[#5865F2]" />{t('my.notify_discord')}</span>}
+                                    />
+                                    {!hasDiscordLinked && (
+                                        <Link to="/settings" className="inline-block pb-1 text-xs 3xl:text-sm font-bold text-[#2563eb] dark:text-[#60a5fa] hover:underline">
+                                            {t('my.link_discord')}
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

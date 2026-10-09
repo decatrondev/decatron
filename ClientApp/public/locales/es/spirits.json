@@ -24,7 +24,18 @@
     "no_account": "No tienes cuenta en Decatron. Regístrate en twitch.decatron.net",
     "marked": "{{name}} ¡obtenido!",
     "unmarked": "{{name}} desmarcado",
-    "error": "Error al actualizar"
+    "error": "Error al actualizar",
+    "managing": "Estás gestionando los spirits de @{{channel}} (control total delegado). Cambia de canal para volver a los tuyos.",
+    "new_one": "1 spirit nuevo desde tu última visita",
+    "new_many": "{{count}} spirits nuevos desde tu última visita",
+    "new_more": "(+{{count}} más)",
+    "dismiss": "Cerrar aviso",
+    "progress_title": "Tu progreso",
+    "by_rarity": "Por rareza",
+    "notify_title": "Avisos de spirits nuevos",
+    "notify_twitch": "En el chat de Twitch cuando empiece el stream",
+    "notify_discord": "Por mensaje directo de Discord",
+    "link_discord": "Vincular cuenta"
   },
   "progress": {
     "obtained": "obtenidos",
@@ -43,5 +54,29 @@
     "clear": "Limpiar filtros",
     "count": "{{count}} spirits"
   },
-  "no_spirits": "No se encontraron spirits"
+  "no_spirits": "No se encontraron spirits",
+  "card": {
+    "soon": "Pronto"
+  },
+  "public": {
+    "login": "Iniciar sesión",
+    "signup": "Registrarse gratis",
+    "track": "Trackea tu colección",
+    "hint": "Toca un spirit para marcar los que tienes",
+    "unsaved": "Sin guardar",
+    "save_progress": "Regístrate para guardar tu progreso",
+    "progress": "Progreso",
+    "by_rarity": "Por rareza",
+    "guest_one": "1 spirit marcado. Sin cuenta no se guarda.",
+    "guest_many": "{{count}} spirits marcados. Sin cuenta no se guardan.",
+    "guest_body": "Regístrate gratis con Twitch o Discord para guardar tu progreso y competir en el leaderboard.",
+    "guest_cta": "Crear cuenta gratis",
+    "guest_later": "Ahora no",
+    "cta_title": "¿Tienes tus propios Fortnite Spirits?",
+    "cta_body": "Regístrate en Decatron con Twitch o Discord, trackea tu colección, compártela y compite en el leaderboard.",
+    "cta_button": "Empezar gratis",
+    "footer": "Spirit tracker de Decatron",
+    "current": "actual",
+    "unreleased": "Sin lanzar"
+  }
 }
