@@ -203,7 +203,7 @@ function App() {
                         <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Index />} />
-                <Route path="/login" element={<><PublicNav /><Login /></>} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/translate" element={<><PublicNav /><TranslatePublic /></>} />
 
                 {/* Overlay Routes - No layout for OBS */}
