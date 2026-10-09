@@ -5,34 +5,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, Heart, Star, Check, ChevronDown, ChevronUp, ExternalLink, Zap, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import ThemeToggle from '../components/ThemeToggle';
+import { Check, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../services/api';
-import { BrandMark } from '../brand/BrandMark';
+import {
+    SupNav, SupHero, SupWhy, SupFounders, PlanComparison, SupWall, SupFAQ, SupFinalCTA, SupFooter, SupBackdrop,
+    type PublicConfig, type PublicSupporter,
+} from './supporters-public/parts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface PublicConfig {
-    enabled: boolean;
-    title: string;
-    tagline: string;
-    description: string;
-    monthlyGoal: number;
-    monthlyRaised: number;
-    showProgressBar: boolean;
-    showSupportersWall: boolean;
-    showFoundersSection: boolean;
-    heroFrom: string;
-    heroTo: string;
-}
-
-interface PublicSupporter {
-    displayName: string;
-    twitchLogin: string;
-    tier: string;
-    isPermanent: boolean;
-    joinedAt: string;
-}
 
 // ─── Default config (shown when API not ready) ────────────────────────────────
 
@@ -134,159 +114,6 @@ const TIERS: TierDef[] = [
         ],
     },
 ];
-
-// ─── Nav ──────────────────────────────────────────────────────────────────────
-
-function SupportersNav() {
-    const { t } = useTranslation('supporters');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        setIsLoggedIn(!!token);
-    }, []);
-
-    return (
-        <nav className="sticky top-0 z-50 bg-white/95 dark:bg-[#1B1C1D]/95 backdrop-blur-sm border-b border-[#e2e8f0] dark:border-[#374151] shadow-sm">
-            <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-                <a href="/" className="flex items-center gap-2 text-xl font-black text-[#2563eb]">
-                    <BrandMark slot="supporters-header" fallback={<><Bot className="w-7 h-7" />
-                    <span>Decatron</span></>} />
-                </a>
-                <div className="flex items-center gap-3">
-                    <ThemeToggle />
-                    {isLoggedIn ? (
-                        <a
-                            href="/dashboard"
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white text-sm font-bold rounded-xl hover:from-[#1d4ed8] hover:to-[#2563eb] transition-all"
-                        >
-                            <ExternalLink className="w-4 h-4" />
-                            {t('navDashboard')}
-                        </a>
-                    ) : (
-                        <a
-                            href="/login?redirect=supporters"
-                            className="px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] text-sm font-bold rounded-xl hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
-                        >
-                            {t('navLogin')}
-                        </a>
-                    )}
-                </div>
-            </div>
-        </nav>
-    );
-}
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-
-function Hero({ config }: { config: PublicConfig }) {
-    const { t } = useTranslation('supporters');
-    const progress = config.monthlyGoal > 0
-        ? Math.min(100, (config.monthlyRaised / config.monthlyGoal) * 100)
-        : 0;
-
-    return (
-        <section
-            className="relative overflow-hidden py-24 px-4 text-white text-center"
-            style={{ background: `linear-gradient(135deg, ${config.heroFrom} 0%, ${config.heroTo} 100%)` }}
-        >
-            {/* Decorative circles */}
-            <div className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-10 blur-3xl" style={{ background: 'white', transform: 'translate(-30%, -30%)' }} />
-            <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full opacity-10 blur-3xl" style={{ background: 'white', transform: 'translate(30%, 30%)' }} />
-
-            <div className="relative max-w-3xl mx-auto">
-                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
-                    <Heart className="w-4 h-4 text-pink-300" />
-                    {t('heroSupportBadge')}
-                </div>
-
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 leading-tight">
-                    {config.title || t('defaultTitle')}
-                </h1>
-                <p className="text-xl text-white/80 mb-8 max-w-xl mx-auto">
-                    {config.tagline || t('defaultTagline')}
-                </p>
-                <p className="text-base text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed">
-                    {config.description || t('defaultDescription')}
-                </p>
-
-                {/* Progress bar */}
-                {config.showProgressBar && config.monthlyGoal > 0 && (
-                    <div className="max-w-md mx-auto mb-10">
-                        <div className="flex justify-between text-sm text-white/80 mb-2 font-semibold">
-                            <span>{t('raisedThisMonth')} <strong className="text-white">${config.monthlyRaised}</strong></span>
-                            <span>{t('goal')} <strong className="text-white">${config.monthlyGoal}</strong></span>
-                        </div>
-                        <div className="h-4 bg-white/20 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-white rounded-full transition-all duration-1000"
-                                style={{ width: `${progress}%` }}
-                            />
-                        </div>
-                        <p className="text-sm text-white/70 mt-2">{t('monthlyGoalProgress', { progress: progress.toFixed(0) })}</p>
-                    </div>
-                )}
-
-                <a
-                    href="#tiers"
-                    className="inline-flex items-center gap-2 bg-white text-[#2563eb] font-black px-8 py-4 rounded-2xl hover:bg-white/90 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
-                >
-                    <Star className="w-5 h-5" />
-                    {t('viewTiers')}
-                </a>
-            </div>
-        </section>
-    );
-}
-
-// ─── Why Support ──────────────────────────────────────────────────────────────
-
-function WhySupport() {
-    const { t } = useTranslation('supporters');
-
-    const WHY_SUPPORT = [
-        {
-            icon: '\ud83d\udda5\ufe0f',
-            titleKey: 'whyServerCostsTitle',
-            descKey: 'whyServerCostsDesc',
-        },
-        {
-            icon: '\u26a1',
-            titleKey: 'whyNewFeaturesTitle',
-            descKey: 'whyNewFeaturesDesc',
-        },
-        {
-            icon: '\ud83c\udd93',
-            titleKey: 'whyFreeForAllTitle',
-            descKey: 'whyFreeForAllDesc',
-        },
-    ];
-
-    return (
-        <section className="py-16 px-4 bg-[#f8fafc] dark:bg-[#1B1C1D]">
-            <div className="max-w-5xl mx-auto">
-                <h2 className="text-3xl font-black text-center text-[#1e293b] dark:text-[#f8fafc] mb-3">
-                    {t('whySupportTitle')}
-                </h2>
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8] mb-12 max-w-xl mx-auto">
-                    {t('whySupportSubtitle')}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {WHY_SUPPORT.map(item => (
-                        <div
-                            key={item.titleKey}
-                            className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-6 shadow-sm text-center hover:shadow-md transition-shadow"
-                        >
-                            <div className="text-4xl mb-4">{item.icon}</div>
-                            <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">{t(item.titleKey)}</h3>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] leading-relaxed">{t(item.descKey)}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
 
 // ─── PayPal hook ──────────────────────────────────────────────────────────────
 
@@ -612,18 +439,19 @@ function TierCards() {
     };
 
     return (
-        <section id="tiers" className="py-20 px-4 bg-white dark:bg-[#262626]">
-            <div className="max-w-5xl mx-auto">
-                <h2 className="text-3xl font-black text-center text-[#1e293b] dark:text-[#f8fafc] mb-3">
+        <section id="tiers" className="relative z-10 py-20 px-4 sm:px-8 border-t border-pub-border scroll-mt-4">
+            <div className="max-w-6xl 3xl:max-w-[1500px] mx-auto">
+                <p className="font-mono text-sm text-pub-accent-hi mb-3"># {t('viewPlans').toLowerCase()}</p>
+                <h2 className="font-extrabold tracking-tight text-white text-3xl 3xl:text-4xl mb-2">
                     {t('chooseTierTitle')}
                 </h2>
-                <p className="text-center text-[#64748b] dark:text-[#94a3b8] mb-8">
+                <p className="text-[#8b93a3] mb-8 3xl:text-lg">
                     {t('chooseTierSubtitle')}
                 </p>
 
                 {/* Billing toggle */}
-                <div className="flex justify-center mb-6">
-                    <div className="inline-flex items-center bg-[#f8fafc] dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-1 gap-0.5">
+                <div className="flex justify-start mb-6">
+                    <div className="inline-flex items-center bg-[#f8fafc] dark:bg-pub-bg border border-[#e2e8f0] dark:border-pub-border rounded-xl p-1 gap-0.5">
                         <button
                             onClick={() => handleBillingChange('monthly')}
                             className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${billingType === 'monthly' ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-sm' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-white dark:hover:bg-[#374151]'}`}
@@ -641,7 +469,7 @@ function TierCards() {
                 </div>
 
                 {/* Discount code */}
-                <div className="flex justify-center mb-8">
+                <div className="flex justify-start mb-8">
                     {!showCodeInput ? (
                         <button
                             onClick={() => setShowCodeInput(true)}
@@ -657,7 +485,7 @@ function TierCards() {
                                     value={codeInput}
                                     onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeValidation(null); setCodeError(null); }}
                                     placeholder={t('discountPlaceholder')}
-                                    className="flex-1 px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                                    className="flex-1 px-4 py-2 rounded-xl border border-[#e2e8f0] dark:border-pub-border bg-white dark:bg-pub-bg text-[#1e293b] dark:text-[#f8fafc] text-sm font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
                                 />
                                 <button
                                     onClick={() => handleValidateCode(TIERS[0].id)}
@@ -699,7 +527,7 @@ function TierCards() {
                         onClick={() => setCheckoutTier(null)}
                     >
                         <div
-                            className="w-full max-w-md bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 shadow-2xl"
+                            className="w-full max-w-md bg-white dark:bg-pub-bg rounded-2xl p-6 shadow-2xl"
                             onClick={e => e.stopPropagation()}
                         >
                             <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">
@@ -718,14 +546,14 @@ function TierCards() {
                             {/* Sin sesión: se explica antes de mandarlo a Twitch. */}
                             {needsLogin && (
                                 <div className="space-y-4">
-                                    <div className="flex items-start gap-2 text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-[#111213] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3">
+                                    <div className="flex items-start gap-2 text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-pub-raised border border-[#e2e8f0] dark:border-pub-border rounded-xl px-4 py-3">
                                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#2563eb]" />
                                         <span>{t('previewNeedsLogin')}</span>
                                     </div>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setCheckoutTier(null)}
-                                            className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
+                                            className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-pub-border text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
                                         >
                                             {t('invoiceCancel')}
                                         </button>
@@ -768,7 +596,7 @@ function TierCards() {
                                     {tierChange && tierChange.currentTier && (
                                         <div className={`flex items-start gap-2 text-sm rounded-xl px-4 py-3 border ${
                                             tierChange.allowed
-                                                ? 'text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-[#111213] border-[#e2e8f0] dark:border-[#374151]'
+                                                ? 'text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-pub-raised border-[#e2e8f0] dark:border-pub-border'
                                                 : 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                                         }`}>
                                             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -794,24 +622,24 @@ function TierCards() {
                                         <div className="grid grid-cols-2 gap-2">
                                             <button
                                                 onClick={() => cambiarFactura(false)}
-                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8]'}`}
                                             >
                                                 {t('previewWantBoleta')}
                                             </button>
                                             <button
                                                 onClick={() => cambiarFactura(true)}
-                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                                className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8]'}`}
                                             >
                                                 {t('previewWantFactura')}
                                             </button>
                                         </div>
                                     )}
 
-                                    <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden text-sm">
-                                        <div className="bg-[#f8fafc] dark:bg-[#111213] px-4 py-2.5 font-black text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="rounded-xl border border-[#e2e8f0] dark:border-pub-border overflow-hidden text-sm">
+                                        <div className="bg-[#f8fafc] dark:bg-pub-raised px-4 py-2.5 font-black text-[#1e293b] dark:text-[#f8fafc]">
                                             {preview.documentType === 'FACTURA' ? t('previewDocFactura') : t('previewDocBoleta')}
                                         </div>
-                                        <dl className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                                        <dl className="divide-y divide-[#e2e8f0] dark:divide-pub-border">
                                             <div className="flex justify-between gap-4 px-4 py-2">
                                                 <dt className="text-[#64748b] dark:text-[#94a3b8]">{t('previewName')}</dt>
                                                 <dd className="font-semibold text-right text-[#1e293b] dark:text-[#f8fafc]">{preview.customerName}</dd>
@@ -828,7 +656,7 @@ function TierCards() {
                                                 <dt className="text-[#64748b] dark:text-[#94a3b8]">IGV {preview.igvRate > 0 ? `${preview.igvRate}%` : ''}</dt>
                                                 <dd className="text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.igv?.toFixed(2)}</dd>
                                             </div>
-                                            <div className="flex justify-between gap-4 px-4 py-2.5 bg-[#f8fafc] dark:bg-[#111213]">
+                                            <div className="flex justify-between gap-4 px-4 py-2.5 bg-[#f8fafc] dark:bg-pub-raised">
                                                 <dt className="font-black text-[#1e293b] dark:text-[#f8fafc]">{t('previewTotal')}</dt>
                                                 <dd className="font-black text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.total?.toFixed(2)}</dd>
                                             </div>
@@ -840,7 +668,7 @@ function TierCards() {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setCheckoutTier(null)}
-                                            className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
+                                            className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-pub-border text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
                                         >
                                             {t('invoiceCancel')}
                                         </button>
@@ -865,7 +693,7 @@ function TierCards() {
                         onClick={() => setCompraLista(null)}
                     >
                         <div
-                            className="w-full max-w-md bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 shadow-2xl text-center"
+                            className="w-full max-w-md bg-white dark:bg-pub-bg rounded-2xl p-6 shadow-2xl text-center"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -879,7 +707,7 @@ function TierCards() {
                                     tier: TIERS.find(x => x.id === compraLista)?.name ?? compraLista,
                                 })}
                             </p>
-                            <div className="text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-[#111213] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3 mb-5 text-left">
+                            <div className="text-sm text-[#1e293b] dark:text-[#f8fafc] bg-[#f8fafc] dark:bg-pub-raised border border-[#e2e8f0] dark:border-pub-border rounded-xl px-4 py-3 mb-5 text-left">
                                 {t('purchaseDoneInvoice')}
                             </div>
                             <div className="flex flex-col sm:flex-row gap-2">
@@ -891,7 +719,7 @@ function TierCards() {
                                 </a>
                                 <button
                                     onClick={() => setCompraLista(null)}
-                                    className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
+                                    className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-pub-border text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213] transition-colors"
                                 >
                                     {t('purchaseDoneClose')}
                                 </button>
@@ -917,15 +745,13 @@ function TierCards() {
                         return (
                             <div
                                 key={tier.id}
-                                className={`relative rounded-2xl border-2 p-6 transition-all ${
-                                    tier.highlighted
-                                        ? `border-2 shadow-xl scale-[1.02] ${tier.bgLight} ${tier.bgDark}`
-                                        : `border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] hover:shadow-md`
+                                className={`relative rounded-lg border border-t-[3px] p-6 sm:p-7 transition-colors ${
+                                    tier.highlighted ? 'bg-pub-raised' : 'bg-pub-surface'
                                 } ${unavailable ? 'opacity-50' : ''}`}
-                                style={tier.highlighted ? { borderColor: tier.color } : {}}
+                                style={{ borderColor: tier.highlighted ? `${tier.color}88` : undefined, borderTopColor: tier.color }}
                             >
                                 {tier.highlighted && (
-                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                                    <div className="absolute -top-3.5 left-5">
                                         <span
                                             className="text-white text-xs font-black px-4 py-1.5 rounded-full whitespace-nowrap shadow-lg"
                                             style={{ backgroundColor: tier.color }}
@@ -936,9 +762,8 @@ function TierCards() {
                                 )}
 
                                 {/* Header */}
-                                <div className="text-center mb-6">
-                                    <div className="text-4xl mb-2">{tier.badgeEmoji}</div>
-                                    <h3 className={`text-2xl font-black mb-1 ${tier.textColor}`}>{tier.name}</h3>
+                                <div className="mb-6">
+                                    <h3 className="text-2xl font-extrabold tracking-tight mb-1" style={{ color: tier.color }}><span className="mr-2">{tier.badgeEmoji}</span>{tier.name}</h3>
 
                                     {unavailable ? (
                                         <div className="py-4">
@@ -947,7 +772,7 @@ function TierCards() {
                                     ) : (
                                         <div className="mt-3">
                                             {discountedPrice !== null && discountedPrice !== price ? (
-                                                <div className="flex items-baseline justify-center gap-2">
+                                                <div className="flex items-baseline gap-2">
                                                     <span className="text-4xl font-black text-[#1e293b] dark:text-[#f8fafc]">
                                                         ${discountedPrice.toFixed(2)}
                                                     </span>
@@ -997,8 +822,8 @@ function TierCards() {
                                     <button
                                         onClick={() => openCheckout(tier.id)}
                                         disabled={culqiLoading !== null}
-                                        className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border-2 hover:opacity-90 disabled:opacity-70"
-                                        style={{ borderColor: tier.color, color: tier.color }}
+                                        className="w-full py-3 rounded-md font-bold text-sm transition-all flex items-center justify-center gap-2 border hover:opacity-90 disabled:opacity-70"
+                                        style={tier.highlighted ? { borderColor: tier.color, background: tier.color, color: '#fff' } : { borderColor: `${tier.color}88`, color: tier.color }}
                                     >
                                         {culqiLoading === tier.id ? (
                                             <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
@@ -1009,7 +834,7 @@ function TierCards() {
                                 ) : (
                                     <button
                                         disabled
-                                        className="w-full py-3 rounded-xl font-black text-sm bg-[#f8fafc] dark:bg-[#262626] text-[#94a3b8] cursor-not-allowed"
+                                        className="w-full py-3 rounded-xl font-black text-sm bg-[#f8fafc] dark:bg-pub-surface text-[#94a3b8] cursor-not-allowed"
                                     >
                                         {t('noPermanentOption')}
                                     </button>
@@ -1039,9 +864,9 @@ function TierCards() {
                 </div>
 
                 {/* Free notice */}
-                <div className="mt-10 text-center">
-                    <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-5 py-3 rounded-xl text-sm font-semibold">
-                        <Zap className="w-4 h-4" />
+                <div className="mt-10">
+                    <div className="inline-flex items-center gap-2 font-mono text-xs 3xl:text-sm text-[#8b93a3]">
+                        <Check className="w-4 h-4 text-emerald-400" />
                         {t('freePlanNotice')}
                     </div>
                 </div>
@@ -1154,8 +979,8 @@ function FreeDonation() {
     };
 
     return (
-        <section className="py-16 px-4 bg-[#f8fafc] dark:bg-[#262626]">
-            <div className="max-w-lg mx-auto text-center">
+        <section id="donar" className="relative z-10 py-20 px-4 sm:px-8 border-t border-pub-border scroll-mt-4">
+            <div className="max-w-lg mx-auto text-center rounded-lg border border-pub-border bg-pub-surface p-8 sm:p-10">
                 <div className="text-4xl mb-3">&#10084;&#65039;</div>
                 <h2 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
                     {t('freeDonateTitle')}
@@ -1173,7 +998,7 @@ function FreeDonation() {
                             className={`px-4 py-2 rounded-xl font-black text-sm transition-all border-2 ${
                                 numAmount === p
                                     ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white border-transparent shadow-md'
-                                    : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] bg-white dark:bg-[#1B1C1D] hover:border-[#2563eb] dark:hover:border-[#2563eb]'
+                                    : 'border-[#e2e8f0] dark:border-pub-border text-[#64748b] dark:text-[#94a3b8] bg-white dark:bg-pub-bg hover:border-[#2563eb] dark:hover:border-[#2563eb]'
                             }`}
                         >
                             ${p}
@@ -1182,8 +1007,8 @@ function FreeDonation() {
                 </div>
 
                 {/* Custom amount input */}
-                <div className={`flex items-center gap-2 max-w-xs mx-auto mb-6 border-2 rounded-2xl px-4 py-3 bg-white dark:bg-[#1B1C1D] transition-colors ${
-                    inputFocused ? 'border-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151]'
+                <div className={`flex items-center gap-2 max-w-xs mx-auto mb-6 border-2 rounded-2xl px-4 py-3 bg-white dark:bg-pub-bg transition-colors ${
+                    inputFocused ? 'border-[#2563eb]' : 'border-[#e2e8f0] dark:border-pub-border'
                 }`}>
                     <span className="text-2xl font-black text-[#64748b] dark:text-[#94a3b8]">$</span>
                     <input
@@ -1204,7 +1029,7 @@ function FreeDonation() {
                 <button
                     onClick={handleDonate}
                     disabled={!isValid || loading}
-                    className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#ec4899] to-[#f43f5e] text-white font-black py-4 rounded-2xl text-base hover:from-[#db2777] hover:to-[#e11d48] disabled:opacity-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:translate-y-0"
+                    className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white font-black py-4 rounded-2xl text-base hover:from-[#1d4ed8] hover:to-[#2563eb] disabled:opacity-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:translate-y-0"
                 >
                     {loading ? (
                         <><Loader2 className="w-5 h-5 animate-spin" /> {t('redirecting')}</>
@@ -1248,247 +1073,16 @@ function FreeDonation() {
     );
 }
 
-// ─── Founders Section ─────────────────────────────────────────────────────────
 
-function FoundersSection({ supporters }: { supporters: PublicSupporter[] }) {
-    const { t } = useTranslation('supporters');
-    const founders = supporters.filter(s => s.tier === 'fundador' && s.isPermanent);
-
-    if (founders.length === 0) return (
-        <section className="py-16 px-4 bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/20 dark:to-[#1B1C1D]">
-            <div className="max-w-5xl mx-auto text-center">
-                <div className="text-5xl mb-3">&#127775;</div>
-                <h2 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">{t('foundersTitle')}</h2>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mb-8">
-                    {t('foundersEmptySubtitle')}
-                </p>
-                <div className="inline-block border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-2xl px-10 py-8 text-center">
-                    <div className="text-3xl mb-2">&#10024;</div>
-                    <p className="text-sm font-bold text-[#94a3b8]">{t('foundersYourName')}</p>
-                </div>
-            </div>
-        </section>
-    );
-
-    return (
-        <section className="py-16 px-4 bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/20 dark:to-[#1B1C1D]">
-            <div className="max-w-5xl mx-auto">
-                <div className="text-center mb-10">
-                    <div className="text-5xl mb-3">&#127775;</div>
-                    <h2 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">{t('foundersTitle')}</h2>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">
-                        {t('foundersSubtitle')}
-                    </p>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {founders.map(f => (
-                        <div
-                            key={f.twitchLogin}
-                            className="bg-white dark:bg-[#1B1C1D] border-2 border-amber-300 dark:border-amber-700 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-black mx-auto mb-3 shadow-lg">
-                                {f.displayName.charAt(0).toUpperCase()}
-                            </div>
-                            <p className="font-black text-sm text-[#1e293b] dark:text-[#f8fafc] truncate">{f.displayName}</p>
-                            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">&#127775; {t('founderLabel')}</p>
-                            <p className="text-[10px] text-[#94a3b8] mt-0.5">&infin; {t('permanentLabel')}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
-
-// ─── Supporters Wall ──────────────────────────────────────────────────────────
-
-const TIER_BADGE: Record<string, { label: string; bg: string; text: string }> = {
-    supporter: { label: '\u26a1 Supporter', bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300' },
-    premium: { label: '\ud83d\udc8e Premium', bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300' },
-    fundador: { label: '\ud83c\udf1f Fundador', bg: 'bg-amber-100 dark:bg-amber-900/40', text: 'text-amber-700 dark:text-amber-300' },
-};
-
-const AVATAR_GRADIENTS = [
-    'from-[#2563eb] to-[#7c3aed]',
-    'from-[#7c3aed] to-[#db2777]',
-    'from-[#059669] to-[#2563eb]',
-    'from-[#d97706] to-[#dc2626]',
-    'from-[#0891b2] to-[#7c3aed]',
-];
-
-function SupportersWall({ supporters, loading }: { supporters: PublicSupporter[]; loading: boolean }) {
-    const { t } = useTranslation('supporters');
-    const active = supporters.filter(s => !s.isPermanent);
-
-    return (
-        <section className="py-16 px-4 bg-[#f8fafc] dark:bg-[#262626]">
-            <div className="max-w-5xl mx-auto">
-                <div className="text-center mb-10">
-                    <h2 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">
-                        {t('activeSupportersTitle')}
-                    </h2>
-                    <p className="text-[#64748b] dark:text-[#94a3b8]">
-                        {t('activeSupportersSubtitle')}
-                    </p>
-                </div>
-
-                {loading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        {[...Array(12)].map((_, i) => (
-                            <div key={i} className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-4 text-center animate-pulse">
-                                <div className="w-12 h-12 rounded-full bg-[#e2e8f0] dark:bg-[#374151] mx-auto mb-2" />
-                                <div className="h-3 bg-[#e2e8f0] dark:bg-[#374151] rounded mx-auto w-16 mb-1" />
-                                <div className="h-3 bg-[#e2e8f0] dark:bg-[#374151] rounded mx-auto w-12" />
-                            </div>
-                        ))}
-                    </div>
-                ) : active.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="text-5xl mb-3">&#10084;&#65039;</div>
-                        <p className="font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">{t('noActiveSupporters')}</p>
-                        <p className="text-sm text-[#94a3b8]">{t('beFirstSupporter')}</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        {active.map((s, i) => {
-                            const badge = TIER_BADGE[s.tier];
-                            const grad = AVATAR_GRADIENTS[i % AVATAR_GRADIENTS.length];
-                            return (
-                                <div
-                                    key={s.twitchLogin}
-                                    className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4 text-center hover:shadow-md transition-all hover:-translate-y-0.5 group"
-                                >
-                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-lg font-black mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform`}>
-                                        {s.displayName.charAt(0).toUpperCase()}
-                                    </div>
-                                    <p className="font-bold text-xs text-[#1e293b] dark:text-[#f8fafc] truncate">{s.displayName}</p>
-                                    {badge && (
-                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${badge.bg} ${badge.text} mt-1 inline-block`}>
-                                            {badge.label}
-                                        </span>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </section>
-    );
-}
-
-// ─── FAQ ─────────────────────────────────────────────────────────────────────
-
-function FAQSection() {
-    const { t } = useTranslation('supporters');
-    const [open, setOpen] = useState<number | null>(null);
-
-    const FAQ_KEYS = [0, 1, 2, 3, 4, 5];
-
-    return (
-        <section className="py-16 px-4 bg-white dark:bg-[#1B1C1D]">
-            <div className="max-w-3xl mx-auto">
-                <h2 className="text-3xl font-black text-center text-[#1e293b] dark:text-[#f8fafc] mb-10">
-                    {t('faqTitle')}
-                </h2>
-                <div className="space-y-3">
-                    {FAQ_KEYS.map((i) => (
-                        <div
-                            key={i}
-                            className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden"
-                        >
-                            <button
-                                onClick={() => setOpen(open === i ? null : i)}
-                                className="w-full flex items-center justify-between px-5 py-4 text-left bg-white dark:bg-[#1B1C1D] hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
-                            >
-                                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] pr-4">{t(`faq${i}q`)}</span>
-                                {open === i
-                                    ? <ChevronUp className="w-5 h-5 text-[#64748b] shrink-0" />
-                                    : <ChevronDown className="w-5 h-5 text-[#64748b] shrink-0" />
-                                }
-                            </button>
-                            {open === i && (
-                                <div className="px-5 pb-5 bg-[#f8fafc] dark:bg-[#262626] border-t border-[#e2e8f0] dark:border-[#374151]">
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] pt-4 leading-relaxed">{t(`faq${i}a`)}</p>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
-
-// ─── Footer CTA ───────────────────────────────────────────────────────────────
-
-function FooterCTA({ config }: { config: PublicConfig }) {
-    const { t } = useTranslation('supporters');
-
-    return (
-        <section
-            className="py-16 px-4 text-white text-center"
-            style={{ background: `linear-gradient(135deg, ${config.heroFrom} 0%, ${config.heroTo} 100%)` }}
-        >
-            <div className="max-w-2xl mx-auto">
-                <div className="text-5xl mb-4">&#10084;&#65039;</div>
-                <h2 className="text-3xl font-black mb-3">{t('footerCtaTitle')}</h2>
-                <p className="text-white/80 mb-8">
-                    {t('footerCtaSubtitle')}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <a
-                        href="#tiers"
-                        className="inline-flex items-center justify-center gap-2 bg-white text-[#2563eb] font-black px-8 py-3.5 rounded-xl hover:bg-white/90 transition-all shadow-lg"
-                    >
-                        <Star className="w-5 h-5" />
-                        {t('supportNow')}
-                    </a>
-                    <a
-                        href="/"
-                        className="inline-flex items-center justify-center gap-2 bg-white/20 border border-white/40 text-white font-bold px-8 py-3.5 rounded-xl hover:bg-white/30 transition-all"
-                    >
-                        <Bot className="w-5 h-5" />
-                        {t('goToDecatron')}
-                    </a>
-                </div>
-            </div>
-        </section>
-    );
-}
-
-// ─── Footer ───────────────────────────────────────────────────────────────────
-
-function PageFooter() {
-    const { t } = useTranslation('supporters');
-
-    return (
-        <footer className="bg-white dark:bg-[#1B1C1D] border-t border-[#e2e8f0] dark:border-[#374151] py-8 px-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-[#2563eb] font-black mb-2">
-                <BrandMark slot="supporters-footer" fallback={<><Bot className="w-5 h-5" />
-                <span>Decatron</span></>} />
-            </div>
-            <p className="text-xs text-[#94a3b8]">
-                <a href="/tip/privacy" className="hover:text-[#64748b] underline">{t('footerPrivacy')}</a>
-                {' '}&middot;{' '}
-                <a href="/tip/terms" className="hover:text-[#64748b] underline">{t('footerTerms')}</a>
-            </p>
-        </footer>
-    );
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Página ───────────────────────────────────────────────────────────────────
 
 export default function SupportersPublic() {
     const { t } = useTranslation('supporters');
     const [config, setConfig]         = useState<PublicConfig>(DEFAULT_CONFIG);
     const [supporters, setSupporters] = useState<PublicSupporter[]>([]);
     const [loading, setLoading]       = useState(true);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        setIsLoggedIn(!!localStorage.getItem('token'));
-
         const load = async () => {
             try {
                 const [cfgRes, supRes] = await Promise.all([
@@ -1498,7 +1092,7 @@ export default function SupportersPublic() {
                 setConfig(cfgRes.data);
                 setSupporters(supRes.data);
             } catch {
-                // Use defaults — backend not ready yet
+                // Se usan los valores por defecto si el backend no responde
             } finally {
                 setLoading(false);
             }
@@ -1506,16 +1100,18 @@ export default function SupportersPublic() {
         load();
     }, []);
 
-    // If not enabled, show a simple "coming soon" message
+    // Siempre oscura, como la portada: el contenedor lleva "dark" para las variantes dark: del cobro
+    const shell = 'dark panel-scale min-h-screen bg-pub-bg text-[#e6e9ef] font-onest overflow-x-hidden relative';
+
     if (!loading && !config.enabled) {
         return (
-            <div className="min-h-screen bg-[#f8fafc] dark:bg-[#1B1C1D] flex flex-col">
-                <SupportersNav />
-                <div className="flex-1 flex items-center justify-center px-4">
-                    <div className="text-center">
-                        <div className="text-6xl mb-4">&#128679;</div>
-                        <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] mb-2">{t('comingSoonTitle')}</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">{t('comingSoonSubtitle')}</p>
+            <div className={`${shell} flex flex-col`}>
+                <SupBackdrop />
+                <SupNav />
+                <div className="relative z-10 flex-1 flex items-center justify-center px-4 text-center">
+                    <div>
+                        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">{t('comingSoonTitle')}</h1>
+                        <p className="text-[#8b93a3]">{t('comingSoonSubtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -1523,18 +1119,19 @@ export default function SupportersPublic() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#1B1C1D]">
-            <SupportersNav />
-
-            <Hero config={config} />
-            <WhySupport />
-            <FreeDonation />
+        <div className={shell}>
+            <SupBackdrop />
+            <SupNav />
+            <SupHero config={config} supporters={supporters} />
+            <SupWhy />
+            {config.showFoundersSection && <SupFounders supporters={supporters} />}
             <TierCards />
-            {config.showFoundersSection && <FoundersSection supporters={supporters} />}
-            {config.showSupportersWall && <SupportersWall supporters={supporters} loading={loading} />}
-            <FAQSection />
-            <FooterCTA config={config} />
-            <PageFooter />
+            <PlanComparison />
+            <FreeDonation />
+            {config.showSupportersWall && <SupWall supporters={supporters} loading={loading} />}
+            <SupFAQ />
+            <SupFinalCTA />
+            <SupFooter />
         </div>
     );
 }

@@ -3,11 +3,11 @@ import { Shield, ArrowLeft } from 'lucide-react';
 
 export default function TipsPrivacy() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black py-8 px-4">
+        <div className="min-h-screen bg-pub-bg py-8 px-4">
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 rounded-full bg-pub-accent flex items-center justify-center mx-auto mb-4">
                         <Shield className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
@@ -16,7 +16,7 @@ export default function TipsPrivacy() {
                 </div>
 
                 {/* Content */}
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 space-y-6 text-gray-300">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 md:p-8 space-y-6 text-gray-300">
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">1. Information We Collect</h2>
                         <p className="mb-3">When you make a donation through our platform, we collect:</p>
@@ -41,7 +41,7 @@ export default function TipsPrivacy() {
                                 href="https://www.paypal.com/us/legalhub/privacy-full"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-purple-400 hover:text-purple-300 underline"
+                                className="text-pub-accent-hi hover:text-white underline"
                             >
                                 Privacy Policy
                             </a>.
@@ -119,7 +119,7 @@ export default function TipsPrivacy() {
                             For privacy-related inquiries, please contact us at:{' '}
                             <a
                                 href="mailto:privacy@decatron.net"
-                                className="text-purple-400 hover:text-purple-300 underline"
+                                className="text-pub-accent-hi hover:text-white underline"
                             >
                                 privacy@decatron.net
                             </a>
@@ -131,7 +131,7 @@ export default function TipsPrivacy() {
                 <div className="text-center mt-6 space-y-4">
                     <Link
                         to="/tip/terms"
-                        className="text-purple-400 hover:text-purple-300 underline"
+                        className="text-pub-accent-hi hover:text-white underline"
                     >
                         View Terms of Service
                     </Link>

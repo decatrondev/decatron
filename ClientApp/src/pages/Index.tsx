@@ -6,6 +6,7 @@ import decatronHero from '../assets/decatron-hero.png';
 import decatronMascot from '../assets/decatron-mascot.png';
 import { BrandMark } from '../brand/BrandMark';
 import ChannelsCarousel from '../components/landing/ChannelsCarousel';
+import api from '../services/api';
 
 // Portada: siempre oscura, sobre la base común de las vistas públicas (tokens pub-* de tailwind.config).
 // El contenedor lleva "dark" para que los componentes con variantes dark: (carrusel de canales) también
@@ -124,6 +125,13 @@ function PlatformTerminal() {
 
 export default function Index() {
     const { t } = useTranslation('landing');
+    // Cantidad real de spirits lanzados (el catálogo crece cada temporada); sin dato, texto sin número
+    const [spiritCount, setSpiritCount] = useState<number | null>(null);
+    useEffect(() => {
+        api.get('/fortnite/sprites')
+            .then(r => setSpiritCount((r.data.sprites ?? []).filter((x: { isUnreleased?: boolean }) => !x.isUnreleased).length || null))
+            .catch(() => {});
+    }, []);
 
     const commands = [
         { name: t('cmdCreateName'), description: t('cmdCreateDescription'), icon: Zap },
@@ -294,7 +302,7 @@ export default function Index() {
                     <div className="space-y-6">
                         <p className={tag}># {t('spiritsBadge')}</p>
                         <h2 className="font-extrabold tracking-tight text-white text-3xl md:text-4xl 3xl:text-5xl 4xl:text-6xl leading-tight">{t('spiritsTitle')}</h2>
-                        <p className="text-[#8b93a3] text-lg 3xl:text-xl leading-relaxed">{t('spiritsBody')}</p>
+                        <p className="text-[#8b93a3] text-lg 3xl:text-xl leading-relaxed">{spiritCount ? t('spiritsBody', { count: spiritCount }) : t('spiritsBodyNoCount')}</p>
                         <ul className="flex flex-wrap gap-2 font-mono text-xs 3xl:text-sm text-[#8b93a3]">
                             {[t('spiritsF1'), t('spiritsF2'), t('spiritsF3'), t('spiritsF4')].map(f => (
                                 <li key={f} className="px-3 py-1.5 rounded border border-pub-border">{f}</li>

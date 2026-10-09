@@ -3,11 +3,11 @@ import { FileText } from 'lucide-react';
 
 export default function TipsTerms() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black py-8 px-4">
+        <div className="min-h-screen bg-pub-bg py-8 px-4">
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 rounded-full bg-pub-accent flex items-center justify-center mx-auto mb-4">
                         <FileText className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
@@ -16,7 +16,7 @@ export default function TipsTerms() {
                 </div>
 
                 {/* Content */}
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 md:p-8 space-y-6 text-gray-300">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 md:p-8 space-y-6 text-gray-300">
                     <section>
                         <h2 className="text-xl font-semibold text-white mb-3">1. Acceptance of Terms</h2>
                         <p>
@@ -75,7 +75,7 @@ export default function TipsTerms() {
                                 href="https://www.paypal.com/us/legalhub/useragreement-full"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-purple-400 hover:text-purple-300 underline"
+                                className="text-pub-accent-hi hover:text-white underline"
                             >
                                 User Agreement
                             </a>.
@@ -160,7 +160,7 @@ export default function TipsTerms() {
                             For questions about these terms, please contact us at:{' '}
                             <a
                                 href="mailto:support@decatron.net"
-                                className="text-purple-400 hover:text-purple-300 underline"
+                                className="text-pub-accent-hi hover:text-white underline"
                             >
                                 support@decatron.net
                             </a>
@@ -172,7 +172,7 @@ export default function TipsTerms() {
                 <div className="text-center mt-6 space-y-4">
                     <Link
                         to="/tip/privacy"
-                        className="text-purple-400 hover:text-purple-300 underline"
+                        className="text-pub-accent-hi hover:text-white underline"
                     >
                         View Privacy Policy
                     </Link>

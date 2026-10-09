@@ -126,6 +126,8 @@ namespace Decatron.Services
         public string Tier { get; set; } = string.Empty;
         public bool IsPermanent { get; set; }
         public string JoinedAt { get; set; } = string.Empty;
+        /// <summary>Foto de perfil de Twitch (la misma pública que ve cualquiera en su canal).</summary>
+        public string AvatarUrl { get; set; } = string.Empty;
     }
 
     public class CreateDiscountCodeRequest
@@ -584,7 +586,7 @@ namespace Decatron.Services
             await using var cmd = new NpgsqlCommand(@"
                 SELECT u.display_name, u.login, ust.tier,
                        (ust.tier_expires_at IS NULL) AS is_permanent,
-                       ust.tier_started_at
+                       ust.tier_started_at, u.profile_image_url
                 FROM user_subscription_tiers ust
                 JOIN users u ON u.id = ust.user_id
                 WHERE ust.tier <> 'free'
@@ -602,6 +604,7 @@ namespace Decatron.Services
                     Tier        = reader.GetString(2),
                     IsPermanent = reader.GetBoolean(3),
                     JoinedAt    = reader.IsDBNull(4) ? "" : reader.GetDateTime(4).ToString("O"),
+                    AvatarUrl   = reader.IsDBNull(5) ? "" : reader.GetString(5),
                 });
             }
 

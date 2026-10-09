@@ -129,6 +129,61 @@ namespace Decatron.Controllers
             }
         }
 
+        /// <summary>
+        /// Qué cambia en cada plan, leído de los mismos límites que aplica el bot (TierResolver y los
+        /// TierLimits de cada módulo), para que la tabla pública no se desactualice. -1 = sin tope.
+        /// </summary>
+        [HttpGet("tier-limits")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetTierLimits()
+        {
+            try
+            {
+                const int Unl = -1;
+                static long N(int v) => v == int.MaxValue ? Unl : v;
+                static long L(long v) => v < 0 || v == long.MaxValue ? Unl : v;
+
+                var tiers = new[] { "free", "supporter", "premium", "fundador" };
+                var rows = new Dictionary<string, Dictionary<string, long>>();
+                void Add(string key, Func<string, long> f)
+                    => rows[key] = tiers.ToDictionary(t => t, f);
+
+                var wheels = new Dictionary<string, long>();
+                var segments = new Dictionary<string, long>();
+                var wheelHistory = new Dictionary<string, long>();
+                var storage = new Dictionary<string, long>();
+                var polly = new Dictionary<string, long>();
+                foreach (var t in tiers)
+                {
+                    wheels[t]       = L(await Decatron.Core.Helpers.TierResolver.GetWheelLimitAsync(_db, t));
+                    segments[t]     = L(await Decatron.Core.Helpers.TierResolver.GetWheelSegmentLimitAsync(_db, t));
+                    wheelHistory[t] = L(await Decatron.Core.Helpers.TierResolver.GetWheelHistoryDaysAsync(_db, t));
+                    storage[t]      = L(await Decatron.Core.Helpers.TierResolver.GetStorageBytesLimitAsync(_db, t));
+                    polly[t]        = L(await Decatron.Core.Helpers.TierResolver.GetPollyCharLimitAsync(_db, t));
+                }
+                rows["wheels"] = wheels; rows["wheelSegments"] = segments; rows["wheelHistoryDays"] = wheelHistory;
+                rows["storageBytes"] = storage; rows["pollyChars"] = polly;
+
+                Add("songPlaylists",     t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).MaxPlaylists));
+                Add("songItems",         t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).MaxItemsPerPlaylist));
+                Add("songHistoryDays",   t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).HistoryDays));
+                Add("songTemplates",     t => N(Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).MaxTemplates));
+                Add("songHidePromo",     t => Decatron.Services.SongRequest.SongRequestTierLimits.ForTier(t).CanHidePromo ? 1 : 0);
+                Add("gamesAccounts",     t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxAccountsPerGame));
+                Add("gamesInstances",    t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxInstances));
+                Add("gamesRecent",       t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).MaxRecentMatches));
+                Add("gamesHistoryDays",  t => N(Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).SessionHistoryDays));
+                Add("gamesHidePromo",    t => Decatron.Services.GameData.GameOverlayTierLimits.ForTier(t).CanHidePromo ? 1 : 0);
+
+                return Ok(new { tiers, rows });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting tier limits");
+                return StatusCode(500, new { error = "Error al obtener los límites" });
+            }
+        }
+
         // ═══════════════════════════════════════════════════════════════
         // ADMIN ENDPOINTS — owner only
         // ═══════════════════════════════════════════════════════════════

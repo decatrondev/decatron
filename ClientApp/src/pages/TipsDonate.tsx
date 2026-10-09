@@ -252,16 +252,16 @@ export default function TipsDonate() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center">
-                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+            <div className="min-h-screen bg-pub-bg flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-pub-accent-hi animate-spin" />
             </div>
         );
     }
 
     if (error || !config) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center p-4">
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 max-w-md text-center">
+            <div className="min-h-screen bg-pub-bg flex items-center justify-center p-4">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-8 max-w-md text-center">
                     <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
                     <h1 className="text-2xl font-bold text-white mb-2">{t('notAvailableTitle')}</h1>
                     <p className="text-gray-400">{error}</p>
@@ -273,8 +273,8 @@ export default function TipsDonate() {
     // Success state
     if (status === 'success') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center p-4">
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 max-w-md text-center">
+            <div className="min-h-screen bg-pub-bg flex items-center justify-center p-4">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-8 max-w-md text-center">
                     <div
                         className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
                         style={{ backgroundColor: config.pageAccentColor }}
@@ -286,7 +286,7 @@ export default function TipsDonate() {
                         {t('donationReceived', { amount: formatCurrency(getEffectiveAmount()) })}
                     </p>
                     {timeAdded > 0 && (
-                        <p className="text-lg text-purple-400">
+                        <p className="text-lg text-pub-accent-hi">
                             {t('timeAdded', { minutes: Math.floor(timeAdded / 60), seconds: timeAdded % 60 })}
                         </p>
                     )}
@@ -307,12 +307,12 @@ export default function TipsDonate() {
 
     return (
         <div
-            className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black py-8 px-4"
+            className="min-h-screen bg-pub-bg py-8 px-4"
             style={config.pageBackgroundImage ? {
                 backgroundImage: `url(${config.pageBackgroundImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
-            } : {}}
+            } : { backgroundImage: `radial-gradient(ellipse 80% 45% at 50% 0%, ${config.pageAccentColor || '#2f6bff'}40, transparent 70%)` }}
         >
             <div className="max-w-lg mx-auto">
                 {/* Header */}
@@ -327,13 +327,13 @@ export default function TipsDonate() {
                     {config.pageDescription && (
                         <p className="text-gray-400">{config.pageDescription}</p>
                     )}
-                    <p className="text-lg text-purple-400 mt-2">
+                    <p className="text-lg text-pub-accent-hi mt-2">
                         {t('supportChannel', { channelName: config.channelName })}
                     </p>
                 </div>
 
                 {/* Donation Form */}
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 space-y-6">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 space-y-6">
                     {/* Donor Name */}
                     <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -345,7 +345,7 @@ export default function TipsDonate() {
                             onChange={(e) => setDonorName(e.target.value)}
                             placeholder={t('donorNamePlaceholder')}
                             maxLength={50}
-                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                            className="w-full px-4 py-3 bg-pub-bg border border-pub-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pub-accent"
                         />
                     </div>
 
@@ -367,7 +367,7 @@ export default function TipsDonate() {
                                     className={`py-3 rounded-lg font-semibold transition-all ${
                                         !useCustomAmount && amount === amt
                                             ? 'text-white ring-2 ring-offset-2 ring-offset-gray-800'
-                                            : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                                            : 'bg-pub-bg border border-pub-border text-gray-300 hover:border-pub-accent/60'
                                     }`}
                                     style={!useCustomAmount && amount === amt ? {
                                         backgroundColor: config.pageAccentColor,
@@ -394,10 +394,10 @@ export default function TipsDonate() {
                                 min={config.minAmount}
                                 max={config.maxAmount}
                                 step="0.01"
-                                className={`w-full pl-10 pr-4 py-3 bg-gray-700/50 border rounded-lg text-white placeholder-gray-500 focus:outline-none ${
+                                className={`w-full pl-10 pr-4 py-3 bg-pub-bg border rounded-lg text-white placeholder-gray-500 focus:outline-none ${
                                     useCustomAmount
-                                        ? 'border-purple-500'
-                                        : 'border-gray-600'
+                                        ? 'border-pub-accent'
+                                        : 'border-pub-border'
                                 }`}
                             />
                         </div>
@@ -418,7 +418,7 @@ export default function TipsDonate() {
                             placeholder={t('messagePlaceholder')}
                             maxLength={config.maxMessageLength}
                             rows={3}
-                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 resize-none"
+                            className="w-full px-4 py-3 bg-pub-bg border border-pub-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pub-accent resize-none"
                         />
                         <p className="text-xs text-gray-500 mt-1 text-right">
                             {message.length}/{config.maxMessageLength}
@@ -452,7 +452,7 @@ export default function TipsDonate() {
                         )}
                         {status === 'processing' && (
                             <div className="flex items-center justify-center gap-2 py-4">
-                                <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                                <Loader2 className="w-5 h-5 animate-spin text-pub-accent-hi" />
                                 <span className="text-gray-300">{statusMessage}</span>
                             </div>
                         )}
@@ -469,7 +469,7 @@ export default function TipsDonate() {
                     </div>
 
                     {/* Total */}
-                    <div className="border-t border-gray-700 pt-4">
+                    <div className="border-t border-pub-border pt-4">
                         <div className="flex justify-between items-center">
                             <span className="text-gray-400">{t('totalToPay')}</span>
                             <span className="text-2xl font-bold text-white">
@@ -483,11 +483,11 @@ export default function TipsDonate() {
                 <div className="text-center mt-6 text-gray-500 text-sm">
                     <p>{t('securePaypal')}</p>
                     <div className="mt-2 flex items-center justify-center gap-4">
-                        <Link to="/tip/privacy" className="hover:text-purple-400 underline">
+                        <Link to="/tip/privacy" className="hover:text-pub-accent-hi underline">
                             {t('privacyPolicy')}
                         </Link>
                         <span>•</span>
-                        <Link to="/tip/terms" className="hover:text-purple-400 underline">
+                        <Link to="/tip/terms" className="hover:text-pub-accent-hi underline">
                             {t('termsOfService')}
                         </Link>
                     </div>
