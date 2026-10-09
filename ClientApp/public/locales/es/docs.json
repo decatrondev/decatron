@@ -65,7 +65,10 @@
     "login": "Iniciar sesión",
     "language": "Idioma",
     "menu": "Menú",
-    "onThisPage": "En esta página"
+    "onThisPage": "En esta página",
+    "back": "Atrás",
+    "backToDashboard": "Volver al panel",
+    "index": "Índice de la documentación"
   },
   "home": {
     "title": "Documentación de Decatron",

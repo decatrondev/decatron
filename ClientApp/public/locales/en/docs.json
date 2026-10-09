@@ -65,7 +65,10 @@
     "login": "Sign in",
     "language": "Language",
     "menu": "Menu",
-    "onThisPage": "On this page"
+    "onThisPage": "On this page",
+    "back": "Back",
+    "backToDashboard": "Back to dashboard",
+    "index": "Documentation index"
   },
   "home": {
     "title": "Decatron documentation",

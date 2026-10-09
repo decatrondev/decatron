@@ -127,6 +127,7 @@ import GettingStarted from './pages/docs/public/GettingStarted';
 import Features from './pages/docs/public/Features';
 import FAQ from './pages/docs/public/FAQ';
 // Private docs
+import PrivateDocsLayout from './pages/docs/private/PrivateDocsLayout';
 import DashboardDocsHome from './pages/docs/private/DashboardDocsHome';
 import OverlaysGuide from './pages/docs/private/overlays/OverlaysGuide';
 import TimerDoc from './pages/docs/private/features/TimerDoc';
@@ -420,52 +421,54 @@ function App() {
                     <Route path="analytics" element={<SafeRoute name="Analytics"><Analytics /></SafeRoute>} />
 
                     {/* Documentacion dentro del dashboard - Accesible para todos los usuarios autenticados */}
-                    <Route path="dashboard/docs" element={<DashboardDocsHome />} />
-                    <Route path="dashboard/docs/variables" element={<VariablesDoc />} />
+                    <Route path="dashboard/docs" element={<PrivateDocsLayout />}>
+                        <Route index element={<DashboardDocsHome />} />
+                        <Route path="variables" element={<VariablesDoc />} />
                     {/* Comandos */}
-                    <Route path="dashboard/docs/commands/default" element={<DefaultCommandsDoc />} />
-                    <Route path="dashboard/docs/commands/custom" element={<CustomCommandsDoc />} />
-                    <Route path="dashboard/docs/commands/microcommands" element={<MicrocommandsDoc />} />
-                    <Route path="dashboard/docs/commands/scripting" element={<ScriptingCommandsDoc />} />
+                        <Route path="commands/default" element={<DefaultCommandsDoc />} />
+                        <Route path="commands/custom" element={<CustomCommandsDoc />} />
+                        <Route path="commands/microcommands" element={<MicrocommandsDoc />} />
+                        <Route path="commands/scripting" element={<ScriptingCommandsDoc />} />
                     {/* Overlays */}
-                    <Route path="dashboard/docs/overlays" element={<OverlaysGuide />} />
-                    <Route path="dashboard/docs/overlays/shoutout" element={<ShoutoutOverlayDoc />} />
-                    <Route path="dashboard/docs/overlays/gacha" element={<GachaOverlayDoc />} />
-                    <Route path="dashboard/docs/song-request/setup" element={<SongRequestDoc page="setup" scope="private" />} />
-                    <Route path="dashboard/docs/song-request/requests" element={<SongRequestDoc page="requests" scope="private" />} />
-                    <Route path="dashboard/docs/song-request/playlists" element={<SongRequestDoc page="playlists" scope="private" />} />
-                    <Route path="dashboard/docs/song-request/commands" element={<SongRequestDoc page="commands" scope="private" />} />
-                    <Route path="dashboard/docs/song-request/overlay" element={<SongRequestDoc page="overlay" scope="private" />} />
-                    <Route path="dashboard/docs/song-request/library" element={<SongRequestDoc page="library" scope="private" />} />
-                    <Route path="dashboard/docs/wheel/setup" element={<WheelDoc page="setup" scope="private" />} />
-                    <Route path="dashboard/docs/wheel/prizes" element={<WheelDoc page="prizes" scope="private" />} />
-                    <Route path="dashboard/docs/wheel/credits" element={<WheelDoc page="credits" scope="private" />} />
-                    <Route path="dashboard/docs/wheel/raffle" element={<WheelDoc page="raffle" scope="private" />} />
-                    <Route path="dashboard/docs/wheel/commands" element={<WheelDoc page="commands" scope="private" />} />
-                    <Route path="dashboard/docs/wheel/look" element={<WheelDoc page="look" scope="private" />} />
-                    <Route path="dashboard/docs/commands/ruleta" element={<WheelDoc page="ruleta" scope="private" />} />
+                        <Route path="overlays" element={<OverlaysGuide />} />
+                        <Route path="overlays/shoutout" element={<ShoutoutOverlayDoc />} />
+                        <Route path="overlays/gacha" element={<GachaOverlayDoc />} />
+                        <Route path="song-request/setup" element={<SongRequestDoc page="setup" scope="private" />} />
+                        <Route path="song-request/requests" element={<SongRequestDoc page="requests" scope="private" />} />
+                        <Route path="song-request/playlists" element={<SongRequestDoc page="playlists" scope="private" />} />
+                        <Route path="song-request/commands" element={<SongRequestDoc page="commands" scope="private" />} />
+                        <Route path="song-request/overlay" element={<SongRequestDoc page="overlay" scope="private" />} />
+                        <Route path="song-request/library" element={<SongRequestDoc page="library" scope="private" />} />
+                        <Route path="wheel/setup" element={<WheelDoc page="setup" scope="private" />} />
+                        <Route path="wheel/prizes" element={<WheelDoc page="prizes" scope="private" />} />
+                        <Route path="wheel/credits" element={<WheelDoc page="credits" scope="private" />} />
+                        <Route path="wheel/raffle" element={<WheelDoc page="raffle" scope="private" />} />
+                        <Route path="wheel/commands" element={<WheelDoc page="commands" scope="private" />} />
+                        <Route path="wheel/look" element={<WheelDoc page="look" scope="private" />} />
+                        <Route path="commands/ruleta" element={<WheelDoc page="ruleta" scope="private" />} />
                     {/* Features */}
-                    <Route path="dashboard/docs/features/timer" element={<TimerDoc />} />
-                    <Route path="dashboard/docs/features/event-alerts" element={<EventAlertsDoc />} />
-                    <Route path="dashboard/docs/features/giveaway" element={<GiveawayDoc />} />
-                    <Route path="dashboard/docs/features/goals" element={<GoalsDoc />} />
-                    <Route path="dashboard/docs/features/sound-alerts" element={<SoundAlertsDoc />} />
-                    <Route path="dashboard/docs/features/tips" element={<TipsDoc />} />
-                    <Route path="dashboard/docs/features/shoutout" element={<ShoutoutDoc />} />
-                    <Route path="dashboard/docs/features/moderation" element={<ModerationDoc />} />
-                    <Route path="dashboard/docs/features/analytics" element={<AnalyticsDoc />} />
-                    <Route path="dashboard/docs/features/followers" element={<FollowersDoc />} />
-                    <Route path="dashboard/docs/features/ai" element={<AIDoc />} />
-                    <Route path="dashboard/docs/features/now-playing" element={<NowPlayingDoc />} />
-                    <Route path="dashboard/docs/features/game-overlays" element={<GameOverlaysDoc />} />
-                    <Route path="dashboard/docs/features/live-overlay" element={<LiveOverlayDoc />} />
-                    <Route path="dashboard/docs/features/pets" element={<PetsDoc />} />
-                    <Route path="dashboard/docs/features/decatron-chat" element={<DecatronChatDoc />} />
-                    <Route path="dashboard/docs/features/developer" element={<DeveloperPortalDoc />} />
-                    <Route path="dashboard/docs/features/gacha" element={<GachaDoc />} />
+                        <Route path="features/timer" element={<TimerDoc />} />
+                        <Route path="features/event-alerts" element={<EventAlertsDoc />} />
+                        <Route path="features/giveaway" element={<GiveawayDoc />} />
+                        <Route path="features/goals" element={<GoalsDoc />} />
+                        <Route path="features/sound-alerts" element={<SoundAlertsDoc />} />
+                        <Route path="features/tips" element={<TipsDoc />} />
+                        <Route path="features/shoutout" element={<ShoutoutDoc />} />
+                        <Route path="features/moderation" element={<ModerationDoc />} />
+                        <Route path="features/analytics" element={<AnalyticsDoc />} />
+                        <Route path="features/followers" element={<FollowersDoc />} />
+                        <Route path="features/ai" element={<AIDoc />} />
+                        <Route path="features/now-playing" element={<NowPlayingDoc />} />
+                        <Route path="features/game-overlays" element={<GameOverlaysDoc />} />
+                        <Route path="features/live-overlay" element={<LiveOverlayDoc />} />
+                        <Route path="features/pets" element={<PetsDoc />} />
+                        <Route path="features/decatron-chat" element={<DecatronChatDoc />} />
+                        <Route path="features/developer" element={<DeveloperPortalDoc />} />
+                        <Route path="features/gacha" element={<GachaDoc />} />
                     {/* Settings */}
-                    <Route path="dashboard/docs/settings" element={<SettingsDoc />} />
-                    <Route path="dashboard/docs/permissions" element={<PermissionsDoc />} />
+                        <Route path="settings" element={<SettingsDoc />} />
+                        <Route path="permissions" element={<PermissionsDoc />} />
+                    </Route>
                 </Route>
                         </Routes>
                         <OverlayAutoUpdate />
