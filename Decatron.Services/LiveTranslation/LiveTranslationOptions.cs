@@ -41,5 +41,15 @@ namespace Decatron.Services.LiveTranslation
         /// en appsettings y se aplica a las sesiones nuevas tras reiniciar el backend.
         /// </summary>
         public bool SmartSegmentation { get; set; } = false;
+
+        /// <summary>
+        /// Una frase que ya espera más que esto desde que el STT la cerró no se traduce: llegaría
+        /// tan tarde que desorienta más de lo que ayuda (el espectador ya vio esa parte del video).
+        /// Es el último recurso del modo alcance; antes se acelera la voz en la extensión.
+        /// </summary>
+        public int MaxStaleSeconds { get; set; } = 12;
+
+        /// <summary>Con al menos esta cantidad de frases atrasadas se recortan las repeticiones antes de traducir.</summary>
+        public int TrimRepeatsAtPending { get; set; } = 2;
     }
 }

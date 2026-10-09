@@ -572,13 +572,25 @@ namespace Decatron.Services.LiveTranslation
         {
             var u = q.U;
             var started = DateTime.UtcNow;
+
+            // Modo alcance, último recurso: lo que ya espera demasiado se salta (el espectador
+            // lo ve avisado en pantalla) en vez de doblar algo que ya pasó hace rato.
+            if (_mgr.Options.MaxStaleSeconds > 0 && (started - u.FinalAtUtc).TotalSeconds > _mgr.Options.MaxStaleSeconds)
+            {
+                Interlocked.Increment(ref _dropped);
+                await Notify("SegmentDropped", new { seq = q.Seq, lang = _lang, reason = "stale" });
+                return null;
+            }
+            // Con el pipeline atrasado se recortan las repeticiones tartamudeadas; lo demás queda igual.
+            var text = _worker.Pending >= _mgr.Options.TrimRepeatsAtPending ? FillerFilter.CollapseRepeats(u.Text) : u.Text;
+
             // Con el segmentador inteligente un trozo puede empezar o terminar a mitad de oración:
             // se le da la frase anterior (si fue hace poco) para que la traducción siga el hilo.
             var useCtx = _mgr.Options.SmartSegmentation && _prevSource != null && u.StartSec - _prevEndSec < 10;
-            var translated = await _mgr.Translator.TranslateAsync(u.Text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct,
+            var translated = await _mgr.Translator.TranslateAsync(text, _session.Settings.SourceLanguage, _lang, _session.UserId, _session.Login, ct,
                 fragment: _mgr.Options.SmartSegmentation, prevSource: useCtx ? _prevSource : null, prevTranslated: useCtx ? _prevTranslated : null);
             var translateMs = (DateTime.UtcNow - started).TotalMilliseconds;
-            _prevSource = u.Text; _prevTranslated = translated; _prevEndSec = u.EndSec;
+            _prevSource = text; _prevTranslated = translated; _prevEndSec = u.EndSec;
 
             var (ok, charged) = await _mgr.ChargeAsync(_session.UserId, translated.Length, _engine.CreditEngine, _voice, _lang);
             if (!ok && _engine.CreditEngine != "standard" && _mgr.StandardEngine is { } standard)
@@ -618,6 +630,7 @@ namespace Decatron.Services.LiveTranslation
             {
                 seq = q.Seq, lang = _lang, t0 = u.StartSec, t1 = u.EndSec,
                 source = u.Text, text = item.Text, sttAt = u.FinalAtUtc,
+                ageMs = (speakStart - u.FinalAtUtc).TotalMilliseconds,                 // cuánto esperó en el servidor desde que el STT cerró la frase (la extensión lo suma a su retraso sin depender del reloj de la PC)
                 sttLag = sttLag.HasValue ? sttLag.Value - streamLag : (double?)null,  // solo Deepgram
                 streamLag,                                                              // solo la app/red
             };
