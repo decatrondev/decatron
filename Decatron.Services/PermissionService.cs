@@ -48,6 +48,7 @@ namespace Decatron.Services
             { "giveaways", "moderation" },
             { "loyalty", "moderation" },
             { "chatfilters", "moderation" },
+            { "moderation", "moderation" },
             { "user_management", "control_total" },
             { "settings", "control_total" },
             { "spirits", "control_total" }
