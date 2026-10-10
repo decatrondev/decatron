@@ -88,11 +88,11 @@ export default function EpicAccountsSettings() {
     };
 
     return (
-        <div className="p-4 bg-gray-50 dark:bg-[#222324] rounded-lg border border-[#e2e8f0] dark:border-[#374151] space-y-3">
+        <div className="p-4 bg-ds-bg rounded-lg border border-ds-border space-y-3">
             <div className="flex items-center justify-between gap-3">
                 <div>
-                    <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">Cuentas de Epic Games (Fortnite)</div>
-                    <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="font-bold text-ds-text">Cuentas de Epic Games (Fortnite)</div>
+                    <div className="text-sm text-ds-soft">
                         Para inscribirte a torneos de Fortnite.{' '}
                         {epicAvailable
                             ? 'Vincúlala con tu inicio de sesión de Epic para que quede verificada.'
@@ -104,7 +104,7 @@ export default function EpicAccountsSettings() {
                         <button
                             onClick={loginWithEpic}
                             disabled={redirecting}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#2563eb] text-white text-sm font-bold hover:bg-[#1d4ed8] disabled:opacity-50"
+                            className="ds-btn ds-btn--primary ds-btn--sm"
                         >
                             {redirecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />} Vincular con Epic Games
                         </button>
@@ -113,8 +113,8 @@ export default function EpicAccountsSettings() {
                         onClick={() => setShowForm((v) => !v)}
                         className={
                             epicAvailable
-                                ? 'flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#94a3b8] text-sm font-bold hover:bg-gray-100 dark:hover:bg-[#262626]'
-                                : 'flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#2563eb] text-white text-sm font-bold hover:bg-[#1d4ed8]'
+                                ? 'ds-btn ds-btn--secondary ds-btn--sm'
+                                : 'ds-btn ds-btn--primary ds-btn--sm'
                         }
                     >
                         <Plus className="w-4 h-4" /> {epicAvailable ? 'Solo con el nombre' : 'Vincular cuenta'}
@@ -123,7 +123,7 @@ export default function EpicAccountsSettings() {
             </div>
 
             {epicResult && (
-                <p className={`text-sm flex items-center gap-1 ${epicResult.ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                <p className={`text-sm flex items-center gap-1 ${epicResult.ok ? 'text-ds-ok' : 'text-ds-danger'}`}>
                     {epicResult.ok ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
                     {epicResult.ok ? 'Cuenta de Epic vinculada y verificada.' : epicResult.reason || 'No se pudo vincular la cuenta de Epic.'}
                 </p>
@@ -132,22 +132,22 @@ export default function EpicAccountsSettings() {
             {showForm && (
                 <form
                     onSubmit={handleAdd}
-                    className="p-3 rounded-lg bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] flex flex-col md:flex-row md:items-end gap-3"
+                    className="p-3 rounded-lg bg-ds-surface border border-ds-border flex flex-col md:flex-row md:items-end gap-3"
                 >
                     <div className="flex-1">
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Nombre de Epic (el que se ve en Fortnite)</label>
+                        <label className="text-xs font-bold text-ds-soft">Nombre de Epic (el que se ve en Fortnite)</label>
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                             placeholder="Nombre de Epic"
-                            className="w-full mt-1 px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                            className="w-full mt-1 px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={saving || !name.trim()}
-                        className="px-4 py-2 rounded-lg bg-[#16a34a] text-white text-sm font-bold hover:bg-[#15803d] disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        className="ds-btn ds-btn--primary"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         Vincular
@@ -156,9 +156,9 @@ export default function EpicAccountsSettings() {
             )}
 
             {loading ? (
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Cargando...</p>
+                <p className="text-sm text-ds-soft">Cargando...</p>
             ) : accounts.length === 0 ? (
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Todavía no vinculaste ninguna cuenta.</p>
+                <p className="text-sm text-ds-soft">Todavía no vinculaste ninguna cuenta.</p>
             ) : (
                 <div className="space-y-2">
                     {accounts.map((a) => {
@@ -166,21 +166,21 @@ export default function EpicAccountsSettings() {
                         return (
                             <div
                                 key={a.id}
-                                className="p-3 rounded-lg bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] flex items-center justify-between gap-3"
+                                className="p-3 rounded-lg bg-ds-surface border border-ds-border flex items-center justify-between gap-3"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{a.externalName}</span>
+                                    <span className="font-bold text-ds-text truncate">{a.externalName}</span>
                                     {verified ? (
-                                        <ShieldCheck className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                        <ShieldCheck className="w-4 h-4 text-ds-ok flex-shrink-0" />
                                     ) : (
-                                        <span className="text-xs px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400 flex-shrink-0">
+                                        <span className="text-xs px-1.5 py-0.5 rounded bg-ds-warn/10 text-ds-warn flex-shrink-0">
                                             sin verificar
                                         </span>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => handleDelete(a.id)}
-                                    className="p-1.5 rounded-lg text-[#94a3b8] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 flex-shrink-0"
+                                    className="p-1.5 rounded-lg text-ds-soft hover:text-ds-danger flex-shrink-0"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -190,7 +190,7 @@ export default function EpicAccountsSettings() {
                 </div>
             )}
             {error && (
-                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <p className="text-sm text-ds-danger flex items-center gap-1">
                     <AlertTriangle className="w-4 h-4" /> {error}
                 </p>
             )}
