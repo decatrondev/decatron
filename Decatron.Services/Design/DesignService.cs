@@ -28,6 +28,7 @@ namespace Decatron.Services.Design
         {
             "bg", "surface", "raised", "input", "border", "borderSoft", "text", "soft", "faint",
             "accent", "accentHover", "accentText", "onAccent", "ok", "warn", "danger", "dangerSolid", "dangerHover",
+            "syntaxKeyword", "syntaxString", "syntaxNumber",
         };
         private static readonly string[] Fonts = { "Onest", "Barlow", "system-ui" };
         private static readonly Regex HexRx = new("^#[0-9a-fA-F]{6}$", RegexOptions.Compiled);

@@ -29,6 +29,9 @@ export const CONTRAST_PAIRS: [string, Side, Side][] = [
     ['Estado correcto sobre superficie', 'ok', 'surface'],
     ['Aviso sobre superficie', 'warn', 'surface'],
     ['Error sobre superficie', 'danger', 'surface'],
+    ['Código: palabras clave sobre campos', 'syntaxKeyword', 'input'],
+    ['Código: textos y variables sobre campos', 'syntaxString', 'input'],
+    ['Código: números sobre campos', 'syntaxNumber', 'input'],
     ['Texto del botón de error', '#ffffff', 'dangerSolid'],
     ['Texto del botón de error (hover)', '#ffffff', 'dangerHover'],
 ];

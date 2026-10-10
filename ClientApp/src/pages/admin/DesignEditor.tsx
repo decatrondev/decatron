@@ -9,6 +9,7 @@ import {
     type DesignOverrides, type DsColors, type DsFontName, type DsTheme, type ResolvedDesign,
 } from '../../components/ds/tokens';
 import { contrastReport } from '../../design/contrast';
+import { highlightCode } from '../commands/scripting/grammar';
 import { getPreview, refreshPublished, setPreview } from '../../design/runtime';
 
 /**
@@ -25,8 +26,9 @@ const COLOR_LABELS: Record<keyof DsColors, string> = {
     border: 'Borde', borderSoft: 'Borde suave', text: 'Texto', soft: 'Texto de apoyo', faint: 'Texto tenue (placeholders)',
     accent: 'Azul de acción', accentHover: 'Azul de acción · hover', accentText: 'Azul para texto y enlaces', onAccent: 'Texto sobre el azul',
     ok: 'Estado correcto', warn: 'Aviso', danger: 'Error (texto)', dangerSolid: 'Botón de error', dangerHover: 'Botón de error · hover',
+    syntaxKeyword: 'Código · palabras clave', syntaxString: 'Código · textos y variables', syntaxNumber: 'Código · números',
 };
-const MAIN_KEYS: (keyof DsColors)[] = ['bg', 'surface', 'raised', 'input', 'border', 'borderSoft', 'text', 'soft', 'faint', 'accent', 'accentText', 'onAccent', 'ok', 'warn', 'danger', 'dangerSolid'];
+const MAIN_KEYS: (keyof DsColors)[] = ['bg', 'surface', 'raised', 'input', 'border', 'borderSoft', 'text', 'soft', 'faint', 'accent', 'accentText', 'onAccent', 'ok', 'warn', 'danger', 'dangerSolid', 'syntaxKeyword', 'syntaxString', 'syntaxNumber'];
 const ADV_KEYS: (keyof DsColors)[] = ['accentHover', 'dangerHover'];
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const SIZES = ['sm', 'md', 'lg'] as const;
@@ -113,6 +115,8 @@ function Sample({ theme, design }: { theme: DsTheme; design: ResolvedDesign }) {
                 </div>
                 <Input placeholder="Campo de texto" readOnly />
                 <Card><p className="ds-card-title">Tarjeta</p><p className="ds-card-text">Contenido de ejemplo.</p><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Badge>neutra</Badge><Badge tone="accent">azul</Badge><Badge tone="ok">ok</Badge><Badge tone="warn">aviso</Badge><Badge tone="danger">error</Badge></div></Card>
+                <pre className="ds-code" style={{ margin: 0, padding: 12, background: 'var(--ds-input)', border: '1px solid var(--ds-border)', borderRadius: 'var(--ds-radius)', fontFamily: 'var(--ds-font-mono)', fontSize: 13, color: 'var(--ds-text)' }}
+                    dangerouslySetInnerHTML={{ __html: highlightCode('set suerte = roll(1, 100)\nsend "Tienes $(suerte)%"') }} />
                 <Alert tone="info" title="Información">Aviso con borde completo tenue.</Alert>
                 <Alert tone="warn" title="Atención">Aviso de advertencia.</Alert>
             </div>

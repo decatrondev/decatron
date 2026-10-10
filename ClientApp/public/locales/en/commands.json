@@ -347,8 +347,8 @@
       "statusLabel": "Script Status",
       "statusActive": "Script active",
       "statusInactive": "Script inactive",
-      "validationValid": "✅ Valid script",
-      "validationError": "❌ Syntax error",
+      "validationValid": "Valid script",
+      "validationError": "Syntax error",
       "validationErrorDetails": "Error on line {{line}}: {{message}}",
       "testResultTitle": "Test result",
       "testResultSuccess": "✅ Script executed successfully",
@@ -364,7 +364,98 @@
       "insertButton": "Insert",
       "undoButton": "Undo",
       "redoButton": "Redo",
-      "historyEmpty": "No history"
+      "historyEmpty": "No history",
+      "linesCount": "Lines: {{count}}",
+      "formatTitle": "Format code (auto-indent)",
+      "clearTitle": "Clear editor",
+      "clearConfirm": "All the code in the editor will be erased. Continue?",
+      "placeholder": "Write your script here...\nset result = roll(1, 6)\nsend \"🎲 $(user) rolled: $(result)\"",
+      "editorHint": "Tab to indent • Ctrl+Z to undo • Ctrl+S to save",
+      "restrictionNote": "The streamer can always use any command, with no restrictions.",
+      "errorLine": "Line {{line}}",
+      "errorOnLine": "Error on line {{line}}",
+      "testIdle": "Click “{{button}}” to simulate running the command",
+      "testIdleNote": "The system will use test data to run your script.",
+      "templatesTitle": "Quick templates",
+      "functionsTitle": "Functions",
+      "docsTitle": "Documentation",
+      "shortcutsTitle": "Keyboard shortcuts",
+      "shortcutIndent": "Indent",
+      "tipsTitle": "Tips",
+      "templates": {
+        "dice": "Dice",
+        "pick": "Pick",
+        "counter": "Counter",
+        "conditional": "Conditional"
+      },
+      "variables": {
+        "user": "User who ran the command",
+        "channel": "Current stream channel",
+        "game": "Current game/category",
+        "uptime": "How long the stream has been live",
+        "ruser": "Random chat user",
+        "touser": "User mentioned with @"
+      },
+      "functions": {
+        "roll": "Random number between min and max",
+        "pick": "Picks a random option",
+        "count": "Increments the command counter"
+      },
+      "syntaxDocs": {
+        "variables": {
+          "title": "Variables",
+          "description": "Assigns a value to a variable"
+        },
+        "conditionals": {
+          "title": "Conditionals",
+          "description": "Runs code if the condition is met"
+        },
+        "messages": {
+          "title": "Messages",
+          "description": "Sends a message to the chat"
+        },
+        "operators": {
+          "title": "Operators",
+          "description": "Comparison and arithmetic"
+        }
+      },
+      "tips": {
+        "1": "Validate your code before saving to detect errors",
+        "2": "Test your script in the console to see how it runs",
+        "3": "Use the quick templates to start faster",
+        "4": "Click a variable or function to insert it",
+        "5": "Scripts run line by line"
+      },
+      "examples": {
+        "dice": {
+          "title": "Simple dice",
+          "description": "Rolls a 6-sided die"
+        },
+        "pick": {
+          "title": "Random pick",
+          "description": "Picks between several options"
+        },
+        "counter": {
+          "title": "Counter",
+          "description": "Counts the command uses"
+        },
+        "twoDice": {
+          "title": "Two dice",
+          "description": "Rolls two dice and adds the result"
+        },
+        "luck": {
+          "title": "Luck system",
+          "description": "Luck percentage with ranges"
+        },
+        "counterMessages": {
+          "title": "Counter with messages",
+          "description": "Counter with different replies"
+        },
+        "complete": {
+          "title": "Complete script",
+          "description": "Combines all the features"
+        }
+      }
     },
     "messages": {
       "loadError": "Error loading scripts",

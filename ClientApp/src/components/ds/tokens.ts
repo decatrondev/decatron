@@ -9,6 +9,8 @@ export interface DsColors {
     text: string; soft: string; faint: string;
     accent: string; accentHover: string; accentText: string; onAccent: string;
     ok: string; warn: string; danger: string; dangerSolid: string; dangerHover: string;
+    /** Resaltado de código (editor de scripts): se pintan sobre el fondo de campos (`input`). */
+    syntaxKeyword: string; syntaxString: string; syntaxNumber: string;
 }
 
 export const DS_COLORS: Record<DsTheme, DsColors> = {
@@ -18,6 +20,7 @@ export const DS_COLORS: Record<DsTheme, DsColors> = {
         text: '#e6e9ef', soft: '#8b93a3', faint: '#7a8394',
         accent: '#3161d8', accentHover: '#2653c5', accentText: '#6e94ed', onAccent: '#ffffff',
         ok: '#34d399', warn: '#fbbf24', danger: '#f87171', dangerSolid: '#dc2626', dangerHover: '#b91c1c',
+        syntaxKeyword: '#6e94ed', syntaxString: '#34d399', syntaxNumber: '#fbbf24',
     },
     light: {
         bg: '#f6f7fa', surface: '#ffffff', raised: '#ffffff', input: '#ffffff',
@@ -25,6 +28,7 @@ export const DS_COLORS: Record<DsTheme, DsColors> = {
         text: '#12151c', soft: '#5b6475', faint: '#6b7385',
         accent: '#2f5fc6', accentHover: '#274fa5', accentText: '#2f5fc6', onAccent: '#ffffff',
         ok: '#047857', warn: '#b45309', danger: '#dc2626', dangerSolid: '#dc2626', dangerHover: '#b91c1c',
+        syntaxKeyword: '#2f5fc6', syntaxString: '#047857', syntaxNumber: '#b45309',
     },
 };
 

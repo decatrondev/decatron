@@ -50,6 +50,9 @@ export default {
                     ok: 'rgb(var(--dc-ok) / <alpha-value>)',
                     warn: 'rgb(var(--dc-warn) / <alpha-value>)',
                     danger: 'rgb(var(--dc-danger) / <alpha-value>)',
+                    'syntax-keyword': 'rgb(var(--dc-syntax-keyword) / <alpha-value>)',
+                    'syntax-string': 'rgb(var(--dc-syntax-string) / <alpha-value>)',
+                    'syntax-number': 'rgb(var(--dc-syntax-number) / <alpha-value>)',
                 },
                 // Azul profesional (accent)
                 accent: {

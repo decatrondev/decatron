@@ -347,8 +347,8 @@
       "statusLabel": "Estado del Script",
       "statusActive": "Script activo",
       "statusInactive": "Script inactivo",
-      "validationValid": "✅ Script válido",
-      "validationError": "❌ Error de sintaxis",
+      "validationValid": "Script válido",
+      "validationError": "Error de sintaxis",
       "validationErrorDetails": "Error en línea {{line}}: {{message}}",
       "testResultTitle": "Resultado de la prueba",
       "testResultSuccess": "✅ El script se ejecutó correctamente",
@@ -364,7 +364,98 @@
       "insertButton": "Insertar",
       "undoButton": "Deshacer",
       "redoButton": "Rehacer",
-      "historyEmpty": "Sin historial"
+      "historyEmpty": "Sin historial",
+      "linesCount": "Líneas: {{count}}",
+      "formatTitle": "Formatear código (sangría automática)",
+      "clearTitle": "Limpiar editor",
+      "clearConfirm": "Se borrará todo el código del editor. ¿Continuar?",
+      "placeholder": "Escribe tu script aquí...\nset resultado = roll(1, 6)\nsend \"🎲 $(user) sacó: $(resultado)\"",
+      "editorHint": "Tab para sangrar • Ctrl+Z para deshacer • Ctrl+S para guardar",
+      "restrictionNote": "El streamer siempre puede usar cualquier comando, sin restricciones.",
+      "errorLine": "Línea {{line}}",
+      "errorOnLine": "Error en la línea {{line}}",
+      "testIdle": "Pulsa «{{button}}» para simular la ejecución del comando",
+      "testIdleNote": "El sistema usará datos de prueba para ejecutar tu script.",
+      "templatesTitle": "Plantillas rápidas",
+      "functionsTitle": "Funciones",
+      "docsTitle": "Documentación",
+      "shortcutsTitle": "Atajos de teclado",
+      "shortcutIndent": "Sangría",
+      "tipsTitle": "Consejos",
+      "templates": {
+        "dice": "Dado",
+        "pick": "Elegir",
+        "counter": "Contador",
+        "conditional": "Condicional"
+      },
+      "variables": {
+        "user": "Usuario que ejecutó el comando",
+        "channel": "Canal actual del stream",
+        "game": "Juego/categoría actual",
+        "uptime": "Tiempo que lleva el stream en vivo",
+        "ruser": "Usuario aleatorio del chat",
+        "touser": "Usuario mencionado con @"
+      },
+      "functions": {
+        "roll": "Número aleatorio entre min y max",
+        "pick": "Elige una opción aleatoria",
+        "count": "Incrementa el contador del comando"
+      },
+      "syntaxDocs": {
+        "variables": {
+          "title": "Variables",
+          "description": "Asigna un valor a una variable"
+        },
+        "conditionals": {
+          "title": "Condicionales",
+          "description": "Ejecuta código si se cumple la condición"
+        },
+        "messages": {
+          "title": "Mensajes",
+          "description": "Envía un mensaje al chat"
+        },
+        "operators": {
+          "title": "Operadores",
+          "description": "Comparación y aritmética"
+        }
+      },
+      "tips": {
+        "1": "Valida tu código antes de guardar para detectar errores",
+        "2": "Prueba tu script en la consola para ver cómo se ejecuta",
+        "3": "Usa las plantillas rápidas para empezar más rápido",
+        "4": "Haz clic en una variable o función para insertarla",
+        "5": "Los scripts se ejecutan línea por línea"
+      },
+      "examples": {
+        "dice": {
+          "title": "Dado simple",
+          "description": "Tira un dado de 6 caras"
+        },
+        "pick": {
+          "title": "Elección aleatoria",
+          "description": "Elige entre varias opciones"
+        },
+        "counter": {
+          "title": "Contador",
+          "description": "Cuenta los usos del comando"
+        },
+        "twoDice": {
+          "title": "Dos dados",
+          "description": "Tira dos dados y suma el resultado"
+        },
+        "luck": {
+          "title": "Sistema de suerte",
+          "description": "Porcentaje de suerte con rangos"
+        },
+        "counterMessages": {
+          "title": "Contador con mensajes",
+          "description": "Contador con diferentes respuestas"
+        },
+        "complete": {
+          "title": "Script completo",
+          "description": "Combina todas las funcionalidades"
+        }
+      }
     },
     "messages": {
       "loadError": "Error al cargar scripts",
