@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import BotListManager from '../../components/bot-list/BotListManager';
 
 export default function BotList() {
     const navigate = useNavigate();
+    const { t } = useTranslation('moderation');
 
     return (
         <div className="panel-scale bg-ds-bg p-4 sm:p-6">
@@ -14,12 +16,11 @@ export default function BotList() {
                         className="flex items-center gap-2 text-ds-soft hover:text-ds-accent-text mb-4 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        Volver a Moderación
+                        {t('common.back')}
                     </button>
-                    <h1 className="text-3xl font-black text-ds-text">Lista de bots</h1>
+                    <h1 className="text-3xl font-black text-ds-text">{t('botlist.title')}</h1>
                     <p className="text-ds-soft mt-1">
-                        Los bots de otros servicios (Nightbot, StreamElements…) escriben en tu chat como si fueran personas.
-                        Aquí decides qué hace Decatron con sus mensajes.
+                        {t('botlist.subtitle')}
                     </p>
                 </div>
                 <BotListManager />

@@ -518,5 +518,76 @@
       },
       "strikeN": "Strike {{n}}"
     }
+  },
+  "botlist": {
+    "title": "Lista de bots",
+    "subtitle": "Los bots de otros servicios (Nightbot, StreamElements…) escriben en tu chat como si fueran personas. Aquí decides qué hace Decatron con sus mensajes.",
+    "close": "Cerrar",
+    "loadFailed": "No se pudo cargar la lista de bots",
+    "categoryFailed": "No se pudo guardar la categoría",
+    "removeFailed": "No se pudo quitar el bot",
+    "myChannel": "Mi canal",
+    "globalCatalog": "Catálogo global",
+    "intro": "Estos bots no cuentan como personas en tu canal. Todos los del catálogo vienen activos; apaga los que no uses o cambia qué se les hace. Los bots de competencia y moderación se ocultan del todo; los de música, alertas y utilidad siguen visibles en el overlay pero no cuentan ni ejecutan comandos.",
+    "search": "Buscar bot",
+    "addBot": "Agregar bot",
+    "all": "Todas",
+    "allOff": "Apagar toda la categoría",
+    "allOn": "Activar toda la categoría",
+    "own": "Propio",
+    "adjusted": "Ajustado",
+    "hideEffects": "Ocultar efectos",
+    "showEffects": "Ver efectos",
+    "removeBot": "Quitar a {{name}}",
+    "treatAsBot": "Tratar a {{name}} como bot",
+    "resetEffects": "Volver a los efectos por defecto",
+    "noMatch": "Ningún bot coincide con la búsqueda.",
+    "noneInCategory": "No hay bots en esta categoría.",
+    "addFailed": "No se pudo agregar el bot",
+    "addFor": "Agregar un bot de {{platform}}",
+    "userPlaceholder": "Usuario (ej. minightbot)",
+    "namePlaceholder": "Nombre (opcional)",
+    "adding": "Agregando…",
+    "saveBotFailed": "No se pudo guardar el bot",
+    "catalogConfirm": "¿Quitar a {{name}} del catálogo? También se borran los ajustes que los canales hicieron sobre él.",
+    "catalogNote": "Lo que cambies aquí aplica a todos los canales. Cada canal puede apagar un bot o ajustar sus efectos.",
+    "addCatalog": "Agregar al catálogo",
+    "userLabel": "Usuario",
+    "nameLabel": "Nombre",
+    "notes": "Notas (opcional)",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "editBot": "Editar a {{name}}",
+    "removeFromCatalog": "Quitar a {{name}} del catálogo",
+    "categories": {
+      "competencia": "Competencia",
+      "moderacion": "Moderación",
+      "musica": "Música",
+      "alertas": "Alertas",
+      "utilidad": "Utilidad",
+      "propio": "Decatron"
+    },
+    "effects": {
+      "hideOverlay": {
+        "label": "Ocultar del overlay de chat",
+        "hint": "Sus mensajes no salen en el overlay de chat"
+      },
+      "skipCounting": {
+        "label": "No contar",
+        "hint": "No suma a timers, tiempo de visualización, actividad ni rankings"
+      },
+      "skipCommands": {
+        "label": "No ejecutar comandos",
+        "hint": "Sus mensajes no activan comandos de Decatron (evita bucles)"
+      },
+      "skipModeration": {
+        "label": "No sancionar",
+        "hint": "Los filtros de moderación no lo sancionan"
+      },
+      "skipSpeech": {
+        "label": "No traducir ni leer en voz alta",
+        "hint": "No se traduce ni se lee en el chat por voz"
+      }
+    }
   }
 }

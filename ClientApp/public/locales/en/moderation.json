@@ -518,5 +518,76 @@
       },
       "strikeN": "Strike {{n}}"
     }
+  },
+  "botlist": {
+    "title": "Bot list",
+    "subtitle": "Bots from other services (Nightbot, StreamElements…) write in your chat as if they were people. Here you decide what Decatron does with their messages.",
+    "close": "Close",
+    "loadFailed": "Could not load the bot list",
+    "categoryFailed": "Could not save the category",
+    "removeFailed": "Could not remove the bot",
+    "myChannel": "My channel",
+    "globalCatalog": "Global catalog",
+    "intro": "These bots do not count as people in your channel. All catalog bots start on; turn off the ones you do not use or change what is done to them. Competitor and moderation bots are fully hidden; music, alert and utility bots stay visible in the overlay but do not count or run commands.",
+    "search": "Search bot",
+    "addBot": "Add bot",
+    "all": "All",
+    "allOff": "Turn off the whole category",
+    "allOn": "Turn on the whole category",
+    "own": "Own",
+    "adjusted": "Adjusted",
+    "hideEffects": "Hide effects",
+    "showEffects": "Show effects",
+    "removeBot": "Remove {{name}}",
+    "treatAsBot": "Treat {{name}} as a bot",
+    "resetEffects": "Back to the default effects",
+    "noMatch": "No bot matches the search.",
+    "noneInCategory": "There are no bots in this category.",
+    "addFailed": "Could not add the bot",
+    "addFor": "Add a {{platform}} bot",
+    "userPlaceholder": "Username (e.g. mynightbot)",
+    "namePlaceholder": "Name (optional)",
+    "adding": "Adding…",
+    "saveBotFailed": "Could not save the bot",
+    "catalogConfirm": "Remove {{name}} from the catalog? The settings channels made on it are deleted too.",
+    "catalogNote": "What you change here applies to all channels. Each channel can turn a bot off or adjust its effects.",
+    "addCatalog": "Add to the catalog",
+    "userLabel": "Username",
+    "nameLabel": "Name",
+    "notes": "Notes (optional)",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editBot": "Edit {{name}}",
+    "removeFromCatalog": "Remove {{name}} from the catalog",
+    "categories": {
+      "competencia": "Competitors",
+      "moderacion": "Moderation",
+      "musica": "Music",
+      "alertas": "Alerts",
+      "utilidad": "Utility",
+      "propio": "Decatron"
+    },
+    "effects": {
+      "hideOverlay": {
+        "label": "Hide from the chat overlay",
+        "hint": "Their messages do not show in the chat overlay"
+      },
+      "skipCounting": {
+        "label": "Do not count",
+        "hint": "Does not add to timers, watch time, activity or rankings"
+      },
+      "skipCommands": {
+        "label": "Do not run commands",
+        "hint": "Their messages do not trigger Decatron commands (avoids loops)"
+      },
+      "skipModeration": {
+        "label": "Do not sanction",
+        "hint": "Moderation filters do not sanction it"
+      },
+      "skipSpeech": {
+        "label": "Do not translate or read aloud",
+        "hint": "It is not translated or read aloud in chat"
+      }
+    }
   }
 }

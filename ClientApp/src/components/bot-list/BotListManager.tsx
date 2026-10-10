@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Bot, ChevronDown, ChevronUp, Pencil, Plus, RotateCcw, Search, Trash2, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 import { FilterSwitch } from '../../pages/features/moderation/filterSwitch';
 
@@ -36,24 +37,16 @@ interface BotListResponse {
     isOwner: boolean;
 }
 
-export const CATEGORY_LABELS: Record<string, string> = {
-    competencia: 'Competencia',
-    moderacion: 'Moderación',
-    musica: 'Música',
-    alertas: 'Alertas',
-    utilidad: 'Utilidad',
-    propio: 'Decatron'
-};
+export const CATEGORY_KEYS = ['competencia', 'moderacion', 'musica', 'alertas', 'utilidad', 'propio'];
 
 const PLATFORM_LABELS: Record<BotPlatform, string> = { twitch: 'Twitch', kick: 'Kick', youtube: 'YouTube' };
 
-const EFFECTS: { key: keyof Effects; label: string; hint: string }[] = [
-    { key: 'hideOverlay', label: 'Ocultar del overlay de chat', hint: 'Sus mensajes no salen en el overlay de chat' },
-    { key: 'skipCounting', label: 'No contar', hint: 'No suma a timers, tiempo de visualización, actividad ni rankings' },
-    { key: 'skipCommands', label: 'No ejecutar comandos', hint: 'Sus mensajes no activan comandos de Decatron (evita bucles)' },
-    { key: 'skipModeration', label: 'No sancionar', hint: 'Los filtros de moderación no lo sancionan' },
-    { key: 'skipSpeech', label: 'No traducir ni leer en voz alta', hint: 'No se traduce ni se lee en el chat por voz' }
-];
+const EFFECT_KEYS: (keyof Effects)[] = ['hideOverlay', 'skipCounting', 'skipCommands', 'skipModeration', 'skipSpeech'];
+
+/** Nombre de una categoría: las del catálogo salen de i18n; una desconocida se muestra tal cual */
+function categoryLabel(t: (k: string) => string, c: string) {
+    return CATEGORY_KEYS.includes(c) ? t(`botlist.categories.${c}`) : c;
+}
 
 function errorMessage(e: unknown, fallback: string) {
     const message = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -66,6 +59,7 @@ function errorMessage(e: unknown, fallback: string) {
  * desde otras herramientas (overlay de chat, moderación).
  */
 export default function BotListManager({ compact = false }: { compact?: boolean }) {
+    const { t } = useTranslation('moderation');
     const [data, setData] = useState<BotListResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [platform, setPlatform] = useState<BotPlatform>('twitch');
@@ -84,7 +78,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
             setError(null);
             setPlatform(prev => (prev === 'twitch' && !d.linked.twitch && d.linked.kick ? 'kick' : prev));
         } catch (e) {
-            setError(errorMessage(e, 'No se pudo cargar la lista de bots'));
+            setError(errorMessage(e, t('botlist.loadFailed')));
         }
     }, []);
 
@@ -105,7 +99,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
             await load();
         } catch (e) {
             setData(previous);
-            setError(errorMessage(e, 'No se pudo guardar el cambio'));
+            setError(errorMessage(e, t('hub.saveFailed')));
         }
     };
 
@@ -118,7 +112,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
             if (!res.data.success) throw new Error();
             await load();
         } catch (e) {
-            setError(errorMessage(e, 'No se pudo guardar la categoría'));
+            setError(errorMessage(e, t('botlist.categoryFailed')));
         }
     };
 
@@ -129,7 +123,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
             if (!res.data.success) throw new Error();
             await load();
         } catch (e) {
-            setError(errorMessage(e, 'No se pudo quitar el bot'));
+            setError(errorMessage(e, t('botlist.removeFailed')));
         }
     };
 
@@ -151,7 +145,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
     if (!data) {
         return error
             ? <p className="text-sm font-semibold text-ds-danger">{error}</p>
-            : <p className="text-sm text-ds-soft">Cargando…</p>;
+            : <p className="text-sm text-ds-soft">{t('common.loading')}</p>;
     }
 
     const platforms = (['twitch', 'kick'] as const).filter(p => data.linked[p]);
@@ -167,7 +161,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                             onClick={() => setView(v)}
                             className={view === v ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
-                            {v === 'channel' ? 'Mi canal' : 'Catálogo global'}
+                            {v === 'channel' ? t('botlist.myChannel') : t('botlist.globalCatalog')}
                         </button>
                     ))}
                 </div>
@@ -176,7 +170,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
             {error && (
                 <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-ds-danger/10 text-ds-danger text-sm font-semibold">
                     <span className="flex items-center gap-2"><AlertCircle className="w-4 h-4 shrink-0" />{error}</span>
-                    <button onClick={() => setError(null)} aria-label="Cerrar"><X className="w-4 h-4" /></button>
+                    <button onClick={() => setError(null)} aria-label={t('botlist.close')}><X className="w-4 h-4" /></button>
                 </div>
             )}
 
@@ -185,9 +179,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                 : (
                     <>
                         <p className="text-sm text-ds-soft">
-                            Estos bots no cuentan como personas en tu canal. Todos los del catálogo vienen activos; apaga los que
-                            no uses o cambia qué se les hace. Los bots de competencia y moderación se ocultan del todo; los de
-                            música, alertas y utilidad siguen visibles en el overlay pero no cuentan ni ejecutan comandos.
+                            {t('botlist.intro')}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-3">
@@ -211,7 +203,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                 <input
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
-                                    placeholder="Buscar bot"
+                                    placeholder={t('botlist.search')}
                                     className="ds-input w-full pl-9 pr-3"
                                 />
                             </div>
@@ -220,7 +212,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                 className="ds-btn ds-btn--primary"
                             >
                                 <Plus className="w-4 h-4" />
-                                Agregar bot
+                                {t('botlist.addBot')}
                             </button>
                         </div>
 
@@ -240,7 +232,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                     onClick={() => setCategory(c)}
                                     className={category === c ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                 >
-                                    {c === 'all' ? 'Todas' : `${CATEGORY_LABELS[c] ?? c} (${counts[c]})`}
+                                    {c === 'all' ? t('botlist.all') : `${categoryLabel(t, c)} (${counts[c]})`}
                                 </button>
                             ))}
                             {category !== 'all' && visible.length > 0 && (
@@ -248,7 +240,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                     onClick={() => toggleCategory(category, !allOfCategoryOn)}
                                     className="ml-auto text-xs font-bold text-ds-accent-text hover:underline"
                                 >
-                                    {allOfCategoryOn ? 'Apagar toda la categoría' : 'Activar toda la categoría'}
+                                    {allOfCategoryOn ? t('botlist.allOff') : t('botlist.allOn')}
                                 </button>
                             )}
                         </div>
@@ -267,13 +259,13 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <span className="font-bold text-ds-text truncate">{b.displayName}</span>
                                                     <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-raised text-ds-soft">
-                                                        {CATEGORY_LABELS[b.category] ?? b.category}
+                                                        {categoryLabel(t, b.category)}
                                                     </span>
                                                     {b.isCustom && (
-                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-accent/10 text-ds-accent-text">Propio</span>
+                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-accent/10 text-ds-accent-text">{t('botlist.own')}</span>
                                                     )}
                                                     {b.customized && (
-                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-warn/10 text-ds-warn">Ajustado</span>
+                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-warn/10 text-ds-warn">{t('botlist.adjusted')}</span>
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-ds-soft truncate">@{b.username}</p>
@@ -281,7 +273,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                             <button
                                                 onClick={() => setExpanded(open ? null : keyOf(b))}
                                                 className="ds-btn ds-btn--ghost ds-icon-btn"
-                                                aria-label={open ? 'Ocultar efectos' : 'Ver efectos'}
+                                                aria-label={open ? t('botlist.hideEffects') : t('botlist.showEffects')}
                                                 aria-expanded={open}
                                             >
                                                 {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -290,7 +282,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                                 <button
                                                     onClick={() => removeCustom(b)}
                                                     className="p-2 rounded-lg text-ds-danger hover:bg-ds-danger/10"
-                                                    aria-label={`Quitar a ${b.displayName}`}
+                                                    aria-label={t('botlist.removeBot', { name: b.displayName })}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -299,24 +291,24 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                                 <FilterSwitch
                                                     on={b.enabled}
                                                     onChange={next => saveEntry(b, { enabled: next }, { enabled: next })}
-                                                    label={`Tratar a ${b.displayName} como bot`}
+                                                    label={t('botlist.treatAsBot', { name: b.displayName })}
                                                 />
                                             )}
                                         </div>
 
                                         {open && (
                                             <div className="px-4 pb-4 pt-3 border-t border-ds-border space-y-3">
-                                                {EFFECTS.map(fx => (
-                                                    <div key={fx.key} className="flex items-center justify-between gap-3">
+                                                {EFFECT_KEYS.map(fx => (
+                                                    <div key={fx} className="flex items-center justify-between gap-3">
                                                         <div className="min-w-0">
-                                                            <p className="text-sm font-semibold text-ds-text">{fx.label}</p>
-                                                            <p className="text-xs text-ds-soft">{fx.hint}</p>
+                                                            <p className="text-sm font-semibold text-ds-text">{t(`botlist.effects.${fx}.label`)}</p>
+                                                            <p className="text-xs text-ds-soft">{t(`botlist.effects.${fx}.hint`)}</p>
                                                         </div>
                                                         <FilterSwitch
-                                                            on={b.effects[fx.key]}
+                                                            on={b.effects[fx]}
                                                             disabled={!b.enabled}
-                                                            onChange={next => toggleEffect(b, fx.key, next)}
-                                                            label={fx.label}
+                                                            onChange={next => toggleEffect(b, fx, next)}
+                                                            label={t(`botlist.effects.${fx}.label`)}
                                                         />
                                                     </div>
                                                 ))}
@@ -326,7 +318,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                                         className="flex items-center gap-2 text-xs font-bold text-ds-accent-text hover:underline"
                                                     >
                                                         <RotateCcw className="w-3.5 h-3.5" />
-                                                        Volver a los efectos por defecto
+                                                        {t('botlist.resetEffects')}
                                                     </button>
                                                 )}
                                             </div>
@@ -338,7 +330,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
 
                         {visible.length === 0 && (
                             <p className="text-sm text-ds-soft">
-                                {search ? 'Ningún bot coincide con la búsqueda.' : 'No hay bots en esta categoría.'}
+                                {search ? t('botlist.noMatch') : t('botlist.noneInCategory')}
                             </p>
                         )}
                     </>
@@ -353,6 +345,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
     onDone: () => void;
     onError: (message: string) => void;
 }) {
+    const { t } = useTranslation('moderation');
     const [username, setUsername] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [category, setCategory] = useState('utilidad');
@@ -366,7 +359,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
             if (!res.data.success) throw new Error();
             onDone();
         } catch (e) {
-            onError(errorMessage(e, 'No se pudo agregar el bot'));
+            onError(errorMessage(e, t('botlist.addFailed')));
         } finally {
             setSaving(false);
         }
@@ -374,19 +367,19 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
 
     return (
         <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-3">
-            <p className="text-sm font-bold text-ds-text">Agregar un bot de {PLATFORM_LABELS[platform]}</p>
+            <p className="text-sm font-bold text-ds-text">{t('botlist.addFor', { platform: PLATFORM_LABELS[platform] })}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input
                     value={username}
                     onChange={e => setUsername(e.target.value)}
-                    placeholder="Usuario (ej. minightbot)"
+                    placeholder={t('botlist.userPlaceholder')}
                     maxLength={40}
                     className="ds-input"
                 />
                 <input
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
-                    placeholder="Nombre (opcional)"
+                    placeholder={t('botlist.namePlaceholder')}
                     maxLength={100}
                     className="ds-input"
                 />
@@ -395,7 +388,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
                     onChange={e => setCategory(e.target.value)}
                     className="ds-input"
                 >
-                    {categories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}
+                    {categories.map(c => <option key={c} value={c}>{categoryLabel(t, c)}</option>)}
                 </select>
             </div>
             <button
@@ -403,7 +396,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
                 disabled={saving || !username.trim()}
                 className="ds-btn ds-btn--primary"
             >
-                {saving ? 'Agregando…' : 'Agregar'}
+                {saving ? t('botlist.adding') : t('common.add')}
             </button>
         </div>
     );
@@ -415,6 +408,7 @@ function CatalogEditor({ bots, onChanged, onError }: {
     onChanged: () => void;
     onError: (message: string) => void;
 }) {
+    const { t } = useTranslation('moderation');
     const [editing, setEditing] = useState<number | 'new' | null>(null);
     const [form, setForm] = useState({ platform: 'twitch' as BotPlatform, username: '', displayName: '', category: 'utilidad', notes: '' });
 
@@ -434,18 +428,18 @@ function CatalogEditor({ bots, onChanged, onError }: {
             setEditing(null);
             onChanged();
         } catch (e) {
-            onError(errorMessage(e, 'No se pudo guardar el bot'));
+            onError(errorMessage(e, t('botlist.saveBotFailed')));
         }
     };
 
     const remove = async (b: BotEntry) => {
-        if (!window.confirm(`¿Quitar a ${b.displayName} del catálogo? También se borran los ajustes que los canales hicieron sobre él.`)) return;
+        if (!window.confirm(t('botlist.catalogConfirm', { name: b.displayName }))) return;
         try {
             const res = await api.delete(`/botlist/catalog/${b.catalogId}`);
             if (!res.data.success) throw new Error();
             onChanged();
         } catch (e) {
-            onError(errorMessage(e, 'No se pudo quitar el bot'));
+            onError(errorMessage(e, t('botlist.removeFailed')));
         }
     };
 
@@ -453,14 +447,14 @@ function CatalogEditor({ bots, onChanged, onError }: {
         <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
                 <p className="text-sm text-ds-soft">
-                    Lo que cambies aquí aplica a todos los canales. Cada canal puede apagar un bot o ajustar sus efectos.
+                    {t('botlist.catalogNote')}
                 </p>
                 <button
                     onClick={() => startEdit(null)}
                     className="ds-btn ds-btn--primary whitespace-nowrap"
                 >
                     <Plus className="w-4 h-4" />
-                    Agregar al catálogo
+                    {t('botlist.addCatalog')}
                 </button>
             </div>
 
@@ -477,14 +471,14 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         <input
                             value={form.username}
                             onChange={e => setForm({ ...form, username: e.target.value })}
-                            placeholder="Usuario"
+                            placeholder={t('botlist.userLabel')}
                             maxLength={40}
                             className="ds-input"
                         />
                         <input
                             value={form.displayName}
                             onChange={e => setForm({ ...form, displayName: e.target.value })}
-                            placeholder="Nombre"
+                            placeholder={t('botlist.nameLabel')}
                             maxLength={100}
                             className="ds-input"
                         />
@@ -493,19 +487,19 @@ function CatalogEditor({ bots, onChanged, onError }: {
                             onChange={e => setForm({ ...form, category: e.target.value })}
                             className="ds-input"
                         >
-                            {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                            {CATEGORY_KEYS.map(k => <option key={k} value={k}>{categoryLabel(t, k)}</option>)}
                         </select>
                     </div>
                     <input
                         value={form.notes}
                         onChange={e => setForm({ ...form, notes: e.target.value })}
-                        placeholder="Notas (opcional)"
+                        placeholder={t('botlist.notes')}
                         maxLength={300}
                         className="ds-input w-full"
                     />
                     <div className="flex gap-2">
-                        <button onClick={save} className="ds-btn ds-btn--primary">Guardar</button>
-                        <button onClick={() => setEditing(null)} className="ds-btn ds-btn--secondary">Cancelar</button>
+                        <button onClick={save} className="ds-btn ds-btn--primary">{t('botlist.save')}</button>
+                        <button onClick={() => setEditing(null)} className="ds-btn ds-btn--secondary">{t('botlist.cancel')}</button>
                     </div>
                 </div>
             )}
@@ -517,13 +511,13 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         <div className="min-w-0 flex-1">
                             <p className="font-bold text-ds-text truncate">{b.displayName}</p>
                             <p className="text-xs text-ds-soft truncate">
-                                {PLATFORM_LABELS[b.platform]} · @{b.username} · {CATEGORY_LABELS[b.category] ?? b.category}
+                                {PLATFORM_LABELS[b.platform]} · @{b.username} · {categoryLabel(t, b.category)}
                             </p>
                         </div>
-                        <button onClick={() => startEdit(b)} className="ds-btn ds-btn--ghost ds-icon-btn" aria-label={`Editar a ${b.displayName}`}>
+                        <button onClick={() => startEdit(b)} className="ds-btn ds-btn--ghost ds-icon-btn" aria-label={t('botlist.editBot', { name: b.displayName })}>
                             <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => remove(b)} className="p-2 rounded-lg text-ds-danger hover:bg-ds-danger/10" aria-label={`Quitar a ${b.displayName} del catálogo`}>
+                        <button onClick={() => remove(b)} className="p-2 rounded-lg text-ds-danger hover:bg-ds-danger/10" aria-label={t('botlist.removeFromCatalog', { name: b.displayName })}>
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
