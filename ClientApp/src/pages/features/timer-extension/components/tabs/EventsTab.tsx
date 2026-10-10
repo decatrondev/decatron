@@ -41,7 +41,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) =>
             onChange={(e) => onChange(e.target.checked)}
             className="sr-only peer"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
     </label>
 );
 
@@ -106,15 +106,15 @@ export const EventsTab: React.FC<EventsTabProps> = ({
 
     return (
         <div className="space-y-6">
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
+                <p className="text-sm text-ds-soft">
                     ℹ️ Configura cuánto tiempo se agregará automáticamente al timer cuando ocurran eventos de Twitch.
                 </p>
             </div>
 
             {/* Event Category Selector */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">🎯 Seleccionar Tipo de Evento</h3>
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4">🎯 Seleccionar Tipo de Evento</h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {categories.map((category) => (
@@ -123,8 +123,8 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                             onClick={() => setSelectedCategory(category.key)}
                             className={`px-4 py-3 rounded-lg text-sm font-bold transition-all border-2 ${
                                 selectedCategory === category.key
-                                    ? 'bg-[#64748b] text-white border-[#64748b] shadow-lg'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] border-transparent hover:border-[#94a3b8]'
+                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent '
+                                    : 'bg-ds-bg text-ds-text border-transparent hover:border-ds-faint'
                             }`}
                         >
                             {category.icon} {category.label}
@@ -134,8 +134,8 @@ export const EventsTab: React.FC<EventsTabProps> = ({
 
                 {/* Sub-tier selector for subscriptions */}
                 {selectedCategory === 'subs' && (
-                    <div className="mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+                    <div className="mt-4 pt-4 border-t border-ds-border">
+                        <label className="text-xs font-bold text-ds-soft block mb-3">
                             Seleccionar Tier de Suscripción:
                         </label>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -145,8 +145,8 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                     onClick={() => setSelectedSubTier(tier.key)}
                                     className={`px-3 py-2 rounded text-xs font-bold transition-all border ${
                                         selectedSubTier === tier.key
-                                            ? 'bg-[#64748b] text-white border-[#64748b]'
-                                            : 'bg-white dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'
+                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
+                                            : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-faint'
                                     }`}
                                 >
                                     <div>{tier.icon}</div>
@@ -160,20 +160,20 @@ export const EventsTab: React.FC<EventsTabProps> = ({
             </div>
 
             {/* Event Configuration */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4">
                     ⚙️ Configuración para {categories.find(c => c.key === selectedCategory)?.label}
                     {selectedCategory === 'subs' && ` - ${subTiers.find(t => t.key === selectedSubTier)?.label}`}
                 </h3>
 
                 <div className="space-y-6">
                     {/* Enable/Disable */}
-                    <div className="flex items-center justify-between pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                         <div>
-                            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                            <label className="text-sm font-bold text-ds-text block">
                                 Activar Evento
                             </label>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                            <p className="text-xs text-ds-soft mt-1">
                                 Agregar tiempo automáticamente cuando ocurra este evento
                             </p>
                         </div>
@@ -188,7 +188,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                             {/* --- CONFIGURACIÓN BASE --- */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                    <label className="text-xs font-bold text-ds-soft block mb-2">
                                         {selectedCategory === 'raid' ? 'Tiempo Base (Mínimo por Raid)' : 
                                          selectedCategory === 'hypeTrain' ? 'Tiempo por Nivel (Base)' :
                                          selectedCategory === 'giftSub' ? 'Tiempo por Sub Regalada (Base)' :
@@ -203,13 +203,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                 const newTime = convertUnitToSeconds(Number(e.target.value) || 0, currentTimeUnit);
                                                 onEventsConfigChange({ [currentEventKey]: { ...currentEvent, time: newTime } } as any);
                                             }}
-                                            className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                            className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                                             min="0"
                                         />
                                         <select
                                             value={currentTimeUnit}
                                             onChange={(e) => onEventTimeUnitsChange({ ...eventTimeUnits, [currentUnitKey]: e.target.value as TimeUnit })}
-                                            className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                            className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                                         >
                                             {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                 <option key={k} value={k}>{label}</option>
@@ -218,8 +218,8 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                         
                                         {/* PER BITS CONFIGURATOR */}
                                         {selectedCategory === 'bits' && (
-                                            <div className="flex items-center gap-2 ml-2 bg-blue-50 dark:bg-blue-900/40 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800">
-                                                <span className="text-xs font-bold text-blue-800 dark:text-blue-200">por cada</span>
+                                            <div className="flex items-center gap-2 ml-2 bg-ds-accent/10 px-3 py-2 rounded-lg border border-ds-accent">
+                                                <span className="text-xs font-bold text-ds-accent-text">por cada</span>
                                                 <input
                                                     type="number"
                                                     value={currentEvent.perBits || 100}
@@ -227,17 +227,17 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                         const val = Math.max(1, Number(e.target.value));
                                                         onEventsConfigChange({ [currentEventKey]: { ...currentEvent, perBits: val } } as any);
                                                     }}
-                                                    className="w-16 px-2 py-1 text-center border border-blue-200 dark:border-blue-700 rounded bg-white dark:bg-black text-sm font-bold text-gray-900 dark:text-white"
+                                                    className="w-16 px-2 py-1 text-center border border-ds-accent rounded bg-ds-surface text-sm font-bold text-ds-text"
                                                     min="1"
                                                 />
-                                                <span className="text-xs font-bold text-blue-800 dark:text-blue-200">bits</span>
+                                                <span className="text-xs font-bold text-ds-accent-text">bits</span>
                                             </div>
                                         )}
 
                                         {/* PER CURRENCY CONFIGURATOR (TIPS) */}
                                         {selectedCategory === 'tips' && (
-                                            <div className="flex items-center gap-2 ml-2 bg-green-50 dark:bg-green-900/40 px-3 py-2 rounded-lg border border-green-100 dark:border-green-800">
-                                                <span className="text-xs font-bold text-green-800 dark:text-green-200">por cada</span>
+                                            <div className="flex items-center gap-2 ml-2 bg-ds-ok/10 px-3 py-2 rounded-lg border border-ds-ok/40">
+                                                <span className="text-xs font-bold text-ds-ok">por cada</span>
                                                 <input
                                                     type="number"
                                                     step="0.01"
@@ -246,13 +246,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                         const val = Math.max(0.01, Number(e.target.value));
                                                         onEventsConfigChange({ [currentEventKey]: { ...currentEvent, perCurrency: val } } as any);
                                                     }}
-                                                    className="w-16 px-2 py-1 text-center border border-green-200 dark:border-green-700 rounded bg-white dark:bg-black text-sm font-bold text-gray-900 dark:text-white"
+                                                    className="w-16 px-2 py-1 text-center border border-ds-ok/40 rounded bg-ds-surface text-sm font-bold text-ds-text"
                                                     min="0.01"
                                                 />
                                                 <select
                                                     value={currentEvent.currency || 'USD'}
                                                     onChange={(e) => onEventsConfigChange({ [currentEventKey]: { ...currentEvent, currency: e.target.value } } as any)}
-                                                    className="px-2 py-1 border border-green-200 dark:border-green-700 rounded bg-white dark:bg-black text-xs font-bold text-gray-900 dark:text-white"
+                                                    className="px-2 py-1 border border-ds-ok/40 rounded bg-ds-surface text-xs font-bold text-ds-text"
                                                 >
                                                     <option value="USD">USD</option>
                                                     <option value="EUR">EUR</option>
@@ -267,7 +267,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] mt-2">
+                                    <p className="text-[10px] text-ds-soft mt-2">
                                         {selectedCategory === 'bits' 
                                             ? 'Se usa para cualquier donación (min 1) que NO cumpla una Regla Avanzada. Ej: Si tienes regla para 100 bits, esto se usa de 1 a 99.' 
                                             : 'Este tiempo se aplicará SOLO si la donación no cumple ninguna de las reglas especiales de abajo.'}
@@ -277,7 +277,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                 {/* Opciones específicas adicionales */}
                                 {selectedCategory === 'raid' && (
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                        <label className="text-xs font-bold text-ds-soft block mb-2">
                                             Tiempo por Participante
                                         </label>
                                         <div className="flex items-center gap-3">
@@ -288,26 +288,26 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                     const newTime = convertUnitToSeconds(Number(e.target.value) || 0, eventTimeUnits.raidPerParticipant);
                                                     onEventsConfigChange({ [currentEventKey]: { ...currentEvent, timePerParticipant: newTime } } as any);
                                                 }}
-                                                className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                                                 min="0"
                                             />
                                             <select
                                                 value={eventTimeUnits.raidPerParticipant}
                                                 onChange={(e) => onEventTimeUnitsChange({ ...eventTimeUnits, raidPerParticipant: e.target.value as TimeUnit })}
-                                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                                             >
                                                 {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                     <option key={k} value={k}>{label}</option>
                                                 ))}
                                             </select>
-                                            <span className="text-sm text-[#64748b] dark:text-[#94a3b8]">/viewer</span>
+                                            <span className="text-sm text-ds-soft">/viewer</span>
                                         </div>
                                     </div>
                                 )}
 
                                 {selectedCategory === 'follow' && (
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                        <label className="text-xs font-bold text-ds-soft block mb-2">
                                             🛡️ Anti-Spam Cooldown
                                         </label>
                                         <div className="flex items-center gap-3">
@@ -318,13 +318,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                     const newTime = convertUnitToSeconds(Number(e.target.value) || 0, eventTimeUnits.followCooldown);
                                                     onEventsConfigChange({ [currentEventKey]: { ...currentEvent, cooldown: newTime } } as any);
                                                 }}
-                                                className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                                                 min="0"
                                             />
                                             <select
                                                 value={eventTimeUnits.followCooldown}
                                                 onChange={(e) => onEventTimeUnitsChange({ ...eventTimeUnits, followCooldown: e.target.value as TimeUnit })}
-                                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                                             >
                                                 {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                     <option key={k} value={k}>{label}</option>
@@ -337,20 +337,20 @@ export const EventsTab: React.FC<EventsTabProps> = ({
 
                             {/* --- SECCIÓN DE REGLAS AVANZADAS (Universal) --- */}
                             {selectedCategory !== 'follow' && (
-                                <div className="mt-8 pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="mt-8 pt-6 border-t border-ds-border">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                        <h4 className="text-sm font-bold text-ds-text flex items-center gap-2">
                                             <Layers className="w-4 h-4" /> Reglas Avanzadas para {categories.find(c => c.key === selectedCategory)?.label}
                                         </h4>
                                     </div>
 
-                                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4 flex items-start gap-3">
+                                    <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg p-3 mb-4 flex items-start gap-3">
                                         <span className="text-lg">⚠️</span>
                                         <div>
-                                            <p className="text-xs font-bold text-amber-800 dark:text-amber-400">
+                                            <p className="text-xs font-bold text-ds-warn">
                                                 ORDEN DE PRIORIDAD:
                                             </p>
-                                            <p className="text-xs text-amber-700 dark:text-amber-500 mt-1">
+                                            <p className="text-xs text-ds-warn mt-1">
                                                 1. El sistema busca primero una <strong>Regla Avanzada</strong> que coincida.
                                                 <br/>
                                                 2. Si encuentra una, el <strong>Tiempo Base</strong> se ignora por completo.
@@ -360,7 +360,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-gray-50 dark:bg-[#262626]/50 rounded-xl p-4 mb-4 text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                    <div className="bg-ds-surface rounded-lg p-4 mb-4 text-xs text-ds-soft">
                                         <p>
                                             <strong>¿Cómo funciona?</strong> Puedes definir tiempos especiales cuando se supera cierta cantidad.
                                             El sistema siempre buscará la regla más alta que coincida.

@@ -299,21 +299,21 @@ interface TimerSessionBasic {
     return (
         <div className="space-y-6">
             {/* Tiempo Inicial del Timer */}
-            <div className={`rounded-2xl border p-6 shadow-lg transition-all ${isTimerActive ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800' : 'bg-white dark:bg-[#1B1C1D] border-[#e2e8f0] dark:border-[#374151]'}`}>
+            <div className={`rounded-lg border p-6 transition-all ${isTimerActive ? 'bg-ds-ok/10 border-ds-ok/40 ' : 'bg-ds-surface border-ds-border '}`}>
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                        <label className="text-sm font-bold text-ds-text flex items-center gap-2">
                             ⏱️ {isTimerActive ? 'Timer EN CURSO' : 'Tiempo Inicial del Timer'}
-                            {isTimerActive && <span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span></span>}
+                            {isTimerActive && <span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ds-accent opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-ds-accent"></span></span>}
                         </label>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <p className="text-xs text-ds-soft mt-1">
                             {isTimerActive
                                 ? `El timer está ${activeTimerStatus === 'running' ? 'corriendo' : activeTimerStatus === 'auto_paused' ? 'en pausa automática (horario)' : activeTimerStatus === 'stream_paused' ? 'en pausa automática (stream offline)' : 'pausado'}. Los cambios aquí solo afectarán al próximo reinicio.`
                                 : 'Duración que tendrá el timer al iniciarse.'}
                         </p>
                     </div>
                     <div className="text-right">
-                        <div className={`text-3xl font-black ${isTimerActive ? 'text-green-600 dark:text-green-400' : 'text-[#2563eb]'}`}>
+                        <div className={`text-3xl font-black ${isTimerActive ? 'text-ds-ok ' : 'text-ds-accent-text'}`}>
                             {Math.floor(displayDuration / 86400) > 0 && `${Math.floor(displayDuration / 86400)}d `}
                             {Math.floor((displayDuration % 86400) / 3600) > 0 && `${Math.floor((displayDuration % 86400) / 3600)}h `}
                             {Math.floor((displayDuration % 3600) / 60) > 0 && `${Math.floor((displayDuration % 3600) / 60)}m `}
@@ -333,7 +333,7 @@ interface TimerSessionBasic {
                         
                         return (
                             <div key={label}>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">{label}</label>
+                                <label className="text-xs font-bold text-ds-soft block mb-1">{label}</label>
                                 <input
                                     type="number"
                                     min="0"
@@ -348,7 +348,7 @@ interface TimerSessionBasic {
                                         const s = idx === 3 ? newVal : defaultDuration % 60;
                                         onDefaultDurationChange(d * 86400 + h * 3600 + m * 60 + s);
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-center font-bold"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center font-bold"
                                 />
                             </div>
                         );
@@ -356,9 +356,9 @@ interface TimerSessionBasic {
                 </div>
 
                 {/* Offset de Tiempo Acumulado */}
-                <div className="mt-6 pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
-                    <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-purple-500" />
+                <div className="mt-6 pt-6 border-t border-ds-border">
+                    <label className="text-sm font-bold text-ds-text flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-ds-accent-text" />
                         Tiempo Base Acumulado (Offset)
                     </label>
                     <div className="flex gap-3 items-start">
@@ -368,39 +368,39 @@ interface TimerSessionBasic {
                                 value={offsetInput}
                                 onChange={(e) => handleOffsetChange(e.target.value)}
                                 placeholder="Ej: 500h, 4d 2h, o 1800000"
-                                className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-mono focus:ring-2 focus:ring-purple-500 outline-none"
+                                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-mono focus:ring-2 focus:ring-ds-accent outline-none"
                             />
                             <div className="flex justify-between mt-1">
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-xs text-ds-soft">
                                     Suma tiempo previo. Ej: <code>500h</code>, <code>30m</code>.
                                 </p>
                                 {offsetFeedback && (
-                                    <p className={`text-xs font-bold ${offsetFeedback.includes('⚠️') ? 'text-orange-500' : 'text-green-500'}`}>
+                                    <p className={`text-xs font-bold ${offsetFeedback.includes('⚠️') ? 'text-ds-warn' : 'text-ds-ok'}`}>
                                         {offsetFeedback}
                                     </p>
                                 )}
                             </div>
                         </div>
-                        <div className="text-right pl-4 border-l border-[#e2e8f0] dark:border-[#374151]">
-                            <span className="block text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        <div className="text-right pl-4 border-l border-ds-border">
+                            <span className="block text-2xl font-bold text-ds-accent-text">
                                 +{Math.floor(initialTimeOffset / 3600)}h
                             </span>
-                            <span className="text-xs text-[#64748b]">Agregados</span>
+                            <span className="text-xs text-ds-soft">Agregados</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Respaldo de Sesión (Visible solo si está activo) */}
                 {isTimerActive && activeTimerRemaining !== null && (
-                    <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl animate-in fade-in slide-in-from-top-2">
-                        <h4 className="text-xs font-bold text-yellow-800 dark:text-yellow-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <div className="mt-6 p-4 bg-ds-warn/10 border border-ds-warn/40 rounded-lg animate-in fade-in slide-in-from-top-2">
+                        <h4 className="text-xs font-bold text-ds-warn uppercase tracking-wider mb-3 flex items-center gap-2">
                             🛡️ Respaldo de Sesión (Emergencia)
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Tarjeta 1: Tiempo Restante */}
-                            <div className="bg-white dark:bg-[#1B1C1D] p-3 rounded-lg border border-yellow-100 dark:border-yellow-900 shadow-sm relative group">
-                                <span className="text-[10px] text-gray-500 block mb-1">TIEMPO RESTANTE ACTUAL</span>
-                                <div className="text-lg font-mono font-bold text-gray-800 dark:text-gray-200">
+                            <div className="bg-ds-surface p-3 rounded-lg border border-ds-warn/40 relative group">
+                                <span className="text-[10px] text-ds-soft block mb-1">TIEMPO RESTANTE ACTUAL</span>
+                                <div className="text-lg font-mono font-bold text-ds-text">
                                     {(() => {
                                         const d = Math.floor(activeTimerRemaining / 86400);
                                         const h = Math.floor((activeTimerRemaining % 86400) / 3600);
@@ -414,12 +414,12 @@ interface TimerSessionBasic {
                                         return parts.join(' ') || '0s';
                                     })()}
                                 </div>
-                                <span className="text-[10px] text-gray-400">
-                                    Valor exacto en segundos: <span className="font-mono text-gray-600 dark:text-gray-400">{activeTimerRemaining}</span>
+                                <span className="text-[10px] text-ds-soft">
+                                    Valor exacto en segundos: <span className="font-mono text-ds-soft">{activeTimerRemaining}</span>
                                 </span>
                                 <button 
                                     onClick={() => navigator.clipboard.writeText(activeTimerRemaining.toString())}
-                                    className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                    className="absolute top-2 right-2 p-1.5 text-ds-soft hover:text-ds-accent-text hover:bg-ds-accent/10 rounded transition-colors"
                                     title="Copiar segundos"
                                 >
                                     <Copy className="w-3.5 h-3.5" />
@@ -427,9 +427,9 @@ interface TimerSessionBasic {
                             </div>
 
                             {/* Tarjeta 2: Tiempo Transcurrido Total */}
-                            <div className="bg-white dark:bg-[#1B1C1D] p-3 rounded-lg border border-yellow-100 dark:border-yellow-900 shadow-sm relative group">
-                                <span className="text-[10px] text-gray-500 block mb-1">TIEMPO TRANSCURRIDO (APROX)</span>
-                                <div className="text-lg font-mono font-bold text-gray-800 dark:text-gray-200">
+                            <div className="bg-ds-surface p-3 rounded-lg border border-ds-warn/40 relative group">
+                                <span className="text-[10px] text-ds-soft block mb-1">TIEMPO TRANSCURRIDO (APROX)</span>
+                                <div className="text-lg font-mono font-bold text-ds-text">
                                     {(() => {
                                         const baseDuration = activeTotalDuration || defaultDuration;
                                         let elapsed = (baseDuration + initialTimeOffset) - activeTimerRemaining;
@@ -449,7 +449,7 @@ interface TimerSessionBasic {
                                         return parts.join(' ') || '0s';
                                     })()}
                                 </div>
-                                <span className="text-[10px] text-gray-400">
+                                <span className="text-[10px] text-ds-soft">
                                     Basado en duración total real + offset
                                 </span>
                             </div>
@@ -457,7 +457,7 @@ interface TimerSessionBasic {
                         <button 
                             onClick={handleCloudBackup}
                             disabled={isBackingUp}
-                            className={`w-full mt-3 py-2 rounded-lg flex items-center justify-center gap-2 font-bold transition-all ${backupStatus === 'success' ? 'bg-green-500 text-white' : backupStatus === 'error' ? 'bg-red-500 text-white' : 'bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-200 hover:bg-yellow-300 dark:hover:bg-yellow-700'}`}
+                            className={`w-full mt-3 py-2 rounded-lg flex items-center justify-center gap-2 font-bold transition-all ${backupStatus === 'success' ? 'bg-ds-accent text-ds-on-accent' : backupStatus === 'error' ? 'bg-ds-danger-solid text-ds-on-accent' : 'bg-ds-warn/10 text-ds-warn hover:bg-ds-warn '}`}
                         >
                             {isBackingUp ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
@@ -474,13 +474,13 @@ interface TimerSessionBasic {
             </div>
 
             {/* Auto-iniciar */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between">
                     <div className="flex-1">
-                        <label htmlFor="autoStart" className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-1">
+                        <label htmlFor="autoStart" className="text-sm font-bold text-ds-text flex items-center gap-2 mb-1">
                             🚀 Auto-iniciar Timer
                         </label>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             El timer comenzará automáticamente cuando se cargue el overlay. Ideal para eventos programados.
                         </p>
                     </div>
@@ -489,26 +489,26 @@ interface TimerSessionBasic {
                         id="autoStart"
                         checked={autoStart}
                         onChange={(e) => onAutoStartChange(e.target.checked)}
-                        className="w-6 h-6 text-[#2563eb] rounded ml-4 flex-shrink-0"
+                        className="w-6 h-6 text-ds-accent-text rounded ml-4 flex-shrink-0"
                     />
                 </div>
             </div>
 
             {/* Detección de Stream */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text flex items-center gap-2 mb-4">
                     📡 Detección de Stream
                 </h3>
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
+                <p className="text-xs text-ds-soft mb-4">
                     El timer reacciona automáticamente cuando el stream inicia o termina. Desactivado por defecto.
                 </p>
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex-1">
-                            <label htmlFor="autoPlayOnStreamOnline" className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-1">
+                            <label htmlFor="autoPlayOnStreamOnline" className="text-sm font-bold text-ds-text flex items-center gap-2 mb-1">
                                 🟢 Reanudar al iniciar stream
                             </label>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-xs text-ds-soft">
                                 Si el timer está en pausa, se reanuda automáticamente cuando empieces a transmitir.
                             </p>
                         </div>
@@ -517,15 +517,15 @@ interface TimerSessionBasic {
                             id="autoPlayOnStreamOnline"
                             checked={autoPlayOnStreamOnline}
                             onChange={(e) => onAutoPlayOnStreamOnlineChange?.(e.target.checked)}
-                            className="w-6 h-6 text-[#2563eb] rounded ml-4 flex-shrink-0"
+                            className="w-6 h-6 text-ds-accent-text rounded ml-4 flex-shrink-0"
                         />
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex-1">
-                            <label htmlFor="autoStopOnStreamOffline" className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-1">
+                            <label htmlFor="autoStopOnStreamOffline" className="text-sm font-bold text-ds-text flex items-center gap-2 mb-1">
                                 🔴 Pausar al terminar stream
                             </label>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-xs text-ds-soft">
                                 El timer se pausa automáticamente cuando termines de transmitir. El tiempo se conserva.
                             </p>
                         </div>
@@ -534,25 +534,25 @@ interface TimerSessionBasic {
                             id="autoStopOnStreamOffline"
                             checked={autoStopOnStreamOffline}
                             onChange={(e) => onAutoStopOnStreamOfflineChange?.(e.target.checked)}
-                            className="w-6 h-6 text-[#2563eb] rounded ml-4 flex-shrink-0"
+                            className="w-6 h-6 text-ds-accent-text rounded ml-4 flex-shrink-0"
                         />
                     </div>
                 </div>
             </div>
 
             {/* NUEVA TARJETA: Reglas de Game Over */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-start justify-between mb-4">
                     <div>
-                        <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-ds-text flex items-center gap-2">
                             🎮 Reglas de Game Over
                         </h3>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <p className="text-xs text-ds-soft mt-1">
                             Define qué pasa cuando el timer llega a cero.
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                        <span className="text-xs font-bold text-ds-soft">
                             {enableResurrection ? 'Resurrección ACTIVA' : 'Muerte Súbita'}
                         </span>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -562,19 +562,19 @@ interface TimerSessionBasic {
                                 onChange={(e) => handleResurrectionToggle(e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                            <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                         </label>
                     </div>
                 </div>
 
                 {enableResurrection && (
-                    <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30 rounded-xl animate-in fade-in slide-in-from-top-2">
+                    <div className="mt-4 p-4 bg-ds-accent/10 border border-ds-accent rounded-lg animate-in fade-in slide-in-from-top-2">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white dark:bg-[#1a1a1a] rounded-lg shadow-sm border border-purple-100 dark:border-purple-800">
+                            <div className="p-3 bg-ds-surface rounded-lg border border-ds-accent">
                                 <span className="text-2xl">🍄</span>
                             </div>
                             <div className="flex-1">
-                                <label className="text-xs font-bold text-purple-800 dark:text-purple-300 uppercase tracking-wider block mb-1">
+                                <label className="text-xs font-bold text-ds-accent-text uppercase tracking-wider block mb-1">
                                     Vidas Extra (Chances)
                                 </label>
                                 <div className="flex items-center gap-3">
@@ -584,9 +584,9 @@ interface TimerSessionBasic {
                                         max="99"
                                         value={maxChances || 1}
                                         onChange={(e) => onMaxChancesChange?.(Math.max(1, parseInt(e.target.value) || 1))}
-                                        className="w-20 px-3 py-2 border border-purple-200 dark:border-purple-800 rounded-lg bg-white dark:bg-[#1a1a1a] text-purple-900 dark:text-purple-100 font-bold text-center"
+                                        className="w-20 px-3 py-2 border border-ds-accent rounded-lg bg-ds-surface text-ds-accent-text font-bold text-center"
                                     />
-                                                                            <p className="text-xs text-purple-600 dark:text-purple-400 leading-tight">
+                                                                            <p className="text-xs text-ds-accent-text leading-tight">
                                                                                 Si el tiempo se agota, una donación o comando podrá "revivir" el timer gastando una vida.
                                                                             </p>
                                                                         </div>
@@ -595,24 +595,24 @@ interface TimerSessionBasic {
                                     
                                                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                     <div>
-                                                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Mensaje de Resurrección</label>
+                                                                        <label className="text-xs font-bold text-ds-soft block mb-2">Mensaje de Resurrección</label>
                                                                         <input 
                                                                             type="text" 
                                                                             value={resurrectionMessage}
                                                                             onChange={(e) => onResurrectionMessageChange?.(e.target.value)}
                                                                             placeholder="🍄 ¡1UP! Se usó una vida ({lives}/{max})."
-                                                                            className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#1a1a1a] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                                                         />
-                                                                        <p className="text-[10px] text-[#64748b] mt-1">Variables: <code>{'{lives}'}</code> (usadas), <code>{'{max}'}</code> (totales)</p>
+                                                                        <p className="text-[10px] text-ds-soft mt-1">Variables: <code>{'{lives}'}</code> (usadas), <code>{'{max}'}</code> (totales)</p>
                                                                     </div>
                                                                     <div>
-                                                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Mensaje de Game Over (Sin vidas)</label>
+                                                                        <label className="text-xs font-bold text-ds-soft block mb-2">Mensaje de Game Over (Sin vidas)</label>
                                                                         <input 
                                                                             type="text" 
                                                                             value={gameOverMessage}
                                                                             onChange={(e) => onGameOverMessageChange?.(e.target.value)}
                                                                             placeholder="💀 Game Over. No quedan vidas."
-                                                                            className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#1a1a1a] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -621,13 +621,13 @@ interface TimerSessionBasic {
 
             {/* SECCIÓN DE RECUPERACIÓN (Solo si está detenido y hay sesiones) */}
             {activeTimerStatus === 'stopped' && sessions.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-200 dark:border-blue-800 p-6 shadow-lg animate-in fade-in slide-in-from-top-4">
+                <div className="bg-ds-accent/10 rounded-lg border border-ds-accent p-6 animate-in fade-in slide-in-from-top-4">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl shrink-0">
-                            <RotateCcw className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        <div className="p-3 bg-ds-accent/10 rounded-lg shrink-0">
+                            <RotateCcw className="w-6 h-6 text-ds-accent-text" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wide mb-3">
+                            <h3 className="text-sm font-bold text-ds-accent-text uppercase tracking-wide mb-3">
                                 ¿Continuar Sesión Anterior?
                             </h3>
 
@@ -635,7 +635,7 @@ interface TimerSessionBasic {
                             <select
                                 value={selectedSessionId || ''}
                                 onChange={(e) => setSelectedSessionId(Number(e.target.value))}
-                                className="w-full text-xs border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2 bg-white dark:bg-[#1B1C1D] text-gray-700 dark:text-gray-300 mb-4"
+                                className="w-full text-xs border border-ds-accent rounded-lg px-3 py-2 bg-ds-surface text-ds-soft mb-4"
                             >
                                 {sessions.map(s => {
                                     const dateStr = formatShortDateTimeIn(s.startedAt, timeZone);
@@ -656,44 +656,44 @@ interface TimerSessionBasic {
                             {selectedSession?.hasBackup && selectedSession.backupRemainingSeconds !== null ? (
                                 <>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                                        <div className="bg-white dark:bg-[#1B1C1D] p-2.5 rounded-lg border border-blue-100 dark:border-blue-900">
-                                            <span className="text-[10px] font-bold text-gray-500 block mb-1">TIEMPO RESTANTE</span>
-                                            <span className="font-mono font-bold text-blue-700 dark:text-blue-300 text-sm">
+                                        <div className="bg-ds-surface p-2.5 rounded-lg border border-ds-accent">
+                                            <span className="text-[10px] font-bold text-ds-soft block mb-1">TIEMPO RESTANTE</span>
+                                            <span className="font-mono font-bold text-ds-accent-text text-sm">
                                                 {formatTimeProfessional(selectedSession.backupRemainingSeconds)}
                                             </span>
                                         </div>
-                                        <div className="bg-white dark:bg-[#1B1C1D] p-2.5 rounded-lg border border-blue-100 dark:border-blue-900">
-                                            <span className="text-[10px] font-bold text-gray-500 block mb-1">TIEMPO AÑADIDO</span>
-                                            <span className="font-mono font-bold text-gray-800 dark:text-gray-200 text-sm">
+                                        <div className="bg-ds-surface p-2.5 rounded-lg border border-ds-accent">
+                                            <span className="text-[10px] font-bold text-ds-soft block mb-1">TIEMPO AÑADIDO</span>
+                                            <span className="font-mono font-bold text-ds-text text-sm">
                                                 {formatTimeProfessional(selectedSession.totalAddedTime)}
                                             </span>
                                         </div>
-                                        <div className="bg-white dark:bg-[#1B1C1D] p-2.5 rounded-lg border border-blue-100 dark:border-blue-900 col-span-2 sm:col-span-1">
-                                            <span className="text-[10px] font-bold text-gray-500 block mb-1">RAZÓN</span>
-                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                        <div className="bg-ds-surface p-2.5 rounded-lg border border-ds-accent col-span-2 sm:col-span-1">
+                                            <span className="text-[10px] font-bold text-ds-soft block mb-1">RAZÓN</span>
+                                            <span className="text-xs font-bold text-ds-soft">
                                                 {selectedSession.backupReason ? formatBackupReason(selectedSession.backupReason) : '—'}
                                             </span>
                                         </div>
                                     </div>
                                     {selectedSession.backupCreatedAt && (
-                                        <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+                                        <p className="text-xs text-ds-accent-text mb-3">
                                             Guardado el <strong>{new Date(selectedSession.backupCreatedAt).toLocaleString()}</strong>
                                         </p>
                                     )}
                                     <button
                                         onClick={() => handleRestoreSession(selectedSession.id, true)}
                                         disabled={isRestoring}
-                                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-md hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
                                     >
                                         {isRestoring
-                                            ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> Restaurando...</>
+                                            ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-ds-border"></div> Restaurando...</>
                                             : <><RotateCcw className="w-4 h-4" /> Restaurar esta sesión</>
                                         }
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3">
+                                    <p className="text-xs text-ds-soft mb-3">
                                         Sin backup automático. Indica con cuánto tiempo restaurar:
                                     </p>
                                     <div className="flex gap-2 mb-3">
@@ -702,21 +702,21 @@ interface TimerSessionBasic {
                                             value={manualRestoreInput}
                                             onChange={(e) => setManualRestoreInput(e.target.value)}
                                             placeholder="Ej: 5h 30m, 2h, 90m"
-                                            className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm font-mono"
+                                            className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm font-mono"
                                         />
                                     </div>
                                     {manualRestoreInput && parseTimeInput(manualRestoreInput) > 0 && (
-                                        <p className="text-xs text-green-600 dark:text-green-400 mb-3">
+                                        <p className="text-xs text-ds-ok mb-3">
                                             Se restaurará con: <strong>{formatTimeProfessional(parseTimeInput(manualRestoreInput))}</strong>
                                         </p>
                                     )}
                                     <button
                                         onClick={() => selectedSession && handleRestoreSession(selectedSession.id, false)}
                                         disabled={isRestoring || parseTimeInput(manualRestoreInput) <= 0}
-                                        className="w-full py-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500 disabled:opacity-40 text-white rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-ds-raised hover:bg-ds-raised disabled:opacity-40 text-ds-text rounded-lg font-bold transition-all flex items-center justify-center gap-2"
                                     >
                                         {isRestoring
-                                            ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> Restaurando...</>
+                                            ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-ds-border"></div> Restaurando...</>
                                             : <><RotateCcw className="w-4 h-4" /> Restaurar con este tiempo</>
                                         }
                                     </button>
@@ -728,8 +728,8 @@ interface TimerSessionBasic {
             )}
 
             {/* Controles del Timer - REORGANIZADO */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-4">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <label className="text-sm font-bold text-ds-text flex items-center gap-2 mb-4">
                     🎮 Controles del Timer
                 </label>
                 
@@ -739,7 +739,7 @@ interface TimerSessionBasic {
                         <button
                             onClick={() => handleTimerControl('start', defaultDuration)}
                             disabled={isTimerActive}
-                            className={`py-3 text-white rounded-xl transition-all flex flex-col items-center justify-center gap-1 font-bold shadow-sm ${isTimerActive ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed border border-gray-200 dark:border-gray-700' : 'bg-green-500 hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-green-500/20'}`}
+                            className={`py-3 text-ds-on-accent rounded-lg transition-all flex flex-col items-center justify-center gap-1 font-bold ${isTimerActive ? 'bg-ds-bg text-ds-soft cursor-not-allowed border border-ds-border ' : 'bg-ds-accent hover:bg-ds-accent-hover hover:-translate-y-0.5 hover:shadow-green-500/20'}`}
                         >
                             <Play className="w-5 h-5" />
                             <span className="text-xs">{isTimerActive ? 'En Curso' : 'Iniciar'}</span>
@@ -748,7 +748,7 @@ interface TimerSessionBasic {
                         <button
                             onClick={() => handleTimerControl('pause')}
                             disabled={!isTimerActive || activeTimerStatus === 'paused' || activeTimerStatus === 'auto_paused' || activeTimerStatus === 'stream_paused'}
-                            className="py-3 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex flex-col items-center justify-center gap-1 font-bold shadow-sm"
+                            className="py-3 bg-ds-warn hover:bg-ds-warn disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg transition-colors flex flex-col items-center justify-center gap-1 font-bold"
                         >
                             <Pause className="w-5 h-5" />
                             <span className="text-xs">Pausar</span>
@@ -757,7 +757,7 @@ interface TimerSessionBasic {
                         <button
                             onClick={() => handleTimerControl('resume')}
                             disabled={activeTimerStatus !== 'paused' && activeTimerStatus !== 'auto_paused' && activeTimerStatus !== 'stream_paused'}
-                            className="py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-colors flex flex-col items-center justify-center gap-1 font-bold shadow-sm"
+                            className="py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg transition-colors flex flex-col items-center justify-center gap-1 font-bold"
                         >
                             <Play className="w-5 h-5" />
                             <span className="text-xs">Reanudar</span>
@@ -765,7 +765,7 @@ interface TimerSessionBasic {
                     </div>
 
                     {/* Separador Visual */}
-                    <div className="h-px bg-gray-100 dark:bg-gray-800 w-full"></div>
+                    <div className="h-px bg-ds-bg w-full"></div>
 
                     {/* Grupo 2: Zona de Peligro (Naranja/Rojo) */}
                     <div className="grid grid-cols-2 gap-3">
@@ -775,7 +775,7 @@ interface TimerSessionBasic {
                                     handleTimerControl('reset');
                                 }
                             }}
-                            className="py-3 bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-2 border-orange-200 dark:border-orange-800 hover:bg-orange-200 dark:hover:bg-orange-900/40 rounded-xl transition-colors flex items-center justify-center gap-2 font-bold"
+                            className="py-3 bg-ds-warn/10 text-ds-warn border-2 border-ds-warn/40 hover:bg-ds-warn/10 rounded-lg transition-colors flex items-center justify-center gap-2 font-bold"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Reiniciar
@@ -787,7 +787,7 @@ interface TimerSessionBasic {
                                 handleTimerControl('stop');
                             }
                             }}
-                            className="py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all flex items-center justify-center gap-2 font-bold shadow-md hover:shadow-red-600/30"
+                            className="py-3 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg transition-all flex items-center justify-center gap-2 font-bold hover:shadow-red-600/30"
                         >
                             <StopCircle className="w-5 h-5" />
                             DETENER TODO
@@ -797,8 +797,8 @@ interface TimerSessionBasic {
             </div>
 
             {/* URL del Overlay */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-3">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <label className="text-sm font-bold text-ds-text flex items-center gap-2 mb-3">
                     🔗 URL del Overlay para OBS
                 </label>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -806,11 +806,11 @@ interface TimerSessionBasic {
                         type="text"
                         value={overlayUrl}
                         readOnly
-                        className="flex-1 px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm font-mono"
+                        className="flex-1 px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text text-sm font-mono"
                     />
                     <button
                         onClick={handleCopy}
-                        className={`px-6 py-2 text-white rounded-lg transition-all flex items-center justify-center gap-2 font-bold whitespace-nowrap min-w-[120px] ${copied ? 'bg-green-500 scale-105' : 'bg-[#2563eb] hover:bg-[#1d4ed8]'}`}
+                        className={`px-6 py-2 text-ds-on-accent rounded-lg transition-all flex items-center justify-center gap-2 font-bold whitespace-nowrap min-w-[120px] ${copied ? 'bg-ds-accent scale-105' : 'bg-ds-accent hover:bg-ds-accent-hover'}`}
                     >
                         {copied ? '¡Copiado!' : <><Copy className="w-4 h-4" /> Copiar</>}
                     </button>

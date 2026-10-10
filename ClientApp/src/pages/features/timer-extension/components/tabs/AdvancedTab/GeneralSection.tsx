@@ -21,18 +21,18 @@ export const GeneralSection: React.FC<GeneralSectionProps> = ({
     const { t } = useTranslation('features');
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-blue-500" /> {t('timerAdvanced.regionalConfig')}
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-ds-accent-text" /> {t('timerAdvanced.regionalConfig')}
                 </h3>
 
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">{t('timerAdvanced.timezone')}</label>
+                        <label className="text-xs font-bold text-ds-soft block mb-2">{t('timerAdvanced.timezone')}</label>
                         <select
                             value={timeZone || 'UTC'}
                             onChange={(e) => onTimeZoneChange(e.target.value)}
-                            className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
                         >
                             <option value="UTC">UTC (Universal)</option>
                             <optgroup label="América">
@@ -49,27 +49,27 @@ export const GeneralSection: React.FC<GeneralSectionProps> = ({
                                 <option value="Europe/London">Londres, UK (UTC+0)</option>
                             </optgroup>
                         </select>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-2">
+                        <p className="text-xs text-ds-soft mt-2">
                             {t('timerAdvanced.timezoneDescription')}
                         </p>
                     </div>
 
-                    <div className="pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
-                        <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <div className="pt-6 border-t border-ds-border">
+                        <h4 className="text-xs font-bold text-ds-danger uppercase tracking-wider mb-3 flex items-center gap-2">
                             {t('timerAdvanced.dangerZone')}
                         </h4>
-                        <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-4">
-                            <p className="text-sm text-red-600 dark:text-red-400 mb-4 font-medium">
+                        <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-4">
+                            <p className="text-sm text-ds-danger mb-4 font-medium">
                                 {t('timerAdvanced.dangerZoneDescription')}
                             </p>
                             <button
                                 onClick={onResetConfig}
-                                className="w-full py-3 bg-white dark:bg-[#1a1a1a] border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                                className="w-full py-3 bg-ds-surface border-2 border-ds-danger/40 text-ds-danger hover:bg-ds-danger/10 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
                             >
                                 <RotateCcw className="w-4 h-4" />
                                 {t('timerAdvanced.restoreDefaults')}
                             </button>
-                            <p className="text-xs text-red-400/80 mt-2 text-center">
+                            <p className="text-xs text-ds-danger/80 mt-2 text-center">
                                 {t('timerAdvanced.restoreDefaultsNote')}
                             </p>
                         </div>

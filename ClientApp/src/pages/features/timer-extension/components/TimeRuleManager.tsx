@@ -82,8 +82,8 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
             {/* Header y Botón Añadir */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Reglas Avanzadas (Tiers)</h4>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                    <h4 className="text-sm font-bold text-ds-text">Reglas Avanzadas (Tiers)</h4>
+                    <p className="text-xs text-ds-soft">
                         Define tiempos especiales cuando se supera cierta cantidad.
                     </p>
                 </div>
@@ -91,34 +91,34 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                 {!isCreating ? (
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-colors shadow-sm"
+                        className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
                     >
                         <Plus className="w-3 h-3" /> Nueva Regla
                     </button>
                 ) : (
-                    <div className="flex flex-col gap-2 bg-white dark:bg-[#262626] p-3 rounded-lg border border-blue-200 dark:border-blue-800 animate-fade-in shadow-lg z-10">
+                    <div className="flex flex-col gap-2 bg-ds-surface p-3 rounded-lg border border-ds-accent animate-fade-in z-10">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-[#64748b] w-16">Min {unitLabel}:</span>
+                            <span className="text-xs font-bold text-ds-soft w-16">Min {unitLabel}:</span>
                             <input
                                 type="number"
                                 value={newAmount}
                                 onChange={(e) => setNewAmount(Number(e.target.value))}
-                                className="w-16 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-transparent text-[#1e293b] dark:text-[#f8fafc]"
+                                className="w-16 px-2 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
                                 autoFocus
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-[#64748b] w-16">+Tiempo:</span>
+                            <span className="text-xs font-bold text-ds-soft w-16">+Tiempo:</span>
                             <input
                                 type="number"
                                 value={newTimeValue}
                                 onChange={(e) => setNewTimeValue(Number(e.target.value))}
-                                className="w-12 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-transparent text-[#1e293b] dark:text-[#f8fafc]"
+                                className="w-12 px-2 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
                             />
                             <select
                                 value={newTimeUnit}
                                 onChange={(e) => setNewTimeUnit(e.target.value as TimeUnit)}
-                                className="px-1 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-transparent text-[#1e293b] dark:text-[#f8fafc]"
+                                className="px-1 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
                             >
                                 <option value="seconds">s</option>
                                 <option value="minutes">m</option>
@@ -130,22 +130,22 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                 type="checkbox"
                                 checked={newIsPerUnit}
                                 onChange={(e) => setNewIsPerUnit(e.target.checked)}
-                                className="rounded text-blue-600"
+                                className="rounded text-ds-accent-text"
                             />
-                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <span className="text-xs text-ds-soft">
                                 Multiplicar por cantidad (x{unitLabel})
                             </span>
                         </div>
                         <div className="flex gap-2 mt-1 justify-end">
                             <button
                                 onClick={handleAddRule}
-                                className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold"
+                                className="px-3 py-1 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded text-xs font-bold"
                             >
                                 Añadir Regla
                             </button>
                             <button
                                 onClick={() => setIsCreating(false)}
-                                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs font-bold"
+                                className="px-3 py-1 bg-ds-raised text-ds-soft rounded text-xs font-bold"
                             >
                                 Cancelar
                             </button>
@@ -157,9 +157,9 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
             {/* Lista de Reglas */}
             <div className="space-y-3">
                 {rules.length === 0 && (
-                    <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-dashed border-[#e2e8f0] dark:border-[#374151] flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 text-gray-400" />
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="p-4 bg-ds-bg rounded-lg border border-dashed border-ds-border flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-ds-soft" />
+                        <p className="text-xs text-ds-soft">
                             No hay reglas especiales. Se usará siempre el cálculo base.
                         </p>
                     </div>
@@ -172,10 +172,10 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                     return (
                         <div 
                             key={rule.id}
-                            className={`rounded-xl border transition-all ${
+                            className={`rounded-lg border transition-all ${
                                 editingId === rule.id
-                                    ? 'bg-white dark:bg-[#1B1C1D] border-blue-500 shadow-md ring-1 ring-blue-500'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-300 dark:hover:border-blue-700'
+                                    ? 'bg-ds-surface border-ds-accent ring-1 ring-ds-accent'
+                                    : 'bg-ds-bg border-ds-border hover:border-ds-accent '
                             }`}
                         >
                             {/* Header de la Tarjeta */}
@@ -184,26 +184,26 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                 onClick={() => setEditingId(editingId === rule.id ? null : rule.id)}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className={`p-2 rounded-lg ${rule.isPerUnit ? 'bg-purple-100 dark:bg-purple-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
-                                        <Clock className={`w-4 h-4 ${rule.isPerUnit ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                                    <div className={`p-2 rounded-lg ${rule.isPerUnit ? 'bg-ds-accent/10 ' : 'bg-ds-accent/10 '}`}>
+                                        <Clock className={`w-4 h-4 ${rule.isPerUnit ? 'text-ds-accent-text ' : 'text-ds-accent-text '}`} />
                                     </div>
                                     <div>
-                                        <h5 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                        <h5 className="text-sm font-bold text-ds-text flex items-center gap-2">
                                             <span>Mínimo {rule.minAmount} {unitLabel}</span>
                                             {rule.exactAmount && (
-                                                <span className="px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[10px] rounded border border-yellow-200 dark:border-yellow-800 font-bold">
+                                                <span className="px-1.5 py-0.5 bg-ds-warn/10 text-ds-warn text-[10px] rounded border border-ds-warn/40 font-bold">
                                                     EXACTO
                                                 </span>
                                             )}
                                         </h5>
-                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] flex items-center gap-1">
-                                            Añade: <span className="font-mono font-bold text-[#1e293b] dark:text-[#f8fafc]">{displayValue} {TIME_UNITS[currentUnit].label}</span>
+                                        <p className="text-xs text-ds-soft flex items-center gap-1">
+                                            Añade: <span className="font-mono font-bold text-ds-text">{displayValue} {TIME_UNITS[currentUnit].label}</span>
                                             {rule.isPerUnit ? (
-                                                <span className="text-purple-600 dark:text-purple-400 font-bold ml-1">
+                                                <span className="text-ds-accent-text font-bold ml-1">
                                                     (x cada {unitLabel})
                                                 </span>
                                             ) : (
-                                                <span className="text-blue-600 dark:text-blue-400 font-bold ml-1">
+                                                <span className="text-ds-accent-text font-bold ml-1">
                                                     (Fijo / Total)
                                                 </span>
                                             )}
@@ -214,67 +214,67 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteRule(rule.id); }}
-                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                        className="p-1.5 text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10 rounded transition-colors"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                     {editingId === rule.id ? (
-                                        <ChevronUp className="w-4 h-4 text-blue-500" />
+                                        <ChevronUp className="w-4 h-4 text-ds-accent-text" />
                                     ) : (
-                                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                                        <ChevronDown className="w-4 h-4 text-ds-soft" />
                                     )}
                                 </div>
                             </div>
 
                             {/* Cuerpo de Edición (Expandido) */}
                             {editingId === rule.id && (
-                                <div className="p-4 border-t border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] rounded-b-xl space-y-4 animate-fade-in">
+                                <div className="p-4 border-t border-ds-border bg-ds-surface rounded-b-xl space-y-4 animate-fade-in">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {/* Columna 1: Condición */}
                                         <div>
-                                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">
+                                            <label className="text-xs font-bold text-ds-soft block mb-1">
                                                 Cantidad Mínima ({unitLabel})
                                             </label>
                                             <input
                                                 type="number"
                                                 value={rule.minAmount}
                                                 onChange={(e) => handleUpdateRule(rule.id, { minAmount: Number(e.target.value) })}
-                                                className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-bg text-sm text-ds-text"
                                             />
                                             <div className="mt-3 space-y-2">
-                                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-ds-surface transition-colors">
                                                     <input
                                                         type="checkbox"
                                                         checked={rule.isPerUnit || false}
                                                         onChange={(e) => handleUpdateRule(rule.id, { isPerUnit: e.target.checked })}
-                                                        className="rounded text-purple-600 focus:ring-purple-500"
+                                                        className="rounded text-ds-accent-text focus:ring-ds-accent"
                                                     />
                                                     <div>
-                                                        <span className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                                                        <span className="text-xs font-bold text-ds-text block">
                                                             Modo Multiplicador
                                                         </span>
-                                                        <span className="text-[10px] text-[#64748b] dark:text-[#94a3b8]">
+                                                        <span className="text-[10px] text-ds-soft">
                                                             Multiplica el tiempo por la cantidad (Ej: 10 subs x 2h = 20h)
                                                         </span>
                                                     </div>
                                                 </label>
 
-                                                <label className="flex items-start gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                <label className="flex items-start gap-2 cursor-pointer p-2 rounded-lg hover:bg-ds-surface transition-colors">
                                                     <input
                                                         type="checkbox"
                                                         checked={rule.exactAmount || false}
                                                         onChange={(e) => handleUpdateRule(rule.id, { exactAmount: e.target.checked })}
-                                                        className="mt-1 rounded text-blue-600 focus:ring-blue-500"
+                                                        className="mt-1 rounded text-ds-accent-text focus:ring-ds-accent"
                                                     />
                                                     <div>
-                                                        <span className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                                                        <span className="text-xs font-bold text-ds-text block">
                                                             Solo Cantidad Exacta
                                                         </span>
-                                                        <span className="text-[10px] text-[#64748b] dark:text-[#94a3b8] block">
+                                                        <span className="text-[10px] text-ds-soft block">
                                                             La regla no se activa si dan más.
                                                         </span>
                                                         {rule.exactAmount && (
-                                                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-1">
+                                                            <span className="text-[10px] text-ds-warn font-bold block mt-1">
                                                                 ⚠️ CUIDADO: Si donan {rule.minAmount + 1} {unitLabel}, esta regla se IGNORA y el sistema usará el Tiempo Base por Defecto.
                                                             </span>
                                                         )}
@@ -285,7 +285,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
 
                                         {/* Columna 2: Resultado */}
                                         <div>
-                                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">
+                                            <label className="text-xs font-bold text-ds-soft block mb-1">
                                                 Tiempo a Añadir {rule.isPerUnit ? '(por unidad)' : '(total)'}
                                             </label>
                                             <div className="flex gap-2">
@@ -297,7 +297,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                                         const seconds = convertUnitToSeconds(val, currentUnit);
                                                         handleUpdateRule(rule.id, { timeAdded: seconds });
                                                     }}
-                                                    className="flex-1 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-bg text-sm text-ds-text"
                                                 />
                                                 <select
                                                     value={currentUnit}
@@ -306,7 +306,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                                         const seconds = convertUnitToSeconds(displayValue, newUnit);
                                                         handleUpdateRule(rule.id, { timeAdded: seconds });
                                                     }}
-                                                    className="w-24 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-[#f8fafc] dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                    className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-bg text-sm text-ds-text"
                                                 >
                                                     {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                         <option key={k} value={k}>{label}</option>
@@ -315,10 +315,10 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                             </div>
                                             
                                             {/* Preview Calculadora */}
-                                            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-                                                <p className="text-[10px] uppercase font-bold text-blue-500 mb-1">Ejemplo de cálculo</p>
-                                                <p className="text-xs text-blue-800 dark:text-blue-300">
-                                                    Si recibes <strong className={rule.exactAmount ? "text-amber-600" : ""}>
+                                            <div className="mt-4 p-3 bg-ds-accent/10 rounded-lg border border-ds-accent">
+                                                <p className="text-[10px] uppercase font-bold text-ds-accent-text mb-1">Ejemplo de cálculo</p>
+                                                <p className="text-xs text-ds-accent-text">
+                                                    Si recibes <strong className={rule.exactAmount ? "text-ds-warn" : ""}>
                                                         {rule.exactAmount ? "EXACTAMENTE" : "AL MENOS"} {rule.minAmount} {unitLabel}
                                                     </strong>:
                                                     <br/>

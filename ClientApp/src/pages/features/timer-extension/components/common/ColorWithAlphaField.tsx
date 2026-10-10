@@ -22,7 +22,7 @@ interface ColorWithAlphaFieldProps {
     hint?: string;
 }
 
-const labelClass = "block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase";
+const labelClass = "block text-xs font-bold text-ds-soft mb-1 uppercase";
 
 export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithAlphaFieldProps) {
     const { hex, alpha } = parseColorWithAlpha(value);
@@ -37,7 +37,7 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
                 <button
                     type="button"
                     onClick={() => setShowRaw(!showRaw)}
-                    className="text-[10px] text-[#94a3b8] hover:text-[#64748b] dark:hover:text-[#cbd5e1] underline"
+                    className="text-[10px] text-ds-soft hover:text-ds-soft underline"
                 >
                     {showRaw ? 'ocultar código' : 'ver código'}
                 </button>
@@ -46,7 +46,7 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
             <div className="flex items-center gap-2">
                 {/* Muestra del color real, sobre cuadriculado para que se note la transparencia */}
                 <div
-                    className="w-9 h-9 rounded-lg border border-[#e2e8f0] dark:border-[#374151] flex-shrink-0 overflow-hidden"
+                    className="w-9 h-9 rounded-lg border border-ds-border flex-shrink-0 overflow-hidden"
                     style={{
                         backgroundImage:
                             'linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cbd5e1 75%), linear-gradient(-45deg, transparent 75%, #cbd5e1 75%)',
@@ -62,7 +62,7 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
                     type="color"
                     value={hex}
                     onChange={e => onChange(buildRgba(e.target.value, alpha === 0 ? 100 : alpha))}
-                    className="w-9 h-9 rounded cursor-pointer border border-[#e2e8f0] dark:border-[#374151] flex-shrink-0"
+                    className="w-9 h-9 rounded cursor-pointer border border-ds-border flex-shrink-0"
                     title="Elegir color"
                 />
 
@@ -73,10 +73,10 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
                         max={100}
                         value={alpha}
                         onChange={e => onChange(buildRgba(hex, Number(e.target.value)))}
-                        className="w-full accent-[#2563eb] cursor-pointer"
+                        className="w-full accent-ds-accent cursor-pointer"
                         title="Opacidad"
                     />
-                    <div className="flex justify-between text-[10px] text-[#94a3b8] leading-none">
+                    <div className="flex justify-between text-[10px] text-ds-soft leading-none">
                         <span>Transparente</span>
                         <span className="font-mono">{alpha}%</span>
                         <span>Sólido</span>
@@ -88,8 +88,8 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
                     onClick={() => onChange(buildRgba(hex, 0))}
                     className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all flex-shrink-0 ${
                         isTransparent
-                            ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
-                            : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border-[#e2e8f0] dark:border-[#374151] hover:text-[#1e293b] dark:hover:text-[#f8fafc]'
+                            ? 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30'
+                            : 'bg-ds-bg text-ds-soft border-ds-border hover:text-ds-text '
                     }`}
                     title="Dejar el fondo completamente transparente"
                 >
@@ -104,11 +104,11 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
                     value={value || ''}
                     onChange={e => onChange(e.target.value)}
                     placeholder="rgba(255, 100, 0, 0.8)"
-                    className="w-full mt-2 px-3 py-1.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-xs font-mono text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50"
+                    className="w-full mt-2 px-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-xs font-mono text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50"
                 />
             )}
 
-            {hint && <p className="text-[10px] text-[#94a3b8] mt-1">{hint}</p>}
+            {hint && <p className="text-[10px] text-ds-soft mt-1">{hint}</p>}
         </div>
     );
 }

@@ -75,8 +75,8 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
             {/* Header y Botón Añadir */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Lista de Variantes</h4>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                    <h4 className="text-sm font-bold text-ds-text">Lista de Variantes</h4>
+                    <p className="text-xs text-ds-soft">
                         Las reglas se evalúan de mayor a menor cantidad.
                     </p>
                 </div>
@@ -84,29 +84,29 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                 {!isCreating ? (
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-colors shadow-sm"
+                        className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
                     >
                         <Plus className="w-3 h-3" /> Nueva Regla
                     </button>
                 ) : (
-                    <div className="flex items-center gap-2 bg-white dark:bg-[#262626] p-1.5 rounded-lg border border-blue-200 dark:border-blue-800 animate-fade-in">
-                        <span className="text-xs font-bold text-[#64748b] pl-2">Mínimo:</span>
+                    <div className="flex items-center gap-2 bg-ds-surface p-1.5 rounded-lg border border-ds-accent animate-fade-in">
+                        <span className="text-xs font-bold text-ds-soft pl-2">Mínimo:</span>
                         <input
                             type="number"
                             value={newVariantThreshold}
                             onChange={(e) => setNewVariantThreshold(Number(e.target.value))}
-                            className="w-20 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-transparent text-[#1e293b] dark:text-[#f8fafc]"
+                            className="w-20 px-2 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
                             autoFocus
                         />
                         <button
                             onClick={handleAddVariant}
-                            className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-bold"
+                            className="px-2 py-1 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded text-xs font-bold"
                         >
                             Crear
                         </button>
                         <button
                             onClick={() => setIsCreating(false)}
-                            className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs font-bold"
+                            className="px-2 py-1 bg-ds-raised text-ds-soft rounded text-xs font-bold"
                         >
                             X
                         </button>
@@ -117,8 +117,8 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
             {/* Lista de Variantes */}
             <div className="space-y-3">
                 {variants.length === 0 && (
-                    <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-dashed border-[#e2e8f0] dark:border-[#374151] text-center">
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="p-4 bg-ds-bg rounded-lg border border-dashed border-ds-border text-center">
+                        <p className="text-xs text-ds-soft">
                             No hay variantes configuradas. Se usará siempre la alerta por defecto.
                         </p>
                     </div>
@@ -127,10 +127,10 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                 {variants.map((variant) => (
                     <div 
                         key={variant.id}
-                        className={`rounded-xl border transition-all ${
+                        className={`rounded-lg border transition-all ${
                             editingId === variant.id
-                                ? 'bg-white dark:bg-[#1B1C1D] border-blue-500 shadow-md ring-1 ring-blue-500'
-                                : 'bg-[#f8fafc] dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] hover:border-blue-300 dark:hover:border-blue-700'
+                                ? 'bg-ds-surface border-ds-accent ring-1 ring-ds-accent'
+                                : 'bg-ds-bg border-ds-border hover:border-ds-accent '
                         }`}
                     >
                         {/* Header de la Tarjeta */}
@@ -139,12 +139,12 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                             onClick={() => setEditingId(editingId === variant.id ? null : variant.id)}
                         >
                             <div className="flex items-center gap-3">
-                                <div className={`w-2 h-8 rounded-full ${variant.enabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                                <div className={`w-2 h-8 rounded-full ${variant.enabled ? 'bg-ds-accent' : 'bg-ds-raised '}`}></div>
                                 <div>
-                                    <h5 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <h5 className="text-sm font-bold text-ds-text">
                                         Mínimo {variant.threshold} {getUnitLabel()}
                                     </h5>
-                                    <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] truncate max-w-[200px]">
+                                    <p className="text-[10px] text-ds-soft truncate max-w-[200px]">
                                         {variant.message}
                                     </p>
                                 </div>
@@ -153,32 +153,32 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleDeleteVariant(variant.id); }}
-                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                    className="p-1.5 text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10 rounded transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                                 {editingId === variant.id ? (
-                                    <ChevronUp className="w-4 h-4 text-blue-500" />
+                                    <ChevronUp className="w-4 h-4 text-ds-accent-text" />
                                 ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronDown className="w-4 h-4 text-ds-soft" />
                                 )}
                             </div>
                         </div>
 
                         {/* Cuerpo de Edición (Expandido) */}
                         {editingId === variant.id && (
-                            <div className="p-4 border-t border-[#e2e8f0] dark:border-[#374151] space-y-4 animate-fade-in">
+                            <div className="p-4 border-t border-ds-border space-y-4 animate-fade-in">
                                 {/* Fila 1: Configuración Básica */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">
+                                        <label className="text-xs font-bold text-ds-soft block mb-1">
                                             Cantidad Mínima
                                         </label>
                                         <input
                                             type="number"
                                             value={variant.threshold}
                                             onChange={(e) => handleUpdateVariant(variant.id, { threshold: Number(e.target.value) })}
-                                            className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm"
+                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
                                         />
                                     </div>
                                     <div className="flex items-end pb-2">
@@ -187,9 +187,9 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                                                 type="checkbox"
                                                 checked={variant.enabled}
                                                 onChange={(e) => handleUpdateVariant(variant.id, { enabled: e.target.checked })}
-                                                className="rounded text-blue-600 focus:ring-blue-500"
+                                                className="rounded text-ds-accent-text focus:ring-ds-accent"
                                             />
-                                            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                            <span className="text-sm font-bold text-ds-text">
                                                 Variante Activa
                                             </span>
                                         </label>
@@ -198,20 +198,20 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
 
                                 {/* Fila 2: Mensaje */}
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">
+                                    <label className="text-xs font-bold text-ds-soft block mb-1">
                                         Mensaje Personalizado
                                     </label>
                                     <input
                                         type="text"
                                         value={variant.message}
                                         onChange={(e) => handleUpdateVariant(variant.id, { message: e.target.value })}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
                                     />
                                 </div>
 
                                 {/* Fila 3: Media Editor */}
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                    <label className="text-xs font-bold text-ds-soft block mb-2">
                                         Multimedia Específica
                                     </label>
                                     <MediaEditor

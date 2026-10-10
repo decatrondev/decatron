@@ -49,14 +49,14 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
 }) => {
     return (
         <div className="space-y-6">
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                    <Monitor className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8] mt-0.5 flex-shrink-0" />
+                    <Monitor className="w-5 h-5 text-ds-soft mt-0.5 flex-shrink-0" />
                     <div>
-                        <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-1">
+                        <p className="text-sm font-semibold text-ds-text mb-1">
                             Editor Visual de Posiciones
                         </p>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             Arrastra y posiciona todos los elementos de tu overlay. Usa los corners para redimensionar. Los cambios se guardan automáticamente.
                         </p>
                     </div>

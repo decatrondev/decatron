@@ -81,12 +81,12 @@ interface HappyHourSectionProps {
 const MULTIPLIERS = [1.5, 2, 3];
 const DURATIONS = [30, 60, 120, 240, 480, 720];
 
-const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg';
-const label = 'text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 block';
-const chip = (active: boolean) => `px-3 py-2 rounded-xl text-sm font-bold border transition-all ${active
-    ? 'bg-purple-500 border-purple-500 text-white shadow-md'
-    : 'bg-white dark:bg-[#1a1a1a] border-[#e2e8f0] dark:border-[#374151] text-[#475569] dark:text-[#cbd5e1] hover:border-purple-300'}`;
-const input = 'px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-xl bg-white dark:bg-[#1a1a1a] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-purple-500 focus:outline-none';
+const card = 'bg-ds-surface rounded-lg border border-ds-border p-6 ';
+const label = 'text-xs font-bold text-ds-soft uppercase tracking-wider mb-2 block';
+const chip = (active: boolean) => `px-3 py-2 rounded-lg text-sm font-bold border transition-all ${active
+    ? 'bg-ds-accent border-ds-accent text-ds-on-accent '
+    : 'bg-ds-surface border-ds-border text-ds-soft hover:border-ds-accent'}`;
+const input = 'px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent focus:outline-none';
 
 export const parseDays = (json: string): boolean[] => {
     try { const d = JSON.parse(json); return Array.isArray(d) && d.length === 7 ? d : [true, true, true, true, true, true, true]; } catch { return [true, true, true, true, true, true, true]; }
@@ -168,10 +168,10 @@ function MultiplierPicker({ value, onChange }: { value: number; onChange: (v: nu
         <div className="flex flex-wrap items-center gap-2">
             {MULTIPLIERS.map(m => <button key={m} type="button" className={chip(value === m)} onClick={() => onChange(m)}>x{m}</button>)}
             <span className="flex items-center gap-2">
-                <span className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.other')}</span>
+                <span className="text-sm text-ds-soft">{t('timerAdvanced.hh.other')}</span>
                 <input type="number" min={1.1} max={10} step={0.5} value={custom ? value : ''} placeholder="x5"
                     onChange={e => { const v = parseFloat(e.target.value); if (!Number.isNaN(v)) onChange(Math.min(10, Math.max(1.1, v))); }}
-                    className={`${input} w-24 ${custom ? 'ring-2 ring-purple-500' : ''}`} />
+                    className={`${input} w-24 ${custom ? 'ring-2 ring-ds-accent' : ''}`} />
             </span>
         </div>
     );
@@ -212,7 +212,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
     const ex = example(f.eventTypes, f.multiplier, p.eventsConfig, t);
 
     const tzLine = (
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] flex items-center gap-1.5">
+        <p className="text-xs text-ds-soft flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
             {t('timerAdvanced.hh.channelClock', { city: tzCity(tz), time: channelClock })}
             {otherTz && <span>· {t('timerAdvanced.hh.yourClock', { time: myClock })}</span>}
@@ -222,7 +222,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
     return (
         <div className="space-y-6">
             {!tz && (
-                <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm">
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-ds-warn text-sm">
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>{t('timerAdvanced.hh.noTimezone')} <button className="underline font-bold" onClick={p.onGoToGeneral}>{t('timerAdvanced.hh.goGeneral')}</button></div>
                 </div>
@@ -232,23 +232,23 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
             <div className={card}>
                 <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
                     <div>
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Zap className="w-5 h-5 text-orange-500" /> {t('timerAdvanced.hh.nowTitle')}</h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{t('timerAdvanced.hh.nowDescription')}</p>
+                        <h3 className="text-xl font-black text-ds-text flex items-center gap-2"><Zap className="w-5 h-5 text-ds-warn" /> {t('timerAdvanced.hh.nowTitle')}</h3>
+                        <p className="text-sm text-ds-soft mt-1">{t('timerAdvanced.hh.nowDescription')}</p>
                     </div>
                     {tz && tzLine}
                 </div>
 
                 {p.manualActive ? (
-                    <div className="p-4 rounded-xl border-2 border-orange-400 bg-orange-50 dark:bg-orange-900/20 flex items-center justify-between gap-4 flex-wrap">
+                    <div className="p-4 rounded-lg border-2 border-ds-warn/40 bg-ds-warn/10 flex items-center justify-between gap-4 flex-wrap">
                         <div>
-                            <p className="font-black text-orange-700 dark:text-orange-300">🔥 {t('timerAdvanced.hh.activeNow', { m: p.manualActiveMultiplier, events: eventsText(p.manualActiveEvents, t) })}</p>
-                            <p className="text-sm text-orange-700/80 dark:text-orange-300/80 mt-1">
+                            <p className="font-black text-ds-warn">🔥 {t('timerAdvanced.hh.activeNow', { m: p.manualActiveMultiplier, events: eventsText(p.manualActiveEvents, t) })}</p>
+                            <p className="text-sm text-ds-warn/80 mt-1">
                                 {p.manualExpiresAt && t('timerAdvanced.hh.endsAt', { time: timeIn(new Date(p.manualExpiresAt), tz), city: tzCity(tz) })}
                                 {otherTz && p.manualExpiresAt && ` (${t('timerAdvanced.hh.yourTime', { time: timeIn(new Date(p.manualExpiresAt), myTz) })})`}
                                 {p.manualCountdown && ` · ${t('timerAdvanced.hh.remaining', { time: p.manualCountdown })}`}
                             </p>
                         </div>
-                        <button onClick={p.onManualDeactivate} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm">{t('timerAdvanced.deactivate')}</button>
+                        <button onClick={p.onManualDeactivate} className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold text-sm">{t('timerAdvanced.deactivate')}</button>
                     </div>
                 ) : (
                     <div className="space-y-5">
@@ -266,7 +266,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                 ))}
                                 <span className="flex items-center gap-2">
                                     <button type="button" className={chip(untilMode)} onClick={() => setUntilMode(true)}>{t('timerAdvanced.hh.until')}</button>
-                                    <input type="time" value={untilTime} onChange={e => { setUntilTime(e.target.value); setUntilMode(true); }} className={`${input} ${untilMode ? 'ring-2 ring-purple-500' : ''}`} />
+                                    <input type="time" value={untilTime} onChange={e => { setUntilTime(e.target.value); setUntilMode(true); }} className={`${input} ${untilMode ? 'ring-2 ring-ds-accent' : ''}`} />
                                 </span>
                             </div>
                         </div>
@@ -274,12 +274,12 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                             <span className={label}>{t('timerAdvanced.hh.q.whichEvents')}</span>
                             <EventPicker value={p.manualEvents} onChange={p.setManualEvents} />
                         </div>
-                        <div className="flex items-center justify-between gap-4 flex-wrap p-4 rounded-xl bg-[#f8fafc] dark:bg-[#262626]">
-                            <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                        <div className="flex items-center justify-between gap-4 flex-wrap p-4 rounded-lg bg-ds-bg">
+                            <p className="text-sm text-ds-text">
                                 {t('timerAdvanced.hh.manualSummary', { m: p.manualMultiplier, events: eventsText(p.manualEvents, t), duration: formatDuration(manualMinutes, t), time: timeIn(manualEnd, tz) })}
                                 {otherTz && ` (${t('timerAdvanced.hh.yourTime', { time: timeIn(manualEnd, myTz) })})`}
                             </p>
-                            <button onClick={p.onManualActivate} className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl font-bold shadow-md">
+                            <button onClick={p.onManualActivate} className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold">
                                 {t('timerAdvanced.hh.activateNow')}
                             </button>
                         </div>
@@ -291,27 +291,27 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
             <div className={card}>
                 <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
                     <div>
-                        <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('timerAdvanced.happyHourMultiplier')}</h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{t('timerAdvanced.hh.scheduledDescription')}</p>
+                        <h3 className="text-xl font-black text-ds-text">{t('timerAdvanced.happyHourMultiplier')}</h3>
+                        <p className="text-sm text-ds-soft mt-1">{t('timerAdvanced.hh.scheduledDescription')}</p>
                     </div>
                     {!p.showCreateHappyHourModal && (
-                        <button onClick={p.onPrepareCreate} disabled={!tz} className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white rounded-xl font-bold shadow-md">
+                        <button onClick={p.onPrepareCreate} disabled={!tz} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold">
                             <Plus className="w-4 h-4" /> {t('timerAdvanced.newHappyHour')}
                         </button>
                     )}
                 </div>
 
                 {p.showCreateHappyHourModal && (
-                    <div className="mb-6 rounded-2xl border-2 border-purple-500/30 bg-[#f8fafc] dark:bg-[#262626] p-5 space-y-6">
+                    <div className="mb-6 rounded-lg border-2 border-ds-accent/30 bg-ds-bg p-5 space-y-6">
                         <div className="flex items-center justify-between gap-3">
-                            <h4 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">{p.isEditingHappyHour ? t('timerAdvanced.hh.editTitle') : t('timerAdvanced.hh.newTitle')}</h4>
+                            <h4 className="text-lg font-bold text-ds-text">{p.isEditingHappyHour ? t('timerAdvanced.hh.editTitle') : t('timerAdvanced.hh.newTitle')}</h4>
                             {tzLine}
                         </div>
 
                         <div>
                             <span className={label}>1. {t('timerAdvanced.hh.q.howMuch')}</span>
                             <MultiplierPicker value={f.multiplier} onChange={v => setF({ multiplier: v })} />
-                            {ex && <p className="text-sm text-purple-700 dark:text-purple-300 mt-2">{ex}</p>}
+                            {ex && <p className="text-sm text-ds-accent-text mt-2">{ex}</p>}
                         </div>
 
                         <div>
@@ -352,45 +352,45 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                 ))}
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
-                                <label className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.from')}</label>
+                                <label className="text-sm text-ds-soft">{t('timerAdvanced.hh.from')}</label>
                                 <input type="time" value={f.startTime} onChange={e => setF({ startTime: e.target.value })} className={input} />
-                                <label className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.to')}</label>
+                                <label className="text-sm text-ds-soft">{t('timerAdvanced.hh.to')}</label>
                                 <input type="time" value={f.endTime} onChange={e => setF({ endTime: e.target.value })} className={input} />
                             </div>
                             {crossesMidnight(f) && !sameTime && (
-                                <p className="text-sm text-blue-700 dark:text-blue-300">🌙 {t('timerAdvanced.hh.crossesMidnight', { time: f.endTime })}</p>
+                                <p className="text-sm text-ds-accent-text">🌙 {t('timerAdvanced.hh.crossesMidnight', { time: f.endTime })}</p>
                             )}
                         </div>
 
                         <div>
                             <span className={label}>4. {t('timerAdvanced.hh.q.name')}</span>
                             <input type="text" value={f.name} onChange={e => setF({ name: e.target.value })} placeholder={suggestHappyHourName(f, t)} className={`${input} w-full`} maxLength={100} />
-                            <p className="text-xs text-[#94a3b8] mt-1">{t('timerAdvanced.hh.nameHint')}</p>
+                            <p className="text-xs text-ds-soft mt-1">{t('timerAdvanced.hh.nameHint')}</p>
                         </div>
 
                         {/* Resumen y avisos */}
-                        <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 space-y-2">
+                        <div className="p-4 rounded-lg bg-ds-accent/10 border border-ds-accent space-y-2">
                             {sameTime ? (
-                                <p className="text-sm font-bold text-red-600 dark:text-red-400">{t('timerAdvanced.hh.errorSameTime')}</p>
+                                <p className="text-sm font-bold text-ds-danger">{t('timerAdvanced.hh.errorSameTime')}</p>
                             ) : noDays ? (
-                                <p className="text-sm font-bold text-red-600 dark:text-red-400">{t('timerAdvanced.hh.errorNoDays')}</p>
+                                <p className="text-sm font-bold text-ds-danger">{t('timerAdvanced.hh.errorNoDays')}</p>
                             ) : (
                                 <>
-                                    <p className="text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                    <p className="text-sm text-ds-text">
                                         {t('timerAdvanced.hh.summary', { days: capitalize(daysPhrase(f.daysOfWeek, t)), start: f.startTime, end: f.endTime, city: tzCity(tz), events: eventsText(f.eventTypes, t), m: f.multiplier })}
                                     </p>
-                                    {next && <p className="text-sm font-bold text-purple-700 dark:text-purple-300">{isActiveNow(f, tz) ? t('timerAdvanced.hh.wouldBeActive') : t('timerAdvanced.hh.nextStart', { day: nextText, time: f.startTime })}</p>}
+                                    {next && <p className="text-sm font-bold text-ds-accent-text">{isActiveNow(f, tz) ? t('timerAdvanced.hh.wouldBeActive') : t('timerAdvanced.hh.nextStart', { day: nextText, time: f.startTime })}</p>}
                                 </>
                             )}
                             {overlapping.length > 0 && (
-                                <p className="text-sm text-amber-700 dark:text-amber-300">⚠️ {t('timerAdvanced.hh.overlap', { names: overlapping.map(h => h.name).join(', ') })}</p>
+                                <p className="text-sm text-ds-warn">⚠️ {t('timerAdvanced.hh.overlap', { names: overlapping.map(h => h.name).join(', ') })}</p>
                             )}
                         </div>
 
                         <div className="flex justify-end gap-2">
-                            <button onClick={p.onResetForm} className="px-4 py-2.5 rounded-xl font-bold text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={p.onResetForm} className="px-4 py-2.5 rounded-lg font-bold text-ds-soft hover:bg-ds-raised">{t('timerAdvanced.cancel')}</button>
                             <button onClick={p.isEditingHappyHour ? p.onEditHappyHour : p.onCreateHappyHour} disabled={sameTime || noDays}
-                                className="px-5 py-2.5 bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white rounded-xl font-bold shadow-md">
+                                className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold">
                                 {p.isEditingHappyHour ? t('timerAdvanced.saveChanges') : t('timerAdvanced.hh.create')}
                             </button>
                         </div>
@@ -398,12 +398,12 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                 )}
 
                 {p.loadingHappyHours ? (
-                    <p className="text-sm text-[#94a3b8]">{t('timerAdvanced.loadingSchedules')}</p>
+                    <p className="text-sm text-ds-soft">{t('timerAdvanced.loadingSchedules')}</p>
                 ) : p.happyHours.length === 0 ? (
                     !p.showCreateHappyHourModal && (
-                        <div className="text-center py-10 rounded-xl border-2 border-dashed border-[#e2e8f0] dark:border-[#374151]">
+                        <div className="text-center py-10 rounded-lg border-2 border-dashed border-ds-border">
                             <p className="text-4xl mb-2">🎉</p>
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('timerAdvanced.hh.empty')}</p>
+                            <p className="text-sm text-ds-soft">{t('timerAdvanced.hh.empty')}</p>
                         </div>
                     )
                 ) : (
@@ -415,31 +415,31 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                             const n = h.enabled && !active ? nextStart(sched, tz) : null;
                             const nText = n ? (n.inDays === 0 ? t('timerAdvanced.hh.today') : n.inDays === 1 ? t('timerAdvanced.hh.tomorrow') : t(`timerAdvanced.hh.days.long.${n.dow}`)) : '';
                             return (
-                                <div key={h.id} className={`p-4 rounded-xl border ${active ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20' : 'border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626]'} ${h.enabled ? '' : 'opacity-60'}`}>
+                                <div key={h.id} className={`p-4 rounded-lg border ${active ? 'border-ds-accent bg-ds-accent/10 ' : 'border-ds-border bg-ds-bg '} ${h.enabled ? '' : 'opacity-60'}`}>
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
-                                            <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{h.name}</p>
-                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">
-                                                <span className="font-black text-purple-600 dark:text-purple-400">x{h.multiplier}</span> · {daysPhrase(days, t)} · {h.startTime}–{h.endTime}{crossesMidnight(sched) ? ` (${t('timerAdvanced.hh.nextDay')})` : ''}
+                                            <p className="font-bold text-ds-text truncate">{h.name}</p>
+                                            <p className="text-sm text-ds-soft mt-0.5">
+                                                <span className="font-black text-ds-accent-text">x{h.multiplier}</span> · {daysPhrase(days, t)} · {h.startTime}–{h.endTime}{crossesMidnight(sched) ? ` (${t('timerAdvanced.hh.nextDay')})` : ''}
                                             </p>
-                                            <p className="text-xs text-[#94a3b8] mt-0.5">{eventsText(h.eventTypes, t)}</p>
+                                            <p className="text-xs text-ds-soft mt-0.5">{eventsText(h.eventTypes, t)}</p>
                                         </div>
                                         <button
                                             onClick={() => p.onToggleHappyHour(h.id, !h.enabled)}
                                             title={h.enabled ? t('timerAdvanced.deactivate') : t('timerAdvanced.hh.turnOn')}
-                                            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${h.enabled ? 'bg-purple-500' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`}
+                                            className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${h.enabled ? 'bg-ds-accent' : 'bg-ds-border '}`}
                                         >
-                                            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${h.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                                            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-ds-surface shadow transition-transform ${h.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                                         </button>
                                     </div>
                                     <div className="flex items-center justify-between gap-2 mt-3">
-                                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${active ? 'bg-purple-500 text-white' : 'bg-[#e2e8f0] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}>
+                                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${active ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}>
                                             {!h.enabled ? t('timerAdvanced.inactive') : active ? `🔥 ${t('timerAdvanced.hh.statusActive')}` : n ? t('timerAdvanced.hh.statusNext', { day: nText, time: h.startTime }) : '—'}
                                         </span>
                                         <div className="flex gap-1">
-                                            <button onClick={() => p.onPrepareEdit(h)} className="p-2 rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#64748b]" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
-                                            <button onClick={() => p.onDuplicate(h)} className="p-2 rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#64748b]" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>
-                                            <button onClick={() => p.onDeleteHappyHour(h.id)} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500" title={t('timerAdvanced.hh.delete')}><Trash2 className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onPrepareEdit(h)} className="p-2 rounded-lg hover:bg-ds-raised text-ds-soft" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onDuplicate(h)} className="p-2 rounded-lg hover:bg-ds-raised text-ds-soft" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onDeleteHappyHour(h.id)} className="p-2 rounded-lg hover:bg-ds-danger/10 text-ds-danger" title={t('timerAdvanced.hh.delete')}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     </div>
                                 </div>

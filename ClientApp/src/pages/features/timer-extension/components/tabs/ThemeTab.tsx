@@ -147,14 +147,14 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Info Card */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                    <Palette className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8] mt-0.5 flex-shrink-0" />
+                    <Palette className="w-5 h-5 text-ds-soft mt-0.5 flex-shrink-0" />
                     <div>
-                        <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-1">
+                        <p className="text-sm font-semibold text-ds-text mb-1">
                             Apariencia del Contenedor
                         </p>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             Define el estilo visual completo. Los presets aplicarán colores al texto y la barra de progreso.
                         </p>
                     </div>
@@ -162,9 +162,9 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
             </div>
 
             {/* Presets Rápidos */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-yellow-500" />
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-ds-warn" />
                     Temas Completos (Fondo + Texto + Barra)
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -172,14 +172,14 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                         <button
                             key={theme.id}
                             onClick={() => handlePresetClick(theme.data)}
-                            className="group relative flex flex-col items-center gap-3 p-3 rounded-2xl border-2 border-transparent hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all transform hover:-translate-y-1"
+                            className="group relative flex flex-col items-center gap-3 p-3 rounded-lg border-2 border-transparent hover:border-ds-accent hover:bg-ds-accent/10 transition-all transform hover:-translate-y-1"
                         >
                             {/* Visualización del Preset */}
-                            <div className="w-full aspect-video rounded-xl shadow-md overflow-hidden flex ring-1 ring-black/5 dark:ring-white/10 relative" 
+                            <div className="w-full aspect-video rounded-lg overflow-hidden flex ring-1 ring-ds-border/5 relative" 
                                  style={{ backgroundColor: theme.previewColors[0] }}>
                                 
                                 {/* Simulación de Barra de Progreso */}
-                                <div className="absolute bottom-2 left-2 right-2 h-2 rounded-full overflow-hidden bg-white/10">
+                                <div className="absolute bottom-2 left-2 right-2 h-2 rounded-full overflow-hidden bg-ds-surface/10">
                                     <div className="h-full w-2/3" style={{ backgroundColor: theme.previewColors[2] }}></div>
                                 </div>
                                 
@@ -189,7 +189,7 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                 </div>
                             </div>
                             
-                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                            <span className="text-xs font-bold text-ds-soft group-hover:text-ds-accent-text">
                                 {theme.name}
                             </span>
                         </button>
@@ -198,15 +198,15 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
             </div>
 
             {/* Configuración de Fondo */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-6 flex items-center gap-2">
-                    <Layout className="w-4 h-4 text-blue-500" />
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-6 flex items-center gap-2">
+                    <Layout className="w-4 h-4 text-ds-accent-text" />
                     Ajuste Manual del Fondo
                 </h3>
 
                 <div className="space-y-6">
                     {/* Selector de Modo */}
-                    <div className="flex bg-[#f1f5f9] dark:bg-[#0f172a] p-1 rounded-xl">
+                    <div className="flex bg-ds-raised p-1 rounded-lg">
                         <button
                             onClick={() => onThemeConfigChange({ 
                                 mode: 'transparent',
@@ -215,8 +215,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                             })}
                             className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                                 isTransparent
-                                    ? 'bg-white dark:bg-[#262626] text-blue-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                    ? 'bg-ds-surface text-ds-accent-text '
+                                    : 'text-ds-soft hover:text-ds-soft '
                             }`}
                         >
                             <div className="w-3 h-3 rounded-full border border-current bg-transparent" />
@@ -230,8 +230,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                             })}
                             className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                                 !isTransparent
-                                    ? 'bg-white dark:bg-[#262626] text-blue-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                    ? 'bg-ds-surface text-ds-accent-text '
+                                    : 'text-ds-soft hover:text-ds-soft '
                             }`}
                         >
                             <div className="w-3 h-3 rounded-full bg-current" />
@@ -244,13 +244,13 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                         <div className="space-y-5 animate-in fade-in slide-in-from-top-2">
                             
                             {/* Tabs Color vs Imagen */}
-                            <div className="flex p-1 bg-gray-100 dark:bg-[#202020] rounded-lg mb-4">
+                            <div className="flex p-1 bg-ds-bg rounded-lg mb-4">
                                 <button
                                     onClick={() => handleColorUpdate('#000000')}
                                     className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
                                         !isImageMode 
-                                            ? 'bg-white dark:bg-[#262626] text-blue-600 shadow-sm' 
-                                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                                            ? 'bg-ds-surface text-ds-accent-text ' 
+                                            : 'text-ds-soft hover:text-ds-soft '
                                     }`}
                                 >
                                     Color Sólido
@@ -259,8 +259,8 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                     onClick={() => handleImageUpdate('')}
                                     className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
                                         isImageMode 
-                                            ? 'bg-white dark:bg-[#262626] text-blue-600 shadow-sm' 
-                                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                                            ? 'bg-ds-surface text-ds-accent-text ' 
+                                            : 'text-ds-soft hover:text-ds-soft '
                                     }`}
                                 >
                                     Imagen / GIF
@@ -271,7 +271,7 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                 /* Controles de Imagen */
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                        <label className="text-xs font-bold text-ds-soft block mb-2">
                                             Origen de la Imagen
                                         </label>
                                         <MediaInputWithSelector
@@ -286,16 +286,16 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                     {/* Efectos de Imagen (Simulados en UI por ahora, idealmente en ThemeConfig) */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Blur (Desenfoque)</label>
-                                            <input type="range" min="0" max="20" defaultValue="0" className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                                            <label className="text-xs font-bold text-ds-soft block mb-2">Blur (Desenfoque)</label>
+                                            <input type="range" min="0" max="20" defaultValue="0" className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent" />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Oscurecer Fondo</label>
-                                            <input type="range" min="0" max="100" defaultValue="0" className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                                            <label className="text-xs font-bold text-ds-soft block mb-2">Oscurecer Fondo</label>
+                                            <input type="range" min="0" max="100" defaultValue="0" className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent" />
                                         </div>
                                     </div>
 
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                                    <div className="p-3 bg-ds-accent/10 rounded-lg text-xs text-ds-accent-text flex items-center gap-2">
                                         <Zap className="w-4 h-4" />
                                         <span>Tip: Usa GIFs animados para fondos dinámicos estilo cyberpunk.</span>
                                     </div>
@@ -303,11 +303,11 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                             ) : (
                                 /* Controles de Color */
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                    <label className="text-xs font-bold text-ds-soft block mb-2">
                                         Color de Fondo
                                     </label>
                                     <div className="flex items-center gap-3">
-                                        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 shadow-sm cursor-pointer hover:scale-105 transition-transform">
+                                        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-ds-border cursor-pointer hover:scale-105 transition-transform">
                                             <input
                                                 type="color"
                                                 value={themeConfig.containerBackground.startsWith('url') ? '#000000' : themeConfig.containerBackground}
@@ -319,19 +319,19 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                             type="text"
                                             value={themeConfig.containerBackground.startsWith('url') ? '#000000' : themeConfig.containerBackground}
                                             onChange={(e) => onThemeConfigChange({ containerBackground: e.target.value })}
-                                            className="w-32 px-3 py-2 text-sm border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-mono uppercase"
+                                            className="w-32 px-3 py-2 text-sm border border-ds-border rounded-lg bg-ds-surface text-ds-text font-mono uppercase"
                                         />
                                     </div>
                                 </div>
                             )}
 
                             {/* Opacidad (Común) */}
-                            <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <div className="pt-4 border-t border-ds-border">
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] flex items-center gap-2">
+                                    <label className="text-xs font-bold text-ds-soft flex items-center gap-2">
                                         <Droplets className="w-3 h-3" /> Opacidad / Transparencia
                                     </label>
-                                    <span className="text-xs font-mono font-bold text-[#2563eb] dark:text-[#60a5fa]">
+                                    <span className="text-xs font-mono font-bold text-ds-accent-text">
                                         {themeConfig.containerOpacity}%
                                     </span>
                                 </div>
@@ -341,7 +341,7 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                     max="100"
                                     value={themeConfig.containerOpacity}
                                     onChange={(e) => onThemeConfigChange({ containerOpacity: Number(e.target.value) })}
-                                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                    className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
                                 />
                             </div>
                         </div>

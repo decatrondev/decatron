@@ -29,7 +29,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) =>
             onChange={(e) => onChange(e.target.checked)}
             className="sr-only peer"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
     </label>
 );
 
@@ -128,8 +128,8 @@ const AlertGlobalPreview: React.FC<{
     return (
         <div className="space-y-4">
             {/* Canvas Interactivo */}
-            <div className="w-full bg-[#0f172a] rounded-xl border border-[#334155] overflow-hidden relative select-none">
-                <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-black/50 rounded text-[10px] font-mono text-gray-400 pointer-events-none">
+            <div className="w-full bg-ds-bg rounded-lg border border-ds-border overflow-hidden relative select-none">
+                <div className="absolute top-2 left-2 z-10 px-2 py-1 bg-ds-input/50 rounded text-[10px] font-mono text-ds-soft pointer-events-none">
                     Arrastra para mover • Esquinas para tamaño
                 </div>
                 <div 
@@ -179,7 +179,7 @@ const AlertGlobalPreview: React.FC<{
                             {/* Icono */}
                             {showIcon && (
                                 <div 
-                                    className="flex-shrink-0 flex items-center justify-center bg-black/20"
+                                    className="flex-shrink-0 flex items-center justify-center bg-ds-input/20"
                                     style={{ 
                                         fontSize: `${iconSize * 0.6}px`, // Emoji scale relative to box
                                         width: `${iconSize}px`,
@@ -209,7 +209,7 @@ const AlertGlobalPreview: React.FC<{
                                 <div
                                     key={h}
                                     onMouseDown={(e) => handleMouseDown(e, 'resize', h)}
-                                    className={`absolute w-4 h-4 bg-white border border-blue-500 rounded-full z-20 
+                                    className={`absolute w-4 h-4 bg-ds-surface border border-ds-accent rounded-full z-20 
                                         ${h === 'nw' ? '-top-2 -left-2 cursor-nw-resize' : ''}
                                         ${h === 'ne' ? '-top-2 -right-2 cursor-ne-resize' : ''}
                                         ${h === 'sw' ? '-bottom-2 -left-2 cursor-sw-resize' : ''}
@@ -220,7 +220,7 @@ const AlertGlobalPreview: React.FC<{
                             
                             {/* Medidas Overlay */}
                             {(isDragging || isResizing) && (
-                                <div className="absolute -top-6 left-0 bg-blue-600 text-white text-[10px] px-1 rounded font-mono whitespace-nowrap pointer-events-none">
+                                <div className="absolute -top-6 left-0 bg-ds-accent text-ds-on-accent text-[10px] px-1 rounded font-mono whitespace-nowrap pointer-events-none">
                                     X:{config.position.x} Y:{config.position.y} | {config.size.width}x{config.size.height}
                                 </div>
                             )}
@@ -369,13 +369,13 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
         <div className="space-y-6">
             
             {/* 1. SELECCIÓN DE EVENTO (Ahora es lo primero) */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                    <h3 className="text-sm font-bold text-ds-text">
                         🎯 Seleccionar Evento
                     </h3>
-                    <div className="flex items-center gap-3 bg-[#f8fafc] dark:bg-[#262626] px-3 py-1.5 rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                        <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                    <div className="flex items-center gap-3 bg-ds-bg px-3 py-1.5 rounded-lg border border-ds-border">
+                        <span className="text-xs font-bold text-ds-soft">
                             SISTEMA DE ALERTAS: {alertsConfig.enabled ? 'ACTIVADO' : 'APAGADO'}
                         </span>
                         <ToggleSwitch
@@ -390,10 +390,10 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                         <button
                             key={event.type}
                             onClick={() => setSelectedEvent(event.type)}
-                            className={`p-3 rounded-xl text-xs font-bold transition-all border-2 flex flex-col items-center gap-2 ${
+                            className={`p-3 rounded-lg text-xs font-bold transition-all border-2 flex flex-col items-center gap-2 ${
                                 selectedEvent === event.type
-                                    ? 'bg-[#64748b] text-white border-[#64748b] shadow-md'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] border-transparent text-[#64748b] dark:text-[#94a3b8] hover:border-[#94a3b8]'
+                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent '
+                                    : 'bg-ds-bg border-transparent text-ds-soft hover:border-ds-faint'
                             }`}
                         >
                             <span className="text-xl">{event.icon}</span>
@@ -406,27 +406,27 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
             {alertsConfig.enabled && (
                 <>
                     {/* 2. ESTILOS GLOBALES (Ahora en el medio) */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-sm overflow-hidden">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                         <button
                             onClick={() => setExpandedGlobal(!expandedGlobal)}
-                            className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
+                            className="w-full px-6 py-4 flex items-center justify-between hover:bg-ds-bg transition-colors"
                         >
                             <div className="flex items-center gap-3">
                                 <span className="text-lg">🎨</span>
                                 <div className="text-left">
-                                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <h3 className="text-sm font-bold text-ds-text">
                                         Estilos Globales
                                     </h3>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-xs text-ds-soft">
                                         Configuración visual base para todas las alertas
                                     </p>
                                 </div>
                             </div>
-                            {expandedGlobal ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                            {expandedGlobal ? <ChevronUp className="w-5 h-5 text-ds-soft" /> : <ChevronDown className="w-5 h-5 text-ds-soft" />}
                         </button>
 
                         {expandedGlobal && (
-                            <div className="p-6 pt-0 border-t border-[#e2e8f0] dark:border-[#374151] space-y-6">
+                            <div className="p-6 pt-0 border-t border-ds-border space-y-6">
                                 {/* Visual Preview */}
                                 <div className="mt-6">
                                     <AlertGlobalPreview 
@@ -440,40 +440,40 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 {/* Posición y Tamaño */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">POSICIÓN (X, Y)</label>
+                                        <label className="text-xs font-bold text-ds-soft block mb-3">POSICIÓN (X, Y)</label>
                                         <div className="grid grid-cols-2 gap-3">
                                             <input
                                                 type="number"
                                                 placeholder="X"
                                                 value={alertsConfig.global.position.x}
                                                 onChange={(e) => updateGlobalConfig({ position: { ...alertsConfig.global.position, x: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                             />
                                             <input
                                                 type="number"
                                                 placeholder="Y"
                                                 value={alertsConfig.global.position.y}
                                                 onChange={(e) => updateGlobalConfig({ position: { ...alertsConfig.global.position, y: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">TAMAÑO (Ancho, Alto)</label>
+                                        <label className="text-xs font-bold text-ds-soft block mb-3">TAMAÑO (Ancho, Alto)</label>
                                         <div className="grid grid-cols-2 gap-3">
                                             <input
                                                 type="number"
                                                 placeholder="W"
                                                 value={alertsConfig.global.size.width}
                                                 onChange={(e) => updateGlobalConfig({ size: { ...alertsConfig.global.size, width: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                             />
                                             <input
                                                 type="number"
                                                 placeholder="H"
                                                 value={alertsConfig.global.size.height}
                                                 onChange={(e) => updateGlobalConfig({ size: { ...alertsConfig.global.size, height: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                             />
                                         </div>
                                     </div>
@@ -483,8 +483,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <div className="flex justify-between mb-2">
-                                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">DURACIÓN BASE</label>
-                                            <span className="text-xs font-mono text-[#1e293b] dark:text-[#f8fafc]">{alertsConfig.global.duration}ms</span>
+                                            <label className="text-xs font-bold text-ds-soft">DURACIÓN BASE</label>
+                                            <span className="text-xs font-mono text-ds-text">{alertsConfig.global.duration}ms</span>
                                         </div>
                                         <input
                                             type="range"
@@ -493,15 +493,15 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                             step="500"
                                             value={alertsConfig.global.duration}
                                             onChange={(e) => updateGlobalConfig({ duration: Number(e.target.value) })}
-                                            className="w-full accent-[#64748b]"
+                                            className="w-full accent-ds-accent"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">FUENTE</label>
+                                        <label className="text-xs font-bold text-ds-soft block mb-3">FUENTE</label>
                                         <select
                                             value={alertsConfig.global.style.fontFamily}
                                             onChange={(e) => updateGlobalConfig({ style: { ...alertsConfig.global.style, fontFamily: e.target.value } })}
-                                            className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                         >
                                             <option value="Inter">Inter</option>
                                             <option value="Poppins">Poppins</option>
@@ -513,9 +513,9 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 </div>
 
                                 {/* Configuración de Icono Global */}
-                                <div className="p-4 bg-gray-50 dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#374151]">
+                                <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
                                     <div className="flex items-center justify-between mb-3">
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">
+                                        <label className="text-xs font-bold text-ds-soft uppercase tracking-wider">
                                             Estilo de Icono
                                         </label>
                                         <ToggleSwitch
@@ -529,8 +529,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                             {/* Tamaño */}
                                             <div>
                                                 <div className="flex justify-between mb-1">
-                                                    <p className="text-[10px] font-bold text-gray-500">TAMAÑO</p>
-                                                    <span className="text-[10px] font-mono text-gray-400">{alertsConfig.global.style.iconSize || 50}px</span>
+                                                    <p className="text-[10px] font-bold text-ds-soft">TAMAÑO</p>
+                                                    <span className="text-[10px] font-mono text-ds-soft">{alertsConfig.global.style.iconSize || 50}px</span>
                                                 </div>
                                                 <input
                                                     type="range"
@@ -538,14 +538,14 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                     max="150"
                                                     value={alertsConfig.global.style.iconSize || 50}
                                                     onChange={(e) => updateGlobalConfig({ style: { ...alertsConfig.global.style, iconSize: Number(e.target.value) } })}
-                                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500"
+                                                    className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
                                                 />
                                             </div>
 
                                             {/* Forma */}
                                             <div>
-                                                <p className="text-[10px] font-bold text-gray-500 mb-1">FORMA</p>
-                                                <div className="flex bg-white dark:bg-[#1a1a1a] rounded-lg border border-[#e2e8f0] dark:border-[#374151] p-1">
+                                                <p className="text-[10px] font-bold text-ds-soft mb-1">FORMA</p>
+                                                <div className="flex bg-ds-surface rounded-lg border border-ds-border p-1">
                                                     {[
                                                         { val: 'square', icon: '⬛' },
                                                         { val: 'rounded', icon: '▢' },
@@ -556,8 +556,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                             onClick={() => updateGlobalConfig({ style: { ...alertsConfig.global.style, iconShape: opt.val } })}
                                                             className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
                                                                 (alertsConfig.global.style.iconShape || 'rounded') === opt.val
-                                                                    ? 'bg-blue-500 text-white shadow-sm'
-                                                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-[#333]'
+                                                                    ? 'bg-ds-accent text-ds-on-accent '
+                                                                    : 'text-ds-soft hover:bg-ds-bg '
                                                             }`}
                                                         >
                                                             {opt.icon}
@@ -570,16 +570,16 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 </div>
 
                                 {/* Layout Interno */}
-                                <div className="p-4 bg-gray-50 dark:bg-[#262626] rounded-xl border border-gray-200 dark:border-[#374151]">
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider block mb-3">
+                                <div className="p-4 bg-ds-surface rounded-lg border border-ds-border">
+                                    <label className="text-xs font-bold text-ds-soft uppercase tracking-wider block mb-3">
                                         Diseño Interno
                                     </label>
                                     
                                     <div className="space-y-4">
                                         {/* Dirección */}
                                         <div>
-                                            <p className="text-[10px] font-bold text-gray-500 mb-1">DIRECCIÓN</p>
-                                            <div className="flex bg-white dark:bg-[#1a1a1a] rounded-lg border border-[#e2e8f0] dark:border-[#374151] p-1">
+                                            <p className="text-[10px] font-bold text-ds-soft mb-1">DIRECCIÓN</p>
+                                            <div className="flex bg-ds-surface rounded-lg border border-ds-border p-1">
                                                 {[
                                                     { val: 'column', label: '⬇️ Vertical', title: 'Icono Arriba' },
                                                     { val: 'row', label: '➡️ Horiz.', title: 'Icono Izquierda' },
@@ -592,8 +592,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                         title={opt.title}
                                                         className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
                                                             (alertsConfig.global.style.layout || 'column') === opt.val
-                                                                ? 'bg-blue-500 text-white shadow-sm'
-                                                                : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-[#333]'
+                                                                ? 'bg-ds-accent text-ds-on-accent '
+                                                                : 'text-ds-soft hover:bg-ds-bg '
                                                         }`}
                                                     >
                                                         {opt.label}
@@ -605,8 +605,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                         <div className="grid grid-cols-2 gap-4">
                                             {/* Alineación */}
                                             <div>
-                                                <p className="text-[10px] font-bold text-gray-500 mb-1">ALINEACIÓN</p>
-                                                <div className="flex bg-white dark:bg-[#1a1a1a] rounded-lg border border-[#e2e8f0] dark:border-[#374151] p-1">
+                                                <p className="text-[10px] font-bold text-ds-soft mb-1">ALINEACIÓN</p>
+                                                <div className="flex bg-ds-surface rounded-lg border border-ds-border p-1">
                                                     {[
                                                         { val: 'start', icon: '├' },
                                                         { val: 'center', icon: '┼' },
@@ -617,8 +617,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                             onClick={() => updateGlobalConfig({ style: { ...alertsConfig.global.style, align: opt.val } })}
                                                             className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
                                                                 (alertsConfig.global.style.align || 'center') === opt.val
-                                                                    ? 'bg-blue-500 text-white shadow-sm'
-                                                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-[#333]'
+                                                                    ? 'bg-ds-accent text-ds-on-accent '
+                                                                    : 'text-ds-soft hover:bg-ds-bg '
                                                             }`}
                                                         >
                                                             {opt.icon}
@@ -630,8 +630,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                             {/* Espaciado */}
                                             <div>
                                                 <div className="flex justify-between mb-1">
-                                                    <p className="text-[10px] font-bold text-gray-500">ESPACIADO (Gap)</p>
-                                                    <span className="text-[10px] font-mono text-gray-400">{alertsConfig.global.style.gap || 10}px</span>
+                                                    <p className="text-[10px] font-bold text-ds-soft">ESPACIADO (Gap)</p>
+                                                    <span className="text-[10px] font-mono text-ds-soft">{alertsConfig.global.style.gap || 10}px</span>
                                                 </div>
                                                 <input
                                                     type="range"
@@ -639,7 +639,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                     max="50"
                                                     value={alertsConfig.global.style.gap || 10}
                                                     onChange={(e) => updateGlobalConfig({ style: { ...alertsConfig.global.style, gap: Number(e.target.value) } })}
-                                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500"
+                                                    className="w-full h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
                                                 />
                                             </div>
                                         </div>
@@ -649,10 +649,10 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 {/* Volumen Master */}
                                 <div>
                                     <div className="flex justify-between mb-2">
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] flex items-center gap-2">
+                                        <label className="text-xs font-bold text-ds-soft flex items-center gap-2">
                                             <Volume2 className="w-3 h-3" /> VOLUMEN MASTER
                                         </label>
-                                        <span className="text-xs font-mono text-[#1e293b] dark:text-[#f8fafc]">{alertsConfig.globalVolume ?? 100}%</span>
+                                        <span className="text-xs font-mono text-ds-text">{alertsConfig.globalVolume ?? 100}%</span>
                                     </div>
                                     <input
                                         type="range"
@@ -660,7 +660,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                         max="100"
                                         value={alertsConfig.globalVolume ?? 100}
                                         onChange={(e) => onAlertsConfigChange({ globalVolume: Number(e.target.value) })}
-                                        className="w-full accent-[#64748b]"
+                                        className="w-full accent-ds-accent"
                                     />
                                 </div>
                             </div>
@@ -668,14 +668,14 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                     </div>
 
                     {/* 3. CONFIGURACIÓN AVANZADA DEL EVENTO (Lo específico va abajo) */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-sm space-y-6">
-                        <div className="flex items-center justify-between pb-4 border-b border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-6">
+                        <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                             <div>
-                                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-ds-text flex items-center gap-2">
                                     <span className="text-lg">{eventTypes.find(e => e.type === selectedEvent)?.icon}</span>
                                     Configuración Avanzada de {eventTypes.find(e => e.type === selectedEvent)?.label}
                                 </h3>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                <p className="text-xs text-ds-soft mt-1">
                                     Si desactivas esto, se usará el estilo global sin multimedia específica.
                                 </p>
                             </div>
@@ -691,7 +691,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 {/* Fila 1: Mensaje y Duración */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                        <label className="text-xs font-bold text-ds-soft block mb-2">
                                             MENSAJE PERSONALIZADO
                                         </label>
                                         <input
@@ -699,18 +699,18 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                             value={currentDefaultConfig.message || ''}
                                             onChange={(e) => updateEventDefaultConfig(selectedEvent, { message: e.target.value })}
                                             placeholder="Ej: ¡{userName} ha enviado {amount} bits!"
-                                            className="w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm text-[#1e293b] dark:text-[#f8fafc]"
+                                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
                                         />
                                         <div className="flex gap-2 mt-2">
-                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] text-gray-500 font-mono">{'{}'} userName</span>
-                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] text-gray-500 font-mono">{'{}'} amount</span>
-                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px] text-gray-500 font-mono">{'{}'} time</span>
+                                            <span className="px-2 py-0.5 bg-ds-bg rounded text-[10px] text-ds-soft font-mono">{'{}'} userName</span>
+                                            <span className="px-2 py-0.5 bg-ds-bg rounded text-[10px] text-ds-soft font-mono">{'{}'} amount</span>
+                                            <span className="px-2 py-0.5 bg-ds-bg rounded text-[10px] text-ds-soft font-mono">{'{}'} time</span>
                                         </div>
                                     </div>
                                     <div>
                                         <div className="flex justify-between mb-2">
-                                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">DURACIÓN (Segundos)</label>
-                                            <span className="text-xs font-mono text-[#1e293b] dark:text-[#f8fafc]">
+                                            <label className="text-xs font-bold text-ds-soft">DURACIÓN (Segundos)</label>
+                                            <span className="text-xs font-mono text-ds-text">
                                                 {currentDefaultConfig.duration ? `${currentDefaultConfig.duration / 1000}s` : 'Global'}
                                             </span>
                                         </div>
@@ -723,9 +723,9 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 const val = Number(e.target.value);
                                                 updateEventDefaultConfig(selectedEvent, { duration: val === 0 ? null : val * 1000 });
                                             }}
-                                            className="w-full accent-[#64748b]"
+                                            className="w-full accent-ds-accent"
                                         />
-                                        <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] mt-1 text-right">
+                                        <p className="text-[10px] text-ds-soft mt-1 text-right">
                                             0 = Usar configuración global
                                         </p>
                                     </div>
@@ -733,7 +733,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
                                 {/* Fila 2: Icono Custom */}
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                    <label className="text-xs font-bold text-ds-soft block mb-2">
                                         ICONO / IMAGEN
                                     </label>
                                     <div className="flex gap-4">
@@ -743,7 +743,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 value={currentDefaultConfig.icon || ''}
                                                 onChange={(e) => updateEventDefaultConfig(selectedEvent, { icon: e.target.value })}
                                                 placeholder="Emoji"
-                                                className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-center text-lg"
+                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-center text-lg"
                                             />
                                         </div>
                                         <div className="flex-1">
@@ -752,7 +752,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 value={currentDefaultConfig.customIcon || ''}
                                                 onChange={(e) => updateEventDefaultConfig(selectedEvent, { customIcon: e.target.value })}
                                                 placeholder="URL de imagen o GIF"
-                                                className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-sm"
+                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
                                             />
                                         </div>
                                     </div>
@@ -760,7 +760,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
                                 {/* Fila 3: MEDIA PROFESIONAL (MediaEditor) */}
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+                                    <label className="text-xs font-bold text-ds-soft block mb-3">
                                         CONFIGURACIÓN DE MEDIA (AUDIO/VIDEO)
                                     </label>
                                     <MediaEditor
@@ -771,7 +771,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
                                 {/* Fila 4: TTS (Text-to-Speech) */}
                                 <div>
-                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+                                    <label className="text-xs font-bold text-ds-soft block mb-3">
                                         TEXT-TO-SPEECH (TTS)
                                     </label>
                                     <TtsSection
@@ -794,9 +794,9 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 </div>
 
                                 {/* Sección de Variantes (GESTOR COMPLETO) */}
-                                <div className="mt-8 pt-6 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="mt-8 pt-6 border-t border-ds-border">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                        <h4 className="text-sm font-bold text-ds-text flex items-center gap-2">
                                             <Layers className="w-4 h-4" /> Reglas Avanzadas (Variantes)
                                         </h4>
                                     </div>
@@ -813,14 +813,14 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                     </div>
 
                     {/* 5. Área de Pruebas (MEJORADA Y DINÁMICA) */}
-                    <div className="border border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="border border-dashed border-ds-border rounded-lg p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <div className="p-2 bg-[#f1f5f9] dark:bg-[#334155] rounded-lg">
-                                <Play className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                            <div className="p-2 bg-ds-raised rounded-lg">
+                                <Play className="w-5 h-5 text-ds-soft" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Prueba Rápida</h4>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Simula este evento en el overlay</p>
+                                <h4 className="text-sm font-bold text-ds-text">Prueba Rápida</h4>
+                                <p className="text-xs text-ds-soft">Simula este evento en el overlay</p>
                             </div>
                         </div>
 
@@ -829,7 +829,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 type="text"
                                 value={testUsername}
                                 onChange={(e) => setTestUsername(e.target.value)}
-                                className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-xs w-28"
+                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-28"
                                 placeholder="Usuario"
                             />
                             
@@ -839,7 +839,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     <select
                                         value={testTier}
                                         onChange={(e) => setTestTier(e.target.value)}
-                                        className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-xs w-24"
+                                        className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-24"
                                     >
                                         <option value="Prime">Prime</option>
                                         <option value="1000">Tier 1</option>
@@ -851,7 +851,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                         min="1"
                                         value={testMonths}
                                         onChange={(e) => setTestMonths(Number(e.target.value))}
-                                        className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-xs w-16"
+                                        className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-16"
                                         placeholder="Meses"
                                     />
                                 </>
@@ -862,7 +862,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     type="number"
                                     value={testAmount}
                                     onChange={(e) => setTestAmount(Number(e.target.value))}
-                                    className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-xs w-20"
+                                    className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-20"
                                     placeholder={selectedEvent === 'gift' ? 'Subs' : 'Cant.'}
                                 />
                             )}
@@ -872,7 +872,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     type="number"
                                     value={testAmount}
                                     onChange={(e) => setTestAmount(Number(e.target.value))}
-                                    className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-xs w-20"
+                                    className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-20"
                                     placeholder="Nivel"
                                 />
                             )}
@@ -884,7 +884,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     min="1"
                                     value={testAmount}
                                     onChange={(e) => setTestAmount(Number(e.target.value))}
-                                    className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-xs w-20"
+                                    className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-20"
                                     placeholder="$USD"
                                 />
                             )}
@@ -893,17 +893,17 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 title="¡Cuidado! Si activas esto, se sumará tiempo REAL al timer aunque no estés en directo."
                                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
                                     testAddTime 
-                                        ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' 
-                                        : 'bg-[#f8fafc] dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151]'
+                                        ? 'bg-ds-warn/10 border-ds-warn/40 ' 
+                                        : 'bg-ds-bg border-ds-border '
                                 }`}
                             >
                                 <input
                                     type="checkbox"
                                     checked={testAddTime}
                                     onChange={(e) => setTestAddTime(e.target.checked)}
-                                    className="rounded text-orange-500 focus:ring-orange-500 w-3 h-3"
+                                    className="rounded text-ds-warn focus:ring-ds-warn/40 w-3 h-3"
                                 />
-                                <span className={`text-[10px] font-bold ${testAddTime ? 'text-orange-600 dark:text-orange-400' : 'text-gray-500'}`}>
+                                <span className={`text-[10px] font-bold ${testAddTime ? 'text-ds-warn ' : 'text-ds-soft'}`}>
                                     +Real
                                 </span>
                             </label>
@@ -911,10 +911,10 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                             <button
                                 onClick={handleTestEvent}
                                 disabled={isTesting}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold text-white transition-all flex items-center gap-2 ${
-                                    testStatus?.type === 'success' ? 'bg-green-500' :
-                                    testStatus?.type === 'error' ? 'bg-red-500' :
-                                    testAddTime ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#64748b] hover:bg-[#475569]'
+                                className={`px-4 py-2 rounded-lg text-xs font-bold text-ds-text transition-all flex items-center gap-2 ${
+                                    testStatus?.type === 'success' ? 'bg-ds-accent' :
+                                    testStatus?.type === 'error' ? 'bg-ds-danger-solid' :
+                                    testAddTime ? 'bg-ds-warn hover:bg-ds-warn' : 'bg-ds-raised hover:bg-ds-raised'
                                 }`}
                             >
                                 {testStatus ? (

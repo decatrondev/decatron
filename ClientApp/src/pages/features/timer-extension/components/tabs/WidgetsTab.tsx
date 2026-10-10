@@ -23,9 +23,9 @@ const TEXT_SHADOWS = [
     { value: 'glow', label: 'Glow' },
 ];
 
-const inputClass = "w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/50 placeholder-[#94a3b8]";
-const labelClass = "block text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase";
-const selectClass = "w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#1e293b] dark:text-[#f8fafc] [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]";
+const inputClass = "w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft";
+const labelClass = "block text-xs font-bold text-ds-soft mb-1 uppercase";
+const selectClass = "w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface ";
 
 function WidgetEditor({ widget, onChange, label, hideLabelField = false, hideEnableToggle = false }: {
     widget: WidgetItemConfig;
@@ -36,15 +36,15 @@ function WidgetEditor({ widget, onChange, label, hideLabelField = false, hideEna
     hideEnableToggle?: boolean;
 }) {
     return (
-        <div className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4 space-y-3 bg-white dark:bg-[#1B1C1D]">
+        <div className="border border-ds-border rounded-lg p-4 space-y-3 bg-ds-surface">
             <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{label}</span>
+                <span className="text-sm font-bold text-ds-text">{label}</span>
                 {!hideEnableToggle && <button
                     onClick={() => onChange({ enabled: !widget.enabled })}
                     className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                         widget.enabled
-                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                            : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                            ? 'bg-ds-accent/20 text-ds-accent-text border border-ds-accent/30'
+                            : 'bg-ds-bg text-ds-soft border border-ds-border '
                     }`}
                 >
                     {widget.enabled ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -61,7 +61,7 @@ function WidgetEditor({ widget, onChange, label, hideLabelField = false, hideEna
                     <div>
                         <label className={labelClass}>Color</label>
                         <div className="flex gap-2">
-                            <input type="color" value={widget.textColor} onChange={e => onChange({ textColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer border border-[#e2e8f0] dark:border-[#374151]" />
+                            <input type="color" value={widget.textColor} onChange={e => onChange({ textColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer border border-ds-border" />
                             <input type="text" value={widget.textColor} onChange={e => onChange({ textColor: e.target.value })} className={inputClass + " font-mono text-xs"} />
                         </div>
                     </div>
@@ -167,21 +167,21 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-[#2563eb]" />
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Stats en Vivo</h3>
+                        <BarChart3 className="w-5 h-5 text-ds-accent-text" />
+                        <h3 className="text-lg font-bold text-ds-text">Stats en Vivo</h3>
                     </div>
                     <button
                         onClick={() => onWidgetsConfigChange({ stats: { ...stats, enabled: !stats.enabled } })}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                             stats.enabled
-                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                                ? 'bg-ds-accent/20 text-ds-accent-text border border-ds-accent/30'
+                                : 'bg-ds-bg text-ds-soft border border-ds-border '
                         }`}
                     >
                         {stats.enabled ? 'Activado' : 'Desactivado'}
                     </button>
                 </div>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Muestra contadores en vivo de subs, bits, tips y mas en el overlay.</p>
+                <p className="text-sm text-ds-soft">Muestra contadores en vivo de subs, bits, tips y mas en el overlay.</p>
 
                 {stats.enabled && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -195,58 +195,58 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                 )}
             </div>
 
-            <hr className="border-[#e2e8f0] dark:border-[#374151]" />
+            <hr className="border-ds-border" />
 
             {/* Uptime Widget */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-green-500" />
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Uptime (EN VIVO)</h3>
+                        <Clock className="w-5 h-5 text-ds-ok" />
+                        <h3 className="text-lg font-bold text-ds-text">Uptime (EN VIVO)</h3>
                     </div>
                     <button
                         onClick={() => onWidgetsConfigChange({ uptime: { ...uptime, enabled: !uptime.enabled } })}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                             uptime.enabled
-                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                                ? 'bg-ds-accent/20 text-ds-ok border border-ds-ok/40'
+                                : 'bg-ds-bg text-ds-soft border border-ds-border '
                         }`}
                     >
                         {uptime.enabled ? 'Activado' : 'Desactivado'}
                     </button>
                 </div>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Muestra cuanto tiempo lleva corriendo el timer (ej: EN VIVO 153:08:53).</p>
+                <p className="text-sm text-ds-soft">Muestra cuanto tiempo lleva corriendo el timer (ej: EN VIVO 153:08:53).</p>
 
                 {uptime.enabled && (
                     <WidgetEditor widget={uptime} onChange={u => onWidgetsConfigChange({ uptime: { ...uptime, ...u } })} label="Uptime" />
                 )}
             </div>
 
-            <hr className="border-[#e2e8f0] dark:border-[#374151]" />
+            <hr className="border-ds-border" />
 
             {/* Happy Hour Indicator */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Flame className="w-5 h-5 text-orange-500" />
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Indicador Happy Hour</h3>
+                        <Flame className="w-5 h-5 text-ds-warn" />
+                        <h3 className="text-lg font-bold text-ds-text">Indicador Happy Hour</h3>
                     </div>
                     <button
                         onClick={() => onWidgetsConfigChange({ happyHour: { ...happyHour, enabled: !happyHour.enabled } })}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                             happyHour.enabled
-                                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                                ? 'bg-ds-warn/20 text-ds-warn border border-ds-warn/40'
+                                : 'bg-ds-bg text-ds-soft border border-ds-border '
                         }`}
                     >
                         {happyHour.enabled ? 'Activado' : 'Desactivado'}
                     </button>
                 </div>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Muestra un indicador visual cuando Happy Hour esta activo (ej: HAPPY HOUR x2 | Termina en 39:57).</p>
+                <p className="text-sm text-ds-soft">Muestra un indicador visual cuando Happy Hour esta activo (ej: HAPPY HOUR x2 | Termina en 39:57).</p>
 
                 {happyHour.enabled && (
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3">
-                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                    <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg p-3">
+                        <p className="text-xs text-ds-warn">
                             <strong>Ojo:</strong> en tu overlay real este cartel aparece <strong>solo mientras haya un Happy Hour corriendo</strong>. Si lo configurás y no lo ves, no está roto: no hay ninguno activo. Para verlo y acomodarlo ahora mismo, usá el botón <strong>🔥 Simular Happy Hour</strong> de la vista previa.
                         </p>
                     </div>
@@ -262,7 +262,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                             <div>
                                 <label className={labelClass}>Color texto</label>
                                 <div className="flex gap-2">
-                                    <input type="color" value={happyHour.textColor} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, textColor: e.target.value } })} className="w-8 h-8 rounded cursor-pointer border border-[#e2e8f0] dark:border-[#374151]" />
+                                    <input type="color" value={happyHour.textColor} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, textColor: e.target.value } })} className="w-8 h-8 rounded cursor-pointer border border-ds-border" />
                                     <input type="text" value={happyHour.textColor} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, textColor: e.target.value } })} className={inputClass + " font-mono text-xs"} />
                                 </div>
                             </div>
@@ -298,51 +298,51 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
 
                         <div className="flex gap-4">
                             <label className="flex items-center gap-2 cursor-pointer py-2">
-                                <input type="checkbox" checked={happyHour.showMultiplier} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, showMultiplier: e.target.checked } })} className="w-4 h-4 rounded border-[#e2e8f0] dark:border-[#374151] text-[#2563eb] focus:ring-[#2563eb]" />
-                                <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">Mostrar multiplicador (x2)</span>
+                                <input type="checkbox" checked={happyHour.showMultiplier} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, showMultiplier: e.target.checked } })} className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent" />
+                                <span className="text-sm text-ds-text">Mostrar multiplicador (x2)</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer py-2">
-                                <input type="checkbox" checked={happyHour.showCountdown} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, showCountdown: e.target.checked } })} className="w-4 h-4 rounded border-[#e2e8f0] dark:border-[#374151] text-[#2563eb] focus:ring-[#2563eb]" />
-                                <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">Mostrar countdown</span>
+                                <input type="checkbox" checked={happyHour.showCountdown} onChange={e => onWidgetsConfigChange({ happyHour: { ...happyHour, showCountdown: e.target.checked } })} className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent" />
+                                <span className="text-sm text-ds-text">Mostrar countdown</span>
                             </label>
                         </div>
                     </div>
                 )}
             </div>
 
-            <hr className="border-[#e2e8f0] dark:border-[#374151]" />
+            <hr className="border-ds-border" />
 
             {/* Tiempo acumulado */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <CalendarClock className="w-5 h-5 text-purple-500" />
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Tiempo acumulado</h3>
+                        <CalendarClock className="w-5 h-5 text-ds-accent-text" />
+                        <h3 className="text-lg font-bold text-ds-text">Tiempo acumulado</h3>
                     </div>
                     <button
                         onClick={() => updateAccumulated({ enabled: !accumulatedTime.enabled })}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                             accumulatedTime.enabled
-                                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border border-[#e2e8f0] dark:border-[#374151]'
+                                ? 'bg-ds-accent/20 text-ds-accent-text border border-ds-accent/30'
+                                : 'bg-ds-bg text-ds-soft border border-ds-border '
                         }`}
                     >
                         {accumulatedTime.enabled ? 'Activado' : 'Desactivado'}
                     </button>
                 </div>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-sm text-ds-soft">
                     Cuánto lleva corriendo tu timer, escrito en palabras (ej: 1 año, 4 meses, 2 semanas) en vez de un contador gigante tipo 11928:45:03. No cuenta el tiempo que el timer estuvo pausado, e incluye el tiempo base acumulado si migraste desde otra herramienta.
                 </p>
 
                 {accumulatedTime.enabled && (
                     <div className="space-y-4">
                         {/* Ejemplo en vivo */}
-                        <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
-                            <p className="text-[10px] font-bold text-purple-500 uppercase mb-1">Así se vería ahora mismo</p>
-                            <p className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] break-words">
+                        <div className="bg-ds-accent/10 border border-ds-accent/30 rounded-lg p-4">
+                            <p className="text-[10px] font-bold text-ds-accent-text uppercase mb-1">Así se vería ahora mismo</p>
+                            <p className="text-lg font-bold text-ds-text break-words">
                                 {accumulatedSample || '—'}
                             </p>
-                            <p className="text-[10px] text-[#94a3b8] mt-1">
+                            <p className="text-[10px] text-ds-soft mt-1">
                                 Ejemplo con los números de un subathon real: 20 días desde que arrancó, de los cuales el timer estuvo corriendo 5. En el overlay van los tuyos.
                             </p>
                         </div>
@@ -359,14 +359,14 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                     <button
                                         key={op.value}
                                         onClick={() => updateAccumulated({ source: op.value })}
-                                        className={`text-left p-3 rounded-xl border transition-all ${
+                                        className={`text-left p-3 rounded-lg border transition-all ${
                                             accumulatedTime.source === op.value
-                                                ? 'bg-purple-500/20 border-purple-500/40'
-                                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 border-[#e2e8f0] dark:border-[#374151] hover:border-purple-500/30'
+                                                ? 'bg-ds-accent/20 border-ds-accent/40'
+                                                : 'bg-ds-bg border-ds-border hover:border-ds-accent/30'
                                         }`}
                                     >
-                                        <p className={`text-xs font-bold mb-1 ${accumulatedTime.source === op.value ? 'text-purple-500' : 'text-[#1e293b] dark:text-[#f8fafc]'}`}>{op.titulo}</p>
-                                        <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8] leading-snug">{op.detalle}</p>
+                                        <p className={`text-xs font-bold mb-1 ${accumulatedTime.source === op.value ? 'text-ds-accent-text' : 'text-ds-text '}`}>{op.titulo}</p>
+                                        <p className="text-[10px] text-ds-soft leading-snug">{op.detalle}</p>
                                     </button>
                                 ))}
                             </div>
@@ -381,7 +381,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                     onChange={e => updateAccumulated({ customDate: e.target.value })}
                                     className={inputClass}
                                 />
-                                <p className="text-[10px] text-[#94a3b8] mt-1">
+                                <p className="text-[10px] text-ds-soft mt-1">
                                     Se lee en la zona horaria de tu canal{timeZone ? ` (${timeZone})` : ''}, no en la de quien mire el overlay. Si la dejás vacía, se usa el tiempo del timer en marcha.
                                 </p>
                             </div>
@@ -397,15 +397,15 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                         onClick={() => updateAccumulated({ units: { ...accumulatedTime.units, [unit]: !accumulatedTime.units[unit] } })}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                                             accumulatedTime.units[unit]
-                                                ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] border-[#e2e8f0] dark:border-[#374151]'
+                                                ? 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30'
+                                                : 'bg-ds-bg text-ds-soft border-ds-border '
                                         }`}
                                     >
                                         {UNIT_LABELS[unit]}
                                     </button>
                                 ))}
                             </div>
-                            <p className="text-[10px] text-[#94a3b8] mt-1">
+                            <p className="text-[10px] text-ds-soft mt-1">
                                 Se llenan de mayor a menor: si apagás Semanas, esos días pasan a contarse como días sueltos (17 días en vez de 2 semanas y 3 días).
                             </p>
                         </div>
@@ -420,7 +420,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                     placeholder="{tiempo}"
                                     className={inputClass}
                                 />
-                                <p className="text-[10px] text-[#94a3b8] mt-1">
+                                <p className="text-[10px] text-ds-soft mt-1">
                                     Escribí lo que quieras y poné <span className="font-mono">{'{tiempo}'}</span> donde va la cuenta.
                                     También podés usar <span className="font-mono">{'{calendario}'}</span> (desde que arrancó) y <span className="font-mono">{'{activo}'}</span> (timer en marcha) para mostrar las dos juntas.
                                 </p>
@@ -438,7 +438,7 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                                     <option value={4}>4</option>
                                     <option value={0}>Todas</option>
                                 </select>
-                                <p className="text-[10px] text-[#94a3b8] mt-1">Entran siempre las más grandes del momento.</p>
+                                <p className="text-[10px] text-ds-soft mt-1">Entran siempre las más grandes del momento.</p>
                             </div>
                             <div>
                                 <label className={labelClass}>Formato</label>
@@ -460,8 +460,8 @@ export function WidgetsTab({ widgetsConfig, onWidgetsConfigChange, timeZone }: W
                             </div>
                             <div className="flex items-end">
                                 <label className="flex items-center gap-2 cursor-pointer py-2">
-                                    <input type="checkbox" checked={accumulatedTime.hideZeroUnits} onChange={e => updateAccumulated({ hideZeroUnits: e.target.checked })} className="w-4 h-4 rounded border-[#e2e8f0] dark:border-[#374151] text-[#2563eb] focus:ring-[#2563eb]" />
-                                    <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">Ocultar unidades en cero</span>
+                                    <input type="checkbox" checked={accumulatedTime.hideZeroUnits} onChange={e => updateAccumulated({ hideZeroUnits: e.target.checked })} className="w-4 h-4 rounded border-ds-border text-ds-accent-text focus:ring-ds-accent" />
+                                    <span className="text-sm text-ds-text">Ocultar unidades en cero</span>
                                 </label>
                             </div>
                         </div>

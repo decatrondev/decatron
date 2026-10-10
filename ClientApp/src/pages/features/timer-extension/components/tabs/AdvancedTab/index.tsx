@@ -573,15 +573,15 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Info General */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
+                <p className="text-sm text-ds-soft">
                     {t('timerAdvanced.infoDescription')}
                 </p>
             </div>
 
             {/* Selector de Sección */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
-                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">{t('timerAdvanced.configureSection')}</h3>
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
+                <h3 className="text-sm font-bold text-ds-text mb-4">{t('timerAdvanced.configureSection')}</h3>
 
                 <div className="grid grid-cols-3 gap-3">
                     {sections.map((section) => (
@@ -590,8 +590,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                             onClick={() => setSelectedSection(section.type)}
                             className={`px-4 py-3 rounded-lg text-sm font-bold transition-all border-2 ${
                                 selectedSection === section.type
-                                    ? 'bg-[#64748b] text-white border-[#64748b] shadow-lg'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] border-transparent hover:border-[#94a3b8]'
+                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent '
+                                    : 'bg-ds-bg text-ds-text border-transparent hover:border-ds-faint'
                             }`}
                         >
                             {section.icon} {section.label}
@@ -602,10 +602,10 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
 
             {/* Action Message */}
             {actionMessage && (
-                <div className={`p-4 rounded-xl border ${
+                <div className={`p-4 rounded-lg border ${
                     actionMessage.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                        ? 'bg-ds-ok/10 border-ds-ok/40 text-ds-ok '
+                        : 'bg-ds-danger/10 border-ds-danger/40 text-ds-danger '
                 }`}>
                     {actionMessage.text}
                 </div>

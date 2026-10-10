@@ -128,7 +128,7 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
     const isImageMedia = type === 'image' || (type === 'audio' && backingVisualUrl);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ds-input/90 backdrop-blur-sm" onClick={onClose}>
             <div
                 className="relative max-w-lg w-full mx-4"
                 onClick={(e) => e.stopPropagation()}
@@ -136,14 +136,14 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                 {/* Close button */}
                 <button
                     onClick={onClose}
-                    className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-10"
+                    className="absolute -top-12 right-0 p-2 bg-ds-surface/10 hover:bg-ds-surface/20 rounded-full transition-colors z-10"
                 >
-                    <X className="w-6 h-6 text-white" />
+                    <X className="w-6 h-6 text-ds-text" />
                 </button>
 
                 {/* Alert Preview Container - Simulates overlay */}
                 <div
-                    className="relative rounded-2xl overflow-hidden shadow-2xl"
+                    className="relative rounded-lg overflow-hidden"
                     style={{
                         background: getBackgroundStyle(),
                         border: style.borderEnabled ? `${style.borderWidth || 2}px solid ${style.borderColor || '#ffffff'}` : 'none',
@@ -151,7 +151,7 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                     }}
                 >
                     {/* Media Section */}
-                    <div className="relative aspect-video bg-black/50 flex items-center justify-center overflow-hidden">
+                    <div className="relative aspect-video bg-ds-input/50 flex items-center justify-center overflow-hidden">
                         {/* Video */}
                         {isVideoMedia && (
                             <video
@@ -174,7 +174,7 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
 
                         {/* Audio only (no visual) */}
                         {type === 'audio' && !backingVisualUrl && (
-                            <div className="flex flex-col items-center justify-center text-white/50">
+                            <div className="flex flex-col items-center justify-center text-ds-text/50">
                                 <Music className="w-20 h-20 mb-2" />
                                 <span className="text-sm">Solo Audio</span>
                             </div>
@@ -184,10 +184,10 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                         {!isPlaying && (
                             <button
                                 onClick={handlePlay}
-                                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/30 transition-colors group"
+                                className="absolute inset-0 flex items-center justify-center bg-ds-input/40 hover:bg-ds-input/30 transition-colors group"
                             >
-                                <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                    <Play className="w-10 h-10 text-white ml-1" />
+                                <div className="w-20 h-20 rounded-full bg-ds-accent flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Play className="w-10 h-10 text-ds-text ml-1" />
                                 </div>
                             </button>
                         )}
@@ -195,9 +195,9 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                         {isPlaying && (
                             <button
                                 onClick={handleStop}
-                                className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors shadow-lg"
+                                className="absolute top-3 right-3 p-2 bg-ds-danger-solid hover:bg-ds-danger-hover rounded-full transition-colors"
                             >
-                                <X className="w-5 h-5 text-white" />
+                                <X className="w-5 h-5 text-ds-text" />
                             </button>
                         )}
                     </div>
@@ -236,7 +236,7 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                 </div>
 
                 {/* Info footer */}
-                <div className="mt-4 flex items-center justify-center gap-4 text-xs text-white/60">
+                <div className="mt-4 flex items-center justify-center gap-4 text-xs text-ds-text/60">
                     <span className="flex items-center gap-1">
                         <Volume2 className="w-3 h-3" />
                         {volume}%
@@ -411,15 +411,15 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
     }, [mainUrl, mainVolume, mainLoop, backingAudioUrl, backingAudioVolume, backingVisualUrl]);
 
     return (
-        <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 space-y-6 transition-all">
+        <div className="bg-ds-bg rounded-lg border border-ds-border p-4 space-y-6 transition-all">
 
             {/* === ARCHIVO PRINCIPAL === */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] flex items-center gap-2 uppercase">
-                        {detectedType === 'video' && <><Video className="w-4 h-4 text-purple-500" /> Video Principal</>}
-                        {detectedType === 'image' && <><ImageIcon className="w-4 h-4 text-pink-500" /> Imagen Principal</>}
-                        {detectedType === 'audio' && <><Music className="w-4 h-4 text-blue-500" /> Audio Principal</>}
+                    <label className="text-xs font-bold text-ds-soft flex items-center gap-2 uppercase">
+                        {detectedType === 'video' && <><Video className="w-4 h-4 text-ds-accent-text" /> Video Principal</>}
+                        {detectedType === 'image' && <><ImageIcon className="w-4 h-4 text-ds-accent-text" /> Imagen Principal</>}
+                        {detectedType === 'audio' && <><Music className="w-4 h-4 text-ds-accent-text" /> Audio Principal</>}
                     </label>
                 </div>
 
@@ -437,7 +437,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                     {mainUrl && (
                         <button
                             onClick={() => setShowPreview(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all font-bold text-sm flex items-center gap-2 shadow-lg hover:shadow-xl"
+                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2"
                             title="Reproducir preview de la alerta"
                         >
                             <Play className="w-4 h-4" />
@@ -448,15 +448,15 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
 
                 {/* Controles */}
                 {mainUrl && detectedType !== 'image' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-white dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-ds-surface rounded-lg border border-ds-border">
                         {/* Volumen */}
                         <div>
                             <div className="flex justify-between mb-2">
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] flex items-center gap-2">
+                                <label className="text-xs font-bold text-ds-soft flex items-center gap-2">
                                     {mainVolume === 0 ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                                     Volumen
                                 </label>
-                                <span className="text-xs font-mono text-[#2563eb]">{mainVolume}%</span>
+                                <span className="text-xs font-mono text-ds-accent-text">{mainVolume}%</span>
                             </div>
                             <input
                                 type="range"
@@ -464,7 +464,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                                 max="100"
                                 value={mainVolume}
                                 onChange={(e) => setMainVolume(Number(e.target.value))}
-                                className="w-full accent-[#2563eb]"
+                                className="w-full accent-ds-accent"
                             />
                         </div>
 
@@ -475,9 +475,9 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                                     type="checkbox"
                                     checked={mainLoop}
                                     onChange={(e) => setMainLoop(e.target.checked)}
-                                    className="rounded text-[#2563eb] focus:ring-[#2563eb]"
+                                    className="rounded text-ds-accent-text focus:ring-ds-accent"
                                 />
-                                <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] flex items-center gap-1">
+                                <span className="text-xs font-bold text-ds-soft flex items-center gap-1">
                                     <RefreshCw className="w-3 h-3" /> Loop
                                 </span>
                             </label>
@@ -488,8 +488,8 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                                     onClick={() => setMainVolume(mainVolume === 0 ? 100 : 0)}
                                     className={`text-xs font-bold px-2 py-1 rounded transition-colors flex items-center gap-1 ${
                                         mainVolume === 0
-                                            ? 'bg-red-50 text-red-600 border border-red-200'
-                                            : 'text-[#64748b] hover:bg-gray-100'
+                                            ? 'bg-ds-danger/10 text-ds-danger border border-ds-danger/40'
+                                            : 'text-ds-soft hover:bg-ds-bg'
                                     }`}
                                 >
                                     {mainVolume === 0 ? 'Video Muteado' : 'Mutear Video'}
@@ -502,18 +502,18 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
 
             {/* === VISUAL DE ACOMPAÑAMIENTO (Para Audio) === */}
             {needsBackingVisual && mainUrl && (
-                <div className="animate-fade-in border-t border-dashed border-[#e2e8f0] dark:border-[#374151] pt-4">
+                <div className="animate-fade-in border-t border-dashed border-ds-border pt-4">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-pink-500" />
-                            <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <ImageIcon className="w-4 h-4 text-ds-accent-text" />
+                            <h4 className="text-sm font-bold text-ds-text">
                                 Visual de Fondo (Opcional)
                             </h4>
                         </div>
                         {backingVisualUrl && (
                             <button
                                 onClick={() => setBackingVisualUrl('')}
-                                className="text-[#ef4444] hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded transition-colors"
+                                className="text-ds-danger hover:bg-ds-danger/10 p-1 rounded transition-colors"
                                 title="Eliminar visual"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -521,7 +521,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                         )}
                     </div>
 
-                    <div className="pl-6 border-l-2 border-pink-500/20 space-y-3">
+                    <div className="pl-6 border-l-2 border-ds-accent/20 space-y-3">
                         <MediaInputWithSelector
                             value={backingVisualUrl}
                             onChange={setBackingVisualUrl}
@@ -535,18 +535,18 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
 
             {/* === AUDIO DE ACOMPAÑAMIENTO (Condicional) === */}
             {needsBackingAudio && mainUrl && (
-                <div className="animate-fade-in border-t border-dashed border-[#e2e8f0] dark:border-[#374151] pt-4">
+                <div className="animate-fade-in border-t border-dashed border-ds-border pt-4">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <FileAudio className="w-4 h-4 text-green-500" />
-                            <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <FileAudio className="w-4 h-4 text-ds-ok" />
+                            <h4 className="text-sm font-bold text-ds-text">
                                 {detectedType === 'image' ? 'Audio para la Imagen' : 'Audio de Reemplazo'}
                             </h4>
                         </div>
                         {backingAudioUrl && (
                             <button
                                 onClick={() => { setBackingAudioUrl(''); setBackingAudioVolume(100); }}
-                                className="text-[#ef4444] hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded transition-colors"
+                                className="text-ds-danger hover:bg-ds-danger/10 p-1 rounded transition-colors"
                                 title="Eliminar audio"
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -554,7 +554,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                         )}
                     </div>
 
-                    <div className="pl-6 border-l-2 border-green-500/20 space-y-3">
+                    <div className="pl-6 border-l-2 border-ds-ok/40 space-y-3">
                         <MediaInputWithSelector
                             value={backingAudioUrl}
                             onChange={setBackingAudioUrl}
@@ -567,8 +567,8 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                             <div className="flex items-center gap-4">
                                 <div className="flex-1">
                                     <div className="flex justify-between mb-1">
-                                        <label className="text-[10px] font-bold text-[#64748b]">Volumen Audio</label>
-                                        <span className="text-[10px] font-mono text-green-600">{backingAudioVolume}%</span>
+                                        <label className="text-[10px] font-bold text-ds-soft">Volumen Audio</label>
+                                        <span className="text-[10px] font-mono text-ds-ok">{backingAudioVolume}%</span>
                                     </div>
                                     <input
                                         type="range"
@@ -576,7 +576,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                                         max="100"
                                         value={backingAudioVolume}
                                         onChange={(e) => setBackingAudioVolume(Number(e.target.value))}
-                                        className="w-full accent-green-500 h-1"
+                                        className="w-full accent-ds-accent h-1"
                                     />
                                 </div>
                             </div>

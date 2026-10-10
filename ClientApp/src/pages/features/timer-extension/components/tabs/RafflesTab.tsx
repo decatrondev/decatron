@@ -80,7 +80,7 @@ const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) =>
             onChange={(e) => onChange(e.target.checked)}
             className="sr-only peer"
         />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+        <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
     </label>
 );
 
@@ -507,31 +507,31 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
     return (
         <div className="space-y-6">
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
+                <p className="text-sm text-ds-soft">
                     ℹ️ Panel de Control de Sorteos.
                 </p>
             </div>
 
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-4 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-ds-danger flex-shrink-0" />
                     <div className="flex-1">
-                        <p className="text-sm font-bold text-red-800 dark:text-red-200">Error</p>
-                        <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                        <p className="text-sm font-bold text-ds-danger">Error</p>
+                        <p className="text-sm text-ds-danger">{error}</p>
                     </div>
-                    <button onClick={() => setError(null)} className="text-red-600 dark:text-red-400">
+                    <button onClick={() => setError(null)} className="text-ds-danger">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
             )}
 
             {/* Sistema Global Toggle */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🎁 Sistema de Sorteos</h3>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Habilitar módulo</p>
+                        <h3 className="text-sm font-bold text-ds-text">🎁 Sistema de Sorteos</h3>
+                        <p className="text-xs text-ds-soft mt-1">Habilitar módulo</p>
                     </div>
                     <ToggleSwitch
                         checked={rafflesConfig.enabled}
@@ -545,20 +545,20 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                     
                     {/* Columna Izquierda: Lista de Sorteos */}
                     <div className="lg:col-span-1 space-y-4">
-                        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg h-[600px] flex flex-col">
+                        <div className="bg-ds-surface rounded-lg border border-ds-border p-4 h-[600px] flex flex-col">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">📋 Sorteos</h3>
+                                <h3 className="text-sm font-bold text-ds-text">📋 Sorteos</h3>
                                 <div className="flex gap-2">
                                     <button 
                                         onClick={() => setFilterAll(!filterAll)}
-                                        className={`p-1.5 rounded transition ${filterAll ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}
+                                        className={`p-1.5 rounded transition ${filterAll ? 'bg-ds-accent/10 text-ds-accent-text' : 'bg-ds-bg text-ds-soft'}`}
                                         title={filterAll ? "Mostrando Todos" : "Mostrando Activos"}
                                     >
                                         <Filter className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => setShowCreateForm(true)}
-                                        className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                                        className="p-1.5 bg-ds-accent text-ds-on-accent rounded hover:bg-ds-accent-hover transition"
                                     >
                                         <Plus className="w-4 h-4" />
                                     </button>
@@ -567,42 +567,42 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
                             <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                                 {loading && displayedRaffles.length === 0 && (
-                                    <div className="flex justify-center py-4"><Loader2 className="animate-spin text-gray-400" /></div>
+                                    <div className="flex justify-center py-4"><Loader2 className="animate-spin text-ds-soft" /></div>
                                 )}
                                 
                                 {displayedRaffles.length === 0 && !loading && (
-                                    <p className="text-center text-xs text-gray-400">No hay sorteos {filterAll ? '' : 'activos'}</p>
+                                    <p className="text-center text-xs text-ds-soft">No hay sorteos {filterAll ? '' : 'activos'}</p>
                                 )}
 
                                 {displayedRaffles.map((raffle) => (
                                     <div 
                                         key={raffle.id}
                                         onClick={() => setSelectedRaffleId(raffle.id)}
-                                        className={`p-3 rounded-xl border cursor-pointer transition-all group ${
+                                        className={`p-3 rounded-lg border cursor-pointer transition-all group ${
                                             selectedRaffleId === raffle.id 
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 ring-1 ring-blue-500' 
-                                            : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                            ? 'bg-ds-accent/10 border-ds-accent ring-1 ring-ds-accent' 
+                                            : 'bg-ds-surface border-ds-border hover:border-ds-accent'
                                         }`}
                                     >
                                         <div className="flex justify-between items-start">
                                             <div className="flex-1 min-w-0 pr-2">
-                                                <h4 className="font-bold text-sm text-[#1e293b] dark:text-[#f8fafc] truncate">#{raffle.id} {raffle.name}</h4>
+                                                <h4 className="font-bold text-sm text-ds-text truncate">#{raffle.id} {raffle.name}</h4>
                                                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase inline-block mt-1 ${
-                                                    raffle.status === 'open' ? 'bg-green-100 text-green-700' : 
-                                                    raffle.status === 'completed' ? 'bg-purple-100 text-purple-700' : 'bg-red-100 text-red-700'
+                                                    raffle.status === 'open' ? 'bg-ds-ok/10 text-ds-ok' : 
+                                                    raffle.status === 'completed' ? 'bg-ds-accent/10 text-ds-accent-text' : 'bg-ds-danger/10 text-ds-danger'
                                                 }`}>
                                                     {raffle.status}
                                                 </span>
                                             </div>
                                             <button 
                                                 onClick={(e) => handleDeleteRaffle(e, raffle.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+                                                className="opacity-0 group-hover:opacity-100 p-1.5 text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10 rounded transition-all"
                                                 title="Eliminar Sorteo"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
-                                        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
+                                        <div className="mt-2 text-xs text-ds-soft flex justify-between">
                                             <span>👥 {raffle.totalParticipants}</span>
                                             <span>🎟️ {raffle.totalTickets}</span>
                                         </div>
@@ -617,7 +617,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                         {selectedRaffleId ? (
                             <div className="space-y-4">
                                 {/* Panel de Control */}
-                                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+                                <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                                     {(() => {
                                         const raffle = raffles.find(r => r.id === selectedRaffleId);
                                         if (!raffle) return null;
@@ -626,14 +626,14 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                             <>
                                                 <div className="flex justify-between items-start mb-6">
                                                     <div>
-                                                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{raffle.name}</h2>
-                                                        <p className="text-sm text-gray-500">{raffle.description || "Sin descripción"}</p>
+                                                        <h2 className="text-xl font-black text-ds-text">{raffle.name}</h2>
+                                                        <p className="text-sm text-ds-soft">{raffle.description || "Sin descripción"}</p>
                                                     </div>
                                                     <div className="flex gap-2">
                                                         {raffle.status === 'open' ? (
                                                             <button 
                                                                 onClick={() => handleCloseRaffle(raffle.id)}
-                                                                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold text-sm flex items-center gap-2"
+                                                                className="px-4 py-2 bg-ds-warn hover:bg-ds-warn text-ds-on-accent rounded-lg font-bold text-sm flex items-center gap-2"
                                                             >
                                                                 <Ban className="w-4 h-4" /> Cerrar Sorteo
                                                             </button>
@@ -641,7 +641,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                             <button 
                                                                 onClick={() => handleDrawWinners(raffle.id)}
                                                                 disabled={raffle.status === 'completed' && winners.length >= raffle.winnersCount}
-                                                                className="px-4 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-sm flex items-center gap-2"
+                                                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg font-bold text-sm flex items-center gap-2"
                                                             >
                                                                 <Gift className="w-4 h-4" /> {winners.length > 0 ? 'Sacar Otro Ganador' : 'Sortear Ganador'}
                                                             </button>
@@ -651,24 +651,24 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
                                                 {/* SECCIÓN GANADORES */}
                                                 {winners.length > 0 && (
-                                                    <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-700 rounded-xl">
-                                                        <h3 className="font-bold text-yellow-800 dark:text-yellow-400 mb-3 flex items-center gap-2">
+                                                    <div className="mb-6 p-4 bg-ds-warn/10 border border-ds-warn/40 rounded-lg">
+                                                        <h3 className="font-bold text-ds-warn mb-3 flex items-center gap-2">
                                                             <Trophy className="w-5 h-5" /> Ganadores
                                                         </h3>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             {winners.map((winner, idx) => (
-                                                                <div key={winner.id} className="flex items-center gap-3 p-3 bg-white dark:bg-[#1B1C1D] rounded-lg shadow-sm border border-yellow-100 dark:border-yellow-800/30">
-                                                                    <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-800 flex items-center justify-center font-bold text-yellow-700 dark:text-yellow-300">
+                                                                <div key={winner.id} className="flex items-center gap-3 p-3 bg-ds-surface rounded-lg border border-ds-warn/40">
+                                                                    <div className="w-8 h-8 rounded-full bg-ds-warn/10 flex items-center justify-center font-bold text-ds-warn">
                                                                         #{winner.position}
                                                                     </div>
                                                                     <div className="flex-1">
-                                                                        <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{winner.username}</p>
-                                                                        <p className="text-xs text-gray-500">{new Date(winner.wonAt).toLocaleTimeString()}</p>
+                                                                        <p className="font-bold text-ds-text">{winner.username}</p>
+                                                                        <p className="text-xs text-ds-soft">{new Date(winner.wonAt).toLocaleTimeString()}</p>
                                                                     </div>
                                                                     {idx === winners.length - 1 && raffle.status !== 'open' && (
                                                                         <button 
                                                                             onClick={() => handleReroll(raffle.id)}
-                                                                            className="p-2 text-gray-400 hover:text-blue-500"
+                                                                            className="p-2 text-ds-soft hover:text-ds-accent-text"
                                                                             title="Re-sortear este puesto"
                                                                         >
                                                                             <RotateCcw className="w-4 h-4" />
@@ -683,33 +683,33 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                 {/* Lista de Participantes */}
                                                 <div>
                                                     <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                                                        <h3 className="font-bold text-ds-text flex items-center gap-2">
                                                             <Users className="w-4 h-4" /> 
                                                             Participantes ({participants.length})
                                                         </h3>
                                                         <div className="flex gap-2">
                                                             <div className="relative">
-                                                                <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+                                                                <Search className="w-4 h-4 absolute left-3 top-2.5 text-ds-soft" />
                                                                 <input 
                                                                     type="text" 
                                                                     placeholder="Buscar..." 
                                                                     value={participantSearch}
                                                                     onChange={(e) => setParticipantSearch(e.target.value)}
-                                                                    className="pl-9 pr-4 py-2 bg-gray-50 dark:bg-[#262626] border border-gray-200 dark:border-gray-700 rounded-lg text-sm w-32 focus:w-48 transition-all"
+                                                                    className="pl-9 pr-4 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm w-32 focus:w-48 transition-all"
                                                                 />
                                                             </div>
                                                             {raffle.status === 'open' && (
                                                                 <>
                                                                     <button
                                                                         onClick={() => setShowImportModal(true)}
-                                                                        className="p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg text-blue-600 dark:text-blue-300 transition-colors"
+                                                                        className="p-2 bg-ds-accent/10 hover:bg-ds-accent/10 rounded-lg text-ds-accent-text transition-colors"
                                                                         title="Importar de Sesión del Timer"
                                                                     >
                                                                         <DownloadCloud className="w-4 h-4" />
                                                                     </button>
                                                                     <button 
                                                                         onClick={() => setShowAddParticipantForm(!showAddParticipantForm)}
-                                                                        className="p-2 bg-gray-100 dark:bg-[#262626] hover:bg-gray-200 rounded-lg text-gray-600 dark:text-gray-300"
+                                                                        className="p-2 bg-ds-bg hover:bg-ds-raised rounded-lg text-ds-soft"
                                                                         title="Añadir Manualmente"
                                                                     >
                                                                         <UserPlus className="w-4 h-4" />
@@ -721,11 +721,11 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
                                                     {/* Formulario Add Manual */}
                                                     {showAddParticipantForm && (
-                                                        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-2 items-center">
+                                                        <div className="mb-4 p-3 bg-ds-accent/10 rounded-lg border border-ds-accent flex gap-2 items-center">
                                                             <input 
                                                                 type="text" 
                                                                 placeholder="Username" 
-                                                                className="flex-1 px-3 py-1.5 rounded border text-sm bg-white dark:bg-[#262626] dark:border-gray-700 dark:text-white"
+                                                                className="flex-1 px-3 py-1.5 rounded border text-sm bg-ds-surface border-ds-border text-ds-text"
                                                                 value={manualParticipantName}
                                                                 onChange={e => setManualParticipantName(e.target.value)}
                                                             />
@@ -734,12 +734,12 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                 min="1" 
                                                                 value={manualParticipantTickets} 
                                                                 onChange={e => setManualParticipantTickets(Number(e.target.value))}
-                                                                className="w-20 px-3 py-1.5 rounded border text-sm bg-white dark:bg-[#262626] dark:border-gray-700 dark:text-white" 
+                                                                className="w-20 px-3 py-1.5 rounded border text-sm bg-ds-surface border-ds-border text-ds-text" 
                                                             />
                                                             <button 
                                                                 onClick={handleAddParticipant}
                                                                 disabled={!manualParticipantName.trim()}
-                                                                className="px-4 py-1.5 bg-blue-600 text-white rounded text-sm font-bold disabled:opacity-50"
+                                                                className="px-4 py-1.5 bg-ds-accent text-ds-on-accent rounded text-sm font-bold disabled:opacity-50"
                                                             >
                                                                 Añadir
                                                             </button>
@@ -747,9 +747,9 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     )}
 
                                                     {/* Tabla */}
-                                                    <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 max-h-[400px] overflow-y-auto">
+                                                    <div className="overflow-hidden rounded-lg border border-ds-border max-h-[400px] overflow-y-auto">
                                                         <table className="w-full text-sm text-left">
-                                                            <thead className="bg-gray-50 dark:bg-[#262626] text-gray-500 dark:text-gray-400 sticky top-0">
+                                                            <thead className="bg-ds-surface text-ds-soft sticky top-0">
                                                                 <tr>
                                                                     <th className="px-4 py-3">Usuario</th>
                                                                     <th className="px-4 py-3 text-center">Tickets</th>
@@ -758,40 +758,40 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                     <th className="px-4 py-3 text-center">Acciones</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                            <tbody className="divide-y divide-ds-border">
                                                                 {loadingDetails ? (
                                                                     <tr>
-                                                                        <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                                                        <td colSpan={5} className="px-4 py-8 text-center text-ds-soft">
                                                                             <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                                                                             Cargando participantes...
                                                                         </td>
                                                                     </tr>
                                                                 ) : filteredParticipants.length === 0 ? (
                                                                     <tr>
-                                                                        <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                                                                        <td colSpan={5} className="px-4 py-8 text-center text-ds-soft">
                                                                             No se encontraron participantes.
                                                                         </td>
                                                                     </tr>
                                                                 ) : (
                                                                     filteredParticipants.map((p) => (
-                                                                        <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-[#262626]/50 transition-colors">
-                                                                            <td className="px-4 py-3 font-medium text-[#1e293b] dark:text-[#f8fafc]">
+                                                                        <tr key={p.id} className="hover:bg-ds-surface transition-colors">
+                                                                            <td className="px-4 py-3 font-medium text-ds-text">
                                                                                 {p.username}
-                                                                                {p.isDisqualified && <span className="ml-2 text-xs text-red-500 font-bold">(DQ)</span>}
+                                                                                {p.isDisqualified && <span className="ml-2 text-xs text-ds-danger font-bold">(DQ)</span>}
                                                                             </td>
                                                                             <td className="px-4 py-3 text-center">
-                                                                                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs font-bold">
+                                                                                <span className="px-2 py-1 bg-ds-accent/10 text-ds-accent-text rounded text-xs font-bold">
                                                                                     {p.tickets}
                                                                                 </span>
                                                                             </td>
-                                                                            <td className="px-4 py-3 text-center text-gray-500 capitalize">{p.entryMethod}</td>
-                                                                            <td className="px-4 py-3 text-right text-gray-500 text-xs">
+                                                                            <td className="px-4 py-3 text-center text-ds-soft capitalize">{p.entryMethod}</td>
+                                                                            <td className="px-4 py-3 text-right text-ds-soft text-xs">
                                                                                 {new Date(p.joinedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                                                             </td>
                                                                             <td className="px-4 py-3 text-center">
                                                                                 <button 
                                                                                     onClick={() => handleRemoveParticipant(p.id)}
-                                                                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                                                                    className="text-ds-soft hover:text-ds-danger transition-colors"
                                                                                     title="Eliminar / Descalificar"
                                                                                 >
                                                                                     <Trash2 className="w-4 h-4" />
@@ -810,20 +810,20 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                 </div>
                             </div>
                         ) : (
-                            <div className="h-full min-h-[400px] flex items-center justify-center bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 text-center border-dashed">
+                            <div className="h-full min-h-[400px] flex items-center justify-center bg-ds-surface rounded-lg border border-ds-border p-6 text-center border-dashed">
                                 <div>
-                                    <div className="w-16 h-16 bg-gray-100 dark:bg-[#262626] rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Award className="w-8 h-8 text-gray-400" />
+                                    <div className="w-16 h-16 bg-ds-bg rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Award className="w-8 h-8 text-ds-soft" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">Selecciona un Sorteo</h3>
-                                    <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto mt-2">
+                                    <h3 className="text-lg font-bold text-ds-text">Selecciona un Sorteo</h3>
+                                    <p className="text-ds-soft max-w-sm mx-auto mt-2">
                                         Haz clic en un sorteo para ver sus detalles o crea uno nuevo con reglas específicas.
                                     </p>
                                     
                                     {!showCreateForm && (
                                         <button
                                             onClick={() => setShowCreateForm(true)}
-                                            className="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg transition-transform hover:scale-105"
+                                            className="mt-6 px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-transform hover:scale-105"
                                         >
                                             Crear Nuevo Sorteo
                                         </button>
@@ -834,12 +834,12 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                         
                         {/* MODAL CREACIÓN */}
                         {showCreateForm && tempConfig && (
-                            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] border border-gray-200 dark:border-gray-700 flex flex-col">
-                                    <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center sticky top-0 bg-white dark:bg-[#1B1C1D] z-10 rounded-t-2xl">
-                                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Nuevo Sorteo</h2>
-                                        <button onClick={() => setShowCreateForm(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg">
-                                            <X className="w-5 h-5 text-gray-500" />
+                            <div className="fixed inset-0 bg-ds-input/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                                <div className="bg-ds-surface rounded-lg max-w-2xl w-full max-h-[90vh] border border-ds-border flex flex-col">
+                                    <div className="p-6 border-b border-ds-border flex justify-between items-center sticky top-0 bg-ds-surface z-10 rounded-t-2xl">
+                                        <h2 className="text-xl font-black text-ds-text">Nuevo Sorteo</h2>
+                                        <button onClick={() => setShowCreateForm(false)} className="p-2 hover:bg-ds-bg rounded-lg">
+                                            <X className="w-5 h-5 text-ds-soft" />
                                         </button>
                                     </div>
 
@@ -847,45 +847,45 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         {/* Datos básicos */}
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Nombre del Sorteo</label>
+                                                <label className="text-xs font-bold text-ds-soft block mb-2">Nombre del Sorteo</label>
                                                 <input
                                                     type="text"
                                                     value={tempRaffleName}
                                                     onChange={(e) => setTempRaffleName(e.target.value)}
-                                                    className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                    className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text"
                                                     placeholder="Ej: Sorteo de Key"
                                                     autoFocus
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Descripción (opcional)</label>
+                                                <label className="text-xs font-bold text-ds-soft block mb-2">Descripción (opcional)</label>
                                                 <input
                                                     type="text"
                                                     value={tempDescription}
                                                     onChange={(e) => setTempDescription(e.target.value)}
-                                                    className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                    className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text"
                                                     placeholder="Ej: Key de Steam para los viewers"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">Ganadores</label>
+                                                    <label className="text-xs font-bold text-ds-soft block mb-2">Ganadores</label>
                                                     <input
                                                         type="number"
                                                         min="1"
                                                         max="100"
                                                         value={tempWinnersCount}
                                                         onChange={(e) => setTempWinnersCount(Math.max(1, Math.min(100, Number(e.target.value))))}
-                                                        className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc]"
+                                                        className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text"
                                                     />
                                                 </div>
                                                 <div className="flex items-end">
-                                                    <div className="w-full flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                                                    <div className="w-full flex items-center gap-2 p-2 bg-ds-accent/10 rounded-lg border border-ds-accent">
                                                         <ToggleSwitch
                                                             checked={autoImportOnCreate}
                                                             onChange={setAutoImportOnCreate}
                                                         />
-                                                        <span className="text-sm font-bold text-blue-800 dark:text-blue-300">Auto-importar de Sesión</span>
+                                                        <span className="text-sm font-bold text-ds-accent-text">Auto-importar de Sesión</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -893,30 +893,30 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
                                         {/* Selector de Sesión */}
                                         {autoImportOnCreate && (
-                                            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-                                                <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
+                                            <div className="border-t border-ds-border pt-4">
+                                                <h3 className="text-sm font-bold text-ds-text mb-3 flex items-center gap-2">
                                                     <Clock className="w-4 h-4" /> Sesión a Importar
                                                 </h3>
 
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <button
                                                         onClick={() => { setMultiSessionMode(false); setSelectedSessionId(null); setSelectedSessionIds([]); }}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
                                                     >
                                                         Última / Una
                                                     </button>
                                                     <button
                                                         onClick={() => { setMultiSessionMode(true); setSelectedSessionId(null); }}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
                                                     >
                                                         Múltiples Sesiones
                                                     </button>
                                                 </div>
 
                                                 {loadingSessions ? (
-                                                    <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+                                                    <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-ds-soft" /></div>
                                                 ) : availableSessions.length === 0 ? (
-                                                    <p className="text-xs text-gray-500 text-center py-3">No hay sesiones disponibles</p>
+                                                    <p className="text-xs text-ds-soft text-center py-3">No hay sesiones disponibles</p>
                                                 ) : (
                                                     <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                                                         {!multiSessionMode && (
@@ -924,12 +924,12 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                 onClick={() => setSelectedSessionId(null)}
                                                                 className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
                                                                     selectedSessionId === null
-                                                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
-                                                                    : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                                    ? 'bg-ds-accent/10 border-ds-accent'
+                                                                    : 'bg-ds-surface border-ds-border hover:border-ds-accent'
                                                                 }`}
                                                             >
-                                                                <span className="font-bold dark:text-white">Auto-detectar</span>
-                                                                <span className="text-gray-500 ml-2">(última sesión activa o cerrada)</span>
+                                                                <span className="font-bold text-ds-text">Auto-detectar</span>
+                                                                <span className="text-ds-soft ml-2">(última sesión activa o cerrada)</span>
                                                             </div>
                                                         )}
                                                         {availableSessions.map(session => {
@@ -943,27 +943,27 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                     onClick={() => multiSessionMode ? toggleSessionInMulti(session.id) : setSelectedSessionId(session.id)}
                                                                     className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
                                                                         isSelected
-                                                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
-                                                                        : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                                        ? 'bg-ds-accent/10 border-ds-accent'
+                                                                        : 'bg-ds-surface border-ds-border hover:border-ds-accent'
                                                                     }`}
                                                                 >
                                                                     <div className="flex justify-between items-center">
                                                                         <div className="flex items-center gap-2">
                                                                             {multiSessionMode && (
-                                                                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-400'}`}>
-                                                                                    {isSelected && <span className="text-white text-[10px]">✓</span>}
+                                                                                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${isSelected ? 'bg-ds-accent border-ds-accent' : 'border-ds-border'}`}>
+                                                                                    {isSelected && <span className="text-ds-text text-[10px]">✓</span>}
                                                                                 </div>
                                                                             )}
-                                                                            <span className="font-bold dark:text-white">
+                                                                            <span className="font-bold text-ds-text">
                                                                                 #{session.id}
-                                                                                {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold">ACTIVA</span>}
+                                                                                {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-ds-ok/10 text-ds-ok rounded text-[10px] font-bold">ACTIVA</span>}
                                                                             </span>
                                                                         </div>
-                                                                        <span className="text-gray-500">
+                                                                        <span className="text-ds-soft">
                                                                             {formatShortDateTimeIn(session.startedAt, timeZone)}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="flex gap-4 mt-1 text-gray-400">
+                                                                    <div className="flex gap-4 mt-1 text-ds-soft">
                                                                         <span>Duración: {formatDuration(session.initialDuration + session.totalAddedTime)}</span>
                                                                         <span>Eventos: {session.totalEvents}</span>
                                                                         <span>Usuarios: {session.uniqueParticipants}</span>
@@ -974,22 +974,22 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     </div>
                                                 )}
                                                 {multiSessionMode && selectedSessionIds.length > 0 && (
-                                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-bold">{selectedSessionIds.length} sesión(es) seleccionada(s)</p>
+                                                    <p className="text-xs text-ds-accent-text mt-2 font-bold">{selectedSessionIds.length} sesión(es) seleccionada(s)</p>
                                                 )}
                                             </div>
                                         )}
 
                                         {/* Reglas de Participación */}
-                                        <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-                                            <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                                        <div className="border-t border-ds-border pt-4">
+                                            <h3 className="text-sm font-bold text-ds-text mb-4 flex items-center gap-2">
                                                 <Settings2 className="w-4 h-4" /> Reglas de Participación
                                             </h3>
 
                                             <div className="space-y-4">
                                                 {/* Bits */}
-                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                <div className="p-3 bg-ds-surface rounded-lg">
                                                     <div className="flex justify-between items-center">
-                                                        <label className="text-sm font-bold dark:text-white">Entrada por Bits</label>
+                                                        <label className="text-sm font-bold text-ds-text">Entrada por Bits</label>
                                                         <ToggleSwitch
                                                             checked={tempConfig.methods.bits.enabled}
                                                             onChange={c => updateTempMethod('bits', { enabled: c })}
@@ -997,23 +997,23 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     </div>
                                                     {tempConfig.methods.bits.enabled && (
                                                         <div className="flex items-center gap-3 mt-2">
-                                                            <span className="text-xs text-gray-500">Mínimo:</span>
+                                                            <span className="text-xs text-ds-soft">Mínimo:</span>
                                                             <input
                                                                 type="number"
                                                                 min="0"
                                                                 value={tempConfig.methods.bits.minAmount || 0}
                                                                 onChange={e => updateTempMethod('bits', { minAmount: Number(e.target.value) })}
-                                                                className="w-24 px-2 py-1 rounded border text-sm bg-white dark:bg-[#1B1C1D] dark:border-gray-600 dark:text-white"
+                                                                className="w-24 px-2 py-1 rounded border text-sm bg-ds-surface border-ds-border text-ds-text"
                                                             />
-                                                            <span className="text-xs text-gray-400">bits</span>
+                                                            <span className="text-xs text-ds-soft">bits</span>
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Suscripción */}
-                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                <div className="p-3 bg-ds-surface rounded-lg">
                                                     <div className="flex justify-between items-center">
-                                                        <label className="text-sm font-bold dark:text-white">Entrada por Suscripción</label>
+                                                        <label className="text-sm font-bold text-ds-text">Entrada por Suscripción</label>
                                                         <ToggleSwitch
                                                             checked={tempConfig.methods.subscription.enabled}
                                                             onChange={c => updateTempMethod('subscription', { enabled: c })}
@@ -1021,7 +1021,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     </div>
                                                     {tempConfig.methods.subscription.enabled && (
                                                         <div className="mt-3">
-                                                            <span className="text-xs text-gray-500 block mb-2">Tiers permitidos:</span>
+                                                            <span className="text-xs text-ds-soft block mb-2">Tiers permitidos:</span>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {['tier1', 'tier2', 'tier3', 'prime'].map(tier => (
                                                                     <button
@@ -1035,8 +1035,8 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                         }}
                                                                         className={`px-3 py-1 rounded-full text-xs font-bold transition ${
                                                                             allowedSubTiers.includes(tier)
-                                                                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700'
-                                                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700'
+                                                                                ? 'bg-ds-accent/10 text-ds-accent-text border border-ds-accent '
+                                                                                : 'bg-ds-bg text-ds-soft border border-ds-border '
                                                                         }`}
                                                                     >
                                                                         {tier === 'prime' ? 'Prime' : tier.replace('tier', 'Tier ')}
@@ -1048,9 +1048,9 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                 </div>
 
                                                 {/* Gift Subs */}
-                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                <div className="p-3 bg-ds-surface rounded-lg">
                                                     <div className="flex justify-between items-center">
-                                                        <label className="text-sm font-bold dark:text-white">Entrada por Regalar Subs</label>
+                                                        <label className="text-sm font-bold text-ds-text">Entrada por Regalar Subs</label>
                                                         <ToggleSwitch
                                                             checked={tempConfig.methods.giftSubscription.enabled}
                                                             onChange={c => updateTempMethod('giftSubscription', { enabled: c })}
@@ -1058,22 +1058,22 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     </div>
                                                     {tempConfig.methods.giftSubscription.enabled && (
                                                         <div className="flex items-center gap-3 mt-2">
-                                                            <span className="text-xs text-gray-500">Mínimo de gifts:</span>
+                                                            <span className="text-xs text-ds-soft">Mínimo de gifts:</span>
                                                             <input
                                                                 type="number"
                                                                 min="0"
                                                                 value={minGifts}
                                                                 onChange={e => setMinGifts(Number(e.target.value))}
-                                                                className="w-20 px-2 py-1 rounded border text-sm bg-white dark:bg-[#1B1C1D] dark:border-gray-600 dark:text-white"
+                                                                className="w-20 px-2 py-1 rounded border text-sm bg-ds-surface border-ds-border text-ds-text"
                                                             />
                                                         </div>
                                                     )}
                                                 </div>
 
                                                 {/* Follows */}
-                                                <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
+                                                <div className="p-3 bg-ds-surface rounded-lg">
                                                     <div className="flex justify-between items-center">
-                                                        <label className="text-sm font-bold dark:text-white">Entrada por Nuevo Follow</label>
+                                                        <label className="text-sm font-bold text-ds-text">Entrada por Nuevo Follow</label>
                                                         <ToggleSwitch
                                                             checked={tempConfig.methods.follow?.enabled ?? false}
                                                             onChange={c => updateTempMethod('follow', { enabled: c })}
@@ -1082,13 +1082,13 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                 </div>
 
                                                 {/* Ponderación */}
-                                                <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/30">
+                                                <div className="p-3 bg-ds-warn/10 rounded-lg border border-ds-warn/40">
                                                     <div className="flex justify-between items-center">
                                                         <div>
-                                                            <label className="text-sm font-bold dark:text-white flex items-center gap-2">
-                                                                <Zap className="w-4 h-4 text-amber-500" /> Ponderar por Contribución
+                                                            <label className="text-sm font-bold text-ds-text flex items-center gap-2">
+                                                                <Zap className="w-4 h-4 text-ds-warn" /> Ponderar por Contribución
                                                             </label>
-                                                            <p className="text-[11px] text-gray-500 mt-1">Más bits/gifts/tier = más tickets. Tier3 = 4x, Tier2 = 2x, cada 100 bits = +1 ticket</p>
+                                                            <p className="text-[11px] text-ds-soft mt-1">Más bits/gifts/tier = más tickets. Tier3 = 4x, Tier2 = 2x, cada 100 bits = +1 ticket</p>
                                                         </div>
                                                         <ToggleSwitch
                                                             checked={weightByContribution}
@@ -1100,10 +1100,10 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         </div>
 
                                         {/* Configuración Avanzada (colapsable) */}
-                                        <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                                        <div className="border-t border-ds-border pt-4">
                                             <button
                                                 onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
-                                                className="flex items-center gap-2 text-sm font-bold text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white transition w-full"
+                                                className="flex items-center gap-2 text-sm font-bold text-ds-soft hover:text-ds-text transition w-full"
                                             >
                                                 <Shield className="w-4 h-4" />
                                                 Configuración Avanzada
@@ -1113,25 +1113,25 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                             {showAdvancedConfig && (
                                                 <div className="space-y-4 mt-4">
                                                     {/* Restricciones */}
-                                                    <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                        <h4 className="text-xs font-bold text-gray-500 mb-3 uppercase">Restricciones</h4>
+                                                    <div className="p-3 bg-ds-surface rounded-lg">
+                                                        <h4 className="text-xs font-bold text-ds-soft mb-3 uppercase">Restricciones</h4>
                                                         <div className="space-y-2">
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-sm dark:text-gray-300">Excluir Moderadores</span>
+                                                                <span className="text-sm text-ds-soft">Excluir Moderadores</span>
                                                                 <ToggleSwitch
                                                                     checked={tempConfig.requirements.excludeMods}
                                                                     onChange={c => updateTempRequirements({ excludeMods: c })}
                                                                 />
                                                             </div>
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-sm dark:text-gray-300">Excluir VIPs</span>
+                                                                <span className="text-sm text-ds-soft">Excluir VIPs</span>
                                                                 <ToggleSwitch
                                                                     checked={tempConfig.requirements.excludeVips}
                                                                     onChange={c => updateTempRequirements({ excludeVips: c })}
                                                                 />
                                                             </div>
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-sm dark:text-gray-300">Excluir Broadcaster</span>
+                                                                <span className="text-sm text-ds-soft">Excluir Broadcaster</span>
                                                                 <ToggleSwitch
                                                                     checked={tempConfig.requirements.excludeBroadcaster}
                                                                     onChange={c => updateTempRequirements({ excludeBroadcaster: c })}
@@ -1141,37 +1141,37 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     </div>
 
                                                     {/* Cooldown de ganadores */}
-                                                    <div className="p-3 bg-gray-50 dark:bg-[#262626] rounded-xl">
-                                                        <h4 className="text-xs font-bold text-gray-500 mb-3 uppercase">Cooldown de Ganadores Recientes</h4>
+                                                    <div className="p-3 bg-ds-surface rounded-lg">
+                                                        <h4 className="text-xs font-bold text-ds-soft mb-3 uppercase">Cooldown de Ganadores Recientes</h4>
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm dark:text-gray-300">Excluir si ganaron en los últimos</span>
+                                                            <span className="text-sm text-ds-soft">Excluir si ganaron en los últimos</span>
                                                             <input
                                                                 type="number"
                                                                 min="0"
                                                                 value={winnerCooldownDays}
                                                                 onChange={e => setWinnerCooldownDays(Number(e.target.value))}
-                                                                className="w-20 px-2 py-1 rounded border text-sm bg-white dark:bg-[#1B1C1D] dark:border-gray-600 dark:text-white text-center"
+                                                                className="w-20 px-2 py-1 rounded border text-sm bg-ds-surface border-ds-border text-ds-text text-center"
                                                             />
-                                                            <span className="text-sm text-gray-500">días</span>
+                                                            <span className="text-sm text-ds-soft">días</span>
                                                         </div>
-                                                        <p className="text-[11px] text-gray-400 mt-2">0 = sin cooldown. Los ganadores recientes del canal no podrán participar.</p>
+                                                        <p className="text-[11px] text-ds-soft mt-2">0 = sin cooldown. Los ganadores recientes del canal no podrán participar.</p>
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3 bg-white dark:bg-[#1B1C1D] rounded-b-2xl">
+                                    <div className="p-6 border-t border-ds-border flex justify-end gap-3 bg-ds-surface rounded-b-2xl">
                                         <button
                                             onClick={() => setShowCreateForm(false)}
-                                            className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg transition"
+                                            className="px-4 py-2 text-ds-soft font-bold hover:bg-ds-bg rounded-lg transition"
                                         >
                                             Cancelar
                                         </button>
                                         <button
                                             onClick={handleCreateRaffle}
                                             disabled={loading || !tempRaffleName.trim()}
-                                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 disabled:opacity-50"
+                                            className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
                                         >
                                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                                             Crear Sorteo
@@ -1183,14 +1183,14 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
                         {/* MODAL IMPORTAR SESIÓN */}
                         {showImportModal && (
-                            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] border border-gray-200 dark:border-gray-700 flex flex-col">
-                                    <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-                                        <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                            <div className="fixed inset-0 bg-ds-input/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                                <div className="bg-ds-surface rounded-lg max-w-lg w-full max-h-[80vh] border border-ds-border flex flex-col">
+                                    <div className="p-5 border-b border-ds-border flex justify-between items-center">
+                                        <h2 className="text-lg font-black text-ds-text flex items-center gap-2">
                                             <DownloadCloud className="w-5 h-5" /> Importar de Sesión
                                         </h2>
-                                        <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg">
-                                            <X className="w-5 h-5 text-gray-500" />
+                                        <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-ds-bg rounded-lg">
+                                            <X className="w-5 h-5 text-ds-soft" />
                                         </button>
                                     </div>
 
@@ -1199,13 +1199,13 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={() => { setMultiSessionMode(false); setSelectedSessionIds([]); }}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
                                             >
                                                 Una Sesión
                                             </button>
                                             <button
                                                 onClick={() => { setMultiSessionMode(true); setSelectedSessionId(null); }}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-[#262626] text-gray-600 dark:text-gray-400'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
                                             >
                                                 Múltiples
                                             </button>
@@ -1213,17 +1213,17 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
 
                                         {/* Lista de sesiones */}
                                         {loadingSessions ? (
-                                            <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
+                                            <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-ds-soft" /></div>
                                         ) : (
                                             <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
                                                 {!multiSessionMode && (
                                                     <div
                                                         onClick={() => setSelectedSessionId(null)}
                                                         className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
-                                                            selectedSessionId === null ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                            selectedSessionId === null ? 'bg-ds-accent/10 border-ds-accent' : 'bg-ds-surface border-ds-border hover:border-ds-accent'
                                                         }`}
                                                     >
-                                                        <span className="font-bold dark:text-white">Auto (última sesión)</span>
+                                                        <span className="font-bold text-ds-text">Auto (última sesión)</span>
                                                     </div>
                                                 )}
                                                 {availableSessions.map(session => {
@@ -1233,17 +1233,17 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                             key={session.id}
                                                             onClick={() => multiSessionMode ? toggleSessionInMulti(session.id) : setSelectedSessionId(session.id)}
                                                             className={`p-2.5 rounded-lg border cursor-pointer transition text-xs ${
-                                                                isSelected ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' : 'bg-gray-50 dark:bg-[#262626] border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                                                                isSelected ? 'bg-ds-accent/10 border-ds-accent' : 'bg-ds-surface border-ds-border hover:border-ds-accent'
                                                             }`}
                                                         >
                                                             <div className="flex justify-between items-center">
-                                                                <span className="font-bold dark:text-white">
+                                                                <span className="font-bold text-ds-text">
                                                                     #{session.id}
-                                                                    {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold">ACTIVA</span>}
+                                                                    {session.isActive && <span className="ml-1.5 px-1.5 py-0.5 bg-ds-ok/10 text-ds-ok rounded text-[10px] font-bold">ACTIVA</span>}
                                                                 </span>
-                                                                <span className="text-gray-500">{formatDateOnlyIn(session.startedAt, timeZone)}</span>
+                                                                <span className="text-ds-soft">{formatDateOnlyIn(session.startedAt, timeZone)}</span>
                                                             </div>
-                                                            <div className="flex gap-3 mt-1 text-gray-400">
+                                                            <div className="flex gap-3 mt-1 text-ds-soft">
                                                                 <span>Eventos: {session.totalEvents}</span>
                                                                 <span>Usuarios: {session.uniqueParticipants}</span>
                                                             </div>
@@ -1254,26 +1254,26 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         )}
 
                                         {/* Opciones de import */}
-                                        <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                                        <div className="space-y-3 pt-2 border-t border-ds-border">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <span className="text-sm font-bold dark:text-white">Forzar reimportar</span>
-                                                    <p className="text-[11px] text-gray-500">Importar aunque la sesión ya haya sido importada</p>
+                                                    <span className="text-sm font-bold text-ds-text">Forzar reimportar</span>
+                                                    <p className="text-[11px] text-ds-soft">Importar aunque la sesión ya haya sido importada</p>
                                                 </div>
                                                 <ToggleSwitch checked={importForceReimport} onChange={setImportForceReimport} />
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <span className="text-sm font-bold dark:text-white">Sumar tickets</span>
-                                                    <p className="text-[11px] text-gray-500">Si el usuario ya existe, sumar tickets en vez de omitir</p>
+                                                    <span className="text-sm font-bold text-ds-text">Sumar tickets</span>
+                                                    <p className="text-[11px] text-ds-soft">Si el usuario ya existe, sumar tickets en vez de omitir</p>
                                                 </div>
                                                 <ToggleSwitch checked={importMergeTickets} onChange={setImportMergeTickets} />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex justify-end gap-3">
-                                        <button onClick={() => setShowImportModal(false)} className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 dark:hover:bg-[#262626] rounded-lg transition">
+                                    <div className="p-5 border-t border-ds-border flex justify-end gap-3">
+                                        <button onClick={() => setShowImportModal(false)} className="px-4 py-2 text-ds-soft font-bold hover:bg-ds-bg rounded-lg transition">
                                             Cancelar
                                         </button>
                                         <button
@@ -1284,7 +1284,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                 mergeTickets: importMergeTickets,
                                             })}
                                             disabled={loadingDetails}
-                                            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg flex items-center gap-2 disabled:opacity-50"
+                                            className="px-5 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
                                         >
                                             {loadingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadCloud className="w-4 h-4" />}
                                             Importar

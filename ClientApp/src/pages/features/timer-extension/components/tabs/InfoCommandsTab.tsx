@@ -16,7 +16,7 @@ interface InfoCommandsTabProps {
 const ToggleSwitch: React.FC<{ checked: boolean; onChange: (checked: boolean) => void }> = ({ checked, onChange }) => (
     <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
         <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
-        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+        <div className="w-9 h-5 bg-ds-raised peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
     </label>
 );
 
@@ -36,8 +36,8 @@ const commands: CommandDef[] = [
         icon: Clock,
         title: '!dtiempo',
         desc: 'Tiempo restante formateado',
-        color: 'text-blue-500',
-        bg: 'bg-blue-50 dark:bg-blue-900/20',
+        color: 'text-ds-accent-text',
+        bg: 'bg-ds-accent/10 ',
         variables: ['{tiempo}', '{streamer}', '{estado}']
     },
     {
@@ -45,8 +45,8 @@ const commands: CommandDef[] = [
         icon: Calendar,
         title: '!dcuando',
         desc: 'Fecha y hora de finalización',
-        color: 'text-purple-500',
-        bg: 'bg-purple-50 dark:bg-purple-900/20',
+        color: 'text-ds-accent-text',
+        bg: 'bg-ds-accent/10 ',
         variables: ['{fecha}', '{hora}', '{tiempo}', '{streamer}']
     },
     {
@@ -54,8 +54,8 @@ const commands: CommandDef[] = [
         icon: BarChart2,
         title: '!dstats',
         desc: 'Stats de la sesión activa',
-        color: 'text-green-500',
-        bg: 'bg-green-50 dark:bg-green-900/20',
+        color: 'text-ds-ok',
+        bg: 'bg-ds-ok/10 ',
         variables: ['{total}', '{subs}', '{bits}', '{raids}', '{follows}', '{tips}', '{streamer}']
     },
     {
@@ -63,8 +63,8 @@ const commands: CommandDef[] = [
         icon: Trophy,
         title: '!drecord',
         desc: 'Récord histórico del canal',
-        color: 'text-yellow-500',
-        bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+        color: 'text-ds-warn',
+        bg: 'bg-ds-warn/10 ',
         variables: ['{record}', '{fecha_record}', '{streamer}']
     },
     {
@@ -72,8 +72,8 @@ const commands: CommandDef[] = [
         icon: Users,
         title: '!dtop',
         desc: 'Top contribuidores de la sesión',
-        color: 'text-orange-500',
-        bg: 'bg-orange-50 dark:bg-orange-900/20',
+        color: 'text-ds-warn',
+        bg: 'bg-ds-warn/10 ',
         variables: ['{top}', '{periodo}', '{streamer}']
     }
 ];
@@ -105,10 +105,10 @@ const InfoCommandCard: React.FC<{
     };
 
     return (
-        <div className={`bg-white dark:bg-[#1B1C1D] rounded-xl border transition-all duration-200 overflow-hidden ${
+        <div className={`bg-ds-surface rounded-lg border transition-all duration-200 overflow-hidden ${
             expanded
-                ? 'border-blue-500 shadow-md ring-1 ring-blue-500/20'
-                : 'border-[#e2e8f0] dark:border-[#374151] hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'border-ds-accent ring-1 ring-ds-accent/20'
+                : 'border-ds-border hover:border-ds-border '
         }`}>
             {/* Header */}
             <div className="p-4">
@@ -118,8 +118,8 @@ const InfoCommandCard: React.FC<{
                             <Icon className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{def.title}</h3>
-                            <p className="text-[10px] text-[#64748b] dark:text-[#94a3b8]">{def.desc}</p>
+                            <h3 className="text-sm font-bold text-ds-text">{def.title}</h3>
+                            <p className="text-[10px] text-ds-soft">{def.desc}</p>
                         </div>
                     </div>
                     <ToggleSwitch
@@ -131,7 +131,7 @@ const InfoCommandCard: React.FC<{
                 {cfg.enabled && (
                     <button
                         onClick={() => setExpanded(!expanded)}
-                        className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#262626] hover:bg-gray-100 dark:hover:bg-[#333] rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
+                        className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-ds-soft bg-ds-surface hover:bg-ds-bg rounded-lg transition-colors border border-transparent hover:border-ds-border"
                     >
                         <MessageSquare className="w-3 h-3" />
                         {expanded ? 'Ocultar Configuración' : 'Configurar Mensaje'}
@@ -142,11 +142,11 @@ const InfoCommandCard: React.FC<{
 
             {/* Expandable area */}
             {cfg.enabled && expanded && (
-                <div className="bg-[#f8fafc] dark:bg-[#202020] p-4 border-t border-[#e2e8f0] dark:border-[#374151] animate-in slide-in-from-top-2 fade-in duration-200">
+                <div className="bg-ds-bg p-4 border-t border-ds-border animate-in slide-in-from-top-2 fade-in duration-200">
                     <div className="space-y-4">
                         {/* Template */}
                         <div>
-                            <label className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-1 block">
+                            <label className="text-[10px] font-bold text-ds-soft uppercase tracking-wider mb-1 block">
                                 Mensaje
                             </label>
                             <textarea
@@ -154,7 +154,7 @@ const InfoCommandCard: React.FC<{
                                 value={cfg.template}
                                 onChange={(e) => onChange({ ...cfg, template: e.target.value })}
                                 rows={2}
-                                className="w-full px-3 py-2 text-xs border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-1 focus:ring-blue-500 outline-none resize-none"
+                                className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none resize-none"
                                 placeholder="Escribe el mensaje..."
                             />
                             {/* Variable chips */}
@@ -163,7 +163,7 @@ const InfoCommandCard: React.FC<{
                                     <button
                                         key={v}
                                         onClick={() => insertVariable(v)}
-                                        className="px-2 py-0.5 text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors font-mono"
+                                        className="px-2 py-0.5 text-[10px] bg-ds-accent/10 text-ds-accent-text border border-ds-accent rounded-full hover:bg-ds-accent/10 transition-colors font-mono"
                                     >
                                         {v}
                                     </button>
@@ -173,7 +173,7 @@ const InfoCommandCard: React.FC<{
 
                         {/* Permission Level */}
                         <div>
-                            <label className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-1 block">
+                            <label className="text-[10px] font-bold text-ds-soft uppercase tracking-wider mb-1 block">
                                 ¿Quién puede usarlo?
                             </label>
                             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
@@ -191,22 +191,22 @@ const InfoCommandCard: React.FC<{
                                         title={desc}
                                         className={`px-2 py-2 rounded-lg text-[10px] font-semibold border transition-all text-center ${
                                             cfg.permissionLevel === value
-                                                ? 'bg-blue-600 border-blue-600 text-white'
-                                                : 'bg-white dark:bg-[#262626] border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-blue-400'
+                                                ? 'bg-ds-accent border-ds-accent text-ds-on-accent'
+                                                : 'bg-ds-surface border-ds-border text-ds-soft hover:border-ds-accent'
                                         }`}
                                     >
                                         {label}
                                     </button>
                                 ))}
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-1">
+                            <p className="text-[10px] text-ds-soft mt-1">
                                 Jerarquía acumulativa — broadcaster y mods siempre pueden usar cualquier comando.
                             </p>
                         </div>
 
                         {/* Cooldown */}
                         <div>
-                            <label className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-1 block">
+                            <label className="text-[10px] font-bold text-ds-soft uppercase tracking-wider mb-1 block">
                                 Cooldown (segundos)
                             </label>
                             <input
@@ -215,42 +215,42 @@ const InfoCommandCard: React.FC<{
                                 max={3600}
                                 value={cfg.cooldown}
                                 onChange={(e) => onChange({ ...cfg, cooldown: Math.max(0, parseInt(e.target.value) || 0) })}
-                                className="w-32 px-3 py-2 text-xs border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="w-32 px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
                             />
-                            <p className="text-[10px] text-gray-400 mt-1">Tiempo mínimo entre usos en el mismo canal.</p>
+                            <p className="text-[10px] text-ds-soft mt-1">Tiempo mínimo entre usos en el mismo canal.</p>
                         </div>
 
                         {/* Permissions */}
                         <div>
-                            <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <p className="text-[10px] font-bold text-ds-soft uppercase tracking-wider mb-2 flex items-center gap-1">
                                 <Shield className="w-3 h-3" /> Permisos
                             </p>
                             <div className="space-y-3">
                                 <div>
-                                    <label className="text-[10px] text-[#64748b] dark:text-[#94a3b8] mb-1 block">
+                                    <label className="text-[10px] text-ds-soft mb-1 block">
                                         Lista Negra (Bloquear)
                                     </label>
                                     <input
                                         type="text"
                                         value={cfg.blacklist.join(', ')}
                                         onChange={(e) => onChange({ ...cfg, blacklist: e.target.value.split(',').map(u => u.trim()).filter(u => u) })}
-                                        className="w-full px-3 py-2 text-xs border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
                                         placeholder="usuario1, usuario2..."
                                     />
-                                    <p className="text-[10px] text-gray-400 mt-1">Usuarios que NO pueden usar este comando.</p>
+                                    <p className="text-[10px] text-ds-soft mt-1">Usuarios que NO pueden usar este comando.</p>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] text-[#64748b] dark:text-[#94a3b8] mb-1 block">
+                                    <label className="text-[10px] text-ds-soft mb-1 block">
                                         Lista Blanca (Permitir)
                                     </label>
                                     <input
                                         type="text"
                                         value={cfg.whitelist.join(', ')}
                                         onChange={(e) => onChange({ ...cfg, whitelist: e.target.value.split(',').map(u => u.trim()).filter(u => u) })}
-                                        className="w-full px-3 py-2 text-xs border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-1 focus:ring-blue-500 outline-none"
+                                        className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
                                         placeholder="usuario1, usuario2..."
                                     />
-                                    <p className="text-[10px] text-gray-400 mt-1">Usuarios adicionales que SÍ pueden usarlo (además de mods).</p>
+                                    <p className="text-[10px] text-ds-soft mt-1">Usuarios adicionales que SÍ pueden usarlo (además de mods).</p>
                                 </div>
                             </div>
                         </div>
@@ -268,14 +268,14 @@ export const InfoCommandsTab: React.FC<InfoCommandsTabProps> = ({
     return (
         <div className="space-y-6">
             {/* Info banner */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl p-4">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                    <MessageSquare className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8] mt-0.5 flex-shrink-0" />
+                    <MessageSquare className="w-5 h-5 text-ds-soft mt-0.5 flex-shrink-0" />
                     <div>
-                        <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-1">
+                        <p className="text-sm font-semibold text-ds-text mb-1">
                             Comandos Informativos del Timer
                         </p>
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-xs text-ds-soft">
                             Permite a moderadores (y usuarios en lista blanca) consultar información del timer desde el chat.
                             Personaliza el mensaje usando las variables disponibles en cada comando.
                         </p>
