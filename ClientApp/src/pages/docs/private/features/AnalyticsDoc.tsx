@@ -81,10 +81,6 @@ export default function AnalyticsDoc() {
                         <span className="text-ds-accent-text">•</span>
                         Extensiones de tiempo (y quien las provoco)
                     </li>
-                    <li className="flex items-center gap-2 text-ds-soft">
-                        <span className="text-ds-accent-text">•</span>
-                        Metas alcanzadas
-                    </li>
                 </ul>
                 <div className="bg-ds-surface rounded-lg p-4 border border-ds-border">
                     <h4 className="font-bold text-ds-text mb-3">Ejemplo de evento</h4>

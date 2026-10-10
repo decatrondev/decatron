@@ -20,6 +20,7 @@ Referencia de los overlays de Decatron: URLs, configuración en OBS, qué hace c
 - [Overlay de shoutout](#overlay-de-shoutout)
 - [Sorteo](#sorteo)
 - [Otros overlays](#otros-overlays)
+- [Overlay y widget de torneos](#overlay-y-widget-de-torneos)
 - [Arquitectura en tiempo real](#arquitectura-en-tiempo-real)
 - [Referencia de eventos de SignalR](#referencia-de-eventos-de-signalr)
 
@@ -465,7 +466,20 @@ Estos overlays se configuran desde sus propias páginas del panel; sus manuales 
 | Juegos (`/overlay/games`) | Tarjetas con datos de juego de las cuentas vinculadas | Cuentas, Juegos, Detección, Diseño, Overlay |
 | Partida en vivo (`/overlay/live`) | Estado de la partida en curso | Diseño, Overlay |
 | Gacha (`/overlay/gacha`) | Tiradas de gacha de los espectadores | |
-| Torneo (`/overlay/torneo/{token}`) | Información del torneo para el stream | Consulta el panel del torneo |
+| Torneo (`/overlay/torneo/{token}`) | Datos de un participante para su stream | Consulta [Overlay y widget de torneos](#overlay-y-widget-de-torneos) |
+
+---
+
+## Overlay y widget de torneos
+
+Torneos (consulta `/dashboard/docs/tournaments/look` en la aplicación) tiene dos piezas públicas para OBS y sitios de terceros. Ninguna necesita inicio de sesión y las dos responden con CORS abierto (política `TournamentEmbed`), a diferencia del resto de la API.
+
+| Pieza | URL | Qué es |
+|-------|-----|--------|
+| Overlay del participante | `/overlay/torneo/{token}` | Overlay transparente para el OBS de un participante. El token de 32 bytes es la única llave; lo puede generar el participante (desde "Mi inscripción") o el organizador, y regenerarlo invalida el anterior. La página consulta `GET /api/overlay/torneo/{token}` (un token desconocido responde 404) |
+| Widget de ranking | `/embed/torneo/{canal}/{edicion}/ranking` | Clasificación para un `<iframe>` o una fuente de navegador de OBS. Se refresca cada 30 s. Parámetros: `bg=transparent`, `layout=bar` (barra horizontal en lugar de lista), `limit=N` (20 por defecto en la lista, 8 en la barra), `theme=light` o `dark`. Datos: `GET /api/embed/torneo/{canal}/{edicion}/ranking`, con un límite de 60 solicitudes por minuto por IP |
+
+Tamaños sugeridos de los dos enlaces de widget que muestra el panel: lista 400 x 600, barra inferior 1920 x 80.
 
 ---
 

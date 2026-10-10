@@ -1,0 +1,1154 @@
+{
+  "overview": {
+    "title": "Torneos",
+    "subtitle": "Organiza torneos de League of Legends y de Fortnite dentro de Decatron",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "Qué es",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Torneos es el módulo de Decatron para organizar competiciones con tu comunidad: inscripciones con aprobación, equipos, clasificación, premios, una página pública con tu marca y herramientas para el stream. Cada canal organiza sus propias ediciones y los datos de un canal no se mezclan con los de otro."
+          },
+          {
+            "t": "p",
+            "x": "Una «edición» es un torneo concreto (por ejemplo «Copa de Verano 2026»). Puedes tener varias, cada una con su juego, su formato, su enlace público y su estado."
+          }
+        ]
+      },
+      {
+        "id": "tipos",
+        "title": "Tipos de torneo",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Torneo",
+              "Cómo se juega"
+            ],
+            "rows": [
+              [
+                "League of Legends: ARAM por equipos",
+                "Los jugadores se inscriben solos o con un código de equipo; Decatron completa los equipos al azar y arma el cuadro (eliminación simple, doble, todos contra todos o suizo). Equipos de 1v1 a 5v5."
+              ],
+              [
+                "Fortnite: partidas personalizadas por puntos",
+                "Juegas partidas personalizadas con tu código de Epic. Cada partida da puntos por puesto y por eliminaciones, y gana quien acumula más. Solo, dúo, trío o escuadra."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "El resultado de las partidas de Fortnite lo reportan los jugadores con una captura y lo revisa el organizador; Epic no ofrece una API de resultados para partidas personalizadas."
+          }
+        ]
+      },
+      {
+        "id": "incluye",
+        "title": "Qué incluye",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Inscripción con tu cuenta de Decatron y aprobación del organizador.",
+              "Cuentas de juego vinculadas: Riot verificada por ícono de invocador y Epic con el inicio de sesión oficial de Epic Games.",
+              "Equipos con código para invitar a tus compañeros.",
+              "Clasificación en vivo, cuadro de eliminación, premios, normas y sponsors.",
+              "Página pública del torneo con la marca del streamer (logo, portada y colores) y un panel «Mi inscripción» para cada jugador.",
+              "Overlay de OBS para cada participante y un widget de clasificación que puedes incrustar en OBS o en tu web.",
+              "Castigos con nombre propio (Fortnite): fichas que se ganan jugando bien y se pueden lanzar a un rival.",
+              "Comandos de Discord (/torneo) para inscribirte, ver tu estado y leer las normas."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "Quién puede hacer qué",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Organizar (crear ediciones, aprobar, cambiar el estado): el dueño del canal o quien tenga control total en el panel.",
+              "Participar: cualquier persona con una cuenta de Decatron (se entra con Twitch, Kick o Discord) y la cuenta del juego vinculada.",
+              "Ver la página pública, la clasificación y el widget: cualquiera, sin cuenta."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "Planes y costos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Torneos no tiene límites por plan: es gratis para todos los canales. Lo único que gasta créditos del canal es la lectura opcional de capturas con IA en Fortnite, que viene apagada."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Siguiente paso",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si tienes cuenta, el manual completo está en el panel de ayuda:"
+          },
+          {
+            "t": "link",
+            "to": "tournament-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Torneos: puesta en marcha",
+    "subtitle": "Crea tu primera edición, entiende sus estados y comparte el enlace",
+    "sections": [
+      {
+        "id": "entrar",
+        "title": "Dónde está y quién puede usarlo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En el panel entra a Torneos (`/features/torneos`). Solo pueden crear ediciones, cambiar su estado y administrarlas el dueño del canal o quien tenga control total; los moderadores con un nivel menor no pueden."
+          },
+          {
+            "t": "p",
+            "x": "El panel se llama «Torneos» y sus pestañas están en español en ambos idiomas de esta guía; aquí se citan tal como las verás."
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Crear una edición",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En la pestaña «Ediciones» (Editions) pulsa «Nueva edicion» y completa:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Campo",
+              "Qué es"
+            ],
+            "rows": [
+              [
+                "Nombre",
+                "El nombre visible, por ejemplo «Mi Torneo 2026»."
+              ],
+              [
+                "Slug",
+                "La parte del enlace público (`mi-torneo-2026`). Va en minúsculas y debe ser único en tu canal."
+              ],
+              [
+                "Juego",
+                "League of Legends o Fortnite. Cada juego muestra sus propias pestañas."
+              ],
+              [
+                "Modalidad (Fortnite)",
+                "Solo, Dúo, Trío o Escuadra."
+              ],
+              [
+                "Modo (League of Legends)",
+                "«ARAM N vs N». SoloQ Climb y Grieta 5v5 aparecen como «Próximamente» y no se pueden elegir."
+              ],
+              [
+                "Tamaño de equipo (ARAM)",
+                "De 1v1 a 5v5. También se elige el formato del cuadro."
+              ],
+              [
+                "Región",
+                "Una sola, no se puede mezclar. En League of Legends: EUW, EUNE, NA, LAN, LAS, BR, KR, JP, OCE, TR o RU. En Fortnite: NA Este, NA Centro, NA Oeste, Europa, Brasil, Asia, Medio Oriente u Oceanía."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Elige el slug con calma: forma parte del enlace que compartirás. Dentro de tu canal no puede repetirse."
+          }
+        ]
+      },
+      {
+        "id": "estados",
+        "title": "Los estados de una edición",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada edición nace en «Borrador». Tú cambias el estado desde la pestaña «Ediciones», en este orden:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Estado",
+              "Qué significa"
+            ],
+            "rows": [
+              [
+                "Borrador",
+                "Lo preparas. El público no lo ve: ninguna página pública de una edición en borrador está disponible."
+              ],
+              [
+                "Inscripciones abiertas",
+                "La página pública acepta inscripciones. Solo en este estado se puede uno inscribir."
+              ],
+              [
+                "Check-in",
+                "Etapa entre las inscripciones y el torneo. En Fortnite, el check-in real de cada día de partida se hace desde la pestaña «Día de partida»."
+              ],
+              [
+                "En curso",
+                "El torneo se está jugando. En Fortnite la página pública muestra la sesión y la partida en juego."
+              ],
+              [
+                "Finalizado",
+                "Terminó. En Fortnite la cabecera de la página pública muestra al campeón."
+              ],
+              [
+                "Archivado",
+                "Se guarda como histórico. Los comandos de Discord dejan de usarlo."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Puedes borrar una edición con el botón de la papelera. Se borran también sus participantes y todo lo registrado, y no se puede deshacer."
+          }
+        ]
+      },
+      {
+        "id": "enlace",
+        "title": "El enlace público",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada edición tiene su página en `/torneos/{tu-canal}/{slug}`. Cópiala desde la pestaña «Dashboard», en «Link público de tu torneo», y compártela con tus participantes y tu audiencia. Está disponible en cuanto la edición sale de «Borrador»."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "Las pestañas del panel",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las pestañas cambian según el juego de la edición seleccionada:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Pestaña",
+              "Para qué sirve"
+            ],
+            "rows": [
+              [
+                "Dashboard",
+                "Cuenta atrás, participantes, enlace público, enlaces de OBS y alertas."
+              ],
+              [
+                "Ediciones",
+                "Crear, cambiar el estado y borrar ediciones."
+              ],
+              [
+                "Participantes / Equipos",
+                "Aprobar inscripciones, ver equipos y, en ARAM, generar el cuadro."
+              ],
+              [
+                "Formato, Día de partida, Clasificación",
+                "Solo Fortnite: reglas de puntos, sesiones, resultados y tabla de posiciones."
+              ],
+              [
+                "Condición de victoria, Riot API",
+                "Solo League of Legends (ARAM)."
+              ],
+              [
+                "Castigos",
+                "Las fichas con nombre propio (no aplica a ARAM). La pestaña usa el nombre que le pongas."
+              ],
+              [
+                "Apariencia, Premios, Normas, Sponsors",
+                "Marca, premios, reglas y patrocinadores de la edición."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cada pestaña trabaja sobre la edición seleccionada arriba."
+          }
+        ]
+      },
+      {
+        "id": "lista",
+        "title": "Antes de abrir las inscripciones",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Sube tu logo y tu portada y elige los colores en «Apariencia».",
+              "Escribe las «Normas» (hay una plantilla de partida).",
+              "Carga los «Premios» y, si hay, los «Sponsors».",
+              "League of Legends: guarda tu llave en «Riot API». Fortnite: configura el «Formato» (puntos, desempates, pruebas).",
+              "Cambia el estado a «Inscripciones abiertas» y comparte el enlace."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "tournament-registration"
+          }
+        ]
+      }
+    ]
+  },
+  "registration": {
+    "title": "Torneos: inscripción y participantes",
+    "subtitle": "Cómo se inscribe un jugador, cómo apruebas y cómo se arman los equipos",
+    "sections": [
+      {
+        "id": "jugador",
+        "title": "Cómo se inscribe un jugador",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "El jugador abre el enlace del torneo, inicia sesión en Decatron (con Twitch, Kick o Discord) y pulsa «Inscribirme». Se abre su panel «Mi inscripción» (`/torneos/{canal}/{slug}/mi-panel`) con los pasos en orden:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Paso",
+              "Qué hace el jugador"
+            ],
+            "rows": [
+              [
+                "1. Inscripción",
+                "Elige su nombre público y su cuenta del juego."
+              ],
+              [
+                "2. Cuenta de Riot / Epic",
+                "Ve con qué cuenta juega. En Fortnite puede cambiarla o verificarla con Epic."
+              ],
+              [
+                "3. Equipo",
+                "Solo aparece si los equipos son de más de una persona: crea un equipo o se une con un código."
+              ],
+              [
+                "4. Día de partida",
+                "Solo Fortnite: check-in, código de la partida y reporte de resultados."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Para evitar abusos, los pasos de inscripción tienen un límite de 5 solicitudes cada 10 minutos por conexión. Es suficiente para un uso normal."
+          }
+        ]
+      },
+      {
+        "id": "cuentas",
+        "title": "Cuentas de juego",
+        "blocks": [
+          {
+            "t": "h3",
+            "x": "League of Legends: cuenta de Riot"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Se vincula una sola vez en Ajustes → Integraciones, en «Cuentas de Riot». Puede haber varias por persona.",
+              "Se verifica con el ícono de invocador: Decatron te pide poner un ícono concreto en tu cliente de League y lo comprueba.",
+              "Al inscribirte eliges, entre tus cuentas verificadas de la región de la edición, con cuál juegas.",
+              "Si tienes otra cuenta verificada de la misma región con más nivel, el organizador ve una nota de posible smurf. Es solo un aviso: no impide inscribirse."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Fortnite: cuenta de Epic"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "En la inscripción puedes elegir una cuenta de Epic ya vinculada o vincularla ahí mismo.",
+              "Lo recomendado es «Verificar con mi cuenta de Epic Games», que usa el inicio de sesión oficial de Epic.",
+              "Si escribes el nombre de Epic a mano, la cuenta queda «sin verificar» y el organizador lo ve en la lista.",
+              "Una cuenta de Epic no puede estar en dos inscripciones de la misma edición."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "aprobar",
+        "title": "Aprobar inscripciones",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Toda inscripción entra como «Pendiente». En la pestaña «Participantes» las revisas y pulsas Aprobar o Rechazar. El botón «Agregar» es un alta manual y entra directamente como aprobado (en Fortnite queda sin verificar)."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Estado del participante",
+              "Significado"
+            ],
+            "rows": [
+              [
+                "Pendiente",
+                "Espera tu aprobación."
+              ],
+              [
+                "Aprobado",
+                "Participa en el torneo."
+              ],
+              [
+                "Rechazado",
+                "No participa."
+              ],
+              [
+                "Check-in hecho, Activo, Eliminado, Retirado",
+                "Estados que toman los jugadores a lo largo del torneo."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "equipos",
+        "title": "Equipos",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Con equipos de más de una persona, cualquier inscrito puede crear un equipo; se genera un código que comparte con sus compañeros, que se unen desde el paso «Equipo».",
+              "Fortnite: los jugadores que no tienen equipo se sortean para completar equipos (el organizador puede apagarlo; entonces quien no tenga equipo no juega). Lo que sobra forma un equipo incompleto que igual juega.",
+              "ARAM: al generar el cuadro se completan los equipos a medias y, con quienes sobran, se arman equipos nuevos al azar. Si no alcanzan para un equipo completo, quedan fuera y se te informa.",
+              "En solo (Fortnite) o en 1v1 (ARAM) cada jugador es su propio equipo."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "Overlay por participante",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada participante puede generar su propio enlace de overlay desde «Mi inscripción», y tú puedes generarlo desde «Participantes» como respaldo. El enlace es un token: quien lo tiene ve el overlay. «Regenerar» invalida el enlace anterior; úsalo solo si se filtró."
+          },
+          {
+            "t": "link",
+            "to": "tournament-look"
+          }
+        ]
+      }
+    ]
+  },
+  "aram": {
+    "title": "Torneos: League of Legends (ARAM)",
+    "subtitle": "Equipos al azar, cuadro de eliminación y condiciones de victoria",
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Creas una edición de League of Legends, modo «ARAM N vs N», con el tamaño de equipo y el formato del cuadro.",
+              "Guardas tu llave de Riot en «Riot API».",
+              "Los jugadores se inscriben (con su cuenta de Riot verificada) y tú los apruebas.",
+              "En «Equipos» generas el cuadro: se sortean los equipos y se crean los enfrentamientos.",
+              "Se juegan las partidas personalizadas y se cargan los resultados (a mano o con condiciones de victoria)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "riot",
+        "title": "La llave de Riot (pestaña «Riot API»)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron usa tu propia llave de Riot para comprobar que las cuentas existen y, si activas condiciones de victoria, para leer las partidas. Cada canal guarda la suya."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Entra a developer.riotgames.com con tu cuenta de Riot Games. Si es la primera vez te pedirá crear una cuenta de desarrollador, que es aparte de tu cuenta de juego.",
+              "Copia la «Development API Key». Esa llave dura 24 horas: después Riot la vence y hay que copiar una nueva.",
+              "Pégala en la pestaña «Riot API» (empieza por `RGAPI-`) y guarda. Decatron la verifica contra Riot y muestra el resultado."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El panel distingue el tipo de llave: «Development» (se vence cada 24 h) y «Production». Si la llave falla, el Dashboard de la edición muestra una alerta."
+          }
+        ]
+      },
+      {
+        "id": "formatos",
+        "title": "Formatos del cuadro",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Formato",
+              "Cómo funciona"
+            ],
+            "rows": [
+              [
+                "Eliminación simple",
+                "Pierdes y quedas fuera. Los primeros equipos pasan directos la primera ronda si el número es impar (bye)."
+              ],
+              [
+                "Eliminación doble",
+                "Una derrota te baja al cuadro de perdedores. Por ahora solo con 4, 8, 16 o 32 equipos."
+              ],
+              [
+                "Todos contra todos",
+                "Todos juegan contra todos; hay una tabla de victorias y derrotas en lugar de un árbol."
+              ],
+              [
+                "Suizo",
+                "Se genera ronda a ronda empareando por la tabla y evitando repetir rivales. Pulsas «Generar próxima ronda» cuando la ronda actual está completa; el cierre lo decides tú."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "equipos",
+        "title": "Equipos y cuadro (pestaña «Equipos»)",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "«Generar bracket (sortea equipos)» arma los equipos al azar con los participantes aprobados y crea los enfrentamientos. No se puede generar dos veces la misma edición.",
+              "Los equipos que los jugadores ya armaron con código se respetan y se completan.",
+              "Cuando cargas el resultado de un enfrentamiento, el ganador avanza solo a la siguiente ronda.",
+              "Para probar, «Crear equipos de prueba» y «Sembrar participantes de prueba» generan datos ficticios. Bórralos antes de abrir el torneo real."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "resultados",
+        "title": "Resultados y «Condición de victoria»",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Las partidas son personalizadas, así que el resultado de cada enfrentamiento lo cargas tú en «Equipos». Sin condiciones de victoria, el torneo se juega normal: gana quien destruye el nexo."
+          },
+          {
+            "t": "p",
+            "x": "En la pestaña «Condición de victoria» puedes crear reglas que Decatron comprueba leyendo las partidas con tu llave de Riot, y «Resincronizar ahora» las vuelve a evaluar; si una partida ya cumple alguna condición activa, el cuadro se actualiza solo. Los tipos disponibles son:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Equipo derriba X torres; primera torre; primer inhibidor.",
+              "Equipo con X de oro de ventaja; equipo llega a X kills totales; a los X minutos gana el que va arriba en kills.",
+              "Jugador llega a X kills individuales, a X kills seguidas sin morir, a nivel X, a X de oro, a X súbditos (CS) o hace X de daño a campeones.",
+              "Multikill (doble, triple, cuádruple o penta)."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Cada condición se puede activar, desactivar o borrar, y llevan un nombre para identificarlas en la lista."
+          }
+        ]
+      },
+      {
+        "id": "publico",
+        "title": "Lo que ve el público",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "La página de la edición muestra los equipos con su plantilla, el cuadro (o la tabla en todos contra todos y suizo), los premios y las normas."
+          }
+        ]
+      }
+    ]
+  },
+  "fortnite": {
+    "title": "Torneos: Fortnite",
+    "subtitle": "Partidas personalizadas por puntos, de la inscripción al campeón",
+    "sections": [
+      {
+        "id": "como",
+        "title": "Cómo funciona",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tú organizas partidas personalizadas con tu propio código de Epic y Decatron lleva la cuenta: inscripciones, equipos, check-in, reportes con captura, revisión y clasificación. Decatron no crea las partidas; las creas tú en Fortnite."
+          },
+          {
+            "t": "p",
+            "x": "Una edición tiene una o varias sesiones (por ejemplo días de juego) y cada sesión tiene de 1 a 20 partidas. El torneo se decide por los puntos acumulados."
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Crear la edición",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "En «Ediciones» → «Nueva edicion»: juego Fortnite, modalidad (Solo, Dúo, Trío o Escuadra) y región del servidor.",
+              "En «Apariencia» sube tu logo y portada y elige tus colores.",
+              "En «Formato» configura las reglas (abajo).",
+              "Cambia el estado a «Inscripciones abiertas» y copia el enlace desde el «Dashboard»."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "puntos",
+        "title": "Reglas de puntos (pestaña «Formato»)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Elige una plantilla para empezar y ajústala. Las plantillas son sugerencias, no tablas oficiales de Epic:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Plantilla",
+              "Idea"
+            ],
+            "rows": [
+              [
+                "Clásica",
+                "Puesto y eliminaciones pesan parecido. 1 punto por eliminación."
+              ],
+              [
+                "Carrera de eliminaciones",
+                "Lo que más suma son las eliminaciones (3 puntos cada una); el puesto da un extra."
+              ],
+              [
+                "Solo puesto",
+                "Solo cuenta el puesto; las eliminaciones no suman."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Puntos por puesto: tramos «desde el puesto / hasta el puesto». Los puestos que no estén en ningún tramo suman 0. Cada valor va de 0 a 1000.",
+              "Puntos por eliminación.",
+              "Desempates, ordenables: más victorias, más eliminaciones, mejor puesto promedio y mejor puesto en la última partida (en ese orden por defecto).",
+              "Jugadores por lobby (100 por defecto: 100 solos, 50 dúos, 33 tríos o 25 escuadras). Si hay más equipos de los que entran, se reparten en grupos.",
+              "Sorteo de solos (activado por defecto) para completar equipos de dúo, trío o escuadra.",
+              "Puntos para quedar en match point (opcional): quien llega a ese umbral y gana una partida se proclama campeón."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Pruebas y reportes"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Modo de pruebas",
+              "Qué pasa"
+            ],
+            "rows": [
+              [
+                "Captura obligatoria (por defecto)",
+                "Cada jugador sube su captura de la pantalla final; sin captura no se cuenta el reporte."
+              ],
+              [
+                "Captura solo si hay algo raro",
+                "Se reporta sin captura; se pide cuando el sistema marca una alerta en el equipo."
+              ],
+              [
+                "Carga el organizador",
+                "Los jugadores no reportan: tú cargas los resultados de cada partida con tu justificante."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Minutos para reportar desde que termina la partida (30 por defecto).",
+              "Cero puntos a quien no reporta (activado por defecto).",
+              "Capturas públicas: si lo activas, las capturas de los resultados aprobados se ven en la página pública (apagado por defecto).",
+              "Lectura de capturas con IA (apagada por defecto): ver más abajo."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Termina con «Guardar reglas»."
+          }
+        ]
+      },
+      {
+        "id": "estructura",
+        "title": "Equipos, grupos y sesiones",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "«Armar equipos» (cuando cierres las inscripciones): en Solo cada jugador es su propio equipo; en dúo o más se respetan los equipos hechos por código y se sortean los solos si lo dejaste activado.",
+              "Si hay más equipos que los que entran en un lobby: «Armar grupos al azar» (se respetan los equipos ya armados y puedes mover equipos entre grupos), y después «Crear final». También eliges cuántos pasan a la final por grupo.",
+              "«Nueva sesión»: nombre (por ejemplo «Sesión 1»), quiénes juegan (todos o un grupo), fecha y hora y número de partidas."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dia",
+        "title": "Día de partida",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Cambia la edición a «En curso».",
+              "En «Día de partida» elige la sesión y pulsa «Abrir check-in».",
+              "Cada jugador hace su check-in en «Mi inscripción» → «Día de partida» (tú puedes marcarlo a mano si alguien no puede). Quien no hizo check-in no ve el código.",
+              "Cuando estén todos: «Cerrar check-in y empezar».",
+              "En Fortnite crea la partida personalizada con tu código. En «Día de partida» escribe el código de esa partida (queda oculto; el ojo lo muestra) y pulsa «Revelar código».",
+              "Los jugadores con check-in lo ven oculto en su panel, con un botón para copiarlo. Puedes avisar en el chat (sin el código) y enviarlo por mensaje directo de Discord a quienes hicieron check-in.",
+              "Marca «Empezó» y, al terminar, «Terminó»."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "El código nunca va al chat, al overlay ni a las páginas públicas: solo lo ven los jugadores con check-in cuando la partida está revelada o en juego."
+          }
+        ]
+      },
+      {
+        "id": "resultados",
+        "title": "Resultados y revisión",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Cada jugador reporta en su panel: el puesto de su equipo, sus eliminaciones y la captura de la pantalla final (se puede pegar con Ctrl+V, arrastrar o elegir un archivo).",
+              "En «Resultados» de esa partida revisas las capturas y las alertas y pulsas «Aprobar» (o «Aprobar los N sin alertas»). Solo lo aprobado suma puntos.",
+              "Si algo está mal: «Cargar o corregir». Siempre pide un motivo y, para cargar o corregir, un justificante adjunto (también se puede pegar con Ctrl+V). Queda un historial de quién, cuándo y qué cambió, que ven los jugadores en «Cambios del organizador».",
+              "«Cerrar partida»: no deja cerrar si hay reportes sin revisar. Los equipos sin reporte quedan en 0 (si lo dejaste así).",
+              "Al final, «Terminar sesión»."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Las alertas automáticas marcan: sin reporte, puestos distintos dentro del mismo equipo, faltan reportes de jugadores, un puesto repetido entre equipos, un puesto fuera de rango, falta la captura y más eliminaciones que jugadores en la partida."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Las capturas se guardan en privado: se validan como imágenes, se les quitan los metadatos y se limitan a 10 MB y 2560 píxeles."
+          }
+        ]
+      },
+      {
+        "id": "clasificacion",
+        "title": "Clasificación",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Se calcula con los resultados aprobados; los rechazados y los sin reporte cuentan como partida jugada con 0 puntos.",
+              "Hay tablas por ámbito: lobby único, cada grupo y la final, con los desempates que configuraste.",
+              "La página pública tiene una pestaña «Clasificación» (la primera en Fortnite) con puntos, insignias de campeón, match point y clasificado, el detalle partida por partida de cada equipo y «Cómo se cuentan los puntos». Se refresca sola.",
+              "En tu pestaña «Clasificación» está la tabla y «Pasar clasificados a la final», que reemplaza los equipos de la final (no se puede si la final ya empezó).",
+              "Al marcar la edición como «Finalizado», la cabecera muestra al campeón."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ia",
+        "title": "Lectura de capturas con IA (opcional)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Si la activas en «Formato», al elegir la captura la IA lee el puesto y las eliminaciones y prellena el reporte; el jugador confirma. En tu revisión ves «IA: #X · Y elim.» y una alerta si no coincide con lo que reportó."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Está apagada por defecto y cada lectura cobra créditos del canal del organizador.",
+              "Sin créditos no lee: el jugador escribe los datos a mano y el reporte nunca se bloquea.",
+              "Hay un tope de 6 lecturas cada 15 minutos por jugador."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "castigos",
+        "title": "Castigos",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Fortnite incluye el sistema de castigos con nombre propio, explicado en su página."
+          },
+          {
+            "t": "link",
+            "to": "tournament-punishments"
+          }
+        ]
+      }
+    ]
+  },
+  "punishments": {
+    "title": "Torneos: castigos con nombre propio",
+    "subtitle": "Fichas que se ganan jugando bien y se lanzan a un rival",
+    "sections": [
+      {
+        "id": "idea",
+        "title": "La idea",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Es una mecánica opcional de tu torneo: cuando un equipo cumple ciertas condiciones gana «fichas» y puede lanzar un castigo a un rival (por ejemplo «Solo escopetas» en la siguiente partida). Es tuya: le pones tu propio nombre."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Se muestra en las ediciones de Fortnite (en ARAM no aplica). La mecánica de «suerte» que existe para otro modo no se usa en Fortnite."
+          }
+        ]
+      },
+      {
+        "id": "nombre",
+        "title": "Ponerle tu nombre",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Por defecto la ficha se llama «Ficha de Castigo». En la pestaña de castigos puedes ponerle el nombre que quieras (la pestaña pasa a llamarse así, en plural). Es una marca tuya, no un nombre fijo del producto."
+          }
+        ]
+      },
+      {
+        "id": "semilla",
+        "title": "Valores de ejemplo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "«Sembrar valores por defecto» carga un catálogo de ejemplo en la edición para que lo ajustes:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Qué",
+              "Valores de ejemplo en Fortnite"
+            ],
+            "rows": [
+              [
+                "Castigos",
+                "Solo escopetas · Sin curarse (ni escudos) · Solo armas grises y verdes · Sin vehículos · Aterrizar donde elija el rival · Sin objetos de movilidad · Jugar la partida sin construir"
+              ],
+              [
+                "Cómo se ganan fichas",
+                "Ganar una partida · 10 o más eliminaciones en una partida · Top 5 en 3 partidas seguidas · Remontada: subir 5 puestos en una sesión"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Puedes editar el catálogo: agregar, cambiar o desactivar castigos y condiciones. Borrar algo que ya se usó solo lo desactiva."
+          }
+        ]
+      },
+      {
+        "id": "ganar",
+        "title": "Cómo se ganan las fichas",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Solo se evalúan resultados aprobados, nunca lo reportado sin revisar.",
+              "Victoria, eliminaciones y racha se evalúan al cerrar cada partida; la remontada, al terminar cada sesión.",
+              "Las fichas son del equipo (las guarda el jugador aprobado de menor número del equipo)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "lanzar",
+        "title": "Lanzar un castigo",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Lo lanzas tú desde la pestaña de castigos, eligiendo quién lanza, a quién y qué castigo. Las reglas que se comprueban:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "No puedes lanzarte una ficha a ti mismo y ambos participantes deben ser de la edición.",
+              "El que lanza necesita fichas en el inventario (máximo 3 por defecto).",
+              "Si la edición tiene fecha de fin, el sistema se puede apagar en las últimas horas antes de ella (48 por defecto; el ejemplo de Fortnite no lo activa).",
+              "Cooldown de recepción y probabilidad de reversa según el puesto del objetivo, configurables por tramos (el ejemplo de Fortnite no usa cooldown y da una pequeña probabilidad de reversa a los primeros puestos)."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Cuando el castigo se cumple, lo marcas como cumplido. La pestaña también muestra los inventarios y el registro de eventos."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Por ahora el lanzamiento se hace desde el panel del organizador; no hay un comando de Discord para ello."
+          }
+        ]
+      }
+    ]
+  },
+  "prizes": {
+    "title": "Torneos: premios, normas y sponsors",
+    "subtitle": "Lo que se gana, las reglas del torneo y quién lo apoya",
+    "sections": [
+      {
+        "id": "premios",
+        "title": "Premios (pestaña «Premios»)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada premio tiene un nombre (por ejemplo «Ganador», «Mejor Top», «Más kills»), una descripción opcional y un importe opcional. No tiene que ser dinero: puede ser una skin, una suscripción, merchandising o un trofeo."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Cómo se decide",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "Por puesto",
+                "Va al que termina en ese puesto de la clasificación."
+              ],
+              [
+                "Por métrica",
+                "Va al líder de una métrica; el panel calcula el líder actual en vivo."
+              ],
+              [
+                "Por rol",
+                "Solo League of Legends."
+              ],
+              [
+                "Libre",
+                "Sin seguimiento automático: tú marcas quién lo ganó cuando corresponda."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "«Ocultar importe al público» muestra «???» en lugar del monto.",
+              "El panel suma la bolsa total de los importes.",
+              "Los premios aparecen en la página pública de la edición."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "normas",
+        "title": "Normas (pestaña «Normas»)",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Hay dos documentos: «Generales» y «Castigos». Se escriben en un formato de texto sencillo (markdown) con vista previa, y se guardan por versiones.",
+              "El botón «Usar plantilla» carga un texto de partida con el nombre de tu mecánica de castigos. No pisa lo que ya escribiste sin preguntar.",
+              "Los jugadores las leen desde la página del torneo. En Discord, `/torneo normas` muestra las normas generales (recortadas si son muy largas)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sponsors",
+        "title": "Sponsors (pestaña «Sponsors»)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Aquí das de alta a mano a quienes patrocinan la edición. Cada sponsor tiene:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Nombre, logo (URL) y un botón con texto y enlace (no hace falta escribir «https://»: se agrega solo).",
+              "Monto patrocinado, solo informativo.",
+              "Dónde aparece: banner del home, sección premios o pie de página.",
+              "Estado: se puede archivar y reactivar, o borrar."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "En la página pública, los del banner del home aparecen en una franja bajo la cabecera («Con el apoyo de…») y los del pie de página abajo. La opción «sección premios» está reservada y todavía no se dibuja."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "No hay una bandeja de solicitudes de sponsors: el alta es solo manual."
+          }
+        ]
+      }
+    ]
+  },
+  "look": {
+    "title": "Torneos: apariencia, overlays y widget",
+    "subtitle": "Tu marca en la página, y las herramientas para OBS y tu web",
+    "sections": [
+      {
+        "id": "apariencia",
+        "title": "Apariencia (pestaña «Apariencia»)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tu marca aparece en la página del torneo, en el panel de los jugadores y en el widget para OBS."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Logo y portada: tócalos para elegir un archivo, arrástralos o pégalos con Ctrl+V.",
+              "Dos colores, «Principal» y «Secundario», y el fondo claro u oscuro.",
+              "La «Vista previa» muestra cómo se verá. Si un color casi no se distingue del fondo, te avisa y lo aclara solo en barras y botones.",
+              "Termina con «Guardar colores y fondo»."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "widget",
+        "title": "Widget de clasificación (para OBS o tu web)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "En el «Dashboard» de la edición tienes los enlaces listos. Para OBS agrega una fuente de navegador con uno de ellos: tienen fondo transparente, usan los colores de Apariencia y se actualizan solos."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Enlace",
+              "Tamaño sugerido"
+            ],
+            "rows": [
+              [
+                "Lista (costado del stream)",
+                "400 × 600"
+              ],
+              [
+                "Barra inferior (abajo del stream)",
+                "1920 × 80"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Si lo incrustas en tu web, la dirección es `/embed/torneo/{canal}/{slug}/ranking` y acepta estos parámetros:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Parámetro",
+              "Efecto"
+            ],
+            "rows": [
+              [
+                "`bg=transparent`",
+                "Fondo transparente."
+              ],
+              [
+                "`layout=bar`",
+                "Barra horizontal en lugar de lista."
+              ],
+              [
+                "`limit=10`",
+                "Cuántos equipos o jugadores mostrar (por defecto 20 en lista y 8 en barra)."
+              ],
+              [
+                "`theme=light` o `dark`",
+                "Tema claro u oscuro; sin el parámetro usa el de Apariencia."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "El widget se refresca cada 30 segundos y puede mostrarse en cualquier sitio: no pide sesión."
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "Overlay por participante",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Cada participante tiene su propio enlace `/overlay/torneo/{token}` para su OBS, con fondo transparente. El token es la única llave: no hace falta iniciar sesión. Se genera desde «Mi inscripción» (el participante) o desde «Participantes» (tú), y se pueden elegir los elementos que muestra. «Regenerar» invalida el enlace anterior."
+          },
+          {
+            "t": "p",
+            "x": "La lista de overlays de Decatron, con las demás, está en la guía de overlays."
+          },
+          {
+            "t": "link",
+            "to": "overlays-guide"
+          }
+        ]
+      }
+    ]
+  },
+  "discord": {
+    "title": "Torneos: comandos de Discord",
+    "subtitle": "Inscribirte, ver tu estado y leer las normas desde Discord",
+    "sections": [
+      {
+        "id": "requisito",
+        "title": "Antes de empezar",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Los comandos `/torneo` funcionan en un servidor de Discord que tenga vinculado un canal de Decatron (el bot de Discord debe estar en el servidor). Cada comando actúa sobre el torneo de ese canal."
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Comandos",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Comando",
+              "Qué hace"
+            ],
+            "rows": [
+              [
+                "`/torneo inscribirme riot_id riot_tag [nombre]`",
+                "Te inscribe en el torneo con inscripciones abiertas más reciente del canal. Se comprueba que la cuenta de Riot exista (con la llave del streamer) y la inscripción queda pendiente de aprobación. `nombre` es opcional (por defecto, tu usuario de Discord)."
+              ],
+              [
+                "`/torneo estado`",
+                "Muestra tu estado en el torneo del canal: estado de la inscripción, puesto, fichas en el inventario y si tienes un castigo sin cumplir."
+              ],
+              [
+                "`/torneo normas`",
+                "Muestra las normas generales del torneo activo (si son muy largas, las recorta y te remite a la página del torneo)."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "En un torneo de Fortnite, `/torneo inscribirme` te pide inscribirte desde la página web, porque necesita elegir tu cuenta de Epic vinculada."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Por Discord se indica el Riot ID y el tag, y se comprueba que exista, pero no se verifica que la cuenta sea tuya; la verificación por ícono se hace al vincular la cuenta en Ajustes. Todavía no existen `/torneo checkin`, `vincular-riot` ni `lanzar-castigo`."
+          }
+        ]
+      }
+    ]
+  }
+}

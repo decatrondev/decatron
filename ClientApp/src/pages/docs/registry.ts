@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import {
     Book, HelpCircle, Rocket, Grid, MessageSquare, Plug, Zap, Code, Variable, Monitor, Dice6,
-    Clock, Bell, Gift, Target, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
+    Clock, Bell, Gift, Volume2, DollarSign, Shield, Sparkles, Music, Gamepad2, Radio, Cat,
     BarChart3, Users, Code2, Settings, Lock, ListMusic, SlidersHorizontal, Terminal, Palette, History, PlayCircle, Disc, Coins, Trophy, MessageSquareText, Crosshair,
 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -72,7 +72,6 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'timer', scopes: priv, group: 'features', path: 'features/timer', icon: Clock, color: 'blue' },
     { id: 'event-alerts', scopes: priv, group: 'features', path: 'features/event-alerts', icon: Bell, color: 'red' },
     { id: 'giveaway', scopes: priv, group: 'features', path: 'features/giveaway', icon: Gift, color: 'pink' },
-    { id: 'goals', scopes: priv, group: 'features', path: 'features/goals', icon: Target, color: 'green' },
     { id: 'sound-alerts', scopes: priv, group: 'features', path: 'features/sound-alerts', icon: Volume2, color: 'orange' },
     { id: 'tips', scopes: priv, group: 'features', path: 'features/tips', icon: DollarSign, color: 'green' },
     { id: 'shoutout', scopes: priv, group: 'features', path: 'features/shoutout', icon: MessageSquare, color: 'purple' },
@@ -93,6 +92,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'wheel-overview', scopes: pub, group: 'modules', path: 'wheel', icon: Disc, color: 'blue' },
 
+    { id: 'tournament-overview', scopes: pub, group: 'modules', path: 'tournaments', icon: Trophy, color: 'blue' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -100,6 +101,16 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'wheel-raffle', scopes: priv, group: 'wheel', path: 'wheel/raffle', icon: Trophy, color: 'blue' },
     { id: 'wheel-commands', scopes: priv, group: 'wheel', path: 'wheel/commands', icon: MessageSquareText, color: 'blue' },
     { id: 'wheel-look', scopes: priv, group: 'wheel', path: 'wheel/look', icon: Palette, color: 'blue' },
+
+    // — Torneos: manual con cuenta —
+    { id: 'tournament-setup', scopes: priv, group: 'tournament', path: 'tournaments/setup', icon: PlayCircle, color: 'blue' },
+    { id: 'tournament-registration', scopes: priv, group: 'tournament', path: 'tournaments/registration', icon: Users, color: 'blue' },
+    { id: 'tournament-aram', scopes: priv, group: 'tournament', path: 'tournaments/aram', icon: Gamepad2, color: 'blue' },
+    { id: 'tournament-fortnite', scopes: priv, group: 'tournament', path: 'tournaments/fortnite', icon: Crosshair, color: 'blue' },
+    { id: 'tournament-punishments', scopes: priv, group: 'tournament', path: 'tournaments/punishments', icon: Shield, color: 'blue' },
+    { id: 'tournament-prizes', scopes: priv, group: 'tournament', path: 'tournaments/prizes', icon: Gift, color: 'blue' },
+    { id: 'tournament-look', scopes: priv, group: 'tournament', path: 'tournaments/look', icon: Palette, color: 'blue' },
+    { id: 'tournament-discord', scopes: priv, group: 'tournament', path: 'tournaments/discord', icon: MessageSquareText, color: 'blue' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

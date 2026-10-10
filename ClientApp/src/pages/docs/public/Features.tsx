@@ -1,5 +1,5 @@
 import {
-    Zap, Clock, Gift, Target, Bell, MessageSquare, Shield, Sparkles,
+    Zap, Clock, Gift, Bell, MessageSquare, Shield, Sparkles,
     Volume2, DollarSign, BarChart3, Users, ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -73,14 +73,6 @@ export default function Features() {
                     description="Sistema completo de sorteos con requisitos de participacion, sistema de peso para subs y historial."
                     link="/dashboard/docs/features/giveaway"
                     color="pink"
-                    requiresAuth
-                />
-                <FeatureCard
-                    icon={<Target className="w-6 h-6" />}
-                    title="Metas / Goals"
-                    description="Crea metas de subs, bits o donaciones con overlay en tiempo real y notificaciones de milestone."
-                    link="/dashboard/docs/features/goals"
-                    color="green"
                     requiresAuth
                 />
                 <FeatureCard

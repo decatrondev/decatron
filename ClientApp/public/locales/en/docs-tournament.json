@@ -1,0 +1,1154 @@
+{
+  "overview": {
+    "title": "Tournaments",
+    "subtitle": "Run League of Legends and Fortnite tournaments inside Decatron",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tournaments is the Decatron module for running competitions with your community: registrations with approval, teams, standings, prizes, a public page with your branding and tools for your stream. Each channel runs its own editions and one channel's data is never mixed with another's."
+          },
+          {
+            "t": "p",
+            "x": "An “edition” is one specific tournament (for example “Summer Cup 2026”). You can have several, each with its own game, format, public link and status."
+          }
+        ]
+      },
+      {
+        "id": "tipos",
+        "title": "Kinds of tournament",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Tournament",
+              "How it is played"
+            ],
+            "rows": [
+              [
+                "League of Legends: team ARAM",
+                "Players sign up alone or with a team code; Decatron fills the teams at random and builds the bracket (single elimination, double elimination, round robin or Swiss). Teams from 1v1 to 5v5."
+              ],
+              [
+                "Fortnite: custom games scored by points",
+                "You play custom games with your Epic code. Every game gives points for placement and eliminations, and whoever accumulates the most wins. Solo, duo, trio or squad."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Fortnite game results are reported by the players with a screenshot and reviewed by the organizer; Epic offers no results API for custom games."
+          }
+        ]
+      },
+      {
+        "id": "incluye",
+        "title": "What is included",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Registration with a Decatron account and organizer approval.",
+              "Linked game accounts: Riot verified by summoner icon and Epic through the official Epic Games login.",
+              "Teams with a code to invite your teammates.",
+              "Live standings, elimination bracket, prizes, rules and sponsors.",
+              "A public tournament page with the streamer's branding (logo, cover and colors) and a “Mi inscripción” panel for every player.",
+              "An OBS overlay for every participant and a standings widget you can embed in OBS or on your website.",
+              "Named punishments (Fortnite): chips earned by playing well that can be thrown at a rival.",
+              "Discord commands (/torneo) to sign up, check your status and read the rules."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "Who can do what",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Organizing (creating editions, approving, changing the status): the channel owner or anyone with full control in the dashboard.",
+              "Taking part: anyone with a Decatron account (you sign in with Twitch, Kick or Discord) and the game account linked.",
+              "Viewing the public page, the standings and the widget: anyone, no account needed."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "planes",
+        "title": "Plans and costs",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Tournaments has no per-plan limits: it is free for every channel. The only thing that spends channel credits is the optional AI screenshot reading in Fortnite, which is off by default."
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the complete manual is in the help center of the dashboard:"
+          },
+          {
+            "t": "link",
+            "to": "tournament-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "Tournaments: setup",
+    "subtitle": "Create your first edition, understand its statuses and share the link",
+    "sections": [
+      {
+        "id": "entrar",
+        "title": "Where it is and who can use it",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the dashboard open Torneos (`/features/torneos`). Only the channel owner or anyone with full control can create editions, change their status and manage them; moderators with a lower level cannot."
+          },
+          {
+            "t": "p",
+            "x": "The panel is called “Torneos” and its tabs are in Spanish; this guide quotes them exactly as you will see them."
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Creating an edition",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the “Ediciones” (Editions) tab press “Nueva edicion” and fill in:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Field",
+              "What it is"
+            ],
+            "rows": [
+              [
+                "Nombre (name)",
+                "The visible name, for example “Mi Torneo 2026”."
+              ],
+              [
+                "Slug",
+                "The part of the public link (`mi-torneo-2026`). It is lowercase and must be unique in your channel."
+              ],
+              [
+                "Juego (game)",
+                "League of Legends or Fortnite. Each game shows its own tabs."
+              ],
+              [
+                "Modalidad (Fortnite)",
+                "Solo, Dúo (duo), Trío (trio) or Escuadra (squad)."
+              ],
+              [
+                "Modo (League of Legends)",
+                "“ARAM N vs N”. SoloQ Climb and Grieta 5v5 show as “Próximamente” (coming soon) and cannot be chosen."
+              ],
+              [
+                "Tamaño de equipo (ARAM)",
+                "From 1v1 to 5v5. You also pick the bracket format."
+              ],
+              [
+                "Región (region)",
+                "Only one, they cannot be mixed. League of Legends: EUW, EUNE, NA, LAN, LAS, BR, KR, JP, OCE, TR or RU. Fortnite: NA Este, NA Centro, NA Oeste, Europa, Brasil, Asia, Medio Oriente or Oceanía."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "tip",
+            "x": "Take your time with the slug: it is part of the link you will share. It cannot repeat inside your channel."
+          }
+        ]
+      },
+      {
+        "id": "estados",
+        "title": "Edition statuses",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every edition starts as “Borrador” (draft). You change the status from the “Ediciones” tab, in this order:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Status",
+              "What it means"
+            ],
+            "rows": [
+              [
+                "Borrador (draft)",
+                "You prepare it. The public does not see it: no public page of a draft edition is available."
+              ],
+              [
+                "Inscripciones abiertas (registration open)",
+                "The public page accepts registrations. You can only register in this status."
+              ],
+              [
+                "Check-in",
+                "A stage between registration and the tournament. In Fortnite, the real check-in of each match day is done from the “Día de partida” tab."
+              ],
+              [
+                "En curso (in progress)",
+                "The tournament is being played. In Fortnite the public page shows the session and the game in progress."
+              ],
+              [
+                "Finalizado (finished)",
+                "It is over. In Fortnite the header of the public page shows the champion."
+              ],
+              [
+                "Archivado (archived)",
+                "Kept as history. Discord commands stop using it."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "You can delete an edition with the trash button. Its participants and everything recorded are deleted too, and it cannot be undone."
+          }
+        ]
+      },
+      {
+        "id": "enlace",
+        "title": "The public link",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every edition has its page at `/torneos/{your-channel}/{slug}`. Copy it from the “Dashboard” tab, under “Link público de tu torneo”, and share it with your participants and audience. It is available as soon as the edition leaves “Borrador”."
+          }
+        ]
+      },
+      {
+        "id": "pestanas",
+        "title": "The panel tabs",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The tabs change depending on the game of the selected edition:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Tab",
+              "What it is for"
+            ],
+            "rows": [
+              [
+                "Dashboard",
+                "Countdown, participants, public link, OBS links and alerts."
+              ],
+              [
+                "Ediciones",
+                "Create, change the status and delete editions."
+              ],
+              [
+                "Participantes / Equipos",
+                "Approve registrations, see teams and, in ARAM, generate the bracket."
+              ],
+              [
+                "Formato, Día de partida, Clasificación",
+                "Fortnite only: scoring rules, sessions, results and the standings table."
+              ],
+              [
+                "Condición de victoria, Riot API",
+                "League of Legends (ARAM) only."
+              ],
+              [
+                "Castigos",
+                "The named chips (not for ARAM). The tab uses the name you choose."
+              ],
+              [
+                "Apariencia, Premios, Normas, Sponsors",
+                "Branding, prizes, rules and sponsors of the edition."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Every tab works on the edition selected at the top."
+          }
+        ]
+      },
+      {
+        "id": "lista",
+        "title": "Before opening registrations",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Upload your logo and cover and pick the colors in “Apariencia”.",
+              "Write the “Normas” (rules); there is a starter template.",
+              "Add the “Premios” (prizes) and, if any, the “Sponsors”.",
+              "League of Legends: save your key in “Riot API”. Fortnite: set up the “Formato” (points, tie-breakers, proofs).",
+              "Change the status to “Inscripciones abiertas” and share the link."
+            ]
+          },
+          {
+            "t": "link",
+            "to": "tournament-registration"
+          }
+        ]
+      }
+    ]
+  },
+  "registration": {
+    "title": "Tournaments: registration and participants",
+    "subtitle": "How a player signs up, how you approve, and how teams are formed",
+    "sections": [
+      {
+        "id": "jugador",
+        "title": "How a player signs up",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The player opens the tournament link, signs in to Decatron (with Twitch, Kick or Discord) and presses “Inscribirme”. Their “Mi inscripción” panel (`/torneos/{channel}/{slug}/mi-panel`) opens with the steps in order:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Step",
+              "What the player does"
+            ],
+            "rows": [
+              [
+                "1. Inscripción",
+                "Chooses their public name and game account."
+              ],
+              [
+                "2. Cuenta de Riot / Epic",
+                "Sees which account they play with. In Fortnite they can change or verify it with Epic."
+              ],
+              [
+                "3. Equipo",
+                "Only shown when teams have more than one person: they create a team or join with a code."
+              ],
+              [
+                "4. Día de partida",
+                "Fortnite only: check-in, game code and result reporting."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "To prevent abuse, the registration steps are limited to 5 requests every 10 minutes per connection. That is plenty for normal use."
+          }
+        ]
+      },
+      {
+        "id": "cuentas",
+        "title": "Game accounts",
+        "blocks": [
+          {
+            "t": "h3",
+            "x": "League of Legends: Riot account"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "It is linked once in Settings → Integrations, under “Cuentas de Riot”. A person can have several.",
+              "It is verified with the summoner icon: Decatron asks you to set a specific icon in your League client and checks it.",
+              "When you sign up you choose, among your verified accounts in the edition's region, which one you play with.",
+              "If you have another verified account in the same region with a higher rank, the organizer sees a possible-smurf note. It is only a warning: it does not block registration."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Fortnite: Epic account"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "At registration you can pick an already linked Epic account or link it right there.",
+              "The recommended way is “Verificar con mi cuenta de Epic Games”, which uses Epic's official login.",
+              "If you type the Epic name by hand, the account stays “sin verificar” (unverified) and the organizer sees it in the list.",
+              "An Epic account cannot be in two registrations of the same edition."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "aprobar",
+        "title": "Approving registrations",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every registration starts as “Pendiente” (pending). In the “Participantes” tab you review them and press approve or reject. The “Agregar” button is a manual add and goes straight in as approved (in Fortnite it stays unverified)."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Participant status",
+              "Meaning"
+            ],
+            "rows": [
+              [
+                "Pendiente",
+                "Waiting for your approval."
+              ],
+              [
+                "Aprobado",
+                "Takes part in the tournament."
+              ],
+              [
+                "Rechazado",
+                "Does not take part."
+              ],
+              [
+                "Check-in hecho, Activo, Eliminado, Retirado",
+                "Statuses players take as the tournament goes on."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "equipos",
+        "title": "Teams",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "With teams of more than one person, any registered player can create a team; a code is generated that they share with teammates, who join from the “Equipo” step.",
+              "Fortnite: players without a team are drawn to complete teams (the organizer can turn this off; then anyone without a team does not play). What is left forms an incomplete team that still plays.",
+              "ARAM: when the bracket is generated, partial teams are completed and new teams are formed at random with whoever is left. If they are not enough for a full team they stay out and you are told.",
+              "In solo (Fortnite) or 1v1 (ARAM) every player is their own team."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "Overlay per participant",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every participant can generate their own overlay link from “Mi inscripción”, and you can generate one from “Participantes” as a backup. The link is a token: whoever has it sees the overlay. “Regenerar” invalidates the previous link; use it only if it leaked."
+          },
+          {
+            "t": "link",
+            "to": "tournament-look"
+          }
+        ]
+      }
+    ]
+  },
+  "aram": {
+    "title": "Tournaments: League of Legends (ARAM)",
+    "subtitle": "Random teams, elimination bracket and win conditions",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "You create a League of Legends edition, “ARAM N vs N” mode, with the team size and the bracket format.",
+              "You save your Riot key in “Riot API”.",
+              "Players sign up (with their verified Riot account) and you approve them.",
+              "In “Equipos” you generate the bracket: teams are drawn and the matches are created.",
+              "The custom games are played and results are loaded (by hand or with win conditions)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "riot",
+        "title": "The Riot key (“Riot API” tab)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Decatron uses your own Riot key to check that accounts exist and, if you enable win conditions, to read the games. Each channel stores its own."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "Go to developer.riotgames.com with your Riot Games account. The first time it asks you to create a developer account, which is separate from your game account.",
+              "Copy the “Development API Key”. That key lasts 24 hours: after that Riot expires it and you must copy a new one.",
+              "Paste it in the “Riot API” tab (it starts with `RGAPI-`) and save. Decatron checks it against Riot and shows the result."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The panel tells the key type apart: “Development” (expires every 24 h) and “Production”. If the key fails, the edition Dashboard shows an alert."
+          }
+        ]
+      },
+      {
+        "id": "formatos",
+        "title": "Bracket formats",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Format",
+              "How it works"
+            ],
+            "rows": [
+              [
+                "Single elimination",
+                "You lose and you are out. The first seeds skip the first round when the number is odd (bye)."
+              ],
+              [
+                "Double elimination",
+                "A defeat sends you to the losers bracket. For now only with 4, 8, 16 or 32 teams."
+              ],
+              [
+                "Round robin",
+                "Everyone plays everyone; there is a wins and losses table instead of a tree."
+              ],
+              [
+                "Swiss",
+                "Generated round by round, pairing by the table and avoiding repeated opponents. You press “Generar próxima ronda” when the current round is complete; you decide when it ends."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "equipos",
+        "title": "Teams and bracket (“Equipos” tab)",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "“Generar bracket (sortea equipos)” builds the teams at random with the approved participants and creates the matches. The same edition cannot be generated twice.",
+              "Teams players already formed with a code are respected and completed.",
+              "When you load a match result, the winner advances to the next round on its own.",
+              "To test, “Crear equipos de prueba” and “Sembrar participantes de prueba” generate fake data. Delete it before opening the real tournament."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "resultados",
+        "title": "Results and “Condición de victoria”",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The games are custom, so you load each match result yourself in “Equipos”. Without win conditions the tournament plays normally: whoever destroys the nexus wins."
+          },
+          {
+            "t": "p",
+            "x": "In the “Condición de victoria” tab you can create rules that Decatron checks by reading the games with your Riot key, and “Resincronizar ahora” evaluates them again; if a game already meets an active condition, the bracket updates on its own. The available types are:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Team destroys X towers; first tower; first inhibitor.",
+              "Team with X gold lead; team reaches X total kills; at X minutes, whoever leads in kills wins.",
+              "A player reaches X individual kills, X kills in a row without dying, level X, X gold, X minions (CS) or deals X damage to champions.",
+              "Multikill (double, triple, quadra or penta)."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Each condition can be turned on, off or deleted, and they carry a name to identify them in the list."
+          }
+        ]
+      },
+      {
+        "id": "publico",
+        "title": "What the public sees",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The edition page shows the teams with their rosters, the bracket (or the table in round robin and Swiss), the prizes and the rules."
+          }
+        ]
+      }
+    ]
+  },
+  "fortnite": {
+    "title": "Tournaments: Fortnite",
+    "subtitle": "Custom games scored by points, from registration to the champion",
+    "sections": [
+      {
+        "id": "como",
+        "title": "How it works",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You run custom games with your own Epic code and Decatron keeps the count: registrations, teams, check-in, reports with a screenshot, review and standings. Decatron does not create the games; you create them in Fortnite."
+          },
+          {
+            "t": "p",
+            "x": "An edition has one or several sessions (for example game days) and each session has 1 to 20 games. The tournament is decided by accumulated points."
+          }
+        ]
+      },
+      {
+        "id": "crear",
+        "title": "Creating the edition",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "In “Ediciones” → “Nueva edicion”: game Fortnite, mode (Solo, Dúo, Trío or Escuadra) and server region.",
+              "In “Apariencia” upload your logo and cover and choose your colors.",
+              "In “Formato” set up the rules (below).",
+              "Change the status to “Inscripciones abiertas” and copy the link from the “Dashboard”."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "puntos",
+        "title": "Scoring rules (“Formato” tab)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Pick a template to start and adjust it. The templates are suggestions, not official Epic tables:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Template",
+              "Idea"
+            ],
+            "rows": [
+              [
+                "Clásica (classic)",
+                "Placement and eliminations weigh about the same. 1 point per elimination."
+              ],
+              [
+                "Carrera de eliminaciones (elimination race)",
+                "Eliminations add the most (3 points each); placement gives an extra."
+              ],
+              [
+                "Solo puesto (placement only)",
+                "Only placement counts; eliminations do not add."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Points per placement: ranges “from placement / to placement”. Placements not in any range score 0. Each value goes from 0 to 1000.",
+              "Points per elimination.",
+              "Tie-breakers, sortable: most wins, most eliminations, best average placement and best placement in the last game (in that order by default).",
+              "Players per lobby (100 by default: 100 solos, 50 duos, 33 trios or 25 squads). If there are more teams than fit, they are split into groups.",
+              "Solo draw (on by default) to complete duo, trio or squad teams.",
+              "Points to reach match point (optional): whoever reaches that threshold and wins a game is declared champion."
+            ]
+          },
+          {
+            "t": "h3",
+            "x": "Proofs and reports"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Proof mode",
+              "What happens"
+            ],
+            "rows": [
+              [
+                "Captura obligatoria (default)",
+                "Each player uploads a screenshot of the final screen; without a screenshot the report does not count."
+              ],
+              [
+                "Captura solo si hay algo raro",
+                "Reports are made without a screenshot; it is requested when the system flags an alert on the team."
+              ],
+              [
+                "Carga el organizador",
+                "Players do not report: you load each game's results with your supporting proof."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Minutes to report from when the game ends (30 by default).",
+              "Zero points for anyone who does not report (on by default).",
+              "Public screenshots: if you turn it on, the screenshots of approved results are shown on the public page (off by default).",
+              "AI screenshot reading (off by default): see below."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Finish with “Guardar reglas”."
+          }
+        ]
+      },
+      {
+        "id": "estructura",
+        "title": "Teams, groups and sessions",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "“Armar equipos” (when you close registrations): in Solo every player is their own team; in duo or more, teams made by code are respected and solos are drawn if you left that on.",
+              "If there are more teams than fit in a lobby: “Armar grupos al azar” (already formed teams are respected and you can move teams between groups), then “Crear final”. You also choose how many go to the final from each group.",
+              "“Nueva sesión”: a name (for example “Sesión 1”), who plays (everyone or one group), date and time and number of games."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dia",
+        "title": "Match day",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Change the edition to “En curso”.",
+              "In “Día de partida” pick the session and press “Abrir check-in”.",
+              "Each player does their check-in in “Mi inscripción” → “Día de partida” (you can mark it by hand if someone cannot). Anyone who did not check in does not see the code.",
+              "When everyone is in: “Cerrar check-in y empezar”.",
+              "In Fortnite create the custom game with your code. In “Día de partida” type that game's code (it stays hidden; the eye shows it) and press “Revelar código”.",
+              "Players who checked in see it hidden in their panel, with a copy button. You can announce it in chat (without the code) and send it by Discord direct message to those who checked in.",
+              "Mark “Empezó” and, when it ends, “Terminó”."
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "The code never goes to chat, the overlay or the public pages: only players who checked in see it, once the game is revealed or in progress."
+          }
+        ]
+      },
+      {
+        "id": "resultados",
+        "title": "Results and review",
+        "blocks": [
+          {
+            "t": "ol",
+            "items": [
+              "Each player reports in their panel: their team's placement, their own eliminations and a screenshot of the final screen (you can paste with Ctrl+V, drag or pick a file).",
+              "In that game's “Resultados” you check the screenshots and alerts and press “Aprobar” (or “Aprobar los N sin alertas”). Only what is approved scores points.",
+              "If something is wrong: “Cargar o corregir”. It always asks for a reason and, to load or correct, a supporting file (you can paste with Ctrl+V too). A history of who, when and what changed is kept, and players see it under “Cambios del organizador”.",
+              "“Cerrar partida”: it will not close while there are unreviewed reports. Teams without a report get 0 (if you left it that way).",
+              "At the end, “Terminar sesión”."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The automatic alerts flag: no report, different placements inside the same team, missing player reports, a placement repeated between teams, a placement out of range, a missing screenshot and more eliminations than players in the game."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "Screenshots are stored privately: they are validated as images, their metadata is removed and they are limited to 10 MB and 2560 pixels."
+          }
+        ]
+      },
+      {
+        "id": "clasificacion",
+        "title": "Standings",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "It is computed from approved results; rejected ones and those with no report count as a game played with 0 points.",
+              "There are tables per scope: single lobby, each group and the final, using the tie-breakers you configured.",
+              "The public page has a “Clasificación” tab (the first one in Fortnite) with points, champion, match point and qualified badges, the game-by-game detail of every team and “Cómo se cuentan los puntos”. It refreshes on its own.",
+              "In your “Clasificación” tab you have the table and “Pasar clasificados a la final”, which replaces the final's teams (not possible once the final has started).",
+              "When you mark the edition “Finalizado”, the header shows the champion."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ia",
+        "title": "AI screenshot reading (optional)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you turn it on in “Formato”, when a player picks the screenshot the AI reads the placement and eliminations and pre-fills the report; the player confirms. In your review you see “IA: #X · Y elim.” and an alert if it does not match what was reported."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "It is off by default and every reading charges credits to the organizer's channel.",
+              "Without credits it does not read: the player types the data by hand and the report is never blocked.",
+              "There is a cap of 6 readings every 15 minutes per player."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "castigos",
+        "title": "Punishments",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Fortnite includes the named punishments system, explained on its own page."
+          },
+          {
+            "t": "link",
+            "to": "tournament-punishments"
+          }
+        ]
+      }
+    ]
+  },
+  "punishments": {
+    "title": "Tournaments: named punishments",
+    "subtitle": "Chips earned by playing well and thrown at a rival",
+    "sections": [
+      {
+        "id": "idea",
+        "title": "The idea",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It is an optional mechanic of your tournament: when a team meets certain conditions it earns “chips” and can throw a punishment at a rival (for example “Shotguns only” in the next game). It is yours: you give it your own name."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "It is shown in Fortnite editions (it does not apply to ARAM). The “luck” mechanic that exists for another mode is not used in Fortnite."
+          }
+        ]
+      },
+      {
+        "id": "nombre",
+        "title": "Giving it your name",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "By default the chip is called “Ficha de Castigo”. In the punishments tab you can give it any name you like (the tab is then named after it, in plural). It is your own brand, not a fixed product name."
+          }
+        ]
+      },
+      {
+        "id": "semilla",
+        "title": "Starter values",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "“Sembrar valores por defecto” loads an example catalog into the edition for you to adjust:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "What",
+              "Starter values in Fortnite"
+            ],
+            "rows": [
+              [
+                "Punishments",
+                "Shotguns only · No healing (or shields) · Gray and green weapons only · No vehicles · Land where the rival chooses · No mobility items · Play the game without building"
+              ],
+              [
+                "How chips are earned",
+                "Win a game · 10 or more eliminations in a game · Top 5 in 3 games in a row · Comeback: climb 5 placements in a session"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "You can edit the catalog: add, change or deactivate punishments and conditions. Deleting something already used only deactivates it."
+          }
+        ]
+      },
+      {
+        "id": "ganar",
+        "title": "How chips are earned",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Only approved results are evaluated, never what was reported without review.",
+              "Win, eliminations and streak are evaluated when each game is closed; the comeback, when each session ends.",
+              "Chips belong to the team (the lowest-numbered approved player of the team holds them)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "lanzar",
+        "title": "Throwing a punishment",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "You throw it from the punishments tab, choosing who throws, at whom and which punishment. The rules that are checked:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "You cannot throw a chip at yourself and both participants must belong to the edition.",
+              "The thrower needs chips in the inventory (maximum 3 by default).",
+              "If the edition has an end date, the system can be switched off in the last hours before it (48 by default; the Fortnite starter does not turn it on).",
+              "Reception cooldown and reverse chance by the target's placement, configurable by ranges (the Fortnite starter uses no cooldown and gives a small reverse chance to the top placements)."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "When the punishment is carried out, you mark it as fulfilled. The tab also shows the inventories and the event log."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "For now throwing is done from the organizer's panel; there is no Discord command for it."
+          }
+        ]
+      }
+    ]
+  },
+  "prizes": {
+    "title": "Tournaments: prizes, rules and sponsors",
+    "subtitle": "What can be won, the tournament rules and who supports it",
+    "sections": [
+      {
+        "id": "premios",
+        "title": "Prizes (“Premios” tab)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each prize has a name (for example “Ganador”, “Mejor Top”, “Más kills”), an optional description and an optional amount. It does not have to be money: it can be a skin, a subscription, merch or a trophy."
+          },
+          {
+            "t": "table",
+            "head": [
+              "How it is decided",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "By placement",
+                "Goes to whoever finishes in that placement of the standings."
+              ],
+              [
+                "By metric",
+                "Goes to the leader of a metric; the panel computes the current leader live."
+              ],
+              [
+                "By role",
+                "League of Legends only."
+              ],
+              [
+                "Custom",
+                "No automatic tracking: you mark who won it when appropriate."
+              ]
+            ]
+          },
+          {
+            "t": "ul",
+            "items": [
+              "“Ocultar importe al publico” shows “???” instead of the amount.",
+              "The panel adds up the total prize pool.",
+              "Prizes appear on the edition's public page."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "normas",
+        "title": "Rules (“Normas” tab)",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "There are two documents: “Generales” (general) and “Castigos” (punishments). They are written in simple text (markdown) with a preview, and are versioned.",
+              "The “Usar plantilla” button loads a starter text using the name of your punishments mechanic. It does not overwrite what you wrote without asking.",
+              "Players read them from the tournament page. On Discord, `/torneo normas` shows the general rules (trimmed if very long)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sponsors",
+        "title": "Sponsors (“Sponsors” tab)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Here you add by hand whoever sponsors the edition. Each sponsor has:"
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Name, logo (URL) and a button with text and link (you do not need to type “https://”: it is added automatically).",
+              "Sponsored amount, informational only.",
+              "Where it appears: home banner, prizes section or footer.",
+              "Status: it can be archived and reactivated, or deleted."
+            ]
+          },
+          {
+            "t": "p",
+            "x": "On the public page, home-banner sponsors appear in a strip under the header (“Con el apoyo de…”) and footer ones at the bottom. The “prizes section” option is reserved and not drawn yet."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "There is no sponsor-request inbox: adding is manual only."
+          }
+        ]
+      }
+    ]
+  },
+  "look": {
+    "title": "Tournaments: look, overlays and widget",
+    "subtitle": "Your branding on the page, and the tools for OBS and your website",
+    "sections": [
+      {
+        "id": "apariencia",
+        "title": "Look (“Apariencia” tab)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Your branding shows on the tournament page, on the players' panel and on the OBS widget."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Logo and cover: tap to pick a file, drag them or paste with Ctrl+V.",
+              "Two colors, “Principal” (primary) and “Secundario” (secondary), and a light or dark background.",
+              "The “Vista previa” (preview) shows how it will look. If a color is barely distinguishable from the background, it warns you and lightens it automatically on bars and buttons.",
+              "Finish with “Guardar colores y fondo”."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "widget",
+        "title": "Standings widget (for OBS or your website)",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the edition's “Dashboard” the links are ready. For OBS add a browser source with one of them: they have a transparent background, use the Apariencia colors and update on their own."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Link",
+              "Suggested size"
+            ],
+            "rows": [
+              [
+                "List (side of the stream)",
+                "400 × 600"
+              ],
+              [
+                "Bottom bar (under the stream)",
+                "1920 × 80"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "If you embed it on your website, the address is `/embed/torneo/{channel}/{slug}/ranking` and it accepts these parameters:"
+          },
+          {
+            "t": "table",
+            "head": [
+              "Parameter",
+              "Effect"
+            ],
+            "rows": [
+              [
+                "`bg=transparent`",
+                "Transparent background."
+              ],
+              [
+                "`layout=bar`",
+                "Horizontal bar instead of a list."
+              ],
+              [
+                "`limit=10`",
+                "How many teams or players to show (20 by default for the list, 8 for the bar)."
+              ],
+              [
+                "`theme=light` or `dark`",
+                "Light or dark theme; without the parameter it uses the Apariencia one."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "The widget refreshes every 30 seconds and can be shown anywhere: it needs no sign-in."
+          }
+        ]
+      },
+      {
+        "id": "overlay",
+        "title": "Overlay per participant",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Every participant has their own `/overlay/torneo/{token}` link for their OBS, with a transparent background. The token is the only key: no sign-in is needed. It is generated from “Mi inscripción” (the participant) or from “Participantes” (you), and you can choose which elements it shows. “Regenerar” invalidates the previous link."
+          },
+          {
+            "t": "p",
+            "x": "The list of Decatron overlays, with the others, is in the overlays guide."
+          },
+          {
+            "t": "link",
+            "to": "overlays-guide"
+          }
+        ]
+      }
+    ]
+  },
+  "discord": {
+    "title": "Tournaments: Discord commands",
+    "subtitle": "Sign up, check your status and read the rules from Discord",
+    "sections": [
+      {
+        "id": "requisito",
+        "title": "Before you start",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The `/torneo` commands work in a Discord server that has a Decatron channel linked (the Discord bot must be in the server). Each command acts on that channel's tournament."
+          }
+        ]
+      },
+      {
+        "id": "comandos",
+        "title": "Commands",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Command",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "`/torneo inscribirme riot_id riot_tag [nombre]`",
+                "Signs you up for the channel's most recent tournament with open registration. The Riot account is checked to exist (with the streamer's key) and the registration is left pending approval. `nombre` is optional (it defaults to your Discord username)."
+              ],
+              [
+                "`/torneo estado`",
+                "Shows your status in the channel's tournament: registration status, placement, chips in inventory and whether you have an unfulfilled punishment."
+              ],
+              [
+                "`/torneo normas`",
+                "Shows the general rules of the active tournament (if very long, it trims them and points you to the tournament page)."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "In a Fortnite tournament, `/torneo inscribirme` asks you to sign up on the web page, because it needs you to choose your linked Epic account."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "On Discord you give the Riot ID and tag and it is checked to exist, but ownership of the account is not verified; icon verification happens when you link the account in Settings. `/torneo checkin`, `vincular-riot` and `lanzar-castigo` do not exist yet."
+          }
+        ]
+      }
+    ]
+  }
+}

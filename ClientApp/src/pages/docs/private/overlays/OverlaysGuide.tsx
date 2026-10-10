@@ -1,4 +1,4 @@
-import { Monitor, Copy, Check, Clock, Bell, Gift, Target, Volume2, DollarSign, MessageSquare, ExternalLink } from 'lucide-react';
+import { Monitor, Copy, Check, Clock, Bell, Gift, Volume2, DollarSign, MessageSquare, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import DocAlert from '../../../../components/docs/DocAlert';
@@ -28,7 +28,7 @@ export default function OverlaysGuide() {
             <DocSection title="Que es un overlay?">
                 <p>
                     Un overlay es un elemento visual que se muestra sobre tu stream. Decatron proporciona
-                    overlays para mostrar informacion en tiempo real como timers, alertas, metas y mas.
+                    overlays para mostrar informacion en tiempo real como timers, alertas y mas.
                 </p>
                 <p>
                     Los overlays funcionan como paginas web que puedes agregar a OBS usando una fuente de
@@ -103,12 +103,6 @@ export default function OverlaysGuide() {
                                 <td className="px-4 py-3 text-sm text-ds-soft">Pantalla completa</td>
                             </tr>
                             <tr>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Metas</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">800</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">200</td>
-                                <td className="px-4 py-3 text-sm text-ds-soft">Barra horizontal</td>
-                            </tr>
-                            <tr>
                                 <td className="px-4 py-3 text-sm text-ds-soft">Shoutout</td>
                                 <td className="px-4 py-3 text-sm text-ds-soft">1920</td>
                                 <td className="px-4 py-3 text-sm text-ds-soft">1080</td>
@@ -143,12 +137,6 @@ export default function OverlaysGuide() {
                         title="Sorteos"
                         description="Overlay de giveaways"
                         configPath="/features/giveaways"
-                    />
-                    <OverlayCard
-                        icon={<Target className="w-5 h-5" />}
-                        title="Metas"
-                        description="Barra de progreso de goals"
-                        configPath="/overlays/goals"
                     />
                     <OverlayCard
                         icon={<Volume2 className="w-5 h-5" />}

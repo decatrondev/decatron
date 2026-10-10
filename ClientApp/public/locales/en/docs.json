@@ -57,7 +57,8 @@
     "settings": "Settings",
     "modules": "Modules",
     "song-request": "Song Request",
-    "wheel": "Wheel and Raffle"
+    "wheel": "Wheel and Raffle",
+    "tournament": "Tournaments"
   },
   "layout": {
     "documentation": "Documentation",
@@ -181,10 +182,6 @@
     "giveaway": {
       "title": "Giveaways",
       "description": "Giveaways with entry requirements"
-    },
-    "goals": {
-      "title": "Goals",
-      "description": "Goals with a real-time overlay"
     },
     "sound-alerts": {
       "title": "Sound Alerts",
@@ -313,6 +310,42 @@
     "ruleta": {
       "title": "Roulette",
       "description": "Chat mini-game with a random timeout"
+    },
+    "tournament-overview": {
+      "title": "Tournaments",
+      "description": "Run League of Legends and Fortnite tournaments"
+    },
+    "tournament-setup": {
+      "title": "Setup",
+      "description": "Create your first edition and share the link"
+    },
+    "tournament-registration": {
+      "title": "Registration and participants",
+      "description": "How players sign up, get approved and form teams"
+    },
+    "tournament-aram": {
+      "title": "League of Legends (ARAM)",
+      "description": "Random teams, bracket and win conditions"
+    },
+    "tournament-fortnite": {
+      "title": "Fortnite",
+      "description": "Custom games scored by points"
+    },
+    "tournament-punishments": {
+      "title": "Punishments",
+      "description": "Named chips thrown at a rival"
+    },
+    "tournament-prizes": {
+      "title": "Prizes, rules and sponsors",
+      "description": "What can be won, the rules and the sponsors"
+    },
+    "tournament-look": {
+      "title": "Look, overlays and widget",
+      "description": "Your branding, OBS and the standings widget"
+    },
+    "tournament-discord": {
+      "title": "Discord",
+      "description": "The /torneo commands"
     }
   },
   "microCommands": {

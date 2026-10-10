@@ -263,10 +263,6 @@ export default function TimerDoc() {
                         Activa la opcion "Ocultar cuando esta detenido" para que el timer desaparezca
                         automaticamente cuando no esta en uso.
                     </DocAlert>
-                    <DocAlert type="tip" title="Integracion con metas">
-                        El timer puede integrarse con el sistema de metas. Cada vez que se alcanza
-                        una meta, se puede agregar tiempo automaticamente.
-                    </DocAlert>
                 </div>
             </DocSection>
         </div>

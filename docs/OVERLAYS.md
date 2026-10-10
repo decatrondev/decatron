@@ -20,6 +20,7 @@ Reference for the Decatron overlays: URLs, OBS setup, what each overlay does, it
 - [Shoutout Overlay](#shoutout-overlay)
 - [Giveaway](#giveaway)
 - [Other Overlays](#other-overlays)
+- [Tournament Overlay and Widget](#tournament-overlay-and-widget)
 - [Real-Time Architecture](#real-time-architecture)
 - [SignalR Events Reference](#signalr-events-reference)
 
@@ -465,7 +466,20 @@ These overlays are configured from their own dashboard pages; their manuals are 
 | Games (`/overlay/games`) | Game data cards for linked game accounts | Accounts, Games, Detection, Design, Overlay |
 | Live match (`/overlay/live`) | State of the match in progress | Design, Overlay |
 | Gacha (`/overlay/gacha`) | Gacha pulls made by viewers | |
-| Tournament (`/overlay/torneo/{token}`) | Tournament information for the stream | See the tournament dashboard |
+| Tournament (`/overlay/torneo/{token}`) | One participant's data for their stream | See [Tournament Overlay and Widget](#tournament-overlay-and-widget) |
+
+---
+
+## Tournament Overlay and Widget
+
+Tournaments (see `/dashboard/docs/tournaments/look` in the app) have two public pieces for OBS and third-party sites. Neither needs a login and both answer with open CORS (`TournamentEmbed` policy), unlike the rest of the API.
+
+| Piece | URL | What it is |
+|-------|-----|------------|
+| Participant overlay | `/overlay/torneo/{token}` | Transparent overlay for one participant's OBS. The 32-byte token is the only key; the participant (from "Mi inscripción") or the organizer can generate it, and regenerating invalidates the old one. The page polls `GET /api/overlay/torneo/{token}` (an unknown token answers 404) |
+| Ranking widget | `/embed/torneo/{channel}/{edition}/ranking` | Standings for an `<iframe>` or an OBS browser source. Refreshes every 30 s. Parameters: `bg=transparent`, `layout=bar` (horizontal bar instead of a list), `limit=N` (default 20 for the list, 8 for the bar), `theme=light` or `dark`. Data: `GET /api/embed/torneo/{channel}/{edition}/ranking`, rate-limited to 60 requests per minute per IP |
+
+Suggested sizes of the two widget links the dashboard shows: list 400 x 600, bottom bar 1920 x 80.
 
 ---
 

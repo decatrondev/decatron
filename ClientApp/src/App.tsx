@@ -122,6 +122,7 @@ import ShoutoutOverlayDoc from './pages/docs/ShoutoutOverlayDoc';
 import GachaOverlayDoc from './pages/docs/GachaOverlayDoc';
 import { SongRequestDoc } from './pages/docs/SongRequestDoc';
 import { WheelDoc } from './pages/docs/WheelDoc';
+import { TournamentDoc } from './pages/docs/TournamentDoc';
 // Public docs
 import About from './pages/docs/public/About';
 import GettingStarted from './pages/docs/public/GettingStarted';
@@ -134,7 +135,6 @@ import OverlaysGuide from './pages/docs/private/overlays/OverlaysGuide';
 import TimerDoc from './pages/docs/private/features/TimerDoc';
 import EventAlertsDoc from './pages/docs/private/features/EventAlertsDoc';
 import GiveawayDoc from './pages/docs/private/features/GiveawayDoc';
-import GoalsDoc from './pages/docs/private/features/GoalsDoc';
 import SoundAlertsDoc from './pages/docs/private/features/SoundAlertsDoc';
 import TipsDoc from './pages/docs/private/features/TipsDoc';
 import ShoutoutDoc from './pages/docs/private/features/ShoutoutDoc';
@@ -290,6 +290,7 @@ function App() {
                     <Route path="overlays/gacha" element={<GachaOverlayDoc />} />
                     <Route path="song-request" element={<SongRequestDoc page="overview" scope="public" />} />
                     <Route path="wheel" element={<WheelDoc page="overview" scope="public" />} />
+                    <Route path="tournaments" element={<TournamentDoc page="overview" scope="public" />} />
                 </Route>
 
                 {/* Protected Routes */}
@@ -450,11 +451,18 @@ function App() {
                         <Route path="wheel/commands" element={<WheelDoc page="commands" scope="private" />} />
                         <Route path="wheel/look" element={<WheelDoc page="look" scope="private" />} />
                         <Route path="commands/ruleta" element={<WheelDoc page="ruleta" scope="private" />} />
+                        <Route path="tournaments/setup" element={<TournamentDoc page="setup" scope="private" />} />
+                        <Route path="tournaments/registration" element={<TournamentDoc page="registration" scope="private" />} />
+                        <Route path="tournaments/aram" element={<TournamentDoc page="aram" scope="private" />} />
+                        <Route path="tournaments/fortnite" element={<TournamentDoc page="fortnite" scope="private" />} />
+                        <Route path="tournaments/punishments" element={<TournamentDoc page="punishments" scope="private" />} />
+                        <Route path="tournaments/prizes" element={<TournamentDoc page="prizes" scope="private" />} />
+                        <Route path="tournaments/look" element={<TournamentDoc page="look" scope="private" />} />
+                        <Route path="tournaments/discord" element={<TournamentDoc page="discord" scope="private" />} />
                     {/* Features */}
                         <Route path="features/timer" element={<TimerDoc />} />
                         <Route path="features/event-alerts" element={<EventAlertsDoc />} />
                         <Route path="features/giveaway" element={<GiveawayDoc />} />
-                        <Route path="features/goals" element={<GoalsDoc />} />
                         <Route path="features/sound-alerts" element={<SoundAlertsDoc />} />
                         <Route path="features/tips" element={<TipsDoc />} />
                         <Route path="features/shoutout" element={<ShoutoutDoc />} />

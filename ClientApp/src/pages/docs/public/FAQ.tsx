@@ -27,7 +27,7 @@ export default function FAQ() {
             <FAQSection title="General">
                 <FAQItem
                     question="Que es Decatron?"
-                    answer="Decatron es un bot de Twitch todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos, metas y mucho mas. Esta diseñado para ser facil de usar pero con opciones avanzadas para streamers experimentados."
+                    answer="Decatron es un bot de Twitch todo-en-uno que te permite gestionar comandos, overlays, alertas, sorteos y mucho mas. Esta diseñado para ser facil de usar pero con opciones avanzadas para streamers experimentados."
                 />
                 <FAQItem
                     question="Es gratis?"

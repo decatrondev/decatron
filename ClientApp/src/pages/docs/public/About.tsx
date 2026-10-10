@@ -1,4 +1,4 @@
-import { Bot, Zap, Clock, Gift, Target, Bell, MessageSquare, Shield, Sparkles, ArrowRight } from 'lucide-react';
+import { Bot, Zap, Clock, Gift, Bell, MessageSquare, Shield, Sparkles, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function About() {
@@ -19,7 +19,7 @@ export default function About() {
                 </div>
                 <p className="text-lg text-ds-soft max-w-3xl">
                     Decatron es una plataforma todo-en-uno que te permite gestionar comandos, overlays,
-                    alertas, sorteos, metas y mucho mas. Diseñado por streamers, para streamers.
+                    alertas, sorteos y mucho mas. Diseñado por streamers, para streamers.
                 </p>
                 <div className="flex flex-wrap gap-4 mt-8">
                     <Link
@@ -61,7 +61,7 @@ export default function About() {
                     />
                     <TargetAudience
                         title="Comunidades activas"
-                        description="Sorteos, metas y herramientas de engagement"
+                        description="Sorteos y herramientas de engagement"
                     />
                 </div>
             </div>
@@ -86,11 +86,6 @@ export default function About() {
                         icon={<Gift className="w-6 h-6" />}
                         title="Sorteos y Giveaways"
                         description="Sistema completo de sorteos con requisitos, pesos y historial"
-                    />
-                    <FeatureCard
-                        icon={<Target className="w-6 h-6" />}
-                        title="Metas interactivas"
-                        description="Crea metas de subs, bits o donaciones con overlay en tiempo real"
                     />
                     <FeatureCard
                         icon={<Bell className="w-6 h-6" />}

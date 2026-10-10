@@ -57,7 +57,8 @@
     "settings": "Configuración",
     "modules": "Módulos",
     "song-request": "Song Request",
-    "wheel": "Rueda y Sorteo"
+    "wheel": "Rueda y Sorteo",
+    "tournament": "Torneos"
   },
   "layout": {
     "documentation": "Documentación",
@@ -181,10 +182,6 @@
     "giveaway": {
       "title": "Sorteos",
       "description": "Sorteos con requisitos de participación"
-    },
-    "goals": {
-      "title": "Metas",
-      "description": "Metas con overlay en tiempo real"
     },
     "sound-alerts": {
       "title": "Sound Alerts",
@@ -313,6 +310,42 @@
     "ruleta": {
       "title": "Ruleta",
       "description": "Mini-juego de chat con timeout aleatorio"
+    },
+    "tournament-overview": {
+      "title": "Torneos",
+      "description": "Organiza torneos de League of Legends y Fortnite"
+    },
+    "tournament-setup": {
+      "title": "Puesta en marcha",
+      "description": "Crea tu primera edición y comparte el enlace"
+    },
+    "tournament-registration": {
+      "title": "Inscripción y participantes",
+      "description": "Cómo se inscriben, se aprueban y se arman los equipos"
+    },
+    "tournament-aram": {
+      "title": "League of Legends (ARAM)",
+      "description": "Equipos al azar, cuadro y condiciones de victoria"
+    },
+    "tournament-fortnite": {
+      "title": "Fortnite",
+      "description": "Partidas personalizadas por puntos"
+    },
+    "tournament-punishments": {
+      "title": "Castigos",
+      "description": "Fichas con nombre propio que se lanzan a un rival"
+    },
+    "tournament-prizes": {
+      "title": "Premios, normas y sponsors",
+      "description": "Lo que se gana, las reglas y los patrocinadores"
+    },
+    "tournament-look": {
+      "title": "Apariencia, overlays y widget",
+      "description": "Tu marca, OBS y el widget de clasificación"
+    },
+    "tournament-discord": {
+      "title": "Discord",
+      "description": "Comandos /torneo"
     }
   },
   "microCommands": {
