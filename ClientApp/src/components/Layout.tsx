@@ -210,7 +210,7 @@ export default function Layout() {
                     raiz es `overflow-hidden` lo que sobra no genera barra — se pierde de
                     vista sin avisar. El padding baja en pantallas chicas: 64px de aire a
                     los lados en un portatil son 64px que no tiene la tabla. */}
-                <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 xl:p-8">
+                <main className="relative flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 xl:p-8">
                     {permissionsLoading ? (
                         <div className="flex items-center justify-center h-32">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ds-accent"></div>

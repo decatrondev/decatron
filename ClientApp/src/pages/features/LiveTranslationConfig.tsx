@@ -139,14 +139,14 @@ export default function LiveTranslationConfig() {
                     </button>
                     <div>
                         <h1 className="text-3xl font-black text-ds-text flex items-center gap-3">
-                            <Languages className="w-8 h-8 text-[#9146FF]" /> {t('liveTranslation.title')}
+                            <Languages className="w-8 h-8 text-ds-accent-text" /> {t('liveTranslation.title')}
                         </h1>
                         <p className={`${muted} mt-1`}>{t('liveTranslation.subtitle')}</p>
                     </div>
                 </div>
                 {canEdit && (
                     <button onClick={save} disabled={saving}
-                            className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text font-semibold flex items-center gap-2 disabled:opacity-50">
+                            className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-semibold flex items-center gap-2 disabled:opacity-50">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('liveTranslation.save')}
                     </button>
                 )}
@@ -185,7 +185,7 @@ export default function LiveTranslationConfig() {
                         <Stat icon={<Coins className="w-4 h-4" />} value={session.creditsUsed.toLocaleString()} label={t('liveTranslation.live.credits')} />
                         <div className="col-span-2 md:col-span-4 flex flex-wrap gap-2 mt-1">
                             {session.languages.map(l => (
-                                <span key={l} className={`px-3 py-1 rounded-full text-xs font-semibold ${session.activePipelines.includes(l) ? 'bg-[#9146FF]/15 text-ds-accent-text ' : 'bg-ds-bg text-ds-soft'}`}>
+                                <span key={l} className={`px-3 py-1 rounded-full text-xs font-semibold ${session.activePipelines.includes(l) ? 'bg-ds-accent/15 text-ds-accent-text ' : 'bg-ds-bg text-ds-soft'}`}>
                                     {LANG_NAMES[l] || l.toUpperCase()} · {session.listeners[l] ?? 0}
                                 </span>
                             ))}
@@ -205,8 +205,8 @@ export default function LiveTranslationConfig() {
 
             {/* Cómo funciona / descargas */}
             <div className="grid md:grid-cols-2 gap-4">
-                <a href={download.url} target="_blank" rel="noreferrer" className={`${card} hover:border-[#9146FF] transition-colors flex gap-4 items-start`}>
-                    <div className="w-10 h-10 rounded-lg bg-[#9146FF] text-ds-text flex items-center justify-center shrink-0"><Monitor className="w-5 h-5" /></div>
+                <a href={download.url} target="_blank" rel="noreferrer" className={`${card} hover:border-ds-accent transition-colors flex gap-4 items-start`}>
+                    <div className="w-10 h-10 rounded-lg bg-ds-accent text-ds-on-accent flex items-center justify-center shrink-0"><Monitor className="w-5 h-5" /></div>
                     <div>
                         <div className={label}>{t('liveTranslation.steps.app.title')}</div>
                         <p className={`${muted} mt-1`}>{t('liveTranslation.steps.app.text')}</p>
@@ -219,7 +219,7 @@ export default function LiveTranslationConfig() {
                         </span>
                     </div>
                 </a>
-                <a href={EXTENSION_URL} target="_blank" rel="noreferrer" className={`${card} hover:border-[#9146FF] transition-colors flex gap-4 items-start`}>
+                <a href={EXTENSION_URL} target="_blank" rel="noreferrer" className={`${card} hover:border-ds-accent transition-colors flex gap-4 items-start`}>
                     <div className="w-10 h-10 rounded-lg bg-ds-raised text-ds-text flex items-center justify-center shrink-0"><Chrome className="w-5 h-5" /></div>
                     <div>
                         <div className={label}>{t('liveTranslation.steps.ext.title')}</div>
@@ -237,7 +237,7 @@ export default function LiveTranslationConfig() {
                         <p className={muted}>{t('liveTranslation.config.subtitle')}</p>
                     </div>
                     <button onClick={() => canEdit && update({ enabled: !settings.enabled })} disabled={!canEdit}
-                            className={`relative w-14 h-8 rounded-full transition-colors ${settings.enabled ? 'bg-[#9146FF]' : 'bg-ds-raised '} disabled:opacity-50`}
+                            className={`relative w-14 h-8 rounded-full transition-colors ${settings.enabled ? 'bg-ds-accent' : 'bg-ds-raised '} disabled:opacity-50`}
                             aria-label={t('liveTranslation.config.enabled')}>
                         <span className={`absolute top-1 left-1 w-6 h-6 bg-ds-surface rounded-full transition-transform ${settings.enabled ? 'translate-x-6' : ''}`} />
                     </button>
@@ -311,7 +311,7 @@ export default function LiveTranslationConfig() {
                     <div>
                         <label className="flex items-center justify-between gap-3">
                             <span className={label}>{t('liveTranslation.config.announce')}</span>
-                            <input type="checkbox" className="w-5 h-5 accent-[#9146FF]" checked={settings.announceInChat} disabled={!canEdit} onChange={e => update({ announceInChat: e.target.checked })} />
+                            <input type="checkbox" className="w-5 h-5 accent-ds-accent" checked={settings.announceInChat} disabled={!canEdit} onChange={e => update({ announceInChat: e.target.checked })} />
                         </label>
                         <p className={`${muted} mt-1 mb-2`}>{t('liveTranslation.config.announceHint')}</p>
                         <input className={input} value={settings.announceMessage ?? ''} disabled={!canEdit || !settings.announceInChat}
@@ -324,7 +324,7 @@ export default function LiveTranslationConfig() {
                             <span className={muted}>{settings.backgroundVolume}%</span>
                         </div>
                         <p className={`${muted} mt-1 mb-2`}>{t('liveTranslation.config.backgroundHint')}</p>
-                        <input type="range" min={0} max={60} value={settings.backgroundVolume} disabled={!canEdit} className="w-full accent-[#9146FF]"
+                        <input type="range" min={0} max={60} value={settings.backgroundVolume} disabled={!canEdit} className="w-full accent-ds-accent"
                                onChange={e => update({ backgroundVolume: Number(e.target.value) })} />
                     </div>
                 </div>

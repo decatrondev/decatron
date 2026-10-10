@@ -154,7 +154,7 @@ export default function AdminHub() {
             id: 'live-translation',
             name: 'Traducción en vivo',
             description: 'Uso, costo estimado por proveedor, sesiones activas y límites',
-            icon: <Languages className="w-6 h-6 text-[#9146FF]" />,
+            icon: <Languages className="w-6 h-6 text-ds-accent-text" />,
             route: '/admin/live-translation',
             ready: true
         },

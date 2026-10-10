@@ -83,7 +83,7 @@ export default function LiveTranslationAdmin() {
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
                     <div>
-                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><Languages className="w-8 h-8 text-[#9146FF]" /> Traducción en vivo</h1>
+                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><Languages className="w-8 h-8 text-ds-accent-text" /> Traducción en vivo</h1>
                         <p className={muted}>Uso, costos y sesiones activas. Los créditos salen del mismo saldo TTS de cada canal.</p>
                     </div>
                 </div>
@@ -236,7 +236,7 @@ export default function LiveTranslationAdmin() {
 
 function Stat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
     return (
-        <div className={`${cardClass} !p-4 ${accent ? 'border-[#9146FF]/50' : ''}`}>
+        <div className={`${cardClass} !p-4 ${accent ? 'border-ds-accent/50' : ''}`}>
             <div className={muted}>{label}</div>
             <div className="text-2xl font-black text-ds-text mt-1">{value}</div>
             {hint && <div className={`${muted} mt-1 truncate`} title={hint}>{hint}</div>}

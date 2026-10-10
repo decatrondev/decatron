@@ -93,7 +93,7 @@ export default function LolCoachConfig() {
                     </div>
                 </div>
                 {canEdit && (
-                    <button onClick={save} disabled={saving} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text text-sm inline-flex items-center gap-2 disabled:opacity-50">
+                    <button onClick={save} disabled={saving} className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm inline-flex items-center gap-2 disabled:opacity-50">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('save')}
                     </button>
                 )}
@@ -129,7 +129,7 @@ export default function LolCoachConfig() {
                         <div className={label}>{t('tone')}</div>
                         <div className="grid grid-cols-3 gap-2 mt-1">
                             {TONES.map(tone => (
-                                <button key={tone} disabled={!canEdit} onClick={() => update({ tone })} className={`p-3 rounded-lg border text-left ${settings.tone === tone ? 'border-[#9146FF] bg-[#9146FF]/10' : 'border-ds-border '}`}>
+                                <button key={tone} disabled={!canEdit} onClick={() => update({ tone })} className={`p-3 rounded-lg border text-left ${settings.tone === tone ? 'border-ds-accent bg-ds-accent/10' : 'border-ds-border '}`}>
                                     <div className="text-sm font-semibold text-ds-text">{t(`tones.${tone}.label`)}</div>
                                     <div className="text-xs text-ds-soft">{t(`tones.${tone}.desc`)}</div>
                                 </button>

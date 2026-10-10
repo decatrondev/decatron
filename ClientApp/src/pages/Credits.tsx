@@ -95,7 +95,7 @@ export default function Credits() {
             <div className="bg-gradient-to-r from-[#1a1b1e] to-[#2d2f36] rounded-lg p-6 border border-ds-border">
                 <div className="flex flex-wrap items-center gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-[#9146FF]/20 flex items-center justify-center flex-shrink-0"><Coins className="w-8 h-8 text-[#bf94ff]" /></div>
+                        <div className="w-16 h-16 rounded-full bg-ds-accent/20 flex items-center justify-center flex-shrink-0"><Coins className="w-8 h-8 text-[#bf94ff]" /></div>
                         <div>
                             <p className="text-sm text-ds-soft">{t('available')}</p>
                             <p className="text-4xl font-black text-ds-text">{s.isUnlimited ? '∞' : fmt(s.totalAvailable)}</p>
@@ -115,7 +115,7 @@ export default function Credits() {
                         </div>
                     </div>
                     <div className="w-full sm:w-auto">
-                        <a href="#buy" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text font-bold text-sm">{t('getMore')}</a>
+                        <a href="#buy" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold text-sm">{t('getMore')}</a>
                         <Link to="/supporters" className="block mt-2 text-xs text-ds-soft hover:underline">{t('orPlan')}</Link>
                     </div>
                 </div>
@@ -139,10 +139,10 @@ export default function Credits() {
                             {s.byFeature.map(f => (
                                 <li key={f.feature}>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="flex items-center gap-2 text-ds-text"><span className="text-[#9146FF]">{FEATURE_ICON[f.feature] ?? <Cpu className="w-4 h-4" />}</span>{featureName(f.feature)} <span className={muted}>· {f.entries}</span></span>
+                                        <span className="flex items-center gap-2 text-ds-text"><span className="text-ds-accent-text">{FEATURE_ICON[f.feature] ?? <Cpu className="w-4 h-4" />}</span>{featureName(f.feature)} <span className={muted}>· {f.entries}</span></span>
                                         <span className="font-mono font-semibold text-ds-text">{fmt(f.credits)}</span>
                                     </div>
-                                    <div className="h-1.5 mt-1 rounded-full bg-ds-raised"><div className="h-1.5 rounded-full bg-[#9146FF]" style={{ width: `${spentPeriod ? (f.credits / spentPeriod) * 100 : 0}%` }} /></div>
+                                    <div className="h-1.5 mt-1 rounded-full bg-ds-raised"><div className="h-1.5 rounded-full bg-ds-accent" style={{ width: `${spentPeriod ? (f.credits / spentPeriod) * 100 : 0}%` }} /></div>
                                 </li>
                             ))}
                         </ul>
@@ -168,7 +168,7 @@ export default function Credits() {
 
             {/* Tarifas */}
             <div className={card}>
-                <div className="flex items-center gap-2 mb-1"><Info className="w-5 h-5 text-[#9146FF]" /><h2 className={h2}>{t('ratesTitle')}</h2></div>
+                <div className="flex items-center gap-2 mb-1"><Info className="w-5 h-5 text-ds-accent-text" /><h2 className={h2}>{t('ratesTitle')}</h2></div>
                 <p className={`${muted} mb-4`}>{t('ratesHint', { usd: (s.rates.creditUsd * 1_000_000).toFixed(0) })}</p>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                     <Rate icon={<Mic className="w-4 h-4" />} label={t('rates.stt')} value={t('rates.perSecond', { n: s.rates.sttCreditsPerSecond })} sub={t('rates.perMinute', { n: fmt(s.rates.sttCreditsPerSecond * 60) })} />
@@ -198,7 +198,7 @@ export default function Credits() {
                                     <tr className="border-t border-ds-border">
                                         <td className="py-1.5 text-xs whitespace-nowrap">{new Date(e.createdAt).toLocaleString()}</td>
                                         <td className="text-xs">
-                                            <span className="inline-flex items-center gap-1.5">{e.type === 'consume' ? <span className="text-[#9146FF]">{FEATURE_ICON[e.feature ?? ''] ?? <Cpu className="w-4 h-4" />}</span> : <Coins className="w-4 h-4 text-ds-accent-text" />}{e.type === 'consume' ? featureName(e.feature) : t(`types.${e.type}`, { defaultValue: e.type })}</span>
+                                            <span className="inline-flex items-center gap-1.5">{e.type === 'consume' ? <span className="text-ds-accent-text">{FEATURE_ICON[e.feature ?? ''] ?? <Cpu className="w-4 h-4" />}</span> : <Coins className="w-4 h-4 text-ds-accent-text" />}{e.type === 'consume' ? featureName(e.feature) : t(`types.${e.type}`, { defaultValue: e.type })}</span>
                                             {e.bucket === 'standard' && <span className="ml-1 text-[10px] uppercase text-ds-ok">{t('standardTag')}</span>}
                                         </td>
                                         <td className="text-xs text-ds-soft">{[engineName(e.engine, e.voice), e.engine !== 'ai' && e.voice ? e.voice : null, e.language?.toUpperCase(), e.chars != null && e.engine !== 'ai' ? t('chars', { n: fmt(e.chars) }) : null, e.note].filter(Boolean).join(' · ')}</td>
@@ -225,7 +225,7 @@ export default function Credits() {
 function Rate({ icon, label, value, sub }: { icon: JSX.Element; label: string; value: string; sub?: string }) {
     return (
         <div className="p-3 rounded-lg bg-ds-bg border border-ds-border">
-            <div className="flex items-center gap-2 text-ds-soft"><span className="text-[#9146FF]">{icon}</span><span className="text-xs">{label}</span></div>
+            <div className="flex items-center gap-2 text-ds-soft"><span className="text-ds-accent-text">{icon}</span><span className="text-xs">{label}</span></div>
             <div className="font-bold text-ds-text mt-1">{value}</div>
             {sub && <div className="text-xs text-ds-soft mt-0.5">{sub}</div>}
         </div>

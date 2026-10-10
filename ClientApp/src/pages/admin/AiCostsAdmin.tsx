@@ -83,7 +83,7 @@ export default function AiCostsAdmin() {
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
                     <div>
-                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><CircleDollarSign className="w-8 h-8 text-[#9146FF]" /> Costos de IA</h1>
+                        <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><CircleDollarSign className="w-8 h-8 text-ds-accent-text" /> Costos de IA</h1>
                         <p className={muted}>Todo lo que el bot gasta en modelos de lenguaje, por módulo y streamer. Costo estimado con la tabla de precios de abajo.</p>
                     </div>
                 </div>
@@ -161,7 +161,7 @@ export default function AiCostsAdmin() {
                             <div className="flex items-end gap-1 h-32">
                                 {data.byDay.map(d => (
                                     <div key={d.day} className="flex-1 flex flex-col justify-end group relative" title={`${d.day}: ${usd(d.costUsd)} · ${d.calls} llamadas`}>
-                                        <div className="bg-[#9146FF]/80 rounded-t" style={{ height: `${Math.max(2, (d.costUsd / maxDayCost) * 100)}%` }} />
+                                        <div className="bg-ds-accent/80 rounded-t" style={{ height: `${Math.max(2, (d.costUsd / maxDayCost) * 100)}%` }} />
                                         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-ds-soft hidden group-hover:block whitespace-nowrap">{d.day.slice(5)}</div>
                                     </div>
                                 ))}
@@ -201,7 +201,7 @@ export default function AiCostsAdmin() {
                                         <div className={`${muted} mb-1`}>Precios USD por 1M tokens: {"{ \"modelo\": { \"in\": n, \"out\": n } }"}</div>
                                         <textarea value={pricesText} onChange={e => setPricesText(e.target.value)} rows={7} className={input} spellCheck={false} />
                                     </div>
-                                    <button onClick={saveModels} disabled={saving} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text text-sm inline-flex items-center gap-2 disabled:opacity-50">
+                                    <button onClick={saveModels} disabled={saving} className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm inline-flex items-center gap-2 disabled:opacity-50">
                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                                     </button>
                                 </div>
@@ -225,7 +225,7 @@ export default function AiCostsAdmin() {
 
 function Stat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
     return (
-        <div className={`${cardClass} !p-4 ${accent ? 'border-[#9146FF]/50' : ''}`}>
+        <div className={`${cardClass} !p-4 ${accent ? 'border-ds-accent/50' : ''}`}>
             <div className={muted}>{label}</div>
             <div className="text-2xl font-black text-ds-text mt-1">{value}</div>
             {hint && <div className={`${muted} mt-1 truncate`} title={hint}>{hint}</div>}
@@ -244,5 +244,5 @@ function Field({ label, value, onChange, hint }: { label: string; value: string;
 }
 
 function Link({ href, children }: { href: string; children: ReactNode }) {
-    return <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#9146FF] hover:underline">{children} <ExternalLink className="w-3 h-3" /></a>;
+    return <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ds-accent-text hover:underline">{children} <ExternalLink className="w-3 h-3" /></a>;
 }

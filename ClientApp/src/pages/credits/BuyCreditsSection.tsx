@@ -83,13 +83,13 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
             )}
 
             <div id="buy" className={card}>
-                <div className="flex items-center gap-2 mb-1"><ShoppingBag className="w-5 h-5 text-[#9146FF]" /><h2 className={h2}>{t('title')}</h2></div>
+                <div className="flex items-center gap-2 mb-1"><ShoppingBag className="w-5 h-5 text-ds-accent-text" /><h2 className={h2}>{t('title')}</h2></div>
                 <p className={`${muted} mb-4`}>{t('hint')}</p>
                 {!canBuy && <p className="text-sm text-ds-warn mb-4">{t('onlyOwner')}</p>}
                 <div className="grid sm:grid-cols-3 gap-4">
                     {packages.map(p => (
-                        <div key={p.id} className={`relative p-5 rounded-lg border ${p.highlight ? 'border-[#9146FF] bg-[#9146FF]/5' : 'border-ds-border '} flex flex-col`}>
-                            {p.highlight && <span className="absolute -top-2.5 left-4 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#9146FF] text-ds-text text-[10px] font-bold uppercase"><Star className="w-3 h-3" /> {t('popular')}</span>}
+                        <div key={p.id} className={`relative p-5 rounded-lg border ${p.highlight ? 'border-ds-accent bg-ds-accent/5' : 'border-ds-border '} flex flex-col`}>
+                            {p.highlight && <span className="absolute -top-2.5 left-4 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-ds-accent text-ds-on-accent text-[10px] font-bold uppercase"><Star className="w-3 h-3" /> {t('popular')}</span>}
                             <div className="text-sm font-bold text-ds-text">{p.name}</div>
                             <div className="text-3xl font-black text-ds-text mt-1">{p.total.toLocaleString()}</div>
                             <div className={muted}>{t('credits')}{p.bonusCredits > 0 && <> · {t('bonus', { n: p.bonusCredits.toLocaleString() })}</>}</div>
@@ -99,7 +99,7 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
                                     <div className="text-2xl font-black text-ds-text">${p.priceUsd.toFixed(2)}</div>
                                     <div className="text-[11px] text-ds-soft">{t('perMillion', { usd: p.perMillionUsd.toFixed(0) })}</div>
                                 </div>
-                                <button onClick={() => iniciar(p)} disabled={!canBuy || confirming} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover disabled:opacity-50 text-ds-text text-sm font-bold">{confirming && pending?.id === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t('buy')}</button>
+                                <button onClick={() => iniciar(p)} disabled={!canBuy || confirming} className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-bold">{confirming && pending?.id === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t('buy')}</button>
                             </div>
                         </div>
                     ))}
@@ -121,7 +121,7 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
                                         <td className="font-mono text-xs">+{p.creditsReceived.toLocaleString()}</td>
                                         <td className="text-xs">{p.currency === 'PEN' ? 'S/ ' : '$'}{p.amount.toFixed(2)} <span className={muted}>(${p.priceUsd.toFixed(2)})</span>{p.isTest && <span className="ml-1 text-[10px] uppercase text-ds-warn">test</span>}</td>
                                         <td className="text-xs">{p.number ? <>{p.type === 'FACTURA' ? t('factura') : t('boleta')} {p.number}</> : p.status === 'PENDING' ? <span className={muted}>{t('invoicePending')}</span> : p.status === 'ERROR' ? <span className="text-ds-danger">{t('invoiceError')}</span> : <span className={muted}>—</span>}</td>
-                                        <td className="text-right">{p.canDownload && <button onClick={() => descargar(p)} disabled={downloading === p.purchaseId} className="inline-flex items-center gap-1 text-xs text-[#9146FF] hover:underline disabled:opacity-50">{downloading === p.purchaseId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} PDF</button>}</td>
+                                        <td className="text-right">{p.canDownload && <button onClick={() => descargar(p)} disabled={downloading === p.purchaseId} className="inline-flex items-center gap-1 text-xs text-ds-accent-text hover:underline disabled:opacity-50">{downloading === p.purchaseId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} PDF</button>}</td>
                                     </tr>
                                 ))}
                             </tbody>

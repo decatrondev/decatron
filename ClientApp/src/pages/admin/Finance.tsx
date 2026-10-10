@@ -75,7 +75,7 @@ export default function Finance() {
             </div>
 
             {error && <div className={`${card} text-ds-danger text-sm`}>{error}</div>}
-            {loading && !data && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-[#9146FF]" /></div>}
+            {loading && !data && <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" /></div>}
 
             {data && tab === 'resumen' && <Resumen d={data} />}
             {data && tab === 'ingresos' && <Ingresos months={months} />}
@@ -135,7 +135,7 @@ function Resumen({ d }: { d: Summary }) {
                                             <span>{SOURCE_LABEL[s.source] ?? s.source} <span className={muted}>· {s.count}</span></span>
                                             <span className="font-mono">{pen(s.pen)}</span>
                                         </div>
-                                        <div className="h-1.5 mt-1 rounded-full bg-ds-raised"><div className="h-1.5 rounded-full bg-[#9146FF]" style={{ width: `${d.income.grossPen ? (s.pen / d.income.grossPen) * 100 : 0}%` }} /></div>
+                                        <div className="h-1.5 mt-1 rounded-full bg-ds-raised"><div className="h-1.5 rounded-full bg-ds-accent" style={{ width: `${d.income.grossPen ? (s.pen / d.income.grossPen) * 100 : 0}%` }} /></div>
                                     </li>
                                 ))}
                             </ul>
@@ -149,7 +149,7 @@ function Resumen({ d }: { d: Summary }) {
                                 {d.income.byMonth.map(m => (
                                     <li key={m.month} className="flex items-center gap-3 text-xs">
                                         <span className="w-16 text-ds-soft">{m.month}</span>
-                                        <span className="flex-1 h-4 rounded bg-ds-raised overflow-hidden"><span className="block h-4 rounded bg-[#9146FF]/70" style={{ width: `${(m.pen / maxMonth) * 100}%` }} /></span>
+                                        <span className="flex-1 h-4 rounded bg-ds-raised overflow-hidden"><span className="block h-4 rounded bg-ds-accent/70" style={{ width: `${(m.pen / maxMonth) * 100}%` }} /></span>
                                         <span className="w-24 text-right font-mono text-ds-text">{pen(m.pen)}</span>
                                     </li>
                                 ))}
@@ -260,7 +260,7 @@ function Costos({ d, onChanged }: { d: Summary; onChanged: () => void }) {
                         <h2 className="text-sm font-bold text-ds-text">Costos fijos</h2>
                         <p className={muted}>Servidor, dominios, suscripciones. Se cargan a mano y entran al beneficio neto.</p>
                     </div>
-                    <button onClick={() => setEditing({ ...EMPTY_COST })} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#9146FF] text-ds-text text-xs font-bold"><Plus className="w-3.5 h-3.5" /> Agregar</button>
+                    <button onClick={() => setEditing({ ...EMPTY_COST })} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-ds-accent text-ds-on-accent text-xs font-bold"><Plus className="w-3.5 h-3.5" /> Agregar</button>
                 </div>
                 <table className="w-full text-sm">
                     <thead><tr><th className={th}>Concepto</th><th className={th}>Periodicidad</th><th className={`${th} text-right`}>Monto</th><th className={th}>Desde</th><th className={th}>Hasta</th><th className={th}></th></tr></thead>
@@ -273,7 +273,7 @@ function Costos({ d, onChanged }: { d: Summary; onChanged: () => void }) {
                                 <td className="text-xs">{c.startsOn}</td>
                                 <td className="text-xs">{c.endsOn ?? '—'}</td>
                                 <td className="text-right text-xs whitespace-nowrap">
-                                    <button onClick={() => setEditing({ ...c, notes: c.notes ?? '' })} className="text-[#9146FF] hover:underline mr-3">Editar</button>
+                                    <button onClick={() => setEditing({ ...c, notes: c.notes ?? '' })} className="text-ds-accent-text hover:underline mr-3">Editar</button>
                                     <button onClick={() => remove(c)} className="text-ds-danger"><Trash2 className="w-3.5 h-3.5 inline" /></button>
                                 </td>
                             </tr>
@@ -293,7 +293,7 @@ function Costos({ d, onChanged }: { d: Summary; onChanged: () => void }) {
                         <label className="md:col-span-2"><span className={muted}>Notas</span><input className={input} value={editing.notes ?? ''} onChange={e => setEditing({ ...editing, notes: e.target.value })} /></label>
                         <div className="flex items-end gap-2">
                             <button onClick={() => setEditing(null)} className="px-3 py-2 rounded-lg border border-ds-border text-sm">Cancelar</button>
-                            <button onClick={save} disabled={saving} className="px-3 py-2 rounded-lg bg-[#9146FF] text-ds-text text-sm font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
+                            <button onClick={save} disabled={saving} className="px-3 py-2 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
                         </div>
                     </div>
                 )}
@@ -319,7 +319,7 @@ const GRANT_LABEL: Record<string, string> = { monthly_reset: 'Cuota del plan', g
 function Creditos({ months }: { months: number }) {
     const [d, setD] = useState<CreditsEco | null>(null);
     useEffect(() => { api.get(`/admin/finance/credits?months=${months}`).then(r => setD(r.data)).catch(() => { }); }, [months]);
-    if (!d) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-[#9146FF]" /></div>;
+    if (!d) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-ds-accent-text" /></div>;
     const healthy = d.sold.pricePerMillionUsd >= d.sold.costPerMillionUsd;
 
     return (
@@ -386,7 +386,7 @@ function Tarifas() {
     const [msg, setMsg] = useState<string | null>(null);
     const load = () => api.get('/admin/finance/rates').then(r => setD(r.data)).catch(() => setMsg('No se pudieron cargar las tarifas.'));
     useEffect(() => { load(); }, []);
-    if (!d) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-[#9146FF]" /></div>;
+    if (!d) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-ds-accent-text" /></div>;
 
     const save = async () => {
         if (!editing) return;
@@ -408,7 +408,7 @@ function Tarifas() {
             <div className={card}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
                     <h2 className="text-sm font-bold text-ds-text">Tarifas por motor</h2>
-                    <button onClick={applyMargin} disabled={busy} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-ds-text text-xs font-bold disabled:opacity-50">Aplicar {d.targetMarginPercent}% a todas</button>
+                    <button onClick={applyMargin} disabled={busy} className="px-3 py-1.5 rounded-lg bg-ds-accent text-ds-on-accent text-xs font-bold disabled:opacity-50">Aplicar {d.targetMarginPercent}% a todas</button>
                 </div>
                 <p className={`${muted} mb-4`}>1 crédito = {usd(d.creditUsd)} (${(d.creditUsd * 1_000_000).toFixed(2)} por millón). El margen es lo que cobras por encima de lo que te cobra el proveedor. En verde, los que llegan al objetivo.</p>
                 {msg && <p className={`${muted} mb-3`}>{msg}</p>}
@@ -428,7 +428,7 @@ function Tarifas() {
                                     </td>
                                     <td className={`text-right font-mono text-xs font-bold ${marginColor(r.marginPercent)}`}>{r.marginPercent != null ? `${r.marginPercent}%` : '—'}</td>
                                     <td className="text-right font-mono text-xs text-ds-soft">{r.suggestedCreditsPerUnit != null ? r.suggestedCreditsPerUnit.toLocaleString() : '—'}</td>
-                                    <td className="text-right"><button onClick={() => setEditing({ ...r })} className="text-[#9146FF] hover:underline text-xs">Editar</button></td>
+                                    <td className="text-right"><button onClick={() => setEditing({ ...r })} className="text-ds-accent-text hover:underline text-xs">Editar</button></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -445,7 +445,7 @@ function Tarifas() {
                         <label className="md:col-span-2"><span className={muted}>Notas</span><input className={input} value={editing.notes ?? ''} onChange={e => setEditing({ ...editing, notes: e.target.value })} /></label>
                         <div className="flex items-end gap-2">
                             <button onClick={() => setEditing(null)} className="px-3 py-2 rounded-lg border border-ds-border text-sm">Cancelar</button>
-                            <button onClick={save} disabled={busy} className="px-3 py-2 rounded-lg bg-[#9146FF] text-ds-text text-sm font-bold disabled:opacity-50">{busy ? 'Guardando…' : 'Guardar'}</button>
+                            <button onClick={save} disabled={busy} className="px-3 py-2 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-bold disabled:opacity-50">{busy ? 'Guardando…' : 'Guardar'}</button>
                         </div>
                         {editing.suggestedCreditsPerUnit != null && (
                             <p className={`${muted} md:col-span-3`}>Para {d.targetMarginPercent}% de margen: <b>{editing.suggestedCreditsPerUnit.toLocaleString()}</b> créditos por unidad.</p>
@@ -462,7 +462,7 @@ function Ajustes({ onSaved }: { onSaved: () => void }) {
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<string | null>(null);
     useEffect(() => { api.get('/admin/finance/settings').then(r => setS(r.data)).catch(() => { }); }, []);
-    if (!s) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-[#9146FF]" /></div>;
+    if (!s) return <div className={card}><Loader2 className="w-5 h-5 animate-spin text-ds-accent-text" /></div>;
 
     const save = async () => {
         setSaving(true); setMsg(null);
@@ -484,7 +484,7 @@ function Ajustes({ onSaved }: { onSaved: () => void }) {
                 <label><span className={muted}>Margen objetivo (%)</span><input type="number" step="1" className={input} value={s.targetMarginPercent} onChange={e => setS({ ...s, targetMarginPercent: Number(e.target.value) })} /></label>
                 <label className="flex items-end gap-2 text-sm text-ds-text"><input type="checkbox" checked={s.gatewayFeeHasIgv} onChange={e => setS({ ...s, gatewayFeeHasIgv: e.target.checked })} /> La comisión lleva IGV</label>
                 <div className="flex items-end gap-3">
-                    <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#9146FF] text-ds-text text-sm font-bold disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar</button>
+                    <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-bold disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar</button>
                     {msg && <span className={muted}>{msg}</span>}
                 </div>
             </div>
@@ -495,7 +495,7 @@ function Ajustes({ onSaved }: { onSaved: () => void }) {
 function Stat({ icon, label, value, sub, accent }: { icon: JSX.Element; label: string; value: string; sub?: string; accent?: boolean }) {
     return (
         <div className={`${card} !p-4 ${accent !== undefined ? (accent ? 'border-ds-ok/40' : 'border-ds-danger/40') : ''}`}>
-            <div className={`${muted} flex items-center gap-1.5`}><span className="text-[#9146FF]">{icon}</span>{label}</div>
+            <div className={`${muted} flex items-center gap-1.5`}><span className="text-ds-accent-text">{icon}</span>{label}</div>
             <div className="text-2xl font-black text-ds-text mt-1">{value}</div>
             {sub && <div className={`${muted} mt-1`}>{sub}</div>}
         </div>

@@ -763,7 +763,7 @@ function PackagesSection() {
                     <h2 className="text-sm font-bold text-ds-text">Paquetes de créditos a la venta</h2>
                     <p className="text-xs text-ds-soft">Lo que ve el streamer en /credits. Costo real ≈ $4 por millón; los planes dan ~$17–33/M.</p>
                 </div>
-                <button onClick={() => setEditing({ ...EMPTY_PACKAGE, sortOrder: packages.length + 1 })} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-ds-text text-xs font-bold">Nuevo paquete</button>
+                <button onClick={() => setEditing({ ...EMPTY_PACKAGE, sortOrder: packages.length + 1 })} className="px-3 py-1.5 rounded-lg bg-ds-accent text-ds-on-accent text-xs font-bold">Nuevo paquete</button>
             </div>
             {msg && <p className="text-xs text-ds-danger mb-3">{msg}</p>}
             <div className="overflow-x-auto">
@@ -773,13 +773,13 @@ function PackagesSection() {
                         {packages.map(p => (
                             <tr key={p.id} className={tr}>
                                 <td className="py-1 text-xs">{p.sortOrder}</td>
-                                <td className="text-xs">{p.name}{p.highlight && <span className="ml-1 text-[10px] uppercase text-[#9146FF]">popular</span>}<div className="text-[11px] text-ds-soft">{p.description}</div></td>
+                                <td className="text-xs">{p.name}{p.highlight && <span className="ml-1 text-[10px] uppercase text-ds-accent-text">popular</span>}<div className="text-[11px] text-ds-soft">{p.description}</div></td>
                                 <td className="text-right font-mono text-xs">{p.credits.toLocaleString()}</td>
                                 <td className="text-right font-mono text-xs">{p.bonusCredits.toLocaleString()}</td>
                                 <td className="text-right font-mono text-xs">${p.priceUsd.toFixed(2)}</td>
                                 <td className="text-right font-mono text-xs">${perM(p)}</td>
                                 <td className="text-xs">{p.enabled ? <span className="text-ds-ok">activo</span> : <span className="text-ds-soft">oculto</span>}</td>
-                                <td className="text-right text-xs whitespace-nowrap"><button onClick={() => setEditing({ ...p })} className="text-[#9146FF] hover:underline mr-3">Editar</button><button onClick={() => remove(p)} className="text-ds-danger hover:underline">Borrar</button></td>
+                                <td className="text-right text-xs whitespace-nowrap"><button onClick={() => setEditing({ ...p })} className="text-ds-accent-text hover:underline mr-3">Editar</button><button onClick={() => remove(p)} className="text-ds-danger hover:underline">Borrar</button></td>
                             </tr>
                         ))}
                     </tbody>
@@ -802,7 +802,7 @@ function PackagesSection() {
                         <span className="text-ds-soft">≈ ${perM(editing)} por millón</span>
                         <span className="flex-1" />
                         <button onClick={() => setEditing(null)} className="px-3 py-1.5 rounded-lg border border-ds-border">Cancelar</button>
-                        <button onClick={save} disabled={saving} className="px-3 py-1.5 rounded-lg bg-[#9146FF] text-ds-text font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
+                        <button onClick={save} disabled={saving} className="px-3 py-1.5 rounded-lg bg-ds-accent text-ds-on-accent font-bold disabled:opacity-50">{saving ? 'Guardando…' : 'Guardar'}</button>
                     </div>
                 </div>
             )}

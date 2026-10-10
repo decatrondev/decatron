@@ -281,7 +281,7 @@ export function TtsCreditsCard({
                 </p>
             )}
 
-            <Link to="/credits" className="inline-block mt-3 text-xs font-semibold text-[#9146FF] hover:underline">Ver gasto por concepto e historial →</Link>
+            <Link to="/credits" className="inline-block mt-3 text-xs font-semibold text-ds-accent-text hover:underline">Ver gasto por concepto e historial →</Link>
         </div>
     );
 }
