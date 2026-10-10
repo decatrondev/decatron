@@ -1,0 +1,522 @@
+{
+  "common": {
+    "back": "Volver a Moderación",
+    "loading": "Cargando…",
+    "saving": "Guardando…",
+    "add": "Agregar",
+    "configure": "Configurar",
+    "filterOn": "Filtro activo",
+    "filterOff": "Filtro apagado",
+    "on": "Activo",
+    "off": "Apagado",
+    "remove": "Quitar {{name}}",
+    "severity": "Severidad",
+    "sev": {
+      "leveShort": "Leve (escalamiento)",
+      "medioShort": "Medio (timeout 10 min mín.)",
+      "severo": "Severo (ban directo)",
+      "leveLong": "Leve (escalamiento normal de strikes)",
+      "medioLong": "Medio (strike + timeout de 10 min como mínimo)"
+    },
+    "chatMessage": "Mensaje en el chat",
+    "saveFailed": "No se pudo guardar",
+    "saved": "Configuración guardada",
+    "loadFailed": "No se pudo cargar la configuración",
+    "toggleFailed": "No se pudo cambiar el estado del filtro",
+    "saveSettings": "Guardar configuración",
+    "vars": "Variables: $(user), $(strike), $(word).",
+    "analyzing": "Analizando…",
+    "analyze": "Analizar",
+    "sevName": {
+      "leve": "Leve",
+      "medio": "Medio",
+      "severo": "Severo"
+    }
+  },
+  "hub": {
+    "title": "Moderación",
+    "subtitle": "Cada filtro se activa por separado y viene apagado. El streamer, los Lead Moderators y los moderadores nunca son sancionados.",
+    "kickLabel": "Canal de Kick.",
+    "kickBody": "Funcionan los filtros, los comandos de mods y el historial. El modo pánico y el filtro de cuentas nuevas no están disponibles: la API de Kick no permite cambiar los modos del chat ni informa la antigüedad de las cuentas.",
+    "loadFailed": "No se pudo cargar el estado de los filtros",
+    "saveFailed": "No se pudo guardar el cambio",
+    "activate": "Activar {{name}}",
+    "panicActive": "PÁNICO ACTIVO",
+    "groupCount_one": "{{active}} de {{total}} activo",
+    "groupCount_other": "{{active}} de {{total}} activos",
+    "kickRaids": "Frases de bots que venden viewers (en Kick no hay modo pánico ni filtro de cuentas nuevas)",
+    "cards": {
+      "banned_words": {
+        "name": "Palabras prohibidas",
+        "description": "Palabras y frases que no se pueden usar en el chat, cada una con su severidad"
+      },
+      "links": {
+        "name": "Links",
+        "description": "Bloquea los links del chat, también los disfrazados, salvo los dominios que permitas o con !permit"
+      },
+      "spam": {
+        "name": "Spam",
+        "description": "Mayúsculas, símbolos, emotes, mensajes largos o repetidos, copypasta, zalgo y menciones"
+      },
+      "raids": {
+        "name": "Raids y bots",
+        "description": "Modo pánico (!panico), cuentas nuevas y frases de bots que venden viewers"
+      },
+      "commands": {
+        "name": "Comandos de mods",
+        "description": "!permit, !strikes, !nuke, !panico y más: quién puede usar cada uno"
+      },
+      "bots": {
+        "name": "Lista de bots",
+        "description": "Nightbot, StreamElements y otros bots: no cuentan como personas, no activan comandos ni se ven en el overlay de chat"
+      },
+      "history": {
+        "name": "Historial",
+        "description": "Quién fue sancionado, por qué y quién lo hizo; deshacer timeouts, bans y strikes"
+      }
+    }
+  },
+  "commands": {
+    "title": "Comandos de moderación",
+    "subtitle": "Elige quién puede usar cada comando. Quien tenga control total del canal en el dashboard cuenta como el streamer. Al resto el bot lo ignora.",
+    "items": {
+      "permit": "Deja pasar los links de un usuario. La duración se configura en el filtro de links.",
+      "strikes": "Muestra en qué strike está un usuario y cuándo baja el próximo.",
+      "resetstrikes": "Deja en 0 los strikes de un usuario.",
+      "words": "Agrega o quita palabras prohibidas desde el chat. Sin severidad, se agrega como leve.",
+      "links": "Agrega o quita dominios permitidos del filtro de links.",
+      "panic": "Activa el modo pánico (o lo extiende si ya estaba) y lo apaga. Qué hace se configura en Raids y bots. También funcionan !pánico y !panic. No disponible en Kick.",
+      "nuke": "Sanciona a todos los que escribieron esa frase en los últimos segundos. No toca al streamer, los mods ni la whitelist."
+    },
+    "whoCanUse": "Quién puede usarlo",
+    "roles": {
+      "moderator": "Moderadores y superiores",
+      "lead_moderator": "Lead Moderators y superiores",
+      "broadcaster": "Solo el streamer"
+    },
+    "lookBack": "Mira hacia atrás",
+    "sanction": "Sanción",
+    "timeoutOf": "Timeout de {{time}}",
+    "permanentBan": "Ban permanente"
+  },
+  "actions": {
+    "warning": "Advertencia",
+    "delete": "Borrar mensaje",
+    "timeout_30s": "Timeout 30 s",
+    "timeout_1m": "Timeout 1 min",
+    "timeout_5m": "Timeout 5 min",
+    "timeout_10m": "Timeout 10 min",
+    "timeout_30m": "Timeout 30 min",
+    "timeout_1h": "Timeout 1 hora",
+    "ban": "Ban permanente"
+  },
+  "links": {
+    "title": "Filtro de links",
+    "subtitle": "Con el filtro activo no pasa ningún link, salvo los dominios que permitas aquí o quien tenga un <code>!permit</code>.",
+    "toggleLabel": "Activar el filtro de links",
+    "offNotice": "El filtro está apagado: hoy los links pasan sin control.",
+    "domainError": "Eso no parece un dominio. Ejemplo: youtube.com",
+    "analyzeFailed": "No se pudo analizar el mensaje",
+    "allowed": {
+      "title": "Dominios permitidos",
+      "hint": "Incluye sus subdominios: permitir <code>youtube.com</code> también deja pasar <code>m.youtube.com</code>.",
+      "none": "Ningún dominio permitido: con el filtro activo se bloquean todos los links."
+    },
+    "who": {
+      "title": "Quién puede enviar links",
+      "hint": "El streamer, los Lead Moderators, los moderadores, la whitelist y quien tenga control total del canal siempre pueden.",
+      "subs": "Suscriptores",
+      "vips": "VIPs"
+    },
+    "obf": {
+      "title": "Links disfrazados",
+      "hint": "Los spammers escriben el link separado para que no lo detecten.",
+      "label": "Detectar <code>pagina . com</code>, <code>pagina(dot)com</code>, <code>pagina[.]com</code> y <code>pagina punto com</code>"
+    },
+    "permit": {
+      "title": "Comando !permit",
+      "hint": "<code>!permit @usuario</code> deja pasar sus links. Lo pueden usar los moderadores, los Lead Moderators, el streamer y quien tenga control total del canal.",
+      "duration": "Duración",
+      "durations": {
+        "30": "30 segundos",
+        "60": "1 minuto",
+        "120": "2 minutos",
+        "300": "5 minutos",
+        "600": "10 minutos"
+      },
+      "what": "Qué permite",
+      "allLinks": "Todos los links durante ese tiempo",
+      "oneMessage": "Un solo mensaje con link"
+    },
+    "sanction": {
+      "title": "Sanción",
+      "hint": "Un link bloqueado siempre se borra, aunque al strike le toque solo una advertencia. La escala de strikes, su expiración y la whitelist son las mismas de Palabras prohibidas.",
+      "messageHint": "Vacío = el mensaje de arriba. Variables: $(user), $(strike), $(word) (el dominio)."
+    },
+    "test": {
+      "title": "Probar un mensaje",
+      "hint": "Usa la configuración guardada; si cambiaste algo, guarda antes de probar.",
+      "placeholder": "mira mi canal en pagina . com",
+      "blocked": "Link bloqueado: {{domain}}",
+      "actionNormal": "Acción para un viewer sin strikes: {{action}}",
+      "offWarn": "Ese filtro está apagado: hoy este mensaje pasaría sin sanción.",
+      "passes": "El mensaje pasa: no tiene links bloqueados."
+    }
+  },
+  "spam": {
+    "title": "Filtros de spam",
+    "subtitle": "Cada filtro viene apagado y se activa por separado. Usan la misma escala de strikes y whitelist que Palabras prohibidas.",
+    "someFailed": "Algunos filtros no se pudieron guardar",
+    "saveLabel": "Guardar umbrales y mensajes",
+    "footer": "Los interruptores se guardan al momento. Mensaje vacío = el mensaje de ejemplo. Variables: $(user), $(strike), $(word).",
+    "units": {
+      "percent": "%",
+      "letters": "letras",
+      "characters": "caracteres",
+      "seconds": "segundos"
+    },
+    "filters": {
+      "caps": {
+        "name": "Mayúsculas",
+        "description": "Mensajes escritos casi todo en mayúsculas.",
+        "fields": {
+          "maxPercent": {
+            "label": "Máximo de mayúsculas"
+          },
+          "minLetters": {
+            "label": "Solo en mensajes con al menos",
+            "help": "Así un \"GG\" o un \"XD\" no cuentan."
+          }
+        },
+        "note": "Los emotes de Twitch no cuentan como mayúsculas. Los de 7TV, BTTV y FFZ sí, porque llegan como texto."
+      },
+      "symbols": {
+        "name": "Símbolos",
+        "description": "Mensajes llenos de signos o arte ASCII (▀▄█).",
+        "fields": {
+          "maxPercent": {
+            "label": "Máximo de símbolos"
+          },
+          "minLength": {
+            "label": "Solo en mensajes con al menos"
+          }
+        }
+      },
+      "emotes": {
+        "name": "Emotes",
+        "description": "Demasiados emotes en un solo mensaje.",
+        "fields": {
+          "maxEmotes": {
+            "label": "Máximo de emotes"
+          },
+          "countEmoji": {
+            "label": "Contar también los emojis (😂🔥)"
+          }
+        },
+        "note": "Cuenta los emotes de Twitch. Los de 7TV, BTTV y FFZ no se pueden contar."
+      },
+      "length": {
+        "name": "Mensajes largos",
+        "description": "Mensajes que pasan de cierto largo.",
+        "fields": {
+          "maxLength": {
+            "label": "Largo máximo"
+          }
+        }
+      },
+      "repetition": {
+        "name": "Mensajes repetidos",
+        "description": "El mismo usuario enviando el mismo mensaje varias veces.",
+        "fields": {
+          "maxRepeats": {
+            "label": "Se sanciona a la repetición número"
+          },
+          "windowSeconds": {
+            "label": "Dentro de"
+          }
+        }
+      },
+      "copypasta": {
+        "name": "Copypasta",
+        "description": "Muchos usuarios distintos pegando el mismo texto.",
+        "fields": {
+          "minUsers": {
+            "label": "A partir de cuántos usuarios"
+          },
+          "windowSeconds": {
+            "label": "Dentro de"
+          },
+          "minLength": {
+            "label": "Solo textos de al menos",
+            "help": "Así un \"GG\" o un emote que repite todo el chat no cuenta."
+          }
+        },
+        "note": "Se sanciona a partir del usuario que alcanza el número; los anteriores no."
+      },
+      "zalgo": {
+        "name": "Zalgo y texto raro",
+        "description": "Texto zalgo (letras con marcas encima y debajo que tapan el chat).",
+        "fields": {
+          "maxCombiningMarks": {
+            "label": "Marcas seguidas permitidas",
+            "help": "Idiomas como el vietnamita usan 1 o 2."
+          },
+          "blockFancyText": {
+            "label": "Bloquear también letras de fantasía (𝓱𝓸𝓵𝓪, ｈｏｌａ, ⓗⓞⓛⓐ)"
+          }
+        },
+        "note": "El texto zalgo siempre se borra, aunque al strike le toque solo una advertencia."
+      },
+      "mentions": {
+        "name": "Menciones",
+        "description": "Demasiadas @menciones a distintos usuarios en un mensaje.",
+        "fields": {
+          "maxMentions": {
+            "label": "Máximo de menciones"
+          }
+        }
+      }
+    }
+  },
+  "raids": {
+    "title": "Raids de odio y bots",
+    "subtitle": "Modo pánico para cerrar el chat en segundos, filtro de cuentas nuevas y frases de bots que venden viewers.",
+    "kickTitle": "Canal de Kick",
+    "kickBody": "Aquí solo funciona el filtro de frases de bots. El modo pánico y el filtro de cuentas nuevas no están disponibles: la API de Kick no permite cambiar los modos del chat ni informa la antigüedad de las cuentas.",
+    "panicOnDone": "Modo pánico activado",
+    "panicOffDone": "Modo pánico desactivado",
+    "panicFailed": "No se pudo cambiar el modo pánico",
+    "phraseTooShort": "La frase es muy corta: sin espacios ni signos necesita al menos 8 letras o números",
+    "partialFail": "Algo no se pudo guardar",
+    "panicActive": "Modo pánico ACTIVO",
+    "panicOff": "Modo pánico apagado",
+    "panicEnds": "{{reason}} · se apaga solo en {{min}} min",
+    "panicHow": "También se activa con !panico en el chat y se apaga con !panico off.",
+    "deactivateNow": "Desactivar ahora",
+    "activatePanic": "Activar pánico",
+    "what": {
+      "title": "Qué hace el pánico",
+      "hint": "Al apagarse, el chat vuelve exactamente a como estaba antes.",
+      "chatModes": "Modos del chat",
+      "chatModesHint": "Eliges qué restricciones aplica el bot.",
+      "shield": "Shield Mode de Twitch",
+      "shieldHint": "Aplica lo que configuraste en las herramientas de moderación de Twitch.",
+      "followersOnly": "Solo seguidores",
+      "slow": "Modo lento",
+      "noSlow": "Sin modo lento",
+      "slowSeconds": "{{s}} segundos",
+      "emoteOnly": "Solo emotes",
+      "subsOnly": "Solo suscriptores",
+      "autoOff": "Se apaga solo después de",
+      "announce": "Avisar en el chat al activarse y al apagarse"
+    },
+    "followAges": {
+      "0": "Cualquier seguidor",
+      "10": "10 minutos",
+      "30": "30 minutos",
+      "60": "1 hora",
+      "1440": "1 día",
+      "10080": "1 semana"
+    },
+    "units": {
+      "minutes": "minutos",
+      "orMore": "o más",
+      "daysOld": "días de creadas",
+      "days": "días",
+      "seconds": "segundos"
+    },
+    "auto": {
+      "title": "Activación automática",
+      "hint": "Viene apagada. Si la activas, el bot enciende el pánico solo cuando detecta una oleada.",
+      "follows": "Oleada de follows (bots de follows)",
+      "followsN": "Follows",
+      "newAccounts": "Cuentas nuevas escribiendo a la vez (raid de odio)",
+      "distinct": "Cuentas distintas",
+      "lessThan": "Con menos de",
+      "within": "Dentro de"
+    },
+    "age": {
+      "title": "Cuentas nuevas",
+      "hint": "Sanciona a las cuentas recién creadas que escriben. Su mensaje siempre se borra.",
+      "toggle": "Activar el filtro de cuentas nuevas",
+      "lessThan": "Cuentas con menos de",
+      "onlyPanic": "Solo mientras el modo pánico está activo"
+    },
+    "bots": {
+      "title": "Frases de bots",
+      "hint": "Spam de bots que venden viewers y seguidores. Se detecta aunque lo escriban separado o con signos.",
+      "toggle": "Activar el filtro de frases de bots",
+      "reset": "Volver a la lista base"
+    },
+    "footer": "El botón de pánico y los interruptores se aplican al momento; el resto, al guardar."
+  },
+  "history": {
+    "title": "Historial de moderación",
+    "subtitle": "Quién fue sancionado, por qué y quién lo hizo. Puedes quitar un timeout o un ban y devolver el strike.",
+    "loadFailed": "No se pudo cargar el historial",
+    "filter": {
+      "banned_words": "Palabra prohibida",
+      "links": "Link",
+      "caps": "Mayúsculas",
+      "symbols": "Símbolos",
+      "emotes": "Emotes",
+      "length": "Mensaje largo",
+      "repetition": "Repetido",
+      "copypasta": "Copypasta",
+      "zalgo": "Zalgo",
+      "mentions": "Menciones",
+      "account_age": "Cuenta nueva",
+      "bot_phrases": "Frase de bot",
+      "nuke": "Nuke",
+      "strikes": "Strikes",
+      "panic": "Modo pánico"
+    },
+    "actions": {
+      "warning": "Advertencia",
+      "delete": "Mensaje borrado",
+      "ban": "Ban",
+      "reset_strikes": "Strikes a 0",
+      "add_word": "Agregó una palabra",
+      "del_word": "Quitó una palabra",
+      "add_link": "Permitió un dominio",
+      "del_link": "Quitó un dominio",
+      "panic_on": "Activó el pánico",
+      "panic_off": "Apagó el pánico"
+    },
+    "timeoutH": "Timeout {{n}} h",
+    "timeoutMin": "Timeout {{n}} min",
+    "timeoutS": "Timeout {{n}} s",
+    "undo": {
+      "title": "Deshacer sanción",
+      "cancel": "Cancelar",
+      "qBan": "¿Quitar el ban a {{user}}?",
+      "qBanStrike": "¿Quitar el ban a {{user}} y devolverle el strike?",
+      "qTimeout": "¿Quitar el timeout a {{user}}?",
+      "qTimeoutStrike": "¿Quitar el timeout a {{user}} y devolverle el strike?",
+      "qStrike": "¿Devolverle el strike a {{user}}?",
+      "deletedNote": "El mensaje borrado no se puede recuperar.",
+      "banLifted": "ban quitado",
+      "timeoutLifted": "timeout quitado",
+      "expired": "la sanción ya había vencido",
+      "strikeReturned": "strike devuelto",
+      "noStrikes": "ya no tenía strikes que devolver",
+      "done": "Listo: {{details}}.",
+      "markedUndone": "marcado como deshecho",
+      "failed": "No se pudo deshacer"
+    },
+    "filters": {
+      "userOrMod": "Usuario o mod",
+      "type": "Tipo",
+      "all": "Todo",
+      "sanctions": "Solo sanciones",
+      "modActions": "Solo acciones de mods",
+      "reason": "Motivo",
+      "anyReason": "Cualquier motivo",
+      "from": "Desde",
+      "to": "Hasta"
+    },
+    "cols": {
+      "date": "Fecha",
+      "user": "Usuario",
+      "action": "Acción",
+      "reason": "Motivo",
+      "who": "Quién",
+      "undo": "Deshacer"
+    },
+    "empty": "No hay acciones con estos filtros.",
+    "strikeOf": "strike {{n}}/5",
+    "automatic": "Automático",
+    "undone": "Deshecho",
+    "undoneBy": "Deshecho por {{user}}",
+    "undoneOn": "Deshecho el {{date}}",
+    "original": "Mensaje original",
+    "noMessage": "No se guardó el mensaje.",
+    "count_one": "{{count}} acción",
+    "count_other": "{{count}} acciones",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "pageOf": "Página {{page}} de {{pages}}"
+  },
+  "banned": {
+    "title": "Palabras Prohibidas",
+    "subtitle": "Sistema completo de moderación de palabras y frases prohibidas",
+    "toggleLabel": "Activar el filtro de palabras prohibidas",
+    "offNotice": "El filtro está apagado: el bot no sanciona ninguna palabra de la lista hasta que lo actives.",
+    "addedOk": "Palabra agregada exitosamente",
+    "addFailed": "Error al agregar la palabra",
+    "deletedOk": "Palabra eliminada",
+    "deleteFailed": "Error al eliminar la palabra",
+    "imported_one": "{{count}} palabra importada",
+    "imported_other": "{{count}} palabras importadas",
+    "importFailed": "Error al importar el archivo",
+    "stats": {
+      "words": "Palabras Configuradas",
+      "detections": "Detecciones Hoy",
+      "sanctioned": "Usuarios Sancionados"
+    },
+    "add": {
+      "title": "Agregar Palabra Prohibida",
+      "wordLabel": "Palabra o Frase",
+      "tip": "Tip: usa asteriscos (*) para wildcards. Ejemplo: *spam* detecta \"spam\", \"spammer\", \"antispam\"",
+      "placeholder": "Escribe la palabra o frase",
+      "severityLabel": "Nivel de Severidad",
+      "leve": "Leve (Escalamiento normal)",
+      "button": "Agregar Palabra"
+    },
+    "list": {
+      "title": "Lista de Palabras ({{n}}/500)",
+      "import": "Importar",
+      "export": "Exportar",
+      "empty": "No hay palabras prohibidas configuradas",
+      "detections_one": "{{count}} detección",
+      "detections_other": "{{count}} detecciones",
+      "delete": "Eliminar {{word}}"
+    },
+    "test": {
+      "title": "Probar Detección de Mensajes",
+      "placeholder": "Escribe un mensaje de prueba",
+      "match": "Coincidencia Detectada",
+      "word": "Palabra detectada:",
+      "severity": "Severidad:",
+      "actionNormal": "Acción (viewer, primer strike):",
+      "actionEsc": "Acción (VIP/sub con escalamiento):",
+      "none": "No se detectaron palabras prohibidas"
+    },
+    "immunity": {
+      "title": "Sistema de Inmunidad",
+      "total": "Inmunidad total",
+      "escalation": "Entra en escalamiento",
+      "alwaysTitle": "Streamer, Lead Moderators y moderadores",
+      "alwaysBody": "SIEMPRE tienen inmunidad total. También quien tenga control total del canal en el dashboard, aunque en el chat sea un viewer."
+    },
+    "whitelist": {
+      "title": "Whitelist Manual",
+      "placeholder": "nombre_de_usuario",
+      "note": "Los usuarios en la whitelist SIEMPRE tienen inmunidad total"
+    },
+    "messages": {
+      "title": "Mensajes Personalizados por Acción",
+      "warningMessage": "Warning (Advertencia)",
+      "deleteMessage": "Delete (Borrar Mensaje)",
+      "timeoutMessage": "Timeout (Suspensión Temporal)",
+      "banMessage": "Ban (Baneo Permanente por Strikes)",
+      "severoMessage": "Ban por Palabra SEVERA (Ban Directo)",
+      "severoNote": "Este mensaje se usa cuando detectas una palabra con severidad \"Severo\" (ban directo, sin strikes)",
+      "vars": "Variables disponibles: $(user), $(strike), $(word)"
+    },
+    "strikes": {
+      "title": "Sistema de Escalamiento de Strikes",
+      "expiration": "Tiempo de Expiración de Strikes",
+      "expirationHint": "Los strikes disminuyen 1 nivel después del tiempo configurado sin infracciones",
+      "exp": {
+        "5min": "5 minutos",
+        "10min": "10 minutos",
+        "15min": "15 minutos",
+        "30min": "30 minutos",
+        "1hour": "1 hora",
+        "never": "Nunca (permanente)"
+      },
+      "strikeN": "Strike {{n}}"
+    }
+  }
+}

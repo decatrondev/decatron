@@ -17,18 +17,18 @@ export default function BannedWords() {
     return (
         <ModerationPage
             wide
-            title="Palabras Prohibidas"
-            subtitle="Sistema completo de moderación de palabras y frases prohibidas"
+            title={s.t('banned.title')}
+            subtitle={s.t('banned.subtitle')}
             toast={s.toast}
             actions={filter.enabled !== null && (
                 <div className="flex items-center gap-3">
                     <StatusText on={filter.enabled} />
-                    <FilterSwitch on={filter.enabled} disabled={filter.saving} onChange={filter.toggle} label="Activar el filtro de palabras prohibidas" />
+                    <FilterSwitch on={filter.enabled} disabled={filter.saving} onChange={filter.toggle} label={s.t('banned.toggleLabel')} />
                 </div>
             )}
         >
             {filter.enabled === false && (
-                <Alert tone="warn">El filtro está apagado: el bot no sanciona ninguna palabra de la lista hasta que lo actives.</Alert>
+                <Alert tone="warn">{s.t('banned.offNotice')}</Alert>
             )}
 
             {s.loading ? <PageLoading /> : (

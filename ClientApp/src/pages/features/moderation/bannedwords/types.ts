@@ -43,17 +43,4 @@ export interface TestResult {
     actionEscalamiento?: StrikeAction;
 }
 
-export const getActionLabel = (action: StrikeAction) => {
-    const labels: Record<StrikeAction, string> = {
-        'warning': 'Advertencia',
-        'delete': 'Borrar mensaje',
-        'timeout_30s': 'Timeout 30seg',
-        'timeout_1m': 'Timeout 1min',
-        'timeout_5m': 'Timeout 5min',
-        'timeout_10m': 'Timeout 10min',
-        'timeout_30m': 'Timeout 30min',
-        'timeout_1h': 'Timeout 1hora',
-        'ban': 'Ban permanente'
-    };
-    return labels[action];
-};
+export const getActionLabel = (t: (key: string) => string, action: StrikeAction) => t(`actions.${action}`);

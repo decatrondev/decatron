@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../../hooks/usePermissions';
 import { Checkbox, Field, Input } from '../../../components/ds';
 import { useToast } from '../../../components/dashboard/toast';
@@ -9,99 +10,90 @@ import {
 import { ModerationPage, NumberField, PageLoading, SaveBar, Section, SeveritySelect, StatusText, hintCls, smallHintCls } from './parts';
 
 type FieldDef =
-    | { kind: 'number'; key: string; label: string; min: number; max: number; suffix?: string; help?: string }
-    | { kind: 'check'; key: string; label: string };
+    | { kind: 'number'; key: string; min: number; max: number; unit?: 'percent' | 'letters' | 'characters' | 'seconds'; help?: boolean }
+    | { kind: 'check'; key: string };
 
 interface SpamFilterDef {
     key: string;
-    name: string;
-    description: string;
+    /** Mensaje por defecto del bot (texto de ejemplo en español, igual que el del backend: no se traduce) */
     defaultMessage: string;
     defaults: Record<string, number | boolean>;
     fields: FieldDef[];
-    note?: string;
+    note?: boolean;
 }
 
-// Valores por defecto iguales a los del backend (SpamFilters.cs)
+// Valores por defecto iguales a los del backend (SpamFilters.cs). Los textos (nombre, descripción, etiquetas, notas) están en i18n: moderation:spam.filters.<clave>
 export const SPAM_FILTERS: SpamFilterDef[] = [
     {
-        key: 'caps', name: 'Mayúsculas',
-        description: 'Mensajes escritos casi todo en mayúsculas.',
+        key: 'caps',
         defaultMessage: '🔠 $(user), baja las mayúsculas, por favor. Strike $(strike)/5',
         defaults: { minLetters: 15, maxPercent: 70 },
         fields: [
-            { kind: 'number', key: 'maxPercent', label: 'Máximo de mayúsculas', min: 10, max: 100, suffix: '%' },
-            { kind: 'number', key: 'minLetters', label: 'Solo en mensajes con al menos', min: 1, max: 200, suffix: 'letras', help: 'Así un "GG" o un "XD" no cuentan.' }
+            { kind: 'number', key: 'maxPercent', min: 10, max: 100, unit: 'percent' },
+            { kind: 'number', key: 'minLetters', min: 1, max: 200, unit: 'letters', help: true }
         ],
-        note: 'Los emotes de Twitch no cuentan como mayúsculas. Los de 7TV, BTTV y FFZ sí, porque llegan como texto.'
+        note: true
     },
     {
-        key: 'symbols', name: 'Símbolos',
-        description: 'Mensajes llenos de signos o arte ASCII (▀▄█).',
+        key: 'symbols',
         defaultMessage: '🔣 $(user), demasiados símbolos en tu mensaje. Strike $(strike)/5',
         defaults: { minLength: 10, maxPercent: 50 },
         fields: [
-            { kind: 'number', key: 'maxPercent', label: 'Máximo de símbolos', min: 10, max: 100, suffix: '%' },
-            { kind: 'number', key: 'minLength', label: 'Solo en mensajes con al menos', min: 1, max: 200, suffix: 'caracteres' }
+            { kind: 'number', key: 'maxPercent', min: 10, max: 100, unit: 'percent' },
+            { kind: 'number', key: 'minLength', min: 1, max: 200, unit: 'characters' }
         ]
     },
     {
-        key: 'emotes', name: 'Emotes',
-        description: 'Demasiados emotes en un solo mensaje.',
+        key: 'emotes',
         defaultMessage: '😶 $(user), demasiados emotes en un mensaje. Strike $(strike)/5',
         defaults: { maxEmotes: 10, countEmoji: true },
         fields: [
-            { kind: 'number', key: 'maxEmotes', label: 'Máximo de emotes', min: 1, max: 100 },
-            { kind: 'check', key: 'countEmoji', label: 'Contar también los emojis (😂🔥)' }
+            { kind: 'number', key: 'maxEmotes', min: 1, max: 100 },
+            { kind: 'check', key: 'countEmoji' }
         ],
-        note: 'Cuenta los emotes de Twitch. Los de 7TV, BTTV y FFZ no se pueden contar.'
+        note: true
     },
     {
-        key: 'length', name: 'Mensajes largos',
-        description: 'Mensajes que pasan de cierto largo.',
+        key: 'length',
         defaultMessage: '📏 $(user), tu mensaje es demasiado largo. Strike $(strike)/5',
         defaults: { maxLength: 300 },
-        fields: [{ kind: 'number', key: 'maxLength', label: 'Largo máximo', min: 20, max: 500, suffix: 'caracteres' }]
+        fields: [{ kind: 'number', key: 'maxLength', min: 20, max: 500, unit: 'characters' }]
     },
     {
-        key: 'repetition', name: 'Mensajes repetidos',
-        description: 'El mismo usuario enviando el mismo mensaje varias veces.',
+        key: 'repetition',
         defaultMessage: '🔁 $(user), no repitas el mismo mensaje. Strike $(strike)/5',
         defaults: { maxRepeats: 3, windowSeconds: 30 },
         fields: [
-            { kind: 'number', key: 'maxRepeats', label: 'Se sanciona a la repetición número', min: 2, max: 20 },
-            { kind: 'number', key: 'windowSeconds', label: 'Dentro de', min: 5, max: 300, suffix: 'segundos' }
+            { kind: 'number', key: 'maxRepeats', min: 2, max: 20 },
+            { kind: 'number', key: 'windowSeconds', min: 5, max: 300, unit: 'seconds' }
         ]
     },
     {
-        key: 'copypasta', name: 'Copypasta',
-        description: 'Muchos usuarios distintos pegando el mismo texto.',
+        key: 'copypasta',
         defaultMessage: '📋 $(user), nada de copypasta en este chat. Strike $(strike)/5',
         defaults: { minUsers: 5, windowSeconds: 60, minLength: 20 },
         fields: [
-            { kind: 'number', key: 'minUsers', label: 'A partir de cuántos usuarios', min: 2, max: 50 },
-            { kind: 'number', key: 'windowSeconds', label: 'Dentro de', min: 5, max: 300, suffix: 'segundos' },
-            { kind: 'number', key: 'minLength', label: 'Solo textos de al menos', min: 5, max: 500, suffix: 'caracteres', help: 'Así un "GG" o un emote que repite todo el chat no cuenta.' }
+            { kind: 'number', key: 'minUsers', min: 2, max: 50 },
+            { kind: 'number', key: 'windowSeconds', min: 5, max: 300, unit: 'seconds' },
+            { kind: 'number', key: 'minLength', min: 5, max: 500, unit: 'characters', help: true }
         ],
-        note: 'Se sanciona a partir del usuario que alcanza el número; los anteriores no.'
+        note: true
     },
     {
-        key: 'zalgo', name: 'Zalgo y texto raro',
-        description: 'Texto zalgo (letras con marcas encima y debajo que tapan el chat).',
+        key: 'zalgo',
         defaultMessage: '👾 $(user), ese tipo de texto no está permitido. Strike $(strike)/5',
         defaults: { maxCombiningMarks: 2, blockFancyText: false },
         fields: [
-            { kind: 'number', key: 'maxCombiningMarks', label: 'Marcas seguidas permitidas', min: 1, max: 10, help: 'Idiomas como el vietnamita usan 1 o 2.' },
-            { kind: 'check', key: 'blockFancyText', label: 'Bloquear también letras de fantasía (𝓱𝓸𝓵𝓪, ｈｏｌａ, ⓗⓞⓛⓐ)' }
+            { kind: 'number', key: 'maxCombiningMarks', min: 1, max: 10, help: true },
+            { kind: 'check', key: 'blockFancyText' }
         ],
-        note: 'El texto zalgo siempre se borra, aunque al strike le toque solo una advertencia.'
+        note: true
     },
     {
-        key: 'mentions', name: 'Menciones',
-        description: 'Demasiadas @menciones a distintos usuarios en un mensaje.',
+        key: 'mentions',
         defaultMessage: '📣 $(user), demasiadas menciones en un mensaje. Strike $(strike)/5',
         defaults: { maxMentions: 5 },
-        fields: [{ kind: 'number', key: 'maxMentions', label: 'Máximo de menciones', min: 1, max: 50 }]
+        fields: [{ kind: 'number', key: 'maxMentions', min: 1, max: 50 }]
     }
 ];
 
@@ -115,6 +107,7 @@ interface Draft {
 export default function SpamFilters() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { t } = useTranslation('moderation');
     const { toast, showToast } = useToast();
 
     const [drafts, setDrafts] = useState<Record<string, Draft> | null>(null);
@@ -141,7 +134,7 @@ export default function SpamFilters() {
                 }
                 setDrafts(next);
             })
-            .catch(() => showNotice('error', 'No se pudo cargar la configuración'));
+            .catch(() => showNotice('error', t('common.loadFailed')));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permissionsLoading]);
 
@@ -158,7 +151,7 @@ export default function SpamFilters() {
             if (!(await saveModerationFilter(key, { enabled: next }))) throw new Error();
         } catch {
             update(key, { enabled: !next });
-            showNotice('error', 'No se pudo cambiar el estado del filtro');
+            showNotice('error', t('common.toggleFailed'));
         }
     };
 
@@ -170,9 +163,9 @@ export default function SpamFilters() {
                 const d = drafts[def.key];
                 return saveModerationFilter(def.key, { severity: d.severity, settings: d.settings, message: d.message });
             }));
-            showNotice(results.every(Boolean) ? 'success' : 'error', results.every(Boolean) ? 'Configuración guardada' : 'Algunos filtros no se pudieron guardar');
+            showNotice(results.every(Boolean) ? 'success' : 'error', results.every(Boolean) ? t('common.saved') : t('spam.someFailed'));
         } catch {
-            showNotice('error', 'No se pudo guardar');
+            showNotice('error', t('common.saveFailed'));
         } finally {
             setSaving(false);
         }
@@ -182,8 +175,8 @@ export default function SpamFilters() {
 
     return (
         <ModerationPage
-            title="Filtros de spam"
-            subtitle="Cada filtro viene apagado y se activa por separado. Usan la misma escala de strikes y whitelist que Palabras prohibidas."
+            title={t('spam.title')}
+            subtitle={t('spam.subtitle')}
             toast={toast}
         >
             {!drafts ? <PageLoading /> : (
@@ -193,52 +186,52 @@ export default function SpamFilters() {
                         return (
                             <Section
                                 key={def.key}
-                                title={def.name}
-                                hint={def.description}
+                                title={t(`spam.filters.${def.key}.name`)}
+                                hint={t(`spam.filters.${def.key}.description`)}
                                 right={
                                     <div className="flex items-center gap-3 shrink-0">
-                                        <StatusText on={d.enabled} onLabel="Activo" offLabel="Apagado" hideSmall />
-                                        <FilterSwitch on={d.enabled} onChange={(next) => toggle(def.key, next)} label={`Activar ${def.name}`} />
+                                        <StatusText on={d.enabled} onLabel={t('common.on')} offLabel={t('common.off')} hideSmall />
+                                        <FilterSwitch on={d.enabled} onChange={(next) => toggle(def.key, next)} label={t('hub.activate', { name: t(`spam.filters.${def.key}.name`) })} />
                                     </div>
                                 }
                             >
                                 <div className={`space-y-4 ${d.enabled ? '' : 'opacity-60'}`}>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         {def.fields.filter(f => f.kind === 'number').map(f => f.kind === 'number' && (
-                                            <Field key={f.key} label={f.label} hint={f.help}>
+                                            <Field key={f.key} label={t(`spam.filters.${def.key}.fields.${f.key}.label`)} hint={f.help ? t(`spam.filters.${def.key}.fields.${f.key}.help`) : undefined}>
                                                 <NumberField
                                                     value={Number(d.settings[f.key])}
                                                     min={f.min}
                                                     max={f.max}
-                                                    suffix={f.suffix}
+                                                    suffix={f.unit ? t(`spam.units.${f.unit}`) : undefined}
                                                     onChange={(v) => setField(def.key, f.key, v)}
                                                 />
                                             </Field>
                                         ))}
-                                        <Field label="Severidad">
+                                        <Field label={t('common.severity')}>
                                             <SeveritySelect value={d.severity} onChange={(v) => update(def.key, { severity: v })} />
                                         </Field>
                                     </div>
 
                                     {def.fields.filter(f => f.kind === 'check').map(f => (
                                         <div key={f.key}>
-                                            <Checkbox label={f.label} checked={Boolean(d.settings[f.key])} onChange={(e) => setField(def.key, f.key, e.target.checked)} />
+                                            <Checkbox label={t(`spam.filters.${def.key}.fields.${f.key}.label`)} checked={Boolean(d.settings[f.key])} onChange={(e) => setField(def.key, f.key, e.target.checked)} />
                                         </div>
                                     ))}
 
-                                    <Field label="Mensaje en el chat">
+                                    <Field label={t('common.chatMessage')}>
                                         <Input value={d.message} maxLength={500} onChange={(e) => update(def.key, { message: e.target.value })} placeholder={def.defaultMessage} />
                                     </Field>
 
-                                    {def.note && <p className={smallHintCls}>{def.note}</p>}
+                                    {def.note && <p className={smallHintCls}>{t(`spam.filters.${def.key}.note`)}</p>}
                                 </div>
                             </Section>
                         );
                     })}
 
-                    <SaveBar saving={saving} onClick={save} label="Guardar umbrales y mensajes" savingLabel="Guardando…" />
+                    <SaveBar saving={saving} onClick={save} label={t('spam.saveLabel')} savingLabel={t('common.saving')} />
                     <p className={`${hintCls} text-xs text-center`}>
-                        Los interruptores se guardan al momento. Mensaje vacío = el mensaje de ejemplo. Variables: $(user), $(strike), $(word).
+                        {t('spam.footer')}
                     </p>
                 </div>
             )}

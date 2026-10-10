@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
 import { Field, Select } from '../../../components/ds';
@@ -19,21 +20,17 @@ interface CommandSetting {
 
 type CommandsConfig = Record<string, CommandSetting>;
 
-const COMMANDS: { key: string; usage: string[]; description: string }[] = [
-    { key: 'permit', usage: ['!permit @usuario'], description: 'Deja pasar los links de un usuario. La duración se configura en el filtro de links.' },
-    { key: 'strikes', usage: ['!strikes @usuario'], description: 'Muestra en qué strike está un usuario y cuándo baja el próximo.' },
-    { key: 'resetstrikes', usage: ['!resetstrikes @usuario'], description: 'Deja en 0 los strikes de un usuario.' },
-    { key: 'words', usage: ['!addword palabra [leve|medio|severo]', '!delword palabra'], description: 'Agrega o quita palabras prohibidas desde el chat. Sin severidad, se agrega como leve.' },
-    { key: 'links', usage: ['!addlink dominio', '!dellink dominio'], description: 'Agrega o quita dominios permitidos del filtro de links.' },
-    { key: 'panic', usage: ['!panico', '!panico off'], description: 'Activa el modo pánico (o lo extiende si ya estaba) y lo apaga. Qué hace se configura en Raids y bots. También funcionan !pánico y !panic. No disponible en Kick.' },
-    { key: 'nuke', usage: ['!nuke frase'], description: 'Sanciona a todos los que escribieron esa frase en los últimos segundos. No toca al streamer, los mods ni la whitelist.' }
+const COMMANDS: { key: string; usage: string[] }[] = [
+    { key: 'permit', usage: ['!permit @usuario'] },
+    { key: 'strikes', usage: ['!strikes @usuario'] },
+    { key: 'resetstrikes', usage: ['!resetstrikes @usuario'] },
+    { key: 'words', usage: ['!addword palabra [leve|medio|severo]', '!delword palabra'] },
+    { key: 'links', usage: ['!addlink dominio', '!dellink dominio'] },
+    { key: 'panic', usage: ['!panico', '!panico off'] },
+    { key: 'nuke', usage: ['!nuke frase'] }
 ];
 
-const ROLE_OPTIONS: { value: Role; label: string }[] = [
-    { value: 'moderator', label: 'Moderadores y superiores' },
-    { value: 'lead_moderator', label: 'Lead Moderators y superiores' },
-    { value: 'broadcaster', label: 'Solo el streamer' }
-];
+const ROLE_VALUES: Role[] = ['moderator', 'lead_moderator', 'broadcaster'];
 
 const NUKE_WINDOWS = [15, 30, 60, 120, 300];
 const NUKE_TIMEOUTS = [60, 300, 600, 1800, 3600, 86400];
@@ -47,6 +44,7 @@ function duration(seconds: number) {
 export default function ModerationCommands() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { t } = useTranslation('moderation');
     const { toast, showToast } = useToast();
 
     const [config, setConfig] = useState<CommandsConfig | null>(null);
@@ -60,7 +58,7 @@ export default function ModerationCommands() {
         }
         api.get('/moderation/commands')
             .then(res => res.data.success && setConfig(res.data.commands))
-            .catch(() => showToast('No se pudo cargar la configuración', 'error'));
+            .catch(() => showToast(t('common.loadFailed'), 'error'));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permissionsLoading]);
 
@@ -74,9 +72,9 @@ export default function ModerationCommands() {
             const res = await api.put('/moderation/commands', config);
             if (!res.data.success) throw new Error();
             setConfig(res.data.commands);
-            showToast('Configuración guardada', 'success');
+            showToast(t('common.saved'), 'success');
         } catch {
-            showToast('No se pudo guardar', 'error');
+            showToast(t('common.saveFailed'), 'error');
         } finally {
             setSaving(false);
         }
@@ -88,8 +86,8 @@ export default function ModerationCommands() {
 
     return (
         <ModerationPage
-            title="Comandos de moderación"
-            subtitle="Elige quién puede usar cada comando. Quien tenga control total del canal en el dashboard cuenta como el streamer. Al resto el bot lo ignora."
+            title={t('commands.title')}
+            subtitle={t('commands.subtitle')}
             toast={toast}
         >
             {!config ? <PageLoading /> : (
@@ -105,32 +103,32 @@ export default function ModerationCommands() {
                                         {cmd.usage.map(u => <code key={u} className="px-2 py-1 rounded bg-ds-bg border border-ds-border text-sm font-bold text-ds-text">{u}</code>)}
                                     </span>
                                 }
-                                hint={cmd.description}
-                                right={<FilterSwitch on={setting.enabled} onChange={(next) => update(cmd.key, { enabled: next })} label={`Activar ${cmd.usage[0]}`} />}
+                                hint={t(`commands.items.${cmd.key}`)}
+                                right={<FilterSwitch on={setting.enabled} onChange={(next) => update(cmd.key, { enabled: next })} label={t('hub.activate', { name: cmd.usage[0] })} />}
                             >
                                 <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${setting.enabled ? '' : 'opacity-50'}`}>
-                                    <Field label="Quién puede usarlo">
+                                    <Field label={t('commands.whoCanUse')}>
                                         <Select value={setting.minRole} onChange={(e) => update(cmd.key, { minRole: e.target.value as Role })}>
-                                            {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                            {ROLE_VALUES.map(r => <option key={r} value={r}>{t(`commands.roles.${r}`)}</option>)}
                                         </Select>
                                     </Field>
 
                                     {cmd.key === 'nuke' && nuke && (
                                         <>
-                                            <Field label="Mira hacia atrás">
+                                            <Field label={t('commands.lookBack')}>
                                                 <Select value={nuke.windowSeconds} onChange={(e) => update('nuke', { windowSeconds: Number(e.target.value) })}>
                                                     {NUKE_WINDOWS.map(s => <option key={s} value={s}>{duration(s)}</option>)}
                                                 </Select>
                                             </Field>
-                                            <Field label="Sanción">
+                                            <Field label={t('commands.sanction')}>
                                                 <Select
                                                     value={nuke.action === 'ban' ? 'ban' : String(nuke.timeoutSeconds)}
                                                     onChange={(e) => e.target.value === 'ban'
                                                         ? update('nuke', { action: 'ban' })
                                                         : update('nuke', { action: 'timeout', timeoutSeconds: Number(e.target.value) })}
                                                 >
-                                                    {NUKE_TIMEOUTS.map(s => <option key={s} value={s}>Timeout de {duration(s)}</option>)}
-                                                    <option value="ban">Ban permanente</option>
+                                                    {NUKE_TIMEOUTS.map(s => <option key={s} value={s}>{t('commands.timeoutOf', { time: duration(s) })}</option>)}
+                                                    <option value="ban">{t('commands.permanentBan')}</option>
                                                 </Select>
                                             </Field>
                                         </>
@@ -140,7 +138,7 @@ export default function ModerationCommands() {
                         );
                     })}
 
-                    <SaveBar saving={saving} onClick={save} label="Guardar configuración" savingLabel="Guardando…" />
+                    <SaveBar saving={saving} onClick={save} label={t('common.saveSettings')} savingLabel={t('common.saving')} />
                 </div>
             )}
         </ModerationPage>

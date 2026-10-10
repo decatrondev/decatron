@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Plus, RotateCcw, Siren } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
@@ -41,14 +42,7 @@ interface FilterDraft<T> {
     message: string;
 }
 
-const FOLLOW_AGES = [
-    { value: 0, label: 'Cualquier seguidor' },
-    { value: 10, label: '10 minutos' },
-    { value: 30, label: '30 minutos' },
-    { value: 60, label: '1 hora' },
-    { value: 1440, label: '1 día' },
-    { value: 10080, label: '1 semana' }
-];
+const FOLLOW_AGES = [0, 10, 30, 60, 1440, 10080];
 const SLOW_OPTIONS = [0, 5, 10, 30, 60, 120];
 
 function minutesLeft(endsAt?: string) {
@@ -57,6 +51,7 @@ function minutesLeft(endsAt?: string) {
 }
 
 export default function RaidProtection() {
+    const { t } = useTranslation('moderation');
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
 
@@ -106,7 +101,7 @@ export default function RaidProtection() {
             navigate('/dashboard');
             return;
         }
-        load().catch(() => showNotice('error', 'No se pudo cargar la configuración'));
+        load().catch(() => showNotice('error', t('common.loadFailed')));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permissionsLoading]);
 
@@ -128,9 +123,9 @@ export default function RaidProtection() {
             if (!res.data.success) throw new Error();
             const fresh = await api.get('/moderation/panic');
             setState(fresh.data.state);
-            showNotice('success', res.data.active ? 'Modo pánico activado' : 'Modo pánico desactivado');
+            showNotice('success', res.data.active ? t('raids.panicOnDone') : t('raids.panicOffDone'));
         } catch {
-            showNotice('error', 'No se pudo cambiar el modo pánico');
+            showNotice('error', t('raids.panicFailed'));
         } finally {
             setSwitching(false);
         }
@@ -145,7 +140,7 @@ export default function RaidProtection() {
             if (!(await saveModerationFilter(key, { enabled: next }))) throw new Error();
         } catch {
             apply(!next);
-            showNotice('error', 'No se pudo cambiar el estado del filtro');
+            showNotice('error', t('common.toggleFailed'));
         }
     };
 
@@ -153,7 +148,7 @@ export default function RaidProtection() {
         const phrase = newPhrase.trim().toLowerCase();
         if (!bots || phrase.length === 0) return;
         if (phrase.replace(/[^\p{L}\p{N}]/gu, '').length < 8) {
-            showNotice('error', 'La frase es muy corta: sin espacios ni signos necesita al menos 8 letras o números');
+            showNotice('error', t('raids.phraseTooShort'));
             return;
         }
         if (!bots.settings.phrases.includes(phrase))
@@ -175,9 +170,9 @@ export default function RaidProtection() {
                 saveModerationFilter('bot_phrases', { severity: bots.severity, settings: bots.settings, message: bots.message })
             ]);
             const ok = panicOk && ageOk && botsOk;
-            showNotice(ok ? 'success' : 'error', ok ? 'Configuración guardada' : 'Algo no se pudo guardar');
+            showNotice(ok ? 'success' : 'error', ok ? t('common.saved') : t('raids.partialFail'));
         } catch {
-            showNotice('error', 'No se pudo guardar');
+            showNotice('error', t('common.saveFailed'));
         } finally {
             setSaving(false);
         }
@@ -189,15 +184,15 @@ export default function RaidProtection() {
 
     return (
         <ModerationPage
-            title="Raids de odio y bots"
-            subtitle="Modo pánico para cerrar el chat en segundos, filtro de cuentas nuevas y frases de bots que venden viewers."
+            title={t('raids.title')}
+            subtitle={t('raids.subtitle')}
             toast={toast}
         >
             {!panic || !age || !bots ? <PageLoading /> : (
                 <div className="space-y-6">
                     {isKick ? (
-                        <Alert tone="info" title="Canal de Kick">
-                            Aquí solo funciona el filtro de frases de bots. El modo pánico y el filtro de cuentas nuevas no están disponibles: la API de Kick no permite cambiar los modos del chat ni informa la antigüedad de las cuentas.
+                        <Alert tone="info" title={t('raids.kickTitle')}>
+                            {t('raids.kickBody')}
                         </Alert>
                     ) : (<>
                     {/* Estado del pánico */}
@@ -206,35 +201,35 @@ export default function RaidProtection() {
                             <Siren className={`w-10 h-10 shrink-0 ${state.active ? 'text-ds-danger animate-pulse' : 'text-ds-soft'}`} />
                             <div className="min-w-0">
                                 <p className={`text-xl font-black ${state.active ? 'text-ds-danger' : 'text-ds-text'}`}>
-                                    {state.active ? 'Modo pánico ACTIVO' : 'Modo pánico apagado'}
+                                    {state.active ? t('raids.panicActive') : t('raids.panicOff')}
                                 </p>
                                 <p className={hintCls}>
                                     {state.active
-                                        ? `${state.reason ?? ''} · se apaga solo en ${minutesLeft(state.endsAt)} min`
-                                        : 'También se activa con !panico en el chat y se apaga con !panico off.'}
+                                        ? t('raids.panicEnds', { reason: state.reason ?? '', min: minutesLeft(state.endsAt) })
+                                        : t('raids.panicHow')}
                                 </p>
                             </div>
                         </div>
                         <Button size="lg" variant={state.active ? 'primary' : 'danger'} onClick={togglePanic} loading={switching} disabled={switching} className="shrink-0">
-                            {switching ? '…' : state.active ? 'Desactivar ahora' : 'Activar pánico'}
+                            {switching ? '…' : state.active ? t('raids.deactivateNow') : t('raids.activatePanic')}
                         </Button>
                     </div>
 
                     {/* Qué hace el pánico */}
-                    <Section title="Qué hace el pánico" hint="Al apagarse, el chat vuelve exactamente a como estaba antes.">
+                    <Section title={t('raids.what.title')} hint={t('raids.what.hint')}>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                             <label className={radioCard(!panic.shieldMode)}>
                                 <input type="radio" name="panicMode" checked={!panic.shieldMode} onChange={() => setP({ shieldMode: false })} className="w-4 h-4 mt-1 accent-[var(--ds-accent)]" />
                                 <span>
-                                    <span className="block font-bold text-ds-text">Modos del chat</span>
-                                    <span className={hintCls}>Eliges qué restricciones aplica el bot.</span>
+                                    <span className="block font-bold text-ds-text">{t('raids.what.chatModes')}</span>
+                                    <span className={hintCls}>{t('raids.what.chatModesHint')}</span>
                                 </span>
                             </label>
                             <label className={radioCard(panic.shieldMode)}>
                                 <input type="radio" name="panicMode" checked={panic.shieldMode} onChange={() => setP({ shieldMode: true })} className="w-4 h-4 mt-1 accent-[var(--ds-accent)]" />
                                 <span>
-                                    <span className="block font-bold text-ds-text">Shield Mode de Twitch</span>
-                                    <span className={hintCls}>Aplica lo que configuraste en las herramientas de moderación de Twitch.</span>
+                                    <span className="block font-bold text-ds-text">{t('raids.what.shield')}</span>
+                                    <span className={hintCls}>{t('raids.what.shieldHint')}</span>
                                 </span>
                             </label>
                         </div>
@@ -242,45 +237,45 @@ export default function RaidProtection() {
                         {!panic.shieldMode && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                                 <div className="space-y-2">
-                                    <Checkbox label="Solo seguidores" checked={panic.followersOnly} onChange={(e) => setP({ followersOnly: e.target.checked })} />
+                                    <Checkbox label={t('raids.what.followersOnly')} checked={panic.followersOnly} onChange={(e) => setP({ followersOnly: e.target.checked })} />
                                     <Select value={panic.followersMinutes} disabled={!panic.followersOnly} onChange={(e) => setP({ followersMinutes: Number(e.target.value) })}>
-                                        {FOLLOW_AGES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                        {FOLLOW_AGES.map(v => <option key={v} value={v}>{t(`raids.followAges.${v}`)}</option>)}
                                     </Select>
                                 </div>
-                                <Field label="Modo lento">
+                                <Field label={t('raids.what.slow')}>
                                     <Select value={panic.slowSeconds} onChange={(e) => setP({ slowSeconds: Number(e.target.value) })}>
-                                        {SLOW_OPTIONS.map(s => <option key={s} value={s}>{s === 0 ? 'Sin modo lento' : `${s} segundos`}</option>)}
+                                        {SLOW_OPTIONS.map(s => <option key={s} value={s}>{s === 0 ? t('raids.what.noSlow') : t('raids.what.slowSeconds', { s })}</option>)}
                                     </Select>
                                 </Field>
-                                <div className="sm:pt-7"><Checkbox label="Solo emotes" checked={panic.emoteOnly} onChange={(e) => setP({ emoteOnly: e.target.checked })} /></div>
-                                <div className="sm:pt-7"><Checkbox label="Solo suscriptores" checked={panic.subscribersOnly} onChange={(e) => setP({ subscribersOnly: e.target.checked })} /></div>
+                                <div className="sm:pt-7"><Checkbox label={t('raids.what.emoteOnly')} checked={panic.emoteOnly} onChange={(e) => setP({ emoteOnly: e.target.checked })} /></div>
+                                <div className="sm:pt-7"><Checkbox label={t('raids.what.subsOnly')} checked={panic.subscribersOnly} onChange={(e) => setP({ subscribersOnly: e.target.checked })} /></div>
                             </div>
                         )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Field label="Se apaga solo después de">
-                                <NumberField value={panic.durationMinutes} min={1} max={120} suffix="minutos" onChange={(v) => setP({ durationMinutes: v })} />
+                            <Field label={t('raids.what.autoOff')}>
+                                <NumberField value={panic.durationMinutes} min={1} max={120} suffix={t('raids.units.minutes')} onChange={(v) => setP({ durationMinutes: v })} />
                             </Field>
-                            <div className="sm:pt-7"><Checkbox label="Avisar en el chat al activarse y al apagarse" checked={panic.announce} onChange={(e) => setP({ announce: e.target.checked })} /></div>
+                            <div className="sm:pt-7"><Checkbox label={t('raids.what.announce')} checked={panic.announce} onChange={(e) => setP({ announce: e.target.checked })} /></div>
                         </div>
                     </Section>
 
                     {/* Disparo automático */}
-                    <Section title="Activación automática" hint="Viene apagada. Si la activas, el bot enciende el pánico solo cuando detecta una oleada.">
+                    <Section title={t('raids.auto.title')} hint={t('raids.auto.hint')}>
                         <div className="space-y-5">
                             <div>
-                                <div className="mb-3"><Checkbox label={<span className="font-semibold">Oleada de follows (bots de follows)</span>} checked={panic.autoOnFollows} onChange={(e) => setP({ autoOnFollows: e.target.checked })} /></div>
+                                <div className="mb-3"><Checkbox label={<span className="font-semibold">{t('raids.auto.follows')}</span>} checked={panic.autoOnFollows} onChange={(e) => setP({ autoOnFollows: e.target.checked })} /></div>
                                 <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${panic.autoOnFollows ? '' : 'opacity-50'}`}>
-                                    <Field label="Follows"><NumberField value={panic.followsThreshold} min={3} max={1000} suffix="o más" onChange={(v) => setP({ followsThreshold: v })} /></Field>
-                                    <Field label="Dentro de"><NumberField value={panic.autoWindowSeconds} min={10} max={600} suffix="segundos" onChange={(v) => setP({ autoWindowSeconds: v })} /></Field>
+                                    <Field label={t('raids.auto.followsN')}><NumberField value={panic.followsThreshold} min={3} max={1000} suffix={t('raids.units.orMore')} onChange={(v) => setP({ followsThreshold: v })} /></Field>
+                                    <Field label={t('raids.auto.within')}><NumberField value={panic.autoWindowSeconds} min={10} max={600} suffix={t('raids.units.seconds')} onChange={(v) => setP({ autoWindowSeconds: v })} /></Field>
                                 </div>
                             </div>
                             <div>
-                                <div className="mb-3"><Checkbox label={<span className="font-semibold">Cuentas nuevas escribiendo a la vez (raid de odio)</span>} checked={panic.autoOnNewAccounts} onChange={(e) => setP({ autoOnNewAccounts: e.target.checked })} /></div>
+                                <div className="mb-3"><Checkbox label={<span className="font-semibold">{t('raids.auto.newAccounts')}</span>} checked={panic.autoOnNewAccounts} onChange={(e) => setP({ autoOnNewAccounts: e.target.checked })} /></div>
                                 <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${panic.autoOnNewAccounts ? '' : 'opacity-50'}`}>
-                                    <Field label="Cuentas distintas"><NumberField value={panic.newAccountsThreshold} min={2} max={1000} suffix="o más" onChange={(v) => setP({ newAccountsThreshold: v })} /></Field>
-                                    <Field label="Con menos de"><NumberField value={panic.newAccountDays} min={1} max={365} suffix="días de creadas" onChange={(v) => setP({ newAccountDays: v })} /></Field>
-                                    <Field label="Dentro de"><NumberField value={panic.autoWindowSeconds} min={10} max={600} suffix="segundos" onChange={(v) => setP({ autoWindowSeconds: v })} /></Field>
+                                    <Field label={t('raids.auto.distinct')}><NumberField value={panic.newAccountsThreshold} min={2} max={1000} suffix={t('raids.units.orMore')} onChange={(v) => setP({ newAccountsThreshold: v })} /></Field>
+                                    <Field label={t('raids.auto.lessThan')}><NumberField value={panic.newAccountDays} min={1} max={365} suffix={t('raids.units.daysOld')} onChange={(v) => setP({ newAccountDays: v })} /></Field>
+                                    <Field label={t('raids.auto.within')}><NumberField value={panic.autoWindowSeconds} min={10} max={600} suffix={t('raids.units.seconds')} onChange={(v) => setP({ autoWindowSeconds: v })} /></Field>
                                 </div>
                             </div>
                         </div>
@@ -291,23 +286,23 @@ export default function RaidProtection() {
                         {/* Cuentas nuevas (Kick no informa la antigüedad de las cuentas) */}
                         {!isKick && (
                         <Section
-                            title="Cuentas nuevas"
-                            hint="Sanciona a las cuentas recién creadas que escriben. Su mensaje siempre se borra."
-                            right={<FilterSwitch on={age.enabled} onChange={(n) => toggleFilter('account_age', n)} label="Activar el filtro de cuentas nuevas" />}
+                            title={t('raids.age.title')}
+                            hint={t('raids.age.hint')}
+                            right={<FilterSwitch on={age.enabled} onChange={(n) => toggleFilter('account_age', n)} label={t('raids.age.toggle')} />}
                         >
                             <div className={`space-y-4 ${age.enabled ? '' : 'opacity-60'}`}>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <Field label="Cuentas con menos de">
-                                        <NumberField value={age.settings.minDays} min={1} max={365} suffix="días" onChange={(v) => setAge({ ...age, settings: { ...age.settings, minDays: v } })} />
+                                    <Field label={t('raids.age.lessThan')}>
+                                        <NumberField value={age.settings.minDays} min={1} max={365} suffix={t('raids.units.days')} onChange={(v) => setAge({ ...age, settings: { ...age.settings, minDays: v } })} />
                                     </Field>
-                                    <Field label="Severidad"><SeveritySelect value={age.severity} onChange={(v) => setAge({ ...age, severity: v })} /></Field>
+                                    <Field label={t('common.severity')}><SeveritySelect value={age.severity} onChange={(v) => setAge({ ...age, severity: v })} /></Field>
                                 </div>
                                 <Checkbox
-                                    label="Solo mientras el modo pánico está activo"
+                                    label={t('raids.age.onlyPanic')}
                                     checked={age.settings.onlyDuringPanic}
                                     onChange={(e) => setAge({ ...age, settings: { ...age.settings, onlyDuringPanic: e.target.checked } })}
                                 />
-                                <Field label="Mensaje en el chat">
+                                <Field label={t('common.chatMessage')}>
                                     <Input maxLength={500} value={age.message} onChange={(e) => setAge({ ...age, message: e.target.value })} placeholder="🆕 $(user), tu cuenta es muy nueva para escribir en este chat." />
                                 </Field>
                             </div>
@@ -316,24 +311,24 @@ export default function RaidProtection() {
 
                         {/* Frases de bots */}
                         <Section
-                            title="Frases de bots"
-                            hint="Spam de bots que venden viewers y seguidores. Se detecta aunque lo escriban separado o con signos."
-                            right={<FilterSwitch on={bots.enabled} onChange={(n) => toggleFilter('bot_phrases', n)} label="Activar el filtro de frases de bots" />}
+                            title={t('raids.bots.title')}
+                            hint={t('raids.bots.hint')}
+                            right={<FilterSwitch on={bots.enabled} onChange={(n) => toggleFilter('bot_phrases', n)} label={t('raids.bots.toggle')} />}
                         >
                             <div className={`space-y-4 ${bots.enabled ? '' : 'opacity-60'}`}>
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <Input value={newPhrase} onChange={(e) => setNewPhrase(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addPhrase()} placeholder="best viewers on" />
-                                    <Button variant="secondary" icon={<Plus />} onClick={addPhrase}>Agregar</Button>
+                                    <Button variant="secondary" icon={<Plus />} onClick={addPhrase}>{t('common.add')}</Button>
                                 </div>
                                 <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
                                     {bots.settings.phrases.map(p => (
-                                        <Chip key={p} removeLabel={`Quitar ${p}`} onRemove={() => setBots({ ...bots, settings: { phrases: bots.settings.phrases.filter(x => x !== p) } })}>{p}</Chip>
+                                        <Chip key={p} removeLabel={t('common.remove', { name: p })} onRemove={() => setBots({ ...bots, settings: { phrases: bots.settings.phrases.filter(x => x !== p) } })}>{p}</Chip>
                                     ))}
                                 </div>
-                                <Button variant="ghost" size="sm" icon={<RotateCcw />} onClick={() => setBots({ ...bots, settings: { phrases: [...defaultPhrases] } })}>Volver a la lista base</Button>
+                                <Button variant="ghost" size="sm" icon={<RotateCcw />} onClick={() => setBots({ ...bots, settings: { phrases: [...defaultPhrases] } })}>{t('raids.bots.reset')}</Button>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <Field label="Severidad"><SeveritySelect value={bots.severity} onChange={(v) => setBots({ ...bots, severity: v })} /></Field>
-                                    <Field label="Mensaje en el chat">
+                                    <Field label={t('common.severity')}><SeveritySelect value={bots.severity} onChange={(v) => setBots({ ...bots, severity: v })} /></Field>
+                                    <Field label={t('common.chatMessage')}>
                                         <Input maxLength={500} value={bots.message} onChange={(e) => setBots({ ...bots, message: e.target.value })} placeholder="🤖 $(user), nada de spam de bots en este chat." />
                                     </Field>
                                 </div>
@@ -341,8 +336,8 @@ export default function RaidProtection() {
                         </Section>
                     </div>
 
-                    <SaveBar saving={saving} onClick={save} label="Guardar configuración" savingLabel="Guardando…" />
-                    <p className={`${smallHintCls} text-center`}>El botón de pánico y los interruptores se aplican al momento; el resto, al guardar.</p>
+                    <SaveBar saving={saving} onClick={save} label={t('common.saveSettings')} savingLabel={t('common.saving')} />
+                    <p className={`${smallHintCls} text-center`}>{t('raids.footer')}</p>
                 </div>
             )}
         </ModerationPage>

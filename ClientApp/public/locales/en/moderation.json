@@ -1,0 +1,522 @@
+{
+  "common": {
+    "back": "Back to Moderation",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "add": "Add",
+    "configure": "Configure",
+    "filterOn": "Filter on",
+    "filterOff": "Filter off",
+    "on": "On",
+    "off": "Off",
+    "remove": "Remove {{name}}",
+    "severity": "Severity",
+    "sev": {
+      "leveShort": "Mild (escalation)",
+      "medioShort": "Medium (10 min timeout minimum)",
+      "severo": "Severe (direct ban)",
+      "leveLong": "Mild (normal strike escalation)",
+      "medioLong": "Medium (strike + 10 min timeout minimum)"
+    },
+    "chatMessage": "Chat message",
+    "saveFailed": "Could not save",
+    "saved": "Settings saved",
+    "loadFailed": "Could not load the settings",
+    "toggleFailed": "Could not change the filter state",
+    "saveSettings": "Save settings",
+    "vars": "Variables: $(user), $(strike), $(word).",
+    "analyzing": "Analyzing…",
+    "analyze": "Analyze",
+    "sevName": {
+      "leve": "Mild",
+      "medio": "Medium",
+      "severo": "Severe"
+    }
+  },
+  "hub": {
+    "title": "Moderation",
+    "subtitle": "Each filter is turned on separately and starts off. The streamer, Lead Moderators and moderators are never sanctioned.",
+    "kickLabel": "Kick channel.",
+    "kickBody": "Filters, mod commands and history work. Panic mode and the new-accounts filter are not available: the Kick API cannot change chat modes and does not report account age.",
+    "loadFailed": "Could not load the filter status",
+    "saveFailed": "Could not save the change",
+    "activate": "Turn on {{name}}",
+    "panicActive": "PANIC ACTIVE",
+    "groupCount_one": "{{active}} of {{total}} on",
+    "groupCount_other": "{{active}} of {{total}} on",
+    "kickRaids": "Bot phrases that sell viewers (Kick has no panic mode or new-accounts filter)",
+    "cards": {
+      "banned_words": {
+        "name": "Banned words",
+        "description": "Words and phrases that cannot be used in chat, each with its severity"
+      },
+      "links": {
+        "name": "Links",
+        "description": "Blocks links in chat, including disguised ones, except the domains you allow or with !permit"
+      },
+      "spam": {
+        "name": "Spam",
+        "description": "Caps, symbols, emotes, long or repeated messages, copypasta, zalgo and mentions"
+      },
+      "raids": {
+        "name": "Raids and bots",
+        "description": "Panic mode (!panico), new accounts and bot phrases that sell viewers"
+      },
+      "commands": {
+        "name": "Mod commands",
+        "description": "!permit, !strikes, !nuke, !panico and more: who can use each one"
+      },
+      "bots": {
+        "name": "Bot list",
+        "description": "Nightbot, StreamElements and other bots: they do not count as people, trigger commands or show in the chat overlay"
+      },
+      "history": {
+        "name": "History",
+        "description": "Who was sanctioned, why and by whom; undo timeouts, bans and strikes"
+      }
+    }
+  },
+  "commands": {
+    "title": "Moderation commands",
+    "subtitle": "Choose who can use each command. Anyone with full control of the channel in the dashboard counts as the streamer. The bot ignores everyone else.",
+    "items": {
+      "permit": "Lets a user's links through. The duration is set in the links filter.",
+      "strikes": "Shows which strike a user is on and when the next one drops.",
+      "resetstrikes": "Resets a user's strikes to 0.",
+      "words": "Adds or removes banned words from chat. Without a severity, it is added as mild.",
+      "links": "Adds or removes allowed domains of the links filter.",
+      "panic": "Turns panic mode on (or extends it if already on) and off. What it does is set in Raids and bots. !pánico and !panic also work. Not available on Kick.",
+      "nuke": "Sanctions everyone who wrote that phrase in the last seconds. It does not touch the streamer, mods or the whitelist."
+    },
+    "whoCanUse": "Who can use it",
+    "roles": {
+      "moderator": "Moderators and above",
+      "lead_moderator": "Lead Moderators and above",
+      "broadcaster": "Streamer only"
+    },
+    "lookBack": "Looks back",
+    "sanction": "Sanction",
+    "timeoutOf": "Timeout of {{time}}",
+    "permanentBan": "Permanent ban"
+  },
+  "actions": {
+    "warning": "Warning",
+    "delete": "Delete message",
+    "timeout_30s": "Timeout 30 s",
+    "timeout_1m": "Timeout 1 min",
+    "timeout_5m": "Timeout 5 min",
+    "timeout_10m": "Timeout 10 min",
+    "timeout_30m": "Timeout 30 min",
+    "timeout_1h": "Timeout 1 hour",
+    "ban": "Permanent ban"
+  },
+  "links": {
+    "title": "Links filter",
+    "subtitle": "With the filter on, no link gets through except the domains you allow here or someone with a <code>!permit</code>.",
+    "toggleLabel": "Turn on the links filter",
+    "offNotice": "The filter is off: links currently get through unchecked.",
+    "domainError": "That does not look like a domain. Example: youtube.com",
+    "analyzeFailed": "Could not analyze the message",
+    "allowed": {
+      "title": "Allowed domains",
+      "hint": "Includes subdomains: allowing <code>youtube.com</code> also lets <code>m.youtube.com</code> through.",
+      "none": "No allowed domains: with the filter on, all links are blocked."
+    },
+    "who": {
+      "title": "Who can send links",
+      "hint": "The streamer, Lead Moderators, moderators, the whitelist and anyone with full control of the channel always can.",
+      "subs": "Subscribers",
+      "vips": "VIPs"
+    },
+    "obf": {
+      "title": "Disguised links",
+      "hint": "Spammers write the link split up so it is not detected.",
+      "label": "Detect <code>site . com</code>, <code>site(dot)com</code>, <code>site[.]com</code> and <code>site dot com</code>"
+    },
+    "permit": {
+      "title": "!permit command",
+      "hint": "<code>!permit @user</code> lets their links through. Moderators, Lead Moderators, the streamer and anyone with full control of the channel can use it.",
+      "duration": "Duration",
+      "durations": {
+        "30": "30 seconds",
+        "60": "1 minute",
+        "120": "2 minutes",
+        "300": "5 minutes",
+        "600": "10 minutes"
+      },
+      "what": "What it allows",
+      "allLinks": "All links during that time",
+      "oneMessage": "A single message with a link"
+    },
+    "sanction": {
+      "title": "Sanction",
+      "hint": "A blocked link is always deleted, even if the strike only calls for a warning. The strike scale, its expiry and the whitelist are the same as Banned words.",
+      "messageHint": "Empty = the message above. Variables: $(user), $(strike), $(word) (the domain)."
+    },
+    "test": {
+      "title": "Test a message",
+      "hint": "Uses the saved settings; if you changed something, save before testing.",
+      "placeholder": "check out my channel at site . com",
+      "blocked": "Link blocked: {{domain}}",
+      "actionNormal": "Action for a viewer with no strikes: {{action}}",
+      "offWarn": "That filter is off: this message would currently pass without a sanction.",
+      "passes": "The message passes: it has no blocked links."
+    }
+  },
+  "spam": {
+    "title": "Spam filters",
+    "subtitle": "Each filter starts off and is turned on separately. They use the same strike scale and whitelist as Banned words.",
+    "someFailed": "Some filters could not be saved",
+    "saveLabel": "Save thresholds and messages",
+    "footer": "Switches save instantly. Empty message = the example message. Variables: $(user), $(strike), $(word).",
+    "units": {
+      "percent": "%",
+      "letters": "letters",
+      "characters": "characters",
+      "seconds": "seconds"
+    },
+    "filters": {
+      "caps": {
+        "name": "Caps",
+        "description": "Messages written almost entirely in capitals.",
+        "fields": {
+          "maxPercent": {
+            "label": "Maximum capitals"
+          },
+          "minLetters": {
+            "label": "Only in messages with at least",
+            "help": "So a \"GG\" or an \"XD\" does not count."
+          }
+        },
+        "note": "Twitch emotes do not count as capitals. 7TV, BTTV and FFZ ones do, because they arrive as text."
+      },
+      "symbols": {
+        "name": "Symbols",
+        "description": "Messages full of signs or ASCII art (▀▄█).",
+        "fields": {
+          "maxPercent": {
+            "label": "Maximum symbols"
+          },
+          "minLength": {
+            "label": "Only in messages with at least"
+          }
+        }
+      },
+      "emotes": {
+        "name": "Emotes",
+        "description": "Too many emotes in a single message.",
+        "fields": {
+          "maxEmotes": {
+            "label": "Maximum emotes"
+          },
+          "countEmoji": {
+            "label": "Also count emojis (😂🔥)"
+          }
+        },
+        "note": "Counts Twitch emotes. 7TV, BTTV and FFZ ones cannot be counted."
+      },
+      "length": {
+        "name": "Long messages",
+        "description": "Messages longer than a certain length.",
+        "fields": {
+          "maxLength": {
+            "label": "Maximum length"
+          }
+        }
+      },
+      "repetition": {
+        "name": "Repeated messages",
+        "description": "The same user sending the same message several times.",
+        "fields": {
+          "maxRepeats": {
+            "label": "Sanctioned at repetition number"
+          },
+          "windowSeconds": {
+            "label": "Within"
+          }
+        }
+      },
+      "copypasta": {
+        "name": "Copypasta",
+        "description": "Many different users pasting the same text.",
+        "fields": {
+          "minUsers": {
+            "label": "From how many users"
+          },
+          "windowSeconds": {
+            "label": "Within"
+          },
+          "minLength": {
+            "label": "Only texts of at least",
+            "help": "So a \"GG\" or an emote the whole chat repeats does not count."
+          }
+        },
+        "note": "Sanctions start at the user who reaches the number; the earlier ones are not sanctioned."
+      },
+      "zalgo": {
+        "name": "Zalgo and odd text",
+        "description": "Zalgo text (letters with marks above and below that cover the chat).",
+        "fields": {
+          "maxCombiningMarks": {
+            "label": "Consecutive marks allowed",
+            "help": "Languages such as Vietnamese use 1 or 2."
+          },
+          "blockFancyText": {
+            "label": "Also block fancy letters (𝓱𝓮𝓵𝓵𝓸, ｈｅｌｌｏ, ⓗⓔⓛⓛⓞ)"
+          }
+        },
+        "note": "Zalgo text is always deleted, even if the strike only calls for a warning."
+      },
+      "mentions": {
+        "name": "Mentions",
+        "description": "Too many @mentions of different users in one message.",
+        "fields": {
+          "maxMentions": {
+            "label": "Maximum mentions"
+          }
+        }
+      }
+    }
+  },
+  "raids": {
+    "title": "Hate raids and bots",
+    "subtitle": "Panic mode to lock the chat in seconds, a new-accounts filter and bot phrases that sell viewers.",
+    "kickTitle": "Kick channel",
+    "kickBody": "Only the bot phrases filter works here. Panic mode and the new-accounts filter are not available: the Kick API cannot change chat modes and does not report account age.",
+    "panicOnDone": "Panic mode turned on",
+    "panicOffDone": "Panic mode turned off",
+    "panicFailed": "Could not change panic mode",
+    "phraseTooShort": "The phrase is too short: without spaces or symbols it needs at least 8 letters or numbers",
+    "partialFail": "Something could not be saved",
+    "panicActive": "Panic mode ACTIVE",
+    "panicOff": "Panic mode off",
+    "panicEnds": "{{reason}} · turns off by itself in {{min}} min",
+    "panicHow": "It can also be turned on with !panico in chat and off with !panico off.",
+    "deactivateNow": "Turn off now",
+    "activatePanic": "Turn on panic",
+    "what": {
+      "title": "What panic does",
+      "hint": "When it ends, the chat goes back exactly as it was.",
+      "chatModes": "Chat modes",
+      "chatModesHint": "You choose which restrictions the bot applies.",
+      "shield": "Twitch Shield Mode",
+      "shieldHint": "Applies what you configured in Twitch's moderation tools.",
+      "followersOnly": "Followers only",
+      "slow": "Slow mode",
+      "noSlow": "No slow mode",
+      "slowSeconds": "{{s}} seconds",
+      "emoteOnly": "Emote only",
+      "subsOnly": "Subscribers only",
+      "autoOff": "Turns off by itself after",
+      "announce": "Announce in chat when it starts and ends"
+    },
+    "followAges": {
+      "0": "Any follower",
+      "10": "10 minutes",
+      "30": "30 minutes",
+      "60": "1 hour",
+      "1440": "1 day",
+      "10080": "1 week"
+    },
+    "units": {
+      "minutes": "minutes",
+      "orMore": "or more",
+      "daysOld": "days old",
+      "days": "days",
+      "seconds": "seconds"
+    },
+    "auto": {
+      "title": "Automatic activation",
+      "hint": "Off by default. If you turn it on, the bot starts panic mode by itself when it detects a wave.",
+      "follows": "Follow wave (follow bots)",
+      "followsN": "Follows",
+      "newAccounts": "New accounts writing at once (hate raid)",
+      "distinct": "Different accounts",
+      "lessThan": "Younger than",
+      "within": "Within"
+    },
+    "age": {
+      "title": "New accounts",
+      "hint": "Sanctions newly created accounts that write. Their message is always deleted.",
+      "toggle": "Turn on the new-accounts filter",
+      "lessThan": "Accounts younger than",
+      "onlyPanic": "Only while panic mode is on"
+    },
+    "bots": {
+      "title": "Bot phrases",
+      "hint": "Spam from bots that sell viewers and followers. Detected even when written split up or with symbols.",
+      "toggle": "Turn on the bot phrases filter",
+      "reset": "Back to the base list"
+    },
+    "footer": "The panic button and the switches apply instantly; everything else when you save."
+  },
+  "history": {
+    "title": "Moderation history",
+    "subtitle": "Who was sanctioned, why and by whom. You can lift a timeout or a ban and give the strike back.",
+    "loadFailed": "Could not load the history",
+    "filter": {
+      "banned_words": "Banned word",
+      "links": "Link",
+      "caps": "Caps",
+      "symbols": "Symbols",
+      "emotes": "Emotes",
+      "length": "Long message",
+      "repetition": "Repeated",
+      "copypasta": "Copypasta",
+      "zalgo": "Zalgo",
+      "mentions": "Mentions",
+      "account_age": "New account",
+      "bot_phrases": "Bot phrase",
+      "nuke": "Nuke",
+      "strikes": "Strikes",
+      "panic": "Panic mode"
+    },
+    "actions": {
+      "warning": "Warning",
+      "delete": "Message deleted",
+      "ban": "Ban",
+      "reset_strikes": "Strikes reset to 0",
+      "add_word": "Added a word",
+      "del_word": "Removed a word",
+      "add_link": "Allowed a domain",
+      "del_link": "Removed a domain",
+      "panic_on": "Turned panic on",
+      "panic_off": "Turned panic off"
+    },
+    "timeoutH": "Timeout {{n}} h",
+    "timeoutMin": "Timeout {{n}} min",
+    "timeoutS": "Timeout {{n}} s",
+    "undo": {
+      "title": "Undo sanction",
+      "cancel": "Cancel",
+      "qBan": "Lift the ban on {{user}}?",
+      "qBanStrike": "Lift the ban on {{user}} and give the strike back?",
+      "qTimeout": "Lift the timeout on {{user}}?",
+      "qTimeoutStrike": "Lift the timeout on {{user}} and give the strike back?",
+      "qStrike": "Give {{user}} the strike back?",
+      "deletedNote": "The deleted message cannot be recovered.",
+      "banLifted": "ban lifted",
+      "timeoutLifted": "timeout lifted",
+      "expired": "the sanction had already expired",
+      "strikeReturned": "strike given back",
+      "noStrikes": "it no longer had strikes to give back",
+      "done": "Done: {{details}}.",
+      "markedUndone": "marked as undone",
+      "failed": "Could not undo"
+    },
+    "filters": {
+      "userOrMod": "User or mod",
+      "type": "Type",
+      "all": "Everything",
+      "sanctions": "Sanctions only",
+      "modActions": "Mod actions only",
+      "reason": "Reason",
+      "anyReason": "Any reason",
+      "from": "From",
+      "to": "To"
+    },
+    "cols": {
+      "date": "Date",
+      "user": "User",
+      "action": "Action",
+      "reason": "Reason",
+      "who": "Who",
+      "undo": "Undo"
+    },
+    "empty": "No actions match these filters.",
+    "strikeOf": "strike {{n}}/5",
+    "automatic": "Automatic",
+    "undone": "Undone",
+    "undoneBy": "Undone by {{user}}",
+    "undoneOn": "Undone on {{date}}",
+    "original": "Original message",
+    "noMessage": "The message was not saved.",
+    "count_one": "{{count}} action",
+    "count_other": "{{count}} actions",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {{page}} of {{pages}}"
+  },
+  "banned": {
+    "title": "Banned Words",
+    "subtitle": "Complete moderation system for banned words and phrases",
+    "toggleLabel": "Turn on the banned words filter",
+    "offNotice": "The filter is off: the bot does not sanction any word on the list until you turn it on.",
+    "addedOk": "Word added",
+    "addFailed": "Could not add the word",
+    "deletedOk": "Word removed",
+    "deleteFailed": "Could not remove the word",
+    "imported_one": "{{count}} word imported",
+    "imported_other": "{{count}} words imported",
+    "importFailed": "Could not import the file",
+    "stats": {
+      "words": "Configured Words",
+      "detections": "Detections Today",
+      "sanctioned": "Sanctioned Users"
+    },
+    "add": {
+      "title": "Add Banned Word",
+      "wordLabel": "Word or Phrase",
+      "tip": "Tip: use asterisks (*) as wildcards. Example: *spam* matches \"spam\", \"spammer\", \"antispam\"",
+      "placeholder": "Type the word or phrase",
+      "severityLabel": "Severity Level",
+      "leve": "Mild (Normal escalation)",
+      "button": "Add Word"
+    },
+    "list": {
+      "title": "Word List ({{n}}/500)",
+      "import": "Import",
+      "export": "Export",
+      "empty": "No banned words configured",
+      "detections_one": "{{count}} detection",
+      "detections_other": "{{count}} detections",
+      "delete": "Remove {{word}}"
+    },
+    "test": {
+      "title": "Test Message Detection",
+      "placeholder": "Type a test message",
+      "match": "Match Detected",
+      "word": "Detected word:",
+      "severity": "Severity:",
+      "actionNormal": "Action (viewer, first strike):",
+      "actionEsc": "Action (VIP/sub with escalation):",
+      "none": "No banned words detected"
+    },
+    "immunity": {
+      "title": "Immunity System",
+      "total": "Full immunity",
+      "escalation": "Enters escalation",
+      "alwaysTitle": "Streamer, Lead Moderators and moderators",
+      "alwaysBody": "They ALWAYS have full immunity. So does anyone with full control of the channel in the dashboard, even if they are a viewer in chat."
+    },
+    "whitelist": {
+      "title": "Manual Whitelist",
+      "placeholder": "username",
+      "note": "Users on the whitelist ALWAYS have full immunity"
+    },
+    "messages": {
+      "title": "Custom Messages per Action",
+      "warningMessage": "Warning",
+      "deleteMessage": "Delete (Remove Message)",
+      "timeoutMessage": "Timeout (Temporary Suspension)",
+      "banMessage": "Ban (Permanent Ban by Strikes)",
+      "severoMessage": "Ban for SEVERE Word (Direct Ban)",
+      "severoNote": "This message is used when a word with \"Severe\" severity is detected (direct ban, no strikes)",
+      "vars": "Available variables: $(user), $(strike), $(word)"
+    },
+    "strikes": {
+      "title": "Strike Escalation System",
+      "expiration": "Strike Expiration Time",
+      "expirationHint": "Strikes drop 1 level after the configured time without infractions",
+      "exp": {
+        "5min": "5 minutes",
+        "10min": "10 minutes",
+        "15min": "15 minutes",
+        "30min": "30 minutes",
+        "1hour": "1 hour",
+        "never": "Never (permanent)"
+      },
+      "strikeN": "Strike {{n}}"
+    }
+  }
+}

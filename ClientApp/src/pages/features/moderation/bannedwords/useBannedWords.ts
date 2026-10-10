@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePermissions } from '../../../../hooks/usePermissions';
 import api from '../../../../services/api';
 import { useToast } from '../../../../components/dashboard/toast';
@@ -10,6 +11,7 @@ import type { BannedWord, ModerationConfig, ModerationStats, SeverityLevel, Test
 export function useBannedWords() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { t } = useTranslation('moderation');
     const filter = useFilterEnabled('banned_words');
     const { toast, showToast } = useToast();
 
@@ -106,11 +108,11 @@ export function useBannedWords() {
                 setBannedWords([...bannedWords, res.data.word]);
                 setNewWord('');
                 setStats({ ...stats, totalWords: stats.totalWords + 1 });
-                showMessage('success', 'Palabra agregada exitosamente');
+                showMessage('success', t('banned.addedOk'));
             }
         } catch (error) {
             console.error('Error adding word:', error);
-            showMessage('error', 'Error al agregar la palabra');
+            showMessage('error', t('banned.addFailed'));
         }
     };
 
@@ -121,11 +123,11 @@ export function useBannedWords() {
             if (res.data.success) {
                 setBannedWords(bannedWords.filter(w => w.id !== id));
                 setStats({ ...stats, totalWords: stats.totalWords - 1 });
-                showMessage('success', 'Palabra eliminada');
+                showMessage('success', t('banned.deletedOk'));
             }
         } catch (error) {
             console.error('Error deleting word:', error);
-            showMessage('error', 'Error al eliminar la palabra');
+            showMessage('error', t('banned.deleteFailed'));
         }
     };
 
@@ -135,11 +137,11 @@ export function useBannedWords() {
             const res = await api.post('/moderation/config', config);
 
             if (res.data.success) {
-                showMessage('success', 'Configuración guardada exitosamente');
+                showMessage('success', t('common.saved'));
             }
         } catch (error) {
             console.error('Error saving config:', error);
-            showMessage('error', 'Error al guardar la configuración');
+            showMessage('error', t('common.saveFailed'));
         } finally {
             setSaving(false);
         }
@@ -160,7 +162,7 @@ export function useBannedWords() {
             }
         } catch (error) {
             console.error('Error testing message:', error);
-            showMessage('error', 'Error al analizar el mensaje');
+            showMessage('error', t('links.analyzeFailed'));
         } finally {
             setTesting(false);
         }
@@ -189,11 +191,11 @@ export function useBannedWords() {
 
                 if (res.data.success) {
                     loadData();
-                    showMessage('success', `${res.data.imported} palabras importadas`);
+                    showMessage('success', t('banned.imported', { count: res.data.imported }));
                 }
             } catch (error) {
                 console.error('Error importing words:', error);
-                showMessage('error', 'Error al importar el archivo');
+                showMessage('error', t('banned.importFailed'));
             }
         };
         reader.readAsText(file);
@@ -223,7 +225,7 @@ export function useBannedWords() {
         toast, filter, loading, saving, permissionsLoading, hasMinimumLevel,
         bannedWords, newWord, setNewWord, newWordSeverity, setNewWordSeverity,
         config, setConfig, stats,
-        testMessage, setTestMessage, testResult, testing,
+        t, testMessage, setTestMessage, testResult, testing,
         newWhitelistUser, setNewWhitelistUser,
         addWord, deleteWord, saveConfig, testMessageAnalysis, exportWords, importWords, addWhitelistUser, removeWhitelistUser,
     };

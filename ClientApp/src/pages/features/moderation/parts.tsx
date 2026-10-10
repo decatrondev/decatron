@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, X } from 'lucide-react';
 import { Alert, Badge, Button, Select } from '../../../components/ds';
 import PageHeader from '../../../components/dashboard/PageHeader';
@@ -19,11 +20,12 @@ export function ModerationPage({ title, subtitle, actions, toast, wide, children
     title: string; subtitle?: ReactNode; actions?: ReactNode; toast: ToastState | null; wide?: boolean; children: ReactNode;
 }) {
     const navigate = useNavigate();
+    const { t } = useTranslation('moderation');
     return (
         <div className={`panel-scale ${wide ? 'max-w-7xl' : 'max-w-6xl'} mx-auto space-y-6`}>
             <ToastHost toast={toast} />
             <div>
-                <Button variant="ghost" size="sm" icon={<ArrowLeft />} onClick={() => navigate('/moderation')} className="mb-4">Volver a Moderación</Button>
+                <Button variant="ghost" size="sm" icon={<ArrowLeft />} onClick={() => navigate('/moderation')} className="mb-4">{t('common.back')}</Button>
                 <PageHeader title={title} subtitle={subtitle} actions={actions} />
             </div>
             {children}
@@ -31,7 +33,10 @@ export function ModerationPage({ title, subtitle, actions, toast, wide, children
     );
 }
 
-export const PageLoading = () => <LoadingText>Cargando…</LoadingText>;
+export function PageLoading() {
+    const { t } = useTranslation('moderation');
+    return <LoadingText>{t('common.loading')}</LoadingText>;
+}
 
 /** Tarjeta con título (y texto de apoyo) y, opcionalmente, algo a la derecha (interruptor, botones). */
 export function Section({ title, hint, right, children, className = '' }: {
@@ -52,7 +57,10 @@ export function Section({ title, hint, right, children, className = '' }: {
 }
 
 /** «Filtro activo / apagado» junto al interruptor (el interruptor lo pone quien llama). */
-export function StatusText({ on, onLabel = 'Filtro activo', offLabel = 'Filtro apagado', hideSmall }: { on: boolean; onLabel?: string; offLabel?: string; hideSmall?: boolean }) {
+export function StatusText({ on, onLabel, offLabel, hideSmall }: { on: boolean; onLabel?: string; offLabel?: string; hideSmall?: boolean }) {
+    const { t } = useTranslation('moderation');
+    onLabel = onLabel ?? t('common.filterOn');
+    offLabel = offLabel ?? t('common.filterOff');
     return <span className={`text-sm font-bold whitespace-nowrap ${on ? 'text-ds-ok' : 'text-ds-soft'} ${hideSmall ? 'hidden sm:inline' : ''}`}>{on ? onLabel : offLabel}</span>;
 }
 
@@ -88,18 +96,21 @@ export function NumberField({ value, min, max, suffix, onChange }: { value: numb
 
 /** Selector de severidad con las tres opciones del backend; `long` usa los textos largos. */
 export function SeveritySelect({ value, onChange, long }: { value: FilterSeverity; onChange: (v: FilterSeverity) => void; long?: boolean }) {
+    const { t } = useTranslation('moderation');
     return (
         <Select value={value} onChange={(e) => onChange(e.target.value as FilterSeverity)}>
-            <option value="leve">{long ? 'Leve (escalamiento normal de strikes)' : 'Leve (escalamiento)'}</option>
-            <option value="medio">{long ? 'Medio (strike + timeout de 10 min como mínimo)' : 'Medio (timeout 10 min mín.)'}</option>
-            <option value="severo">{long ? 'Severo (ban directo)' : 'Severo (ban directo)'}</option>
+            <option value="leve">{long ? t('common.sev.leveLong') : t('common.sev.leveShort')}</option>
+            <option value="medio">{long ? t('common.sev.medioLong') : t('common.sev.medioShort')}</option>
+            <option value="severo">{t('common.sev.severo')}</option>
         </Select>
     );
 }
 
 /** Etiqueta de severidad: leve neutra, medio ámbar, severo rojo (son estados). */
 export function SeverityBadge({ severity }: { severity: string }) {
-    return <Badge tone={severity === 'severo' ? 'danger' : severity === 'medio' ? 'warn' : undefined}>{severity.toUpperCase()}</Badge>;
+    const { t } = useTranslation('moderation');
+    const label = t(`common.sevName.${severity}`, { defaultValue: severity });
+    return <Badge tone={severity === 'severo' ? 'danger' : severity === 'medio' ? 'warn' : undefined}>{label.toUpperCase()}</Badge>;
 }
 
 /** Botón ancho de guardar al pie de la página. */

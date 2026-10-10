@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ShieldBan, Settings, Link2, Terminal, MessageSquareWarning, Siren, History, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FilterSwitch, fetchModerationOverview, saveModerationFilter, type ModerationFilterState, type ModerationPlatform } from './moderation/filterSwitch';
 import { SPAM_FILTERS } from './moderation/SpamFilters';
 import api from '../../services/api';
@@ -11,8 +12,6 @@ interface ModerationCard {
     filter?: string;
     /** Grupo de filtros: la tarjeta muestra cuántos están activos */
     group?: string[];
-    name: string;
-    description: string;
     icon: React.ReactNode;
     route: string;
 }
@@ -22,59 +21,46 @@ const CARDS: ModerationCard[] = [
     {
         key: 'banned_words',
         filter: 'banned_words',
-        name: 'Palabras prohibidas',
-        description: 'Palabras y frases que no se pueden usar en el chat, cada una con su severidad',
         icon: <ShieldBan className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/moderation/banned-words'
     },
     {
         key: 'links',
         filter: 'links',
-        name: 'Links',
-        description: 'Bloquea los links del chat, también los disfrazados, salvo los dominios que permitas o con !permit',
         icon: <Link2 className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/moderation/links'
     },
     {
         key: 'spam',
         group: SPAM_FILTERS.map(f => f.key),
-        name: 'Spam',
-        description: 'Mayúsculas, símbolos, emotes, mensajes largos o repetidos, copypasta, zalgo y menciones',
         icon: <MessageSquareWarning className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/moderation/spam'
     },
     {
         key: 'raids',
         group: ['account_age', 'bot_phrases'],
-        name: 'Raids y bots',
-        description: 'Modo pánico (!panico), cuentas nuevas y frases de bots que venden viewers',
         icon: <Siren className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/moderation/raids'
     },
     {
         key: 'commands',
-        name: 'Comandos de mods',
-        description: '!permit, !strikes, !nuke, !panico y más: quién puede usar cada uno',
         icon: <Terminal className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/moderation/commands'
     },
     {
         key: 'bots',
-        name: 'Lista de bots',
-        description: 'Nightbot, StreamElements y otros bots: no cuentan como personas, no activan comandos ni se ven en el overlay de chat',
         icon: <Bot className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/bots'
     },
     {
         key: 'history',
-        name: 'Historial',
-        description: 'Quién fue sancionado, por qué y quién lo hizo; deshacer timeouts, bans y strikes',
         icon: <History className="w-6 h-6 shrink-0 text-ds-accent-text" />,
         route: '/features/moderation/history'
     }
 ];
 
 export default function ModerationHub() {
+    const { t } = useTranslation('moderation');
     const navigate = useNavigate();
     const [filters, setFilters] = useState<ModerationFilterState[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -84,7 +70,7 @@ export default function ModerationHub() {
     useEffect(() => {
         fetchModerationOverview()
             .then(o => { setFilters(o.filters); setPlatform(o.platform); })
-            .catch(() => setError('No se pudo cargar el estado de los filtros'));
+            .catch(() => setError(t('hub.loadFailed')));
         api.get('/moderation/panic')
             .then(res => setPanicActive(Boolean(res.data.state?.active)))
             .catch(() => { });
@@ -98,7 +84,7 @@ export default function ModerationHub() {
             if (!(await saveModerationFilter(key, { enabled: next }))) throw new Error();
         } catch {
             setFilters(previous);
-            setError('No se pudo guardar el cambio');
+            setError(t('hub.saveFailed'));
         }
     };
 
@@ -107,15 +93,15 @@ export default function ModerationHub() {
     return (
         <div className="panel-scale space-y-6">
             <div>
-                <h1 className="text-3xl font-black text-ds-text">Moderación</h1>
+                <h1 className="text-3xl font-black text-ds-text">{t('hub.title')}</h1>
                 <p className="text-ds-soft mt-2">
-                    Cada filtro se activa por separado y viene apagado. El streamer, los Lead Moderators y los moderadores nunca son sancionados.
+                    {t('hub.subtitle')}
                 </p>
             </div>
 
             {platform === 'kick' && (
                 <div className="p-4 rounded-lg bg-ds-raised border border-ds-border text-sm text-ds-text max-w-7xl">
-                    <strong>Canal de Kick.</strong> Funcionan los filtros, los comandos de mods y el historial. El modo pánico y el filtro de cuentas nuevas no están disponibles: la API de Kick no permite cambiar los modos del chat ni informa la antigüedad de las cuentas.
+                    <strong>{t('hub.kickLabel')}</strong> {t('hub.kickBody')}
                 </div>
             )}
 
@@ -138,33 +124,33 @@ export default function ModerationHub() {
                                 <div className="flex items-center gap-3 min-w-0">
                                     {card.icon}
                                     <h3 className="text-lg font-black leading-tight text-ds-text">
-                                        {card.name}
+                                        {t(`hub.cards.${card.key}.name`)}
                                     </h3>
                                 </div>
                                 {state && (
                                     <FilterSwitch
                                         on={state.enabled}
                                         onChange={(next) => toggle(card.filter!, next)}
-                                        label={`Activar ${card.name}`}
+                                        label={t('hub.activate', { name: t(`hub.cards.${card.key}.name`) })}
                                     />
                                 )}
                             </div>
                             <p className="text-sm text-ds-soft flex-1">
-                                {platform === 'kick' && card.key === 'raids' ? 'Frases de bots que venden viewers (en Kick no hay modo pánico ni filtro de cuentas nuevas)' : card.description}
+                                {platform === 'kick' && card.key === 'raids' ? t('hub.kickRaids') : t(`hub.cards.${card.key}.description`)}
                             </p>
 
                             <div className="flex flex-wrap items-center justify-between gap-2 pt-4 mt-4 border-t border-ds-border">
                                 <span className={`text-xs font-bold whitespace-nowrap ${(state?.enabled || (groupActive ?? 0) > 0) ? 'text-ds-ok' : 'text-ds-soft'}`}>
-                                    {card.key === 'raids' && panicActive ? <span className="text-ds-danger">PÁNICO ACTIVO</span>
-                                        : state ? (state.enabled ? 'Activo' : 'Apagado')
-                                        : group && filters ? `${groupActive} de ${group.length} ${group.length === 1 ? 'activo' : 'activos'}` : ''}
+                                    {card.key === 'raids' && panicActive ? <span className="text-ds-danger">{t('hub.panicActive')}</span>
+                                        : state ? (state.enabled ? t('common.on') : t('common.off'))
+                                        : group && filters ? t('hub.groupCount', { active: groupActive, total: group.length, count: group.length }) : ''}
                                 </span>
                                 <button
                                     onClick={() => navigate(card.route)}
                                     className="ds-btn ds-btn--primary"
                                 >
                                     <Settings className="w-4 h-4" />
-                                    Configurar
+                                    {t('common.configure')}
                                 </button>
                             </div>
                         </div>

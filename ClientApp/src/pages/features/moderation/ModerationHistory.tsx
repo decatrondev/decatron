@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Undo2, Search, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
@@ -24,46 +26,18 @@ interface HistoryItem {
     canUndo: boolean;
 }
 
-const FILTER_LABELS: Record<string, string> = {
-    banned_words: 'Palabra prohibida',
-    links: 'Link',
-    caps: 'Mayúsculas',
-    symbols: 'Símbolos',
-    emotes: 'Emotes',
-    length: 'Mensaje largo',
-    repetition: 'Repetido',
-    copypasta: 'Copypasta',
-    zalgo: 'Zalgo',
-    mentions: 'Menciones',
-    account_age: 'Cuenta nueva',
-    bot_phrases: 'Frase de bot',
-    nuke: 'Nuke',
-    strikes: 'Strikes',
-    panic: 'Modo pánico'
-};
+const FILTER_KEYS = ['banned_words', 'links', 'caps', 'symbols', 'emotes', 'length', 'repetition', 'copypasta', 'zalgo', 'mentions', 'account_age', 'bot_phrases', 'nuke', 'strikes', 'panic'];
+const ACTION_KEYS = ['warning', 'delete', 'ban', 'reset_strikes', 'add_word', 'del_word', 'add_link', 'del_link', 'panic_on', 'panic_off'];
 
-const ACTION_LABELS: Record<string, string> = {
-    warning: 'Advertencia',
-    delete: 'Mensaje borrado',
-    ban: 'Ban',
-    reset_strikes: 'Strikes a 0',
-    add_word: 'Agregó una palabra',
-    del_word: 'Quitó una palabra',
-    add_link: 'Permitió un dominio',
-    del_link: 'Quitó un dominio',
-    panic_on: 'Activó el pánico',
-    panic_off: 'Apagó el pánico'
-};
-
-function actionLabel(action: string) {
-    if (ACTION_LABELS[action]) return ACTION_LABELS[action];
+function actionLabel(t: TFunction, action: string) {
+    if (ACTION_KEYS.includes(action)) return t(`history.actions.${action}`);
     // timeout_1m, timeout_10m, timeout_600s (nuke)...
     const m = /^timeout_(\d+)(s|m|h)$/.exec(action);
     if (!m) return action;
     const seconds = Number(m[1]) * (m[2] === 'h' ? 3600 : m[2] === 'm' ? 60 : 1);
-    if (seconds >= 3600 && seconds % 3600 === 0) return `Timeout ${seconds / 3600} h`;
-    if (seconds >= 60 && seconds % 60 === 0) return `Timeout ${seconds / 60} min`;
-    return `Timeout ${seconds} s`;
+    if (seconds >= 3600 && seconds % 3600 === 0) return t('history.timeoutH', { n: seconds / 3600 });
+    if (seconds >= 60 && seconds % 60 === 0) return t('history.timeoutMin', { n: seconds / 60 });
+    return t('history.timeoutS', { n: seconds });
 }
 
 /** Neutra para acciones de mods, roja para ban, ámbar para el resto de sanciones (son estados). */
@@ -73,12 +47,13 @@ function actionTone(item: HistoryItem): 'danger' | 'warn' | undefined {
     return 'warn';
 }
 
-function formatDate(value: string) {
-    return new Date(value).toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+function formatDate(value: string, lang: string) {
+    return new Date(value).toLocaleString(lang, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 export default function ModerationHistory() {
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation('moderation');
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
     const { toast, showToast } = useToast(4000);
 
@@ -108,7 +83,7 @@ export default function ModerationHistory() {
                 setTotal(res.data.total);
             }
         } catch {
-            showNotice('error', 'No se pudo cargar el historial');
+            showNotice('error', t('history.loadFailed'));
             setItems([]);
         }
     };
@@ -132,9 +107,10 @@ export default function ModerationHistory() {
     /** Pregunta de confirmación según lo que se va a deshacer. */
     const undoQuestion = (item: HistoryItem) => {
         const lifts = item.action === 'ban' || item.action.startsWith('timeout');
+        const extra = item.strikeLevel > 0;
         return lifts
-            ? `¿Quitar ${item.action === 'ban' ? 'el ban' : 'el timeout'} a ${item.username}${item.strikeLevel > 0 ? ' y devolverle el strike' : ''}?`
-            : `¿Devolverle el strike a ${item.username}?${item.action === 'delete' ? ' El mensaje borrado no se puede recuperar.' : ''}`;
+            ? t(item.action === 'ban' ? (extra ? 'history.undo.qBanStrike' : 'history.undo.qBan') : (extra ? 'history.undo.qTimeoutStrike' : 'history.undo.qTimeout'), { user: item.username })
+            : t('history.undo.qStrike', { user: item.username }) + (item.action === 'delete' ? ' ' + t('history.undo.deletedNote') : '');
     };
 
     const undo = async (item: HistoryItem) => {
@@ -143,15 +119,15 @@ export default function ModerationHistory() {
         try {
             const res = await api.post(`/moderation/history/${item.id}/undo`);
             const parts: string[] = [];
-            if (res.data.lifted === true) parts.push(item.action === 'ban' ? 'ban quitado' : 'timeout quitado');
-            if (res.data.lifted === false) parts.push('la sanción ya había vencido');
-            if (res.data.strikeReturned) parts.push('strike devuelto');
-            else if (item.strikeLevel > 0) parts.push('ya no tenía strikes que devolver');
-            showNotice('success', `Listo: ${parts.length ? parts.join(', ') : 'marcado como deshecho'}.`);
+            if (res.data.lifted === true) parts.push(item.action === 'ban' ? t('history.undo.banLifted') : t('history.undo.timeoutLifted'));
+            if (res.data.lifted === false) parts.push(t('history.undo.expired'));
+            if (res.data.strikeReturned) parts.push(t('history.undo.strikeReturned'));
+            else if (item.strikeLevel > 0) parts.push(t('history.undo.noStrikes'));
+            showNotice('success', t('history.undo.done', { details: parts.length ? parts.join(', ') : t('history.undo.markedUndone') }));
             await load();
         } catch (e: unknown) {
             const message = (e as { response?: { data?: { message?: string } } }).response?.data?.message;
-            showNotice('error', message ?? 'No se pudo deshacer');
+            showNotice('error', message ?? t('history.undo.failed'));
         } finally {
             setUndoing(null);
         }
@@ -165,8 +141,8 @@ export default function ModerationHistory() {
     return (
         <ModerationPage
             wide
-            title="Historial de moderación"
-            subtitle="Quién fue sancionado, por qué y quién lo hizo. Puedes quitar un timeout o un ban y devolver el strike."
+            title={t('history.title')}
+            subtitle={t('history.subtitle')}
             toast={toast}
         >
             <div className="space-y-4">
@@ -174,53 +150,53 @@ export default function ModerationHistory() {
                 <div className="bg-ds-surface rounded-lg border border-ds-border p-4 grid grid-cols-2 lg:grid-cols-5 gap-3">
                     <div className="relative col-span-2 lg:col-span-1">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ds-faint" />
-                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Usuario o mod" className="pl-9" />
+                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('history.filters.userOrMod')} className="pl-9" />
                     </div>
-                    <Select value={kind} onChange={(e) => { setPage(1); setKind(e.target.value); }} className="col-span-2 sm:col-span-1" aria-label="Tipo">
-                        <option value="">Todo</option>
-                        <option value="sanctions">Solo sanciones</option>
-                        <option value="commands">Solo acciones de mods</option>
+                    <Select value={kind} onChange={(e) => { setPage(1); setKind(e.target.value); }} className="col-span-2 sm:col-span-1" aria-label={t('history.filters.type')}>
+                        <option value="">{t('history.filters.all')}</option>
+                        <option value="sanctions">{t('history.filters.sanctions')}</option>
+                        <option value="commands">{t('history.filters.modActions')}</option>
                     </Select>
-                    <Select value={filter} onChange={(e) => { setPage(1); setFilter(e.target.value); }} className="col-span-2 sm:col-span-1" aria-label="Motivo">
-                        <option value="">Cualquier motivo</option>
-                        {Object.entries(FILTER_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    <Select value={filter} onChange={(e) => { setPage(1); setFilter(e.target.value); }} className="col-span-2 sm:col-span-1" aria-label={t('history.filters.reason')}>
+                        <option value="">{t('history.filters.anyReason')}</option>
+                        {FILTER_KEYS.map(k => <option key={k} value={k}>{t(`history.filter.${k}`)}</option>)}
                     </Select>
-                    <Input type="date" value={from} onChange={(e) => { setPage(1); setFrom(e.target.value); }} aria-label="Desde" />
-                    <Input type="date" value={to} onChange={(e) => { setPage(1); setTo(e.target.value); }} aria-label="Hasta" />
+                    <Input type="date" value={from} onChange={(e) => { setPage(1); setFrom(e.target.value); }} aria-label={t('history.filters.from')} />
+                    <Input type="date" value={to} onChange={(e) => { setPage(1); setTo(e.target.value); }} aria-label={t('history.filters.to')} />
                 </div>
 
                 {/* Lista */}
                 <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                     <div className={`hidden lg:grid ${grid} gap-4 px-5 py-3 border-b border-ds-border text-xs font-bold uppercase tracking-wider text-ds-soft`}>
-                        <span>Fecha</span><span>Usuario</span><span>Acción</span><span>Motivo</span><span>Quién</span><span className="text-right">Deshacer</span>
+                        <span>{t('history.cols.date')}</span><span>{t('history.cols.user')}</span><span>{t('history.cols.action')}</span><span>{t('history.cols.reason')}</span><span>{t('history.cols.who')}</span><span className="text-right">{t('history.cols.undo')}</span>
                     </div>
 
                     {items === null ? (
-                        <p className={`${hintCls} text-center py-12`}>Cargando…</p>
+                        <p className={`${hintCls} text-center py-12`}>{t('common.loading')}</p>
                     ) : items.length === 0 ? (
-                        <p className={`${hintCls} text-center py-12`}>No hay acciones con estos filtros.</p>
+                        <p className={`${hintCls} text-center py-12`}>{t('history.empty')}</p>
                     ) : items.map(item => (
                         <div key={item.id} className={`border-b last:border-b-0 border-ds-border ${item.undoneAt ? 'opacity-60' : ''}`}>
                             <div
                                 className={`grid grid-cols-2 ${grid} gap-x-4 gap-y-2 px-5 py-3 items-center cursor-pointer hover:bg-ds-raised`}
                                 onClick={() => setExpanded(expanded === item.id ? null : item.id)}
                             >
-                                <span className={`${hintCls} order-2 lg:order-none text-right lg:text-left`}>{formatDate(item.createdAt)}</span>
+                                <span className={`${hintCls} order-2 lg:order-none text-right lg:text-left`}>{formatDate(item.createdAt, i18n.language)}</span>
                                 <span className="font-bold truncate order-1 lg:order-none text-ds-text">{item.username}</span>
                                 <span className="order-3 lg:order-none">
-                                    <Badge tone={actionTone(item)}>{actionLabel(item.action)}</Badge>
-                                    {item.strikeLevel > 0 && <span className={`ml-2 text-xs whitespace-nowrap ${hintCls}`}>strike {item.strikeLevel}/5</span>}
+                                    <Badge tone={actionTone(item)}>{actionLabel(t, item.action)}</Badge>
+                                    {item.strikeLevel > 0 && <span className={`ml-2 text-xs whitespace-nowrap ${hintCls}`}>{t('history.strikeOf', { n: item.strikeLevel })}</span>}
                                 </span>
                                 <span className="truncate order-4 lg:order-none text-right lg:text-left text-ds-text">
-                                    <span className="font-semibold">{FILTER_LABELS[item.filter] ?? item.filter}</span>
+                                    <span className="font-semibold">{FILTER_KEYS.includes(item.filter) ? t(`history.filter.${item.filter}`) : item.filter}</span>
                                     {item.detail && <span className={hintCls}> · {item.detail}</span>}
                                 </span>
                                 <span className="order-5 lg:order-none flex items-center gap-1 text-sm truncate text-ds-text">
-                                    {item.executedBy ? item.executedBy : <><Bot className="w-4 h-4 shrink-0 text-ds-accent-text" /> Automático</>}
+                                    {item.executedBy ? item.executedBy : <><Bot className="w-4 h-4 shrink-0 text-ds-accent-text" /> {t('history.automatic')}</>}
                                 </span>
                                 <span className="order-6 lg:order-none text-right text-xs">
                                     {item.undoneAt ? (
-                                        <span className={`text-xs ${hintCls}`}>Deshecho{item.undoneBy ? ` por ${item.undoneBy}` : ''}</span>
+                                        <span className={`text-xs ${hintCls}`}>{item.undoneBy ? t('history.undoneBy', { user: item.undoneBy }) : t('history.undone')}</span>
                                     ) : item.canUndo ? (
                                         <Button
                                             variant="secondary"
@@ -230,18 +206,18 @@ export default function ModerationHistory() {
                                             disabled={undoing === item.id}
                                             onClick={(e) => { e.stopPropagation(); setConfirmItem(item); }}
                                         >
-                                            Deshacer
+                                            {t('history.cols.undo')}
                                         </Button>
                                     ) : null}
                                 </span>
                             </div>
                             {expanded === item.id && (
                                 <div className="px-5 pb-4">
-                                    <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${hintCls}`}>Mensaje original</p>
+                                    <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${hintCls}`}>{t('history.original')}</p>
                                     <p className="text-sm p-3 rounded-lg bg-ds-bg border border-ds-border break-words text-ds-text">
-                                        {item.message || 'No se guardó el mensaje.'}
+                                        {item.message || t('history.noMessage')}
                                     </p>
-                                    {item.undoneAt && <p className={`text-xs mt-2 ${hintCls}`}>Deshecho el {formatDate(item.undoneAt)}</p>}
+                                    {item.undoneAt && <p className={`text-xs mt-2 ${hintCls}`}>{t('history.undoneOn', { date: formatDate(item.undoneAt, i18n.language) })}</p>}
                                 </div>
                             )}
                         </div>
@@ -250,23 +226,23 @@ export default function ModerationHistory() {
 
                 {/* Paginación */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className={hintCls}>{total} {total === 1 ? 'acción' : 'acciones'}</span>
+                    <span className={hintCls}>{t('history.count', { count: total })}</span>
                     <div className="flex items-center gap-2">
-                        <IconButton variant="secondary" size="sm" label="Página anterior" icon={<ChevronLeft />} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} />
-                        <span className="text-sm text-ds-text">Página {page} de {pages}</span>
-                        <IconButton variant="secondary" size="sm" label="Página siguiente" icon={<ChevronRight />} onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page >= pages} />
+                        <IconButton variant="secondary" size="sm" label={t('history.prevPage')} icon={<ChevronLeft />} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} />
+                        <span className="text-sm text-ds-text">{t('history.pageOf', { page, pages })}</span>
+                        <IconButton variant="secondary" size="sm" label={t('history.nextPage')} icon={<ChevronRight />} onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page >= pages} />
                     </div>
                 </div>
             </div>
 
             {confirmItem && (
                 <ModalShell
-                    title="Deshacer sanción"
+                    title={t('history.undo.title')}
                     onClose={() => setConfirmItem(null)}
                     actions={
                         <>
-                            <Button variant="secondary" onClick={() => setConfirmItem(null)}>Cancelar</Button>
-                            <Button onClick={() => undo(confirmItem)}>Deshacer</Button>
+                            <Button variant="secondary" onClick={() => setConfirmItem(null)}>{t('history.undo.cancel')}</Button>
+                            <Button onClick={() => undo(confirmItem)}>{t('history.cols.undo')}</Button>
                         </>
                     }
                 >
