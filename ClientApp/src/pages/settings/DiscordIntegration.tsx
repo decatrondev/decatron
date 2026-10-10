@@ -166,7 +166,7 @@ export default function DiscordIntegration() {
                                         key={guild.id}
                                         onClick={() => linkGuild(guild)}
                                         disabled={linking}
-                                        className="w-full flex items-center gap-3 p-3 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border hover:border-ds-accent transition-all text-left disabled:opacity-50"
+                                        className="ds-btn ds-btn--secondary ds-icon-btn w-full"
                                     >
                                         {guild.icon ? (
                                             <img src={guild.icon} alt="" className="w-10 h-10 rounded-full" />

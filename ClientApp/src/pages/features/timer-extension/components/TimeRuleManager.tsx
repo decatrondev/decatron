@@ -103,7 +103,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                 type="number"
                                 value={newAmount}
                                 onChange={(e) => setNewAmount(Number(e.target.value))}
-                                className="w-16 px-2 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
+                                className="ds-input w-16"
                                 autoFocus
                             />
                         </div>
@@ -113,12 +113,12 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                 type="number"
                                 value={newTimeValue}
                                 onChange={(e) => setNewTimeValue(Number(e.target.value))}
-                                className="w-12 px-2 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
+                                className="ds-input w-12"
                             />
                             <select
                                 value={newTimeUnit}
                                 onChange={(e) => setNewTimeUnit(e.target.value as TimeUnit)}
-                                className="px-1 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
+                                className="ds-input"
                             >
                                 <option value="seconds">s</option>
                                 <option value="minutes">m</option>
@@ -145,7 +145,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                             </button>
                             <button
                                 onClick={() => setIsCreating(false)}
-                                className="px-3 py-1 bg-ds-raised text-ds-soft rounded text-xs font-bold"
+                                className="ds-btn ds-btn--secondary ds-btn--sm"
                             >
                                 Cancelar
                             </button>

@@ -223,7 +223,7 @@ function TextProps({ text, set, onRemove }: { text: TextElement; set: (patch: Pa
             <div className="flex flex-wrap gap-1.5">
                 {TEXT_VARIABLES.map(v => (
                     <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} title={t(`eventAlertsView.design.vars.${v}`)}
-                        className="px-2 py-1 rounded-lg font-mono text-xs 3xl:text-sm bg-ds-raised text-ds-text hover:bg-ds-raised">{`{${v}}`}</button>
+                        className="ds-btn ds-btn--secondary ds-btn--sm">{`{${v}}`}</button>
                 ))}
             </div>
             <div className="space-y-2">

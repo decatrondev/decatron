@@ -154,7 +154,7 @@ export function BasicTab({ cfg }: TabProps) {
                 </div>
             </Card>
             <Card title={t('soundAlerts.basic.resetTitle')} description={t('soundAlerts.basic.resetDescription')}>
-                <button onClick={resetDesign} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised">
+                <button onClick={resetDesign} className="ds-btn ds-btn--secondary">
                     <RotateCcw className="w-4 h-4" /> {t('soundAlerts.basic.reset')}
                 </button>
             </Card>

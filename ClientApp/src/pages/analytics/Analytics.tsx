@@ -39,7 +39,7 @@ export default function Analytics() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                     >
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
@@ -62,7 +62,7 @@ export default function Analytics() {
                     <button
                         onClick={refetch}
                         disabled={isLoading}
-                        className="p-2.5 bg-ds-bg border border-ds-border rounded-lg hover:bg-ds-surface transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn"
                         title={t('refresh', 'Actualizar')}
                     >
                         <RefreshCw className={`w-4 h-4 text-ds-soft ${isLoading ? 'animate-spin' : ''}`} />

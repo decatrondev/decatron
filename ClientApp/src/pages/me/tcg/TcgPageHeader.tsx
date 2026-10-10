@@ -19,7 +19,7 @@ export default function TcgPageHeader({ title, subtitle, balance, backTo = '/me/
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate(backTo)}
-                    className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
+                    className="ds-btn ds-btn--ghost ds-icon-btn"
                     aria-label="Volver"
                 >
                     <ArrowLeft className="w-5 h-5 text-ds-text" />

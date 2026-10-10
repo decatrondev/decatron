@@ -338,7 +338,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                                     el.style.opacity = '1';
                                 }
                             }}
-                            className="z-20 px-3 py-1 bg-ds-surface/10 hover:bg-ds-surface/20 text-ds-text text-xs rounded-full backdrop-blur-sm transition-colors border border-ds-border/20 flex items-center gap-1"
+                            className="ds-btn ds-btn--secondary ds-btn--sm z-20"
                         >
                             <Play className="w-3 h-3" /> Probar Efecto
                         </button>

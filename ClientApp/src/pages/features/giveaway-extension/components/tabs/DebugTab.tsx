@@ -213,7 +213,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               setSubPercentage(0);
               setFollowerPercentage(100);
             }}
-            className="px-4 py-2 bg-ds-raised hover:bg-ds-faint rounded-lg text-sm text-ds-text transition-colors"
+            className="ds-btn ds-btn--secondary"
           >
             5 Normales
           </button>
@@ -225,7 +225,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               setSubPercentage(30);
               setFollowerPercentage(80);
             }}
-            className="px-4 py-2 bg-ds-raised hover:bg-ds-faint rounded-lg text-sm text-ds-text transition-colors"
+            className="ds-btn ds-btn--secondary"
           >
             20 Mixtos
           </button>
@@ -237,7 +237,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               setSubPercentage(20);
               setFollowerPercentage(90);
             }}
-            className="px-4 py-2 bg-ds-raised hover:bg-ds-faint rounded-lg text-sm text-ds-text transition-colors"
+            className="ds-btn ds-btn--secondary"
           >
             50 Realista
           </button>
@@ -249,7 +249,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               setSubPercentage(60);
               setFollowerPercentage(100);
             }}
-            className="px-4 py-2 bg-ds-raised hover:bg-ds-faint rounded-lg text-sm text-ds-text transition-colors"
+            className="ds-btn ds-btn--secondary"
           >
             100 VIP Heavy
           </button>

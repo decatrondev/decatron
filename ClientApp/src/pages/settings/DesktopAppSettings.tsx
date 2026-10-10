@@ -125,7 +125,7 @@ export default function DesktopAppSettings() {
                     <div className="text-sm text-ds-soft mb-2">{t('settings:desktop.codeHint')}</div>
                     <div className="flex items-center gap-3 flex-wrap">
                         <span className="font-mono text-3xl font-black tracking-widest text-ds-text select-all">{code}</span>
-                        <button onClick={copy} className="p-2 rounded-lg border border-ds-border hover:bg-ds-bg" title={t('settings:desktop.copy')}>
+                        <button onClick={copy} className="ds-btn ds-btn--secondary ds-icon-btn" title={t('settings:desktop.copy')}>
                             {copied ? <Check className="w-4 h-4 text-ds-ok" /> : <Copy className="w-4 h-4" />}
                         </button>
                         <span className="text-xs text-ds-soft">

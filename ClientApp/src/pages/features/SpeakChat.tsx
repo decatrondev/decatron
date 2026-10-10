@@ -383,7 +383,7 @@ export default function SpeakChat() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/features')}
-                        className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn"
                     >
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
@@ -643,7 +643,7 @@ export default function SpeakChat() {
                             <button
                                 onClick={reloadOverlays}
                                 disabled={reloading}
-                                className="px-4 py-2 rounded-lg border border-ds-border text-ds-text text-xs font-bold hover:bg-ds-bg transition-colors disabled:opacity-50"
+                                className="ds-btn ds-btn--secondary"
                                 title="Los overlays se actualizan solos, pero esto lo hace al instante"
                             >
                                 {reloading ? '♻️ Recargando…' : '♻️ Recargar overlays'}

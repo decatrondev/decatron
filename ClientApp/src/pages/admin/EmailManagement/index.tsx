@@ -19,7 +19,7 @@ export default function EmailManagement() {
         <div className="panel-scale space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">
+                <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn">
                     <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
                 <div>

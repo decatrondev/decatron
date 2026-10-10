@@ -91,13 +91,13 @@ export default function GameOverlayPromosAdmin() {
     return (
         <div className="panel-scale space-y-6">
             <div className="flex items-center gap-3">
-                <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-ds-raised"><ArrowLeft className="w-5 h-5" /></button>
+                <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn"><ArrowLeft className="w-5 h-5" /></button>
                 <Megaphone className="w-6 h-6 text-ds-accent-text" />
                 <div>
                     <h1 className="text-2xl font-black text-ds-text">Anuncios de Decatron en overlays</h1>
                     <p className={muted}>Tapan unos segundos la tarjeta de rango (Game Overlays) y el panel de música (Song Request). El streamer no los edita: solo los apaga si es Supporter o más.</p>
                 </div>
-                <button onClick={load} className="ml-auto p-2 rounded-lg hover:bg-ds-raised" title="Recargar"><RefreshCw className="w-4 h-4" /></button>
+                <button onClick={load} className="ds-btn ds-btn--ghost ds-icon-btn ml-auto" title="Recargar"><RefreshCw className="w-4 h-4" /></button>
             </div>
 
             {error && <div className="rounded-lg bg-ds-danger-solid/10 border border-ds-danger/40 text-ds-danger text-sm px-4 py-2">{error}</div>}

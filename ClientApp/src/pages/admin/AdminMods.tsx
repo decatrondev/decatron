@@ -155,7 +155,7 @@ export default function AdminMods() {
                 <button
                     onClick={load}
                     disabled={loading}
-                    className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 rounded-lg border border-ds-border text-sm font-bold text-ds-text hover:bg-ds-bg disabled:opacity-50"
+                    className="ds-btn ds-btn--secondary self-start sm:self-auto"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
                 </button>

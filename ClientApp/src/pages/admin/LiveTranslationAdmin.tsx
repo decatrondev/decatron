@@ -81,7 +81,7 @@ export default function LiveTranslationAdmin() {
         <div className="panel-scale max-w-[1400px] mx-auto space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/admin')} className="p-2 rounded-lg hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
+                    <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
                     <div>
                         <h1 className="text-3xl font-black text-ds-text flex items-center gap-3"><Languages className="w-8 h-8 text-[#9146FF]" /> Traducción en vivo</h1>
                         <p className={muted}>Uso, costos y sesiones activas. Los créditos salen del mismo saldo TTS de cada canal.</p>
@@ -89,7 +89,7 @@ export default function LiveTranslationAdmin() {
                 </div>
                 <div className="flex items-center gap-2">
                     {[7, 30, 90].map(d => (
-                        <button key={d} onClick={() => setDays(d)} className={`px-3 py-1.5 rounded-lg text-sm border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'border-ds-border text-ds-text '}`}>{d} días</button>
+                        <button key={d} onClick={() => setDays(d)} className="ds-btn ds-btn--secondary ds-btn--sm">{d} días</button>
                     ))}
                     <button onClick={load} className="p-2 rounded-lg border border-ds-border" title="Actualizar"><RefreshCw className="w-4 h-4 text-ds-soft" /></button>
                 </div>

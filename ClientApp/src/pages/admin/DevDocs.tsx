@@ -203,7 +203,7 @@ export default function DevDocs() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSelectedFile(null)}
-                                className="p-1.5 hover:bg-ds-bg rounded-lg transition"
+                                className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                             >
                                 <ChevronLeft className="w-5 h-5 text-ds-soft" />
                             </button>
@@ -217,10 +217,10 @@ export default function DevDocs() {
                                     <span className="flex items-center gap-2 text-sm">
                                         <span className="text-ds-text font-medium">¿{moveLabel(a)}?</span>
                                         <button disabled={moving} onClick={() => move(selectedFile.path, a)} className="ds-btn ds-btn--primary ds-btn--sm">Sí</button>
-                                        <button disabled={moving} onClick={() => setConfirmPath(null)} className="px-3 py-1 rounded-lg border border-ds-border text-ds-soft font-bold">No</button>
+                                        <button disabled={moving} onClick={() => setConfirmPath(null)} className="ds-btn ds-btn--secondary ds-btn--sm">No</button>
                                     </span>
                                 ) : (
-                                    <button onClick={() => setConfirmPath(selectedFile.path)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-ds-border text-sm font-bold text-ds-soft hover:bg-ds-surface">
+                                    <button onClick={() => setConfirmPath(selectedFile.path)} className="ds-btn ds-btn--secondary ds-btn--sm">
                                         {a === 'archive' ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />}{moveLabel(a)}
                                     </button>
                                 );
@@ -299,12 +299,12 @@ export default function DevDocs() {
                                             <>
                                                 <span className="text-sm font-medium text-ds-text">¿{moveLabel(action)}?</span>
                                                 <button disabled={moving} onClick={() => move(file.path, action)} className="ds-btn ds-btn--primary ds-btn--sm">Sí</button>
-                                                <button disabled={moving} onClick={() => setConfirmPath(null)} className="px-3 py-1.5 rounded-lg border border-ds-border text-sm font-bold text-ds-soft">No</button>
+                                                <button disabled={moving} onClick={() => setConfirmPath(null)} className="ds-btn ds-btn--secondary ds-btn--sm">No</button>
                                             </>
                                         ) : (
                                             <button
                                                 onClick={() => setConfirmPath(file.path)}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-ds-border text-sm font-bold text-ds-soft hover:bg-ds-surface"
+                                                className="ds-btn ds-btn--secondary ds-btn--sm"
                                             >
                                                 {action === 'archive' ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />}
                                                 {moveLabel(action)}

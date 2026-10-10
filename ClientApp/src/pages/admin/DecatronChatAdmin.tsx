@@ -247,7 +247,7 @@ export default function DecatronChatAdmin() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                     >
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
@@ -670,7 +670,7 @@ export default function DecatronChatAdmin() {
                                                 setSearchQuery(user.login);
                                                 setSearchResults([]);
                                             }}
-                                            className="w-full p-2 text-left hover:bg-ds-bg transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn w-full"
                                         >
                                             <p className="font-bold text-ds-text">{user.login}</p>
                                             {user.displayName && (
@@ -731,7 +731,7 @@ export default function DecatronChatAdmin() {
                                     setSearchResults([]);
                                     setNewPermission({ canView: true, canChat: false, notes: '' });
                                 }}
-                                className="flex-1 px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-colors"
+                                className="ds-btn ds-btn--secondary flex-1"
                             >
                                 Cancelar
                             </button>
@@ -797,7 +797,7 @@ export default function DecatronChatAdmin() {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setEditingPermission(null)}
-                                className="flex-1 px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-colors"
+                                className="ds-btn ds-btn--secondary flex-1"
                             >
                                 Cancelar
                             </button>

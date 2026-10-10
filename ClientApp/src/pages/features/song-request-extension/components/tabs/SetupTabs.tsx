@@ -151,7 +151,7 @@ export function BasicTab({ cfg }: TabProps) {
                     <UrlRow label={t('songRequest.urls.public')} url={s.publicUrl} />
                     <button
                         onClick={() => { if (window.confirm(t('songRequest.basic.regenerateConfirm'))) cfg.regenerateKey(); }}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
+                        className="ds-btn ds-btn--secondary"
                     >
                         <RefreshCw className="w-4 h-4" /> {t('songRequest.basic.regenerate')}
                     </button>

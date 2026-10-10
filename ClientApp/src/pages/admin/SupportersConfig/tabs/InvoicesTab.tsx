@@ -153,7 +153,7 @@ export function InvoicesTab() {
                     )}
                     <button
                         onClick={cargar}
-                        className="flex items-center gap-2 px-4 py-2.5 border border-ds-border text-sm font-bold rounded-lg text-ds-soft hover:bg-ds-bg"
+                        className="ds-btn ds-btn--secondary"
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Actualizar
@@ -247,7 +247,7 @@ export function InvoicesTab() {
                                             onClick={() => bajar(fila, f.id)}
                                             disabled={ocupado === `${f.id}-${fila.paymentId}`}
                                             title={f.hint}
-                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-ds-border text-xs font-bold text-ds-soft hover:bg-ds-bg disabled:opacity-60"
+                                            className="ds-btn ds-btn--secondary ds-btn--sm"
                                         >
                                             {ocupado === `${f.id}-${fila.paymentId}`
                                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

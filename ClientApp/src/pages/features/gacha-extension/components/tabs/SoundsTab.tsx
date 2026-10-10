@@ -375,7 +375,7 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                         {/* Reset */}
                         <button
                             onClick={onReset}
-                            className="p-2 rounded-lg bg-ds-surface border border-ds-border text-ds-soft hover:border-ds-warn/40 transition-all"
+                            className="ds-btn ds-btn--secondary ds-icon-btn"
                             title="Resetear a default"
                         >
                             <RotateCcw className="w-4 h-4" />

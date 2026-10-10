@@ -88,7 +88,7 @@ export default function Credits() {
                     <h1 className="text-3xl font-black text-ds-text">{t('title')}</h1>
                     <p className={`${muted} mt-2`}>{t('subtitle')}</p>
                 </div>
-                <button onClick={() => { loadSummary(); loadHistory(); }} className="p-2 rounded-lg border border-ds-border hover:bg-ds-raised" title={t('refresh')}><RefreshCw className="w-4 h-4 text-ds-soft" /></button>
+                <button onClick={() => { loadSummary(); loadHistory(); }} className="ds-btn ds-btn--secondary ds-icon-btn" title={t('refresh')}><RefreshCw className="w-4 h-4 text-ds-soft" /></button>
             </div>
 
             {/* Saldo */}

@@ -136,7 +136,7 @@ export function WheelSidebar({
                     </code>
                     <button
                         onClick={onCopy}
-                        className="p-2 bg-ds-bg hover:bg-ds-raised border border-ds-border rounded-lg transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn"
                         aria-label={t('wheel.overlayUrl.copy')}
                     >
                         {copied

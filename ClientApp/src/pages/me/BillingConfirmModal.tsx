@@ -144,7 +144,7 @@ export default function BillingConfirmModal({
                             <button
                                 onClick={onCancel}
                                 disabled={confirming}
-                                className="flex-1 border border-ds-border text-ds-soft font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                                className="ds-btn ds-btn--secondary flex-1"
                             >
                                 Cancelar
                             </button>
@@ -163,7 +163,7 @@ export default function BillingConfirmModal({
                 {!loading && !preview && !error && (
                     <button
                         onClick={onCancel}
-                        className="w-full border border-ds-border text-ds-soft font-bold py-2.5 rounded-lg"
+                        className="ds-btn ds-btn--secondary w-full"
                     >
                         Cerrar
                     </button>

@@ -271,11 +271,7 @@ export const GuideTab: React.FC<GuideTabProps> = ({ config, onNavigate, overlayU
                             <button
                                 key={item.id}
                                 onClick={() => setSelectedGuide(item.id)}
-                                className={`w-full text-left px-4 py-3 rounded-lg text-sm font-bold transition-all flex items-center gap-3 ${
-                                    selectedGuide === item.id
-                                        ? 'bg-ds-raised text-ds-text '
-                                        : 'bg-ds-surface text-ds-soft hover:bg-ds-surface border border-transparent hover:border-ds-border'
-                                }`}
+                                className="ds-btn ds-btn--secondary ds-btn--lg w-full"
                             >
                                 <span>{item.icon}</span>
                                 {item.label}

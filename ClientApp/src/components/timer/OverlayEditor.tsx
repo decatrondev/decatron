@@ -527,11 +527,7 @@ export default function OverlayEditor({
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setSnapToGrid(!snapToGrid)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                                snapToGrid
-                                    ? 'bg-ds-raised text-ds-text '
-                                    : 'bg-ds-bg text-ds-soft border border-ds-border '
-                            }`}
+                            className="ds-btn ds-btn--secondary"
                         >
                             <Grid3x3 className="w-4 h-4" />
                             Grid {snapToGrid ? 'ON' : 'OFF'}
@@ -588,7 +584,7 @@ export default function OverlayEditor({
             <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 <button
                     onClick={() => setControlsCollapsed(!controlsCollapsed)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-ds-bg transition-colors"
+                    className="ds-btn ds-btn--ghost ds-icon-btn w-full"
                 >
                     <span className="text-sm font-bold text-ds-text">
                         Controles de Posición y Tamaño

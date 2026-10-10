@@ -241,7 +241,7 @@ export default function ApplicationCreate() {
                                         </code>
                                         <button
                                             onClick={() => copyToClipboard(createdApp.client_id, 'Client ID')}
-                                            className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         >
                                             <Copy className="w-4 h-4 text-ds-soft" />
                                         </button>
@@ -256,13 +256,13 @@ export default function ApplicationCreate() {
                                         </code>
                                         <button
                                             onClick={() => setShowSecret(!showSecret)}
-                                            className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         >
                                             {showSecret ? <EyeOff className="w-4 h-4 text-ds-soft" /> : <Eye className="w-4 h-4 text-ds-soft" />}
                                         </button>
                                         <button
                                             onClick={() => copyToClipboard(createdApp.client_secret, 'Client Secret')}
-                                            className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         >
                                             <Copy className="w-4 h-4 text-ds-soft" />
                                         </button>
@@ -301,7 +301,7 @@ export default function ApplicationCreate() {
                 <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate('/developer')}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                     >
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>

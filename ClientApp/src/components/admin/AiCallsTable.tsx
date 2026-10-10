@@ -56,7 +56,7 @@ export function CallsTable() {
                 <h2 className={`${h2} !mb-0`}>Llamadas {data ? <span className={`${muted} font-normal`}>· {data.total.toLocaleString()} en total</span> : null}</h2>
                 <div className="flex items-center gap-2">
                     {hasFilters && <button onClick={() => { setFilters(EMPTY_FILTERS); setChannelDraft(''); setPage(1); }} className={`${muted} inline-flex items-center gap-1 hover:underline`}><X className="w-3 h-3" /> Limpiar filtros</button>}
-                    <button onClick={load} disabled={loading} className="p-2 rounded-lg border border-ds-border hover:bg-ds-raised" title="Actualizar"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
+                    <button onClick={load} disabled={loading} className="ds-btn ds-btn--secondary ds-icon-btn" title="Actualizar"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
                 </div>
             </div>
 
@@ -123,9 +123,9 @@ export function CallsTable() {
                         <span>· {(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.total)} de {data.total.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="p-2 rounded-lg border border-ds-border disabled:opacity-40 hover:bg-ds-raised"><ChevronLeft className="w-4 h-4" /></button>
+                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="ds-btn ds-btn--secondary ds-icon-btn"><ChevronLeft className="w-4 h-4" /></button>
                         <span className="text-xs px-2 text-ds-text">{data.page} / {data.totalPages}</span>
-                        <button onClick={() => setPage(p => Math.min(data.totalPages, p + 1))} disabled={page >= data.totalPages || loading} className="p-2 rounded-lg border border-ds-border disabled:opacity-40 hover:bg-ds-raised"><ChevronRight className="w-4 h-4" /></button>
+                        <button onClick={() => setPage(p => Math.min(data.totalPages, p + 1))} disabled={page >= data.totalPages || loading} className="ds-btn ds-btn--secondary ds-icon-btn"><ChevronRight className="w-4 h-4" /></button>
                     </div>
                 </div>
             )}

@@ -125,7 +125,7 @@ export default function Donations() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-2 rounded-lg hover:bg-ds-raised transition-colors"
+                            className="ds-btn ds-btn--ghost ds-icon-btn"
                         >
                             <ArrowLeft className="w-5 h-5 text-ds-soft" />
                         </button>
@@ -156,7 +156,7 @@ export default function Donations() {
 
                         <button
                             onClick={() => { loadStats(); loadDonations(); }}
-                            className="p-2 rounded-lg hover:bg-ds-raised transition-colors"
+                            className="ds-btn ds-btn--ghost ds-icon-btn"
                             title="Actualizar"
                         >
                             <RefreshCw className="w-4 h-4 text-ds-soft" />

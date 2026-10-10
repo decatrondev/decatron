@@ -193,7 +193,7 @@ const AccountRow: React.FC<{ account: LinkedAccount; onChanged: () => Promise<vo
                     </div>
                     <div className="flex gap-2">
                         <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { manualRank: { tier: rankTier, division: rankDiv || null, points: rankPts } }), t('rankSaved'))} className="ds-btn ds-btn--primary">{t('saveRank')}</button>
-                        {a.manualRank && <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { clearManualRank: true }), t('rankCleared'))} className="px-3 py-2 bg-ds-raised text-ds-text rounded-lg text-xs">{t('remove')}</button>}
+                        {a.manualRank && <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { clearManualRank: true }), t('rankCleared'))} className="ds-btn ds-btn--secondary">{t('remove')}</button>}
                     </div>
                     {a.manualRank && <div className="md:col-span-4 text-xs text-ds-soft">{t('current')}: {formatTier(a.manualRank.tier)} {a.manualRank.division ?? ''} {a.manualRank.points ? `· ${a.manualRank.points} pts` : ''}</div>}
                 </div>

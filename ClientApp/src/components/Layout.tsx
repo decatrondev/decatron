@@ -170,7 +170,7 @@ export default function Layout() {
                 {/* Navbar */}
                 <nav className="panel-scale bg-ds-surface border-b border-ds-border px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={toggleSidebar} className="md:hidden p-2 hover:bg-ds-bg rounded-lg">
+                        <button onClick={toggleSidebar} className="ds-btn ds-btn--ghost ds-icon-btn md:hidden">
                             <Menu className="w-6 h-6" />
                         </button>
                         <ThemeToggle />
@@ -196,7 +196,7 @@ export default function Layout() {
                             </div>
                             <button
                                 onClick={() => window.location.href = '/api/auth/login'}
-                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-colors text-sm font-semibold"
+                                className="ds-btn ds-btn--primary"
                             >
                                 {t('layout:tokenExpiration.renewButton')}
                             </button>

@@ -114,13 +114,13 @@ export default function TemplatesTab() {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-end gap-1">
-                                                <button onClick={() => { setEditingId(t.id); setEditorOpen(true); }} className="p-2 hover:bg-ds-raised rounded-lg transition-colors" title="Editar">
+                                                <button onClick={() => { setEditingId(t.id); setEditorOpen(true); }} className="ds-btn ds-btn--ghost ds-icon-btn" title="Editar">
                                                     <Edit3 className="w-4 h-4 text-ds-accent-text" />
                                                 </button>
-                                                <button onClick={() => handleDuplicate(t.id)} className="p-2 hover:bg-ds-raised rounded-lg transition-colors" title="Duplicar">
+                                                <button onClick={() => handleDuplicate(t.id)} className="ds-btn ds-btn--ghost ds-icon-btn" title="Duplicar">
                                                     <Copy className="w-4 h-4 text-ds-soft" />
                                                 </button>
-                                                <button onClick={() => handleDelete(t.id)} className="p-2 hover:bg-ds-raised rounded-lg transition-colors" title="Eliminar">
+                                                <button onClick={() => handleDelete(t.id)} className="ds-btn ds-btn--ghost ds-icon-btn" title="Eliminar">
                                                     <Trash2 className="w-4 h-4 text-ds-danger" />
                                                 </button>
                                             </div>

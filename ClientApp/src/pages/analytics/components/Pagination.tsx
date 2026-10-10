@@ -63,7 +63,7 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="p-1.5 rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn ds-btn--sm"
                     >
                         <ChevronLeft className="w-4 h-4 text-ds-soft" />
                     </button>
@@ -75,7 +75,7 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="p-1.5 rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn ds-btn--sm"
                     >
                         <ChevronRight className="w-4 h-4 text-ds-soft" />
                     </button>

@@ -225,7 +225,7 @@ export default function OverlayCanvasEditor({
                             </div>
                             <button
                                 onClick={() => onRectChange(sel.id, { x: Math.round((cw - sel.width) / 2) })}
-                                className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
+                                className="ds-btn ds-btn--secondary ds-btn--sm mt-3"
                             >
                                 <AlignHorizontalJustifyCenter className="w-4 h-4" /> {t('overlayEditor.centerH')}
                             </button>

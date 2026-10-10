@@ -320,21 +320,21 @@ export default function Timers() {
                                 <div className="flex gap-1 ml-2">
                                     <button
                                         onClick={() => handleTestTimer(timer.id, timer.name)}
-                                        className="p-1.5 hover:bg-ds-bg rounded-lg transition-all"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         title="Probar timer (envía el mensaje al chat)"
                                     >
                                         <Zap className="w-4 h-4 text-ds-accent-text" />
                                     </button>
                                     <button
                                         onClick={() => openEditModal(timer)}
-                                        className="p-1.5 hover:bg-ds-bg rounded-lg transition-all"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         title="Editar"
                                     >
                                         <Pencil className="w-4 h-4 text-ds-accent-text" />
                                     </button>
                                     <button
                                         onClick={() => handleDeleteTimer(timer.id, timer.name)}
-                                        className="p-1.5 hover:bg-ds-bg rounded-lg transition-all"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         title="Eliminar"
                                     >
                                         <Trash2 className="w-4 h-4 text-ds-danger" />
@@ -398,7 +398,7 @@ export default function Timers() {
                             <h2 className="text-2xl font-black text-ds-text">{t('timers.createTimer')}</h2>
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="p-2 hover:bg-ds-bg rounded-lg transition-all"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -538,7 +538,7 @@ export default function Timers() {
                             </button>
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--secondary"
                             >
                                 {t('timers.cancel')}
                             </button>
@@ -555,7 +555,7 @@ export default function Timers() {
                             <h2 className="text-2xl font-black text-ds-text">{t('timers.editTimer')}</h2>
                             <button
                                 onClick={() => setShowEditModal(false)}
-                                className="p-2 hover:bg-ds-bg rounded-lg transition-all"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -701,7 +701,7 @@ export default function Timers() {
                             </button>
                             <button
                                 onClick={() => setShowEditModal(false)}
-                                className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--secondary"
                             >
                                 {t('timers.cancel')}
                             </button>

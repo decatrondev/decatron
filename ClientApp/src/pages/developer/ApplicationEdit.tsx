@@ -239,7 +239,7 @@ export default function ApplicationEdit() {
                 <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate('/developer')}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                     >
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>

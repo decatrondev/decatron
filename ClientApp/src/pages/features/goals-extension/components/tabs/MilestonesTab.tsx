@@ -71,7 +71,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                             {/* Goal Header */}
                             <button
                                 onClick={() => setExpandedGoalId(isExpanded ? null : goal.id)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-ds-bg transition-colors"
+                                className="ds-btn ds-btn--ghost ds-icon-btn w-full"
                             >
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{goal.icon}</span>
@@ -97,7 +97,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                     {/* Add Milestone Button */}
                                     <button
                                         onClick={() => handleAddMilestone(goal.id)}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-ds-bg hover:bg-ds-raised text-ds-soft rounded-lg transition-colors border-2 border-dashed border-ds-border"
+                                        className="ds-btn ds-btn--secondary ds-btn--lg w-full"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Agregar Milestone

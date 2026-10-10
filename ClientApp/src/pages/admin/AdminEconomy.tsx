@@ -171,7 +171,7 @@ function PackagesTab() {
                                         </button>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <button onClick={() => setModal({ mode: 'edit', data: { ...pkg } })} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                                        <button onClick={() => setModal({ mode: 'edit', data: { ...pkg } })} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm">
                                             <Pencil className="w-4 h-4 text-ds-soft" />
                                         </button>
                                     </td>
@@ -209,7 +209,7 @@ function PackagesTab() {
                             <FormField label="Max por transaccion" type="number" value={modal.data.maxPerTransaction} onChange={v => setModal({ ...modal, data: { ...modal.data, maxPerTransaction: parseInt(v) || 1 } })} />
                         </div>
                         <div className="flex justify-end gap-3 pt-4">
-                            <button onClick={() => setModal(null)} className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold">Cancelar</button>
+                            <button onClick={() => setModal(null)} className="ds-btn ds-btn--secondary">Cancelar</button>
                             <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>
@@ -394,7 +394,7 @@ function DiscountsTab() {
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                         <div className="flex items-center justify-center gap-1">
-                                            <button onClick={() => { setModal({ mode: 'edit', data: { ...c } }); setSaveError(null); setUserSearch(''); }} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                                            <button onClick={() => { setModal({ mode: 'edit', data: { ...c } }); setSaveError(null); setUserSearch(''); }} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm">
                                                 <Pencil className="w-4 h-4 text-ds-soft" />
                                             </button>
                                             {c.enabled && (
@@ -437,7 +437,7 @@ function DiscountsTab() {
                                 />
                                 <button
                                     onClick={() => setModal({ ...modal, data: { ...modal.data, code: generateCode() } })}
-                                    className="px-3 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+                                    className="ds-btn ds-btn--secondary whitespace-nowrap"
                                 >
                                     Generar
                                 </button>
@@ -571,7 +571,7 @@ function DiscountsTab() {
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <button onClick={() => { setModal(null); setSaveError(null); }} className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold">Cancelar</button>
+                            <button onClick={() => { setModal(null); setSaveError(null); }} className="ds-btn ds-btn--secondary">Cancelar</button>
                             <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>
@@ -852,11 +852,11 @@ function AuditTab() {
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-center gap-3">
-                            <button onClick={() => load(page - 1)} disabled={page <= 1} className="p-2 bg-ds-surface border border-ds-border rounded-lg disabled:opacity-30">
+                            <button onClick={() => load(page - 1)} disabled={page <= 1} className="ds-btn ds-btn--secondary ds-icon-btn">
                                 <ChevronLeft className="w-4 h-4 text-ds-soft" />
                             </button>
                             <span className="text-sm text-ds-soft">Pagina {page} de {totalPages}</span>
-                            <button onClick={() => load(page + 1)} disabled={page >= totalPages} className="p-2 bg-ds-surface border border-ds-border rounded-lg disabled:opacity-30">
+                            <button onClick={() => load(page + 1)} disabled={page >= totalPages} className="ds-btn ds-btn--secondary ds-icon-btn">
                                 <ChevronRight className="w-4 h-4 text-ds-soft" />
                             </button>
                         </div>
@@ -1080,7 +1080,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-black text-ds-text">{title}</h3>
-                    <button onClick={onClose} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                    <button onClick={onClose} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm">
                         <X className="w-5 h-5 text-ds-soft" />
                     </button>
                 </div>
@@ -1112,7 +1112,7 @@ export default function AdminEconomy() {
         <div className="panel-scale space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">
+                <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn">
                     <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
                 <div>

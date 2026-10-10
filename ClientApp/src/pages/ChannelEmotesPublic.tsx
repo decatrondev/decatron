@@ -134,7 +134,7 @@ export default function ChannelEmotesPublic() {
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder={t('public.search')}
-                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-lg bg-pub-surface border border-pub-border text-ds-text text-sm 3xl:text-base focus:outline-none focus:border-pub-accent/60"
+                                className="ds-input flex-1 min-w-[12rem]"
                             />
                             <span className="font-mono text-xs 3xl:text-sm text-ds-soft">{t('public.count', { count: data.emotes.length })}</span>
                         </div>

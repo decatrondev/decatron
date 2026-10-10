@@ -52,7 +52,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           value={currentLanguage || 'es'}
           onChange={(e) => handleLanguageChange(e.target.value as Language)}
           disabled={isLoading}
-          className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="ds-input block w-full"
         >
           {languages.map((lang) => (
             <option key={lang.code} value={lang.code}>

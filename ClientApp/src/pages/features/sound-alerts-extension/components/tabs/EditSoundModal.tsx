@@ -162,7 +162,7 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
 
                 {/* Footer */}
                 <div className="flex gap-3 p-5 border-t border-ds-border">
-                    <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-ds-border text-ds-soft text-sm font-medium hover:bg-ds-bg transition-colors">
+                    <button onClick={onClose} className="ds-btn ds-btn--secondary flex-1">
                         Cancelar
                     </button>
                     <button

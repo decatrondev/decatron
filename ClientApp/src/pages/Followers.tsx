@@ -677,7 +677,7 @@ export default function Followers() {
                     </div>
                     <button
                         onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                        className="px-6 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-all flex items-center gap-2"
+                        className="ds-btn ds-btn--secondary ds-btn--lg"
                     >
                         <Filter className="w-5 h-5" />
                         Filtros
@@ -747,7 +747,7 @@ export default function Followers() {
                             </button>
                             <button
                                 onClick={handleClearFilters}
-                                className="px-6 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--secondary ds-btn--lg"
                             >
                                 Limpiar
                             </button>
@@ -910,7 +910,7 @@ export default function Followers() {
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => handleViewHistory(follower)}
-                                                    className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
+                                                    className="ds-btn ds-btn--ghost ds-icon-btn"
                                                     title="Ver historial"
                                                 >
                                                     <History className="w-4 h-4 text-ds-accent-text" />
@@ -1041,7 +1041,7 @@ export default function Followers() {
                             </h2>
                             <button
                                 onClick={() => setShowHistoryModal(false)}
-                                className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -1080,7 +1080,7 @@ export default function Followers() {
                         <div className="mt-6 flex justify-end">
                             <button
                                 onClick={() => setShowHistoryModal(false)}
-                                className="px-6 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--secondary ds-btn--lg"
                             >
                                 Cerrar
                             </button>

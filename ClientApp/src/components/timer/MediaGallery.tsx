@@ -407,7 +407,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                         <button
                             onClick={() => downloadZip()}
                             disabled={filteredFiles.length === 0}
-                            className="px-4 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <Download className="w-4 h-4" />
                             Descargar todo
@@ -510,7 +510,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                             <button
                                 onClick={handleMoveSelected}
                                 disabled={!moveTarget}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-ds-surface text-ds-soft rounded-lg hover:bg-ds-bg disabled:opacity-50"
+                                className="ds-btn ds-btn--secondary ds-btn--sm"
                             >
                                 <FolderInput className="w-3 h-3" /> Mover
                             </button>
@@ -666,7 +666,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                         setNewFileName(file.originalFileName);
                                         setShowRenameModal(true);
                                     }}
-                                    className="px-2 py-1.5 text-xs bg-ds-surface text-ds-soft rounded hover:bg-ds-bg flex items-center justify-center"
+                                    className="ds-btn ds-btn--secondary ds-btn--sm"
                                     title="Renombrar"
                                 >
                                     <Edit2 className="w-3 h-3" />
@@ -774,7 +774,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                 <button
                                     onClick={() => setShowUploadModal(false)}
                                     disabled={uploading}
-                                    className="flex-1 px-4 py-2 border border-ds-border rounded-lg text-ds-text hover:bg-ds-surface disabled:opacity-50"
+                                    className="ds-btn ds-btn--secondary flex-1"
                                 >
                                     Cancelar
                                 </button>
@@ -821,7 +821,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowRenameModal(false)}
-                                    className="flex-1 px-4 py-2 border border-ds-border rounded-lg text-ds-text hover:bg-ds-surface"
+                                    className="ds-btn ds-btn--secondary flex-1"
                                 >
                                     Cancelar
                                 </button>

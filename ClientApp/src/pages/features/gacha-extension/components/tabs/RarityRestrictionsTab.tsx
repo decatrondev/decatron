@@ -180,7 +180,7 @@ export const RarityRestrictionsTab: React.FC = () => {
                     <div className="bg-ds-surface rounded-lg border border-ds-border p-6 w-full max-w-lg space-y-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between">
                             <h3 className="text-xl font-black text-ds-text">Nueva Restriccion</h3>
-                            <button onClick={() => setShowModal(false)} className="p-1 hover:bg-ds-bg rounded-lg"><X className="w-5 h-5 text-ds-soft" /></button>
+                            <button onClick={() => setShowModal(false)} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"><X className="w-5 h-5 text-ds-soft" /></button>
                         </div>
 
                         <div>

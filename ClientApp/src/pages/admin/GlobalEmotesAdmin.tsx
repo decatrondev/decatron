@@ -138,7 +138,7 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
             <div className={embedded ? 'space-y-6' : 'panel-scale max-w-[1200px] mx-auto space-y-6'}>
                 {!embedded && <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/admin')} aria-label={t('global.back')}
-                        className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg">
+                        className="ds-btn ds-btn--secondary ds-icon-btn">
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
@@ -268,7 +268,7 @@ export default function GlobalEmotesAdmin({ embedded = false }: { embedded?: boo
                                 {managers.map(m => (
                                     <li key={m.id} className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-ds-raised text-sm text-ds-text">
                                         {m.login}
-                                        <button className="p-1 rounded-full hover:bg-ds-raised" title={t('global.remove')} aria-label={t('global.remove')} onClick={() => removeManager(m)}><X className="w-3.5 h-3.5" /></button>
+                                        <button className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm" title={t('global.remove')} aria-label={t('global.remove')} onClick={() => removeManager(m)}><X className="w-3.5 h-3.5" /></button>
                                     </li>
                                 ))}
                             </ul>

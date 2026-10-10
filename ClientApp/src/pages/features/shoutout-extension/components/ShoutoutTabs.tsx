@@ -441,7 +441,7 @@ export function TextTab({ cfg }: TabProps) {
             <Card title={t('shoutout.text.variablesTitle')} description={t('shoutout.text.variablesDescription')}>
                 <div className="flex flex-wrap gap-2">
                     {VARIABLES.map(v => (
-                        <button key={v} onMouseDown={ev => ev.preventDefault()} onClick={() => insertVariable(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-ds-raised text-ds-text hover:bg-ds-raised" title={t(`shoutout.text.vars.${v.slice(1)}`)}>
+                        <button key={v} onMouseDown={ev => ev.preventDefault()} onClick={() => insertVariable(v)} className="ds-btn ds-btn--secondary ds-btn--sm" title={t(`shoutout.text.vars.${v.slice(1)}`)}>
                             {v}
                         </button>
                     ))}
@@ -685,7 +685,7 @@ export function AutoTab({ cfg }: TabProps) {
                             </Field>
                             <div className="flex flex-wrap gap-2">
                                 {chatVars.map(v => (
-                                    <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-ds-raised text-ds-text hover:bg-ds-raised">{v}</button>
+                                    <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} className="ds-btn ds-btn--secondary ds-btn--sm">{v}</button>
                                 ))}
                             </div>
                             <div className="rounded-lg bg-ds-bg border border-ds-border p-3 text-sm 3xl:text-base">

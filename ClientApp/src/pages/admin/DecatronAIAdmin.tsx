@@ -274,7 +274,7 @@ export default function DecatronAIAdmin() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-ds-bg rounded-lg border border-ds-border">
+                    <button onClick={() => navigate('/dashboard')} className="ds-btn ds-btn--secondary ds-icon-btn">
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
@@ -547,7 +547,7 @@ export default function DecatronAIAdmin() {
                             <h2 className="text-xl font-black text-ds-text">
                                 Configurar: {editingChannel}
                             </h2>
-                            <button onClick={() => setEditingChannel(null)} className="p-2 hover:bg-ds-bg rounded-lg">
+                            <button onClick={() => setEditingChannel(null)} className="ds-btn ds-btn--ghost ds-icon-btn">
                                 <X className="w-5 h-5 text-ds-soft" />
                             </button>
                         </div>

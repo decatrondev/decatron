@@ -350,7 +350,7 @@ export default function ProjectAnalysis() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/admin')}
-                        className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn"
                     >
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
@@ -365,7 +365,7 @@ export default function ProjectAnalysis() {
                 <button
                     onClick={() => load(true)}
                     disabled={refreshing}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-ds-border text-xs font-bold text-ds-text hover:bg-ds-bg transition-colors disabled:opacity-50"
+                    className="ds-btn ds-btn--secondary"
                 >
                     <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
                     {refreshing ? 'Recalculando…' : 'Recalcular'}

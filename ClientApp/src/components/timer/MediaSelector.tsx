@@ -66,7 +66,7 @@ export default function MediaSelector({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                     >
                         <X className="w-6 h-6 text-ds-soft" />
                     </button>
@@ -172,7 +172,7 @@ export default function MediaSelector({
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 border border-ds-border rounded-lg text-ds-soft hover:bg-ds-bg font-semibold transition-colors"
+                            className="ds-btn ds-btn--secondary"
                         >
                             Cancelar
                         </button>

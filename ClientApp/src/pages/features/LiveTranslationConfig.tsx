@@ -134,7 +134,7 @@ export default function LiveTranslationConfig() {
         <div className="panel-scale max-w-[1200px] mx-auto space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/features')} className="p-2 rounded-lg hover:bg-ds-bg">
+                    <button onClick={() => navigate('/features')} className="ds-btn ds-btn--ghost ds-icon-btn">
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
@@ -260,7 +260,7 @@ export default function LiveTranslationConfig() {
                                 const on = settings.targetLanguages.includes(l);
                                 return (
                                     <button key={l} type="button" disabled={!canEdit} onClick={() => toggleLang(l)}
-                                            className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${on ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'border-ds-border text-ds-text hover:border-[#9146FF]'}`}>
+                                            className="ds-btn ds-btn--secondary ds-btn--sm">
                                         {LANG_NAMES[l] || l}
                                     </button>
                                 );

@@ -109,7 +109,7 @@ export default function AdminDonations() {
                     <button
                         onClick={refresh}
                         title={t('donations.refresh')}
-                        className="p-2 rounded-lg border border-ds-border bg-ds-surface hover:bg-ds-bg transition-colors"
+                        className="ds-btn ds-btn--secondary ds-icon-btn"
                     >
                         <RefreshCw className="w-4 h-4 text-ds-soft" />
                     </button>

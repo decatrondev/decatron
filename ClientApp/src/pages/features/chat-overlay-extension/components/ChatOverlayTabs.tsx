@@ -54,7 +54,7 @@ function TagInput({ values, onChange, placeholder, normalize }: { values: string
                     {values.map(v => (
                         <span key={v} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft">
                             {v}
-                            <button type="button" onClick={() => onChange(values.filter(x => x !== v))} aria-label={t('chat.remove', { name: v })} className="p-0.5 rounded-full hover:bg-ds-raised">
+                            <button type="button" onClick={() => onChange(values.filter(x => x !== v))} aria-label={t('chat.remove', { name: v })} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm">
                                 <X className="w-3.5 h-3.5" />
                             </button>
                         </span>

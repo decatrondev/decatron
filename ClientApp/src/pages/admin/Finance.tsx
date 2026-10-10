@@ -56,21 +56,21 @@ export default function Finance() {
         <div className="panel-scale space-y-6 max-w-6xl mx-auto">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/admin')} className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
+                    <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--secondary ds-icon-btn"><ArrowLeft className="w-5 h-5 text-ds-soft" /></button>
                     <div>
                         <h1 className="text-3xl font-black text-ds-text">Finanzas</h1>
                         <p className={`${muted} mt-1`}>Ingresos, costos y beneficio de la plataforma. Las pruebas no cuentan.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {[3, 12, 24].map(m => <button key={m} onClick={() => setMonths(m)} className={`px-3 py-1.5 rounded-lg text-xs border ${months === m ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'border-ds-border text-ds-soft'}`}>{m} meses</button>)}
+                    {[3, 12, 24].map(m => <button key={m} onClick={() => setMonths(m)} className="ds-btn ds-btn--secondary ds-btn--sm">{m} meses</button>)}
                     <button onClick={load} className="p-2 rounded-lg border border-ds-border"><RefreshCw className={`w-4 h-4 text-ds-soft ${loading ? 'animate-spin' : ''}`} /></button>
                 </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
                 {([['resumen', 'Resumen'], ['ingresos', 'Ingresos'], ['costos', 'Costos'], ['creditos', 'Créditos'], ['tarifas', 'Tarifas'], ['ajustes', 'Ajustes']] as const).map(([k, label]) => (
-                    <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 rounded-lg text-sm font-bold border ${tab === k ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'bg-ds-surface border-ds-border text-ds-soft '}`}>{label}</button>
+                    <button key={k} onClick={() => setTab(k)} className="ds-btn ds-btn--secondary">{label}</button>
                 ))}
             </div>
 

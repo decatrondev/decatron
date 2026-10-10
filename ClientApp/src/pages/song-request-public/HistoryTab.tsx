@@ -99,7 +99,7 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
                 <button
                     disabled={loading}
                     onClick={() => load(page + 1, false)}
-                    className="mt-4 w-full py-2.5 rounded border border-pub-border font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft hover:border-pub-accent/60 hover:text-ds-text disabled:opacity-50 transition-colors"
+                    className="ds-btn ds-btn--secondary mt-4 w-full"
                 >
                     {loading ? t('songRequestPublic.loading') : t('songRequestPublic.history.more')}
                 </button>

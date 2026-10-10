@@ -154,7 +154,7 @@ export default function TcgDex() {
                             <button
                                 onClick={() => updateParams({ page: String(page - 1) })}
                                 disabled={page <= 1}
-                                className="p-2 rounded-lg bg-ds-bg border border-ds-border disabled:opacity-30 text-ds-text"
+                                className="ds-btn ds-btn--secondary ds-icon-btn"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
@@ -162,7 +162,7 @@ export default function TcgDex() {
                             <button
                                 onClick={() => updateParams({ page: String(page + 1) })}
                                 disabled={page >= totalPages}
-                                className="p-2 rounded-lg bg-ds-bg border border-ds-border disabled:opacity-30 text-ds-text"
+                                className="ds-btn ds-btn--secondary ds-icon-btn"
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>

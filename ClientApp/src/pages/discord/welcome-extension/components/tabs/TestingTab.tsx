@@ -101,7 +101,7 @@ export default function TestingTab({ welcomeEnabled, goodbyeEnabled, welcomeChan
           <button
             onClick={() => handleTest('goodbye')}
             disabled={testingType !== null || !goodbyeEnabled || !goodbyeChannelId}
-            className="w-full px-4 py-3 bg-ds-raised hover:bg-ds-accent-hover text-ds-text font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-gray-500/20"
+            className="ds-btn ds-btn--secondary ds-btn--lg w-full"
           >
             {testingType === 'goodbye' ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>

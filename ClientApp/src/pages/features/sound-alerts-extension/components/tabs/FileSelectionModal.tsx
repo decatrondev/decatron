@@ -71,7 +71,7 @@ export function FileSelectionModal({
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-ds-text flex items-center gap-2">
                                 {showGallery && (
-                                    <button onClick={() => setShowGallery(false)} className="p-1 rounded hover:bg-ds-bg">
+                                    <button onClick={() => setShowGallery(false)} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm">
                                         <ChevronLeft className="w-5 h-5 text-ds-soft" />
                                     </button>
                                 )}
@@ -192,7 +192,7 @@ export function FileSelectionModal({
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={closeDialog}
-                                className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-soft font-semibold rounded-lg transition-all"
+                                className="ds-btn ds-btn--secondary"
                             >
                                 {t('soundAlertsTabs.cancel')}
                             </button>
@@ -353,7 +353,7 @@ export function FileSelectionModal({
                                     setImageSource('upload');
                                     setImageUrlInput('');
                                 }}
-                                className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-soft font-semibold rounded-lg transition-all"
+                                className="ds-btn ds-btn--secondary"
                             >
                                 {t('soundAlertsTabs.cancel')}
                             </button>

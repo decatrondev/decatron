@@ -264,7 +264,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                     setShowCancelModal(false);
                                     setCancelReason('');
                                 }}
-                                className="flex-1 px-4 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg font-bold transition-colors"
+                                className="ds-btn ds-btn--secondary ds-btn--lg flex-1"
                             >
                                 Volver
                             </button>

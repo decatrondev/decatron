@@ -132,7 +132,7 @@ function TemplatesCard({ layout, onChange, elementIds, templates: store }: Desig
                             </div>
                             <button
                                 onClick={() => onChange(onlyOffered(structuredClone(tpl.layout), elementIds))}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
+                                className="ds-btn ds-btn--secondary ds-btn--sm"
                             >
                                 <Check className="w-3.5 h-3.5" /> {t('musicOverlay.templates.apply')}
                             </button>
@@ -276,7 +276,7 @@ export function TypographyTab(props: DesignProps) {
                             <select className={inputClass} value={style.fontFamily} onChange={e => setText({ fontFamily: e.target.value })} style={{ fontFamily: `'${style.fontFamily}'` }}>
                                 {FONT_FAMILIES.map(f => <option key={f} value={f} style={{ fontFamily: `'${f}'` }}>{f}</option>)}
                             </select>
-                            <button onClick={applyFontToAll} className="px-3 py-2 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised shrink-0" title={t('musicOverlay.typography.applyAllHint')}>
+                            <button onClick={applyFontToAll} className="ds-btn ds-btn--secondary shrink-0" title={t('musicOverlay.typography.applyAllHint')}>
                                 {t('musicOverlay.typography.applyAll')}
                             </button>
                         </div>

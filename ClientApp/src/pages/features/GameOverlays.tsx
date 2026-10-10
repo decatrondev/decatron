@@ -142,7 +142,7 @@ const GameOverlays: React.FC = () => {
         <div className="space-y-6 max-w-[1400px] mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/overlays')} className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-raised transition-colors">
+                    <button onClick={() => navigate('/overlays')} className="ds-btn ds-btn--secondary ds-icon-btn">
                         <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>

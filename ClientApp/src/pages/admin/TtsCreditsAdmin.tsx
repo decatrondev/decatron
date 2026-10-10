@@ -209,7 +209,7 @@ export default function TtsCreditsAdmin() {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
+                    className="ds-btn ds-btn--secondary ds-icon-btn"
                 >
                     <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>
@@ -255,7 +255,7 @@ export default function TtsCreditsAdmin() {
                             </select>
                             <button
                                 onClick={previewBatch}
-                                className="mt-2 px-3 py-1 rounded-lg border border-ds-border text-xs font-bold text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-colors"
+                                className="ds-btn ds-btn--secondary ds-btn--sm mt-2"
                             >
                                 Ver a cuántos alcanza
                             </button>
@@ -489,7 +489,7 @@ export default function TtsCreditsAdmin() {
                                     <button
                                         key={n}
                                         onClick={() => setAmount(String(n))}
-                                        className="px-3 py-1 rounded-lg border border-ds-border text-xs font-bold text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-colors"
+                                        className="ds-btn ds-btn--secondary ds-btn--sm"
                                     >
                                         {n.toLocaleString()}
                                     </button>
@@ -659,7 +659,7 @@ function UsageSection() {
                     <p className="text-xs text-ds-soft">Lo que cuesta dinero de verdad, por canal y por concepto. 1M créditos ≈ ${data ? (data.creditUsd * 1_000_000).toFixed(0) : '4'}.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={`px-3 py-1 rounded-lg text-xs border ${days === d ? 'bg-[#9146FF] border-[#9146FF] text-ds-text' : 'border-ds-border text-ds-soft'}`}>{d} días</button>)}
+                    {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className="ds-btn ds-btn--secondary ds-btn--sm">{d} días</button>)}
                 </div>
             </div>
             {!data ? <p className="text-xs text-ds-soft">{loading ? 'Cargando…' : 'Sin datos.'}</p> : (

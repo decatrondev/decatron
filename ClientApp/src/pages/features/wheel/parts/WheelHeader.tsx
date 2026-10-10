@@ -30,7 +30,7 @@ export function WheelHeader({
             <div className="flex items-center gap-4">
                 <button
                     onClick={onBack}
-                    className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors"
+                    className="ds-btn ds-btn--secondary ds-icon-btn"
                     aria-label={t('wheel.back')}
                 >
                     <ArrowLeft className="w-5 h-5 text-ds-soft" />

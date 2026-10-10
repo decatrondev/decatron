@@ -97,7 +97,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
             >
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-black text-ds-text">{title}</h3>
-                    <button onClick={onClose} className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors">
+                    <button onClick={onClose} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm">
                         <X className="w-5 h-5 text-ds-soft" />
                     </button>
                 </div>
@@ -425,7 +425,7 @@ function SpritesTab() {
                                             <div className="flex items-center justify-center gap-1">
                                                 <button
                                                     onClick={() => { setModal({ mode: 'edit', data: { ...sprite } }); setSaveError(null); }}
-                                                    className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors"
+                                                    className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                                     title="Editar"
                                                 >
                                                     <Pencil className="w-4 h-4 text-ds-soft" />
@@ -552,7 +552,7 @@ function SpritesTab() {
                         <div className="flex justify-end gap-3 pt-4">
                             <button
                                 onClick={() => setModal(null)}
-                                className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold"
+                                className="ds-btn ds-btn--secondary"
                             >
                                 Cancelar
                             </button>
@@ -579,7 +579,7 @@ function SpritesTab() {
                         <div className="flex justify-end gap-3 pt-2">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
-                                className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold"
+                                className="ds-btn ds-btn--secondary"
                             >
                                 Cancelar
                             </button>
@@ -712,7 +712,7 @@ export default function AdminFortnite() {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
+                    className="ds-btn ds-btn--ghost ds-icon-btn"
                 >
                     <ArrowLeft className="w-5 h-5 text-ds-soft" />
                 </button>

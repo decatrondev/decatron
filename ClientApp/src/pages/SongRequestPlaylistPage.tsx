@@ -199,7 +199,7 @@ export default function SongRequestPlaylistPage() {
                                                             onClick={() => requestToStream(item)}
                                                             disabled={requesting === item.id}
                                                             title={stream?.mode === 'review' ? t('songRequestPublic.listen.requestReviewHint') : t('songRequestPublic.listen.requestHint')}
-                                                            className="shrink-0 px-2 py-1 rounded font-mono text-xs 3xl:text-sm 4xl:text-base border border-pub-border text-ds-soft hover:border-pub-accent/60 hover:text-pub-accent-hi disabled:opacity-50 transition-colors"
+                                                            className="ds-btn ds-btn--secondary ds-btn--sm shrink-0"
                                                         >
                                                             {requesting === item.id ? '…' : t('songRequestPublic.listen.request')}
                                                         </button>

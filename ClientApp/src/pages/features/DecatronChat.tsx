@@ -962,7 +962,7 @@ ${code}
                                 </button>
                                 <button
                                     onClick={() => setShowPreview(false)}
-                                    className="px-4 py-2 bg-ds-raised hover:bg-ds-border text-ds-text rounded-lg transition-colors font-semibold"
+                                    className="ds-btn ds-btn--secondary"
                                 >
                                     {t('decatronChat.close')}
                                 </button>

@@ -252,7 +252,7 @@ export const PreferencesTab: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex gap-2 pt-2">
-                            <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">Cancelar</button>
+                            <button onClick={() => setShowModal(false)} className="ds-btn ds-btn--secondary flex-1">Cancelar</button>
                             <button onClick={handleSave} disabled={saving || !form.itemId} className="ds-btn ds-btn--primary flex-1">
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>

@@ -87,7 +87,7 @@ export function SegmentRow({
                         value={segment.label}
                         onChange={e => onChange({ label: e.target.value })}
                         placeholder={t('wheel.segments.labelPlaceholder')}
-                        className="w-full min-w-0 px-2 py-1.5 bg-transparent border border-transparent hover:border-ds-border focus:border-ds-accent focus:bg-ds-bg rounded-lg text-ds-text font-semibold focus:outline-none transition-colors"
+                        className="ds-input w-full min-w-0"
                     />
                 </div>
 
@@ -134,7 +134,7 @@ export function SegmentRow({
                 <div className="flex items-center gap-0.5 ml-auto">
                     <button
                         onClick={() => onChange({ isEnabled: !segment.isEnabled })}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                         aria-label={segment.isEnabled ? t('wheel.segments.disable') : t('wheel.segments.enable')}
                     >
                         {segment.isEnabled
@@ -143,7 +143,7 @@ export function SegmentRow({
                     </button>
                     <button
                         onClick={onToggle}
-                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
+                        className="ds-btn ds-btn--ghost ds-icon-btn"
                         aria-expanded={open}
                         aria-label={open ? t('wheel.segments.collapse') : t('wheel.segments.expand')}
                     >

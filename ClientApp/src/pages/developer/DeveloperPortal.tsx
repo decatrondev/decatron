@@ -315,7 +315,7 @@ export default function DeveloperPortal() {
                                             </code>
                                             <button
                                                 onClick={() => copyToClipboard(selectedApp.client_id, 'Client ID')}
-                                                className="p-1.5 hover:bg-ds-raised rounded-lg transition-colors"
+                                                className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                             >
                                                 <Copy className="w-4 h-4 text-ds-soft" />
                                             </button>
@@ -336,13 +336,13 @@ export default function DeveloperPortal() {
                                                     </code>
                                                     <button
                                                         onClick={() => setShowSecret(!showSecret)}
-                                                        className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
+                                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                                     >
                                                         {showSecret ? <EyeOff className="w-4 h-4 text-ds-soft" /> : <Eye className="w-4 h-4 text-ds-soft" />}
                                                     </button>
                                                     <button
                                                         onClick={() => copyToClipboard(newSecret, 'Client Secret')}
-                                                        className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
+                                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                                     >
                                                         <Copy className="w-4 h-4 text-ds-soft" />
                                                     </button>
@@ -428,7 +428,7 @@ export default function DeveloperPortal() {
                                         <>
                                             <button
                                                 onClick={() => navigate(`/developer/apps/${selectedApp.id}/edit`)}
-                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-ds-bg hover:bg-ds-raised text-ds-text font-bold rounded-lg transition-colors text-sm"
+                                                className="ds-btn ds-btn--secondary flex-1"
                                             >
                                                 <Pencil className="w-4 h-4" />
                                                 Editar

@@ -381,14 +381,14 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
                     onChange={e => setUsername(e.target.value)}
                     placeholder="Usuario (ej. minightbot)"
                     maxLength={40}
-                    className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
+                    className="ds-input"
                 />
                 <input
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     placeholder="Nombre (opcional)"
                     maxLength={100}
-                    className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
+                    className="ds-input"
                 />
                 <select
                     value={category}
@@ -479,14 +479,14 @@ function CatalogEditor({ bots, onChanged, onError }: {
                             onChange={e => setForm({ ...form, username: e.target.value })}
                             placeholder="Usuario"
                             maxLength={40}
-                            className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
+                            className="ds-input"
                         />
                         <input
                             value={form.displayName}
                             onChange={e => setForm({ ...form, displayName: e.target.value })}
                             placeholder="Nombre"
                             maxLength={100}
-                            className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
+                            className="ds-input"
                         />
                         <select
                             value={form.category}
@@ -501,11 +501,11 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         onChange={e => setForm({ ...form, notes: e.target.value })}
                         placeholder="Notas (opcional)"
                         maxLength={300}
-                        className="w-full px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
+                        className="ds-input w-full"
                     />
                     <div className="flex gap-2">
                         <button onClick={save} className="ds-btn ds-btn--primary">Guardar</button>
-                        <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg border border-ds-border text-ds-text font-semibold text-sm">Cancelar</button>
+                        <button onClick={() => setEditing(null)} className="ds-btn ds-btn--secondary">Cancelar</button>
                     </div>
                 </div>
             )}

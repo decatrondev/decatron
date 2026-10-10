@@ -245,7 +245,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <button className="flex items-center gap-2 px-3 py-1.5 bg-ds-bg text-ds-soft hover:text-ds-accent-text rounded-lg text-sm transition-colors">
+                        <button className="ds-btn ds-btn--secondary ds-btn--sm">
                             <Download className="w-4 h-4" />
                             Exportar
                         </button>

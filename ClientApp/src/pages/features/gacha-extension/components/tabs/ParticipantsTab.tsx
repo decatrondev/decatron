@@ -404,7 +404,7 @@ export const ParticipantsTab: React.FC = () => {
                                                                     loadParticipants();
                                                                 } catch (err) { console.error(err); }
                                                             }}
-                                                            className="px-3 py-1.5 text-xs font-bold rounded-lg bg-ds-surface text-ds-soft hover:bg-ds-bg transition-colors flex items-center gap-1"
+                                                            className="ds-btn ds-btn--secondary ds-btn--sm"
                                                         >
                                                             <Eye className="w-3 h-3" /> Restaurar Nombre
                                                         </button>

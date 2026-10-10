@@ -67,7 +67,7 @@ export function GuideTab({ wheel, overlayUrl, copied, hasLayout, onCopy, onNavig
                             </code>
                             <button
                                 onClick={onCopy}
-                                className="p-2 bg-ds-bg hover:bg-ds-raised border border-ds-border rounded-lg transition-colors"
+                                className="ds-btn ds-btn--secondary ds-icon-btn"
                                 aria-label={t('wheel.overlayUrl.copy')}
                             >
                                 {copied ? <Check className="w-4 h-4 text-ds-ok" /> : <Copy className="w-4 h-4 text-ds-soft" />}

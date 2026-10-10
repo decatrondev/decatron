@@ -816,7 +816,7 @@ export default function MeCoins() {
                                 </button>
                                 <button
                                     onClick={copyReferralLink}
-                                    className="flex items-center gap-2 px-4 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg transition-all font-semibold text-sm"
+                                    className="ds-btn ds-btn--secondary ds-btn--lg"
                                 >
                                     <Link className="w-4 h-4" />
                                     Link

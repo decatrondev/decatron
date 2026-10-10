@@ -64,7 +64,7 @@ export function SupportersTab() {
                         Limpiar
                     </button>
                 )}
-                <button onClick={load} className="p-2.5 border border-ds-border rounded-lg bg-ds-surface hover:bg-ds-bg transition-colors ml-auto">
+                <button onClick={load} className="ds-btn ds-btn--secondary ds-icon-btn ml-auto">
                     <RefreshCw className="w-4 h-4 text-ds-soft" />
                 </button>
                 <span className="text-sm text-ds-soft whitespace-nowrap">{total} supporters</span>
@@ -153,10 +153,10 @@ export function SupportersTab() {
                     <div className="flex items-center justify-between px-5 py-3 border-t border-ds-border bg-ds-bg">
                         <p className="text-sm text-ds-soft">Página {page} de {totalPages}</p>
                         <div className="flex items-center gap-1">
-                            <button onClick={() => setPage(p => p - 1)} disabled={page === 1} className="p-2 rounded-lg border border-ds-border bg-ds-surface disabled:opacity-40 hover:bg-ds-bg transition-colors">
+                            <button onClick={() => setPage(p => p - 1)} disabled={page === 1} className="ds-btn ds-btn--secondary ds-icon-btn">
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
-                            <button onClick={() => setPage(p => p + 1)} disabled={page === totalPages} className="p-2 rounded-lg border border-ds-border bg-ds-surface disabled:opacity-40 hover:bg-ds-bg transition-colors">
+                            <button onClick={() => setPage(p => p + 1)} disabled={page === totalPages} className="ds-btn ds-btn--secondary ds-icon-btn">
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>

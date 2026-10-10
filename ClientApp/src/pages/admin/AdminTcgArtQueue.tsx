@@ -83,7 +83,7 @@ export default function AdminTcgArtQueue() {
         <div className="panel-scale space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/admin')} className="p-2 hover:bg-ds-raised rounded-lg transition-colors">
+                    <button onClick={() => navigate('/admin')} className="ds-btn ds-btn--ghost ds-icon-btn">
                         <ArrowLeft className="w-5 h-5 text-ds-text" />
                     </button>
                     <div>

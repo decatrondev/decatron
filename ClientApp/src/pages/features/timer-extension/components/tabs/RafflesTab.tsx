@@ -838,7 +838,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                 <div className="bg-ds-surface rounded-lg max-w-2xl w-full max-h-[90vh] border border-ds-border flex flex-col">
                                     <div className="p-6 border-b border-ds-border flex justify-between items-center sticky top-0 bg-ds-surface z-10 rounded-t-2xl">
                                         <h2 className="text-xl font-black text-ds-text">Nuevo Sorteo</h2>
-                                        <button onClick={() => setShowCreateForm(false)} className="p-2 hover:bg-ds-bg rounded-lg">
+                                        <button onClick={() => setShowCreateForm(false)} className="ds-btn ds-btn--ghost ds-icon-btn">
                                             <X className="w-5 h-5 text-ds-soft" />
                                         </button>
                                     </div>
@@ -1189,7 +1189,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         <h2 className="text-lg font-black text-ds-text flex items-center gap-2">
                                             <DownloadCloud className="w-5 h-5" /> Importar de Sesión
                                         </h2>
-                                        <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-ds-bg rounded-lg">
+                                        <button onClick={() => setShowImportModal(false)} className="ds-btn ds-btn--ghost ds-icon-btn">
                                             <X className="w-5 h-5 text-ds-soft" />
                                         </button>
                                     </div>

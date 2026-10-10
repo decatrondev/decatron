@@ -341,7 +341,7 @@ export function SettingsTab({ s }: TabProps) {
                         {s.uploaders.map(u => (
                             <span key={u.id} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft">
                                 {u.login} <span className="opacity-60 font-normal">({u.platform})</span>
-                                <button type="button" onClick={() => s.removeUploader(u.id)} aria-label={t('settings.remove', { name: u.login })} className="p-0.5 rounded-full hover:bg-ds-raised"><X className="w-3.5 h-3.5" /></button>
+                                <button type="button" onClick={() => s.removeUploader(u.id)} aria-label={t('settings.remove', { name: u.login })} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"><X className="w-3.5 h-3.5" /></button>
                             </span>
                         ))}
                     </div>

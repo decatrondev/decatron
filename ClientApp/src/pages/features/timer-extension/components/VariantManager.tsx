@@ -95,7 +95,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                             type="number"
                             value={newVariantThreshold}
                             onChange={(e) => setNewVariantThreshold(Number(e.target.value))}
-                            className="w-20 px-2 py-1 text-xs border border-ds-border rounded bg-transparent text-ds-text"
+                            className="ds-input w-20"
                             autoFocus
                         />
                         <button
@@ -106,7 +106,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                         </button>
                         <button
                             onClick={() => setIsCreating(false)}
-                            className="px-2 py-1 bg-ds-raised text-ds-soft rounded text-xs font-bold"
+                            className="ds-btn ds-btn--secondary ds-btn--sm"
                         >
                             X
                         </button>

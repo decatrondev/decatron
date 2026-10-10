@@ -151,7 +151,7 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                         <h3 className="text-sm font-bold text-ds-text">{t('timerAdvanced.myCustomTemplates')}</h3>
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="px-4 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold text-sm"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <Plus className="w-4 h-4" />
                             {t('timerAdvanced.createTemplate')}
@@ -174,7 +174,7 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                                             {template.description && <p className="text-xs text-ds-soft mt-1">{template.description}</p>}
                                         </div>
                                         <div className="flex gap-2 flex-shrink-0">
-                                            <button onClick={() => onOpenApplyModal(template)} className="px-3 py-1.5 bg-ds-raised hover:bg-ds-raised text-ds-text rounded text-xs font-bold transition-colors">{t('timerAdvanced.apply')}</button>
+                                            <button onClick={() => onOpenApplyModal(template)} className="ds-btn ds-btn--secondary ds-btn--sm">{t('timerAdvanced.apply')}</button>
                                             <button onClick={() => onOpenEditModal(template)} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"><Edit2 className="w-4 h-4" /></button>
                                             <button onClick={() => onDeleteTemplate(template)} className="p-1.5 text-ds-danger hover:text-ds-danger transition-colors"><Trash2 className="w-4 h-4" /></button>
                                         </div>
@@ -197,8 +197,8 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                             <div><label className="text-xs font-bold text-ds-soft block mb-2">{t('timerAdvanced.icon')}</label><input type="text" value={templateForm.icon} onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })} maxLength={10} className="ds-input w-full" /></div>
                         </div>
                         <div className="flex gap-3 mt-6">
-                            <button onClick={() => { setShowCreateModal(false); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="flex-1 px-4 py-2 border border-ds-border rounded-lg text-ds-soft hover:text-ds-text font-bold transition-colors">{t('timerAdvanced.cancel')}</button>
-                            <button onClick={onCreateTemplate} className="flex-1 px-4 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg font-bold transition-colors">{t('timerAdvanced.createTemplate')}</button>
+                            <button onClick={() => { setShowCreateModal(false); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="ds-btn ds-btn--secondary flex-1">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={onCreateTemplate} className="ds-btn ds-btn--secondary flex-1">{t('timerAdvanced.createTemplate')}</button>
                         </div>
                     </div>
                 </div>
@@ -215,8 +215,8 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                             <div><label className="text-xs font-bold text-ds-soft block mb-2">{t('timerAdvanced.icon')}</label><input type="text" value={templateForm.icon} onChange={(e) => setTemplateForm({ ...templateForm, icon: e.target.value })} maxLength={10} className="ds-input w-full" /></div>
                         </div>
                         <div className="flex gap-3 mt-6">
-                            <button onClick={() => { setShowEditModal(false); setSelectedTemplate(null); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="flex-1 px-4 py-2 border border-ds-border rounded-lg text-ds-soft hover:text-ds-text font-bold transition-colors">{t('timerAdvanced.cancel')}</button>
-                            <button onClick={onEditTemplate} className="flex-1 px-4 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg font-bold transition-colors">{t('timerAdvanced.saveChanges')}</button>
+                            <button onClick={() => { setShowEditModal(false); setSelectedTemplate(null); setTemplateForm({ name: '', description: '', icon: '📋' }); }} className="ds-btn ds-btn--secondary flex-1">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={onEditTemplate} className="ds-btn ds-btn--secondary flex-1">{t('timerAdvanced.saveChanges')}</button>
                         </div>
                     </div>
                 </div>
@@ -242,8 +242,8 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                         </div>
                         <div className="mt-4 p-3 bg-ds-warn/10 rounded-lg"><p className="text-xs text-ds-warn">{t('timerAdvanced.applyWarning')}</p></div>
                         <div className="flex gap-3 mt-6">
-                            <button onClick={() => { setShowApplyModal(false); setSelectedTemplate(null); }} className="flex-1 px-4 py-2 border border-ds-border rounded-lg text-ds-soft hover:text-ds-text font-bold transition-colors">{t('timerAdvanced.cancel')}</button>
-                            <button onClick={onApplyTemplate} className="flex-1 px-4 py-2 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg font-bold transition-colors">{t('timerAdvanced.applyNow')}</button>
+                            <button onClick={() => { setShowApplyModal(false); setSelectedTemplate(null); }} className="ds-btn ds-btn--secondary flex-1">{t('timerAdvanced.cancel')}</button>
+                            <button onClick={onApplyTemplate} className="ds-btn ds-btn--secondary flex-1">{t('timerAdvanced.applyNow')}</button>
                         </div>
                     </div>
                 </div>

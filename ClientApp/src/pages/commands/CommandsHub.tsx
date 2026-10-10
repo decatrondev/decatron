@@ -98,7 +98,7 @@ export default function CommandsHub() {
                         <div className="flex items-center justify-end pt-4 border-t border-ds-border">
                             <button
                                 onClick={() => navigate(card.route)}
-                                className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-white rounded-lg transition-all font-semibold text-sm"
+                                className="ds-btn ds-btn--primary"
                             >
                                 <Settings className="w-4 h-4" />
                                 Configurar

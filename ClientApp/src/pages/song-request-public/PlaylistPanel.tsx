@@ -167,7 +167,7 @@ export function ContributeBox({ channel, playlist, contributor, onAdded }: { cha
                             onChange={e => setInput(e.target.value)}
                             maxLength={500}
                             placeholder={t('songRequestPublic.addPlaceholder')}
-                            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-pub-surface border border-pub-border text-ds-text text-sm 3xl:text-base 4xl:text-lg placeholder:text-ds-soft focus:outline-none focus:border-pub-accent"
+                            className="ds-input flex-1 min-w-0"
                         />
                         <button type="submit" disabled={busy || !input.trim()} className="px-4 py-2 rounded-lg bg-pub-accent text-ds-text font-bold text-sm 3xl:text-base 4xl:text-lg disabled:opacity-50 shrink-0">
                             {busy ? t('songRequestPublic.adding') : t('songRequestPublic.add')}

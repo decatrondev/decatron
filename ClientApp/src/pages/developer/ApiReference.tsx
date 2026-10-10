@@ -53,7 +53,7 @@ export default function ApiReference() {
                         <code className="flex-1 text-ds-ok font-mono">{baseUrl}</code>
                         <button
                             onClick={() => copyToClipboard(baseUrl, 'base')}
-                            className="p-2 hover:bg-ds-raised rounded transition-colors"
+                            className="ds-btn ds-btn--ghost ds-icon-btn"
                         >
                             {copiedItem === 'base' ? (
                                 <CheckCircle className="w-4 h-4 text-ds-ok" />
@@ -269,7 +269,7 @@ function EndpointRow({ method, path, description, scope, copiedItem, onCopy }: E
             )}
             <button
                 onClick={() => onCopy(path, id)}
-                className="p-1.5 hover:bg-ds-raised rounded transition-colors"
+                className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
             >
                 {copiedItem === id ? (
                     <CheckCircle className="w-4 h-4 text-ds-ok" />

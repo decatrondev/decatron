@@ -170,7 +170,7 @@ export default function EmailEditor({ templateId, onClose, onSaved }: Props) {
                         </button>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
+                            className="ds-btn ds-btn--ghost ds-icon-btn"
                         >
                             <X className="w-5 h-5 text-ds-soft" />
                         </button>

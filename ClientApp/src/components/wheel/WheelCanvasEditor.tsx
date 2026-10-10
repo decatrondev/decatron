@@ -359,7 +359,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
         const botonCubrir = (
             <button
                 onClick={() => onRectChange(id, { x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT })}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
+                className="ds-btn ds-btn--secondary ds-btn--sm"
             >
                 <Maximize2 className="w-4 h-4" /> {t('wheel.canvas.coverAll')}
             </button>
@@ -530,7 +530,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
         <button
             onClick={onClick}
             disabled={disabled}
-            className="px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised disabled:opacity-40 transition-colors flex items-center gap-1.5"
+            className="ds-btn ds-btn--secondary ds-btn--sm"
         >
             {icon}{label}
         </button>
