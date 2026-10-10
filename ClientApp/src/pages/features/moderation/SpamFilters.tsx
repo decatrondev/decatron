@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
+import { Checkbox, Field, Input } from '../../../components/ds';
+import { useToast } from '../../../components/dashboard/toast';
 import {
     FilterSwitch, fetchModerationFilters, saveModerationFilter, type FilterSeverity, type ModerationFilterState
 } from './filterSwitch';
+import { ModerationPage, NumberField, PageLoading, SaveBar, Section, SeveritySelect, StatusText, hintCls, smallHintCls } from './parts';
 
-type Field =
+type FieldDef =
     | { kind: 'number'; key: string; label: string; min: number; max: number; suffix?: string; help?: string }
     | { kind: 'check'; key: string; label: string };
 
@@ -16,7 +18,7 @@ interface SpamFilterDef {
     description: string;
     defaultMessage: string;
     defaults: Record<string, number | boolean>;
-    fields: Field[];
+    fields: FieldDef[];
     note?: string;
 }
 
@@ -110,18 +112,14 @@ interface Draft {
     message: string;
 }
 
-const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg';
-const input = 'w-full px-3 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc]';
-const text = 'text-[#1e293b] dark:text-[#f8fafc]';
-const hint = 'text-sm text-[#64748b] dark:text-[#94a3b8]';
-
 export default function SpamFilters() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { toast, showToast } = useToast();
 
     const [drafts, setDrafts] = useState<Record<string, Draft> | null>(null);
     const [saving, setSaving] = useState(false);
-    const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const showNotice = (type: 'success' | 'error', text: string) => showToast(text, type);
 
     useEffect(() => {
         if (permissionsLoading) return;
@@ -146,11 +144,6 @@ export default function SpamFilters() {
             .catch(() => showNotice('error', 'No se pudo cargar la configuración'));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permissionsLoading]);
-
-    const showNotice = (type: 'success' | 'error', text: string) => {
-        setNotice({ type, text });
-        setTimeout(() => setNotice(null), 3000);
-    };
 
     const update = (key: string, changes: Partial<Draft>) =>
         setDrafts(d => (d ? { ...d, [key]: { ...d[key], ...changes } } : d));
@@ -188,125 +181,67 @@ export default function SpamFilters() {
     if (!permissionsLoading && !hasMinimumLevel('moderation')) return null;
 
     return (
-        <div className="panel-scale bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6">
-            <div className="max-w-6xl mx-auto mb-6">
-                <button
-                    onClick={() => navigate('/moderation')}
-                    className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Volver a Moderación
-                </button>
-                <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Filtros de spam</h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                    Cada filtro viene apagado y se activa por separado. Usan la misma escala de strikes y whitelist que Palabras prohibidas.
-                </p>
-            </div>
-
-            {notice && (
-                <div className="max-w-6xl mx-auto mb-6">
-                    <div className={`flex items-center gap-2 p-4 rounded-lg ${notice.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                        : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
-                        {notice.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-                        <span className="font-semibold">{notice.text}</span>
-                    </div>
-                </div>
-            )}
-
-            {!drafts ? (
-                <p className="max-w-6xl mx-auto text-center py-12 text-[#64748b] dark:text-[#94a3b8]">Cargando…</p>
-            ) : (
-                <div className="max-w-6xl mx-auto space-y-4">
+        <ModerationPage
+            title="Filtros de spam"
+            subtitle="Cada filtro viene apagado y se activa por separado. Usan la misma escala de strikes y whitelist que Palabras prohibidas."
+            toast={toast}
+        >
+            {!drafts ? <PageLoading /> : (
+                <div className="space-y-4">
                     {SPAM_FILTERS.map(def => {
                         const d = drafts[def.key];
                         return (
-                            <div key={def.key} className={card}>
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="min-w-0">
-                                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">{def.name}</h2>
-                                        <p className={hint}>{def.description}</p>
-                                    </div>
+                            <Section
+                                key={def.key}
+                                title={def.name}
+                                hint={def.description}
+                                right={
                                     <div className="flex items-center gap-3 shrink-0">
-                                        <span className={`text-sm font-bold hidden sm:inline ${d.enabled ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}`}>
-                                            {d.enabled ? 'Activo' : 'Apagado'}
-                                        </span>
+                                        <StatusText on={d.enabled} onLabel="Activo" offLabel="Apagado" hideSmall />
                                         <FilterSwitch on={d.enabled} onChange={(next) => toggle(def.key, next)} label={`Activar ${def.name}`} />
                                     </div>
-                                </div>
-
-                                <div className={`mt-4 space-y-4 ${d.enabled ? '' : 'opacity-60'}`}>
+                                }
+                            >
+                                <div className={`space-y-4 ${d.enabled ? '' : 'opacity-60'}`}>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         {def.fields.filter(f => f.kind === 'number').map(f => f.kind === 'number' && (
-                                            <div key={f.key}>
-                                                <label className={`block text-sm font-semibold mb-2 ${text}`}>{f.label}</label>
-                                                <div className="flex items-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        min={f.min}
-                                                        max={f.max}
-                                                        value={Number(d.settings[f.key])}
-                                                        onChange={(e) => setField(def.key, f.key, Math.min(f.max, Math.max(f.min, Number(e.target.value) || f.min)))}
-                                                        className={input}
-                                                    />
-                                                    {f.suffix && <span className={`${hint} whitespace-nowrap`}>{f.suffix}</span>}
-                                                </div>
-                                                {f.help && <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">{f.help}</p>}
-                                            </div>
+                                            <Field key={f.key} label={f.label} hint={f.help}>
+                                                <NumberField
+                                                    value={Number(d.settings[f.key])}
+                                                    min={f.min}
+                                                    max={f.max}
+                                                    suffix={f.suffix}
+                                                    onChange={(v) => setField(def.key, f.key, v)}
+                                                />
+                                            </Field>
                                         ))}
-                                        <div>
-                                            <label className={`block text-sm font-semibold mb-2 ${text}`}>Severidad</label>
-                                            <select value={d.severity} onChange={(e) => update(def.key, { severity: e.target.value as FilterSeverity })} className={input}>
-                                                <option value="leve">Leve (escalamiento)</option>
-                                                <option value="medio">Medio (timeout 10 min mín.)</option>
-                                                <option value="severo">Severo (ban directo)</option>
-                                            </select>
-                                        </div>
+                                        <Field label="Severidad">
+                                            <SeveritySelect value={d.severity} onChange={(v) => update(def.key, { severity: v })} />
+                                        </Field>
                                     </div>
 
                                     {def.fields.filter(f => f.kind === 'check').map(f => (
-                                        <label key={f.key} className="flex items-center gap-3 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={Boolean(d.settings[f.key])}
-                                                onChange={(e) => setField(def.key, f.key, e.target.checked)}
-                                                className="w-4 h-4"
-                                            />
-                                            <span className={text}>{f.label}</span>
-                                        </label>
+                                        <div key={f.key}>
+                                            <Checkbox label={f.label} checked={Boolean(d.settings[f.key])} onChange={(e) => setField(def.key, f.key, e.target.checked)} />
+                                        </div>
                                     ))}
 
-                                    <div>
-                                        <label className={`block text-sm font-semibold mb-2 ${text}`}>Mensaje en el chat</label>
-                                        <input
-                                            type="text"
-                                            value={d.message}
-                                            maxLength={500}
-                                            onChange={(e) => update(def.key, { message: e.target.value })}
-                                            placeholder={def.defaultMessage}
-                                            className={`${input} text-sm`}
-                                        />
-                                    </div>
+                                    <Field label="Mensaje en el chat">
+                                        <Input value={d.message} maxLength={500} onChange={(e) => update(def.key, { message: e.target.value })} placeholder={def.defaultMessage} />
+                                    </Field>
 
-                                    {def.note && <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{def.note}</p>}
+                                    {def.note && <p className={smallHintCls}>{def.note}</p>}
                                 </div>
-                            </div>
+                            </Section>
                         );
                     })}
 
-                    <button
-                        onClick={save}
-                        disabled={saving}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
-                    >
-                        <Save className="w-5 h-5" />
-                        {saving ? 'Guardando…' : 'Guardar umbrales y mensajes'}
-                    </button>
-                    <p className="text-xs text-center text-[#64748b] dark:text-[#94a3b8]">
+                    <SaveBar saving={saving} onClick={save} label="Guardar umbrales y mensajes" savingLabel="Guardando…" />
+                    <p className={`${hintCls} text-xs text-center`}>
                         Los interruptores se guardan al momento. Mensaje vacío = el mensaje de ejemplo. Variables: $(user), $(strike), $(word).
                     </p>
                 </div>
             )}
-        </div>
+        </ModerationPage>
     );
 }

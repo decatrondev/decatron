@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, CheckCircle, Undo2, Search, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
+import { Undo2, Search, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
+import { Badge, Button, IconButton, Input, Select } from '../../../components/ds';
+import ModalShell from '../../../components/dashboard/ModalShell';
+import { useToast } from '../../../components/dashboard/toast';
+import { ModerationPage, hintCls } from './parts';
 
 interface HistoryItem {
     id: number;
@@ -62,24 +66,21 @@ function actionLabel(action: string) {
     return `Timeout ${seconds} s`;
 }
 
-function actionColor(item: HistoryItem) {
-    if (item.severity === 'comando') return 'bg-[#e2e8f0] text-[#334155] dark:bg-[#374151] dark:text-[#e2e8f0]';
-    if (item.action === 'ban') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-    if (item.action.startsWith('timeout')) return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
-    return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+/** Neutra para acciones de mods, roja para ban, ámbar para el resto de sanciones (son estados). */
+function actionTone(item: HistoryItem): 'danger' | 'warn' | undefined {
+    if (item.severity === 'comando') return undefined;
+    if (item.action === 'ban') return 'danger';
+    return 'warn';
 }
 
 function formatDate(value: string) {
     return new Date(value).toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-const input = 'w-full px-3 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc]';
-const text = 'text-[#1e293b] dark:text-[#f8fafc]';
-const hint = 'text-sm text-[#64748b] dark:text-[#94a3b8]';
-
 export default function ModerationHistory() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { toast, showToast } = useToast(4000);
 
     const [items, setItems] = useState<HistoryItem[] | null>(null);
     const [total, setTotal] = useState(0);
@@ -93,12 +94,9 @@ export default function ModerationHistory() {
     const [to, setTo] = useState('');
     const [expanded, setExpanded] = useState<number | null>(null);
     const [undoing, setUndoing] = useState<number | null>(null);
-    const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [confirmItem, setConfirmItem] = useState<HistoryItem | null>(null);
 
-    const showNotice = (type: 'success' | 'error', text: string) => {
-        setNotice({ type, text });
-        setTimeout(() => setNotice(null), 4000);
-    };
+    const showNotice = (type: 'success' | 'error', text: string) => showToast(text, type);
 
     const load = async () => {
         try {
@@ -131,13 +129,16 @@ export default function ModerationHistory() {
         return () => clearTimeout(id);
     }, [search]);
 
-    const undo = async (item: HistoryItem) => {
+    /** Pregunta de confirmación según lo que se va a deshacer. */
+    const undoQuestion = (item: HistoryItem) => {
         const lifts = item.action === 'ban' || item.action.startsWith('timeout');
-        const question = lifts
+        return lifts
             ? `¿Quitar ${item.action === 'ban' ? 'el ban' : 'el timeout'} a ${item.username}${item.strikeLevel > 0 ? ' y devolverle el strike' : ''}?`
             : `¿Devolverle el strike a ${item.username}?${item.action === 'delete' ? ' El mensaje borrado no se puede recuperar.' : ''}`;
-        if (!window.confirm(question)) return;
+    };
 
+    const undo = async (item: HistoryItem) => {
+        setConfirmItem(null);
         setUndoing(item.id);
         try {
             const res = await api.post(`/moderation/history/${item.id}/undo`);
@@ -159,105 +160,88 @@ export default function ModerationHistory() {
     if (!permissionsLoading && !hasMinimumLevel('moderation')) return null;
 
     const pages = Math.max(1, Math.ceil(total / pageSize));
+    const grid = 'lg:grid-cols-[8rem_minmax(0,1fr)_13rem_minmax(0,1.4fr)_9rem_9rem]';
 
     return (
-        <div className="panel-scale bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6">
-            <div className="max-w-7xl mx-auto mb-6">
-                <button
-                    onClick={() => navigate('/moderation')}
-                    className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Volver a Moderación
-                </button>
-                <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Historial de moderación</h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                    Quién fue sancionado, por qué y quién lo hizo. Puedes quitar un timeout o un ban y devolver el strike.
-                </p>
-            </div>
-
-            {notice && (
-                <div className="max-w-7xl mx-auto mb-4">
-                    <div className={`flex items-center gap-2 p-4 rounded-lg ${notice.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                        : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
-                        {notice.type === 'success' ? <CheckCircle className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
-                        <span className="font-semibold">{notice.text}</span>
-                    </div>
-                </div>
-            )}
-
-            <div className="max-w-7xl mx-auto space-y-4">
+        <ModerationPage
+            wide
+            title="Historial de moderación"
+            subtitle="Quién fue sancionado, por qué y quién lo hizo. Puedes quitar un timeout o un ban y devolver el strike."
+            toast={toast}
+        >
+            <div className="space-y-4">
                 {/* Filtros */}
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 grid grid-cols-2 lg:grid-cols-5 gap-3">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-4 grid grid-cols-2 lg:grid-cols-5 gap-3">
                     <div className="relative col-span-2 lg:col-span-1">
-                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
-                        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Usuario o mod" className={`${input} pl-9`} />
+                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ds-faint" />
+                        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Usuario o mod" className="pl-9" />
                     </div>
-                    <select value={kind} onChange={(e) => { setPage(1); setKind(e.target.value); }} className={`${input} col-span-2 sm:col-span-1`} aria-label="Tipo">
+                    <Select value={kind} onChange={(e) => { setPage(1); setKind(e.target.value); }} className="col-span-2 sm:col-span-1" aria-label="Tipo">
                         <option value="">Todo</option>
                         <option value="sanctions">Solo sanciones</option>
                         <option value="commands">Solo acciones de mods</option>
-                    </select>
-                    <select value={filter} onChange={(e) => { setPage(1); setFilter(e.target.value); }} className={`${input} col-span-2 sm:col-span-1`} aria-label="Motivo">
+                    </Select>
+                    <Select value={filter} onChange={(e) => { setPage(1); setFilter(e.target.value); }} className="col-span-2 sm:col-span-1" aria-label="Motivo">
                         <option value="">Cualquier motivo</option>
                         {Object.entries(FILTER_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                    </select>
-                    <input type="date" value={from} onChange={(e) => { setPage(1); setFrom(e.target.value); }} className={input} aria-label="Desde" />
-                    <input type="date" value={to} onChange={(e) => { setPage(1); setTo(e.target.value); }} className={input} aria-label="Hasta" />
+                    </Select>
+                    <Input type="date" value={from} onChange={(e) => { setPage(1); setFrom(e.target.value); }} aria-label="Desde" />
+                    <Input type="date" value={to} onChange={(e) => { setPage(1); setTo(e.target.value); }} aria-label="Hasta" />
                 </div>
 
                 {/* Lista */}
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
-                    <div className="hidden lg:grid grid-cols-[8rem_minmax(0,1fr)_13rem_minmax(0,1.4fr)_9rem_9rem] gap-4 px-5 py-3 border-b border-[#e2e8f0] dark:border-[#374151] text-xs font-bold uppercase tracking-wider text-[#64748b] dark:text-[#94a3b8]">
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
+                    <div className={`hidden lg:grid ${grid} gap-4 px-5 py-3 border-b border-ds-border text-xs font-bold uppercase tracking-wider text-ds-soft`}>
                         <span>Fecha</span><span>Usuario</span><span>Acción</span><span>Motivo</span><span>Quién</span><span className="text-right">Deshacer</span>
                     </div>
 
                     {items === null ? (
-                        <p className={`${hint} text-center py-12`}>Cargando…</p>
+                        <p className={`${hintCls} text-center py-12`}>Cargando…</p>
                     ) : items.length === 0 ? (
-                        <p className={`${hint} text-center py-12`}>No hay acciones con estos filtros.</p>
+                        <p className={`${hintCls} text-center py-12`}>No hay acciones con estos filtros.</p>
                     ) : items.map(item => (
-                        <div key={item.id} className={`border-b last:border-b-0 border-[#e2e8f0] dark:border-[#374151] ${item.undoneAt ? 'opacity-60' : ''}`}>
+                        <div key={item.id} className={`border-b last:border-b-0 border-ds-border ${item.undoneAt ? 'opacity-60' : ''}`}>
                             <div
-                                className="grid grid-cols-2 lg:grid-cols-[8rem_minmax(0,1fr)_13rem_minmax(0,1.4fr)_9rem_9rem] gap-x-4 gap-y-2 px-5 py-3 items-center cursor-pointer hover:bg-[#f8fafc] dark:hover:bg-[#262626]"
+                                className={`grid grid-cols-2 ${grid} gap-x-4 gap-y-2 px-5 py-3 items-center cursor-pointer hover:bg-ds-raised`}
                                 onClick={() => setExpanded(expanded === item.id ? null : item.id)}
                             >
-                                <span className={`${hint} order-2 lg:order-none text-right lg:text-left`}>{formatDate(item.createdAt)}</span>
-                                <span className={`font-bold truncate order-1 lg:order-none ${text}`}>{item.username}</span>
+                                <span className={`${hintCls} order-2 lg:order-none text-right lg:text-left`}>{formatDate(item.createdAt)}</span>
+                                <span className="font-bold truncate order-1 lg:order-none text-ds-text">{item.username}</span>
                                 <span className="order-3 lg:order-none">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded ${actionColor(item)}`}>{actionLabel(item.action)}</span>
-                                    {item.strikeLevel > 0 && <span className={`ml-2 text-xs whitespace-nowrap ${hint}`}>strike {item.strikeLevel}/5</span>}
+                                    <Badge tone={actionTone(item)}>{actionLabel(item.action)}</Badge>
+                                    {item.strikeLevel > 0 && <span className={`ml-2 text-xs whitespace-nowrap ${hintCls}`}>strike {item.strikeLevel}/5</span>}
                                 </span>
-                                <span className={`truncate order-4 lg:order-none text-right lg:text-left ${text}`}>
+                                <span className="truncate order-4 lg:order-none text-right lg:text-left text-ds-text">
                                     <span className="font-semibold">{FILTER_LABELS[item.filter] ?? item.filter}</span>
-                                    {item.detail && <span className={hint}> · {item.detail}</span>}
+                                    {item.detail && <span className={hintCls}> · {item.detail}</span>}
                                 </span>
-                                <span className={`order-5 lg:order-none flex items-center gap-1 text-sm truncate ${text}`}>
-                                    {item.executedBy ? item.executedBy : <><Bot className="w-4 h-4 shrink-0 text-[#2563eb]" /> Automático</>}
+                                <span className="order-5 lg:order-none flex items-center gap-1 text-sm truncate text-ds-text">
+                                    {item.executedBy ? item.executedBy : <><Bot className="w-4 h-4 shrink-0 text-ds-accent-text" /> Automático</>}
                                 </span>
                                 <span className="order-6 lg:order-none text-right text-xs">
                                     {item.undoneAt ? (
-                                        <span className={`text-xs ${hint}`}>Deshecho{item.undoneBy ? ` por ${item.undoneBy}` : ''}</span>
+                                        <span className={`text-xs ${hintCls}`}>Deshecho{item.undoneBy ? ` por ${item.undoneBy}` : ''}</span>
                                     ) : item.canUndo ? (
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); undo(item); }}
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            icon={<Undo2 />}
+                                            loading={undoing === item.id}
                                             disabled={undoing === item.id}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg border border-[#2563eb] text-[#2563eb] hover:bg-[#2563eb] hover:text-white disabled:opacity-50 transition-colors"
+                                            onClick={(e) => { e.stopPropagation(); setConfirmItem(item); }}
                                         >
-                                            <Undo2 className="w-4 h-4" />
-                                            {undoing === item.id ? '…' : 'Deshacer'}
-                                        </button>
+                                            Deshacer
+                                        </Button>
                                     ) : null}
                                 </span>
                             </div>
                             {expanded === item.id && (
                                 <div className="px-5 pb-4">
-                                    <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${hint}`}>Mensaje original</p>
-                                    <p className={`text-sm p-3 rounded-lg bg-[#f1f5f9] dark:bg-[#262626] break-words ${text}`}>
+                                    <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${hintCls}`}>Mensaje original</p>
+                                    <p className="text-sm p-3 rounded-lg bg-ds-bg border border-ds-border break-words text-ds-text">
                                         {item.message || 'No se guardó el mensaje.'}
                                     </p>
-                                    {item.undoneAt && <p className={`text-xs mt-2 ${hint}`}>Deshecho el {formatDate(item.undoneAt)}</p>}
+                                    {item.undoneAt && <p className={`text-xs mt-2 ${hintCls}`}>Deshecho el {formatDate(item.undoneAt)}</p>}
                                 </div>
                             )}
                         </div>
@@ -266,28 +250,29 @@ export default function ModerationHistory() {
 
                 {/* Paginación */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className={hint}>{total} {total === 1 ? 'acción' : 'acciones'}</span>
+                    <span className={hintCls}>{total} {total === 1 ? 'acción' : 'acciones'}</span>
                     <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
-                            disabled={page <= 1}
-                            aria-label="Página anterior"
-                            className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40"
-                        >
-                            <ChevronLeft className={`w-4 h-4 ${text}`} />
-                        </button>
-                        <span className={`text-sm ${text}`}>Página {page} de {pages}</span>
-                        <button
-                            onClick={() => setPage(p => Math.min(pages, p + 1))}
-                            disabled={page >= pages}
-                            aria-label="Página siguiente"
-                            className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40"
-                        >
-                            <ChevronRight className={`w-4 h-4 ${text}`} />
-                        </button>
+                        <IconButton variant="secondary" size="sm" label="Página anterior" icon={<ChevronLeft />} onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} />
+                        <span className="text-sm text-ds-text">Página {page} de {pages}</span>
+                        <IconButton variant="secondary" size="sm" label="Página siguiente" icon={<ChevronRight />} onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page >= pages} />
                     </div>
                 </div>
             </div>
-        </div>
+
+            {confirmItem && (
+                <ModalShell
+                    title="Deshacer sanción"
+                    onClose={() => setConfirmItem(null)}
+                    actions={
+                        <>
+                            <Button variant="secondary" onClick={() => setConfirmItem(null)}>Cancelar</Button>
+                            <Button onClick={() => undo(confirmItem)}>Deshacer</Button>
+                        </>
+                    }
+                >
+                    {undoQuestion(confirmItem)}
+                </ModalShell>
+            )}
+        </ModerationPage>
     );
 }

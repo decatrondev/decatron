@@ -66,8 +66,8 @@ export function Select({ error, className, children, ...rest }: SelectHTMLAttrib
 export function Switch({ checked, onChange, label, disabled }: { checked: boolean; onChange?: (v: boolean) => void; label?: string; disabled?: boolean }) {
     return <button type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled} className="ds-switch" onClick={() => onChange?.(!checked)} />;
 }
-export function Checkbox({ label, radio, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: string; radio?: boolean }) {
-    return <label className={cx('ds-check', radio && 'ds-check--radio')}><input type={radio ? 'radio' : 'checkbox'} {...rest} /><span aria-hidden /> {label}</label>;
+export function Checkbox({ label, radio, ...rest }: InputHTMLAttributes<HTMLInputElement> & { label: ReactNode; radio?: boolean }) {
+    return <label className={cx('ds-check', radio && 'ds-check--radio')}><input type={radio ? 'radio' : 'checkbox'} {...rest} /><span aria-hidden /><span>{label}</span></label>;
 }
 
 // ── Navegación ─────────────────────────────────────────────

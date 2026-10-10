@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { usePermissions } from '../../../hooks/usePermissions';
 import api from '../../../services/api';
+import { Field, Select } from '../../../components/ds';
+import { useToast } from '../../../components/dashboard/toast';
 import { FilterSwitch } from './filterSwitch';
+import { ModerationPage, PageLoading, SaveBar, Section } from './parts';
 
 type Role = 'moderator' | 'lead_moderator' | 'broadcaster';
 
@@ -42,18 +44,13 @@ function duration(seconds: number) {
     return `${seconds} s`;
 }
 
-const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg';
-const select = 'w-full px-4 py-2 bg-white dark:bg-[#1a1a1a] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc]';
-const text = 'text-[#1e293b] dark:text-[#f8fafc]';
-const hint = 'text-sm text-[#64748b] dark:text-[#94a3b8]';
-
 export default function ModerationCommands() {
     const navigate = useNavigate();
     const { hasMinimumLevel, loading: permissionsLoading } = usePermissions();
+    const { toast, showToast } = useToast();
 
     const [config, setConfig] = useState<CommandsConfig | null>(null);
     const [saving, setSaving] = useState(false);
-    const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     useEffect(() => {
         if (permissionsLoading) return;
@@ -63,14 +60,9 @@ export default function ModerationCommands() {
         }
         api.get('/moderation/commands')
             .then(res => res.data.success && setConfig(res.data.commands))
-            .catch(() => showNotice('error', 'No se pudo cargar la configuración'));
+            .catch(() => showToast('No se pudo cargar la configuración', 'error'));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [permissionsLoading]);
-
-    const showNotice = (type: 'success' | 'error', text: string) => {
-        setNotice({ type, text });
-        setTimeout(() => setNotice(null), 3000);
-    };
 
     const update = (key: string, changes: Partial<CommandSetting>) =>
         setConfig(c => (c ? { ...c, [key]: { ...c[key], ...changes } } : c));
@@ -82,9 +74,9 @@ export default function ModerationCommands() {
             const res = await api.put('/moderation/commands', config);
             if (!res.data.success) throw new Error();
             setConfig(res.data.commands);
-            showNotice('success', 'Configuración guardada');
+            showToast('Configuración guardada', 'success');
         } catch {
-            showNotice('error', 'No se pudo guardar');
+            showToast('No se pudo guardar', 'error');
         } finally {
             setSaving(false);
         }
@@ -95,111 +87,62 @@ export default function ModerationCommands() {
     const nuke = config?.nuke;
 
     return (
-        <div className="panel-scale bg-[#f8fafc] dark:bg-[#1B1C1D] p-4 sm:p-6">
-            <div className="max-w-6xl mx-auto mb-6">
-                <button
-                    onClick={() => navigate('/moderation')}
-                    className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#2563eb] dark:hover:text-[#3b82f6] mb-4 transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Volver a Moderación
-                </button>
-                <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Comandos de moderación</h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
-                    Elige quién puede usar cada comando. Quien tenga control total del canal en el dashboard cuenta como el streamer. Al resto el bot lo ignora.
-                </p>
-            </div>
-
-            {notice && (
-                <div className="max-w-6xl mx-auto mb-6">
-                    <div className={`flex items-center gap-2 p-4 rounded-lg ${notice.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                        : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
-                        {notice.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-                        <span className="font-semibold">{notice.text}</span>
-                    </div>
-                </div>
-            )}
-
-            {!config ? (
-                <p className="max-w-6xl mx-auto text-center py-12 text-[#64748b] dark:text-[#94a3b8]">Cargando…</p>
-            ) : (
-                <div className="max-w-6xl mx-auto space-y-4">
+        <ModerationPage
+            title="Comandos de moderación"
+            subtitle="Elige quién puede usar cada comando. Quien tenga control total del canal en el dashboard cuenta como el streamer. Al resto el bot lo ignora."
+            toast={toast}
+        >
+            {!config ? <PageLoading /> : (
+                <div className="space-y-4">
                     {COMMANDS.map(cmd => {
                         const setting = config[cmd.key];
                         if (!setting) return null;
                         return (
-                            <div key={cmd.key} className={card}>
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="min-w-0">
-                                        <div className="flex flex-wrap gap-2 mb-2">
-                                            {cmd.usage.map(u => (
-                                                <code key={u} className="px-2 py-1 rounded bg-[#f1f5f9] dark:bg-[#262626] text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{u}</code>
-                                            ))}
-                                        </div>
-                                        <p className={hint}>{cmd.description}</p>
-                                    </div>
-                                    <FilterSwitch
-                                        on={setting.enabled}
-                                        onChange={(next) => update(cmd.key, { enabled: next })}
-                                        label={`Activar ${cmd.usage[0]}`}
-                                    />
-                                </div>
-
-                                <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 ${setting.enabled ? '' : 'opacity-50'}`}>
-                                    <div>
-                                        <label className={`block text-sm font-semibold mb-2 ${text}`}>Quién puede usarlo</label>
-                                        <select
-                                            value={setting.minRole}
-                                            onChange={(e) => update(cmd.key, { minRole: e.target.value as Role })}
-                                            className={select}
-                                        >
+                            <Section
+                                key={cmd.key}
+                                title={
+                                    <span className="flex flex-wrap gap-2">
+                                        {cmd.usage.map(u => <code key={u} className="px-2 py-1 rounded bg-ds-bg border border-ds-border text-sm font-bold text-ds-text">{u}</code>)}
+                                    </span>
+                                }
+                                hint={cmd.description}
+                                right={<FilterSwitch on={setting.enabled} onChange={(next) => update(cmd.key, { enabled: next })} label={`Activar ${cmd.usage[0]}`} />}
+                            >
+                                <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${setting.enabled ? '' : 'opacity-50'}`}>
+                                    <Field label="Quién puede usarlo">
+                                        <Select value={setting.minRole} onChange={(e) => update(cmd.key, { minRole: e.target.value as Role })}>
                                             {ROLE_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                                        </select>
-                                    </div>
+                                        </Select>
+                                    </Field>
 
                                     {cmd.key === 'nuke' && nuke && (
                                         <>
-                                            <div>
-                                                <label className={`block text-sm font-semibold mb-2 ${text}`}>Mira hacia atrás</label>
-                                                <select
-                                                    value={nuke.windowSeconds}
-                                                    onChange={(e) => update('nuke', { windowSeconds: Number(e.target.value) })}
-                                                    className={select}
-                                                >
+                                            <Field label="Mira hacia atrás">
+                                                <Select value={nuke.windowSeconds} onChange={(e) => update('nuke', { windowSeconds: Number(e.target.value) })}>
                                                     {NUKE_WINDOWS.map(s => <option key={s} value={s}>{duration(s)}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className={`block text-sm font-semibold mb-2 ${text}`}>Sanción</label>
-                                                <select
+                                                </Select>
+                                            </Field>
+                                            <Field label="Sanción">
+                                                <Select
                                                     value={nuke.action === 'ban' ? 'ban' : String(nuke.timeoutSeconds)}
                                                     onChange={(e) => e.target.value === 'ban'
                                                         ? update('nuke', { action: 'ban' })
                                                         : update('nuke', { action: 'timeout', timeoutSeconds: Number(e.target.value) })}
-                                                    className={select}
                                                 >
                                                     {NUKE_TIMEOUTS.map(s => <option key={s} value={s}>Timeout de {duration(s)}</option>)}
                                                     <option value="ban">Ban permanente</option>
-                                                </select>
-                                            </div>
+                                                </Select>
+                                            </Field>
                                         </>
                                     )}
                                 </div>
-                            </div>
+                            </Section>
                         );
                     })}
 
-                    <button
-                        onClick={save}
-                        disabled={saving}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold rounded-lg transition-all shadow-lg"
-                    >
-                        <Save className="w-5 h-5" />
-                        {saving ? 'Guardando…' : 'Guardar configuración'}
-                    </button>
+                    <SaveBar saving={saving} onClick={save} label="Guardar configuración" savingLabel="Guardando…" />
                 </div>
             )}
-        </div>
+        </ModerationPage>
     );
 }

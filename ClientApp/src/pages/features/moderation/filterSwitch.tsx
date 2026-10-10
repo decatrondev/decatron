@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../../services/api';
+import { Switch } from '../../../components/ds';
 
 export type FilterSeverity = 'leve' | 'medio' | 'severo';
 
@@ -64,19 +65,5 @@ export function FilterSwitch({ on, disabled, onChange, label }: {
     onChange: (next: boolean) => void;
     label: string;
 }) {
-    return (
-        <button
-            type="button"
-            role="switch"
-            aria-checked={on}
-            aria-label={label}
-            disabled={disabled}
-            onClick={() => onChange(!on)}
-            className={`relative w-11 h-6 p-0 shrink-0 rounded-full transition-colors disabled:opacity-60 ${on ? 'bg-[#2563eb]' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`}
-        >
-            <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-5' : 'translate-x-0'}`}
-            />
-        </button>
-    );
+    return <Switch checked={on} disabled={disabled} onChange={onChange} label={label} />;
 }
