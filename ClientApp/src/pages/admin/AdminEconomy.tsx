@@ -134,7 +134,7 @@ function PackagesTab() {
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <button onClick={() => setModal({ mode: 'create', data: { ...emptyPkg } })} className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold transition-colors">
+                <button onClick={() => setModal({ mode: 'create', data: { ...emptyPkg } })} className="ds-btn ds-btn--primary">
                     <Plus className="w-4 h-4" /> Nuevo paquete
                 </button>
             </div>
@@ -210,7 +210,7 @@ function PackagesTab() {
                         </div>
                         <div className="flex justify-end gap-3 pt-4">
                             <button onClick={() => setModal(null)} className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
+                            <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>
                         </div>
@@ -339,7 +339,7 @@ function DiscountsTab() {
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <button onClick={() => setModal({ mode: 'create', data: { ...emptyCode } })} className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold transition-colors">
+                <button onClick={() => setModal({ mode: 'create', data: { ...emptyCode } })} className="ds-btn ds-btn--primary">
                     <Plus className="w-4 h-4" /> Nuevo cupon
                 </button>
             </div>
@@ -433,7 +433,7 @@ function DiscountsTab() {
                                     value={modal.data.code}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, code: e.target.value.toUpperCase() } })}
                                     placeholder="CODIGO"
-                                    className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text font-mono"
+                                    className="ds-input flex-1 font-mono"
                                 />
                                 <button
                                     onClick={() => setModal({ ...modal, data: { ...modal.data, code: generateCode() } })}
@@ -451,7 +451,7 @@ function DiscountsTab() {
                                 <select
                                     value={modal.data.discountType}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, discountType: e.target.value } })}
-                                    className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                                    className="ds-input w-full"
                                 >
                                     <option value="percentage">Porcentaje (%)</option>
                                     <option value="fixed_amount">Monto fijo ($)</option>
@@ -480,7 +480,7 @@ function DiscountsTab() {
                                     type="datetime-local"
                                     value={modal.data.startsAt ? new Date(modal.data.startsAt).toISOString().slice(0, 16) : ''}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, startsAt: e.target.value || null } })}
-                                    className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div>
@@ -489,7 +489,7 @@ function DiscountsTab() {
                                     type="datetime-local"
                                     value={modal.data.expiresAt ? new Date(modal.data.expiresAt).toISOString().slice(0, 16) : ''}
                                     onChange={e => setModal({ ...modal, data: { ...modal.data, expiresAt: e.target.value || null } })}
-                                    className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
@@ -504,7 +504,7 @@ function DiscountsTab() {
                                         onChange={e => { handleUserSearch(e.target.value); if (!e.target.value) setModal({ ...modal, data: { ...modal.data, assignedUserId: null } }); }}
                                         onBlur={() => setTimeout(() => setShowUserSuggestions(false), 200)}
                                         placeholder="Buscar usuario..."
-                                        className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
+                                        className="ds-input w-full"
                                     />
                                     {showUserSuggestions && userSuggestions.length > 0 && (
                                         <div className="absolute z-50 top-full mt-1 w-full bg-ds-surface border border-ds-border rounded-lg max-h-36 overflow-y-auto">
@@ -539,7 +539,7 @@ function DiscountsTab() {
                             <select
                                 value={modal.data.applicablePackageId ?? ''}
                                 onChange={e => setModal({ ...modal, data: { ...modal.data, applicablePackageId: e.target.value ? parseInt(e.target.value) : null } })}
-                                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                                className="ds-input w-full"
                             >
                                 <option value="">Todos los paquetes</option>
                                 {packages.map((p: any) => (
@@ -572,7 +572,7 @@ function DiscountsTab() {
 
                         <div className="flex justify-end gap-3 pt-2">
                             <button onClick={() => { setModal(null); setSaveError(null); }} className="px-4 py-2 bg-ds-bg text-ds-soft rounded-lg text-sm font-bold">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2">
+                            <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
                             </button>
                         </div>
@@ -720,10 +720,10 @@ function UsersTab() {
                             <FormField label="Cantidad" type="number" value={actionAmount} onChange={setActionAmount} placeholder="100" />
                             <FormField label="Descripcion" value={actionDesc} onChange={setActionDesc} placeholder="Razon..." />
                             <div className="flex items-end gap-2">
-                                <button onClick={giveCoins} disabled={actionLoading || !actionAmount} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-1">
+                                <button onClick={giveCoins} disabled={actionLoading || !actionAmount} className="ds-btn ds-btn--primary">
                                     {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Dar
                                 </button>
-                                <button onClick={removeCoins} disabled={actionLoading || !actionAmount} className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-1">
+                                <button onClick={removeCoins} disabled={actionLoading || !actionAmount} className="ds-btn ds-btn--danger">
                                     {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Quitar
                                 </button>
                             </div>
@@ -789,7 +789,7 @@ function AuditTab() {
                 <select
                     value={filterType}
                     onChange={e => setFilterType(e.target.value)}
-                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                    className="ds-input"
                 >
                     <option value="">Todos los tipos</option>
                     {types.map(t => <option key={t} value={t}>{TYPE_BADGES[t]?.label || t}</option>)}
@@ -799,9 +799,9 @@ function AuditTab() {
                     value={filterUserId}
                     onChange={e => setFilterUserId(e.target.value)}
                     placeholder="User ID..."
-                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text placeholder-ds-soft w-40"
+                    className="ds-input w-40"
                 />
-                <button onClick={() => load(1)} className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-1">
+                <button onClick={() => load(1)} className="ds-btn ds-btn--primary">
                     <Search className="w-4 h-4" /> Filtrar
                 </button>
             </div>
@@ -1023,7 +1023,7 @@ function SettingsTab() {
             </div>
 
             <div className="flex justify-end pt-4 border-t border-ds-border">
-                <button onClick={handleSave} disabled={saving} className="px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 transition-colors">
+                <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar configuracion
                 </button>
             </div>
@@ -1059,7 +1059,7 @@ function FormField({ label, value, onChange, type = 'text', placeholder }: { lab
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
+                className="ds-input w-full"
             />
         </div>
     );

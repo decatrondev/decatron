@@ -204,7 +204,7 @@ export const CommandsTab: React.FC = () => {
                                             <select
                                                 value={cfg.permission}
                                                 onChange={e => updateConfig(cfg.command, { permission: e.target.value })}
-                                                className="px-2 py-1 text-xs bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                                className="ds-input"
                                             >
                                                 {PERMISSIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                                             </select>
@@ -215,7 +215,7 @@ export const CommandsTab: React.FC = () => {
                                                 type="number" min={0} max={300}
                                                 value={cfg.cooldownGlobal}
                                                 onChange={e => updateConfig(cfg.command, { cooldownGlobal: Math.max(0, parseInt(e.target.value) || 0) })}
-                                                className="w-16 px-2 py-1 text-xs text-center bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                                className="ds-input w-16 text-center"
                                             />
                                             <span className="text-[10px] text-ds-soft">s</span>
                                         </div>
@@ -225,7 +225,7 @@ export const CommandsTab: React.FC = () => {
                                                 type="number" min={0} max={300}
                                                 value={cfg.cooldownUser}
                                                 onChange={e => updateConfig(cfg.command, { cooldownUser: Math.max(0, parseInt(e.target.value) || 0) })}
-                                                className="w-16 px-2 py-1 text-xs text-center bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                                className="ds-input w-16 text-center"
                                             />
                                             <span className="text-[10px] text-ds-soft">s</span>
                                         </div>
@@ -272,7 +272,7 @@ export const CommandsTab: React.FC = () => {
                     <select value={newAliasTarget} onChange={e => setNewAliasTarget(e.target.value)} className={`${inputClass} w-40`}>
                         {COMMANDS.map(c => <option key={c} value={c}>{CMD_DESCRIPTIONS[c]?.label || c}</option>)}
                     </select>
-                    <button onClick={addAlias} disabled={!newAlias.trim()} className="px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg text-sm flex items-center gap-1">
+                    <button onClick={addAlias} disabled={!newAlias.trim()} className="ds-btn ds-btn--primary">
                         <Plus className="w-4 h-4" /> Agregar
                     </button>
                 </div>
@@ -283,7 +283,7 @@ export const CommandsTab: React.FC = () => {
             <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-black text-ds-text">Multi-Pull</h2>
-                    <button onClick={saveMultiPull} disabled={multiSaving} className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg text-sm">
+                    <button onClick={saveMultiPull} disabled={multiSaving} className="ds-btn ds-btn--primary">
                         <Save className="w-4 h-4" /> {multiSaving ? 'Guardando...' : 'Guardar'}
                     </button>
                 </div>

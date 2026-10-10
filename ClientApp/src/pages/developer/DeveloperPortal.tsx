@@ -186,7 +186,7 @@ export default function DeveloperPortal() {
                         </Link>
                         <button
                             onClick={() => navigate('/developer/apps/new')}
-                            className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors text-sm"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Plus className="w-4 h-4" />
                             Nueva App
@@ -214,7 +214,7 @@ export default function DeveloperPortal() {
                     </p>
                     <button
                         onClick={() => navigate('/developer/apps/new')}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Plus className="w-5 h-5" />
                         Crear tu primera app
@@ -413,13 +413,13 @@ export default function DeveloperPortal() {
                                             <button
                                                 onClick={() => deleteApp(selectedApp.id)}
                                                 disabled={deleting}
-                                                className="flex-1 px-4 py-2.5 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent font-bold rounded-lg transition-colors disabled:opacity-50 text-sm"
+                                                className="ds-btn ds-btn--danger flex-1"
                                             >
                                                 {deleting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Confirmar eliminar'}
                                             </button>
                                             <button
                                                 onClick={() => setConfirmDelete(null)}
-                                                className="px-4 py-2.5 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border transition-colors text-sm"
+                                                className="ds-btn ds-btn--secondary"
                                             >
                                                 Cancelar
                                             </button>

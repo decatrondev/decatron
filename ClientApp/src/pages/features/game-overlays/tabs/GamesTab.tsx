@@ -78,7 +78,7 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                                                 if (e.target.value) next[String(a.id)] = e.target.value; else delete next[String(a.id)];
                                                                 onChange(game, { accountQueues: next });
                                                             }}
-                                                            className="bg-ds-bg border border-ds-border rounded-md px-2 py-1 text-xs text-ds-text"
+                                                            className="ds-input"
                                                             title={t('accountQueue')}
                                                         >
                                                             <option value="">{t('sameAsGame')} ({QUEUE_LABELS[gameQueue] ?? gameQueue})</option>
@@ -134,7 +134,7 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                         options={[{ value: 'visible_account', label: t('sessionVisible') }, { value: 'all_accounts', label: t('sessionAll') }]}
                                     />
                                 </div>
-                                <button onClick={() => onDesign(game)} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm flex items-center gap-2 border border-ds-border">
+                                <button onClick={() => onDesign(game)} className="ds-btn ds-btn--secondary">
                                     <Palette className="w-4 h-4" /> {t('editDesign')}
                                 </button>
                             </div>

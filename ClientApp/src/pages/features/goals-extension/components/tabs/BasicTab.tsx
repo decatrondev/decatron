@@ -81,7 +81,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
             {/* Add Goal Button */}
             <button
                 onClick={handleAddGoal}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-semibold rounded-lg transition-all"
+                className="ds-btn ds-btn--primary ds-btn--lg w-full"
             >
                 <Plus className="w-5 h-5" />
                 Crear Nueva Meta
@@ -141,7 +141,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                         if (e.key === 'Enter') handleSaveName(goal.id);
                                                         if (e.key === 'Escape') handleCancelEditName();
                                                     }}
-                                                    className="flex-1 px-3 py-1 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                                    className="ds-input flex-1"
                                                     autoFocus
                                                 />
                                                 <button
@@ -268,7 +268,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                     min="1"
                                                     value={goal.targetValue}
                                                     onChange={(e) => onUpdateGoal(goal.id, { targetValue: parseInt(e.target.value) || 1 })}
-                                                    className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                                    className="ds-input w-full"
                                                 />
                                             </div>
                                             <div>
@@ -280,7 +280,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                     min="0"
                                                     value={goal.currentValue}
                                                     onChange={(e) => onUpdateGoal(goal.id, { currentValue: parseInt(e.target.value) || 0 })}
-                                                    className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                                    className="ds-input w-full"
                                                 />
                                             </div>
                                         </div>
@@ -295,7 +295,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                 value={goal.description || ''}
                                                 onChange={(e) => onUpdateGoal(goal.id, { description: e.target.value })}
                                                 placeholder="Ej: Meta para desbloquear el próximo juego"
-                                                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                                className="ds-input w-full"
                                             />
                                         </div>
 
@@ -364,7 +364,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                     type="datetime-local"
                                                     value={goal.deadline?.slice(0, 16) || ''}
                                                     onChange={(e) => onUpdateGoal(goal.id, { deadline: new Date(e.target.value).toISOString() })}
-                                                    className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                                    className="ds-input w-full"
                                                 />
                                             )}
                                         </div>

@@ -75,13 +75,13 @@ export function WheelSidebar({
                                 <button
                                     onClick={onDelete}
                                     disabled={saving}
-                                    className="flex-1 px-3 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover disabled:opacity-60 text-ds-on-accent rounded-lg text-sm font-bold transition-colors"
+                                    className="ds-btn ds-btn--danger flex-1"
                                 >
                                     {t('wheel.deleteYes')}
                                 </button>
                                 <button
                                     onClick={onCancelDelete}
-                                    className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border text-ds-text rounded-lg text-sm font-medium hover:bg-ds-raised transition-colors"
+                                    className="ds-btn ds-btn--secondary flex-1"
                                 >
                                     {t('wheel.deleteNo')}
                                 </button>
@@ -92,7 +92,7 @@ export function WheelSidebar({
                             <button
                                 onClick={onDuplicate}
                                 disabled={saving}
-                                className="w-full px-3 py-2 mb-1 text-sm bg-ds-bg hover:bg-ds-raised disabled:opacity-50 border border-ds-border text-ds-text rounded-lg transition-colors flex items-center justify-center gap-2"
+                                className="ds-btn ds-btn--secondary w-full mb-1"
                             >
                                 <CopyPlus className="w-4 h-4" />
                                 {t('wheel.duplicate')}

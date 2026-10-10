@@ -173,7 +173,7 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => onDisqualify(winner.participant.username)}
-                                        className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-colors"
+                                        className="ds-btn ds-btn--primary"
                                     >
                                         Descalificar
                                     </button>
@@ -199,12 +199,12 @@ export const ActiveTab: React.FC<ActiveTabProps> = ({
                             placeholder="Buscar usuario..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text"
+                            className="ds-input"
                         />
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as any)}
-                            className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text"
+                            className="ds-input"
                         >
                             <option value="weight">Por Peso</option>
                             <option value="username">Por Nombre</option>

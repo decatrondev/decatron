@@ -416,7 +416,7 @@ export default function DesignTab({ design, onChange, canvas, onCanvasChange, sa
                     )}
                     <div className="flex flex-wrap items-center gap-2">
                         {inherits ? (
-                            <button className="px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent" onClick={createOwn}>{t('eventAlertsView.design.createOwn')}</button>
+                            <button className="ds-btn ds-btn--primary" onClick={createOwn}>{t('eventAlertsView.design.createOwn')}</button>
                         ) : (
                             <>
                                 {target !== 'general' && (

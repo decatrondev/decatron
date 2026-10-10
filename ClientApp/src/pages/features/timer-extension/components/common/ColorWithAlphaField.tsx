@@ -104,7 +104,7 @@ export function ColorWithAlphaField({ label, value, onChange, hint }: ColorWithA
                     value={value || ''}
                     onChange={e => onChange(e.target.value)}
                     placeholder="rgba(255, 100, 0, 0.8)"
-                    className="w-full mt-2 px-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-xs font-mono text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50"
+                    className="ds-input w-full mt-2 font-mono"
                 />
             )}
 

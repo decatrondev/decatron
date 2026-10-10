@@ -131,7 +131,7 @@ const InfoCommandCard: React.FC<{
                 {cfg.enabled && (
                     <button
                         onClick={() => setExpanded(!expanded)}
-                        className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-ds-soft bg-ds-surface hover:bg-ds-bg rounded-lg transition-colors border border-transparent hover:border-ds-border"
+                        className="ds-btn ds-btn--secondary ds-btn--sm w-full"
                     >
                         <MessageSquare className="w-3 h-3" />
                         {expanded ? 'Ocultar Configuración' : 'Configurar Mensaje'}
@@ -154,7 +154,7 @@ const InfoCommandCard: React.FC<{
                                 value={cfg.template}
                                 onChange={(e) => onChange({ ...cfg, template: e.target.value })}
                                 rows={2}
-                                className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none resize-none"
+                                className="ds-input w-full resize-none"
                                 placeholder="Escribe el mensaje..."
                             />
                             {/* Variable chips */}
@@ -215,7 +215,7 @@ const InfoCommandCard: React.FC<{
                                 max={3600}
                                 value={cfg.cooldown}
                                 onChange={(e) => onChange({ ...cfg, cooldown: Math.max(0, parseInt(e.target.value) || 0) })}
-                                className="w-32 px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
+                                className="ds-input w-32"
                             />
                             <p className="text-[10px] text-ds-soft mt-1">Tiempo mínimo entre usos en el mismo canal.</p>
                         </div>
@@ -234,7 +234,7 @@ const InfoCommandCard: React.FC<{
                                         type="text"
                                         value={cfg.blacklist.join(', ')}
                                         onChange={(e) => onChange({ ...cfg, blacklist: e.target.value.split(',').map(u => u.trim()).filter(u => u) })}
-                                        className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
+                                        className="ds-input w-full"
                                         placeholder="usuario1, usuario2..."
                                     />
                                     <p className="text-[10px] text-ds-soft mt-1">Usuarios que NO pueden usar este comando.</p>
@@ -247,7 +247,7 @@ const InfoCommandCard: React.FC<{
                                         type="text"
                                         value={cfg.whitelist.join(', ')}
                                         onChange={(e) => onChange({ ...cfg, whitelist: e.target.value.split(',').map(u => u.trim()).filter(u => u) })}
-                                        className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
+                                        className="ds-input w-full"
                                         placeholder="usuario1, usuario2..."
                                     />
                                     <p className="text-[10px] text-ds-soft mt-1">Usuarios adicionales que SÍ pueden usarlo (además de mods).</p>

@@ -69,7 +69,7 @@ export default function EditorTab({ cfg, content }: Props) {
             layersActions={
                 <button
                     onClick={() => apply({ ...designRef.current, textLines: [...designRef.current.textLines, newLine(designRef.current, t('soundAlerts.texts.newLine'))] })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shrink-0"
+                    className="ds-btn ds-btn--primary ds-btn--sm shrink-0"
                 >
                     <Plus className="w-4 h-4" /> {t('soundAlerts.texts.add')}
                 </button>

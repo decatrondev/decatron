@@ -447,14 +447,14 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 placeholder="X"
                                                 value={alertsConfig.global.position.x}
                                                 onChange={(e) => updateGlobalConfig({ position: { ...alertsConfig.global.position, x: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                                className="ds-input"
                                             />
                                             <input
                                                 type="number"
                                                 placeholder="Y"
                                                 value={alertsConfig.global.position.y}
                                                 onChange={(e) => updateGlobalConfig({ position: { ...alertsConfig.global.position, y: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                                className="ds-input"
                                             />
                                         </div>
                                     </div>
@@ -466,14 +466,14 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 placeholder="W"
                                                 value={alertsConfig.global.size.width}
                                                 onChange={(e) => updateGlobalConfig({ size: { ...alertsConfig.global.size, width: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                                className="ds-input"
                                             />
                                             <input
                                                 type="number"
                                                 placeholder="H"
                                                 value={alertsConfig.global.size.height}
                                                 onChange={(e) => updateGlobalConfig({ size: { ...alertsConfig.global.size, height: Number(e.target.value) } })}
-                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                                className="ds-input"
                                             />
                                         </div>
                                     </div>
@@ -501,7 +501,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                         <select
                                             value={alertsConfig.global.style.fontFamily}
                                             onChange={(e) => updateGlobalConfig({ style: { ...alertsConfig.global.style, fontFamily: e.target.value } })}
-                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                            className="ds-input w-full"
                                         >
                                             <option value="Inter">Inter</option>
                                             <option value="Poppins">Poppins</option>
@@ -699,7 +699,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                             value={currentDefaultConfig.message || ''}
                                             onChange={(e) => updateEventDefaultConfig(selectedEvent, { message: e.target.value })}
                                             placeholder="Ej: ¡{userName} ha enviado {amount} bits!"
-                                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                            className="ds-input w-full"
                                         />
                                         <div className="flex gap-2 mt-2">
                                             <span className="px-2 py-0.5 bg-ds-bg rounded text-[10px] text-ds-soft font-mono">{'{}'} userName</span>
@@ -743,7 +743,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 value={currentDefaultConfig.icon || ''}
                                                 onChange={(e) => updateEventDefaultConfig(selectedEvent, { icon: e.target.value })}
                                                 placeholder="Emoji"
-                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-center text-lg"
+                                                className="ds-input w-full text-center"
                                             />
                                         </div>
                                         <div className="flex-1">
@@ -752,7 +752,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                 value={currentDefaultConfig.customIcon || ''}
                                                 onChange={(e) => updateEventDefaultConfig(selectedEvent, { customIcon: e.target.value })}
                                                 placeholder="URL de imagen o GIF"
-                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                                className="ds-input w-full"
                                             />
                                         </div>
                                     </div>
@@ -829,7 +829,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                 type="text"
                                 value={testUsername}
                                 onChange={(e) => setTestUsername(e.target.value)}
-                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-28"
+                                className="ds-input w-28"
                                 placeholder="Usuario"
                             />
                             
@@ -839,7 +839,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     <select
                                         value={testTier}
                                         onChange={(e) => setTestTier(e.target.value)}
-                                        className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-24"
+                                        className="ds-input w-24"
                                     >
                                         <option value="Prime">Prime</option>
                                         <option value="1000">Tier 1</option>
@@ -851,7 +851,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                         min="1"
                                         value={testMonths}
                                         onChange={(e) => setTestMonths(Number(e.target.value))}
-                                        className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-16"
+                                        className="ds-input w-16"
                                         placeholder="Meses"
                                     />
                                 </>
@@ -862,7 +862,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     type="number"
                                     value={testAmount}
                                     onChange={(e) => setTestAmount(Number(e.target.value))}
-                                    className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-20"
+                                    className="ds-input w-20"
                                     placeholder={selectedEvent === 'gift' ? 'Subs' : 'Cant.'}
                                 />
                             )}
@@ -872,7 +872,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     type="number"
                                     value={testAmount}
                                     onChange={(e) => setTestAmount(Number(e.target.value))}
-                                    className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-20"
+                                    className="ds-input w-20"
                                     placeholder="Nivel"
                                 />
                             )}
@@ -884,7 +884,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                     min="1"
                                     value={testAmount}
                                     onChange={(e) => setTestAmount(Number(e.target.value))}
-                                    className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-xs w-20"
+                                    className="ds-input w-20"
                                     placeholder="$USD"
                                 />
                             )}

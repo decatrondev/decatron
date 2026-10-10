@@ -167,7 +167,7 @@ export function SegmentsTab({
                                 onChange={e => setFiltro(e.target.value)}
                                 placeholder={t('wheel.segments.search')}
                                 aria-label={t('wheel.segments.search')}
-                                className="pl-8 pr-3 py-1.5 w-44 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:border-ds-accent"
+                                className="ds-input w-44 pl-8 pr-3"
                             />
                         </label>
                     )}

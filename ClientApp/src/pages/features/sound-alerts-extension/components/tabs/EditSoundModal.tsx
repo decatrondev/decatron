@@ -128,7 +128,7 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
                                     value={imageUrlInput}
                                     onChange={e => setImageUrlInput(e.target.value)}
                                     placeholder="https://ejemplo.com/imagen.gif"
-                                    className="w-full bg-ds-bg border border-ds-border rounded-lg px-4 py-2.5 text-sm text-ds-text placeholder-ds-soft focus:outline-none focus:border-ds-accent"
+                                    className="ds-input w-full"
                                 />
                             )}
 
@@ -168,7 +168,7 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex-1 py-2.5 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-bold transition-colors"
+                        className="ds-btn ds-btn--primary flex-1"
                     >
                         {saving ? 'Guardando...' : 'Guardar'}
                     </button>

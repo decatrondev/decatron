@@ -96,7 +96,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                                         newAmounts[idx] = parseFloat(e.target.value) || 0;
                                         setSuggestedAmountsArray(newAmounts);
                                     }}
-                                    className="w-20 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center"
+                                    className="ds-input w-20 text-center"
                                 />
                                 <button
                                     onClick={() => {

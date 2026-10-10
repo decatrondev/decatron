@@ -114,7 +114,7 @@ function TemplatesCard({ layout, onChange, elementIds, templates: store }: Desig
             ) : (
                 <form className="flex gap-2 mb-4" onSubmit={e => { e.preventDefault(); saveTemplate(); }}>
                     <input value={name} onChange={e => setName(e.target.value)} placeholder={t('musicOverlay.templates.namePlaceholder')} className={inputClass} maxLength={60} />
-                    <button type="submit" disabled={!name.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0">
+                    <button type="submit" disabled={!name.trim()} className="ds-btn ds-btn--primary shrink-0">
                         <Save className="w-4 h-4" /> {t('musicOverlay.templates.save')}
                     </button>
                 </form>

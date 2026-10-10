@@ -162,7 +162,7 @@ export function PlanTab({ limits, segmentCount, showSegments, t }: {
                             <div className="pt-1 space-y-2">
                                 <button
                                     onClick={() => navigate('/supporters')}
-                                    className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm 3xl:text-base font-bold transition-colors"
+                                    className="ds-btn ds-btn--primary"
                                 >
                                     {t('wheel.plan.seePlans')}
                                 </button>

@@ -64,12 +64,12 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
             type="text"
             value={overlayUrl || 'Cargando...'}
             readOnly
-            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-mono text-sm focus:ring-2 focus:ring-ds-accent outline-none 3xl:text-base"
+            className="ds-input w-full font-mono"
           />
           <button
             onClick={handleCopy}
             disabled={!overlayUrl}
-            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2 whitespace-nowrap 3xl:text-base"
+            className="ds-btn ds-btn--primary whitespace-nowrap"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             {copied ? '¡Copiado!' : 'Copiar'}
@@ -94,7 +94,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) =>
                 onConfigChange({ defaultDuration: parseInt(e.target.value) || 5 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
 
@@ -111,7 +111,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) =>
                 onConfigChange({ defaultVolume: parseInt(e.target.value) || 50 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
 
@@ -125,7 +125,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
               onChange={(e) =>
                 onConfigChange({ defaultAnimation: e.target.value as AnimationType })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             >
               {animationTypes.map((type) => (
                 <option key={type} value={type}>
@@ -147,7 +147,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   defaultAnimationDirection: e.target.value as AnimationDirection,
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             >
               {animationDirections.map((dir) => (
                 <option key={dir} value={dir}>
@@ -180,7 +180,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
           <div>
@@ -200,7 +200,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
         </div>
@@ -261,7 +261,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                       },
                     })
                   }
-                  className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                  className="ds-input w-full"
                 />
               </div>
 
@@ -283,7 +283,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                       },
                     })
                   }
-                  className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                  className="ds-input w-full"
                 />
               </div>
             </div>
@@ -331,7 +331,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
             <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Entre CUALQUIER alerta
@@ -355,7 +355,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
             <p className="text-xs text-ds-soft mt-1 3xl:text-sm">
               Entre alertas del mismo tipo
@@ -386,7 +386,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
           <div>
@@ -407,7 +407,7 @@ export const GlobalTab: React.FC<GlobalTabProps> = ({ config, onConfigChange, ov
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
         </div>

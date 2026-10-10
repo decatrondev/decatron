@@ -503,7 +503,7 @@ export default function OverlayEditor({
                                         propSetCanvasWidth(newWidth);
                                     }
                                 }}
-                                className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
+                                className="ds-input w-20"
                                 min="500"
                                 max="3840"
                             />
@@ -518,7 +518,7 @@ export default function OverlayEditor({
                                         propSetCanvasHeight(newHeight);
                                     }
                                 }}
-                                className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
+                                className="ds-input w-20"
                                 min="200"
                                 max="2160"
                             />
@@ -538,7 +538,7 @@ export default function OverlayEditor({
                         </button>
                         <button
                             onClick={resetAllPositions}
-                            className="flex items-center gap-2 px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text border border-ds-border rounded-lg text-xs font-semibold transition-colors"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Reset
@@ -615,7 +615,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -631,7 +631,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                             </div>
@@ -653,7 +653,7 @@ export default function OverlayEditor({
                                             });
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -669,7 +669,7 @@ export default function OverlayEditor({
                                             });
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
@@ -690,7 +690,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -706,7 +706,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                             </div>
@@ -729,7 +729,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -745,7 +745,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                             </div>
@@ -765,7 +765,7 @@ export default function OverlayEditor({
                                             position: { ...progressBarConfig.position, x: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -779,7 +779,7 @@ export default function OverlayEditor({
                                             position: { ...progressBarConfig.position, y: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -793,7 +793,7 @@ export default function OverlayEditor({
                                             size: { ...progressBarConfig.size, width: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -807,7 +807,7 @@ export default function OverlayEditor({
                                             size: { ...progressBarConfig.size, height: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
@@ -829,7 +829,7 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -846,7 +846,7 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -863,7 +863,7 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -880,7 +880,7 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>

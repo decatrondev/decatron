@@ -37,7 +37,7 @@ export default function MediaInputWithSelector({
                     value={value || ''}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder || "URL o ruta del archivo"}
-                    className="flex-1 px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                    className="ds-input flex-1"
                 />
                 <button
                     type="button"

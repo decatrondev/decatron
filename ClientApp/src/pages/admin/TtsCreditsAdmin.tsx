@@ -316,7 +316,7 @@ export default function TtsCreditsAdmin() {
                             <button
                                 onClick={runBatch}
                                 disabled={batchRunning || !(Number(batchAmount) > 0) || batchNote.trim().length < 3}
-                                className="px-5 py-2 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
+                                className="ds-btn ds-btn--primary"
                             >
                                 {batchRunning ? 'Acreditando…' : 'Aplicar a todos'}
                             </button>

@@ -84,7 +84,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                 {!isCreating ? (
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--sm"
                     >
                         <Plus className="w-3 h-3" /> Nueva Regla
                     </button>
@@ -100,7 +100,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                         />
                         <button
                             onClick={handleAddVariant}
-                            className="px-2 py-1 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded text-xs font-bold"
+                            className="ds-btn ds-btn--primary ds-btn--sm"
                         >
                             Crear
                         </button>
@@ -178,7 +178,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                                             type="number"
                                             value={variant.threshold}
                                             onChange={(e) => handleUpdateVariant(variant.id, { threshold: Number(e.target.value) })}
-                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                            className="ds-input w-full"
                                         />
                                     </div>
                                     <div className="flex items-end pb-2">
@@ -205,7 +205,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({ eventType, varia
                                         type="text"
                                         value={variant.message}
                                         onChange={(e) => handleUpdateVariant(variant.id, { message: e.target.value })}
-                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                        className="ds-input w-full"
                                     />
                                 </div>
 

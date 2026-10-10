@@ -97,7 +97,7 @@ export default function TcgClaim() {
                         </p>
                         <button
                             onClick={() => setClaiming(true)}
-                            className="flex items-center gap-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold px-8 py-3 rounded-lg transition-colors"
+                            className="ds-btn ds-btn--primary ds-btn--lg"
                         >
                             <Gift className="w-5 h-5" />
                             Reclamar

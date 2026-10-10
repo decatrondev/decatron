@@ -107,7 +107,7 @@ export function HistoryTab({ spins, total, page, metrics, filters, historyDays, 
                     </div>
                     <button
                         onClick={onExport}
-                        className="px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                        className="ds-btn ds-btn--secondary"
                     >
                         <Download className="w-4 h-4" />
                         {t('wheel.history.export')}
@@ -152,7 +152,7 @@ export function HistoryTab({ spins, total, page, metrics, filters, historyDays, 
                             <option value="failed">{t('wheel.history.stFailed')}</option>
                         </select>
                     </label>
-                    <button onClick={onApply} className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-medium transition-colors">
+                    <button onClick={onApply} className="ds-btn ds-btn--primary">
                         {t('wheel.history.apply')}
                     </button>
                     <button onClick={onReset} className="px-3 py-2 text-sm text-ds-soft hover:text-ds-text transition-colors">
@@ -216,14 +216,14 @@ export function HistoryTab({ spins, total, page, metrics, filters, historyDays, 
                             <button
                                 onClick={() => onPage(page - 1)}
                                 disabled={page <= 1}
-                                className="px-3 py-1.5 bg-ds-bg disabled:opacity-40 border border-ds-border text-ds-text rounded-lg text-xs"
+                                className="ds-btn ds-btn--secondary ds-btn--sm"
                             >
                                 {t('wheel.history.prev')}
                             </button>
                             <button
                                 onClick={() => onPage(page + 1)}
                                 disabled={page >= paginas}
-                                className="px-3 py-1.5 bg-ds-bg disabled:opacity-40 border border-ds-border text-ds-text rounded-lg text-xs"
+                                className="ds-btn ds-btn--secondary ds-btn--sm"
                             >
                                 {t('wheel.history.next')}
                             </button>

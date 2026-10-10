@@ -95,7 +95,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
             max="1000"
             value={count}
             onChange={(e) => setCount(parseInt(e.target.value) || 1)}
-            className="w-full px-4 py-2 bg-ds-raised border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+            className="ds-input w-full"
           />
           <p className="text-xs text-ds-soft mt-1">Máximo: 1000 participantes</p>
         </div>
@@ -112,7 +112,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               max="100"
               value={vipPercentage}
               onChange={(e) => setVipPercentage(parseFloat(e.target.value) || 0)}
-              className="w-full px-4 py-2 bg-ds-raised border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+              className="ds-input w-full"
             />
           </div>
 
@@ -126,7 +126,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               max="100"
               value={modPercentage}
               onChange={(e) => setModPercentage(parseFloat(e.target.value) || 0)}
-              className="w-full px-4 py-2 bg-ds-raised border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+              className="ds-input w-full"
             />
           </div>
 
@@ -140,7 +140,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               max="100"
               value={subPercentage}
               onChange={(e) => setSubPercentage(parseFloat(e.target.value) || 0)}
-              className="w-full px-4 py-2 bg-ds-raised border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+              className="ds-input w-full"
             />
           </div>
 
@@ -154,7 +154,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               max="100"
               value={followerPercentage}
               onChange={(e) => setFollowerPercentage(parseFloat(e.target.value) || 0)}
-              className="w-full px-4 py-2 bg-ds-raised border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+              className="ds-input w-full"
             />
           </div>
         </div>
@@ -183,7 +183,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
               onChange={(e) => setCustomNamesText(e.target.value)}
               placeholder="Usuario1&#10;Usuario2&#10;Usuario3&#10;..."
               rows={6}
-              className="w-full px-4 py-2 bg-ds-raised border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent font-mono text-sm"
+              className="ds-input w-full font-mono"
             />
             <p className="text-xs text-ds-soft mt-1">
               Si defines menos nombres que participantes, se generarán nombres random para el resto
@@ -195,7 +195,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
         <button
           onClick={handleGenerate}
           disabled={isGenerating}
-          className="w-full px-6 py-3 bg-ds-accent text-ds-on-accent font-semibold rounded-lg hover:bg-ds-accent-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="ds-btn ds-btn--primary ds-btn--lg w-full"
         >
           {isGenerating ? '⏳ Generando...' : '🎲 Generar Participantes'}
         </button>
@@ -265,7 +265,7 @@ const DebugTab: React.FC<DebugTabProps> = ({ onGenerateParticipants, onClearPart
         <button
           onClick={handleClear}
           disabled={isClearing}
-          className="px-6 py-3 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="ds-btn ds-btn--danger ds-btn--lg"
         >
           {isClearing ? '⏳ Limpiando...' : '🗑️ Limpiar Todos los Participantes'}
         </button>

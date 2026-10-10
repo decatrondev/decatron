@@ -189,7 +189,7 @@ export default function TcgShop() {
                     unopenedTotal > 0 ? (
                         <button
                             onClick={() => navigate('/me/tcg/open')}
-                            className="flex items-center gap-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold px-4 py-2 rounded-lg transition-colors"
+                            className="ds-btn ds-btn--primary"
                         >
                             <PackageOpen className="w-4 h-4" />
                             Abrir ({unopenedTotal})
@@ -236,7 +236,7 @@ export default function TcgShop() {
                                     <button
                                         onClick={() => handleClaimFree(p)}
                                         disabled={claiming != null}
-                                        className="mt-auto bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-ds-on-accent font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        className="ds-btn ds-btn--primary mt-auto"
                                     >
                                         {claiming === p.sobreTierId ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
                                         Reclamar
@@ -311,7 +311,7 @@ export default function TcgShop() {
                                     onClick={() => handleBuy(s)}
                                     disabled={buying != null || !canAfford}
                                     title={canAfford ? undefined : 'No te alcanzan los DecaCoins'}
-                                    className="bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-ds-on-accent font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    className="ds-btn ds-btn--primary"
                                 >
                                     {buying === s.id ? <Loader2 className="w-4 h-4 animate-spin" /> : canAfford ? 'Comprar' : 'Sin fondos'}
                                 </button>

@@ -80,7 +80,7 @@ export default function TemplatesTab() {
             <div className="flex justify-end">
                 <button
                     onClick={() => { setEditingId(null); setEditorOpen(true); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
+                    className="ds-btn ds-btn--primary"
                 >
                     <Plus className="w-4 h-4" />
                     Nuevo Template

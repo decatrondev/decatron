@@ -248,7 +248,7 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
             <p className="text-xs text-ds-soft mt-1">Alertas diferentes según monto donado ({currency})</p>
           </div>
           <button onClick={addTier}
-            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold text-sm flex items-center gap-2">
+            className="ds-btn ds-btn--primary">
             <Plus className="w-4 h-4" /> Agregar Tier
           </button>
         </div>
@@ -303,7 +303,7 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
                       <div className="grid grid-cols-3 gap-3">
                         <select value={tier.condition.type}
                           onChange={e => updateTier(tier.id, { condition: { ...tier.condition, type: e.target.value as any } })}
-                          className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm">
+                          className="ds-input">
                           <option value="range">Rango</option>
                           <option value="minimum">Mínimo</option>
                           <option value="exact">Exacto</option>
@@ -311,20 +311,20 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
                         {tier.condition.type === 'range' && (<>
                           <input type="number" min="0" step="0.01" value={tier.condition.min ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, min: parseFloat(e.target.value) || 0 } })}
-                            placeholder="Mínimo" className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
+                            placeholder="Mínimo" className="ds-input" />
                           <input type="number" min="0" step="0.01" value={tier.condition.max ?? 100}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, max: parseFloat(e.target.value) || 100 } })}
-                            placeholder="Máximo" className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
+                            placeholder="Máximo" className="ds-input" />
                         </>)}
                         {tier.condition.type === 'minimum' && (
                           <input type="number" min="0" step="0.01" value={tier.condition.min ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, min: parseFloat(e.target.value) || 0 } })}
-                            placeholder="Monto mínimo" className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
+                            placeholder="Monto mínimo" className="ds-input col-span-2" />
                         )}
                         {tier.condition.type === 'exact' && (
                           <input type="number" min="0" step="0.01" value={tier.condition.exact ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, exact: parseFloat(e.target.value) || 0 } })}
-                            placeholder="Monto exacto" className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
+                            placeholder="Monto exacto" className="ds-input col-span-2" />
                         )}
                       </div>
                     </div>

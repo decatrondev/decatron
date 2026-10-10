@@ -67,7 +67,7 @@ export function DeliveriesTab({ deliveries, filter, onFilter, onResolve, t }: {
                                     </button>
                                     <button
                                         onClick={() => onResolve(d.id, 'cancelled')}
-                                        className="px-3 py-1.5 text-xs font-bold bg-ds-bg text-ds-soft border border-ds-border rounded-lg hover:text-ds-text transition-colors flex items-center gap-1.5"
+                                        className="ds-btn ds-btn--secondary ds-btn--sm"
                                     >
                                         <X className="w-3.5 h-3.5" />
                                         {t('wheel.deliveries.cancel')}

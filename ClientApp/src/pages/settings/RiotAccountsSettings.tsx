@@ -115,17 +115,17 @@ export default function RiotAccountsSettings() {
                         <div>
                             <label className="text-xs font-bold text-ds-soft">Riot ID</label>
                             <input value={riotId} onChange={e => setRiotId(e.target.value)} required placeholder="Faker"
-                                className="w-full mt-1 px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm" />
+                                className="ds-input w-full mt-1" />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-ds-soft">Tag</label>
                             <input value={riotTagLine} onChange={e => setRiotTagLine(e.target.value)} required placeholder="KR1"
-                                className="w-full mt-1 px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm" />
+                                className="ds-input w-full mt-1" />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-ds-soft">Región</label>
                             <select value={region} onChange={e => setRegion(e.target.value)}
-                                className="w-full mt-1 px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm">
+                                className="ds-input w-full mt-1">
                                 {REGIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
                         </div>

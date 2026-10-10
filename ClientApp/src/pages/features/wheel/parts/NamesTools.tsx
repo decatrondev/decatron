@@ -119,7 +119,7 @@ export function ImportPanel({ help, placeholder, summary, warning, applyLabel, c
                     <button
                         onClick={onApply}
                         disabled={!canApply || busy}
-                        className="px-4 py-1.5 text-sm bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 text-ds-on-accent rounded-lg font-bold transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--sm"
                     >
                         {applyLabel}
                     </button>

@@ -89,7 +89,7 @@ export default function TcgOpen() {
                 right={
                     <button
                         onClick={() => navigate('/me/tcg/shop')}
-                        className="flex items-center gap-2 bg-ds-bg border border-ds-border hover:border-ds-accent text-ds-text px-4 py-2 rounded-lg transition-colors"
+                        className="ds-btn ds-btn--secondary"
                     >
                         <ShoppingBag className="w-4 h-4" />
                         Comprar más
@@ -102,7 +102,7 @@ export default function TcgOpen() {
                     <p className="text-ds-soft">No tenés sobres sin abrir.</p>
                     <button
                         onClick={() => navigate('/me/tcg/shop')}
-                        className="mt-4 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold px-6 py-2.5 rounded-lg transition-colors"
+                        className="ds-btn ds-btn--primary mt-4"
                     >
                         Ir a la tienda
                     </button>

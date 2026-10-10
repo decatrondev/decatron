@@ -123,7 +123,7 @@ export default function MediaSelector({
                                     value={externalUrl}
                                     onChange={(e) => setExternalUrl(e.target.value)}
                                     placeholder="https://ejemplo.com/imagen.png"
-                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent"
+                                    className="ds-input w-full"
                                 />
                             </div>
 
@@ -182,7 +182,7 @@ export default function MediaSelector({
                                 (activeTab === 'gallery' && !selectedFile) ||
                                 (activeTab === 'url' && !externalUrl)
                             }
-                            className="px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint disabled:cursor-not-allowed text-ds-on-accent rounded-lg font-semibold transition-colors"
+                            className="ds-btn ds-btn--primary"
                         >
                             Seleccionar
                         </button>

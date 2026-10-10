@@ -84,7 +84,7 @@ export default function LogsTab() {
                 <select
                     value={selectedCampaign || ''}
                     onChange={e => setSelectedCampaign(Number(e.target.value) || null)}
-                    className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                    className="ds-input"
                 >
                     {campaigns.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>

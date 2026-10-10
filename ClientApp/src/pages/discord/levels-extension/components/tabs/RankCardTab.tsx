@@ -850,7 +850,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                   loadLevelCard(levelMin);
                 }
               }}
-              className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
+              className="ds-input"
             >
               <option value="">Seleccionar rango...</option>
               {xpRoles.map((role: any, idx: number) => {
@@ -915,7 +915,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                 value={bgUrlInput || config.background.imageUrl || ''}
                 onChange={(e) => setBgUrlInput(e.target.value)}
                 placeholder="https://ejemplo.com/imagen.png"
-                className="flex-1 px-3 py-2 text-xs bg-ds-bg border border-ds-border rounded-lg text-ds-text"
+                className="ds-input flex-1"
               />
               <button
                 onClick={() => {

@@ -157,7 +157,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                         <button
                             onClick={handleStart}
                             disabled={actionLoading || loading}
-                            className="w-full px-6 py-4 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-black text-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="ds-btn ds-btn--primary ds-btn--lg w-full"
                         >
                             <Play className="w-6 h-6" />
                             {actionLoading ? 'Iniciando...' : 'Iniciar Giveaway'}
@@ -215,7 +215,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 <button
                                     onClick={() => setShowCancelModal(true)}
                                     disabled={actionLoading || loading}
-                                    className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="ds-btn ds-btn--primary ds-btn--lg w-full"
                                 >
                                     <X className="w-5 h-5" />
                                     Cancelar Giveaway
@@ -255,7 +255,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                                 onChange={(e) => setCancelReason(e.target.value)}
                                 placeholder="Ej: Problemas técnicos"
                                 rows={3}
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text resize-none"
+                                className="ds-input w-full resize-none"
                             />
                         </div>
                         <div className="flex gap-3">
@@ -271,7 +271,7 @@ export const StatePanel: React.FC<StatePanelProps> = ({
                             <button
                                 onClick={handleCancel}
                                 disabled={actionLoading}
-                                className="flex-1 px-4 py-3 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="ds-btn ds-btn--danger ds-btn--lg flex-1"
                             >
                                 {actionLoading ? 'Cancelando...' : 'Confirmar'}
                             </button>

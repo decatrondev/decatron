@@ -159,7 +159,7 @@ const GameOverlays: React.FC = () => {
                         <span className={`text-sm font-medium px-3 py-1.5 rounded-lg ${saveMsg.type === 'ok' ? 'bg-ds-ok/10 text-ds-ok border border-ds-ok/40' : 'bg-ds-danger/10 text-ds-danger border border-ds-danger/40'}`}>{saveMsg.text}</span>
                     )}
                     {draft && (
-                        <button onClick={save} disabled={saving || !dirty} className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-colors flex items-center gap-2 font-bold">
+                        <button onClick={save} disabled={saving || !dirty} className="ds-btn ds-btn--primary">
                             <Save className="w-4 h-4" /> {saving ? t('saving') : dirty ? t('save') : t('saved')}
                         </button>
                     )}
@@ -201,7 +201,7 @@ const GameOverlays: React.FC = () => {
                             <SubLabel>{t('first.hint')}</SubLabel>
                             <div className="flex items-center gap-2 mt-3">
                                 <TextInput value={newName} onChange={setNewName} placeholder={t('first.placeholder')} />
-                                <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
+                                <button onClick={createInstance} className="ds-btn ds-btn--primary"><Plus className="w-4 h-4" /> {t('first.create')}</button>
                             </div>
                         </Card>
                     )}
@@ -221,7 +221,7 @@ const GameOverlays: React.FC = () => {
                                 <SectionTitle>{t('url.title')}</SectionTitle>
                                 <SubLabel>{t('url.hint', { size: `${draft.canvas.width}×${draft.canvas.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
-                                    <input readOnly value={overlayUrl} className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text font-mono" />
+                                    <input readOnly value={overlayUrl} className="ds-input flex-1 font-mono" />
                                     <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
                                     <a href={`${overlayUrl}&preview=${enabledGames[0] ?? 'lol'}`} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
@@ -247,7 +247,7 @@ const GameOverlays: React.FC = () => {
                                 {(data.limits.maxInstances == null || data.instances.length < data.limits.maxInstances) ? (
                                     <div className="flex items-center gap-2 mt-3">
                                         <TextInput value={newName} onChange={setNewName} placeholder={t('instances.newPlaceholder')} />
-                                        <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
+                                        <button onClick={createInstance} className="ds-btn ds-btn--primary"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
                                     </div>
                                 ) : (
                                     <p className="text-xs text-ds-soft mt-3">{t('instances.limit', { count: data.limits.maxInstances })} <a href="/supporters" className="text-ds-accent-text underline">{t('instances.seePlans')}</a></p>

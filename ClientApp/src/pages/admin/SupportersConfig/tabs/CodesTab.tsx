@@ -92,7 +92,7 @@ export function CodesTab() {
                     )}
                     <button
                         onClick={() => { setShowForm(!showForm); setForm({ ...EMPTY_CODE }); }}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent text-ds-on-accent text-sm font-bold rounded-lg"
+                        className="ds-btn ds-btn--primary"
                     >
                         <Plus className="w-4 h-4" />
                         Nuevo código
@@ -247,14 +247,14 @@ export function CodesTab() {
                         <button
                             onClick={handleCreate}
                             disabled={saving || !form.code.trim()}
-                            className="flex-1 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg font-black transition-all flex items-center justify-center gap-2"
+                            className="ds-btn ds-btn--primary ds-btn--lg flex-1"
                         >
                             <Check className="w-4 h-4" />
                             {saving ? 'Creando...' : 'Crear código'}
                         </button>
                         <button
                             onClick={() => setShowForm(false)}
-                            className="px-5 py-3 border border-ds-border bg-ds-surface text-ds-soft rounded-lg font-bold hover:bg-ds-bg transition-colors"
+                            className="ds-btn ds-btn--secondary ds-btn--lg"
                         >
                             Cancelar
                         </button>

@@ -641,7 +641,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                             <button 
                                                                 onClick={() => handleDrawWinners(raffle.id)}
                                                                 disabled={raffle.status === 'completed' && winners.length >= raffle.winnersCount}
-                                                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg font-bold text-sm flex items-center gap-2"
+                                                                className="ds-btn ds-btn--primary"
                                                             >
                                                                 <Gift className="w-4 h-4" /> {winners.length > 0 ? 'Sacar Otro Ganador' : 'Sortear Ganador'}
                                                             </button>
@@ -695,7 +695,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                     placeholder="Buscar..." 
                                                                     value={participantSearch}
                                                                     onChange={(e) => setParticipantSearch(e.target.value)}
-                                                                    className="pl-9 pr-4 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm w-32 focus:w-48 transition-all"
+                                                                    className="ds-input w-32 pl-9 pr-4"
                                                                 />
                                                             </div>
                                                             {raffle.status === 'open' && (
@@ -725,7 +725,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                             <input 
                                                                 type="text" 
                                                                 placeholder="Username" 
-                                                                className="flex-1 px-3 py-1.5 rounded border text-sm bg-ds-surface border-ds-border text-ds-text"
+                                                                className="ds-input flex-1"
                                                                 value={manualParticipantName}
                                                                 onChange={e => setManualParticipantName(e.target.value)}
                                                             />
@@ -734,12 +734,12 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                 min="1" 
                                                                 value={manualParticipantTickets} 
                                                                 onChange={e => setManualParticipantTickets(Number(e.target.value))}
-                                                                className="w-20 px-3 py-1.5 rounded border text-sm bg-ds-surface border-ds-border text-ds-text" 
+                                                                className="ds-input w-20" 
                                                             />
                                                             <button 
                                                                 onClick={handleAddParticipant}
                                                                 disabled={!manualParticipantName.trim()}
-                                                                className="px-4 py-1.5 bg-ds-accent text-ds-on-accent rounded text-sm font-bold disabled:opacity-50"
+                                                                className="ds-btn ds-btn--primary ds-btn--sm"
                                                             >
                                                                 Añadir
                                                             </button>
@@ -823,7 +823,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                     {!showCreateForm && (
                                         <button
                                             onClick={() => setShowCreateForm(true)}
-                                            className="mt-6 px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-transform hover:scale-105"
+                                            className="ds-btn ds-btn--primary mt-6"
                                         >
                                             Crear Nuevo Sorteo
                                         </button>
@@ -852,7 +852,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     type="text"
                                                     value={tempRaffleName}
                                                     onChange={(e) => setTempRaffleName(e.target.value)}
-                                                    className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text"
+                                                    className="ds-input w-full"
                                                     placeholder="Ej: Sorteo de Key"
                                                     autoFocus
                                                 />
@@ -863,7 +863,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                     type="text"
                                                     value={tempDescription}
                                                     onChange={(e) => setTempDescription(e.target.value)}
-                                                    className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text"
+                                                    className="ds-input w-full"
                                                     placeholder="Ej: Key de Steam para los viewers"
                                                 />
                                             </div>
@@ -876,7 +876,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                         max="100"
                                                         value={tempWinnersCount}
                                                         onChange={(e) => setTempWinnersCount(Math.max(1, Math.min(100, Number(e.target.value))))}
-                                                        className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text"
+                                                        className="ds-input w-full"
                                                     />
                                                 </div>
                                                 <div className="flex items-end">
@@ -1003,7 +1003,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                 min="0"
                                                                 value={tempConfig.methods.bits.minAmount || 0}
                                                                 onChange={e => updateTempMethod('bits', { minAmount: Number(e.target.value) })}
-                                                                className="w-24 px-2 py-1 rounded border text-sm bg-ds-surface border-ds-border text-ds-text"
+                                                                className="ds-input w-24"
                                                             />
                                                             <span className="text-xs text-ds-soft">bits</span>
                                                         </div>
@@ -1064,7 +1064,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                 min="0"
                                                                 value={minGifts}
                                                                 onChange={e => setMinGifts(Number(e.target.value))}
-                                                                className="w-20 px-2 py-1 rounded border text-sm bg-ds-surface border-ds-border text-ds-text"
+                                                                className="ds-input w-20"
                                                             />
                                                         </div>
                                                     )}
@@ -1150,7 +1150,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                 min="0"
                                                                 value={winnerCooldownDays}
                                                                 onChange={e => setWinnerCooldownDays(Number(e.target.value))}
-                                                                className="w-20 px-2 py-1 rounded border text-sm bg-ds-surface border-ds-border text-ds-text text-center"
+                                                                className="ds-input w-20 text-center"
                                                             />
                                                             <span className="text-sm text-ds-soft">días</span>
                                                         </div>
@@ -1171,7 +1171,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         <button
                                             onClick={handleCreateRaffle}
                                             disabled={loading || !tempRaffleName.trim()}
-                                            className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
+                                            className="ds-btn ds-btn--primary"
                                         >
                                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                                             Crear Sorteo
@@ -1284,7 +1284,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                 mergeTickets: importMergeTickets,
                                             })}
                                             disabled={loadingDetails}
-                                            className="px-5 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
+                                            className="ds-btn ds-btn--primary"
                                         >
                                             {loadingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadCloud className="w-4 h-4" />}
                                             Importar

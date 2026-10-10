@@ -209,7 +209,7 @@ export function TextsTab({ cfg }: TabProps) {
         <div className="space-y-6">
             <Card title={t('soundAlerts.texts.linesTitle')} description={t('soundAlerts.texts.linesDescription')}
                 actions={
-                    <button onClick={addLine} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shrink-0">
+                    <button onClick={addLine} className="ds-btn ds-btn--primary ds-btn--sm shrink-0">
                         <Plus className="w-4 h-4" /> {t('soundAlerts.texts.add')}
                     </button>
                 }

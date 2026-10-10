@@ -136,7 +136,7 @@ export default function LiveTranslationAdmin() {
                                             </td>
                                             <td>{a.creditsUsed.toLocaleString()}</td>
                                             <td>{new Date(a.startedAt).toLocaleTimeString()}</td>
-                                            <td className="text-right"><button onClick={() => stop(a.login)} className="px-2 py-1 rounded bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent text-xs inline-flex items-center gap-1"><Square className="w-3 h-3" /> Cortar</button></td>
+                                            <td className="text-right"><button onClick={() => stop(a.login)} className="ds-btn ds-btn--danger ds-btn--sm"><Square className="w-3 h-3" /> Cortar</button></td>
                                         </tr>
                                     ))}
                                 </tbody>

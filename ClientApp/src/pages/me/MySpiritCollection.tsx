@@ -246,7 +246,7 @@ export default function MySpiritCollection() {
                     {username && (
                         <button
                             onClick={copyLink}
-                            className="flex items-center gap-2 px-4 py-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-bg transition-colors text-sm 3xl:text-base font-bold text-ds-soft"
+                            className="ds-btn ds-btn--secondary ds-btn--lg"
                         >
                             {copied ? <Check className="w-4 h-4 text-ds-ok" /> : <Share2 className="w-4 h-4" />}
                             {copied ? t('my.copied') : t('my.share')}

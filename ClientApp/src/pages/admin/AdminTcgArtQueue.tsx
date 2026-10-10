@@ -97,7 +97,7 @@ export default function AdminTcgArtQueue() {
                 <button
                     onClick={load}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-ds-bg border border-ds-border hover:border-ds-accent text-ds-text px-4 py-2 rounded-lg transition-colors"
+                    className="ds-btn ds-btn--secondary"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                     Actualizar
@@ -164,7 +164,7 @@ export default function AdminTcgArtQueue() {
                             <button
                                 onClick={() => fileInputs.current[item.id]?.click()}
                                 disabled={uploading === item.id}
-                                className="w-full flex items-center justify-center gap-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold py-2.5 rounded-lg transition-colors"
+                                className="ds-btn ds-btn--primary w-full"
                             >
                                 {uploading === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                                 Subir ilustración

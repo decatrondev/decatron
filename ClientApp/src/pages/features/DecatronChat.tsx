@@ -496,7 +496,7 @@ export default function DecatronChat() {
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         {t('decatronChat.backToDashboard')}
                     </button>
@@ -623,7 +623,7 @@ export default function DecatronChat() {
                                         <div className="flex justify-start">
                                             <button
                                                 onClick={stopTypewriter}
-                                                className="px-3 py-1.5 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent text-xs font-semibold rounded-lg transition-colors"
+                                                className="ds-btn ds-btn--danger ds-btn--sm"
                                             >
                                                 {t('decatronChat.stop')}
                                             </button>
@@ -643,14 +643,14 @@ export default function DecatronChat() {
                                         onChange={(e) => setMessageInput(e.target.value)}
                                         onKeyDown={handleKeyDown}
                                         placeholder={t('decatronChat.inputPlaceholder')}
-                                        className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ds-accent text-ds-text"
+                                        className="ds-input flex-1 resize-none"
                                         rows={3}
                                         disabled={sending}
                                     />
                                     <button
                                         onClick={sendMessage}
                                         disabled={sending || !messageInput.trim()}
-                                        className="px-6 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="ds-btn ds-btn--primary"
                                     >
                                         {sending ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -817,7 +817,7 @@ ${code}
                                 {canPreview && (
                                     <button
                                         onClick={() => openPreview(codeString, language)}
-                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded transition-colors"
+                                        className="ds-btn ds-btn--primary ds-btn--sm"
                                         title={t('decatronChat.preview')}
                                     >
                                         <ExternalLink className="w-3 h-3" />
@@ -835,7 +835,7 @@ ${code}
                                                 textarea?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                             }, 100);
                                         }}
-                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded transition-colors"
+                                        className="ds-btn ds-btn--primary ds-btn--sm"
                                         title={t('decatronChat.edit')}
                                     >
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -846,7 +846,7 @@ ${code}
                                 )}
                                 <button
                                     onClick={() => copyToClipboard(codeString, codeId)}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded transition-colors"
+                                    className="ds-btn ds-btn--primary ds-btn--sm"
                                     title={t('decatronChat.copy')}
                                 >
                                     {copiedCode === codeId ? (
@@ -923,7 +923,7 @@ ${code}
                                 {!isStreaming && message.content.length > 100 && onContinue && (
                                     <button
                                         onClick={() => onContinue(message.id)}
-                                        className="px-2 py-1 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-xs font-semibold rounded transition-colors"
+                                        className="ds-btn ds-btn--primary ds-btn--sm"
                                         title="Continuar generando desde donde se quedó"
                                     >
                                         ▶ {t('decatronChat.continue')}
@@ -955,7 +955,7 @@ ${code}
                                     onClick={() => {
                                         setPreviewKey(prev => prev + 1);
                                     }}
-                                    className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors text-sm font-semibold"
+                                    className="ds-btn ds-btn--primary"
                                     title={t('decatronChat.reload')}
                                 >
                                     {t('decatronChat.reload')}

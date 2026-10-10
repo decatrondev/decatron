@@ -309,7 +309,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                 <select
                                     value={selectedSessionId || ''}
                                     onChange={(e) => setSelectedSessionId(Number(e.target.value))}
-                                    className="w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full"
                                 >
                                     {sessions.map(session => {
                                         const dateStr = formatShortDateTime(session.startedAt);
@@ -394,7 +394,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                                 <button
                                                     onClick={() => handleRestoreSession(selectedSession.id, true)}
                                                     disabled={isRestoring}
-                                                    className="w-full py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2"
+                                                    className="ds-btn ds-btn--primary w-full"
                                                 >
                                                     {isRestoring ? <><RefreshCw className="w-4 h-4 animate-spin" /> Restaurando...</> : <><RotateCcw className="w-4 h-4" /> Restaurar esta sesión</>}
                                                 </button>
@@ -410,7 +410,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                                         value={manualRestoreInput}
                                                         onChange={(e) => setManualRestoreInput(e.target.value)}
                                                         placeholder="Ej: 5h 30m, 2h, 90m"
-                                                        className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm font-mono"
+                                                        className="ds-input flex-1 font-mono"
                                                     />
                                                 </div>
                                                 {manualRestoreInput && parseTimeInput(manualRestoreInput) > 0 && (

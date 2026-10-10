@@ -248,7 +248,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                 {p.manualCountdown && ` · ${t('timerAdvanced.hh.remaining', { time: p.manualCountdown })}`}
                             </p>
                         </div>
-                        <button onClick={p.onManualDeactivate} className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold text-sm">{t('timerAdvanced.deactivate')}</button>
+                        <button onClick={p.onManualDeactivate} className="ds-btn ds-btn--danger">{t('timerAdvanced.deactivate')}</button>
                     </div>
                 ) : (
                     <div className="space-y-5">
@@ -279,7 +279,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                 {t('timerAdvanced.hh.manualSummary', { m: p.manualMultiplier, events: eventsText(p.manualEvents, t), duration: formatDuration(manualMinutes, t), time: timeIn(manualEnd, tz) })}
                                 {otherTz && ` (${t('timerAdvanced.hh.yourTime', { time: timeIn(manualEnd, myTz) })})`}
                             </p>
-                            <button onClick={p.onManualActivate} className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold">
+                            <button onClick={p.onManualActivate} className="ds-btn ds-btn--primary">
                                 {t('timerAdvanced.hh.activateNow')}
                             </button>
                         </div>
@@ -295,7 +295,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                         <p className="text-sm text-ds-soft mt-1">{t('timerAdvanced.hh.scheduledDescription')}</p>
                     </div>
                     {!p.showCreateHappyHourModal && (
-                        <button onClick={p.onPrepareCreate} disabled={!tz} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold">
+                        <button onClick={p.onPrepareCreate} disabled={!tz} className="ds-btn ds-btn--primary">
                             <Plus className="w-4 h-4" /> {t('timerAdvanced.newHappyHour')}
                         </button>
                     )}
@@ -390,7 +390,7 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                         <div className="flex justify-end gap-2">
                             <button onClick={p.onResetForm} className="px-4 py-2.5 rounded-lg font-bold text-ds-soft hover:bg-ds-raised">{t('timerAdvanced.cancel')}</button>
                             <button onClick={p.isEditingHappyHour ? p.onEditHappyHour : p.onCreateHappyHour} disabled={sameTime || noDays}
-                                className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold">
+                                className="ds-btn ds-btn--primary">
                                 {p.isEditingHappyHour ? t('timerAdvanced.saveChanges') : t('timerAdvanced.hh.create')}
                             </button>
                         </div>

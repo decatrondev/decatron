@@ -135,7 +135,7 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
                 type="text"
                 value={config.embedColor}
                 onChange={(e) => onConfigChange({ embedColor: e.target.value })}
-                className="w-24 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text font-mono focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                className="ds-input w-24 font-mono"
               />
               <div className="flex gap-1.5 flex-wrap">
                 {GOODBYE_COLOR_PRESETS.map(({ color }) => (

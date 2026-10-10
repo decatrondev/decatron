@@ -103,7 +103,7 @@ export const TimeUnitInput: React.FC<TimeUnitInputProps> = ({
                     min={0}
                     value={getDisplayValue()}
                     onChange={(e) => handleValueChange(Number(e.target.value) || 0)}
-                    className="w-24 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-center"
+                    className="ds-input w-24 text-center"
                 />
 
                 {/* Unit Selector */}

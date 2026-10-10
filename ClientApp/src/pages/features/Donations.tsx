@@ -372,7 +372,7 @@ export default function Donations() {
                     </div>
                     <button
                         onClick={() => navigate('/features/tips')}
-                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-semibold rounded-lg transition-colors"
+                        className="ds-btn ds-btn--primary"
                     >
                         Configurar
                         <ChevronRight className="w-4 h-4" />

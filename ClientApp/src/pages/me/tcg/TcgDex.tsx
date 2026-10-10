@@ -95,7 +95,7 @@ export default function TcgDex() {
                 <select
                     value={rarity}
                     onChange={(e) => updateParams({ rarity: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Toda rareza</option>
                     {RARITIES.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -104,7 +104,7 @@ export default function TcgDex() {
                 <select
                     value={owned}
                     onChange={(e) => updateParams({ owned: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Descubiertas y no</option>
                     <option value="true">Solo descubiertas</option>

@@ -148,14 +148,14 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                     <div className="flex gap-2">
                         <button
                             onClick={() => handleExport('csv')}
-                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-colors flex items-center gap-2"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Download className="w-4 h-4" />
                             CSV
                         </button>
                         <button
                             onClick={() => handleExport('json')}
-                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-colors flex items-center gap-2"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Download className="w-4 h-4" />
                             JSON

@@ -361,7 +361,7 @@ export default function TipsConfig() {
                     <button
                         onClick={saveSettings}
                         disabled={saving}
-                        className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+                        className="ds-btn ds-btn--primary"
                     >
                         {saving ? (
                             <div className="w-4 h-4 border-2 border-ds-border border-t-transparent rounded-full animate-spin" />

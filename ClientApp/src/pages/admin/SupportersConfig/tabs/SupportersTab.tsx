@@ -55,7 +55,7 @@ export function SupportersTab() {
                 </div>
                 <button
                     onClick={() => setSearch(searchInput.trim())}
-                    className="px-4 py-2.5 bg-ds-accent text-ds-on-accent text-sm font-bold rounded-lg"
+                    className="ds-btn ds-btn--primary"
                 >
                     Buscar
                 </button>

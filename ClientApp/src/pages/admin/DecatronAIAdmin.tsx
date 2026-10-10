@@ -341,7 +341,7 @@ export default function DecatronAIAdmin() {
                                 <select
                                     value={config.aiProvider}
                                     onChange={(e) => setConfig({ ...config, aiProvider: e.target.value })}
-                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                    className="ds-input w-full"
                                 >
                                     <option value="gemini">Gemini (Google)</option>
                                     <option value="openrouter">OpenRouter</option>
@@ -368,7 +368,7 @@ export default function DecatronAIAdmin() {
                                     type="number"
                                     value={config.maxTokens}
                                     onChange={(e) => setConfig({ ...config, maxTokens: parseInt(e.target.value) || 60 })}
-                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
@@ -385,7 +385,7 @@ export default function DecatronAIAdmin() {
                                 value={config.model}
                                 onChange={(e) => setConfig({ ...config, model: e.target.value })}
                                 placeholder="gemini-3.5-flash-lite"
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">Ej: gemini-3.5-flash-lite, gemini-3.5-flash, gemini-2.5-flash-lite</p>
                         </div>
@@ -398,7 +398,7 @@ export default function DecatronAIAdmin() {
                                 value={config.openRouterModel}
                                 onChange={(e) => setConfig({ ...config, openRouterModel: e.target.value })}
                                 placeholder="qwen/qwen3.8-flash"
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">Ej: qwen/qwen3.8-flash, deepseek/deepseek-v4.1-flash — precios y uso en Admin → Costos de IA</p>
                         </div>
@@ -411,7 +411,7 @@ export default function DecatronAIAdmin() {
                                 type="text"
                                 value={config.responsePrefix}
                                 onChange={(e) => setConfig({ ...config, responsePrefix: e.target.value })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                         </div>
                         <div>
@@ -420,7 +420,7 @@ export default function DecatronAIAdmin() {
                                 type="number"
                                 value={config.maxPromptLength}
                                 onChange={(e) => setConfig({ ...config, maxPromptLength: parseInt(e.target.value) || 200 })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>
@@ -431,7 +431,7 @@ export default function DecatronAIAdmin() {
                             value={config.systemPrompt}
                             onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
                             rows={4}
-                            className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                            className="ds-input w-full"
                         />
                     </div>
 
@@ -442,7 +442,7 @@ export default function DecatronAIAdmin() {
                                 type="number"
                                 value={config.minChannelCooldownSeconds}
                                 onChange={(e) => setConfig({ ...config, minChannelCooldownSeconds: parseInt(e.target.value) || 120 })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">Mín que puede poner streamer</p>
                         </div>
@@ -452,7 +452,7 @@ export default function DecatronAIAdmin() {
                                 type="number"
                                 value={config.defaultChannelCooldownSeconds}
                                 onChange={(e) => setConfig({ ...config, defaultChannelCooldownSeconds: parseInt(e.target.value) || 300 })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">Default para nuevos canales</p>
                         </div>
@@ -461,7 +461,7 @@ export default function DecatronAIAdmin() {
                     <button
                         onClick={saveConfig}
                         disabled={saving}
-                        className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all disabled:opacity-50"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Configuración'}
                     </button>
@@ -477,11 +477,11 @@ export default function DecatronAIAdmin() {
                             value={newChannel}
                             onChange={(e) => setNewChannel(e.target.value)}
                             placeholder="Nombre del canal..."
-                            className="flex-1 px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                            className="ds-input flex-1"
                         />
                         <button
                             onClick={addChannel}
-                            className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Plus className="w-4 h-4" /> Agregar
                         </button>
@@ -517,7 +517,7 @@ export default function DecatronAIAdmin() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => openChannelConfig(channel.channelName)}
-                                        className="flex items-center gap-1 px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold text-sm transition-all"
+                                        className="ds-btn ds-btn--primary"
                                     >
                                         <Settings className="w-4 h-4" /> Configurar
                                     </button>
@@ -559,7 +559,7 @@ export default function DecatronAIAdmin() {
                                 <select
                                     value={channelConfig.permissionLevel}
                                     onChange={(e) => setChannelConfig({ ...channelConfig, permissionLevel: e.target.value })}
-                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                    className="ds-input w-full"
                                 >
                                     <option value="everyone">Todos</option>
                                     <option value="subscriber">Suscriptores+</option>
@@ -577,7 +577,7 @@ export default function DecatronAIAdmin() {
                                         type="number"
                                         value={channelConfig.channelCooldownSeconds}
                                         onChange={(e) => setChannelConfig({ ...channelConfig, channelCooldownSeconds: parseInt(e.target.value) || 300 })}
-                                        className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                                 <div>
@@ -587,7 +587,7 @@ export default function DecatronAIAdmin() {
                                         value={channelConfig.userCooldownSeconds || ''}
                                         placeholder="Sin límite"
                                         onChange={(e) => setChannelConfig({ ...channelConfig, userCooldownSeconds: e.target.value ? parseInt(e.target.value) : null })}
-                                        className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                        className="ds-input w-full"
                                     />
                                 </div>
                             </div>
@@ -614,9 +614,9 @@ export default function DecatronAIAdmin() {
                                                 value={newWhitelistUser}
                                                 onChange={(e) => setNewWhitelistUser(e.target.value)}
                                                 placeholder="Usuario..."
-                                                className="flex-1 px-3 py-2 border border-ds-ok/40 rounded-lg bg-ds-surface text-ds-text"
+                                                className="ds-input flex-1"
                                             />
-                                            <button onClick={addWhitelistUserAdmin} className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold">
+                                            <button onClick={addWhitelistUserAdmin} className="ds-btn ds-btn--primary">
                                                 <Plus className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -646,9 +646,9 @@ export default function DecatronAIAdmin() {
                                         value={newBlacklistUser}
                                         onChange={(e) => setNewBlacklistUser(e.target.value)}
                                         placeholder="Usuario a bloquear..."
-                                        className="flex-1 px-3 py-2 border border-ds-danger/40 rounded-lg bg-ds-surface text-ds-text"
+                                        className="ds-input flex-1"
                                     />
-                                    <button onClick={addBlacklistUserAdmin} className="px-3 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold">
+                                    <button onClick={addBlacklistUserAdmin} className="ds-btn ds-btn--danger">
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -672,13 +672,13 @@ export default function DecatronAIAdmin() {
                                 <button
                                     onClick={saveChannelConfig}
                                     disabled={savingChannelConfig}
-                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all disabled:opacity-50"
+                                    className="ds-btn ds-btn--primary ds-btn--lg flex-1"
                                 >
                                     <Save className="w-4 h-4" /> {savingChannelConfig ? 'Guardando...' : 'Guardar'}
                                 </button>
                                 <button
                                     onClick={() => setEditingChannel(null)}
-                                    className="px-6 py-3 bg-ds-bg border border-ds-border text-ds-soft rounded-lg font-bold transition-all hover:bg-ds-bg"
+                                    className="ds-btn ds-btn--secondary ds-btn--lg"
                                 >
                                     Cancelar
                                 </button>

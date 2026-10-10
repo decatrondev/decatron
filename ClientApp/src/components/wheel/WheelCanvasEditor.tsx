@@ -517,7 +517,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
                 <button
                     onClick={() => onVisual({ layout: null })}
                     disabled={automatico}
-                    className="ml-auto px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-bg border border-ds-border text-ds-soft hover:text-ds-text disabled:opacity-40 transition-colors flex items-center gap-1.5"
+                    className="ds-btn ds-btn--secondary ds-btn--sm ml-auto"
                 >
                     <RotateCcw className="w-4 h-4" />
                     {t('wheel.canvas.reset')}

@@ -131,7 +131,7 @@ const PetsConfigPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     {saveMsg && <span className={`text-sm ${saveMsg.type === 'ok' ? 'text-ds-ok' : 'text-ds-danger'}`}>{saveMsg.text}</span>}
-                    <button onClick={save} disabled={!dirty || saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2">
+                    <button onClick={save} disabled={!dirty || saving} className="ds-btn ds-btn--primary">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('save')}
                     </button>
                 </div>
@@ -141,7 +141,7 @@ const PetsConfigPage: React.FC = () => {
             <Card>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div><SectionTitle>{t('preview.title')}</SectionTitle><SubLabel>{t('preview.hint', { size: `${cfg.overlay.width}×${cfg.overlay.height}` })}</SubLabel></div>
-                    <button onClick={() => setPreviewPaused(p => !p)} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border flex items-center gap-2">
+                    <button onClick={() => setPreviewPaused(p => !p)} className="ds-btn ds-btn--secondary">
                         {previewPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}{previewPaused ? t('preview.resume') : t('preview.pause')}
                     </button>
                 </div>
@@ -227,7 +227,7 @@ const PetsConfigPage: React.FC = () => {
                         <Card>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div><SectionTitle>{t('behavior.title')}</SectionTitle><SubLabel>{t('behavior.hint')}</SubLabel></div>
-                                <button onClick={() => { if (confirm(t('behavior.confirmReset'))) update({ behavior: defaultPetsConfig().behavior }); }} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border" title={t('behavior.reset')}><RotateCcw className="w-4 h-4" /></button>
+                                <button onClick={() => { if (confirm(t('behavior.confirmReset'))) update({ behavior: defaultPetsConfig().behavior }); }} className="ds-btn ds-btn--secondary" title={t('behavior.reset')}><RotateCcw className="w-4 h-4" /></button>
                             </div>
                             <div className="mt-4 space-y-5">
                                 <div>
@@ -270,7 +270,7 @@ const PetsConfigPage: React.FC = () => {
                         <Card>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div><SectionTitle>{t('reactions.title')}</SectionTitle><SubLabel>{t('reactions.hint')}</SubLabel></div>
-                                <button onClick={() => { if (confirm(t('reactions.confirmReset'))) update({ reactions: JSON.parse(JSON.stringify(DEFAULT_REACTIONS)) }); }} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border" title={t('reactions.reset')}><RotateCcw className="w-4 h-4" /></button>
+                                <button onClick={() => { if (confirm(t('reactions.confirmReset'))) update({ reactions: JSON.parse(JSON.stringify(DEFAULT_REACTIONS)) }); }} className="ds-btn ds-btn--secondary" title={t('reactions.reset')}><RotateCcw className="w-4 h-4" /></button>
                             </div>
                             <div className="mt-4 space-y-3">
                                 {REACTION_KEYS.map(key => {
@@ -303,7 +303,7 @@ const PetsConfigPage: React.FC = () => {
                         <Card>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div><SectionTitle>{t('commands.title')}</SectionTitle><SubLabel>{t('commands.hint')}</SubLabel></div>
-                                <button onClick={addCommand} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />{t('commands.add')}</button>
+                                <button onClick={addCommand} className="ds-btn ds-btn--primary"><Plus className="w-4 h-4" />{t('commands.add')}</button>
                             </div>
                             <div className="mt-4 space-y-3">
                                 {cfg.commands.length === 0 && <p className="text-sm text-ds-soft">{t('commands.empty')}</p>}
@@ -345,7 +345,7 @@ const PetsConfigPage: React.FC = () => {
                                 <SectionTitle>{t('url.title')}</SectionTitle>
                                 <SubLabel>{t('url.hint', { size: `${cfg.overlay.width}×${cfg.overlay.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
-                                    <input readOnly value={overlayUrl} className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text font-mono" />
+                                    <input readOnly value={overlayUrl} className="ds-input flex-1 font-mono" />
                                     <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
                                     <a href={overlayUrl} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.open')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
@@ -383,8 +383,8 @@ const PetsConfigPage: React.FC = () => {
                                 <div><Label>{t('testing.duration')}</Label><Slider value={testDuration} onChange={setTestDuration} min={1} max={30} unit="s" /></div>
                             </div>
                             <div className="mt-4 flex flex-wrap gap-2">
-                                <button onClick={() => sendTest(false)} className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border">{t('testing.previewOnly')}</button>
-                                <button onClick={() => sendTest(true)} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold">{t('testing.sendToOverlay')}</button>
+                                <button onClick={() => sendTest(false)} className="ds-btn ds-btn--secondary">{t('testing.previewOnly')}</button>
+                                <button onClick={() => sendTest(true)} className="ds-btn ds-btn--primary">{t('testing.sendToOverlay')}</button>
                             </div>
                             <p className="text-[11px] text-ds-soft mt-3">{t('testing.note')}</p>
                         </Card>

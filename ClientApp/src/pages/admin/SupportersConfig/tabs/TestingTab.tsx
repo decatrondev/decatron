@@ -193,7 +193,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <button
                             onClick={handleSaveDurations}
                             disabled={savingDur}
-                            className="mt-3 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-bold transition-all"
+                            className="ds-btn ds-btn--primary mt-3 w-full"
                         >
                             <Save className="w-4 h-4" />
                             {savingDur ? 'Guardando...' : 'Guardar duración predeterminada'}
@@ -220,7 +220,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                                         ? setDur({ isPermanent: true })
                                         : setDur({ isPermanent: false, duration: preset.d, unit: preset.u })
                                     }
-                                    className="px-2 py-2 bg-ds-surface border border-ds-border rounded-lg text-xs font-bold text-ds-soft hover:bg-ds-raised hover:text-ds-text transition-all text-center"
+                                    className="ds-btn ds-btn--secondary"
                                 >
                                     {preset.label}
                                 </button>
@@ -244,7 +244,7 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <button
                             onClick={handleApply}
                             disabled={applying || !target}
-                            className="flex-1 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg font-black transition-all flex items-center justify-center gap-2"
+                            className="ds-btn ds-btn--primary ds-btn--lg flex-1"
                         >
                             <Check className="w-4 h-4" />
                             {applying ? 'Asignando...' : `Asignar "${tier}" a @${target?.login ?? '...'}`}

@@ -69,7 +69,7 @@ export function MessagesTab({ pack, lang, onChange, t }: {
                                         key={v}
                                         onClick={() => onChange(key, lang, `${propio || base}{${v}}`)}
                                         title={t('wheel.messages.insert')}
-                                        className="px-2 py-0.5 rounded bg-ds-bg border border-ds-border text-xs font-mono text-ds-soft hover:text-ds-accent-text hover:border-ds-accent/40 transition-colors"
+                                        className="ds-btn ds-btn--secondary ds-btn--sm"
                                     >
                                         {'{' + v + '}'}
                                     </button>

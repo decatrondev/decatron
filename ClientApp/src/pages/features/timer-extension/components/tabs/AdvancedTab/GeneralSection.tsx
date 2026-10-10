@@ -32,7 +32,7 @@ export const GeneralSection: React.FC<GeneralSectionProps> = ({
                         <select
                             value={timeZone || 'UTC'}
                             onChange={(e) => onTimeZoneChange(e.target.value)}
-                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                            className="ds-input w-full"
                         >
                             <option value="UTC">UTC (Universal)</option>
                             <optgroup label="América">

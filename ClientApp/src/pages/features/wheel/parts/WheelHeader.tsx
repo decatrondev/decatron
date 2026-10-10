@@ -77,7 +77,7 @@ export function WheelHeader({
                     <button
                         onClick={() => onCreate('prizes')}
                         disabled={saving || cupoLleno}
-                        className="px-4 py-2.5 bg-ds-surface border border-ds-border hover:bg-ds-bg disabled:opacity-40 text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold"
+                        className="ds-btn ds-btn--secondary"
                         title={cupoLleno ? t('wheel.quota.reached', { max: limits!.maxWheels }) : t('wheel.newWheel')}
                     >
                         <Plus className="w-4 h-4" />
@@ -87,7 +87,7 @@ export function WheelHeader({
                     <button
                         onClick={() => onCreate('raffle')}
                         disabled={saving || cupoLleno}
-                        className="px-4 py-2.5 bg-ds-surface border border-ds-border hover:bg-ds-bg disabled:opacity-40 text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold"
+                        className="ds-btn ds-btn--secondary"
                         title={cupoLleno ? t('wheel.quota.reached', { max: limits!.maxWheels }) : t('wheel.empty.modeRaffleHelp')}
                     >
                         <Ticket className="w-4 h-4" />
@@ -100,7 +100,7 @@ export function WheelHeader({
                     {tab === 'segments' && (
                         <button
                             onClick={onTestSpin}
-                            className="px-5 py-2.5 bg-ds-surface border border-ds-border hover:bg-ds-bg text-ds-text rounded-lg transition-colors flex items-center gap-2 font-bold"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <Play className="w-4 h-4" />
                             {t('wheel.testSpin')}
@@ -114,7 +114,7 @@ export function WheelHeader({
                         <button
                             onClick={onSave}
                             disabled={saving}
-                            className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-colors flex items-center gap-2 font-bold"
+                            className="ds-btn ds-btn--primary"
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             {t('wheel.save')}

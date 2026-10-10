@@ -242,7 +242,7 @@ export function EmisorPanel() {
                         <select
                             value={elegida}
                             onChange={e => setElegida(e.target.value === '' ? '' : Number(e.target.value))}
-                            className="w-full px-4 py-2.5 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent text-sm"
+                            className="ds-input w-full"
                         >
                             <option value="">— elegir empresa —</option>
                             {estado?.companies.map(e => (
@@ -258,7 +258,7 @@ export function EmisorPanel() {
                     <button
                         onClick={cambiar}
                         disabled={guardando || elegida === '' || elegida === estado?.companyId}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-ds-accent text-ds-on-accent text-sm font-black rounded-lg hover:bg-ds-accent-hover disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="ds-btn ds-btn--primary"
                     >
                         {guardando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Building2 className="w-4 h-4" />}
                         Cambiar emisor

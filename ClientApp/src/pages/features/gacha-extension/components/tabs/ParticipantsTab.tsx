@@ -220,13 +220,13 @@ export const ParticipantsTab: React.FC = () => {
                 <div className="flex gap-3 items-end flex-wrap">
                     <div className="flex-1 min-w-[180px]">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Nombre del participante</label>
-                        <input type="text" value={donationName} onChange={e => setDonationName(e.target.value)} placeholder="usuario de twitch" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                        <input type="text" value={donationName} onChange={e => setDonationName(e.target.value)} placeholder="usuario de twitch" className="ds-input w-full" />
                     </div>
                     <div className="w-32">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Monto ($)</label>
-                        <input type="number" min={0.01} step={0.01} value={donationAmount} onChange={e => setDonationAmount(e.target.value)} placeholder="0.00" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                        <input type="number" min={0.01} step={0.01} value={donationAmount} onChange={e => setDonationAmount(e.target.value)} placeholder="0.00" className="ds-input w-full" />
                     </div>
-                    <button onClick={handleDonation} disabled={!donationName.trim() || !donationAmount || parseFloat(donationAmount) <= 0} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all">
+                    <button onClick={handleDonation} disabled={!donationName.trim() || !donationAmount || parseFloat(donationAmount) <= 0} className="ds-btn ds-btn--primary ds-btn--lg">
                         Registrar
                     </button>
                 </div>
@@ -247,11 +247,11 @@ export const ParticipantsTab: React.FC = () => {
                 <div className="flex gap-3 items-end flex-wrap">
                     <div className="flex-1 min-w-[180px]">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Nombre del participante</label>
-                        <input type="text" value={bonusName} onChange={e => setBonusName(e.target.value)} placeholder="usuario de twitch" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                        <input type="text" value={bonusName} onChange={e => setBonusName(e.target.value)} placeholder="usuario de twitch" className="ds-input w-full" />
                     </div>
                     <div className="w-32">
                         <label className="block text-sm font-bold text-ds-soft mb-1">Tiros</label>
-                        <input type="number" min={1} step={1} value={bonusPulls} onChange={e => setBonusPulls(e.target.value)} placeholder="1" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                        <input type="number" min={1} step={1} value={bonusPulls} onChange={e => setBonusPulls(e.target.value)} placeholder="1" className="ds-input w-full" />
                     </div>
                     <button onClick={handleBonus} disabled={!bonusName.trim() || !(parseInt(bonusPulls) > 0)} className="px-6 py-3 bg-ds-warn hover:bg-ds-warn disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all">
                         Regalar
@@ -319,7 +319,7 @@ export const ParticipantsTab: React.FC = () => {
                     </div>
                     <div className="relative">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ds-soft" />
-                        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar participante..." className="pl-10 pr-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text w-48" />
+                        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar participante..." className="ds-input w-48 pl-10 pr-4" />
                     </div>
                 </div>
 
@@ -422,7 +422,7 @@ export const ParticipantsTab: React.FC = () => {
                                                             disabled={forcedSaving}
                                                             value={p.forcedItemId ?? ''}
                                                             onChange={e => setForcedItem(p.id, e.target.value ? parseInt(e.target.value) : null)}
-                                                            className="flex-1 min-w-[200px] px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                                                            className="ds-input flex-1 min-w-[200px]"
                                                         >
                                                             <option value="">— Sin forzar (aleatorio) —</option>
                                                             {allItems.filter(i => i.available).map(i => (
@@ -493,7 +493,7 @@ export const ParticipantsTab: React.FC = () => {
                                                         <div className="flex items-center gap-2">
                                                             <div className="relative">
                                                                 <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-ds-soft" />
-                                                                <input type="text" value={invSearch} onChange={e => setInvSearch(e.target.value)} placeholder="Buscar item..." className="pl-8 pr-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-xs text-ds-text w-36" />
+                                                                <input type="text" value={invSearch} onChange={e => setInvSearch(e.target.value)} placeholder="Buscar item..." className="ds-input w-36 pl-8 pr-3" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -545,7 +545,7 @@ export const ParticipantsTab: React.FC = () => {
                                                                             <p className="text-[10px] font-bold" style={{ color: cfg.color }}>{getRarityStars(rarity)}</p>
                                                                             <p className="text-xs font-bold text-ds-text truncate" title={inv.item?.name}>{inv.item?.name || `#${inv.itemId}`}</p>
                                                                             {!inv.isRedeemed && (
-                                                                                <button onClick={e => { e.stopPropagation(); handleRedeem(inv.id); }} className="mt-1.5 px-3 py-1 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-[10px] font-bold transition">Canjear</button>
+                                                                                <button onClick={e => { e.stopPropagation(); handleRedeem(inv.id); }} className="ds-btn ds-btn--primary ds-btn--sm mt-1.5">Canjear</button>
                                                                             )}
                                                                         </div>
                                                                     </div>

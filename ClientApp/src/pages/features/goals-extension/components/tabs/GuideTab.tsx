@@ -141,7 +141,7 @@ export const GuideTab: React.FC<GuideTabProps> = ({ onNavigateToTab }) => {
                             {step.action && (
                                 <button
                                     onClick={step.action}
-                                    className="flex-shrink-0 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-medium rounded-lg transition-colors"
+                                    className="ds-btn ds-btn--primary flex-shrink-0"
                                 >
                                     Ir →
                                 </button>

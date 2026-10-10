@@ -214,7 +214,7 @@ export default function FollowAlertConfig() {
                                     value={config.message}
                                     onChange={(e) => setConfig({ ...config, message: e.target.value })}
                                     placeholder="¡Gracias @{username} por el follow! ❤️"
-                                    className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                 />
                                 <p className="text-xs text-ds-soft mt-2">
                                     {t('followAlert.availableVars')} <code className="bg-ds-raised px-2 py-1 rounded">{'{username}'}</code>
@@ -240,7 +240,7 @@ export default function FollowAlertConfig() {
                                     max="1440"
                                     value={config.cooldownMinutes}
                                     onChange={(e) => setConfig({ ...config, cooldownMinutes: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                 />
                                 <p className="text-xs text-ds-soft mt-2">
                                     {t('followAlert.cooldownDescription')}
@@ -251,7 +251,7 @@ export default function FollowAlertConfig() {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--primary ds-btn--lg w-full"
                             >
                                 <Save className="w-5 h-5" />
                                 {saving ? t('followAlert.saving') : t('followAlert.saveConfig')}

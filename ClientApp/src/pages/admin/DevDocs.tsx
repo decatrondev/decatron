@@ -216,7 +216,7 @@ export default function DevDocs() {
                                 return confirmPath === selectedFile.path ? (
                                     <span className="flex items-center gap-2 text-sm">
                                         <span className="text-ds-text font-medium">¿{moveLabel(a)}?</span>
-                                        <button disabled={moving} onClick={() => move(selectedFile.path, a)} className="px-3 py-1 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold disabled:opacity-50">Sí</button>
+                                        <button disabled={moving} onClick={() => move(selectedFile.path, a)} className="ds-btn ds-btn--primary ds-btn--sm">Sí</button>
                                         <button disabled={moving} onClick={() => setConfirmPath(null)} className="px-3 py-1 rounded-lg border border-ds-border text-ds-soft font-bold">No</button>
                                     </span>
                                 ) : (
@@ -244,7 +244,7 @@ export default function DevDocs() {
                     {parentPath !== null && (
                         <button
                             onClick={() => setCurrentPath(parentPath)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-ds-surface border border-ds-border rounded-lg hover:bg-ds-surface transition text-sm text-ds-soft"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <ChevronLeft className="w-4 h-4" /> Volver
                         </button>
@@ -298,7 +298,7 @@ export default function DevDocs() {
                                         {confirmPath === file.path ? (
                                             <>
                                                 <span className="text-sm font-medium text-ds-text">¿{moveLabel(action)}?</span>
-                                                <button disabled={moving} onClick={() => move(file.path, action)} className="px-3 py-1.5 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-bold disabled:opacity-50">Sí</button>
+                                                <button disabled={moving} onClick={() => move(file.path, action)} className="ds-btn ds-btn--primary ds-btn--sm">Sí</button>
                                                 <button disabled={moving} onClick={() => setConfirmPath(null)} className="px-3 py-1.5 rounded-lg border border-ds-border text-sm font-bold text-ds-soft">No</button>
                                             </>
                                         ) : (

@@ -178,7 +178,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                 })
               }
               placeholder={MESSAGE_TEMPLATES.bits.base}
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-sm 3xl:text-base"
+              className="ds-input w-full font-mono"
             />
             {!config.baseAlert.message && (
               <button
@@ -210,7 +210,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                     },
                   })
                 }
-                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                className="ds-input w-full"
               />
             </div>
             <div>
@@ -230,7 +230,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                     },
                   })
                 }
-                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                className="ds-input w-full"
               />
             </div>
           </div>
@@ -314,7 +314,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
           </div>
           <button
             onClick={addTier}
-            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2 3xl:text-base"
+            className="ds-btn ds-btn--primary"
           >
             <Plus className="w-4 h-4" />
             Agregar Tier
@@ -389,7 +389,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                           type="text"
                           value={tier.name}
                           onChange={(e) => updateTier(tier.id, { name: e.target.value })}
-                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                          className="ds-input w-full"
                         />
                       </div>
                       <div>
@@ -429,7 +429,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               },
                             })
                           }
-                          className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
+                          className="ds-input"
                         >
                           <option value="range">Rango</option>
                           <option value="minimum">Mínimo</option>
@@ -451,7 +451,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                                 })
                               }
                               placeholder="Mínimo"
-                              className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
+                              className="ds-input"
                             />
                             <input
                               type="number"
@@ -466,7 +466,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                                 })
                               }
                               placeholder="Máximo"
-                              className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
+                              className="ds-input"
                             />
                           </>
                         )}
@@ -485,7 +485,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               })
                             }
                             placeholder="Cantidad mínima"
-                            className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
+                            className="ds-input col-span-2"
                           />
                         )}
 
@@ -503,7 +503,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                               })
                             }
                             placeholder="Cantidad exacta"
-                            className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm 3xl:text-base"
+                            className="ds-input col-span-2"
                           />
                         )}
                       </div>
@@ -532,7 +532,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                         value={tier.message}
                         onChange={(e) => updateTier(tier.id, { message: e.target.value })}
                         placeholder={index === 0 ? MESSAGE_TEMPLATES.bits.tier1 : index === 1 ? MESSAGE_TEMPLATES.bits.tier2 : MESSAGE_TEMPLATES.bits.tier3}
-                        className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-sm 3xl:text-base"
+                        className="ds-input w-full font-mono"
                       />
                     </div>
 
@@ -550,7 +550,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                           onChange={(e) =>
                             updateTier(tier.id, { duration: parseInt(e.target.value) || 5 })
                           }
-                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                          className="ds-input w-full"
                         />
                       </div>
                       <div>
@@ -565,7 +565,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
                           onChange={(e) =>
                             updateTier(tier.id, { volume: parseInt(e.target.value) || 50 })
                           }
-                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                          className="ds-input w-full"
                         />
                       </div>
                     </div>
@@ -646,7 +646,7 @@ export const BitsTab: React.FC<BitsTabProps> = ({ config, onConfigChange }) => {
           max="60"
           value={config.cooldown}
           onChange={(e) => onConfigChange({ cooldown: parseInt(e.target.value) || 5 })}
-          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+          className="ds-input w-full"
         />
       </EventSection>
     </div>

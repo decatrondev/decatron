@@ -126,7 +126,7 @@ export default function SupportersConfig() {
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Save className="w-5 h-5" />
                         {saving ? 'Guardando...' : 'Guardar'}

@@ -219,7 +219,7 @@ export default function MeBilling() {
                         <select
                             value={country}
                             onChange={e => { setCountry(e.target.value); setError(null); }}
-                            className="w-full px-4 py-2.5 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                            className="ds-input w-full"
                         >
                             <option value="">Elige tu país…</option>
                             {COUNTRIES.filter(c => c.code !== 'PE').map(c => (
@@ -236,7 +236,7 @@ export default function MeBilling() {
                         <select
                             value={docType}
                             onChange={e => { setDocType(e.target.value); setDocNumber(''); setError(null); }}
-                            className="w-full px-4 py-2.5 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                            className="ds-input w-full"
                         >
                             {docs.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
                         </select>
@@ -249,7 +249,7 @@ export default function MeBilling() {
                                 value={docNumber}
                                 onChange={e => { setDocNumber(e.target.value.trim()); setError(null); }}
                                 placeholder={docType === 'RUC' ? '20123456789' : docType === 'DNI' ? '12345678' : 'Número de documento'}
-                                className="w-full px-4 py-2.5 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                className="ds-input w-full"
                             />
                             {rucLoading && (
                                 <Loader2 className="w-4 h-4 animate-spin text-ds-accent-text absolute right-3 top-1/2 -translate-y-1/2" />
@@ -300,7 +300,7 @@ export default function MeBilling() {
                             type="text"
                             value={address}
                             onChange={e => setAddress(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                            className="ds-input w-full"
                         />
                     </div>
                     <div>
@@ -311,7 +311,7 @@ export default function MeBilling() {
                             type="email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                            className="ds-input w-full"
                         />
                     </div>
                 </div>
@@ -333,7 +333,7 @@ export default function MeBilling() {
                 <button
                     onClick={guardar}
                     disabled={saving}
-                    className="w-full py-3 rounded-lg bg-ds-accent text-ds-on-accent font-black text-sm hover:bg-ds-accent-hover disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
+                    className="ds-btn ds-btn--primary ds-btn--lg w-full"
                 >
                     {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Guardando…</> : 'Guardar datos'}
                 </button>

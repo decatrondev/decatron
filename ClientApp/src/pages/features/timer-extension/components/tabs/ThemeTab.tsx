@@ -319,7 +319,7 @@ export const ThemeTab: React.FC<ThemeTabProps> = ({
                                             type="text"
                                             value={themeConfig.containerBackground.startsWith('url') ? '#000000' : themeConfig.containerBackground}
                                             onChange={(e) => onThemeConfigChange({ containerBackground: e.target.value })}
-                                            className="w-32 px-3 py-2 text-sm border border-ds-border rounded-lg bg-ds-surface text-ds-text font-mono uppercase"
+                                            className="ds-input w-32 font-mono"
                                         />
                                     </div>
                                 </div>

@@ -23,7 +23,7 @@ export default function StaticThumbnailPicker({ value, onChange }: { value: stri
       {mode === 'url' ? (
         <input type="url" value={value} onChange={(e) => onChange(e.target.value)}
           placeholder="https://ejemplo.com/imagen.jpg"
-          className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent placeholder-ds-soft text-sm" />
+          className="ds-input w-full" />
       ) : (
         <div>
           {value ? (

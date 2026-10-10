@@ -65,7 +65,7 @@ export default function BillingConfirmModal({
                         </div>
                         <button
                             onClick={() => navigate('/me/billing')}
-                            className="w-full bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold py-2.5 rounded-lg transition-colors"
+                            className="ds-btn ds-btn--primary w-full"
                         >
                             Completar mis datos
                         </button>
@@ -151,7 +151,7 @@ export default function BillingConfirmModal({
                             <button
                                 onClick={onConfirm}
                                 disabled={confirming}
-                                className="flex-1 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                className="ds-btn ds-btn--primary flex-1"
                             >
                                 {confirming ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                                 {submitError ? 'Reintentar' : 'Pagar'}

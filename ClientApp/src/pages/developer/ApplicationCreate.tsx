@@ -274,7 +274,7 @@ export default function ApplicationCreate() {
                         <div className="flex gap-3 justify-center">
                             <button
                                 onClick={() => navigate('/developer')}
-                                className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors"
+                                className="ds-btn ds-btn--primary ds-btn--lg"
                             >
                                 Ir al Portal
                             </button>
@@ -335,7 +335,7 @@ export default function ApplicationCreate() {
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={3}
-                                    className="w-full bg-ds-bg border border-ds-border rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent resize-none placeholder-ds-soft"
+                                    className="ds-input w-full resize-none"
                                     placeholder="Descripcion breve de tu aplicacion..."
                                 />
                             </FormField>
@@ -381,7 +381,7 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={uri}
                                         onChange={(e) => updateRedirectUri(index, e.target.value)}
-                                        className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent font-mono text-sm placeholder-ds-soft"
+                                        className="ds-input flex-1 font-mono"
                                         placeholder="https://miapp.com/callback"
                                     />
                                     {redirectUris.length > 1 && (
@@ -476,14 +476,14 @@ export default function ApplicationCreate() {
                         <button
                             type="button"
                             onClick={() => navigate('/developer')}
-                            className="px-6 py-3 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border hover:text-ds-text transition-colors"
+                            className="ds-btn ds-btn--secondary ds-btn--lg"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="ds-btn ds-btn--primary ds-btn--lg"
                         >
                             {loading ? (
                                 <>

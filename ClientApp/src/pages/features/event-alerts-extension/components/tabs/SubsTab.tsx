@@ -145,7 +145,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
                         onChange={(e) => updateSubType(tier, 'message', e.target.value)}
                         placeholder={MESSAGE_TEMPLATES.subs[tier]}
                         rows={2}
-                        className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none resize-none font-mono text-sm 3xl:text-base"
+                        className="ds-input w-full resize-none font-mono"
                       />
                       {!tierConfig.message && (
                         <button
@@ -172,7 +172,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
                           onChange={(e) =>
                             updateSubType(tier, 'duration', parseInt(e.target.value) || 5)
                           }
-                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                          className="ds-input w-full"
                         />
                       </div>
 
@@ -188,7 +188,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
                           onChange={(e) =>
                             updateSubType(tier, 'volume', parseInt(e.target.value) || 50)
                           }
-                          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+                          className="ds-input w-full"
                         />
                       </div>
                     </div>
@@ -298,7 +298,7 @@ export const SubsTab: React.FC<SubsTabProps> = ({ config, onConfigChange }) => {
           max="60"
           value={config.cooldown}
           onChange={(e) => onConfigChange({ cooldown: parseInt(e.target.value) || 5 })}
-          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+          className="ds-input w-full"
         />
       </EventSection>
     </div>

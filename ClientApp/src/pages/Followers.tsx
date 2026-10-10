@@ -494,7 +494,7 @@ export default function Followers() {
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         Volver al Dashboard
                     </button>
@@ -528,7 +528,7 @@ export default function Followers() {
                     <button
                         onClick={() => handleSyncFollowers(false)}
                         disabled={loading}
-                        className="flex items-center gap-2 px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent font-bold rounded-lg transition-all"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         Sincronizar
@@ -564,7 +564,7 @@ export default function Followers() {
                                 <select
                                     value={autoSyncInterval}
                                     onChange={(e) => setAutoSyncInterval(Number(e.target.value))}
-                                    className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ds-accent text-ds-text text-sm font-bold"
+                                    className="ds-input"
                                 >
                                     <option value={5}>5 minutos</option>
                                     <option value={10}>10 minutos</option>
@@ -672,7 +672,7 @@ export default function Followers() {
                             value={searchName}
                             onChange={(e) => setSearchName(e.target.value)}
                             placeholder="Buscar por nombre o username (búsqueda automática)..."
-                            className="w-full pl-10 pr-4 py-3 bg-ds-bg border border-ds-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ds-accent text-ds-text"
+                            className="ds-input w-full pl-10 pr-4"
                         />
                     </div>
                     <button
@@ -739,7 +739,7 @@ export default function Followers() {
                                     type="date"
                                     value={followDateFrom}
                                     onChange={(e) => setFollowDateFrom(e.target.value)}
-                                    className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ds-accent text-ds-text"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div>
@@ -750,14 +750,14 @@ export default function Followers() {
                                     type="date"
                                     value={followDateTo}
                                     onChange={(e) => setFollowDateTo(e.target.value)}
-                                    className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ds-accent text-ds-text"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={handleApplyAdvancedFilters}
-                                className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--primary ds-btn--lg"
                             >
                                 Aplicar Filtros
                             </button>
@@ -796,7 +796,7 @@ export default function Followers() {
                             <button
                                 onClick={handleBulkBlock}
                                 disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--danger"
                             >
                                 <Ban className="w-4 h-4" />
                                 Bloquear seleccionados
@@ -804,7 +804,7 @@ export default function Followers() {
                             <button
                                 onClick={handleBulkUnblock}
                                 disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--primary"
                             >
                                 <CheckCircle className="w-4 h-4" />
                                 Desbloquear seleccionados
@@ -974,7 +974,7 @@ export default function Followers() {
                                 <select
                                     value={pageSize}
                                     onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                                    className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ds-accent text-ds-text text-sm font-bold"
+                                    className="ds-input"
                                 >
                                     <option value={10}>10</option>
                                     <option value={20}>20</option>

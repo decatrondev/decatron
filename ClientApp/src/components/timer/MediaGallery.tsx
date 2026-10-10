@@ -414,7 +414,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                         </button>
                         <button
                             onClick={() => setShowUploadModal(true)}
-                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg flex items-center gap-2 transition-colors"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Upload className="w-4 h-4" />
                             Subir Archivo
@@ -445,14 +445,14 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                         placeholder="Buscar archivos..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                        className="ds-input"
                     />
 
                     {/* Filtro por categoría */}
                     <select
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        className="px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                        className="ds-input"
                     >
                         <option value="all">Todas las categorías</option>
                         {categories.map(cat => (
@@ -464,7 +464,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                     <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                        className="ds-input"
                     >
                         <option value="all">Todos los tipos</option>
                         <option value="image">Imágenes</option>
@@ -500,7 +500,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                             <select
                                 value={moveTarget}
                                 onChange={(e) => setMoveTarget(e.target.value)}
-                                className="px-2 py-1.5 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                className="ds-input"
                             >
                                 <option value="">Mover a...</option>
                                 {categories.filter(c => c !== 'all').map(cat => (
@@ -725,7 +725,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                     value={uploadCategory}
                                     onChange={(e) => setUploadCategory(e.target.value)}
                                     disabled={uploading}
-                                    className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                    className="ds-input w-full"
                                 >
                                     {categories.filter(c => c !== 'all').map(cat => (
                                         <option key={cat} value={cat}>{cat}</option>
@@ -745,7 +745,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                     value={uploadType}
                                     onChange={(e) => setUploadType(e.target.value as any)}
                                     disabled={uploading}
-                                    className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                    className="ds-input w-full"
                                 >
                                     <option value="image">Imagen</option>
                                     <option value="gif">GIF Animado</option>
@@ -781,7 +781,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                 <button
                                     onClick={() => handleUpload()}
                                     disabled={!uploadFile || uploading}
-                                    className="flex-1 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="ds-btn ds-btn--primary flex-1"
                                 >
                                     {uploading ? 'Subiendo...' : 'Subir'}
                                 </button>
@@ -809,7 +809,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                     value={newFileName}
                                     onChange={(e) => setNewFileName(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-                                    className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                    className="ds-input w-full"
                                     placeholder="mi-archivo.png"
                                     autoFocus
                                 />
@@ -828,7 +828,7 @@ export default function MediaGallery({ onFileSelect, selectedCategory, selectedF
                                 <button
                                     onClick={handleRename}
                                     disabled={!newFileName.trim()}
-                                    className="flex-1 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="ds-btn ds-btn--primary flex-1"
                                 >
                                     Renombrar
                                 </button>

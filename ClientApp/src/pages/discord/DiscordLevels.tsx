@@ -81,7 +81,7 @@ export default function DiscordLevels() {
         <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
           <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
           <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors">
+          <button onClick={() => navigate('/dashboard')} className="ds-btn ds-btn--primary ds-btn--lg">
             Volver
           </button>
         </div>
@@ -235,15 +235,15 @@ export default function DiscordLevels() {
                 <select
                   value={selectedGuild.guildId}
                   onChange={(e) => handleGuildChange(e.target.value)}
-                  className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                  className="ds-input"
                 >
                   {linkedGuilds.map(g => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
                 </select>
               )}
-              <button onClick={handleReset} className="px-4 py-2 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border hover:bg-ds-raised transition-colors" title="Restaurar valores por defecto">
+              <button onClick={handleReset} className="ds-btn ds-btn--secondary" title="Restaurar valores por defecto">
                 <RotateCcw className="w-4 h-4" />
               </button>
-              <button onClick={handleSave} disabled={saving || !selectedGuild} className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all disabled:opacity-50 flex items-center gap-2 shadow-blue-500/20">
+              <button onClick={handleSave} disabled={saving || !selectedGuild} className="ds-btn ds-btn--primary">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                 Guardar
               </button>

@@ -346,7 +346,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                 onSetHistoryEnabled(true);
                                 setShowSettings(true);
                             }}
-                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors"
+                            className="ds-btn ds-btn--primary"
                         >
                             Activar historial
                         </button>

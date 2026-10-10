@@ -123,7 +123,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <div className="flex items-center gap-2">
                         <SelectInput value={game} onChange={v => onSelectGame(v as GameId)} options={GAME_IDS.map(g => ({ value: g, label: `${GAME_NAMES[g]}${games[g].enabled ? '' : ` (${t('disabled')})`}` }))} />
                         <button onClick={() => { if (confirm(t('confirmReset'))) onChange(game, { ...defaultGameConfig(game), enabled: cfg.enabled, accounts: cfg.accounts, rotation: cfg.rotation, sessionScope: cfg.sessionScope }); }}
-                            className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm flex items-center gap-2 border border-ds-border" title={t('reset')}>
+                            className="ds-btn ds-btn--secondary" title={t('reset')}>
                             <RotateCcw className="w-4 h-4" />
                         </button>
                     </div>
@@ -174,7 +174,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <div className="w-28"><Label>{t('boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => setManualSize({ height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} disabled={cfg.sizeMode === 'auto'} /></div>
                     <div className="w-40"><Label>{t('scale')}</Label><Slider value={Math.round((cfg.scale ?? 1) * 100)} onChange={v => onChange(game, { scale: Math.max(CARD_SIZE_LIMITS.minScale, Math.min(CARD_SIZE_LIMITS.maxScale, v / 100)) })} min={CARD_SIZE_LIMITS.minScale * 100} max={CARD_SIZE_LIMITS.maxScale * 100} unit="%" /></div>
                     {cfg.sizeMode === 'manual' && (
-                        <button onClick={fitToContent} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-xs flex items-center gap-2 border border-ds-border" title={t('fitHint')}>
+                        <button onClick={fitToContent} className="ds-btn ds-btn--secondary" title={t('fitHint')}>
                             <Maximize2 className="w-3.5 h-3.5" />{t('fit')}
                         </button>
                     )}
@@ -239,7 +239,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         <div className="flex flex-wrap items-center gap-2 mt-3">
                             <span className="text-[11px] text-ds-soft">{t('preset')}:</span>
                             {STYLE_PRESETS.map(p => (
-                                <button key={p} onClick={() => applyPreset(p)} className="px-2.5 py-1 rounded-lg text-xs border bg-ds-bg border-ds-border text-ds-text hover:bg-ds-bg" title={t('presetHint')}>{t(`presets.${p}`)}</button>
+                                <button key={p} onClick={() => applyPreset(p)} className="ds-btn ds-btn--secondary ds-btn--sm" title={t('presetHint')}>{t(`presets.${p}`)}</button>
                             ))}
                         </div>
                     )}

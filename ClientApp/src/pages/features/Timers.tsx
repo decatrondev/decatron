@@ -244,7 +244,7 @@ export default function Timers() {
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         {t('timers.backToDashboard')}
                     </button>
@@ -265,7 +265,7 @@ export default function Timers() {
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                    className="ds-btn ds-btn--primary"
                 >
                     <Plus className="w-5 h-5" />
                     {t('timers.createTimer')}
@@ -299,7 +299,7 @@ export default function Timers() {
                     </p>
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all inline-flex items-center gap-2"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Plus className="w-5 h-5" />
                         {t('timers.createFirstTimer')}
@@ -414,7 +414,7 @@ export default function Timers() {
                                     type="text"
                                     value={newTimer.name}
                                     onChange={(e) => setNewTimer({ ...newTimer, name: e.target.value })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                     placeholder="Ej: Info del Stream"
                                     maxLength={100}
                                 />
@@ -428,7 +428,7 @@ export default function Timers() {
                                 <textarea
                                     value={newTimer.message}
                                     onChange={(e) => setNewTimer({ ...newTimer, message: e.target.value })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent font-mono text-sm"
+                                    className="ds-input w-full font-mono"
                                     rows={4}
                                     placeholder="🎮 Jugando $(game) | ⏰ Uptime: $(uptime)"
                                     maxLength={500}
@@ -461,7 +461,7 @@ export default function Timers() {
                                         min="5"
                                         value={newTimer.intervalMinutes}
                                         onChange={(e) => setNewTimer({ ...newTimer, intervalMinutes: parseInt(e.target.value) || 5 })}
-                                        className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                        className="ds-input w-full"
                                     />
                                     <p className="text-xs text-ds-soft mt-1">{t('timers.minMinutes')}</p>
                                 </div>
@@ -474,7 +474,7 @@ export default function Timers() {
                                         min="5"
                                         value={newTimer.intervalMessages}
                                         onChange={(e) => setNewTimer({ ...newTimer, intervalMessages: parseInt(e.target.value) || 5 })}
-                                        className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                        className="ds-input w-full"
                                     />
                                     <p className="text-xs text-ds-soft mt-1">{t('timers.minMessages')}</p>
                                 </div>
@@ -488,7 +488,7 @@ export default function Timers() {
                                 <select
                                     value={newTimer.streamStatus}
                                     onChange={(e) => setNewTimer({ ...newTimer, streamStatus: e.target.value as 'online' | 'offline' | 'both' })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                 >
                                     <option value="online">{t('timers.onlineOnly')}</option>
                                     <option value="offline">{t('timers.offlineOnly')}</option>
@@ -506,7 +506,7 @@ export default function Timers() {
                                     min="1"
                                     value={newTimer.priority}
                                     onChange={(e) => setNewTimer({ ...newTimer, priority: parseInt(e.target.value) || 1 })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                 />
                                 <p className="text-xs text-ds-soft mt-1">
                                     {t('timers.priorityHelp')}
@@ -531,7 +531,7 @@ export default function Timers() {
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={handleCreateTimer}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--primary flex-1"
                             >
                                 <Save className="w-4 h-4" />
                                 {t('timers.createTimer')}
@@ -571,7 +571,7 @@ export default function Timers() {
                                     type="text"
                                     value={editingTimer.name}
                                     onChange={(e) => setEditingTimer({ ...editingTimer, name: e.target.value })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                     maxLength={100}
                                 />
                             </div>
@@ -584,7 +584,7 @@ export default function Timers() {
                                 <textarea
                                     value={editingTimer.message}
                                     onChange={(e) => setEditingTimer({ ...editingTimer, message: e.target.value })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent font-mono text-sm"
+                                    className="ds-input w-full font-mono"
                                     rows={4}
                                     maxLength={500}
                                 />
@@ -617,7 +617,7 @@ export default function Timers() {
                                         min="5"
                                         value={editingTimer.intervalMinutes}
                                         onChange={(e) => setEditingTimer({ ...editingTimer, intervalMinutes: parseInt(e.target.value) || 5 })}
-                                        className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                        className="ds-input w-full"
                                     />
                                     <p className="text-xs text-ds-soft mt-1">{t('timers.minMinutes')}</p>
                                 </div>
@@ -630,7 +630,7 @@ export default function Timers() {
                                         min="5"
                                         value={editingTimer.intervalMessages}
                                         onChange={(e) => setEditingTimer({ ...editingTimer, intervalMessages: parseInt(e.target.value) || 5 })}
-                                        className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                        className="ds-input w-full"
                                     />
                                     <p className="text-xs text-ds-soft mt-1">{t('timers.minMessages')}</p>
                                 </div>
@@ -644,7 +644,7 @@ export default function Timers() {
                                 <select
                                     value={editingTimer.streamStatus}
                                     onChange={(e) => setEditingTimer({ ...editingTimer, streamStatus: e.target.value as 'online' | 'offline' | 'both' })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                 >
                                     <option value="online">{t('timers.onlineOnly')}</option>
                                     <option value="offline">{t('timers.offlineOnly')}</option>
@@ -662,7 +662,7 @@ export default function Timers() {
                                     min="1"
                                     value={editingTimer.priority}
                                     onChange={(e) => setEditingTimer({ ...editingTimer, priority: parseInt(e.target.value) || 1 })}
-                                    className="w-full px-4 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-full"
                                 />
                             </div>
 
@@ -694,7 +694,7 @@ export default function Timers() {
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={handleEditTimer}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--primary flex-1"
                             >
                                 <Save className="w-4 h-4" />
                                 {t('timers.saveChanges')}

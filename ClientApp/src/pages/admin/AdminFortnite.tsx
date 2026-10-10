@@ -64,7 +64,7 @@ function FormField({ label, value, onChange, type = 'text', placeholder, disable
                 onChange={e => onChange(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft disabled:opacity-50"
+                className="ds-input w-full"
             />
         </div>
     );
@@ -80,7 +80,7 @@ function FormSelect({ label, value, onChange, options }: {
             <select
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 [&>option]:bg-ds-surface"
+                className="ds-input w-full"
             >
                 {options.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
@@ -239,7 +239,7 @@ function SpritesTab() {
                     <button
                         onClick={() => handleSync(true)}
                         disabled={syncing !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-ds-surface border border-ds-border hover:bg-ds-raised disabled:opacity-50 text-ds-text rounded-lg text-xs font-bold transition-colors"
+                        className="ds-btn ds-btn--secondary ds-btn--sm"
                     >
                         {syncing === 'preview' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
                         Ver cambios
@@ -247,7 +247,7 @@ function SpritesTab() {
                     <button
                         onClick={() => handleSync(false)}
                         disabled={syncing !== null}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-xs font-bold transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--sm"
                     >
                         {syncing === 'apply' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <DownloadCloud className="w-3.5 h-3.5" />}
                         Sincronizar ahora
@@ -277,12 +277,12 @@ function SpritesTab() {
                     onChange={e => setTestUsername(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleTestNotify('twitch')}
                     placeholder="username"
-                    className="px-3 py-1.5 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text w-40"
+                    className="ds-input w-40"
                 />
                 <button
                     onClick={() => handleTestNotify('twitch')}
                     disabled={testingNotify || !testUsername.trim()}
-                    className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-xs font-bold transition-colors"
+                    className="ds-btn ds-btn--primary ds-btn--sm"
                 >
                     {testingNotify ? 'Enviando...' : 'Twitch'}
                 </button>
@@ -305,7 +305,7 @@ function SpritesTab() {
                 <select
                     value={filterCharacter}
                     onChange={e => setFilterCharacter(e.target.value)}
-                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                    className="ds-input"
                 >
                     <option value="">Todos los personajes</option>
                     {characters.map(c => <option key={c} value={c}>{c}</option>)}
@@ -314,7 +314,7 @@ function SpritesTab() {
                 <select
                     value={filterRarity}
                     onChange={e => setFilterRarity(e.target.value)}
-                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                    className="ds-input"
                 >
                     <option value="">Todas las rarezas</option>
                     {RARITIES.map(r => <option key={r} value={r}>{r}</option>)}
@@ -323,7 +323,7 @@ function SpritesTab() {
                 <select
                     value={filterUnreleased}
                     onChange={e => setFilterUnreleased(e.target.value as any)}
-                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                    className="ds-input"
                 >
                     <option value="">Todos</option>
                     <option value="false">Lanzados</option>
@@ -333,7 +333,7 @@ function SpritesTab() {
                 <select
                     value={filterSeason}
                     onChange={e => setFilterSeason(e.target.value)}
-                    className="px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                    className="ds-input"
                 >
                     <option value="">Todas las temporadas</option>
                     {allSeasons.map(s => (
@@ -352,7 +352,7 @@ function SpritesTab() {
 
                 <button
                     onClick={() => { setModal({ mode: 'create', data: { ...emptySprite } }); setSaveError(null); }}
-                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold transition-colors"
+                    className="ds-btn ds-btn--primary"
                 >
                     <Plus className="w-4 h-4" /> Nuevo sprite
                 </button>
@@ -559,7 +559,7 @@ function SpritesTab() {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 transition-colors"
+                                className="ds-btn ds-btn--primary"
                             >
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 Guardar
@@ -585,7 +585,7 @@ function SpritesTab() {
                             </button>
                             <button
                                 onClick={() => handleDelete(deleteConfirm)}
-                                className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+                                className="ds-btn ds-btn--danger"
                             >
                                 <Trash2 className="w-4 h-4" /> Eliminar
                             </button>

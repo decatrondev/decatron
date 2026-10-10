@@ -210,7 +210,7 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
           <div className="flex justify-end gap-3 mt-5">
             <button
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm font-bold text-ds-soft bg-ds-bg border border-ds-border rounded-lg hover:bg-ds-raised transition-colors"
+              className="ds-btn ds-btn--secondary"
             >
               Cancelar
             </button>

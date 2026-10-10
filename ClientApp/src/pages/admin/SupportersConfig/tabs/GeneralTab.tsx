@@ -34,7 +34,7 @@ export function GeneralTab({ config, onChange }: { config: PageConfig; onChange:
                         <input type="text" value={publicUrl} readOnly className={`${INPUT} font-mono text-xs`} />
                         <button
                             onClick={handleCopy}
-                            className="px-3 py-2 bg-ds-accent text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-1.5 whitespace-nowrap"
+                            className="ds-btn ds-btn--primary whitespace-nowrap"
                         >
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                             {copied ? 'Copiado' : 'Copiar'}

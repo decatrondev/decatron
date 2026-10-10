@@ -132,7 +132,7 @@ export default function LevelsTab({ config }: LevelsTabProps) {
             <select
               value={maxLevel}
               onChange={e => setMaxLevel(parseInt(e.target.value))}
-              className="px-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+              className="ds-input"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>

@@ -36,7 +36,7 @@ export function WalletsTab({ wallets, search, onSearch, onApply, onSetCredits, t
                         className={`${FIELD} w-full pl-9`}
                     />
                 </div>
-                <button onClick={onApply} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium transition-colors">
+                <button onClick={onApply} className="ds-btn ds-btn--secondary">
                     {t('wheel.wallets.search')}
                 </button>
             </div>

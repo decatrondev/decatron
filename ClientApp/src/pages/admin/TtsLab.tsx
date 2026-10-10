@@ -183,7 +183,7 @@ export default function TtsLab() {
                     onChange={e => setText(e.target.value)}
                     rows={3}
                     maxLength={500}
-                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm"
+                    className="ds-input w-full"
                 />
 
                 <div className="flex items-center justify-between gap-4 flex-wrap mt-3">
@@ -205,7 +205,7 @@ export default function TtsLab() {
                     <button
                         onClick={run}
                         disabled={running || !available || !text.trim() || selectedVoices.length === 0}
-                        className="px-5 py-2.5 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="ds-btn ds-btn--primary"
                     >
                         {running ? 'Generando…' : 'Generar con todas las voces'}
                     </button>

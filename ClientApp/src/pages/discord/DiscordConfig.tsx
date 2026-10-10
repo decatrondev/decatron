@@ -50,7 +50,7 @@ export default function DiscordConfig() {
           <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
           <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
           <p className="text-ds-soft mb-6">Necesitas permisos de control total.</p>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg">Volver</button>
+          <button onClick={() => navigate('/dashboard')} className="ds-btn ds-btn--primary ds-btn--lg">Volver</button>
         </div>
       </div>
     );
@@ -91,13 +91,13 @@ export default function DiscordConfig() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-ds-text">Servidores</h2>
-            <button onClick={startDiscordAuth} className="flex items-center gap-2 px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-bold rounded-lg transition-colors"><Plus className="w-4 h-4" /> Vincular</button>
+            <button onClick={startDiscordAuth} className="ds-btn ds-btn--primary ds-btn--sm"><Plus className="w-4 h-4" /> Vincular</button>
           </div>
           {linkedGuilds.length === 0 ? (
             <div className="bg-ds-surface rounded-lg p-8 text-center border border-ds-border">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-ds-soft opacity-50" />
               <p className="text-ds-soft mb-4">No hay servidores vinculados</p>
-              <button onClick={startDiscordAuth} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg text-sm">Vincular servidor</button>
+              <button onClick={startDiscordAuth} className="ds-btn ds-btn--primary">Vincular servidor</button>
             </div>
           ) : linkedGuilds.map(guild => (
             <div key={guild.guildId} onClick={() => selectGuild(guild)} className={`bg-ds-surface rounded-lg p-4 cursor-pointer transition-all border-2 ${selectedGuild?.guildId === guild.guildId ? 'border-ds-accent' : 'border-ds-border hover:border-ds-accent'}`}>

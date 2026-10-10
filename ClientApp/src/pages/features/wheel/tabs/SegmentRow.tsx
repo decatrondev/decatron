@@ -119,7 +119,7 @@ export function SegmentRow({
                     step={0.5}
                     value={segment.weight}
                     onChange={e => onChange({ weight: Number(e.target.value) })}
-                    className="w-14 px-2 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm focus:outline-none focus:border-ds-accent"
+                    className="ds-input w-14"
                     aria-label={t('wheel.segments.weight')}
                     title={t('wheel.segments.weight')}
                 />

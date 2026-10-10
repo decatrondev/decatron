@@ -117,7 +117,7 @@ export default function AdminDonations() {
                     {/* Go to tips config */}
                     <button
                         onClick={() => navigate('/features/tips')}
-                        className="flex items-center gap-2 px-3 py-2 text-sm font-semibold border border-ds-border bg-ds-surface hover:bg-ds-bg text-ds-soft rounded-lg transition-colors"
+                        className="ds-btn ds-btn--secondary"
                     >
                         <ExternalLink className="w-4 h-4" />
                         {t('donations.configureTips')}

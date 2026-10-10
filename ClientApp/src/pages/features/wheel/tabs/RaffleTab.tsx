@@ -102,7 +102,7 @@ export function RaffleTab({
                     <button
                         onClick={onDraw}
                         disabled={saving || pool.length < 2}
-                        className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 text-ds-on-accent rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+                        className="ds-btn ds-btn--primary"
                         title={pool.length < 2 ? t('wheel.raffle.needTwo') : undefined}
                     >
                         <Trophy className="w-4 h-4" />
@@ -352,7 +352,7 @@ export function RaffleTab({
                         />
                         <button
                             onClick={() => { onAdd(nuevo); setNuevo(''); }}
-                            className="px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium transition-colors"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <Plus className="w-4 h-4" />
                         </button>

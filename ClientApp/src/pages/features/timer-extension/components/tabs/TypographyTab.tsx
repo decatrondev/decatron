@@ -39,7 +39,7 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                         <select
                             value={styleConfig.fontFamily}
                             onChange={(e) => onStyleConfigChange({ fontFamily: e.target.value })}
-                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                            className="ds-input w-full"
                         >
                             <optgroup label="Sans Serif">
                                 <option value="Inter">Inter</option>
@@ -72,7 +72,7 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                         <select
                             value={styleConfig.fontWeight || '700'}
                             onChange={(e) => onStyleConfigChange({ fontWeight: e.target.value })}
-                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                            className="ds-input w-full"
                         >
                             <option value="100">Thin (100)</option>
                             <option value="300">Light (300)</option>
@@ -99,7 +99,7 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                                 type="text"
                                 value={styleConfig.textColor}
                                 onChange={(e) => onStyleConfigChange({ textColor: e.target.value })}
-                                className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm font-mono uppercase"
+                                className="ds-input flex-1 font-mono"
                             />
                         </div>
                     </div>
@@ -110,7 +110,7 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                         <select
                             value={styleConfig.textShadow}
                             onChange={(e) => onStyleConfigChange({ textShadow: e.target.value as any })}
-                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                            className="ds-input w-full"
                         >
                             <option value="none">Sin sombra</option>
                             <option value="normal">Normal</option>
@@ -210,14 +210,14 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                                 placeholder="X"
                                 value={styleConfig.titlePosition.x}
                                 onChange={(e) => onStyleConfigChange({ titlePosition: { ...styleConfig.titlePosition, x: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                             <input
                                 type="number"
                                 placeholder="Y"
                                 value={styleConfig.titlePosition.y}
                                 onChange={(e) => onStyleConfigChange({ titlePosition: { ...styleConfig.titlePosition, y: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>
@@ -231,14 +231,14 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                                 placeholder="X"
                                 value={styleConfig.timePosition.x}
                                 onChange={(e) => onStyleConfigChange({ timePosition: { ...styleConfig.timePosition, x: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                             <input
                                 type="number"
                                 placeholder="Y"
                                 value={styleConfig.timePosition.y}
                                 onChange={(e) => onStyleConfigChange({ timePosition: { ...styleConfig.timePosition, y: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>
@@ -252,14 +252,14 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                                 placeholder="X"
                                 value={styleConfig.elapsedTimePosition?.x || 500}
                                 onChange={(e) => onStyleConfigChange({ elapsedTimePosition: { ...(styleConfig.elapsedTimePosition || { x: 500, y: 160 }), x: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                             <input
                                 type="number"
                                 placeholder="Y"
                                 value={styleConfig.elapsedTimePosition?.y || 160}
                                 onChange={(e) => onStyleConfigChange({ elapsedTimePosition: { ...(styleConfig.elapsedTimePosition || { x: 500, y: 160 }), y: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>
@@ -273,14 +273,14 @@ export const TypographyTab: React.FC<TypographyTabProps> = ({
                                 placeholder="X"
                                 value={styleConfig.percentagePosition.x}
                                 onChange={(e) => onStyleConfigChange({ percentagePosition: { ...styleConfig.percentagePosition, x: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                             <input
                                 type="number"
                                 placeholder="Y"
                                 value={styleConfig.percentagePosition.y}
                                 onChange={(e) => onStyleConfigChange({ percentagePosition: { ...styleConfig.percentagePosition, y: Number(e.target.value) } })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>

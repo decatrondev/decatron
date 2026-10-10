@@ -224,7 +224,7 @@ export default function MeGacha() {
                                 </div>
                                 <span className="text-sm font-bold text-ds-text">Acepto los terminos</span>
                             </label>
-                            <button onClick={acceptTerms} disabled={!termsChecked} className="px-8 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-40 text-ds-on-accent font-bold rounded-lg">Aceptar y Continuar</button>
+                            <button onClick={acceptTerms} disabled={!termsChecked} className="ds-btn ds-btn--primary ds-btn--lg">Aceptar y Continuar</button>
                         </div>
                     </div>
                 </div>
@@ -317,7 +317,7 @@ export default function MeGacha() {
                                                                 </div>
                                                                 <div className="flex items-center gap-3 flex-wrap">
                                                                     <span className="text-xs text-ds-soft">Cantidad:</span>
-                                                                    <input type="number" min={1} max={100} value={coinQty} onChange={e => setCoinQty(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))} className="w-20 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-center text-ds-text" />
+                                                                    <input type="number" min={1} max={100} value={coinQty} onChange={e => setCoinQty(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))} className="ds-input w-20 text-center" />
                                                                     <span className="text-xs text-ds-soft">{coinQty} x {coinPrice.price.toLocaleString()} = <strong className="text-ds-warn">{(coinQty * coinPrice.price).toLocaleString()}</strong> coins</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-3">
@@ -368,7 +368,7 @@ export default function MeGacha() {
                                                                             );
                                                                         })}
                                                                     </div>
-                                                                    <button onClick={() => saveShowcase(col.participantId)} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-xs font-bold rounded-lg">Guardar Vitrina</button>
+                                                                    <button onClick={() => saveShowcase(col.participantId)} className="ds-btn ds-btn--primary">Guardar Vitrina</button>
                                                                 </div>
                                                             ) : showcase.length === 0 ? (
                                                                 <p className="text-xs text-ds-soft text-center py-3">Sin cartas en vitrina</p>

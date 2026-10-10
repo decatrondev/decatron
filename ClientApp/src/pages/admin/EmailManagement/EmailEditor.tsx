@@ -139,7 +139,7 @@ export default function EmailEditor({ templateId, onClose, onSaved }: Props) {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder="Nombre del template..."
-                            className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
+                            className="ds-input w-full"
                         />
                     </div>
                     <div className="flex-1 min-w-[200px]">
@@ -148,14 +148,14 @@ export default function EmailEditor({ templateId, onClose, onSaved }: Props) {
                             value={subject}
                             onChange={e => setSubject(e.target.value)}
                             placeholder="Subject del email..."
-                            className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
+                            className="ds-input w-full"
                         />
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleTestEmail}
                             disabled={sending}
-                            className="flex items-center gap-2 px-4 py-2 bg-ds-bg border border-ds-border text-ds-text rounded-lg text-sm font-semibold hover:bg-ds-raised transition-all disabled:opacity-50"
+                            className="ds-btn ds-btn--secondary"
                         >
                             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             Test
@@ -163,7 +163,7 @@ export default function EmailEditor({ templateId, onClose, onSaved }: Props) {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
+                            className="ds-btn ds-btn--primary"
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             Guardar

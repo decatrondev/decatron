@@ -174,3 +174,7 @@ select.ds-input { appearance: none; padding-right: 36px; background-image: url("
 
 /* Controles nativos (deslizadores, casillas, radios): siguen el azul del editor en toda la web. */
 input[type="range"], input[type="checkbox"], input[type="radio"] { accent-color: var(--ds-accent); }
+
+/* Los controles nativos (casillas, menús desplegables, selector de color) toman el tema de la web. */
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }

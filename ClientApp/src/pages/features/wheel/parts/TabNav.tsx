@@ -53,7 +53,7 @@ export function TabNav({ wheel, tab, pendingCount, onTab, t }: {
                 aria-label={t('wheel.groups.group')}
                 value={active?.id}
                 onChange={e => goGroup(e.target.value as GroupId)}
-                className="sm:hidden w-full px-3 py-2.5 rounded-lg bg-ds-bg border border-ds-border text-sm font-bold text-ds-text"
+                className="ds-input sm:hidden w-full"
             >
                 {groups.map(g => (
                     <option key={g.id} value={g.id}>

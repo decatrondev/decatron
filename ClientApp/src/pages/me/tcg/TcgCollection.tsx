@@ -123,7 +123,7 @@ export default function TcgCollection() {
                 <select
                     value={rarity}
                     onChange={(e) => updateParams({ rarity: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Toda rareza</option>
                     {RARITIES.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -132,7 +132,7 @@ export default function TcgCollection() {
                 <select
                     value={grade}
                     onChange={(e) => updateParams({ grade: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Todo grado</option>
                     <option value="0">Sin gradear</option>
@@ -144,7 +144,7 @@ export default function TcgCollection() {
                 <select
                     value={element}
                     onChange={(e) => updateParams({ element: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Todo elemento</option>
                     {elements.map((el) => <option key={el} value={el}>{el}</option>)}
@@ -153,7 +153,7 @@ export default function TcgCollection() {
                 <select
                     value={cardClass}
                     onChange={(e) => updateParams({ cardClass: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Toda clase</option>
                     {classes.map((cl) => <option key={cl} value={cl}>{cl}</option>)}
@@ -162,7 +162,7 @@ export default function TcgCollection() {
                 <select
                     value={origin}
                     onChange={(e) => updateParams({ origin: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Todo origen</option>
                     <option value="pulled">De sobre pago</option>
@@ -173,7 +173,7 @@ export default function TcgCollection() {
                 <select
                     value={status}
                     onChange={(e) => updateParams({ status: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Todo estado</option>
                     {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -182,7 +182,7 @@ export default function TcgCollection() {
                 <select
                     value={animated}
                     onChange={(e) => updateParams({ animated: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Animadas y no</option>
                     <option value="true">Solo animadas</option>
@@ -192,7 +192,7 @@ export default function TcgCollection() {
                 <select
                     value={sort}
                     onChange={(e) => updateParams({ sort: e.target.value })}
-                    className="bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text"
+                    className="ds-input"
                 >
                     <option value="">Más recientes</option>
                     <option value="oldest">Más antiguas</option>

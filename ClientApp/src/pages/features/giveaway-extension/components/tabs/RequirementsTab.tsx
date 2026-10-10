@@ -171,7 +171,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                 min={0}
                                 value={requirements.minimumWatchTime}
                                 onChange={(e) => onUpdateRequirements({ minimumWatchTime: parseInt(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                className="ds-input w-full"
                                 placeholder="Minutos"
                             />
                         )}
@@ -202,13 +202,13 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     min={0}
                                     value={requirements.minimumAccountAge}
                                     onChange={(e) => onUpdateRequirements({ minimumAccountAge: parseInt(e.target.value) || 0 })}
-                                    className="flex-1 px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                    className="ds-input flex-1"
                                     placeholder="Cantidad"
                                 />
                                 <select
                                     value={requirements.minimumAccountAgeUnit || 'days'}
                                     onChange={(e) => onUpdateRequirements({ minimumAccountAgeUnit: e.target.value as 'days' | 'months' | 'years' })}
-                                    className="px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                    className="ds-input"
                                 >
                                     <option value="days">Días</option>
                                     <option value="months">Meses</option>
@@ -243,13 +243,13 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     min={0}
                                     value={requirements.minimumFollowAge}
                                     onChange={(e) => onUpdateRequirements({ minimumFollowAge: parseInt(e.target.value) || 0 })}
-                                    className="flex-1 px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                    className="ds-input flex-1"
                                     placeholder="Cantidad"
                                 />
                                 <select
                                     value={requirements.minimumFollowAgeUnit || 'days'}
                                     onChange={(e) => onUpdateRequirements({ minimumFollowAgeUnit: e.target.value as 'days' | 'months' | 'years' })}
-                                    className="px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                    className="ds-input"
                                 >
                                     <option value="days">Días</option>
                                     <option value="months">Meses</option>
@@ -291,7 +291,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             min={0}
                             value={requirements.minimumChatMessages}
                             onChange={(e) => onUpdateRequirements({ minimumChatMessages: parseInt(e.target.value) || 0 })}
-                            className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                            className="ds-input w-full"
                             placeholder="Mensajes"
                         />
                     )}
@@ -376,7 +376,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             <input
                                 type="text"
                                 placeholder="Usuario a bloquear"
-                                className="flex-1 px-4 py-2 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                className="ds-input flex-1"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         handleBlacklistAdd(e.currentTarget.value);
@@ -390,7 +390,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     handleBlacklistAdd(input.value);
                                     input.value = '';
                                 }}
-                                className="px-4 py-2 bg-ds-accent text-ds-on-accent rounded-lg font-bold hover:bg-ds-accent-hover transition-colors"
+                                className="ds-btn ds-btn--primary"
                             >
                                 Añadir
                             </button>
@@ -422,7 +422,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             <input
                                 type="text"
                                 placeholder="Usuario a permitir"
-                                className="flex-1 px-4 py-2 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                className="ds-input flex-1"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         handleWhitelistAdd(e.currentTarget.value);
@@ -436,7 +436,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                                     handleWhitelistAdd(input.value);
                                     input.value = '';
                                 }}
-                                className="px-4 py-2 bg-ds-accent text-ds-on-accent rounded-lg font-bold hover:bg-ds-accent-hover transition-colors"
+                                className="ds-btn ds-btn--primary"
                             >
                                 Añadir
                             </button>

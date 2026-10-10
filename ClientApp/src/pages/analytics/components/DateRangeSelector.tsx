@@ -43,7 +43,7 @@ export default function DateRangeSelector({ value, onChange, maxDays = 30 }: Dat
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-ds-text hover:bg-ds-surface transition-colors"
+                className="ds-btn ds-btn--secondary"
             >
                 <Calendar className="w-4 h-4 text-ds-soft" />
                 <span className="text-sm font-medium">

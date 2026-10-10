@@ -151,7 +151,7 @@ export const RestrictionsTab: React.FC = () => {
                 <h2 className="text-xl font-black text-ds-text flex items-center gap-2">
                     <Shield className="w-5 h-5" /> Restricciones ({restrictions.length})
                 </h2>
-                <button onClick={openCreate} disabled={items.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                <button onClick={openCreate} disabled={items.length === 0} className="ds-btn ds-btn--primary">
                     <Plus className="w-4 h-4" /> Agregar Restriccion
                 </button>
             </div>
@@ -448,7 +448,7 @@ export const RestrictionsTab: React.FC = () => {
                         </div>
                         <div className="flex gap-2 pt-2">
                             <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving || !form.itemId} className="flex-1 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                            <button onClick={handleSave} disabled={saving || !form.itemId} className="ds-btn ds-btn--primary flex-1">
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
                         </div>

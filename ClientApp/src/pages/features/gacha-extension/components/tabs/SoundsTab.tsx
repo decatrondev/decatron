@@ -253,7 +253,7 @@ export const SoundsTab: React.FC = () => {
             {/* Save */}
             <button
                 onClick={handleSave} disabled={saving}
-                className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2"
+                className="ds-btn ds-btn--primary ds-btn--lg w-full"
             >
                 <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Configuracion'}
             </button>

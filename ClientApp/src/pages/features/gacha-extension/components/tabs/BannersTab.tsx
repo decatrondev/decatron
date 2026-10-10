@@ -76,7 +76,7 @@ export const BannersTab: React.FC = () => {
                         <p className="text-sm text-ds-soft">Imagenes y videos para el overlay del gacha</p>
                     </div>
                 </div>
-                <button onClick={() => setShowModal(true)} disabled={banners.length >= 5} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint disabled:cursor-not-allowed text-ds-on-accent rounded-lg font-bold transition-all">
+                <button onClick={() => setShowModal(true)} disabled={banners.length >= 5} className="ds-btn ds-btn--primary">
                     <Plus className="w-4 h-4" /> Agregar Banner
                 </button>
             </div>
@@ -174,7 +174,7 @@ export const BannersTab: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowMediaSelector(true)}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-ds-bg border border-dashed border-ds-faint rounded-lg text-sm font-bold text-ds-soft hover:border-ds-accent transition"
+                                className="ds-btn ds-btn--secondary ds-btn--lg w-full"
                             >
                                 <ImagePlus className="w-5 h-5" />
                                 {bannerUrl ? 'Cambiar media' : 'Seleccionar de galeria'}
@@ -187,12 +187,12 @@ export const BannersTab: React.FC = () => {
                                 ) : (
                                     <img src={bannerUrl} alt="Preview" className="w-full h-full object-cover" />
                                 )}
-                                <button onClick={() => setBannerUrl('')} className="absolute top-2 right-2 w-6 h-6 bg-ds-danger-solid text-ds-on-accent rounded-full flex items-center justify-center">
+                                <button onClick={() => setBannerUrl('')} className="ds-btn ds-btn--danger absolute top-2 right-2 w-6">
                                     <X className="w-3 h-3" />
                                 </button>
                             </div>
                         )}
-                        <button onClick={handleCreate} disabled={!bannerUrl.trim() || submitting} className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all">
+                        <button onClick={handleCreate} disabled={!bannerUrl.trim() || submitting} className="ds-btn ds-btn--primary ds-btn--lg w-full">
                             {submitting ? 'Guardando...' : 'Crear Banner'}
                         </button>
                     </div>

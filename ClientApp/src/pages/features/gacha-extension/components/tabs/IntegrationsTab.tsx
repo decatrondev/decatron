@@ -203,7 +203,7 @@ export const IntegrationsTab: React.FC = () => {
             </Section>
 
             {/* Save */}
-            <button onClick={handleSave} disabled={saving} className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition flex items-center justify-center gap-2">
+            <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary ds-btn--lg w-full">
                 <Save className="w-4 h-4" /> {saving ? 'Guardando...' : saved ? 'Guardado!' : 'Guardar Configuracion'}
             </button>
         </div>
@@ -234,7 +234,7 @@ function TierInput({ label, value, onChange, color }: { label: string; value: nu
     return (
         <div className="p-3 bg-ds-bg rounded-lg border border-ds-border text-center">
             <p className="text-xs font-bold mb-2" style={{ color }}>{label}</p>
-            <input type="number" min={0} value={value} onChange={e => onChange(Math.max(0, parseInt(e.target.value) || 0))} className="w-full px-2 py-1.5 bg-ds-surface border border-ds-border rounded-lg text-sm text-center text-ds-text" />
+            <input type="number" min={0} value={value} onChange={e => onChange(Math.max(0, parseInt(e.target.value) || 0))} className="ds-input w-full text-center" />
             <p className="text-[10px] text-ds-soft mt-1">tiros</p>
         </div>
     );

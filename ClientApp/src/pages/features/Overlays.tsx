@@ -331,7 +331,7 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
                 {isActive ? (
                     <button
                         onClick={onConfigure}
-                        className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
+                        className="ds-btn ds-btn--primary"
                     >
                         <Settings className="w-4 h-4" />
                         {t('overlays:configureButton')}
@@ -339,7 +339,7 @@ function OverlayCard({ overlay, kickUnverified, onConfigure }: OverlayCardProps)
                 ) : (
                     <button
                         disabled
-                        className="flex items-center gap-2 px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-soft font-semibold text-sm opacity-50 cursor-not-allowed"
+                        className="ds-btn ds-btn--secondary"
                     >
                         <Settings className="w-4 h-4" />
                         {t('overlays:comingSoonButton')}

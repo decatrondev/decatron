@@ -589,7 +589,7 @@ export default function EmbedEditorTab({
                 <div key={k}>
                   <label className="text-[9px] text-ds-soft">{k === 'width' ? 'W' : k === 'height' ? 'H' : k.toUpperCase()}</label>
                   <input type="number" value={el[k]} onChange={(e) => updateEl(el.id, { [k]: parseInt(e.target.value) || 0 })}
-                    className="w-full px-1.5 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+                    className="ds-input w-full" />
                 </div>
               ))}
             </div>
@@ -660,7 +660,7 @@ export default function EmbedEditorTab({
             <div className="flex items-center gap-2">
               <input type="number" value={el.fontSize || Math.round(el.height * 0.45)} min={8} max={200}
                 onChange={(e) => updateEl('text', { fontSize: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+                className="ds-input w-20" />
               <span className="text-[10px] text-ds-soft">px</span>
               <button onClick={() => updateEl('text', { fontSize: 0 })} className="text-[10px] text-ds-accent-text hover:underline">Auto</button>
             </div>
@@ -668,7 +668,7 @@ export default function EmbedEditorTab({
             <p className="text-[10px] font-bold text-ds-soft">COLOR DEL TEXTO</p>
             <div className="flex items-center gap-2 mb-2">
               <input type="color" value={el.textColor.startsWith('rgba') ? '#ffffff' : el.textColor} onChange={(e) => updateEl('text', { textColor: e.target.value })} className="w-7 h-7 rounded border cursor-pointer" />
-              <input type="text" value={el.textColor} onChange={(e) => updateEl('text', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-ds-border rounded bg-ds-bg text-ds-text" />
+              <input type="text" value={el.textColor} onChange={(e) => updateEl('text', { textColor: e.target.value })} className="ds-input flex-1 font-mono" />
               <div className="flex gap-1">
                 {['#ffffff', '#ffff00', '#00ff00', '#ff6b6b', '#00d4ff', '#ff69b4'].map(c => (
                   <button key={c} onClick={() => updateEl('text', { textColor: c })} className={`w-5 h-5 rounded-full border ${el.textColor === c ? 'border-ds-border scale-110' : 'border-ds-border'}`} style={{ backgroundColor: c }} />
@@ -711,14 +711,14 @@ export default function EmbedEditorTab({
             <div className="flex items-center gap-2">
               <input type="number" value={el.fontSize || Math.round(el.height * 0.5)} min={8} max={200}
                 onChange={(e) => updateEl('subtext', { fontSize: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+                className="ds-input w-20" />
               <span className="text-[10px] text-ds-soft">px</span>
               <button onClick={() => updateEl('subtext', { fontSize: 0 })} className="text-[10px] text-ds-accent-text hover:underline">Auto</button>
             </div>
             <p className="text-[10px] font-bold text-ds-soft mt-2">COLOR DEL TEXTO</p>
             <div className="flex items-center gap-2">
               <input type="color" value={el.textColor.startsWith('rgba') ? '#b3b3b3' : el.textColor} onChange={(e) => updateEl('subtext', { textColor: e.target.value })} className="w-7 h-7 rounded border cursor-pointer" />
-              <input type="text" value={el.textColor} onChange={(e) => updateEl('subtext', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-ds-border rounded bg-ds-bg text-ds-text" />
+              <input type="text" value={el.textColor} onChange={(e) => updateEl('subtext', { textColor: e.target.value })} className="ds-input flex-1 font-mono" />
             </div>
           </div>
         )}
@@ -731,14 +731,14 @@ export default function EmbedEditorTab({
             <div className="flex items-center gap-2">
               <input type="number" value={el.fontSize || Math.round(el.height * 0.5)} min={8} max={200}
                 onChange={(e) => updateEl('footer', { fontSize: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+                className="ds-input w-20" />
               <span className="text-[10px] text-ds-soft">px</span>
               <button onClick={() => updateEl('footer', { fontSize: 0 })} className="text-[10px] text-ds-accent-text hover:underline">Auto</button>
             </div>
             <p className="text-[10px] font-bold text-ds-soft mt-2">COLOR DEL TEXTO</p>
             <div className="flex items-center gap-2">
               <input type="color" value={el.textColor.startsWith('rgba') ? '#949ba4' : el.textColor} onChange={(e) => updateEl('footer', { textColor: e.target.value })} className="w-7 h-7 rounded border cursor-pointer" />
-              <input type="text" value={el.textColor} onChange={(e) => updateEl('footer', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-ds-border rounded bg-ds-bg text-ds-text" />
+              <input type="text" value={el.textColor} onChange={(e) => updateEl('footer', { textColor: e.target.value })} className="ds-input flex-1 font-mono" />
             </div>
           </div>
         )}
@@ -791,7 +791,7 @@ export default function EmbedEditorTab({
                   <select
                     value={resolution}
                     onChange={(e) => changeResolution(e.target.value as CanvasResolution)}
-                    className="px-2 py-1 text-[10px] font-bold bg-ds-bg border border-ds-border rounded-lg text-ds-soft [&>option]:bg-ds-surface"
+                    className="ds-input"
                   >
                     {RESOLUTIONS.map(r => (
                       <option key={r.id} value={r.id}>{r.label}</option>

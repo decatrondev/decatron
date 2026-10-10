@@ -80,7 +80,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                     {!showCreateScheduleModal && (
                         <button
                             onClick={onPrepareCreate}
-                            className="px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold transform hover:-translate-y-0.5"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Plus className="w-5 h-5" />
                             {t('timerAdvanced.newSchedule')}
@@ -114,7 +114,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                             value={scheduleForm.name}
                                             onChange={(e) => setScheduleForm({ ...scheduleForm, name: e.target.value })}
                                             placeholder="Ej: Hora de Dormir"
-                                            className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none transition-all"
+                                            className="ds-input w-full"
                                         />
                                     </div>
                                     <div>
@@ -124,7 +124,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                             value={scheduleForm.reason}
                                             onChange={(e) => setScheduleForm({ ...scheduleForm, reason: e.target.value })}
                                             placeholder="Ej: Descanso"
-                                            className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none transition-all"
+                                            className="ds-input w-full"
                                         />
                                     </div>
                                 </div>
@@ -267,7 +267,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
 
                                 <button
                                     onClick={isEditingSchedule ? onEditSchedule : onCreateSchedule}
-                                    className="mt-6 w-full py-4 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold hover:shadow-blue-500/25 transition-all transform active:scale-95"
+                                    className="ds-btn ds-btn--primary ds-btn--lg mt-6 w-full"
                                 >
                                     {isEditingSchedule ? t('timerAdvanced.saveChanges') : t('timerAdvanced.confirmAndSave')}
                                 </button>

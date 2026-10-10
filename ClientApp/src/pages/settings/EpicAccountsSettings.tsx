@@ -141,7 +141,7 @@ export default function EpicAccountsSettings() {
                             onChange={(e) => setName(e.target.value)}
                             required
                             placeholder="Nombre de Epic"
-                            className="w-full mt-1 px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
+                            className="ds-input w-full mt-1"
                         />
                     </div>
                     <button

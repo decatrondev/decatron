@@ -106,7 +106,7 @@ export const RarityTab: React.FC = () => {
                     <button onClick={handleReset} className="flex items-center gap-2 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">
                         <RotateCcw className="w-4 h-4" /> Restaurar
                     </button>
-                    <button onClick={handleSave} disabled={saving || !isValid} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                    <button onClick={handleSave} disabled={saving || !isValid} className="ds-btn ds-btn--primary">
                         <Save className="w-4 h-4" /> {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar'}
                     </button>
                 </div>

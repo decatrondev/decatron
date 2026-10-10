@@ -74,7 +74,7 @@ const SourceItem: React.FC<SourceItemProps> = ({
                                     min="1"
                                     value={source.pointsPerUnit}
                                     onChange={(e) => onUpdate(sourceKey, { pointsPerUnit: parseInt(e.target.value) || 1 })}
-                                    className="w-20 px-3 py-1.5 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                    className="ds-input w-20 text-center"
                                 />
                                 <span className="text-sm text-ds-soft">puntos</span>
                             </div>

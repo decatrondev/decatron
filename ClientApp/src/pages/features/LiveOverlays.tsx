@@ -148,7 +148,7 @@ const LiveOverlays: React.FC = () => {
                     {data && data.instances.length > 1 && (
                         <SelectInput value={slug} onChange={v => { if (dirty && !confirm(t('discard'))) return; load(v); }} options={data.instances.map(i => ({ value: i.slug, label: i.name }))} />
                     )}
-                    <button onClick={save} disabled={!dirty || saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2">
+                    <button onClick={save} disabled={!dirty || saving} className="ds-btn ds-btn--primary">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('save')}
                     </button>
                 </div>
@@ -170,7 +170,7 @@ const LiveOverlays: React.FC = () => {
                     <SubLabel>{t('first.hint')}</SubLabel>
                     <div className="flex items-center gap-2 mt-3">
                         <TextInput value={newName} onChange={setNewName} placeholder={t('first.placeholder')} />
-                        <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
+                        <button onClick={createInstance} className="ds-btn ds-btn--primary"><Plus className="w-4 h-4" /> {t('first.create')}</button>
                     </div>
                 </Card>
             ) : (
@@ -186,7 +186,7 @@ const LiveOverlays: React.FC = () => {
                                 <Card>
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div><SectionTitle>{t('design.title')}</SectionTitle><SubLabel>{t('design.hint')}</SubLabel></div>
-                                        <button onClick={() => { if (confirm(t('design.confirmReset'))) update(defaultLiveConfig()); }} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border" title={t('design.reset')}><RotateCcw className="w-4 h-4" /></button>
+                                        <button onClick={() => { if (confirm(t('design.confirmReset'))) update(defaultLiveConfig()); }} className="ds-btn ds-btn--secondary" title={t('design.reset')}><RotateCcw className="w-4 h-4" /></button>
                                     </div>
                                     <div className="mt-4">
                                         <CanvasEditor width={draft.canvas.width} height={draft.canvas.height} snap={10} onMove={(_, position) => update({ position })}
@@ -220,7 +220,7 @@ const LiveOverlays: React.FC = () => {
                                         <div className="w-28"><Label>{t('design.boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => update({ sizeMode: 'manual', size: { ...cfg.size, height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) } })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} disabled={cfg.sizeMode === 'auto'} /></div>
                                         <div className="w-40"><Label>{t('design.scale')}</Label><Slider value={Math.round(cfg.scale * 100)} onChange={v => update({ scale: Math.max(CARD_SIZE_LIMITS.minScale, Math.min(CARD_SIZE_LIMITS.maxScale, v / 100)) })} min={CARD_SIZE_LIMITS.minScale * 100} max={CARD_SIZE_LIMITS.maxScale * 100} unit="%" /></div>
                                         {cfg.sizeMode === 'manual' && wanted && (
-                                            <button onClick={() => update({ size: wanted })} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-xs flex items-center gap-2 border border-ds-border"><Maximize2 className="w-3.5 h-3.5" />{t('design.fit')}</button>
+                                            <button onClick={() => update({ size: wanted })} className="ds-btn ds-btn--secondary"><Maximize2 className="w-3.5 h-3.5" />{t('design.fit')}</button>
                                         )}
                                     </div>
                                     {cfg.sizeMode === 'manual' && !fits && wanted && (
@@ -303,7 +303,7 @@ const LiveOverlays: React.FC = () => {
                                     <SectionTitle>{t('url.title')}</SectionTitle>
                                     <SubLabel>{t('url.hint', { size: `${draft.canvas.width}×${draft.canvas.height}` })}</SubLabel>
                                     <div className="flex items-center gap-2 mt-3">
-                                        <input readOnly value={overlayUrl} className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text font-mono" />
+                                        <input readOnly value={overlayUrl} className="ds-input flex-1 font-mono" />
                                         <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
                                         <a href={`${overlayUrl}&preview=champselect`} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
                                     </div>
@@ -329,7 +329,7 @@ const LiveOverlays: React.FC = () => {
                                     {data.instances.length < 5 && (
                                         <div className="flex items-center gap-2 mt-3">
                                             <TextInput value={newName} onChange={setNewName} placeholder={t('instances.newPlaceholder')} />
-                                            <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
+                                            <button onClick={createInstance} className="ds-btn ds-btn--primary"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
                                         </div>
                                     )}
                                 </Card>

@@ -175,7 +175,7 @@ export function CreditsTab({ wheel, sources, rewards, rewardsError, onWheel, onS
                     </div>
                     <button
                         onClick={onAddReward}
-                        className="px-3 py-1.5 text-sm bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg flex items-center gap-1.5 font-medium transition-colors flex-shrink-0"
+                        className="ds-btn ds-btn--secondary ds-btn--sm flex-shrink-0"
                     >
                         <Plus className="w-4 h-4" />
                         {t('wheel.rewards.add')}

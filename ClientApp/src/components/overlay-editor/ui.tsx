@@ -106,7 +106,7 @@ export function CopyButton({ text, label, doneLabel }: { text: string; label: st
                 window.clearTimeout(timer.current);
                 timer.current = window.setTimeout(() => setDone(false), 1800);
             }}
-            className="px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent transition-colors shrink-0"
+            className="ds-btn ds-btn--primary shrink-0"
         >
             {done ? doneLabel : label}
         </button>

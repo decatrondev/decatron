@@ -187,7 +187,7 @@ export default function QueueTab({ cfg, snapshot, progress, connected, onDownloa
             <Card title={t('songRequest.queue.addTitle')}>
                 <form className="flex gap-2" onSubmit={e => { e.preventDefault(); add(); }}>
                     <input value={input} onChange={e => setInput(e.target.value)} placeholder={t('songRequest.queue.addPlaceholder')} className={inputClass} maxLength={500} />
-                    <button type="submit" disabled={adding || !input.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0">
+                    <button type="submit" disabled={adding || !input.trim()} className="ds-btn ds-btn--primary shrink-0">
                         <Plus className="w-4 h-4" /> {adding ? t('songRequest.queue.adding') : t('songRequest.queue.add')}
                     </button>
                 </form>

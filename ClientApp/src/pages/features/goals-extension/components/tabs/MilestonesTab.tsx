@@ -182,7 +182,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                 max={milestone.isPercentage ? 100 : goal.targetValue}
                                                                                 value={milestone.targetValue}
                                                                                 onChange={(e) => onUpdateMilestone(goal.id, milestone.id, { targetValue: parseInt(e.target.value) || 1 })}
-                                                                                className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center"
+                                                                                className="ds-input w-24 text-center"
                                                                             />
                                                                             <div className="flex rounded-lg overflow-hidden border border-ds-border">
                                                                                 <button
@@ -239,7 +239,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                     notification: { ...milestone.notification, message: e.target.value }
                                                                                 })}
                                                                                 placeholder="Mensaje de notificación"
-                                                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                                                                className="ds-input w-full"
                                                                             />
                                                                         )}
                                                                     </div>
@@ -278,7 +278,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                                             seconds: parseInt(e.target.value) || 60
                                                                                         }
                                                                                     })}
-                                                                                    className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center"
+                                                                                    className="ds-input w-24 text-center"
                                                                                 />
                                                                                 <span className="text-sm text-ds-soft">segundos al timer</span>
                                                                             </div>

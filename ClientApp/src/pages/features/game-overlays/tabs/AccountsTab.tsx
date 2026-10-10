@@ -91,7 +91,7 @@ export const AccountsTab: React.FC<Props> = ({ accounts, catalog, limits, onChan
                     </p>
                 )}
                 <div className="flex items-center gap-3 mt-4">
-                    <button onClick={link} disabled={busy || atLimit || !name.trim()} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2">
+                    <button onClick={link} disabled={busy || atLimit || !name.trim()} className="ds-btn ds-btn--primary">
                         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} {t('link')}
                     </button>
                     {atLimit && <span className="text-xs text-ds-soft">{t('atLimit', { count: limits.maxAccountsPerGame, game: GAME_NAMES[game] })} <a href="/supporters" className="text-ds-accent-text underline">{t('seePlans')}</a></span>}
@@ -192,7 +192,7 @@ const AccountRow: React.FC<{ account: LinkedAccount; onChanged: () => Promise<vo
                         <NumberInput value={rankPts} onChange={setRankPts} min={0} max={99999} />
                     </div>
                     <div className="flex gap-2">
-                        <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { manualRank: { tier: rankTier, division: rankDiv || null, points: rankPts } }), t('rankSaved'))} className="px-3 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-xs font-semibold">{t('saveRank')}</button>
+                        <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { manualRank: { tier: rankTier, division: rankDiv || null, points: rankPts } }), t('rankSaved'))} className="ds-btn ds-btn--primary">{t('saveRank')}</button>
                         {a.manualRank && <button disabled={busy} onClick={() => run(() => gameOverlaysApi.updateAccount(a.id, { clearManualRank: true }), t('rankCleared'))} className="px-3 py-2 bg-ds-raised text-ds-text rounded-lg text-xs">{t('remove')}</button>}
                     </div>
                     {a.manualRank && <div className="md:col-span-4 text-xs text-ds-soft">{t('current')}: {formatTier(a.manualRank.tier)} {a.manualRank.division ?? ''} {a.manualRank.points ? `· ${a.manualRank.points} pts` : ''}</div>}

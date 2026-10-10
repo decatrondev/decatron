@@ -82,7 +82,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
             }
             placeholder={MESSAGE_TEMPLATES.follow}
             rows={2}
-            className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none resize-none font-mono"
+            className="ds-input w-full resize-none font-mono"
           />
         </div>
 
@@ -130,7 +130,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
 
@@ -151,7 +151,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
                   },
                 })
               }
-              className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+              className="ds-input w-full"
             />
           </div>
         </div>
@@ -221,7 +221,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
           max="300"
           value={config.cooldown}
           onChange={(e) => onConfigChange({ cooldown: parseInt(e.target.value) || 5 })}
-          className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none"
+          className="ds-input w-full"
         />
 
         <div className="mt-3 p-3 bg-ds-warn/10 border border-ds-warn/40 rounded-lg">
@@ -273,7 +273,7 @@ export const FollowTab: React.FC<FollowTabProps> = ({ config, onConfigChange }) 
                   onChange={(e) => onConfigChange({
                     antiSpam: { ...config.antiSpam, enabled: config.antiSpam?.enabled ?? true, perUserCooldown: parseInt(e.target.value) || 86400 }
                   })}
-                  className="flex-1 px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-warn/40 outline-none"
+                  className="ds-input flex-1"
                 />
                 <div className="flex gap-2">
                   <button

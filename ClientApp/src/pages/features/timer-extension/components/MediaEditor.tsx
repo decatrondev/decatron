@@ -437,7 +437,7 @@ export const MediaEditor: React.FC<MediaEditorProps> = ({ config, onChange, aler
                     {mainUrl && (
                         <button
                             onClick={() => setShowPreview(true)}
-                            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2"
+                            className="ds-btn ds-btn--primary"
                             title="Reproducir preview de la alerta"
                         >
                             <Play className="w-4 h-4" />

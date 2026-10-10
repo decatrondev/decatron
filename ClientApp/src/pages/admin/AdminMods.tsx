@@ -185,7 +185,7 @@ export default function AdminMods() {
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar canal"
-                            className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-ds-border bg-ds-surface text-sm text-ds-text outline-none focus:border-ds-accent"
+                            className="ds-input w-full pl-9 pr-3"
                         />
                     </div>
 

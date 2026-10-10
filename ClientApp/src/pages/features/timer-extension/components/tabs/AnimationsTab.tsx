@@ -194,7 +194,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                         <select
                             value={animationConfig.entranceType}
                             onChange={(e) => onAnimationConfigChange({ entranceType: e.target.value as AnimationConfig['entranceType'] })}
-                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                            className="ds-input w-full"
                         >
                             <option value="none">🚫 Ninguna</option>
                             <option value="fade">🌫️ Fundido</option>
@@ -211,7 +211,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                             <select
                                 value={animationConfig.entranceSpeed}
                                 onChange={(e) => onAnimationConfigChange({ entranceSpeed: e.target.value as AnimationConfig['entranceSpeed'] })}
-                                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                className="ds-input w-full"
                             >
                                 <option value="slow">🐢 Lenta</option>
                                 <option value="normal">🚶 Normal</option>
@@ -232,7 +232,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                         <select
                             value={animationConfig.exitType}
                             onChange={(e) => onAnimationConfigChange({ exitType: e.target.value as AnimationConfig['exitType'] })}
-                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                            className="ds-input w-full"
                         >
                             <option value="none">🚫 Ninguna</option>
                             <option value="fade">🌫️ Fundido</option>
@@ -249,7 +249,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                             <select
                                 value={animationConfig.exitSpeed}
                                 onChange={(e) => onAnimationConfigChange({ exitSpeed: e.target.value as AnimationConfig['exitSpeed'] })}
-                                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                className="ds-input w-full"
                             >
                                 <option value="slow">🐢 Lenta</option>
                                 <option value="normal">🚶 Normal</option>
@@ -280,7 +280,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                             <select
                                 value={animationConfig.donationEffect?.type || 'float-up'}
                                 onChange={(e) => onAnimationConfigChange({ donationEffect: { ...animationConfig.donationEffect, type: e.target.value as any } as any })}
-                                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                className="ds-input w-full"
                             >
                                 <option value="float-up">⬆️ Flotar Arriba (Clásico)</option>
                                 <option value="pop">💥 Pop / Explosión</option>
@@ -411,13 +411,13 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                                         type="number"
                                         value={animationConfig.criticalMode.triggerTime}
                                         onChange={(e) => updateCriticalMode({ triggerTime: Math.max(1, Number(e.target.value)) })}
-                                        className="w-24 px-3 py-2 text-center font-bold text-lg border-2 border-ds-danger/40 rounded-lg bg-ds-surface text-ds-danger focus:outline-none focus:border-ds-danger/40"
+                                        className="ds-input w-24 text-center"
                                         min="1"
                                     />
                                     <select
                                         value={animationConfig.criticalMode.triggerTimeUnit || 'seconds'}
                                         onChange={(e) => updateCriticalMode({ triggerTimeUnit: e.target.value as any })}
-                                        className="px-3 py-2 border-2 border-ds-danger/40 rounded-lg bg-ds-surface text-ds-text font-bold focus:outline-none focus:border-ds-danger/40"
+                                        className="ds-input"
                                     >
                                         <option value="seconds">Segundos</option>
                                         <option value="minutes">Minutos</option>
@@ -438,7 +438,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                                     <select
                                         value={animationConfig.criticalMode.effectType}
                                         onChange={(e) => updateCriticalMode({ effectType: e.target.value as any })}
-                                        className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                        className="ds-input w-full"
                                     >
                                         <option value="pulse">💓 Latido Rápido</option>
                                         <option value="shake">📳 Terremoto</option>
@@ -451,7 +451,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                                     <select
                                         value={animationConfig.criticalMode.effectSpeed}
                                         onChange={(e) => updateCriticalMode({ effectSpeed: e.target.value as any })}
-                                        className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                        className="ds-input w-full"
                                     >
                                         <option value="slow">🐢 Moderada</option>
                                         <option value="normal">🚶 Intensa</option>
@@ -488,7 +488,7 @@ export const AnimationsTab: React.FC<AnimationsTabProps> = ({
                                                 </div>
                                                 <button
                                                     onClick={handleAddAudio}
-                                                    className="mb-[1px] h-[42px] px-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors flex items-center justify-center"
+                                                    className="ds-btn ds-btn--primary mb-[1px]"
                                                     title="Añadir a playlist"
                                                 >
                                                     <Plus className="w-5 h-5" />

@@ -263,7 +263,7 @@ export function InvoicesTab() {
                                             title={fila.documentId
                                                 ? 'Ya está emitido: solo vuelve a consultar su estado en SUNAT'
                                                 : 'Emite el comprobante ahora, sin esperar al job'}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ds-accent text-ds-on-accent text-xs font-bold hover:bg-ds-accent-hover disabled:opacity-60"
+                                            className="ds-btn ds-btn--primary ds-btn--sm"
                                         >
                                             {ocupado === `retry-${fila.paymentId}`
                                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

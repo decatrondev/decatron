@@ -100,7 +100,7 @@ export const ColorInput: React.FC<{
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ds-accent"
+            className="ds-input flex-1 font-mono"
         />
         {label && <span className="text-xs text-ds-soft whitespace-nowrap">{label}</span>}
     </div>

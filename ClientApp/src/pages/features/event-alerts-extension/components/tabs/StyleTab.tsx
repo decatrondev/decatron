@@ -230,7 +230,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                                 value={style.backgroundImage}
                                 onChange={e => update({ backgroundImage: e.target.value })}
                                 placeholder="https://ejemplo.com/fondo.jpg"
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-sm mt-2 3xl:text-base"
+                                className="ds-input w-full mt-2 font-mono"
                             />
                         </div>
                     )}
@@ -276,7 +276,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                         <select
                             value={style.fontFamily}
                             onChange={e => update({ fontFamily: e.target.value })}
-                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm mt-2 3xl:text-base"
+                            className="ds-input w-full mt-2"
                         >
                             {FONT_FAMILIES.map(f => (
                                 <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>
@@ -302,7 +302,7 @@ export default function StyleTab({ globalConfig, onGlobalConfigChange }: StyleTa
                             <select
                                 value={style.fontWeight}
                                 onChange={e => update({ fontWeight: e.target.value })}
-                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm mt-2 3xl:text-base"
+                                className="ds-input w-full mt-2"
                             >
                                 <option value="normal">Normal</option>
                                 <option value="bold">Bold</option>
@@ -416,7 +416,7 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
                     type="text"
                     value={value}
                     onChange={e => onChange(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none font-mono text-xs 3xl:text-sm"
+                    className="ds-input flex-1 font-mono"
                 />
             </div>
         </div>

@@ -528,7 +528,7 @@ export default function StoreTab({
                 {onDeliverPurchase && (
                   <button
                     onClick={() => onDeliverPurchase(p.id)}
-                    className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-xs font-bold rounded-lg transition-colors"
+                    className="ds-btn ds-btn--primary ds-btn--sm"
                   >
                     Entregar
                   </button>

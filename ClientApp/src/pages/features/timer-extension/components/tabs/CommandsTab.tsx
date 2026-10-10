@@ -95,7 +95,7 @@ export const CommandsTab: React.FC<CommandsTabProps> = ({
                                 {cmd.enabled && (
                                     <button
                                         onClick={() => toggleExpand(key)}
-                                        className="w-full flex items-center justify-center gap-2 py-1.5 text-xs font-medium text-ds-soft bg-ds-surface hover:bg-ds-bg rounded-lg transition-colors border border-transparent hover:border-ds-border"
+                                        className="ds-btn ds-btn--secondary ds-btn--sm w-full"
                                     >
                                         <Settings2 className="w-3 h-3" />
                                         {isExpanded ? 'Ocultar Configuración' : 'Configurar Permisos'}
@@ -116,7 +116,7 @@ export const CommandsTab: React.FC<CommandsTabProps> = ({
                                                 type="text"
                                                 value={cmd.blacklist.join(', ')}
                                                 onChange={(e) => onCommandsConfigChange({ [cmdKey]: { ...cmd, blacklist: e.target.value.split(',').map(u => u.trim()).filter(u => u) } } as any)}
-                                                className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
+                                                className="ds-input w-full"
                                                 placeholder="usuario1, usuario2..."
                                             />
                                             <p className="text-[10px] text-ds-soft mt-1">Usuarios que NO pueden usar este comando.</p>
@@ -130,7 +130,7 @@ export const CommandsTab: React.FC<CommandsTabProps> = ({
                                                 type="text"
                                                 value={cmd.whitelist.join(', ')}
                                                 onChange={(e) => onCommandsConfigChange({ [cmdKey]: { ...cmd, whitelist: e.target.value.split(',').map(u => u.trim()).filter(u => u) } } as any)}
-                                                className="w-full px-3 py-2 text-xs border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-1 focus:ring-ds-accent outline-none"
+                                                className="ds-input w-full"
                                                 placeholder="usuario1, usuario2..."
                                             />
                                             <p className="text-[10px] text-ds-soft mt-1">Usuarios específicos que SÍ pueden usarlo (además de mods).</p>

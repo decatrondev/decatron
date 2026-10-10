@@ -89,7 +89,7 @@ export function TestTab({ wheel, sources, rewards, onSimulate, t }: {
                         <button
                             onClick={run}
                             disabled={running || (source === 'channel_points' && !rewardId)}
-                            className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg font-bold flex items-center gap-2 transition-colors"
+                            className="ds-btn ds-btn--primary"
                         >
                             {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <FlaskConical className="w-4 h-4" />}
                             {t('wheel.test.run')}

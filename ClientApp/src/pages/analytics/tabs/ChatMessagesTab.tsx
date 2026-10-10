@@ -121,7 +121,7 @@ export default function ChatMessagesTab({ data, isLoading, dateRange }: ChatMess
                             placeholder={t('chatMessages.searchPlaceholder', 'Buscar usuario o mensaje...')}
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="pl-9 pr-4 py-2 text-sm bg-ds-surface border border-ds-border rounded-lg text-ds-text placeholder-ds-soft focus:outline-none focus:ring-2 focus:ring-ds-accent/20 w-full sm:w-64"
+                            className="ds-input w-full sm:w-64 pl-9 pr-4"
                         />
                     </div>
                 </div>

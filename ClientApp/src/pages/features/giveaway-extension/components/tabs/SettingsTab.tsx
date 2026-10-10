@@ -84,7 +84,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                                     max={30}
                                     value={config.reminderIntervalMinutes}
                                     onChange={(e) => onUpdateConfig({ reminderIntervalMinutes: parseInt(e.target.value) || 3 })}
-                                    className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         )}
@@ -138,7 +138,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                             value={config.startMessage}
                             onChange={(e) => onUpdateConfig({ startMessage: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text resize-none"
+                            className="ds-input w-full resize-none"
                         />
                     </div>
 
@@ -151,7 +151,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                             value={config.reminderMessage}
                             onChange={(e) => onUpdateConfig({ reminderMessage: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text resize-none"
+                            className="ds-input w-full resize-none"
                         />
                     </div>
 
@@ -164,7 +164,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                             value={config.winnerMessage}
                             onChange={(e) => onUpdateConfig({ winnerMessage: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text resize-none"
+                            className="ds-input w-full resize-none"
                         />
                     </div>
 
@@ -177,7 +177,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                             value={config.noResponseMessage}
                             onChange={(e) => onUpdateConfig({ noResponseMessage: e.target.value })}
                             rows={2}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text resize-none"
+                            className="ds-input w-full resize-none"
                         />
                     </div>
                 </div>
@@ -219,7 +219,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                                 max={365}
                                 value={config.winnerCooldownDays}
                                 onChange={(e) => onUpdateConfig({ winnerCooldownDays: parseInt(e.target.value) || 7 })}
-                                className="w-full px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-2">
                                 Los ganadores no podrán participar por {config.winnerCooldownDays} días después de ganar

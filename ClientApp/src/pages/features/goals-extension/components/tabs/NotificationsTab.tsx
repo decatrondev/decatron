@@ -113,7 +113,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                 value={notifications.onProgress.message}
                                 onChange={(e) => updateOnProgress({ message: e.target.value })}
                                 placeholder="{goalName} avanzó a {percentage}%"
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{percentage}'}, {'{current}'}, {'{target}'}
@@ -164,7 +164,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                 value={notifications.onMilestone.message}
                                 onChange={(e) => updateOnMilestone({ message: e.target.value })}
                                 placeholder="🎯 ¡Milestone alcanzado: {milestoneName}!"
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{milestoneName}'}, {'{percentage}'}
@@ -223,7 +223,7 @@ export const NotificationsTab: React.FC<NotificationsTabProps> = ({
                                 value={notifications.onComplete.message}
                                 onChange={(e) => updateOnComplete({ message: e.target.value })}
                                 placeholder="🏆 ¡META COMPLETADA: {goalName}!"
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{target}'}, {'{totalTime}'}

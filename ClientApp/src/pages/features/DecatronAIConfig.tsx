@@ -183,7 +183,7 @@ export default function DecatronAIConfig() {
                     </p>
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         {t('decatronAI.backToDashboard')}
                     </button>
@@ -223,7 +223,7 @@ export default function DecatronAIConfig() {
                         </a>
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border text-ds-text rounded-lg font-bold transition-colors hover:bg-ds-bg"
+                            className="ds-btn ds-btn--secondary ds-btn--lg w-full"
                         >
                             {t('decatronAI.backToDashboard')}
                         </button>
@@ -288,7 +288,7 @@ export default function DecatronAIConfig() {
                             <select
                                 value={config.permissionLevel}
                                 onChange={(e) => setConfig({ ...config, permissionLevel: e.target.value })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             >
                                 <option value="everyone">{t('decatronAI.config.everyone')}</option>
                                 <option value="subscriber">{t('decatronAI.config.subscribers')}</option>
@@ -306,7 +306,7 @@ export default function DecatronAIConfig() {
                                 value={config.channelCooldownSeconds}
                                 min={globalDefaults.minCooldown}
                                 onChange={(e) => setConfig({ ...config, channelCooldownSeconds: Math.max(parseInt(e.target.value) || 0, globalDefaults.minCooldown) })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                         </div>
                         <div>
@@ -316,7 +316,7 @@ export default function DecatronAIConfig() {
                                 value={config.userCooldownSeconds || ''}
                                 placeholder={t('decatronAI.config.noLimit')}
                                 onChange={(e) => setConfig({ ...config, userCooldownSeconds: e.target.value ? parseInt(e.target.value) : null })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                         </div>
                         <div>
@@ -326,7 +326,7 @@ export default function DecatronAIConfig() {
                                 value={config.customPrefix || ''}
                                 placeholder={t('decatronAI.config.useGlobalDefault')}
                                 onChange={(e) => setConfig({ ...config, customPrefix: e.target.value || null })}
-                                className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>
@@ -338,14 +338,14 @@ export default function DecatronAIConfig() {
                             placeholder={t('decatronAI.config.useGlobalPrompt')}
                             onChange={(e) => setConfig({ ...config, customSystemPrompt: e.target.value || null })}
                             rows={3}
-                            className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-medium"
+                            className="ds-input w-full"
                         />
                     </div>
 
                     <button
                         onClick={saveConfig}
                         disabled={saving}
-                        className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all disabled:opacity-50"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Save className="w-4 h-4" /> {saving ? t('decatronAI.config.saving') : t('decatronAI.config.saveConfig')}
                     </button>
@@ -377,9 +377,9 @@ export default function DecatronAIConfig() {
                                         value={newWhitelistUser}
                                         onChange={(e) => setNewWhitelistUser(e.target.value)}
                                         placeholder={t('decatronAI.users.userPlaceholder')}
-                                        className="flex-1 px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text"
+                                        className="ds-input flex-1"
                                     />
-                                    <button onClick={addWhitelistUser} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all">
+                                    <button onClick={addWhitelistUser} className="ds-btn ds-btn--primary">
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -409,9 +409,9 @@ export default function DecatronAIConfig() {
                                 value={newBlacklistUser}
                                 onChange={(e) => setNewBlacklistUser(e.target.value)}
                                 placeholder={t('decatronAI.users.blockUserPlaceholder')}
-                                className="flex-1 px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text"
+                                className="ds-input flex-1"
                             />
-                            <button onClick={addBlacklistUser} className="px-4 py-2 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg font-bold transition-all">
+                            <button onClick={addBlacklistUser} className="ds-btn ds-btn--danger">
                                 <Plus className="w-4 h-4" />
                             </button>
                         </div>
@@ -433,7 +433,7 @@ export default function DecatronAIConfig() {
                     <button
                         onClick={saveConfig}
                         disabled={saving}
-                        className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all disabled:opacity-50"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Save className="w-4 h-4" /> {saving ? t('decatronAI.config.saving') : t('decatronAI.config.saveChanges')}
                     </button>

@@ -46,7 +46,7 @@ export default function AlertFormModal(props: AlertFormModalProps) {
               <div className="relative">
                 <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ds-soft" />
                 <select value={discordChannel} onChange={(e) => setDiscordChannel(e.target.value)}
-                  className="w-full pl-9 pr-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent appearance-none [&>option]:bg-ds-surface">
+                  className="ds-input w-full pl-9 pr-4">
                   <option value="">Seleccionar canal...</option>
                   {channels.map(ch => <option key={ch.id} value={ch.id}>#{ch.name}</option>)}
                 </select>
@@ -74,14 +74,14 @@ export default function AlertFormModal(props: AlertFormModalProps) {
             <div>
               <label className="block text-sm font-medium text-ds-text mb-2">Mensaje <span className="text-ds-soft font-normal">(opcional)</span></label>
               <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ej: Mi streamer favorito esta en vivo!"
-                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent placeholder-ds-soft" />
+                className="ds-input w-full" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-ds-text mb-2">Color del embed</label>
               <div className="flex items-center gap-3">
                 <input type="color" value={embedColor} onChange={(e) => setEmbedColor(e.target.value)} className="w-10 h-10 rounded-lg border border-ds-border cursor-pointer" />
-                <input type="text" value={embedColor} onChange={(e) => setEmbedColor(e.target.value)} className="w-24 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text font-mono" />
+                <input type="text" value={embedColor} onChange={(e) => setEmbedColor(e.target.value)} className="ds-input w-24 font-mono" />
                 <div className="flex gap-1 flex-wrap">
                   {['#ff0000', '#2563eb', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899'].map(c => (
                     <button key={c} onClick={() => setEmbedColor(c)} className={`w-6 h-6 rounded-full border-2 ${embedColor === c ? 'border-ds-border scale-110' : 'border-ds-border '}`} style={{ backgroundColor: c }} />
@@ -93,7 +93,7 @@ export default function AlertFormModal(props: AlertFormModalProps) {
             <div>
               <label className="block text-sm font-medium text-ds-text mb-2">Footer <span className="text-ds-soft font-normal">(opcional)</span></label>
               <input type="text" value={footer} onChange={(e) => setFooter(e.target.value)} placeholder="Decatron Bot • twitch.decatron.net"
-                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent placeholder-ds-soft text-sm" />
+                className="ds-input w-full" />
             </div>
 
             <div>
@@ -207,9 +207,9 @@ export default function AlertFormModal(props: AlertFormModalProps) {
         </div>
 
         <div className="flex gap-3 pt-6 mt-6 border-t border-ds-border">
-          <button onClick={onClose} className="flex-1 px-4 py-3 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border">Cancelar</button>
+          <button onClick={onClose} className="ds-btn ds-btn--secondary ds-btn--lg flex-1">Cancelar</button>
           <button onClick={onSave} disabled={saving || saveDisabled}
-            className="flex-1 px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+            className="ds-btn ds-btn--primary ds-btn--lg flex-1">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />} {saveLabel}
           </button>
         </div>

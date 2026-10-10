@@ -324,7 +324,7 @@ export function FileSelectionModal({
                                                 value={imageUrlInput}
                                                 onChange={e => setImageUrlInput(e.target.value)}
                                                 placeholder="https://ejemplo.com/imagen.gif"
-                                                className="w-full px-3 py-2 border border-ds-border rounded-lg text-sm bg-ds-surface text-ds-text focus:outline-none focus:border-ds-accent"
+                                                className="ds-input w-full"
                                             />
                                         </div>
                                     )}
@@ -378,7 +378,7 @@ export function FileSelectionModal({
                                         setImageUrlInput('');
                                     }
                                 }}
-                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-semibold rounded-lg transition-all flex items-center gap-2"
+                                className="ds-btn ds-btn--primary"
                             >
                                 <Upload className="w-4 h-4" />
                                 {t('soundAlertsTabs.uploadAudio')}

@@ -47,7 +47,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                             value={config.name}
                             onChange={(e) => onUpdateConfig({ name: e.target.value })}
                             placeholder="Ej: Sorteo de Navidad"
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-border"
+                            className="ds-input w-full"
                         />
                     </div>
 
@@ -61,7 +61,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                             value={config.prizeName}
                             onChange={(e) => onUpdateConfig({ prizeName: e.target.value })}
                             placeholder="Ej: Steam Deck, $50 Amazon, Teclado Mecánico"
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-border"
+                            className="ds-input w-full"
                         />
                     </div>
 
@@ -75,7 +75,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                             onChange={(e) => onUpdateConfig({ prizeDescription: e.target.value })}
                             placeholder="Detalles adicionales sobre el premio..."
                             rows={3}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-border resize-none"
+                            className="ds-input w-full resize-none"
                         />
                     </div>
                 </div>
@@ -125,7 +125,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                                 max={1440}
                                 value={config.durationMinutes}
                                 onChange={(e) => onUpdateConfig({ durationMinutes: parseInt(e.target.value) || 10 })}
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
                                 El giveaway finalizará automáticamente después de {config.durationMinutes} minutos
@@ -153,7 +153,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                             value={config.entryCommand}
                             onChange={(e) => onUpdateConfig({ entryCommand: e.target.value })}
                             placeholder="!join"
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-ok/40"
+                            className="ds-input w-full"
                         />
                     </div>
 
@@ -219,7 +219,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                                     min={1}
                                     value={config.maxParticipants}
                                     onChange={(e) => onUpdateConfig({ maxParticipants: parseInt(e.target.value) || 100 })}
-                                    className="w-full px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-ds-text"
+                                    className="ds-input w-full"
                                 />
                             )}
                         </div>
@@ -246,7 +246,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                             max={10}
                             value={config.numberOfWinners}
                             onChange={(e) => onUpdateConfig({ numberOfWinners: parseInt(e.target.value) || 1 })}
-                            className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-warn/40"
+                            className="ds-input w-full"
                         />
                     </div>
 
@@ -273,7 +273,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                                     max={5}
                                     value={config.numberOfBackupWinners}
                                     onChange={(e) => onUpdateConfig({ numberOfBackupWinners: parseInt(e.target.value) || 1 })}
-                                    className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text"
+                                    className="ds-input flex-1"
                                 />
                             )}
                         </div>
@@ -291,7 +291,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                         max={300}
                         value={config.winnerResponseTimeout}
                         onChange={(e) => onUpdateConfig({ winnerResponseTimeout: parseInt(e.target.value) || 60 })}
-                        className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-warn/40"
+                        className="ds-input w-full"
                     />
                     <p className="text-xs text-ds-soft mt-1">
                         Tiempo que tiene el ganador para responder antes de ser descalificado

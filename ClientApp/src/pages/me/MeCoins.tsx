@@ -526,7 +526,7 @@ export default function MeCoins() {
                         onKeyDown={(e) => { if (e.key === 'Enter') handleValidateCoupon(); }}
                         placeholder="Ingresa tu codigo"
                         disabled={!!validatedCoupon}
-                        className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308] disabled:opacity-50 font-mono tracking-wider"
+                        className="ds-input flex-1 font-mono"
                     />
                     {validatedCoupon ? (
                         <button
@@ -636,7 +636,7 @@ export default function MeCoins() {
                                             <button
                                                 onClick={() => handleBuy(pkg.id)}
                                                 disabled={purchasing === pkg.id}
-                                                className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="ds-btn ds-btn--primary"
                                             >
                                                 {purchasing === pkg.id ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -672,7 +672,7 @@ export default function MeCoins() {
                                 value={customCoins}
                                 onChange={(e) => setCustomCoins(e.target.value)}
                                 placeholder="100 - 5,000"
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
+                                className="ds-input w-full"
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ds-soft">coins</span>
                         </div>
@@ -685,7 +685,7 @@ export default function MeCoins() {
                         <button
                             onClick={handleBuyCustom}
                             disabled={purchasingCustom || !customCoins || parseInt(customCoins) < 100 || parseInt(customCoins) > 5000}
-                            className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="ds-btn ds-btn--primary ds-btn--lg"
                         >
                             {purchasingCustom ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
                             Comprar
@@ -719,7 +719,7 @@ export default function MeCoins() {
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                 onFocus={() => { if (userSuggestions.length > 0) setShowSuggestions(true); }}
                                 placeholder="Buscar usuario..."
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
+                                className="ds-input w-full"
                             />
                             {showSuggestions && userSuggestions.length > 0 && (
                                 <div className="absolute z-50 top-full mt-1 w-full bg-ds-surface border border-ds-border rounded-lg max-h-48 overflow-y-auto">
@@ -757,7 +757,7 @@ export default function MeCoins() {
                                 value={transferAmount}
                                 onChange={(e) => setTransferAmount(e.target.value)}
                                 placeholder="Cantidad de coins"
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
+                                className="ds-input w-full"
                             />
                         </div>
                         <div>
@@ -767,7 +767,7 @@ export default function MeCoins() {
                                 value={transferMessage}
                                 onChange={(e) => setTransferMessage(e.target.value)}
                                 placeholder="Mensaje opcional"
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
+                                className="ds-input w-full"
                             />
                         </div>
                     </div>
@@ -775,7 +775,7 @@ export default function MeCoins() {
                         <button
                             onClick={handleTransfer}
                             disabled={transferring || !transferUsername.trim() || !transferAmount || parseInt(transferAmount) <= 0}
-                            className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="ds-btn ds-btn--primary ds-btn--lg"
                         >
                             {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             Transferir
@@ -809,7 +809,7 @@ export default function MeCoins() {
                                 </div>
                                 <button
                                     onClick={copyReferralCode}
-                                    className="flex items-center gap-2 px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
+                                    className="ds-btn ds-btn--primary ds-btn--lg"
                                 >
                                     <Copy className="w-4 h-4" />
                                     Copiar
@@ -856,12 +856,12 @@ export default function MeCoins() {
                                         onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
                                         onKeyDown={(e) => { if (e.key === 'Enter') handleApplyReferral(); }}
                                         placeholder="REF-XXXXX"
-                                        className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent font-mono tracking-wider"
+                                        className="ds-input flex-1 font-mono"
                                     />
                                     <button
                                         onClick={handleApplyReferral}
                                         disabled={applyingReferral || !referralInput.trim()}
-                                        className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="ds-btn ds-btn--primary ds-btn--lg"
                                     >
                                         {applyingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                         Aplicar
@@ -937,7 +937,7 @@ export default function MeCoins() {
                                     <button
                                         onClick={loadMoreHistory}
                                         disabled={loadingHistory}
-                                        className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
+                                        className="ds-btn ds-btn--primary"
                                     >
                                         {loadingHistory ? (
                                             <Loader2 className="w-4 h-4 animate-spin inline mr-2" />

@@ -172,7 +172,7 @@ export default function LiveTranslationConfig() {
                         </h2>
                     </div>
                     {session && canEdit && (
-                        <button onClick={stop} className="px-3 py-2 rounded-lg bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent text-sm font-semibold flex items-center gap-2">
+                        <button onClick={stop} className="ds-btn ds-btn--danger">
                             <Square className="w-4 h-4" /> {t('liveTranslation.live.stop')}
                         </button>
                     )}

@@ -348,7 +348,7 @@ interface TimerSessionBasic {
                                         const s = idx === 3 ? newVal : defaultDuration % 60;
                                         onDefaultDurationChange(d * 86400 + h * 3600 + m * 60 + s);
                                     }}
-                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center font-bold"
+                                    className="ds-input w-full text-center"
                                 />
                             </div>
                         );
@@ -368,7 +368,7 @@ interface TimerSessionBasic {
                                 value={offsetInput}
                                 onChange={(e) => handleOffsetChange(e.target.value)}
                                 placeholder="Ej: 500h, 4d 2h, o 1800000"
-                                className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text font-mono focus:ring-2 focus:ring-ds-accent outline-none"
+                                className="ds-input w-full font-mono"
                             />
                             <div className="flex justify-between mt-1">
                                 <p className="text-xs text-ds-soft">
@@ -584,7 +584,7 @@ interface TimerSessionBasic {
                                         max="99"
                                         value={maxChances || 1}
                                         onChange={(e) => onMaxChancesChange?.(Math.max(1, parseInt(e.target.value) || 1))}
-                                        className="w-20 px-3 py-2 border border-ds-accent rounded-lg bg-ds-surface text-ds-accent-text font-bold text-center"
+                                        className="ds-input w-20 text-center"
                                     />
                                                                             <p className="text-xs text-ds-accent-text leading-tight">
                                                                                 Si el tiempo se agota, una donación o comando podrá "revivir" el timer gastando una vida.
@@ -601,7 +601,7 @@ interface TimerSessionBasic {
                                                                             value={resurrectionMessage}
                                                                             onChange={(e) => onResurrectionMessageChange?.(e.target.value)}
                                                                             placeholder="🍄 ¡1UP! Se usó una vida ({lives}/{max})."
-                                                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                                                            className="ds-input w-full"
                                                                         />
                                                                         <p className="text-[10px] text-ds-soft mt-1">Variables: <code>{'{lives}'}</code> (usadas), <code>{'{max}'}</code> (totales)</p>
                                                                     </div>
@@ -612,7 +612,7 @@ interface TimerSessionBasic {
                                                                             value={gameOverMessage}
                                                                             onChange={(e) => onGameOverMessageChange?.(e.target.value)}
                                                                             placeholder="💀 Game Over. No quedan vidas."
-                                                                            className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm text-ds-text"
+                                                                            className="ds-input w-full"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -635,7 +635,7 @@ interface TimerSessionBasic {
                             <select
                                 value={selectedSessionId || ''}
                                 onChange={(e) => setSelectedSessionId(Number(e.target.value))}
-                                className="w-full text-xs border border-ds-accent rounded-lg px-3 py-2 bg-ds-surface text-ds-soft mb-4"
+                                className="ds-input w-full mb-4"
                             >
                                 {sessions.map(s => {
                                     const dateStr = formatShortDateTimeIn(s.startedAt, timeZone);
@@ -683,7 +683,7 @@ interface TimerSessionBasic {
                                     <button
                                         onClick={() => handleRestoreSession(selectedSession.id, true)}
                                         disabled={isRestoring}
-                                        className="w-full py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg font-bold hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                                        className="ds-btn ds-btn--primary ds-btn--lg w-full"
                                     >
                                         {isRestoring
                                             ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-ds-border"></div> Restaurando...</>
@@ -702,7 +702,7 @@ interface TimerSessionBasic {
                                             value={manualRestoreInput}
                                             onChange={(e) => setManualRestoreInput(e.target.value)}
                                             placeholder="Ej: 5h 30m, 2h, 90m"
-                                            className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm font-mono"
+                                            className="ds-input flex-1 font-mono"
                                         />
                                     </div>
                                     {manualRestoreInput && parseTimeInput(manualRestoreInput) > 0 && (
@@ -757,7 +757,7 @@ interface TimerSessionBasic {
                         <button
                             onClick={() => handleTimerControl('resume')}
                             disabled={activeTimerStatus !== 'paused' && activeTimerStatus !== 'auto_paused' && activeTimerStatus !== 'stream_paused'}
-                            className="py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 disabled:cursor-not-allowed text-ds-on-accent rounded-lg transition-colors flex flex-col items-center justify-center gap-1 font-bold"
+                            className="ds-btn ds-btn--primary ds-btn--lg"
                         >
                             <Play className="w-5 h-5" />
                             <span className="text-xs">Reanudar</span>
@@ -787,7 +787,7 @@ interface TimerSessionBasic {
                                 handleTimerControl('stop');
                             }
                             }}
-                            className="py-3 bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent rounded-lg transition-all flex items-center justify-center gap-2 font-bold hover:shadow-red-600/30"
+                            className="ds-btn ds-btn--danger ds-btn--lg"
                         >
                             <StopCircle className="w-5 h-5" />
                             DETENER TODO
@@ -806,7 +806,7 @@ interface TimerSessionBasic {
                         type="text"
                         value={overlayUrl}
                         readOnly
-                        className="flex-1 px-4 py-2 border border-ds-border rounded-lg bg-ds-bg text-ds-text text-sm font-mono"
+                        className="ds-input flex-1 font-mono"
                     />
                     <button
                         onClick={handleCopy}

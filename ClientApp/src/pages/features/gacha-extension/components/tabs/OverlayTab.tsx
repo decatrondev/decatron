@@ -136,11 +136,11 @@ export const OverlayTab: React.FC = () => {
             <div className="space-y-2">
                 <label className="block text-sm font-bold text-ds-soft">URL para OBS</label>
                 <div className="flex gap-2">
-                    <input type="text" readOnly value={overlayUrl} className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text select-all" />
+                    <input type="text" readOnly value={overlayUrl} className="ds-input flex-1" />
                     <button onClick={handleCopy} className="px-4 py-3 bg-ds-bg border border-ds-border rounded-lg hover:border-ds-accent transition-all" title="Copiar">
                         {copied ? <Check className="w-4 h-4 text-ds-ok" /> : <Copy className="w-4 h-4 text-ds-soft" />}
                     </button>
-                    <button onClick={handleTest} className="px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all flex items-center gap-2">
+                    <button onClick={handleTest} className="ds-btn ds-btn--primary ds-btn--lg">
                         <ExternalLink className="w-4 h-4" /> Test Overlay
                     </button>
                 </div>
@@ -208,7 +208,7 @@ export const OverlayTab: React.FC = () => {
             </div>
 
             {/* Save */}
-            <button onClick={handleSave} disabled={saving} className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint text-ds-on-accent rounded-lg font-bold transition-all flex items-center justify-center gap-2">
+            <button onClick={handleSave} disabled={saving} className="ds-btn ds-btn--primary ds-btn--lg w-full">
                 <Save className="w-4 h-4" /> {saving ? 'Guardando...' : 'Guardar Configuracion'}
             </button>
         </div>

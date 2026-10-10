@@ -316,7 +316,7 @@ export default function DecatronChatAdmin() {
                             <select
                                 value={config.aiProvider}
                                 onChange={(e) => setConfig({ ...config, aiProvider: e.target.value })}
-                                className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                className="ds-input w-full"
                             >
                                 <option value="gemini">Gemini</option>
                                 <option value="openrouter">OpenRouter</option>
@@ -348,7 +348,7 @@ export default function DecatronChatAdmin() {
                                     type="text"
                                     value={config.model}
                                     onChange={(e) => setConfig({ ...config, model: e.target.value })}
-                                    className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div>
@@ -359,7 +359,7 @@ export default function DecatronChatAdmin() {
                                     type="text"
                                     value={config.openRouterModel}
                                     onChange={(e) => setConfig({ ...config, openRouterModel: e.target.value })}
-                                    className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
@@ -374,7 +374,7 @@ export default function DecatronChatAdmin() {
                                     type="number"
                                     value={config.maxTokens}
                                     onChange={(e) => setConfig({ ...config, maxTokens: parseInt(e.target.value) })}
-                                    className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div>
@@ -385,7 +385,7 @@ export default function DecatronChatAdmin() {
                                     type="number"
                                     value={config.maxConversationsPerUser}
                                     onChange={(e) => setConfig({ ...config, maxConversationsPerUser: parseInt(e.target.value) })}
-                                    className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                    className="ds-input w-full"
                                 />
                             </div>
                             <div>
@@ -396,7 +396,7 @@ export default function DecatronChatAdmin() {
                                     type="number"
                                     value={config.maxMessagesPerConversation}
                                     onChange={(e) => setConfig({ ...config, maxMessagesPerConversation: parseInt(e.target.value) })}
-                                    className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                    className="ds-input w-full"
                                 />
                             </div>
                         </div>
@@ -410,7 +410,7 @@ export default function DecatronChatAdmin() {
                                 type="number"
                                 value={config.contextMessages}
                                 onChange={(e) => setConfig({ ...config, contextMessages: parseInt(e.target.value) })}
-                                className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
                                 Cuántos mensajes previos enviar para mantener contexto
@@ -426,7 +426,7 @@ export default function DecatronChatAdmin() {
                                 value={config.systemPrompt}
                                 onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })}
                                 rows={6}
-                                className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg resize-none"
+                                className="ds-input w-full resize-none"
                             />
                         </div>
 
@@ -434,7 +434,7 @@ export default function DecatronChatAdmin() {
                         <button
                             onClick={saveConfig}
                             disabled={saving}
-                            className="w-full px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="ds-btn ds-btn--primary ds-btn--lg w-full"
                         >
                             <Save className="w-5 h-5" />
                             {saving ? 'Guardando...' : 'Guardar Configuración'}
@@ -448,7 +448,7 @@ export default function DecatronChatAdmin() {
                     {/* Add Permission Button */}
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all flex items-center gap-2"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Plus className="w-5 h-5" />
                         Agregar Permiso
@@ -657,7 +657,7 @@ export default function DecatronChatAdmin() {
                                         searchUsers(e.target.value);
                                     }}
                                     placeholder="Buscar por nombre..."
-                                    className="w-full pl-10 pr-4 py-2 bg-ds-bg border border-ds-border rounded-lg"
+                                    className="ds-input w-full pl-10 pr-4"
                                 />
                             </div>
                             {searchResults.length > 0 && (
@@ -715,7 +715,7 @@ export default function DecatronChatAdmin() {
                                         value={newPermission.notes}
                                         onChange={(e) => setNewPermission({ ...newPermission, notes: e.target.value })}
                                         rows={3}
-                                        className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg resize-none"
+                                        className="ds-input w-full resize-none"
                                     />
                                 </div>
                             </>
@@ -738,7 +738,7 @@ export default function DecatronChatAdmin() {
                             <button
                                 onClick={addPermission}
                                 disabled={!selectedUser}
-                                className="flex-1 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="ds-btn ds-btn--primary flex-1"
                             >
                                 Agregar
                             </button>
@@ -789,7 +789,7 @@ export default function DecatronChatAdmin() {
                                 value={editingPermission.notes || ''}
                                 onChange={(e) => setEditingPermission({ ...editingPermission, notes: e.target.value })}
                                 rows={3}
-                                className="w-full px-4 py-2 bg-ds-bg border border-ds-border rounded-lg resize-none"
+                                className="ds-input w-full resize-none"
                             />
                         </div>
 
@@ -803,7 +803,7 @@ export default function DecatronChatAdmin() {
                             </button>
                             <button
                                 onClick={() => updatePermission(editingPermission)}
-                                className="flex-1 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all"
+                                className="ds-btn ds-btn--primary flex-1"
                             >
                                 Guardar
                             </button>

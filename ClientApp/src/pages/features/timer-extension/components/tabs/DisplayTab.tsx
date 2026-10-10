@@ -45,7 +45,7 @@ export const DisplayTab: React.FC<DisplayTabProps> = ({
                         value={displayConfig.timeFormat || ''}
                         onChange={(e) => onDisplayConfigChange({ timeFormat: e.target.value })}
                         placeholder="Ej: HH:mm:ss"
-                        className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text font-mono text-sm"
+                        className="ds-input w-full font-mono"
                     />
                     <p className="text-[10px] text-ds-soft mt-2">
                         Si escribes aquí, se ignorarán los botones de abajo. <br/>
@@ -96,7 +96,7 @@ export const DisplayTab: React.FC<DisplayTabProps> = ({
                             value={displayConfig.title}
                             onChange={(e) => onDisplayConfigChange({ title: e.target.value })}
                             placeholder="Ej: Próximo juego en:"
-                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                            className="ds-input w-full"
                         />
                         <p className="text-xs text-ds-soft mt-2">
                             Texto que se mostrará como título del timer

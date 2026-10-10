@@ -127,7 +127,7 @@ export function DonationHistory({ refreshKey }: Props) {
                     </div>
                     <button
                         onClick={handleSearch}
-                        className="px-4 py-2 text-sm font-semibold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors"
+                        className="ds-btn ds-btn--primary"
                     >
                         Buscar
                     </button>

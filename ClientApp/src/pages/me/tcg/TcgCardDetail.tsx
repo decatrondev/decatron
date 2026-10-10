@@ -234,7 +234,7 @@ export default function TcgCardDetail() {
                                 <button
                                     onClick={handleAttemptUpgrade}
                                     disabled={acting}
-                                    className="bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold px-5 py-2 rounded-lg flex items-center gap-2"
+                                    className="ds-btn ds-btn--primary"
                                 >
                                     {acting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                                     Mandar a gradear

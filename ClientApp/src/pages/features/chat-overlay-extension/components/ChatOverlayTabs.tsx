@@ -47,7 +47,7 @@ function TagInput({ values, onChange, placeholder, normalize }: { values: string
                     onChange={e => setText(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
                 />
-                <button type="button" onClick={add} className="px-4 py-2 rounded-lg text-sm font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shrink-0">{t('chat.add')}</button>
+                <button type="button" onClick={add} className="ds-btn ds-btn--primary shrink-0">{t('chat.add')}</button>
             </div>
             {values.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">

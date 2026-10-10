@@ -60,7 +60,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                 step={0.1}
                                 value={weights.subTier1Multiplier}
                                 onChange={(e) => onUpdateWeights({ subTier1Multiplier: parseFloat(e.target.value) || 1 })}
-                                className="flex-1 px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                className="ds-input flex-1"
                             />
                             <span className="text-ds-accent-text font-bold">×</span>
                         </div>
@@ -80,7 +80,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                 step={0.1}
                                 value={weights.subTier2Multiplier}
                                 onChange={(e) => onUpdateWeights({ subTier2Multiplier: parseFloat(e.target.value) || 1 })}
-                                className="flex-1 px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                className="ds-input flex-1"
                             />
                             <span className="text-ds-accent-text font-bold">×</span>
                         </div>
@@ -100,7 +100,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                 step={0.1}
                                 value={weights.subTier3Multiplier}
                                 onChange={(e) => onUpdateWeights({ subTier3Multiplier: parseFloat(e.target.value) || 1 })}
-                                className="flex-1 px-3 py-2 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                className="ds-input flex-1"
                             />
                             <span className="text-ds-accent-text font-bold">×</span>
                         </div>
@@ -129,7 +129,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                 step={0.1}
                                 value={weights.vipMultiplier}
                                 onChange={(e) => onUpdateWeights({ vipMultiplier: parseFloat(e.target.value) || 1 })}
-                                className="w-24 px-3 py-2 bg-ds-surface border border-ds-warn/40 rounded-lg text-ds-text font-bold"
+                                className="ds-input w-24"
                             />
                             <span className="text-ds-warn font-bold">×</span>
                         </div>
@@ -175,7 +175,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     step={0.05}
                                     value={weights.watchTimeMultiplierPerHour}
                                     onChange={(e) => onUpdateWeights({ watchTimeMultiplierPerHour: parseFloat(e.target.value) || 1 })}
-                                    className="flex-1 px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                    className="ds-input flex-1"
                                 />
                                 <span className="text-ds-soft font-bold">× por hora</span>
                             </div>
@@ -225,7 +225,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     step={0.01}
                                     value={weights.followAgeMultiplierPerMonth}
                                     onChange={(e) => onUpdateWeights({ followAgeMultiplierPerMonth: parseFloat(e.target.value) || 1 })}
-                                    className="flex-1 px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                    className="ds-input flex-1"
                                 />
                                 <span className="text-ds-soft font-bold">× por mes</span>
                             </div>
@@ -272,7 +272,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     step={0.1}
                                     value={weights.bitsMultiplierPer100}
                                     onChange={(e) => onUpdateWeights({ bitsMultiplierPer100: parseFloat(e.target.value) || 1 })}
-                                    className="flex-1 px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                    className="ds-input flex-1"
                                 />
                                 <span className="text-ds-soft font-bold">× por 100 bits</span>
                             </div>
@@ -319,7 +319,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                                     step={0.01}
                                     value={weights.subStreakMultiplierPerMonth}
                                     onChange={(e) => onUpdateWeights({ subStreakMultiplierPerMonth: parseFloat(e.target.value) || 1 })}
-                                    className="flex-1 px-4 py-3 bg-ds-surface border border-ds-border rounded-lg text-ds-text font-bold"
+                                    className="ds-input flex-1"
                                 />
                                 <span className="text-ds-soft font-bold">× por mes</span>
                             </div>

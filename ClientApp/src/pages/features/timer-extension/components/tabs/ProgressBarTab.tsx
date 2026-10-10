@@ -146,7 +146,7 @@ export const ProgressBarTab: React.FC<ProgressBarTabProps> = ({
                                         type="number"
                                         value={progressBarConfig.size.width}
                                         onChange={(e) => onProgressBarConfigChange({ size: { ...progressBarConfig.size, width: Number(e.target.value) } })}
-                                        className="w-full pl-3 pr-8 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                        className="ds-input w-full pl-3 pr-8"
                                     />
                                     <span className="absolute right-3 top-2.5 text-xs text-ds-soft">W</span>
                                 </div>
@@ -156,7 +156,7 @@ export const ProgressBarTab: React.FC<ProgressBarTabProps> = ({
                                         type="number"
                                         value={progressBarConfig.size.height}
                                         onChange={(e) => onProgressBarConfigChange({ size: { ...progressBarConfig.size, height: Number(e.target.value) } })}
-                                        className="w-full pl-3 pr-8 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                        className="ds-input w-full pl-3 pr-8"
                                     />
                                     <span className="absolute right-3 top-2.5 text-xs text-ds-soft">H</span>
                                 </div>
@@ -171,7 +171,7 @@ export const ProgressBarTab: React.FC<ProgressBarTabProps> = ({
                                         type="number"
                                         value={progressBarConfig.position.x}
                                         onChange={(e) => onProgressBarConfigChange({ position: { ...progressBarConfig.position, x: Number(e.target.value) } })}
-                                        className="w-full pl-3 pr-8 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                        className="ds-input w-full pl-3 pr-8"
                                     />
                                     <span className="absolute right-3 top-2.5 text-xs text-ds-soft">X</span>
                                 </div>
@@ -181,7 +181,7 @@ export const ProgressBarTab: React.FC<ProgressBarTabProps> = ({
                                         type="number"
                                         value={progressBarConfig.position.y}
                                         onChange={(e) => onProgressBarConfigChange({ position: { ...progressBarConfig.position, y: Number(e.target.value) } })}
-                                        className="w-full pl-3 pr-8 py-2 border border-ds-border rounded-lg bg-ds-surface text-sm"
+                                        className="ds-input w-full pl-3 pr-8"
                                     />
                                     <span className="absolute right-3 top-2.5 text-xs text-ds-soft">Y</span>
                                 </div>

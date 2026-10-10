@@ -140,7 +140,7 @@ export default function CampaignsTab() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-ds-text">Preview</h3>
-                    <button onClick={() => setPreviewHtml(null)} className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-semibold text-ds-text">
+                    <button onClick={() => setPreviewHtml(null)} className="ds-btn ds-btn--secondary">
                         Cerrar Preview
                     </button>
                 </div>
@@ -157,7 +157,7 @@ export default function CampaignsTab() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-ds-text">Nueva Campaña</h3>
-                    <button onClick={() => setCreating(false)} className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-semibold text-ds-text">
+                    <button onClick={() => setCreating(false)} className="ds-btn ds-btn--secondary">
                         Cancelar
                     </button>
                 </div>
@@ -171,7 +171,7 @@ export default function CampaignsTab() {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder="Ej: Newsletter Mayo 2026"
-                            className="w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
+                            className="ds-input w-full"
                         />
                     </div>
 
@@ -182,7 +182,7 @@ export default function CampaignsTab() {
                             <select
                                 value={selectedTemplate || ''}
                                 onChange={e => setSelectedTemplate(Number(e.target.value) || null)}
-                                className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
+                                className="ds-input flex-1"
                             >
                                 <option value="">Seleccionar template...</option>
                                 {templates.map(t => (
@@ -210,10 +210,10 @@ export default function CampaignsTab() {
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Buscar por login o email..."
-                                    className="w-full pl-9 pr-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/50 placeholder-ds-soft"
+                                    className="ds-input w-full pl-9 pr-3"
                                 />
                             </div>
-                            <button onClick={toggleAll} className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-xs font-bold text-ds-soft hover:bg-ds-raised transition-colors">
+                            <button onClick={toggleAll} className="ds-btn ds-btn--secondary">
                                 {filteredRecipients.every(r => selectedRecipients.includes(r.id)) ? 'Deseleccionar' : 'Seleccionar'} todos
                             </button>
                         </div>
@@ -244,7 +244,7 @@ export default function CampaignsTab() {
                         <button
                             onClick={handleSend}
                             disabled={sending || !name || !selectedTemplate || selectedRecipients.length === 0}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
+                            className="ds-btn ds-btn--primary"
                         >
                             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             Enviar Campaña
@@ -261,7 +261,7 @@ export default function CampaignsTab() {
             <div className="flex justify-end">
                 <button
                     onClick={() => setCreating(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
+                    className="ds-btn ds-btn--primary"
                 >
                     <Send className="w-4 h-4" />
                     Nueva Campaña

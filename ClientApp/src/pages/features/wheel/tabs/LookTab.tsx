@@ -281,7 +281,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                                 {visual.palette.length > 1 && (
                                     <button
                                         onClick={() => onVisual({ palette: visual.palette.filter((_, j) => j !== i) })}
-                                        className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-ds-bg border border-ds-border rounded-full text-[10px] text-ds-soft hover:text-ds-danger leading-none"
+                                        className="ds-btn ds-btn--secondary absolute w-4"
                                         aria-label={t('wheel.look.paletteRemove')}
                                     >
                                         ×
@@ -526,7 +526,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                         <button
                             type="button"
                             onClick={onTestCelebration}
-                            className="ml-3 px-3 py-2 bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg text-sm font-medium transition-colors align-middle"
+                            className="ds-btn ds-btn--secondary ml-3"
                         >
                             {t('wheel.look.celebTest')}
                         </button>
@@ -543,7 +543,7 @@ export function LookTab({ visual, onVisual, onPointer, onSound, mode, canHideWat
                     </div>
                     <button
                         onClick={() => onVisual({ sounds: DEFAULT_VISUAL.sounds })}
-                        className="px-3 py-1.5 text-sm bg-ds-bg hover:bg-ds-raised border border-ds-border text-ds-text rounded-lg flex items-center gap-1.5 font-medium transition-colors flex-shrink-0"
+                        className="ds-btn ds-btn--secondary ds-btn--sm flex-shrink-0"
                     >
                         <RotateCcw className="w-4 h-4" />
                         {t('wheel.look.soundsRestore')}

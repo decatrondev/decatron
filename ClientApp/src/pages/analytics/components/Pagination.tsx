@@ -41,7 +41,7 @@ export default function Pagination({
                     <select
                         value={itemsPerPage}
                         onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                        className="px-2 py-1 text-xs bg-ds-surface border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/20"
+                        className="ds-input"
                     >
                         {PAGE_SIZE_OPTIONS.map(size => (
                             <option key={size} value={size}>{size}</option>
@@ -56,7 +56,7 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(1)}
                         disabled={currentPage === 1}
-                        className="px-2 py-1 text-xs rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors text-ds-soft"
+                        className="ds-btn ds-btn--secondary ds-btn--sm"
                     >
                         {t('pagination.first', 'Primera')}
                     </button>
@@ -82,7 +82,7 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(totalPages)}
                         disabled={currentPage === totalPages}
-                        className="px-2 py-1 text-xs rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors text-ds-soft"
+                        className="ds-btn ds-btn--secondary ds-btn--sm"
                     >
                         {t('pagination.last', 'Última')}
                     </button>

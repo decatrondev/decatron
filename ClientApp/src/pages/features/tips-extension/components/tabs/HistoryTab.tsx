@@ -44,7 +44,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                     <select
                         value={statsPeriod}
                         onChange={e => setStatsPeriod(e.target.value)}
-                        className="px-3 py-1 text-sm border border-ds-border rounded-lg bg-ds-surface"
+                        className="ds-input"
                     >
                         <option value="today">{t('tipsTabs.periodToday')}</option>
                         <option value="week">{t('tipsTabs.periodWeek')}</option>

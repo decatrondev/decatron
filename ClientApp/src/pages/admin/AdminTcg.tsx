@@ -90,7 +90,7 @@ export default function AdminTcg() {
                 <button
                     onClick={load}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-ds-bg border border-ds-border hover:border-ds-accent text-ds-text px-4 py-2 rounded-lg transition-colors"
+                    className="ds-btn ds-btn--secondary"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                     Actualizar

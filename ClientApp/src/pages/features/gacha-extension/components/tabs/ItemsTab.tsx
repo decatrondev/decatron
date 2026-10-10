@@ -115,7 +115,7 @@ export const ItemsTab: React.FC = () => {
                 <h2 className="text-xl font-black text-ds-text flex items-center gap-2">
                     <Package className="w-5 h-5" /> Items ({items.length})
                 </h2>
-                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors">
+                <button onClick={openCreate} className="ds-btn ds-btn--primary">
                     <Plus className="w-4 h-4" /> Agregar Item
                 </button>
             </div>
@@ -254,7 +254,7 @@ export const ItemsTab: React.FC = () => {
                                             <img src={form.image} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-ds-border" />
                                             <button
                                                 onClick={() => setForm({ ...form, image: '' })}
-                                                className="absolute -top-2 -right-2 w-5 h-5 bg-ds-danger-solid text-ds-on-accent rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                                                className="ds-btn ds-btn--danger absolute w-5"
                                             >
                                                 <X className="w-3 h-3" />
                                             </button>
@@ -267,7 +267,7 @@ export const ItemsTab: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowMediaSelector(true)}
-                                        className="flex items-center gap-2 px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm font-bold text-ds-soft hover:border-ds-accent transition"
+                                        className="ds-btn ds-btn--secondary"
                                     >
                                         <ImagePlus className="w-4 h-4" />
                                         {form.image ? 'Cambiar' : 'Seleccionar'}
@@ -350,7 +350,7 @@ export const ItemsTab: React.FC = () => {
                             <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">
                                 Cancelar
                             </button>
-                            <button onClick={handleSave} disabled={saving || !form.name.trim()} className="flex-1 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                            <button onClick={handleSave} disabled={saving || !form.name.trim()} className="ds-btn ds-btn--primary flex-1">
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
                         </div>

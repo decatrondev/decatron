@@ -106,7 +106,7 @@ export default function GameOverlayPromosAdmin() {
                 <h2 className={h2}>Frecuencia</h2>
                 <div className="flex flex-wrap items-end gap-3">
                     <div className="w-48"><label className={label}>Cada cuántos segundos</label><input type="number" min={30} max={1800} className={input} value={everySeconds} onChange={e => setEverySeconds(Number(e.target.value))} /></div>
-                    <button onClick={saveSettings} disabled={saving} className="px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-semibold flex items-center gap-2"><Save className="w-4 h-4" />Guardar</button>
+                    <button onClick={saveSettings} disabled={saving} className="ds-btn ds-btn--primary"><Save className="w-4 h-4" />Guardar</button>
                     <span className={muted}>Se aplica a todos los canales. Cada anuncio tiene su propia duración. El overlay lo relee en menos de un minuto.</span>
                 </div>
             </div>
@@ -114,7 +114,7 @@ export default function GameOverlayPromosAdmin() {
             <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className={h2 + ' mb-0'}>Catálogo ({promos.length})</h2>
-                    <button onClick={() => setEditing({ ...EMPTY, sortOrder: promos.length })} className="px-3 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Nuevo anuncio</button>
+                    <button onClick={() => setEditing({ ...EMPTY, sortOrder: promos.length })} className="ds-btn ds-btn--primary"><Plus className="w-4 h-4" />Nuevo anuncio</button>
                 </div>
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : promos.length === 0 ? <p className={muted}>Sin anuncios: el overlay usa el mensaje de fábrica.</p> : (
                     <div className="space-y-2">
@@ -168,7 +168,7 @@ export default function GameOverlayPromosAdmin() {
                             </div>
                             <div className="flex items-center gap-3 pt-2">
                                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.isEnabled} onChange={e => setEditing({ ...editing, isEnabled: e.target.checked })} />Activo</label>
-                                <button onClick={savePromo} disabled={saving || !editing.lineEs.trim()} className="ml-auto px-4 py-2 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-semibold flex items-center gap-2">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar</button>
+                                <button onClick={savePromo} disabled={saving || !editing.lineEs.trim()} className="ds-btn ds-btn--primary ml-auto">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Guardar</button>
                                 <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg bg-ds-raised text-sm">Cancelar</button>
                             </div>
                         </div>

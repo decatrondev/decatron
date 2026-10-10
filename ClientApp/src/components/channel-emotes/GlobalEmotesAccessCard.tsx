@@ -56,7 +56,7 @@ export default function GlobalEmotesAccessCard({ onGranted }: { onGranted?: () =
                     {me.access === 'none' && me.request?.status !== 'pending' && (
                         <>
                             <textarea value={message} maxLength={300} rows={2} onChange={e => setMessage(e.target.value)} placeholder={t('global.card.messagePlaceholder')}
-                                className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-sm text-ds-text" />
+                                className="ds-input" />
                             <button className={`${btn} justify-center`} disabled={busy} onClick={send}>{busy && <Loader2 className="w-4 h-4 animate-spin" />}{t('global.card.request')}</button>
                         </>
                     )}

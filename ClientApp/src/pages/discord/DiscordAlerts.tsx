@@ -144,7 +144,7 @@ export default function DiscordAlerts() {
           <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
           <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
           <p className="text-ds-soft mb-6">Necesitas permisos de control total.</p>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg">Volver</button>
+          <button onClick={() => navigate('/dashboard')} className="ds-btn ds-btn--primary ds-btn--lg">Volver</button>
         </div>
       </div>
     );
@@ -166,7 +166,7 @@ export default function DiscordAlerts() {
           </div>
           {linkedGuilds.length > 1 && (
             <select value={selectedGuild?.guildId || ''} onChange={(e) => handleSelectGuild(e.target.value)}
-              className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-medium text-ds-text [&>option]:bg-ds-surface">
+              className="ds-input">
               {linkedGuilds.map(g => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
             </select>
           )}
@@ -195,7 +195,7 @@ export default function DiscordAlerts() {
                 <p className="text-sm text-ds-soft">{alerts.length} alerta{alerts.length !== 1 ? 's' : ''} configurada{alerts.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
-            <button onClick={() => setShowAddAlert(true)} className="flex items-center gap-2 px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-bold rounded-lg transition-colors"><Plus className="w-4 h-4" /> Agregar</button>
+            <button onClick={() => setShowAddAlert(true)} className="ds-btn ds-btn--primary ds-btn--sm"><Plus className="w-4 h-4" /> Agregar</button>
           </div>
 
           {loadingAlerts ? <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" /></div> : alerts.length === 0 ? (
@@ -281,7 +281,7 @@ export default function DiscordAlerts() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ds-soft" />
               <input type="text" value={searchQuery} onChange={(e) => searchChannel(e.target.value)} placeholder="Buscar canal..."
-                className="w-full pl-9 pr-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent placeholder-ds-soft" />
+                className="ds-input w-full pl-9 pr-4" />
               {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-ds-accent-text" />}
             </div>
             {searchResult && (

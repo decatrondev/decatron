@@ -214,12 +214,12 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Buscar bot"
-                                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input w-full pl-9 pr-3"
                                 />
                             </div>
                             <button
                                 onClick={() => setAdding(a => !a)}
-                                className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-semibold text-sm"
+                                className="ds-btn ds-btn--primary"
                             >
                                 <Plus className="w-4 h-4" />
                                 Agregar bot
@@ -397,7 +397,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
                 <select
                     value={category}
                     onChange={e => setCategory(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
+                    className="ds-input"
                 >
                     {categories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}
                 </select>
@@ -405,7 +405,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
             <button
                 onClick={submit}
                 disabled={saving || !username.trim()}
-                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg font-semibold text-sm"
+                className="ds-btn ds-btn--primary"
             >
                 {saving ? 'Agregando…' : 'Agregar'}
             </button>
@@ -461,7 +461,7 @@ function CatalogEditor({ bots, onChanged, onError }: {
                 </p>
                 <button
                     onClick={() => startEdit(null)}
-                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-semibold text-sm whitespace-nowrap"
+                    className="ds-btn ds-btn--primary whitespace-nowrap"
                 >
                     <Plus className="w-4 h-4" />
                     Agregar al catálogo
@@ -474,7 +474,7 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         <select
                             value={form.platform}
                             onChange={e => setForm({ ...form, platform: e.target.value as BotPlatform })}
-                            className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
+                            className="ds-input"
                         >
                             {(Object.keys(PLATFORM_LABELS) as BotPlatform[]).map(p => <option key={p} value={p}>{PLATFORM_LABELS[p]}</option>)}
                         </select>
@@ -495,7 +495,7 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         <select
                             value={form.category}
                             onChange={e => setForm({ ...form, category: e.target.value })}
-                            className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
+                            className="ds-input"
                         >
                             {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                         </select>
@@ -508,7 +508,7 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         className="w-full px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
                     />
                     <div className="flex gap-2">
-                        <button onClick={save} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-semibold text-sm">Guardar</button>
+                        <button onClick={save} className="ds-btn ds-btn--primary">Guardar</button>
                         <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg border border-ds-border text-ds-text font-semibold text-sm">Cancelar</button>
                     </div>
                 </div>

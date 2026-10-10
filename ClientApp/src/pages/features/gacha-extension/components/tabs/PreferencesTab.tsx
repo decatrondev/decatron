@@ -119,10 +119,10 @@ export const PreferencesTab: React.FC = () => {
                     <Sparkles className="w-5 h-5" /> Preferencias ({preferences.length})
                 </h2>
                 <div className="flex gap-2">
-                    <button onClick={() => openCreate('global')} disabled={items.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                    <button onClick={() => openCreate('global')} disabled={items.length === 0} className="ds-btn ds-btn--primary">
                         <Globe className="w-4 h-4" /> Preferencia Global
                     </button>
-                    <button onClick={() => openCreate('individual')} disabled={items.length === 0 || participants.length === 0} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                    <button onClick={() => openCreate('individual')} disabled={items.length === 0 || participants.length === 0} className="ds-btn ds-btn--primary">
                         <User className="w-4 h-4" /> Preferencia Individual
                     </button>
                 </div>
@@ -253,7 +253,7 @@ export const PreferencesTab: React.FC = () => {
                         </div>
                         <div className="flex gap-2 pt-2">
                             <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 border border-ds-border rounded-lg font-bold text-ds-soft hover:bg-ds-surface transition-colors">Cancelar</button>
-                            <button onClick={handleSave} disabled={saving || !form.itemId} className="flex-1 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold rounded-lg transition-colors">
+                            <button onClick={handleSave} disabled={saving || !form.itemId} className="ds-btn ds-btn--primary flex-1">
                                 {saving ? 'Guardando...' : 'Guardar'}
                             </button>
                         </div>

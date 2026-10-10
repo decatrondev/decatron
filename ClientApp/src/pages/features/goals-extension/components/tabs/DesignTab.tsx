@@ -203,7 +203,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.progressBar.backgroundColor}
                                     onChange={(e) => onUpdateDesignProgressBar({ backgroundColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input flex-1"
                                 />
                             </div>
                         </div>
@@ -222,7 +222,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.progressBar.fillColor}
                                     onChange={(e) => onUpdateDesignProgressBar({ fillColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input flex-1"
                                 />
                             </div>
                         </div>
@@ -260,7 +260,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                             type="text"
                                             value={design.progressBar.gradientFrom || '#667eea'}
                                             onChange={(e) => onUpdateDesignProgressBar({ gradientFrom: e.target.value })}
-                                            className="flex-1 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
+                                            className="ds-input flex-1"
                                         />
                                     </div>
                                 </div>
@@ -277,7 +277,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                             type="text"
                                             value={design.progressBar.gradientTo || '#764ba2'}
                                             onChange={(e) => onUpdateDesignProgressBar({ gradientTo: e.target.value })}
-                                            className="flex-1 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
+                                            className="ds-input flex-1"
                                         />
                                     </div>
                                 </div>
@@ -334,7 +334,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                         <select
                             value={design.text.fontFamily}
                             onChange={(e) => onUpdateDesignText({ fontFamily: e.target.value })}
-                            className="w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                            className="ds-input w-full"
                         >
                             <option value="Inter, sans-serif">Inter</option>
                             <option value="Roboto, sans-serif">Roboto</option>
@@ -375,7 +375,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.text.goalNameColor}
                                     onChange={(e) => onUpdateDesignText({ goalNameColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input flex-1"
                                 />
                             </div>
                         </div>
@@ -411,7 +411,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.text.valuesColor}
                                     onChange={(e) => onUpdateDesignText({ valuesColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input flex-1"
                                 />
                             </div>
                         </div>
@@ -444,7 +444,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                     type="text"
                                     value={design.container.backgroundColor}
                                     onChange={(e) => onUpdateDesignContainer({ backgroundColor: e.target.value })}
-                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
+                                    className="ds-input flex-1"
                                 />
                             </div>
                         </div>

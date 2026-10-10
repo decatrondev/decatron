@@ -409,7 +409,7 @@ export default function SpeakChat() {
                     <button
                         onClick={save}
                         disabled={saving}
-                        className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold"
+                        className="ds-btn ds-btn--primary ds-btn--lg"
                     >
                         <Save className="w-5 h-5" />
                         {saving ? 'Guardando...' : 'Guardar'}
@@ -472,7 +472,7 @@ export default function SpeakChat() {
                             <button
                                 onClick={copyOverlayUrl}
                                 disabled={!overlayUrl}
-                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg transition-all font-bold text-sm flex items-center gap-2 whitespace-nowrap"
+                                className="ds-btn ds-btn--primary whitespace-nowrap"
                             >
                                 {copiedUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 {copiedUrl ? '¡Copiado!' : 'Copiar'}
@@ -1178,7 +1178,7 @@ export default function SpeakChat() {
                         <button
                             onClick={sendTest}
                             disabled={testing || !testMessage.trim()}
-                            className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-all flex items-center gap-2 font-bold"
+                            className="ds-btn ds-btn--primary ds-btn--lg"
                         >
                             <TestTube2 className="w-5 h-5" />
                             {testing ? 'Enviando...' : 'Enviar al overlay'}

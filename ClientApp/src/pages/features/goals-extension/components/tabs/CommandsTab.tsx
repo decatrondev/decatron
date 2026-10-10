@@ -184,11 +184,11 @@ export const CommandsTab: React.FC<CommandsTabProps> = ({
                                     onChange={(e) => setNewAlias(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleAddAlias()}
                                     placeholder="Agregar alias (ej: !goal)"
-                                    className="flex-1 px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft"
+                                    className="ds-input flex-1"
                                 />
                                 <button
                                     onClick={handleAddAlias}
-                                    className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-colors"
+                                    className="ds-btn ds-btn--primary"
                                 >
                                     <Plus className="w-4 h-4" />
                                 </button>
@@ -225,7 +225,7 @@ export const CommandsTab: React.FC<CommandsTabProps> = ({
                                 type="text"
                                 value={commands.meta.response}
                                 onChange={(e) => updateMeta({ response: e.target.value })}
-                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text"
+                                className="ds-input w-full"
                             />
                             <p className="text-xs text-ds-soft mt-1">
                                 Variables: {'{goalName}'}, {'{current}'}, {'{target}'}, {'{percentage}'}

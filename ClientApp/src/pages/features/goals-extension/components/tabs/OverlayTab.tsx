@@ -358,7 +358,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                             type="number"
                             value={canvasWidth}
                             onChange={(e) => onSetCanvasWidth(Number(e.target.value) || 1000)}
-                            className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm text-center"
+                            className="ds-input w-20 text-center"
                             min="400"
                             max="3840"
                         />
@@ -368,7 +368,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                             type="number"
                             value={canvasHeight}
                             onChange={(e) => onSetCanvasHeight(Number(e.target.value) || 300)}
-                            className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm text-center"
+                            className="ds-input w-20 text-center"
                             min="200"
                             max="2160"
                         />
@@ -389,7 +389,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                         </button>
                         <button
                             onClick={resetAllPositions}
-                            className="flex items-center gap-2 px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text border border-ds-border rounded-lg text-xs font-semibold transition-colors"
+                            className="ds-btn ds-btn--secondary"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Reset
@@ -501,7 +501,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                                                 type="number"
                                                 value={pos.x}
                                                 onChange={(e) => updateGoalPosition(goal.id, { x: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
+                                                className="ds-input w-full"
                                             />
                                         </div>
 
@@ -514,7 +514,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                                                 type="number"
                                                 value={pos.y}
                                                 onChange={(e) => updateGoalPosition(goal.id, { y: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
+                                                className="ds-input w-full"
                                             />
                                         </div>
 
@@ -525,7 +525,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                                                 type="number"
                                                 value={pos.width}
                                                 onChange={(e) => updateGoalPosition(goal.id, { width: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
+                                                className="ds-input w-full"
                                                 min="100"
                                             />
                                         </div>
@@ -537,7 +537,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                                                 type="number"
                                                 value={pos.height}
                                                 onChange={(e) => updateGoalPosition(goal.id, { height: Number(e.target.value) })}
-                                                className="w-full px-2 py-1 border border-ds-border rounded bg-ds-surface text-sm"
+                                                className="ds-input w-full"
                                                 min="40"
                                             />
                                         </div>

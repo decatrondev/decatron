@@ -101,7 +101,7 @@ export const RarityRestrictionsTab: React.FC = () => {
                         <p className="text-sm text-ds-soft">Intervalos de pulls y tiempo por rareza</p>
                     </div>
                 </div>
-                <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all">
+                <button onClick={() => setShowModal(true)} className="ds-btn ds-btn--primary">
                     <Plus className="w-4 h-4" /> Agregar Restriccion
                 </button>
             </div>
@@ -185,7 +185,7 @@ export const RarityRestrictionsTab: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-1">Item (opcional)</label>
-                            <select value={form.itemId} onChange={(e) => setForm({ ...form, itemId: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
+                            <select value={form.itemId} onChange={(e) => setForm({ ...form, itemId: e.target.value })} className="ds-input w-full">
                                 <option value="">Todos los items</option>
                                 {items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
                             </select>
@@ -193,7 +193,7 @@ export const RarityRestrictionsTab: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-1">Participante (opcional - vacio = global)</label>
-                            <select value={form.participantId} onChange={(e) => setForm({ ...form, participantId: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
+                            <select value={form.participantId} onChange={(e) => setForm({ ...form, participantId: e.target.value })} className="ds-input w-full">
                                 <option value="">Global</option>
                                 {participants.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
@@ -201,7 +201,7 @@ export const RarityRestrictionsTab: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-bold text-ds-soft mb-1">Rareza</label>
-                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value as RarityType })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
+                            <select value={form.rarity} onChange={(e) => setForm({ ...form, rarity: e.target.value as RarityType })} className="ds-input w-full">
                                 {RARITY_ORDER.map((r) => <option key={r} value={r}>{RARITY_CONFIG[r].label} {getRarityStars(r)}</option>)}
                             </select>
                         </div>
@@ -209,18 +209,18 @@ export const RarityRestrictionsTab: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-ds-soft mb-1">Intervalo de Pulls</label>
-                                <input type="number" min={1} value={form.pullInterval} onChange={(e) => setForm({ ...form, pullInterval: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                                <input type="number" min={1} value={form.pullInterval} onChange={(e) => setForm({ ...form, pullInterval: parseInt(e.target.value) || 1 })} className="ds-input w-full" />
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-ds-soft mb-1">Intervalo de Tiempo</label>
-                                <input type="number" min={1} value={form.timeInterval} onChange={(e) => setForm({ ...form, timeInterval: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                                <input type="number" min={1} value={form.timeInterval} onChange={(e) => setForm({ ...form, timeInterval: parseInt(e.target.value) || 1 })} className="ds-input w-full" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-ds-soft mb-1">Unidad de Tiempo</label>
-                                <select value={form.timeUnit} onChange={(e) => setForm({ ...form, timeUnit: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
+                                <select value={form.timeUnit} onChange={(e) => setForm({ ...form, timeUnit: e.target.value })} className="ds-input w-full">
                                     <option value="minutes">Minutos</option>
                                     <option value="hours">Horas</option>
                                     <option value="days">Dias</option>
@@ -239,16 +239,16 @@ export const RarityRestrictionsTab: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-bold text-ds-soft mb-1">Pulls (coins)</label>
-                                    <input type="number" min={0} value={form.coinPullInterval} onChange={(e) => setForm({ ...form, coinPullInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                                    <input type="number" min={0} value={form.coinPullInterval} onChange={(e) => setForm({ ...form, coinPullInterval: e.target.value })} placeholder="Usar donacion" className="ds-input w-full" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-ds-soft mb-1">Tiempo (coins)</label>
-                                    <input type="number" min={0} value={form.coinTimeInterval} onChange={(e) => setForm({ ...form, coinTimeInterval: e.target.value })} placeholder="Usar donacion" className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text" />
+                                    <input type="number" min={0} value={form.coinTimeInterval} onChange={(e) => setForm({ ...form, coinTimeInterval: e.target.value })} placeholder="Usar donacion" className="ds-input w-full" />
                                 </div>
                             </div>
                             <div className="mt-2">
                                 <label className="block text-sm font-bold text-ds-soft mb-1">Unidad tiempo (coins)</label>
-                                <select value={form.coinTimeUnit} onChange={(e) => setForm({ ...form, coinTimeUnit: e.target.value })} className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text">
+                                <select value={form.coinTimeUnit} onChange={(e) => setForm({ ...form, coinTimeUnit: e.target.value })} className="ds-input w-full">
                                     <option value="">Usar misma que donacion</option>
                                     <option value="minutes">Minutos</option>
                                     <option value="hours">Horas</option>
@@ -257,7 +257,7 @@ export const RarityRestrictionsTab: React.FC = () => {
                             </div>
                         </div>
 
-                        <button onClick={handleCreate} className="w-full px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold transition-all">
+                        <button onClick={handleCreate} className="ds-btn ds-btn--primary ds-btn--lg w-full">
                             Crear Restriccion
                         </button>
                     </div>

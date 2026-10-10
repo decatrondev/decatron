@@ -203,13 +203,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                 const newTime = convertUnitToSeconds(Number(e.target.value) || 0, currentTimeUnit);
                                                 onEventsConfigChange({ [currentEventKey]: { ...currentEvent, time: newTime } } as any);
                                             }}
-                                            className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                            className="ds-input w-24"
                                             min="0"
                                         />
                                         <select
                                             value={currentTimeUnit}
                                             onChange={(e) => onEventTimeUnitsChange({ ...eventTimeUnits, [currentUnitKey]: e.target.value as TimeUnit })}
-                                            className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                            className="ds-input"
                                         >
                                             {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                 <option key={k} value={k}>{label}</option>
@@ -227,7 +227,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                         const val = Math.max(1, Number(e.target.value));
                                                         onEventsConfigChange({ [currentEventKey]: { ...currentEvent, perBits: val } } as any);
                                                     }}
-                                                    className="w-16 px-2 py-1 text-center border border-ds-accent rounded bg-ds-surface text-sm font-bold text-ds-text"
+                                                    className="ds-input w-16 text-center"
                                                     min="1"
                                                 />
                                                 <span className="text-xs font-bold text-ds-accent-text">bits</span>
@@ -246,13 +246,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                         const val = Math.max(0.01, Number(e.target.value));
                                                         onEventsConfigChange({ [currentEventKey]: { ...currentEvent, perCurrency: val } } as any);
                                                     }}
-                                                    className="w-16 px-2 py-1 text-center border border-ds-ok/40 rounded bg-ds-surface text-sm font-bold text-ds-text"
+                                                    className="ds-input w-16 text-center"
                                                     min="0.01"
                                                 />
                                                 <select
                                                     value={currentEvent.currency || 'USD'}
                                                     onChange={(e) => onEventsConfigChange({ [currentEventKey]: { ...currentEvent, currency: e.target.value } } as any)}
-                                                    className="px-2 py-1 border border-ds-ok/40 rounded bg-ds-surface text-xs font-bold text-ds-text"
+                                                    className="ds-input"
                                                 >
                                                     <option value="USD">USD</option>
                                                     <option value="EUR">EUR</option>
@@ -288,13 +288,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                     const newTime = convertUnitToSeconds(Number(e.target.value) || 0, eventTimeUnits.raidPerParticipant);
                                                     onEventsConfigChange({ [currentEventKey]: { ...currentEvent, timePerParticipant: newTime } } as any);
                                                 }}
-                                                className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                                className="ds-input w-24"
                                                 min="0"
                                             />
                                             <select
                                                 value={eventTimeUnits.raidPerParticipant}
                                                 onChange={(e) => onEventTimeUnitsChange({ ...eventTimeUnits, raidPerParticipant: e.target.value as TimeUnit })}
-                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                                className="ds-input"
                                             >
                                                 {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                     <option key={k} value={k}>{label}</option>
@@ -318,13 +318,13 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                                     const newTime = convertUnitToSeconds(Number(e.target.value) || 0, eventTimeUnits.followCooldown);
                                                     onEventsConfigChange({ [currentEventKey]: { ...currentEvent, cooldown: newTime } } as any);
                                                 }}
-                                                className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                                className="ds-input w-24"
                                                 min="0"
                                             />
                                             <select
                                                 value={eventTimeUnits.followCooldown}
                                                 onChange={(e) => onEventTimeUnitsChange({ ...eventTimeUnits, followCooldown: e.target.value as TimeUnit })}
-                                                className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text"
+                                                className="ds-input"
                                             >
                                                 {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                     <option key={k} value={k}>{label}</option>

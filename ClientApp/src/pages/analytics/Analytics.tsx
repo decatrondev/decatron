@@ -70,7 +70,7 @@ export default function Analytics() {
                     <div className="relative group">
                         <button
                             onClick={exportCSV}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent text-ds-on-accent rounded-lg hover:bg-ds-accent-hover transition-colors font-semibold text-sm"
+                            className="ds-btn ds-btn--primary"
                         >
                             <Download className="w-4 h-4" />
                             <span className="hidden sm:inline">{t('exportCSV', 'Exportar CSV')}</span>

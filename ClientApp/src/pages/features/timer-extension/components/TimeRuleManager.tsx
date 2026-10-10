@@ -91,7 +91,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                 {!isCreating ? (
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-xs font-bold flex items-center gap-1 transition-colors"
+                        className="ds-btn ds-btn--primary ds-btn--sm"
                     >
                         <Plus className="w-3 h-3" /> Nueva Regla
                     </button>
@@ -139,7 +139,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                         <div className="flex gap-2 mt-1 justify-end">
                             <button
                                 onClick={handleAddRule}
-                                className="px-3 py-1 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded text-xs font-bold"
+                                className="ds-btn ds-btn--primary ds-btn--sm"
                             >
                                 Añadir Regla
                             </button>
@@ -239,7 +239,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                                 type="number"
                                                 value={rule.minAmount}
                                                 onChange={(e) => handleUpdateRule(rule.id, { minAmount: Number(e.target.value) })}
-                                                className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-bg text-sm text-ds-text"
+                                                className="ds-input w-full"
                                             />
                                             <div className="mt-3 space-y-2">
                                                 <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-ds-surface transition-colors">
@@ -297,7 +297,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                                         const seconds = convertUnitToSeconds(val, currentUnit);
                                                         handleUpdateRule(rule.id, { timeAdded: seconds });
                                                     }}
-                                                    className="flex-1 px-3 py-2 border border-ds-border rounded-lg bg-ds-bg text-sm text-ds-text"
+                                                    className="ds-input flex-1"
                                                 />
                                                 <select
                                                     value={currentUnit}
@@ -306,7 +306,7 @@ export const TimeRuleManager: React.FC<TimeRuleManagerProps> = ({
                                                         const seconds = convertUnitToSeconds(displayValue, newUnit);
                                                         handleUpdateRule(rule.id, { timeAdded: seconds });
                                                     }}
-                                                    className="w-24 px-3 py-2 border border-ds-border rounded-lg bg-ds-bg text-sm text-ds-text"
+                                                    className="ds-input w-24"
                                                 >
                                                     {Object.entries(TIME_UNITS).map(([k, { label }]) => (
                                                         <option key={k} value={k}>{label}</option>
