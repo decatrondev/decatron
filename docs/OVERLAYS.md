@@ -20,6 +20,7 @@ Reference for the Decatron overlays: URLs, OBS setup, what each overlay does, it
 - [Shoutout Overlay](#shoutout-overlay)
 - [Giveaway](#giveaway)
 - [Other Overlays](#other-overlays)
+- [Chat Overlay and Emotes](#chat-overlay-and-emotes)
 - [Tournament Overlay and Widget](#tournament-overlay-and-widget)
 - [Real-Time Architecture](#real-time-architecture)
 - [SignalR Events Reference](#signalr-events-reference)
@@ -467,6 +468,18 @@ These overlays are configured from their own dashboard pages; their manuals are 
 | Live match (`/overlay/live`) | State of the match in progress | Design, Overlay |
 | Gacha (`/overlay/gacha`) | Gacha pulls made by viewers | |
 | Tournament (`/overlay/torneo/{token}`) | One participant's data for their stream | See [Tournament Overlay and Widget](#tournament-overlay-and-widget) |
+
+---
+
+## Chat Overlay and Emotes
+
+The chat overlay (`/overlay/chat?channel={login}`, optional `source=twitch|kick`) draws the channel's chat as a list or as bubbles. The manual is in `/dashboard/docs/chat`.
+
+- **Delivery.** `ChatOverlayService` emits `ChatMessage` to the SignalR group `overlay_{login}` only when an overlay registered itself as `chat`. Messages carry parsed fragments (text and emotes), badges and, for Twitch shared chat, the source channel (`source_broadcaster_user_*` from EventSub). Bots flagged "hide from overlay" in the bot list are dropped before emitting.
+- **Configuration.** One JSON document per channel (`GET`/`PUT /api/chat-overlay/config`, section `moderation`), merged over the defaults on load so older documents keep working. `GET /api/chat-overlay/status` reports connected overlays, `POST /api/chat-overlay/test` sends a test message, and `GET /api/chat-overlay/emotes` with `POST /api/chat-overlay/emotes/refresh` expose the emote catalog used by the editor. The overlay itself reads `GET /api/chat-overlay/config/overlay/{channel}`.
+- **Emote catalog.** `EmoteCatalogService` merges layers from lowest to highest priority: Decatron global set, FFZ, BTTV and 7TV globals, then the channel sets (FFZ, BTTV, 7TV) and finally the channel's own emotes. Provider results are cached (globals 6 h, channel sets 10 min, 1 min retry after an error) and the last good answer is served if a provider fails.
+- **Own emotes.** `ChannelEmoteService` and `EmoteImageProcessor` validate uploads (PNG, GIF, WebP or JPEG, up to 2 MB, 8 to 2048 px, up to 150 frames), generate WebP variants at 32, 64 and 128 px tall and store them under `Emotes:AssetsPath` (served at `/uploads/emotes/{userId}/{key}/{scale}.webp`). Upload modes are `owner`, `staff` (default), `approval` and `list`; per-plan caps are 150, 400, 1000 and 3000 active emotes (`EmoteTierLimits`), with at most 100 pending per channel. Management endpoints live under `/api/channel-emotes` (section `moderation`; settings and uploaders need `control_total`).
+- **Public endpoints.** `GET /api/public/emotes/{channel}` lists a channel's active emotes (absolute URLs, CORS-enabled, used by the browser extension), with upload, report and own-emote endpoints for signed-in users; the platform set is served from `/api/public/global-emotes` and managed under `/api/admin/global-emotes` (30-day trash).
 
 ---
 

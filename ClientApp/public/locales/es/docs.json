@@ -62,7 +62,8 @@
     "moderation": "Moderación",
     "translation": "Traducción en vivo",
     "discord": "Discord",
-    "spirits": "Fortnite Spirits"
+    "spirits": "Fortnite Spirits",
+    "chat": "Chat y emotes"
   },
   "layout": {
     "documentation": "Documentación",
@@ -446,6 +447,34 @@
     "spirits-notices": {
       "title": "Avisos y ranking",
       "description": "Spirits nuevos y ranking público"
+    },
+    "chat-overview": {
+      "title": "Chat en pantalla y emotes",
+      "description": "Chat en el stream con emotes de toda la comunidad"
+    },
+    "chat-setup": {
+      "title": "Puesta en marcha",
+      "description": "Overlay en OBS, plataformas y prueba"
+    },
+    "chat-look": {
+      "title": "Apariencia",
+      "description": "Lista, tema, texto y posición"
+    },
+    "chat-bubbles": {
+      "title": "Burbujas",
+      "description": "Mensajes que flotan por la pantalla"
+    },
+    "chat-filters": {
+      "title": "Filtros",
+      "description": "Qué mensajes no salen en pantalla"
+    },
+    "chat-emotes": {
+      "title": "Emotes en el chat",
+      "description": "7TV, BTTV, FFZ y propios"
+    },
+    "chat-own-emotes": {
+      "title": "Emotes propios y globales",
+      "description": "Subir, revisar y publicar"
     }
   },
   "microCommands": {

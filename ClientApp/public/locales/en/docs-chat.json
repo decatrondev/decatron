@@ -1,0 +1,641 @@
+{
+  "overview": {
+    "title": "On-screen chat and emotes",
+    "subtitle": "Show chat on your stream with 7TV, BTTV, FFZ and your community's own emotes",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What it is",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The on-screen chat is an OBS overlay that draws your channel's chat over the stream, with badges and emotes. It can gather Twitch and Kick chat into a single list, or draw each message as a bubble floating across the screen."
+          },
+          {
+            "t": "note",
+            "kind": "success",
+            "x": "Everything is free. The plan only raises how many own emotes your channel can have."
+          }
+        ]
+      },
+      {
+        "id": "piezas",
+        "title": "What is included",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Part",
+              "What it does"
+            ],
+            "rows": [
+              [
+                "On-screen chat",
+                "Message list or bubbles, with theme, text, animations, position and filters."
+              ],
+              [
+                "External emotes",
+                "7TV, BetterTTV and FrankerFaceZ emotes, global and from your channel, show up in the overlay."
+              ],
+              [
+                "Own emotes",
+                "The emotes your community uploads, with optional review and a public page per channel."
+              ],
+              [
+                "Global emotes",
+                "A platform set that shows in the chat of every channel."
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "twitch",
+        "title": "In the real Twitch chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "7TV, BTTV, FFZ and own emotes always show in the stream overlay. In the Twitch chat they are seen by anyone who has the Decatron extension installed, which also adds an emote picker when typing “:”."
+          },
+          {
+            "t": "link",
+            "to": "translation-extension"
+          }
+        ]
+      },
+      {
+        "id": "siguiente",
+        "title": "Next step",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you have an account, the step-by-step setup is in the dashboard help center:"
+          },
+          {
+            "t": "link",
+            "to": "chat-setup"
+          }
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "title": "On-screen chat: getting started",
+    "subtitle": "Add the overlay to OBS, choose the platforms and test it",
+    "sections": [
+      {
+        "id": "requisitos",
+        "title": "Before you start",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "The Decatron bot must be active in your channel: the overlay only shows chat if the bot receives it.",
+              "Permissions: viewing and changing the configuration needs the Moderation level or higher in the dashboard."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obs",
+        "title": "Add it to OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Open Overlays → Chat en pantalla (`/overlays/chat`). The Guía tab shows the overlay link, in the format `/overlay/chat?channel=your_channel`."
+          },
+          {
+            "t": "ol",
+            "items": [
+              "In OBS, add a “Navegador” (Browser) source and paste the link.",
+              "Set the width to 1920 and the height to 1080, the same as your scene.",
+              "Delete the custom CSS that OBS adds by default, so the background stays transparent.",
+              "Use “Simular chat” on the page to see how it looks and adjust position, theme and emotes."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "plataformas",
+        "title": "Platforms and links",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Link",
+              "What it shows"
+            ],
+            "rows": [
+              [
+                "All (recommended)",
+                "Twitch and Kick together in a single list. It is the base link, with no parameters."
+              ],
+              [
+                "Twitch only",
+                "The same link with `&source=twitch`."
+              ],
+              [
+                "Kick only",
+                "The same link with `&source=kick`."
+              ]
+            ]
+          },
+          {
+            "t": "note",
+            "kind": "warning",
+            "x": "Do not put the “All” link next to a single-platform one in the same scene: every message would appear twice. Per-platform links are for separating scenes (one for Twitch and one for Kick). The Guía warns you if it detects two sources that overlap."
+          },
+          {
+            "t": "p",
+            "x": "In the Fuentes tab you choose which linked channels the chat comes from. If you link your other channel (Twitch or Kick) in Settings, the same link starts showing that chat too, without touching OBS. YouTube appears as “Próximamente”."
+          }
+        ]
+      },
+      {
+        "id": "compartido",
+        "title": "Twitch shared chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "If you do shared chat, messages from the other streamers in the session reach the overlay. In Fuentes you choose to show all channels of the session or only yours, turn on a tag with the origin channel and hide specific channels."
+          },
+          {
+            "t": "note",
+            "kind": "info",
+            "x": "On Kick you see new messages, but deleted messages or banned users are not removed from the overlay on their own."
+          }
+        ]
+      },
+      {
+        "id": "probar",
+        "title": "Test in OBS",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The “Enviar mensaje de prueba” button sends a message to the overlay open in OBS, through the same path as a real one. If it says no overlay is connected, check that the source is in OBS and visible. The Guía also tells you whether each link is “Conectado en OBS”."
+          }
+        ]
+      }
+    ]
+  },
+  "look": {
+    "title": "On-screen chat: appearance",
+    "subtitle": "Message list, theme, text, animations and position",
+    "sections": [
+      {
+        "id": "guardar",
+        "title": "How it is edited",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The page has a live preview with a sample chat and your real emotes: use “Simular chat” to see messages arriving, “Un mensaje” for a single one, “Pausar” and “Limpiar”. Changes do not apply to the stream until you press “Guardar”, and the page warns you if you try to leave with unsaved changes."
+          }
+        ]
+      },
+      {
+        "id": "modo",
+        "title": "General: mode and list",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Setting",
+              "What it does",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Mode",
+                "Message list or bubbles.",
+                "List"
+              ],
+              [
+                "Maximum messages on screen",
+                "When a new one enters, the oldest one leaves.",
+                "14"
+              ],
+              [
+                "Time on screen",
+                "Seconds each message stays; 0 means they stay until others arrive.",
+                "0"
+              ],
+              [
+                "Direction",
+                "New ones enter at the bottom or the top.",
+                "Bottom"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mensajes",
+        "title": "Messages",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "What to show: badges, message time, replies (who it replies to) and platform icon (Twitch or Kick). Badges and replies start on.",
+              "Name: each person's color or a fixed color, and the separator between name and message (`:` by default).",
+              "Highlighted messages: those sent with channel points “Resaltar mi mensaje”, with their own background color."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tema",
+        "title": "Theme and text",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Five starting designs: Clásico, Compacto, Con fondo, Minimal and Estilo Twitch. Each one changes the theme and text and leaves the rest as it was; then you adjust whatever you want."
+          },
+          {
+            "t": "ul",
+            "items": [
+              "Theme: background, corners and padding of the chat box, and of each message, spacing between messages and border.",
+              "Text: font, weight, size, line height and color, with optional shadow and outline."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "animaciones",
+        "title": "Animations",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The entrance and exit of each message can be Deslizar, Aparecer, Rebotar or Ninguna, with an adjustable duration (350 ms by default)."
+          }
+        ]
+      },
+      {
+        "id": "posicion",
+        "title": "Position",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the Editor tab you drag the chat box over a 1920×1080 canvas, or adjust it with width and height. There are shortcuts for the four corners."
+          }
+        ]
+      }
+    ]
+  },
+  "bubbles": {
+    "title": "On-screen chat: bubbles",
+    "subtitle": "Each message as a bubble that moves across the screen",
+    "sections": [
+      {
+        "id": "activar",
+        "title": "Turn on bubble mode",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In General choose the “Burbujas” mode. If you are in list mode, the Burbujas tab reminds you with the “Activar burbujas” button. In this mode the background and shape of each message come from the Burbujas tab; text, badges and emotes follow the Messages, Text and Emotes options."
+          }
+        ]
+      },
+      {
+        "id": "movimiento",
+        "title": "Movement",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Choose how each bubble moves from when it appears: Flotar hacia arriba (default), Derivar, Rebotar, Caer, Quedarse quieta or Aleatorio. You adjust the speed and the time on screen (9 seconds by default)."
+          }
+        ]
+      },
+      {
+        "id": "cantidad",
+        "title": "Amount",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Maximum bubbles at once: 12 by default.",
+              "If already full: the oldest leaves and the new one enters (default), or the new message is discarded.",
+              "Avoid overlapping: when appearing it looks for a free spot; if the screen is full, overlapping is accepted rather than losing a message."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "aspecto",
+        "title": "Look",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Shape: round, comic or rectangular; background, maximum width and font size.",
+              "Border in the writer's color, to tell whose bubble it is (on by default).",
+              "Size by length: long messages look a little bigger.",
+              "Emote-only messages look large and without a balloon; their size is adjustable (2.2 by default, 1 is the same as the others)."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "zonas",
+        "title": "Zones",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "With the zone editor you choose where bubbles may appear and where never, for example your camera or the game HUD. Green zones are allowed and red zones are forbidden; you drag them and resize them from the corners. With no allowed zones, bubbles appear on the whole screen except in forbidden ones."
+          }
+        ]
+      }
+    ]
+  },
+  "filters": {
+    "title": "On-screen chat: filters",
+    "subtitle": "Which messages do not show in the overlay",
+    "sections": [
+      {
+        "id": "general",
+        "title": "What they are for",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Overlay filters only hide messages on screen. They do not sanction anyone or delete anything from chat; moderation is for that."
+          }
+        ]
+      },
+      {
+        "id": "ocultar",
+        "title": "What is not shown",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Filter",
+              "What it hides",
+              "Default"
+            ],
+            "rows": [
+              [
+                "Commands",
+                "Messages that start with “!”.",
+                "On"
+              ],
+              [
+                "Bots",
+                "The bots on your bot list marked as “ocultar del overlay”.",
+                "On"
+              ]
+            ]
+          },
+          {
+            "t": "link",
+            "to": "moderation-bots"
+          }
+        ]
+      },
+      {
+        "id": "quien",
+        "title": "Who is shown",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each level includes those above: Everyone, Subscribers, VIPs and moderators, VIPs and moderators, or Moderators only."
+          }
+        ]
+      },
+      {
+        "id": "listas",
+        "title": "Hidden users and words",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Hidden users: their messages do not show in the overlay.",
+              "Hidden words: any message containing any of these words or phrases is hidden."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "emotes": {
+    "title": "Emotes in chat",
+    "subtitle": "7TV, BetterTTV, FrankerFaceZ, own and global emotes in your overlay",
+    "sections": [
+      {
+        "id": "fuentes",
+        "title": "Where they come from",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "In the overlay Emotes tab you turn each source on or off. They are requested with your channel's set and each service's globals."
+          },
+          {
+            "t": "table",
+            "head": [
+              "Source",
+              "What it is"
+            ],
+            "rows": [
+              [
+                "7TV, BTTV and FFZ",
+                "The channel emotes and each service's globals. All on by default."
+              ],
+              [
+                "Decatron own emotes",
+                "Those uploaded by your channel's community."
+              ],
+              [
+                "Decatron global emotes",
+                "The platform set, visible in every channel."
+              ],
+              [
+                "Guest channels",
+                "In a shared chat, it also uses the emotes of the writer's channel."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Native Twitch and Kick emotes always show. The services' emotes are cached for a few minutes (channel ones 10 minutes, globals 6 hours); “Actualizar ahora” requests them again."
+          }
+        ]
+      },
+      {
+        "id": "prioridad",
+        "title": "What happens if two share a name",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "The most specific one wins: channel emotes beat global ones, and among services the order is Decatron own emotes, then 7TV, then BTTV and then FFZ. The Decatron global set has the lowest priority: if the name already exists in your channel or in 7TV, BTTV or FFZ, that one wins."
+          }
+        ]
+      },
+      {
+        "id": "tamano",
+        "title": "Size and hidden emotes",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Emote height: an emote twice as tall as the text looks comfortable at 1080p.",
+              "Hidden emotes: tap an emote to hide it; in the overlay its name will show as text. You can search them by name."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "twitch",
+        "title": "In the Twitch chat",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Emotes from these sources show in the real Twitch chat only for those who have the Decatron extension."
+          },
+          {
+            "t": "link",
+            "to": "translation-extension"
+          }
+        ]
+      }
+    ]
+  },
+  "own-emotes": {
+    "title": "Own and global emotes",
+    "subtitle": "Upload, review and publish your community's emotes",
+    "sections": [
+      {
+        "id": "que-es",
+        "title": "What they are",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "They are your channel's emotes, uploaded by your community. They are managed in Funciones → Emotes (`/features/emotes`), with four tabs: Mis emotes, Subir, Revisión and Configuración. They show in the chat overlay and, with the extension, in the Twitch chat."
+          },
+          {
+            "t": "p",
+            "x": "Opening the panel needs the Moderation level or higher. Changing the settings and the list of allowed people needs Full control."
+          }
+        ]
+      },
+      {
+        "id": "subir",
+        "title": "Upload an emote",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "PNG, GIF, WebP or JPEG image up to 2 MB, between 8×8 and 2048×2048 pixels; animations up to 150 frames.",
+              "Name: what is typed in chat. It starts with a letter and has 2 to 25 letters, numbers or underscores, not repeated in the channel.",
+              "“Se dibuja encima del anterior” is for emotes that sit on top of another (hats, effects).",
+              "Decatron generates three sizes (32, 64 and 128 pixels tall) and shows them small, medium and large before uploading.",
+              "There is an hourly upload limit: 10 for a viewer and 60 for the streamer and their moderators."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "modos",
+        "title": "Who can upload",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Mode",
+              "Who uploads"
+            ],
+            "rows": [
+              [
+                "Only me",
+                "You and anyone with Full control."
+              ],
+              [
+                "Me and my moderators",
+                "Plus moderators with access to your dashboard. It is the starting mode."
+              ],
+              [
+                "Anyone, with review",
+                "Any viewer with an account; it stays pending until you approve it. Those on your allowed list are published directly."
+              ],
+              [
+                "Only my list",
+                "You, your moderators and the people on your allowed list."
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "You can change it whenever you want; what is already uploaded is not touched. Each person can have up to 5 emotes waiting for review at a time (adjustable from 1 to 50) and a channel accepts up to 100 pending."
+          }
+        ]
+      },
+      {
+        "id": "revision",
+        "title": "Review and reports",
+        "blocks": [
+          {
+            "t": "ul",
+            "items": [
+              "Review: each pending emote is shown on dark and light backgrounds, as in a chat. You can approve or reject it with an optional reason that the uploader sees, one by one or several at once.",
+              "Reported: the emotes viewers reported from the public page; you can dismiss the reports, hide the emote or delete it.",
+              "History of what was reviewed, which can be cleared.",
+              "Emote states: Pendiente, Activo, Oculto, Rechazado and Retirado."
+            ]
+          }
+        ]
+      },
+      {
+        "id": "limites",
+        "title": "How many emotes your channel can have",
+        "blocks": [
+          {
+            "t": "table",
+            "head": [
+              "Plan",
+              "Active emotes"
+            ],
+            "rows": [
+              [
+                "Free",
+                "150"
+              ],
+              [
+                "Supporter",
+                "400"
+              ],
+              [
+                "Premium",
+                "1,000"
+              ],
+              [
+                "Fundador",
+                "3,000"
+              ]
+            ]
+          },
+          {
+            "t": "p",
+            "x": "Pending ones do not use a slot until they are approved. If you drop to a lower plan nothing is deleted: what exists stays and you simply cannot add above the cap."
+          }
+        ]
+      },
+      {
+        "id": "publica",
+        "title": "The channel's public page",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "Each channel has a public page at `/emotes/your_channel` where the community sees the emotes, searches, copies a name with one click and reports one. Depending on the mode, anyone who signs in can upload their emote and see the status of their own. Share it in your chat or your description."
+          }
+        ]
+      },
+      {
+        "id": "globales",
+        "title": "Decatron global emotes",
+        "blocks": [
+          {
+            "t": "p",
+            "x": "It is a platform set that appears in the chat of every channel that has it turned on; it is seen at `/emotes/global`. It is managed by Decatron's owner and the Twitch people they authorize; anyone who wants to contribute can request access. A deleted emote is kept for 30 days in a trash before being removed entirely."
+          }
+        ]
+      }
+    ]
+  }
+}

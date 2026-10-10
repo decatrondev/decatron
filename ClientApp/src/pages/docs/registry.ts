@@ -13,7 +13,7 @@ import {
 // `node .dev/tools/docs_registry_check.mjs` avisa si algo de esto quedó a medias.
 
 export type DocScope = 'public' | 'private';
-export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'overlays' | 'settings';
+export type DocGroup = 'start' | 'commands' | 'reference' | 'modules' | 'features' | 'song-request' | 'wheel' | 'tournament' | 'moderation' | 'translation' | 'discord' | 'spirits' | 'chat' | 'overlays' | 'settings';
 export type DocColor = 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'pink' | 'orange' | 'cyan';
 
 export interface DocPage {
@@ -39,7 +39,7 @@ export function docUrl(scope: DocScope, path: string): string {
 
 export const DOC_GROUP_ORDER: Record<DocScope, DocGroup[]> = {
     public: ['start', 'commands', 'modules', 'reference'],
-    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'overlays', 'settings'],
+    private: ['start', 'commands', 'reference', 'features', 'song-request', 'wheel', 'tournament', 'moderation', 'translation', 'discord', 'spirits', 'chat', 'overlays', 'settings'],
 };
 
 const both: DocScope[] = ['public', 'private'];
@@ -101,6 +101,8 @@ export const DOC_PAGES: DocPage[] = [
 
     { id: 'spirits-overview', scopes: pub, group: 'modules', path: 'spirits', icon: Sparkles, color: 'orange' },
 
+    { id: 'chat-overview', scopes: pub, group: 'modules', path: 'chat', icon: MessageSquare, color: 'green' },
+
     // — Rueda y Sorteo: manual con cuenta —
     { id: 'wheel-setup', scopes: priv, group: 'wheel', path: 'wheel/setup', icon: PlayCircle, color: 'blue' },
     { id: 'wheel-prizes', scopes: priv, group: 'wheel', path: 'wheel/prizes', icon: Gift, color: 'blue' },
@@ -147,6 +149,14 @@ export const DOC_PAGES: DocPage[] = [
     { id: 'spirits-collection', scopes: priv, group: 'spirits', path: 'spirits/collection', icon: Sparkles, color: 'orange' },
     { id: 'spirits-commands', scopes: priv, group: 'spirits', path: 'spirits/commands', icon: Terminal, color: 'orange' },
     { id: 'spirits-notices', scopes: priv, group: 'spirits', path: 'spirits/notices', icon: Bell, color: 'orange' },
+
+    // — Chat en pantalla y emotes: manual con cuenta —
+    { id: 'chat-setup', scopes: priv, group: 'chat', path: 'chat/setup', icon: PlayCircle, color: 'green' },
+    { id: 'chat-look', scopes: priv, group: 'chat', path: 'chat/look', icon: Palette, color: 'green' },
+    { id: 'chat-bubbles', scopes: priv, group: 'chat', path: 'chat/bubbles', icon: Sparkles, color: 'green' },
+    { id: 'chat-filters', scopes: priv, group: 'chat', path: 'chat/filters', icon: SlidersHorizontal, color: 'green' },
+    { id: 'chat-emotes', scopes: priv, group: 'chat', path: 'chat/emotes', icon: Grid, color: 'green' },
+    { id: 'chat-own-emotes', scopes: priv, group: 'chat', path: 'chat/own-emotes', icon: Users, color: 'green' },
 
     // — Song Request: manual con cuenta —
     { id: 'sr-setup', scopes: priv, group: 'song-request', path: 'song-request/setup', icon: PlayCircle, color: 'blue' },

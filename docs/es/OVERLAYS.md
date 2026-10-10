@@ -20,6 +20,7 @@ Referencia de los overlays de Decatron: URLs, configuración en OBS, qué hace c
 - [Overlay de shoutout](#overlay-de-shoutout)
 - [Sorteo](#sorteo)
 - [Otros overlays](#otros-overlays)
+- [Overlay de chat y emotes](#overlay-de-chat-y-emotes)
 - [Overlay y widget de torneos](#overlay-y-widget-de-torneos)
 - [Arquitectura en tiempo real](#arquitectura-en-tiempo-real)
 - [Referencia de eventos de SignalR](#referencia-de-eventos-de-signalr)
@@ -467,6 +468,18 @@ Estos overlays se configuran desde sus propias páginas del panel; sus manuales 
 | Partida en vivo (`/overlay/live`) | Estado de la partida en curso | Diseño, Overlay |
 | Gacha (`/overlay/gacha`) | Tiradas de gacha de los espectadores | |
 | Torneo (`/overlay/torneo/{token}`) | Datos de un participante para su stream | Consulta [Overlay y widget de torneos](#overlay-y-widget-de-torneos) |
+
+---
+
+## Overlay de chat y emotes
+
+El overlay de chat (`/overlay/chat?channel={login}`, con `source=twitch|kick` opcional) dibuja el chat del canal como lista o como burbujas. El manual está en `/dashboard/docs/chat`.
+
+- **Entrega.** `ChatOverlayService` emite `ChatMessage` al grupo `overlay_{login}` de SignalR solo cuando un overlay se registró como `chat`. Los mensajes llevan fragmentos ya analizados (texto y emotes), insignias y, en el chat compartido de Twitch, el canal de origen (`source_broadcaster_user_*` de EventSub). Los bots marcados como «ocultar del overlay» en la lista de bots se descartan antes de emitir.
+- **Configuración.** Un documento JSON por canal (`GET`/`PUT /api/chat-overlay/config`, sección `moderation`), mezclado sobre los valores por defecto al cargar para que los documentos antiguos sigan funcionando. `GET /api/chat-overlay/status` informa los overlays conectados, `POST /api/chat-overlay/test` envía un mensaje de prueba, y `GET /api/chat-overlay/emotes` con `POST /api/chat-overlay/emotes/refresh` exponen el catálogo de emotes que usa el editor. El overlay lee `GET /api/chat-overlay/config/overlay/{channel}`.
+- **Catálogo de emotes.** `EmoteCatalogService` combina capas de menor a mayor prioridad: el set global de Decatron, los globales de FFZ, BTTV y 7TV, luego los sets del canal (FFZ, BTTV, 7TV) y por último los emotes propios del canal. Los resultados de cada proveedor se guardan en caché (globales 6 h, sets del canal 10 min, reintento a 1 min tras un error) y se sirve la última respuesta buena si un proveedor falla.
+- **Emotes propios.** `ChannelEmoteService` y `EmoteImageProcessor` validan las subidas (PNG, GIF, WebP o JPEG, hasta 2 MB, de 8 a 2048 px, hasta 150 cuadros), generan variantes WebP de 32, 64 y 128 px de alto y las guardan en `Emotes:AssetsPath` (se sirven en `/uploads/emotes/{userId}/{key}/{scale}.webp`). Los modos de subida son `owner`, `staff` (por defecto), `approval` y `list`; los topes por plan son 150, 400, 1000 y 3000 emotes activos (`EmoteTierLimits`), con un máximo de 100 pendientes por canal. Los endpoints de gestión están en `/api/channel-emotes` (sección `moderation`; la configuración y las personas permitidas piden `control_total`).
+- **Endpoints públicos.** `GET /api/public/emotes/{channel}` lista los emotes activos de un canal (URLs absolutas, con CORS, los usa la extensión del navegador), con endpoints de subida, reporte y emotes propios para usuarios con sesión; el set de la plataforma sale de `/api/public/global-emotes` y se gestiona en `/api/admin/global-emotes` (papelera de 30 días).
 
 ---
 
