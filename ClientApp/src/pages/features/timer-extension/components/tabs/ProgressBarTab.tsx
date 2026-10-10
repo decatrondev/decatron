@@ -123,11 +123,7 @@ export const ProgressBarTab: React.FC<ProgressBarTabProps> = ({
                                     <button
                                         key={opt.value}
                                         onClick={() => onProgressBarConfigChange({ orientation: opt.value as any })}
-                                        className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-xs font-bold transition-all border ${
-                                            progressBarConfig.orientation === opt.value
-                                                ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                                : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-faint'
-                                        }`}
+                                        className={progressBarConfig.orientation === opt.value ? 'ds-btn ds-btn--primary ds-btn--lg' : 'ds-btn ds-btn--secondary ds-btn--lg'}
                                     >
                                         {opt.icon} {opt.label}
                                     </button>

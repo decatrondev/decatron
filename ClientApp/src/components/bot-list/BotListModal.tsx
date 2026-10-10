@@ -27,7 +27,7 @@ export default function BotListModal({ open, onClose }: { open: boolean; onClose
             >
                 <div className="flex items-start justify-between gap-4 mb-4">
                     <h2 className="text-2xl font-black text-ds-text">Lista de bots</h2>
-                    <button onClick={onClose} className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised" aria-label="Cerrar">
+                    <button onClick={onClose} className="ds-btn ds-btn--ghost ds-icon-btn" aria-label="Cerrar">
                         <X className="w-5 h-5" />
                     </button>
                 </div>

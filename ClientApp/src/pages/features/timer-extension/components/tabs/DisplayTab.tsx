@@ -66,11 +66,7 @@ export const DisplayTab: React.FC<DisplayTabProps> = ({
                         <button
                             key={key}
                             onClick={() => onDisplayConfigChange({ [key]: !displayConfig[key] })}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border-2 ${
-                                displayConfig[key]
-                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent '
-                                    : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-border'
-                            }`}
+                            className={displayConfig[key] ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {label}
                         </button>

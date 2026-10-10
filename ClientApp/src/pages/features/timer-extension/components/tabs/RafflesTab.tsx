@@ -709,7 +709,7 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                                     </button>
                                                                     <button 
                                                                         onClick={() => setShowAddParticipantForm(!showAddParticipantForm)}
-                                                                        className="p-2 bg-ds-bg hover:bg-ds-raised rounded-lg text-ds-soft"
+                                                                        className="ds-btn ds-btn--ghost ds-icon-btn"
                                                                         title="Añadir Manualmente"
                                                                     >
                                                                         <UserPlus className="w-4 h-4" />
@@ -901,13 +901,13 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <button
                                                         onClick={() => { setMultiSessionMode(false); setSelectedSessionId(null); setSelectedSessionIds([]); }}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
+                                                        className={!multiSessionMode ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                                     >
                                                         Última / Una
                                                     </button>
                                                     <button
                                                         onClick={() => { setMultiSessionMode(true); setSelectedSessionId(null); }}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
+                                                        className={multiSessionMode ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                                     >
                                                         Múltiples Sesiones
                                                     </button>
@@ -1199,13 +1199,13 @@ export const RafflesTab: React.FC<RafflesTabProps> = ({ rafflesConfig, onRaffles
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={() => { setMultiSessionMode(false); setSelectedSessionIds([]); }}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${!multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
+                                                className={!multiSessionMode ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                             >
                                                 Una Sesión
                                             </button>
                                             <button
                                                 onClick={() => { setMultiSessionMode(true); setSelectedSessionId(null); }}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${multiSessionMode ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft '}`}
+                                                className={multiSessionMode ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                             >
                                                 Múltiples
                                             </button>

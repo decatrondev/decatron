@@ -132,7 +132,7 @@ export default function OverlayCanvasEditor({
                 actions={
                     <button
                         onClick={() => setSnap(s => !s)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold ${snap ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}
+                        className={snap ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                     >
                         <Grid3x3 className="w-4 h-4" /> {t('overlayEditor.snap')}
                     </button>
@@ -199,7 +199,7 @@ export default function OverlayCanvasEditor({
                                 {onToggle && e.toggleable !== false && (
                                     <button
                                         onClick={() => onToggle(e.id, !e.enabled)}
-                                        className="p-1 text-ds-soft hover:text-ds-text"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         title={e.enabled ? t('overlayEditor.hide') : t('overlayEditor.show')}
                                     >
                                         {e.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4 opacity-50" />}

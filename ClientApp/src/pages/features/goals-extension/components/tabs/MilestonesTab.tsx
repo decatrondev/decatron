@@ -150,7 +150,7 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                 <div className="flex items-center gap-2">
                                                                     <button
                                                                         onClick={() => setExpandedMilestoneId(isMilestoneExpanded ? null : milestone.id)}
-                                                                        className="p-1.5 text-ds-soft hover:bg-ds-bg rounded-lg"
+                                                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                                                     >
                                                                         {isMilestoneExpanded ? (
                                                                             <ChevronUp className="w-4 h-4" />
@@ -187,21 +187,13 @@ export const MilestonesTab: React.FC<MilestonesTabProps> = ({
                                                                             <div className="flex rounded-lg overflow-hidden border border-ds-border">
                                                                                 <button
                                                                                     onClick={() => onUpdateMilestone(goal.id, milestone.id, { isPercentage: true })}
-                                                                                    className={`px-3 py-2 flex items-center gap-1 text-sm ${
-                                                                                        milestone.isPercentage
-                                                                                            ? 'bg-ds-accent text-ds-on-accent'
-                                                                                            : 'bg-ds-surface text-ds-soft'
-                                                                                    }`}
+                                                                                    className={milestone.isPercentage ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                                                                 >
                                                                                     <Percent className="w-3 h-3" />
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => onUpdateMilestone(goal.id, milestone.id, { isPercentage: false })}
-                                                                                    className={`px-3 py-2 flex items-center gap-1 text-sm ${
-                                                                                        !milestone.isPercentage
-                                                                                            ? 'bg-ds-accent text-ds-on-accent'
-                                                                                            : 'bg-ds-surface text-ds-soft'
-                                                                                    }`}
+                                                                                    className={!milestone.isPercentage ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                                                                 >
                                                                                     <Hash className="w-3 h-3" />
                                                                                 </button>

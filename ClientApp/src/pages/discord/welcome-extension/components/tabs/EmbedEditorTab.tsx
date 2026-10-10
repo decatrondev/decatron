@@ -758,7 +758,7 @@ export default function EmbedEditorTab({
           <span className="text-xs font-bold text-ds-soft">EDITANDO:</span>
           {(['welcome', 'goodbye'] as EditMode[]).map(m => (
             <button key={m} onClick={() => { setEditMode(m); setSelectedId('text'); }}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editMode === m ?'bg-ds-accent text-ds-on-accent' :'bg-ds-bg text-ds-soft'}`}>
+              className={editMode === m ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>
               {m === 'welcome' ? '👋 Bienvenida' : '💨 Despedida'}
             </button>
           ))}

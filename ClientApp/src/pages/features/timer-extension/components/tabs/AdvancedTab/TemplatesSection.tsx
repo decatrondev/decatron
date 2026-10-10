@@ -175,7 +175,7 @@ export const TemplatesSection: React.FC<TemplatesSectionProps> = ({
                                         </div>
                                         <div className="flex gap-2 flex-shrink-0">
                                             <button onClick={() => onOpenApplyModal(template)} className="px-3 py-1.5 bg-ds-raised hover:bg-ds-raised text-ds-text rounded text-xs font-bold transition-colors">{t('timerAdvanced.apply')}</button>
-                                            <button onClick={() => onOpenEditModal(template)} className="p-1.5 text-ds-soft hover:text-ds-text transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                            <button onClick={() => onOpenEditModal(template)} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"><Edit2 className="w-4 h-4" /></button>
                                             <button onClick={() => onDeleteTemplate(template)} className="p-1.5 text-ds-danger hover:text-ds-danger transition-colors"><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     </div>

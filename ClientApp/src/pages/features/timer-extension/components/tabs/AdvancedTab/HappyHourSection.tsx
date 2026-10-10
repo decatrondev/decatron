@@ -437,8 +437,8 @@ export const HappyHourSection: React.FC<HappyHourSectionProps> = (p) => {
                                             {!h.enabled ? t('timerAdvanced.inactive') : active ? `🔥 ${t('timerAdvanced.hh.statusActive')}` : n ? t('timerAdvanced.hh.statusNext', { day: nText, time: h.startTime }) : '—'}
                                         </span>
                                         <div className="flex gap-1">
-                                            <button onClick={() => p.onPrepareEdit(h)} className="p-2 rounded-lg hover:bg-ds-raised text-ds-soft" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
-                                            <button onClick={() => p.onDuplicate(h)} className="p-2 rounded-lg hover:bg-ds-raised text-ds-soft" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onPrepareEdit(h)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('timerAdvanced.hh.edit')}><Edit2 className="w-4 h-4" /></button>
+                                            <button onClick={() => p.onDuplicate(h)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('timerAdvanced.hh.duplicate')}><Copy className="w-4 h-4" /></button>
                                             <button onClick={() => p.onDeleteHappyHour(h.id)} className="p-2 rounded-lg hover:bg-ds-danger/10 text-ds-danger" title={t('timerAdvanced.hh.delete')}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     </div>

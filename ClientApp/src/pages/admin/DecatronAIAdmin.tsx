@@ -311,19 +311,19 @@ export default function DecatronAIAdmin() {
             <div className="flex gap-2">
                 <button
                     onClick={() => setActiveTab('config')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'config' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
+                    className={activeTab === 'config' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     <Settings className="w-4 h-4" /> Configuración
                 </button>
                 <button
                     onClick={() => setActiveTab('channels')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'channels' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
+                    className={activeTab === 'channels' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     <Users className="w-4 h-4" /> Canales ({channels.length})
                 </button>
                 <button
                     onClick={() => setActiveTab('stats')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'stats' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
+                    className={activeTab === 'stats' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     <BarChart3 className="w-4 h-4" /> Estadísticas
                 </button>

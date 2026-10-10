@@ -184,7 +184,7 @@ export function LineFields({ line, onChange }: { line: PlacedLine; onChange: (pa
                 <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                     {(['left', 'center', 'right'] as const).map(a => (
                         <button key={a} onClick={() => onChange({ align: a })}
-                            className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${line.align === a ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`}>
+                            className={line.align === a ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>
                             {t(`soundAlerts.texts.aligns.${a}`)}
                         </button>
                     ))}
@@ -221,7 +221,7 @@ export function TextsTab({ cfg }: TabProps) {
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-sm 3xl:text-base font-bold text-ds-text">{t('soundAlerts.texts.line', { n: i + 1 })}</span>
                                 <div className="flex items-center gap-1">
-                                    <button onClick={() => setLine(i, { enabled: !line.enabled })} className="p-1.5 rounded-lg hover:bg-ds-raised text-ds-soft"
+                                    <button onClick={() => setLine(i, { enabled: !line.enabled })} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                         title={line.enabled ? t('overlayEditor.hide') : t('overlayEditor.show')}>
                                         {line.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                     </button>

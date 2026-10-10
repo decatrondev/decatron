@@ -325,7 +325,7 @@ export default function ApplicationCreate() {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className={`w-full bg-ds-bg border ${errors.name ? 'border-ds-danger/40' : 'border-ds-border '} rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent placeholder-ds-soft`}
+                                    className={errors.name ? 'ds-input w-full is-error' : 'ds-input w-full'}
                                     placeholder="Mi Bot"
                                 />
                             </FormField>
@@ -346,7 +346,7 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={websiteUrl}
                                         onChange={(e) => setWebsiteUrl(e.target.value)}
-                                        className={`w-full bg-ds-bg border ${errors.websiteUrl ? 'border-ds-danger/40' : 'border-ds-border '} rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent placeholder-ds-soft`}
+                                        className={errors.websiteUrl ? 'ds-input w-full is-error' : 'ds-input w-full'}
                                         placeholder="https://miapp.com"
                                     />
                                 </FormField>
@@ -355,7 +355,7 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={iconUrl}
                                         onChange={(e) => setIconUrl(e.target.value)}
-                                        className={`w-full bg-ds-bg border ${errors.iconUrl ? 'border-ds-danger/40' : 'border-ds-border '} rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent placeholder-ds-soft`}
+                                        className={errors.iconUrl ? 'ds-input w-full is-error' : 'ds-input w-full'}
                                         placeholder="https://miapp.com/icon.png"
                                     />
                                 </FormField>

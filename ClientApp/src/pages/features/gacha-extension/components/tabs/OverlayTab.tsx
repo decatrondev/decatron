@@ -190,7 +190,7 @@ export const OverlayTab: React.FC = () => {
                             <p className="text-xs text-ds-soft">Reproduce sonidos al tirar del gacha</p>
                         </div>
                     </div>
-                    <button onClick={() => setConfig({ ...config, enableSounds: !config.enableSounds })} className={`px-4 py-2 rounded-lg font-bold transition-all ${config.enableSounds ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}>
+                    <button onClick={() => setConfig({ ...config, enableSounds: !config.enableSounds })} className={config.enableSounds ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>
                         {config.enableSounds ? 'Activado' : 'Desactivado'}
                     </button>
                 </div>

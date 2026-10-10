@@ -99,9 +99,7 @@ export default function ChannelEmotes() {
                             <button
                                 key={item.id}
                                 onClick={() => setTab(item.id)}
-                                className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${tab === item.id
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '}`}
+                                className={tab === item.id ? 'ds-btn ds-btn--primary ds-btn--sm whitespace-nowrap' : 'ds-btn ds-btn--secondary ds-btn--sm whitespace-nowrap'}
                             >
                                 <TabIcon emoji={item.icon} />{t(`tabs.${item.id}`)}
                                 {item.id === 'review' && pending > 0 && <span className="ml-2 px-1.5 py-0.5 rounded-full bg-ds-warn text-ds-on-accent text-[11px]">{pending}</span>}

@@ -1130,11 +1130,7 @@ export default function AdminEconomy() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
-                                    activeTab === tab.id
-                                        ? 'bg-ds-accent text-ds-on-accent shadow-blue-500/20'
-                                        : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                                }`}
+                                className={activeTab === tab.id ? 'ds-btn ds-btn--primary whitespace-nowrap' : 'ds-btn ds-btn--secondary whitespace-nowrap'}
                             >
                                 <Icon className="w-4 h-4" />
                                 {tab.label}

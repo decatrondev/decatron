@@ -424,11 +424,7 @@ export default function SpeakChat() {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
-                                activeTab === tab.id
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                            }`}
+                            className={activeTab === tab.id ? 'ds-btn ds-btn--primary whitespace-nowrap' : 'ds-btn ds-btn--secondary whitespace-nowrap'}
                         >
                             {tab.emoji} {tab.label}
                         </button>
@@ -514,7 +510,7 @@ export default function SpeakChat() {
                                     {rule.type !== 'all' && (
                                         <button
                                             onClick={() => setExpandedRules(e => ({ ...e, [idx]: !e[idx] }))}
-                                            className="p-2 rounded-lg bg-ds-bg text-ds-soft hover:bg-ds-raised transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn"
                                         >
                                             {expandedRules[idx] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                         </button>
@@ -613,11 +609,7 @@ export default function SpeakChat() {
                                                     <button
                                                         key={key}
                                                         onClick={() => updateRoleInRule(idx, key, !(rule.roles?.[key] ?? false))}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                                            (rule.roles?.[key] ?? false)
-                                                                ? 'bg-ds-accent text-ds-on-accent shadow'
-                                                                : 'bg-ds-surface border border-ds-border text-ds-soft hover:bg-ds-bg '
-                                                        }`}
+                                                        className={(rule.roles?.[key] ?? false) ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                                     >
                                                         {label}
                                                     </button>

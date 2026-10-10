@@ -468,7 +468,7 @@ export function TextTab({ cfg }: TabProps) {
                                             onChange={ev => setLine(e, i, { text: ev.target.value })}
                                             placeholder={t('shoutout.text.linePlaceholder')}
                                         />
-                                        <button onClick={() => setLine(e, i, { enabled: !l.enabled })} className="p-2 text-ds-soft hover:text-ds-text" title={l.enabled ? t('shoutout.text.hideLine') : t('shoutout.text.showLine')}>
+                                        <button onClick={() => setLine(e, i, { enabled: !l.enabled })} className="ds-btn ds-btn--ghost ds-icon-btn" title={l.enabled ? t('shoutout.text.hideLine') : t('shoutout.text.showLine')}>
                                             {l.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                         </button>
                                         <button onClick={() => moveLine(e, i, -1)} disabled={i === 0} className="p-1 text-ds-soft disabled:opacity-30" title={t('shoutout.text.moveUp')}><ChevronUp className="w-4 h-4" /></button>
@@ -638,7 +638,7 @@ function NativeStatusBox() {
         <div className="rounded-lg border border-ds-border p-4 text-sm 3xl:text-base text-ds-soft">
             <div className="flex items-center justify-between gap-2 mb-2">
                 <span className="font-bold text-ds-text">{t('shoutout.auto.native.statusTitle')}</span>
-                <button onClick={load} disabled={loading} className="p-1.5 rounded-lg text-ds-soft hover:bg-ds-raised disabled:opacity-50" title={t('shoutout.auto.native.refresh')}>
+                <button onClick={load} disabled={loading} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm" title={t('shoutout.auto.native.refresh')}>
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
             </div>

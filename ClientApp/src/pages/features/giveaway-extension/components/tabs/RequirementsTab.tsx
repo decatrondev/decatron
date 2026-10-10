@@ -73,11 +73,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ mustFollow: !requirements.mustFollow })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.mustFollow
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.mustFollow ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {requirements.mustFollow ? 'Requerido' : 'No requerido'}
                         </button>
@@ -91,11 +87,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ mustSubscribe: !requirements.mustSubscribe })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.mustSubscribe
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.mustSubscribe ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {requirements.mustSubscribe ? 'Requerido' : 'No requerido'}
                         </button>
@@ -127,11 +119,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ allowModerators: !requirements.allowModerators })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.allowModerators
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.allowModerators ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {requirements.allowModerators ? 'Permitido' : 'No permitido'}
                         </button>
@@ -156,11 +144,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             </div>
                             <button
                                 onClick={() => onUpdateRequirements({ minimumWatchTimeEnabled: !requirements.minimumWatchTimeEnabled })}
-                                className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                    requirements.minimumWatchTimeEnabled
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-raised text-ds-soft '
-                                }`}
+                                className={requirements.minimumWatchTimeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
                                 {requirements.minimumWatchTimeEnabled ? 'Activado' : 'Desactivado'}
                             </button>
@@ -186,11 +170,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             </div>
                             <button
                                 onClick={() => onUpdateRequirements({ minimumAccountAgeEnabled: !requirements.minimumAccountAgeEnabled })}
-                                className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                    requirements.minimumAccountAgeEnabled
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-raised text-ds-soft '
-                                }`}
+                                className={requirements.minimumAccountAgeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
                                 {requirements.minimumAccountAgeEnabled ? 'Activado' : 'Desactivado'}
                             </button>
@@ -227,11 +207,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                             </div>
                             <button
                                 onClick={() => onUpdateRequirements({ minimumFollowAgeEnabled: !requirements.minimumFollowAgeEnabled })}
-                                className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                    requirements.minimumFollowAgeEnabled
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-raised text-ds-soft '
-                                }`}
+                                className={requirements.minimumFollowAgeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
                                 {requirements.minimumFollowAgeEnabled ? 'Activado' : 'Desactivado'}
                             </button>
@@ -276,11 +252,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ minimumChatMessagesEnabled: !requirements.minimumChatMessagesEnabled })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.minimumChatMessagesEnabled
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.minimumChatMessagesEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {requirements.minimumChatMessagesEnabled ? 'Activado' : 'Desactivado'}
                         </button>
@@ -314,11 +286,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ blockMultipleAccounts: !requirements.blockMultipleAccounts })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.blockMultipleAccounts
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.blockMultipleAccounts ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {requirements.blockMultipleAccounts ? 'Activado' : 'Desactivado'}
                         </button>
@@ -332,11 +300,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                         </div>
                         <button
                             onClick={() => onUpdateRequirements({ checkIpDuplication: !requirements.checkIpDuplication })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                requirements.checkIpDuplication
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={requirements.checkIpDuplication ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {requirements.checkIpDuplication ? 'Activado' : 'Desactivado'}
                         </button>
@@ -358,11 +322,7 @@ export const RequirementsTab: React.FC<RequirementsTabProps> = ({ requirements, 
                     </div>
                     <button
                         onClick={() => onUpdateRequirements({ useWhitelist: !requirements.useWhitelist })}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                            requirements.useWhitelist
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-raised text-ds-soft '
-                        }`}
+                        className={requirements.useWhitelist ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                         {requirements.useWhitelist ? 'Activado' : 'Desactivado'}
                     </button>

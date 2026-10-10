@@ -140,7 +140,7 @@ export default function DesktopAppSettings() {
             <div className="mt-4">
                 <div className="flex items-center justify-between mb-2">
                     <div className="text-xs font-semibold uppercase tracking-wide text-ds-soft">{t('settings:desktop.linkedDevices')}</div>
-                    <button onClick={load} className="p-1 text-ds-soft hover:text-ds-text" title={t('settings:desktop.refresh')}>
+                    <button onClick={load} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm" title={t('settings:desktop.refresh')}>
                         <RefreshCw className="w-4 h-4" />
                     </button>
                 </div>

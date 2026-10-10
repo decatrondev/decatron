@@ -304,11 +304,7 @@ export default function MeInvoices() {
                                                 onClick={() => bajar(c, f.id)}
                                                 disabled={bajando === `${c.key}-${f.id}`}
                                                 title={f.hint}
-                                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-60 ${
-                                                    f.id === 'pdf'
-                                                        ? 'bg-ds-accent text-ds-on-accent hover:bg-ds-accent-hover'
-                                                        : 'border border-ds-border text-ds-soft hover:bg-ds-bg '
-                                                }`}
+                                                className={f.id === 'pdf' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                             >
                                                 {bajando === `${c.key}-${f.id}`
                                                     ? <Loader2 className="w-4 h-4 animate-spin" />

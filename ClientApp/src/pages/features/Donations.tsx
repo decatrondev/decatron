@@ -147,11 +147,7 @@ export default function Donations() {
                                 <button
                                     key={p}
                                     onClick={() => setPeriod(p)}
-                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                                        period === p
-                                            ? 'bg-ds-accent text-ds-on-accent '
-                                            : 'text-ds-soft hover:bg-ds-raised '
-                                    }`}
+                                    className={period === p ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                 >
                                     {PERIOD_LABELS[p]}
                                 </button>

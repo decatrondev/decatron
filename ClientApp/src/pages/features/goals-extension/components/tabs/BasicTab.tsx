@@ -164,7 +164,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                 </h3>
                                                 <button
                                                     onClick={() => handleStartEditName(goal)}
-                                                    className="p-1 text-ds-soft hover:text-ds-soft hover:bg-ds-bg rounded"
+                                                    className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                                 >
                                                     <Edit3 className="w-3.5 h-3.5" />
                                                 </button>
@@ -194,11 +194,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                     {/* Active Toggle */}
                                     <button
                                         onClick={() => onToggleGoalActive(goal.id)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                            isActive
-                                                ? 'bg-ds-accent text-ds-on-accent'
-                                                : 'bg-ds-bg text-ds-soft'
-                                        }`}
+                                        className={isActive ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                     >
                                         {isActive ? 'Activa' : 'Inactiva'}
                                     </button>
@@ -207,7 +203,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                     <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => onDuplicateGoal(goal.id)}
-                                            className="p-2 text-ds-soft hover:text-ds-accent-text hover:bg-ds-bg rounded-lg transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn"
                                             title="Duplicar"
                                         >
                                             <Copy className="w-4 h-4" />
@@ -221,7 +217,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                         </button>
                                         <button
                                             onClick={() => setExpandedGoalId(isExpanded ? null : goal.id)}
-                                            className="p-2 text-ds-soft hover:text-ds-text hover:bg-ds-bg rounded-lg transition-colors"
+                                            className="ds-btn ds-btn--ghost ds-icon-btn"
                                         >
                                             {isExpanded ? (
                                                 <ChevronUp className="w-4 h-4" />
@@ -245,11 +241,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                     <button
                                                         key={type}
                                                         onClick={() => onUpdateGoal(goal.id, { type })}
-                                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                                                            goal.type === type
-                                                                ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                                                : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                                        }`}
+                                                        className={goal.type === type ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                                     >
                                                         {sourceTypeLabels[type]}
                                                     </button>
@@ -386,11 +378,7 @@ export const BasicTab: React.FC<BasicTabProps> = ({
                                                         onClick={() => onUpdateGoal(goal.id, {
                                                             onComplete: { ...goal.onComplete, action: action.value as any }
                                                         })}
-                                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                                                            goal.onComplete.action === action.value
-                                                                ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                                                : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                                        }`}
+                                                        className={goal.onComplete.action === action.value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                                     >
                                                         {action.label}
                                                     </button>

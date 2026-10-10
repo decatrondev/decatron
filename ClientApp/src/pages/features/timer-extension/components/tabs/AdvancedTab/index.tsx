@@ -588,11 +588,7 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({
                         <button
                             key={section.type}
                             onClick={() => setSelectedSection(section.type)}
-                            className={`px-4 py-3 rounded-lg text-sm font-bold transition-all border-2 ${
-                                selectedSection === section.type
-                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent '
-                                    : 'bg-ds-bg text-ds-text border-transparent hover:border-ds-faint'
-                            }`}
+                            className={selectedSection === section.type ? 'ds-btn ds-btn--primary ds-btn--lg' : 'ds-btn ds-btn--secondary ds-btn--lg'}
                         >
                             {section.icon} {section.label}
                         </button>

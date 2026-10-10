@@ -106,7 +106,7 @@ export function StatsTab() {
                             <button
                                 key={m}
                                 onClick={() => setMetric(m)}
-                                className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${metric === m ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft hover:bg-ds-raised '}`}
+                                className={metric === m ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                             >
                                 {t(`songRequest.stats.metric.${m}`)}
                             </button>

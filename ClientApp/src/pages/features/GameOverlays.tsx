@@ -174,7 +174,7 @@ const GameOverlays: React.FC = () => {
                         {TABS.map(tb => {
                             const Icon = tb.icon; const active = tab === tb.id;
                             return (
-                                <button key={tb.id} onClick={() => setTab(tb.id)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg hover:text-ds-text'}`}>
+                                <button key={tb.id} onClick={() => setTab(tb.id)} className={active ? 'ds-btn ds-btn--primary w-full' : 'ds-btn ds-btn--secondary w-full'}>
                                     <Icon className="w-4 h-4 flex-shrink-0" /><span>{t(`tabs.${tb.id}`)}</span>{active && <ChevronRight className="w-3 h-3 ml-auto" />}
                                 </button>
                             );
@@ -222,7 +222,7 @@ const GameOverlays: React.FC = () => {
                                 <SubLabel>{t('url.hint', { size: `${draft.canvas.width}×${draft.canvas.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
                                     <input readOnly value={overlayUrl} className="ds-input flex-1 font-mono" />
-                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
+                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
                                     <a href={`${overlayUrl}&preview=${enabledGames[0] ?? 'lol'}`} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">

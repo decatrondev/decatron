@@ -237,11 +237,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                 <button
                                     key={f.id}
                                     onClick={() => setFilter(f.id as typeof filter)}
-                                    className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                                        filter === f.id
-                                            ? 'bg-ds-accent text-ds-on-accent'
-                                            : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                                    }`}
+                                    className={filter === f.id ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                 >
                                     {f.label}
                                 </button>

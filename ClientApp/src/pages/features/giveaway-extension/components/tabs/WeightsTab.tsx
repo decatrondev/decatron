@@ -152,11 +152,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ watchTimeEnabled: !weights.watchTimeEnabled })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                weights.watchTimeEnabled
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={weights.watchTimeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {weights.watchTimeEnabled ? 'Activado' : 'Desactivado'}
                         </button>
@@ -202,11 +198,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ followAgeEnabled: !weights.followAgeEnabled })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                weights.followAgeEnabled
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={weights.followAgeEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {weights.followAgeEnabled ? 'Activado' : 'Desactivado'}
                         </button>
@@ -249,11 +241,7 @@ export const WeightsTab: React.FC<WeightsTabProps> = ({ weights, onUpdateWeights
                         </div>
                         <button
                             onClick={() => onUpdateWeights({ bitsEnabled: !weights.bitsEnabled })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                weights.bitsEnabled
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={weights.bitsEnabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {weights.bitsEnabled ? 'Activado' : 'Desactivado'}
                         </button>

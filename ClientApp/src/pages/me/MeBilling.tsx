@@ -276,11 +276,7 @@ export default function MeBilling() {
                         onChange={e => { setLegalName(e.target.value); setError(null); }}
                         readOnly={nombreBloqueado}
                         placeholder={docType === 'RUC' ? 'Se completa con el RUC' : 'Como figura en tu documento'}
-                        className={`w-full px-4 py-2.5 rounded-lg border border-ds-border text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent ${
-                            nombreBloqueado
-                                ? 'bg-ds-bg text-ds-soft '
-                                : 'bg-ds-surface text-ds-text '
-                        }`}
+                        className="ds-input w-full"
                     />
                     {nombreBloqueado && (
                         <p className="text-xs text-ds-ok mt-1.5 flex items-center gap-1.5">

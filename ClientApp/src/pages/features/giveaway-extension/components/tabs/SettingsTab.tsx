@@ -45,11 +45,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ announceOnStart: !config.announceOnStart })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                config.announceOnStart
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={config.announceOnStart ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {config.announceOnStart ? 'Activado' : 'Desactivado'}
                         </button>
@@ -64,11 +60,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                             </div>
                             <button
                                 onClick={() => onUpdateConfig({ announceReminders: !config.announceReminders })}
-                                className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                    config.announceReminders
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-raised text-ds-soft '
-                                }`}
+                                className={config.announceReminders ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
                                 {config.announceReminders ? 'Activado' : 'Desactivado'}
                             </button>
@@ -98,11 +90,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ config, onUpdateConfig
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ announceParticipantCount: !config.announceParticipantCount })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                config.announceParticipantCount
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={config.announceParticipantCount ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {config.announceParticipantCount ? 'Activado' : 'Desactivado'}
                         </button>

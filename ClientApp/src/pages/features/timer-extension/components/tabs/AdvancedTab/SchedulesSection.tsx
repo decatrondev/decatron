@@ -167,11 +167,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
                                                     newDays[index] = !newDays[index];
                                                     setScheduleForm({ ...scheduleForm, daysOfWeek: newDays });
                                                 }}
-                                                className={`flex-1 py-3 rounded-lg text-xs font-black transition-all ${
-                                                    scheduleForm.daysOfWeek[index]
-                                                        ? 'bg-ds-accent text-ds-on-accent transform -translate-y-1'
-                                                        : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'
-                                                }`}
+                                                className={scheduleForm.daysOfWeek[index] ? 'ds-btn ds-btn--primary ds-btn--lg flex-1' : 'ds-btn ds-btn--secondary ds-btn--lg flex-1'}
                                             >
                                                 {day.charAt(0)}
                                             </button>
@@ -351,11 +347,7 @@ export const SchedulesSection: React.FC<SchedulesSectionProps> = ({
 
                                     <button
                                         onClick={() => onToggleSchedule(schedule)}
-                                        className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${
-                                            schedule.enabled
-                                                ? 'bg-ds-bg text-ds-soft hover:bg-ds-danger/10 hover:text-ds-danger'
-                                                : 'bg-ds-accent text-ds-on-accent hover:bg-ds-accent-hover '
-                                        }`}
+                                        className={schedule.enabled ? 'ds-btn ds-btn--secondary w-full' : 'ds-btn ds-btn--primary w-full'}
                                     >
                                         {schedule.enabled ? t('timerAdvanced.disableSchedule') : t('timerAdvanced.enableSchedule')}
                                     </button>

@@ -269,11 +269,7 @@ export function DonationHistory({ refreshKey }: Props) {
                                     <button
                                         key={p}
                                         onClick={() => setPage(p as number)}
-                                        className={`w-8 h-8 text-sm font-semibold rounded-lg transition-colors ${
-                                            page === p
-                                                ? 'bg-ds-accent text-ds-on-accent'
-                                                : 'text-ds-soft hover:bg-ds-raised '
-                                        }`}
+                                        className={page === p ? 'ds-btn ds-btn--primary w-8' : 'ds-btn ds-btn--secondary w-8'}
                                     >
                                         {p}
                                     </button>

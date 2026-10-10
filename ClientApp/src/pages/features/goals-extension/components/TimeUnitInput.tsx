@@ -112,11 +112,7 @@ export const TimeUnitInput: React.FC<TimeUnitInputProps> = ({
                         <button
                             key={unit.id}
                             onClick={() => handleUnitChange(unit.id)}
-                            className={`px-3 py-2 text-sm font-medium transition-colors ${
-                                displayUnit === unit.id
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-surface text-ds-soft hover:bg-ds-bg '
-                            }`}
+                            className={displayUnit === unit.id ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             title={unit.label}
                         >
                             {unit.shortLabel}

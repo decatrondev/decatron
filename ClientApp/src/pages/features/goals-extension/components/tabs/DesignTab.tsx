@@ -52,11 +52,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={layout.value}
                                     onClick={() => onUpdateDesign({ layout: layout.value as any })}
-                                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
-                                        design.layout === layout.value
-                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                    }`}
+                                    className={design.layout === layout.value ? 'ds-btn ds-btn--primary ds-btn--lg' : 'ds-btn ds-btn--secondary ds-btn--lg'}
                                 >
                                     <span className="text-lg mr-2">{layout.icon}</span>
                                     {layout.label}
@@ -127,11 +123,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={type.value}
                                     onClick={() => onUpdateDesignProgressBar({ type: type.value as any })}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                                        design.progressBar.type === type.value
-                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                    }`}
+                                    className={design.progressBar.type === type.value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                 >
                                     {type.label}
                                 </button>
@@ -527,11 +519,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={anim.value}
                                     onClick={() => onUpdateDesignAnimations({ progressAnimation: anim.value as any })}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                                        design.animations.progressAnimation === anim.value
-                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                    }`}
+                                    className={design.animations.progressAnimation === anim.value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                 >
                                     {anim.label}
                                 </button>
@@ -553,11 +541,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={anim.value}
                                     onClick={() => onUpdateDesignAnimations({ onMilestone: anim.value as any })}
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                                        design.animations.onMilestone === anim.value
-                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                    }`}
+                                    className={design.animations.onMilestone === anim.value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                 >
                                     {anim.label}
                                 </button>
@@ -579,11 +563,7 @@ export const DesignTab: React.FC<DesignTabProps> = ({
                                 <button
                                     key={anim.value}
                                     onClick={() => onUpdateDesignAnimations({ onComplete: anim.value as any })}
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border-2 ${
-                                        design.animations.onComplete === anim.value
-                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                            : 'bg-ds-bg text-ds-soft border-transparent hover:border-ds-accent'
-                                    }`}
+                                    className={design.animations.onComplete === anim.value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                 >
                                     {anim.label}
                                 </button>

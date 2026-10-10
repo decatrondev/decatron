@@ -687,41 +687,25 @@ export default function Followers() {
                 <div className="flex gap-2">
                     <button
                         onClick={() => setCurrentFilter('all')}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                            currentFilter === 'all'
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-raised text-ds-text hover:bg-ds-raised '
-                        }`}
+                        className={currentFilter === 'all' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                         Todos
                     </button>
                     <button
                         onClick={() => setCurrentFilter('active')}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                            currentFilter === 'active'
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-raised text-ds-text hover:bg-ds-raised '
-                        }`}
+                        className={currentFilter === 'active' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                         Activos
                     </button>
                     <button
                         onClick={() => setCurrentFilter('unfollowed')}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                            currentFilter === 'unfollowed'
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-raised text-ds-text hover:bg-ds-raised '
-                        }`}
+                        className={currentFilter === 'unfollowed' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                         Unfollows
                     </button>
                     <button
                         onClick={() => setCurrentFilter('returned')}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                            currentFilter === 'returned'
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-raised text-ds-text hover:bg-ds-raised '
-                        }`}
+                        className={currentFilter === 'returned' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                         Retornados
                     </button>
@@ -990,7 +974,7 @@ export default function Followers() {
                             <button
                                 onClick={() => setCurrentPage(1)}
                                 disabled={currentPage === 1}
-                                className="p-2 bg-ds-raised hover:bg-ds-raised disabled:opacity-50 disabled:cursor-not-allowed text-ds-text rounded-lg transition-all"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                                 title="Primera página"
                             >
                                 <ChevronsLeft className="w-4 h-4" />
@@ -1000,7 +984,7 @@ export default function Followers() {
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className="p-2 bg-ds-raised hover:bg-ds-raised disabled:opacity-50 disabled:cursor-not-allowed text-ds-text rounded-lg transition-all"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                                 title="Página anterior"
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -1012,11 +996,7 @@ export default function Followers() {
                                     <button
                                         key={idx}
                                         onClick={() => setCurrentPage(page)}
-                                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                            currentPage === page
-                                                ? 'bg-ds-accent text-ds-on-accent'
-                                                : 'bg-ds-raised hover:bg-ds-raised text-ds-text '
-                                        }`}
+                                        className={currentPage === page ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                     >
                                         {page}
                                     </button>
@@ -1031,7 +1011,7 @@ export default function Followers() {
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className="p-2 bg-ds-raised hover:bg-ds-raised disabled:opacity-50 disabled:cursor-not-allowed text-ds-text rounded-lg transition-all"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                                 title="Página siguiente"
                             >
                                 <ChevronRight className="w-4 h-4" />
@@ -1041,7 +1021,7 @@ export default function Followers() {
                             <button
                                 onClick={() => setCurrentPage(totalPages)}
                                 disabled={currentPage === totalPages}
-                                className="p-2 bg-ds-raised hover:bg-ds-raised disabled:opacity-50 disabled:cursor-not-allowed text-ds-text rounded-lg transition-all"
+                                className="ds-btn ds-btn--ghost ds-icon-btn"
                                 title="Última página"
                             >
                                 <ChevronsRight className="w-4 h-4" />

@@ -70,9 +70,7 @@ export function TabNav({ wheel, tab, pendingCount, onTab, t }: {
                         <button
                             key={g.id}
                             onClick={() => goGroup(g.id)}
-                            className={`px-4 py-2.5 rounded-lg text-sm 3xl:text-base font-black flex items-center gap-2 whitespace-nowrap transition-colors ${
-                                active?.id === g.id ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg'
-                            }`}
+                            className={active?.id === g.id ? 'ds-btn ds-btn--primary whitespace-nowrap' : 'ds-btn ds-btn--secondary whitespace-nowrap'}
                         >
                             <Icon className="w-4 h-4" />
                             {t(`wheel.groups.${g.id}`)}

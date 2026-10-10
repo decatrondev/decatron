@@ -242,9 +242,7 @@ export const GuideTab: React.FC<GuideTabProps> = ({ config, onNavigate, overlayU
                     </p>
                     <button 
                         onClick={handleCopyUrl}
-                        className={`w-full py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                            copied ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-accent text-ds-on-accent hover:bg-ds-accent-hover'
-                        }`}
+                        className="ds-btn ds-btn--primary w-full"
                     >
                         {copied ? '¡Copiado!' : <><Copy className="w-4 h-4" /> Copiar URL</>}
                     </button>

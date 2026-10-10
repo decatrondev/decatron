@@ -89,11 +89,7 @@ export function RaffleTab({
                     {config.windowMode !== 'always_open' && (
                         <button
                             onClick={() => onWindow(!config.acceptingEntries)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-                                config.acceptingEntries
-                                    ? 'bg-ds-bg border border-ds-border text-ds-text hover:bg-ds-raised'
-                                    : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent'
-                            }`}
+                            className={config.acceptingEntries ? 'ds-btn ds-btn--secondary' : 'ds-btn ds-btn--primary'}
                         >
                             {config.acceptingEntries ? t('wheel.raffle.close') : t('wheel.raffle.openIt')}
                         </button>

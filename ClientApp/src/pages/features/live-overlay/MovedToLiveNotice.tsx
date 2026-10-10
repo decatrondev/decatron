@@ -23,7 +23,7 @@ export function MovedToLiveNotice() {
                 <p className="text-ds-soft mt-0.5">{t('body')}</p>
                 <Link to="/overlays/live" className="inline-block mt-2 font-semibold text-ds-accent-text hover:underline">{t('cta')} →</Link>
             </div>
-            <button onClick={dismiss} className="p-1 rounded-lg text-ds-soft hover:bg-ds-raised" aria-label="close"><X className="w-4 h-4" /></button>
+            <button onClick={dismiss} className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm" aria-label="close"><X className="w-4 h-4" /></button>
         </div>
     );
 }

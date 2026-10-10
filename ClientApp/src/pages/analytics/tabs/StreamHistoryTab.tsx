@@ -139,31 +139,19 @@ export default function StreamHistoryTab({ data, isLoading, dateRange }: StreamH
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => handleFilterChange('all')}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                                filter === 'all'
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-surface text-ds-soft hover:bg-ds-bg border border-ds-border '
-                            }`}
+                            className={filter === 'all' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                         >
                             {t('streamHistory.filterAll', 'Todos')}
                         </button>
                         <button
                             onClick={() => handleFilterChange('game')}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                                filter === 'game'
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-surface text-ds-soft hover:bg-ds-bg border border-ds-border '
-                            }`}
+                            className={filter === 'game' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                         >
                             {t('streamHistory.filterCategory', 'Categoría')}
                         </button>
                         <button
                             onClick={() => handleFilterChange('title')}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                                filter === 'title'
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-surface text-ds-soft hover:bg-ds-bg border border-ds-border '
-                            }`}
+                            className={filter === 'title' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                         >
                             {t('streamHistory.filterTitle', 'Título')}
                         </button>

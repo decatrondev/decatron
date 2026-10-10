@@ -122,7 +122,7 @@ const PetsConfigPage: React.FC = () => {
         <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/overlays')} className="p-2 rounded-lg hover:bg-ds-bg text-ds-soft"><ArrowLeft className="w-5 h-5" /></button>
+                    <button onClick={() => navigate('/overlays')} className="ds-btn ds-btn--ghost ds-icon-btn"><ArrowLeft className="w-5 h-5" /></button>
                     <Cat className="w-6 h-6 text-ds-accent-text" />
                     <div>
                         <h1 className="text-2xl font-black text-ds-text">{t('title')}</h1>
@@ -162,7 +162,7 @@ const PetsConfigPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-5">
                 <div className="lg:w-48 flex lg:flex-col gap-1">
                     {([['pet', Cat], ['behavior', Footprints], ['reactions', Bell], ['commands', Terminal], ['overlay', Monitor], ['testing', FlaskConical]] as [TabId, React.FC<{ className?: string }>][]).map(([id, Icon]) => (
-                        <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${tab === id ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg'}`}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
+                        <button key={id} onClick={() => setTab(id)} className={tab === id ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
                     ))}
                 </div>
                 <div className="flex-1 min-w-0 space-y-5">
@@ -346,7 +346,7 @@ const PetsConfigPage: React.FC = () => {
                                 <SubLabel>{t('url.hint', { size: `${cfg.overlay.width}×${cfg.overlay.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
                                     <input readOnly value={overlayUrl} className="ds-input flex-1 font-mono" />
-                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
+                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="ds-btn ds-btn--ghost ds-icon-btn" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
                                     <a href={overlayUrl} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.open')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
                                 <div className="mt-4"><Toggle checked={isEnabled} onChange={v => { setIsEnabled(v); setDirty(true); }} label={t('url.enabled')} description={t('url.enabledHint')} size="sm" /></div>

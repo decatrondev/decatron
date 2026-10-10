@@ -134,11 +134,7 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
                   <button
                     key={ex}
                     onClick={() => setAmount(ex)}
-                    className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
-                      amount === ex
-                        ? 'bg-ds-accent text-ds-on-accent'
-                        : 'bg-ds-raised text-ds-soft hover:bg-ds-accent/10 '
-                    }`}
+                    className={amount === ex ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                   >
                     {ex}
                   </button>
@@ -169,11 +165,7 @@ export const TestingTab: React.FC<TestingTabProps> = ({ onTest }) => {
         <button
           onClick={handleTest}
           disabled={sending}
-          className={`w-full px-4 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
-            sending
-              ? 'bg-ds-accent text-ds-on-accent'
-              : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent'
-          }`}
+          className="ds-btn ds-btn--primary ds-btn--lg w-full"
         >
           <Play className="w-4 h-4" />
           {sending ? '¡Enviado!' : 'Enviar Test'}

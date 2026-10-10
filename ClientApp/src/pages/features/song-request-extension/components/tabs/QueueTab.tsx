@@ -264,7 +264,7 @@ function CtlButton({ onClick, icon, label, primary, disabled, title }: { onClick
             onClick={onClick}
             disabled={disabled}
             title={title}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-40 ${primary ? 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent' : 'bg-ds-raised text-ds-soft hover:bg-ds-raised '}`}
+            className={primary ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
         >
             {icon} {label}
         </button>
@@ -292,7 +292,7 @@ function BanMenu({ item, onBan }: { item: QueueItem; onBan: (item: QueueItem, ty
     const [open, setOpen] = useState(false);
     return (
         <div className="relative">
-            <button className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised hover:text-ds-danger" title={t('songRequest.queue.ban')} onClick={() => setOpen(o => !o)}>
+            <button className="ds-btn ds-btn--ghost ds-icon-btn" title={t('songRequest.queue.ban')} onClick={() => setOpen(o => !o)}>
                 <Ban className="w-4 h-4" />
             </button>
             {open && (

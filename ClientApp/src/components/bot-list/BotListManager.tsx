@@ -165,9 +165,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                         <button
                             key={v}
                             onClick={() => setView(v)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${view === v
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-surface border border-ds-border text-ds-text '}`}
+                            className={view === v ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {v === 'channel' ? 'Mi canal' : 'Catálogo global'}
                         </button>
@@ -240,9 +238,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                 <button
                                     key={c}
                                     onClick={() => setCategory(c)}
-                                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${category === c
-                                        ? 'bg-ds-accent border-ds-accent text-ds-on-accent'
-                                        : 'border-ds-border text-ds-soft '}`}
+                                    className={category === c ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                 >
                                     {c === 'all' ? 'Todas' : `${CATEGORY_LABELS[c] ?? c} (${counts[c]})`}
                                 </button>
@@ -284,7 +280,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                             </div>
                                             <button
                                                 onClick={() => setExpanded(open ? null : keyOf(b))}
-                                                className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised"
+                                                className="ds-btn ds-btn--ghost ds-icon-btn"
                                                 aria-label={open ? 'Ocultar efectos' : 'Ver efectos'}
                                                 aria-expanded={open}
                                             >
@@ -524,7 +520,7 @@ function CatalogEditor({ bots, onChanged, onError }: {
                                 {PLATFORM_LABELS[b.platform]} · @{b.username} · {CATEGORY_LABELS[b.category] ?? b.category}
                             </p>
                         </div>
-                        <button onClick={() => startEdit(b)} className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised" aria-label={`Editar a ${b.displayName}`}>
+                        <button onClick={() => startEdit(b)} className="ds-btn ds-btn--ghost ds-icon-btn" aria-label={`Editar a ${b.displayName}`}>
                             <Pencil className="w-4 h-4" />
                         </button>
                         <button onClick={() => remove(b)} className="p-2 rounded-lg text-ds-danger hover:bg-ds-danger/10" aria-label={`Quitar a ${b.displayName} del catálogo`}>

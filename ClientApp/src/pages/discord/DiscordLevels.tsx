@@ -279,11 +279,7 @@ export default function DiscordLevels() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
-                          activeTab === tab.id
-                            ? 'bg-ds-accent text-ds-on-accent shadow-blue-500/20'
-                            : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                        }`}
+                        className={activeTab === tab.id ? 'ds-btn ds-btn--primary whitespace-nowrap' : 'ds-btn ds-btn--secondary whitespace-nowrap'}
                       >
                         {tab.icon} {tab.label}
                       </button>

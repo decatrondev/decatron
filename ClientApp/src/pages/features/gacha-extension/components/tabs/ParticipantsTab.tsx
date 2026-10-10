@@ -499,7 +499,7 @@ export const ParticipantsTab: React.FC = () => {
                                                     </div>
                                                     {/* Rarity filters */}
                                                     <div className="flex gap-1.5 mb-3 flex-wrap">
-                                                        <button onClick={() => setInvFilter('all')} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${invFilter === 'all' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft'}`}>Todos</button>
+                                                        <button onClick={() => setInvFilter('all')} className={invFilter === 'all' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>Todos</button>
                                                         {RARITY_ORDER.map(r => {
                                                             const cfg = RARITY_CONFIG[r];
                                                             return (

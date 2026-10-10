@@ -312,11 +312,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                       <button
                         key={v.id}
                         onClick={() => onChange({ standardVoice: v.id })}
-                        className={`px-3 py-2 rounded-lg text-sm font-bold transition-all border ${
-                          config.standardVoice === v.id
-                            ? 'bg-ds-accent text-ds-on-accent border-transparent'
-                            : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-ok/40'
-                        }`}
+                        className={config.standardVoice === v.id ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                       >
                         {v.name}
                         <span className="block text-[10px] font-normal opacity-70">
@@ -343,11 +339,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                     <button
                       key={voice.id}
                       onClick={() => onChange({ voice: voice.id })}
-                      className={`px-3 py-2 rounded-lg text-sm font-bold transition-all border ${
-                        config.voice === voice.id
-                          ? 'bg-ds-accent text-ds-on-accent border-transparent'
-                          : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-accent'
-                      }`}
+                      className={config.voice === voice.id ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                       {voice.gender === 'Female' ? '👩' : '👨'} {voice.name}
                     </button>
@@ -375,11 +367,7 @@ export const TtsSection: React.FC<TtsSectionProps> = ({
                     <button
                       key={idx}
                       onClick={() => onChange({ template: preset.template })}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                        config.template === preset.template
-                          ? 'bg-ds-accent text-ds-on-accent border-transparent'
-                          : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-accent hover:text-ds-accent-text'
-                      }`}
+                      className={config.template === preset.template ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                     >
                       {preset.label}
                     </button>

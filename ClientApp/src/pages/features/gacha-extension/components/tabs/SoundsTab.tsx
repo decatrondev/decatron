@@ -151,9 +151,7 @@ export const SoundsTab: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setEnableSounds(!enableSounds)}
-                    className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                        enableSounds ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '
-                    }`}
+                    className={enableSounds ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     {enableSounds ? 'Activado' : 'Desactivado'}
                 </button>
@@ -306,11 +304,7 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                 </div>
                 <button
                     onClick={() => onUpdate({ enabled: !config.enabled })}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        config.enabled
-                            ? 'bg-ds-accent text-ds-on-accent'
-                            : 'bg-ds-raised text-ds-soft '
-                    }`}
+                    className={config.enabled ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                 >
                     {config.enabled ? 'ON' : 'OFF'}
                 </button>
@@ -335,11 +329,7 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                         <div className="flex rounded-lg overflow-hidden border border-ds-border">
                             <button
                                 onClick={() => onUpdate({ useDefault: true })}
-                                className={`px-3 py-1.5 text-xs font-bold transition-all ${
-                                    config.useDefault
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-surface text-ds-soft '
-                                }`}
+                                className={config.useDefault ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                             >
                                 Default
                             </button>
@@ -351,11 +341,7 @@ const SoundEventRow: React.FC<SoundEventRowProps> = ({
                                         onSelectCustom();
                                     }
                                 }}
-                                className={`px-3 py-1.5 text-xs font-bold transition-all ${
-                                    !config.useDefault
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-surface text-ds-soft '
-                                }`}
+                                className={!config.useDefault ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                             >
                                 Custom
                             </button>

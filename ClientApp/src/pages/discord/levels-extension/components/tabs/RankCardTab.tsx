@@ -598,11 +598,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                     <button
                       key={align}
                       onClick={() => updateElement(selected.id, { textAlign: align })}
-                      className={`flex-1 px-2 py-2 rounded-lg text-xs font-bold transition-all ${
-                        (selected.textAlign || 'left') === align
-                          ? 'bg-ds-accent text-ds-on-accent'
-                          : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                      }`}
+                      className={(selected.textAlign || 'left') === align ? 'ds-btn ds-btn--primary flex-1' : 'ds-btn ds-btn--secondary flex-1'}
                     >
                       {align === 'left' ? 'Izq' : align === 'center' ? 'Centro' : 'Der'}
                     </button>
@@ -828,13 +824,13 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         <div className="flex items-center gap-4">
           <button
             onClick={() => { setEditingMode('base'); setSelectedLevelRange(null); loadRankCard(); }}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editingMode === 'base' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft'}`}
+            className={editingMode === 'base' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
           >
             Card Base (todos)
           </button>
           <button
             onClick={() => setEditingMode('level')}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editingMode === 'level' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft'}`}
+            className={editingMode === 'level' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
           >
             Card por Nivel
           </button>
@@ -1063,11 +1059,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                 <button
                   key={el.id}
                   onClick={() => setSelectedElement(el.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    selectedElement === el.id
-                      ? 'bg-ds-accent text-ds-on-accent'
-                      : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                  }`}
+                  className={selectedElement === el.id ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                 >
                   {el.type === 'avatar' && <Image className="w-3 h-3" />}
                   {el.type === 'text' && <Type className="w-3 h-3" />}

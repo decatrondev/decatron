@@ -46,11 +46,7 @@ export default function GachaConfig() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
-                            activeTab === tab.id
-                                ? 'bg-ds-accent text-ds-on-accent shadow-blue-600/25'
-                                : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent '
-                        }`}
+                        className={activeTab === tab.id ? 'ds-btn ds-btn--primary whitespace-nowrap' : 'ds-btn ds-btn--secondary whitespace-nowrap'}
                     >
                         {tab.icon}
                         {tab.label}

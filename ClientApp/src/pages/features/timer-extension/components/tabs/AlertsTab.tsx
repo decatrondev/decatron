@@ -554,11 +554,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                         <button
                                                             key={opt.val}
                                                             onClick={() => updateGlobalConfig({ style: { ...alertsConfig.global.style, iconShape: opt.val } })}
-                                                            className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                                                (alertsConfig.global.style.iconShape || 'rounded') === opt.val
-                                                                    ? 'bg-ds-accent text-ds-on-accent '
-                                                                    : 'text-ds-soft hover:bg-ds-bg '
-                                                            }`}
+                                                            className={(alertsConfig.global.style.iconShape || 'rounded') === opt.val ? 'ds-btn ds-btn--primary ds-btn--sm flex-1' : 'ds-btn ds-btn--secondary ds-btn--sm flex-1'}
                                                         >
                                                             {opt.icon}
                                                         </button>
@@ -590,11 +586,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                         key={opt.val}
                                                         onClick={() => updateGlobalConfig({ style: { ...alertsConfig.global.style, layout: opt.val } })}
                                                         title={opt.title}
-                                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                                            (alertsConfig.global.style.layout || 'column') === opt.val
-                                                                ? 'bg-ds-accent text-ds-on-accent '
-                                                                : 'text-ds-soft hover:bg-ds-bg '
-                                                        }`}
+                                                        className={(alertsConfig.global.style.layout || 'column') === opt.val ? 'ds-btn ds-btn--primary ds-btn--sm flex-1' : 'ds-btn ds-btn--secondary ds-btn--sm flex-1'}
                                                     >
                                                         {opt.label}
                                                     </button>
@@ -615,11 +607,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                                                         <button
                                                             key={opt.val}
                                                             onClick={() => updateGlobalConfig({ style: { ...alertsConfig.global.style, align: opt.val } })}
-                                                            className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                                                (alertsConfig.global.style.align || 'center') === opt.val
-                                                                    ? 'bg-ds-accent text-ds-on-accent '
-                                                                    : 'text-ds-soft hover:bg-ds-bg '
-                                                            }`}
+                                                            className={(alertsConfig.global.style.align || 'center') === opt.val ? 'ds-btn ds-btn--primary ds-btn--sm flex-1' : 'ds-btn ds-btn--secondary ds-btn--sm flex-1'}
                                                         >
                                                             {opt.icon}
                                                         </button>

@@ -154,22 +154,14 @@ export default function TtsLab() {
                         <button
                             key={f}
                             onClick={() => changeLang(f)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                                lang === f
-                                    ? 'bg-ds-accent text-ds-on-accent border-transparent'
-                                    : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-accent'
-                            }`}
+                            className={lang === f ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                         >
                             {LANG_LABEL[f] ?? f} ({voices.filter(v => v.language.startsWith(f)).length})
                         </button>
                     ))}
                     <button
                         onClick={() => setLang('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
-                            lang === 'all'
-                                ? 'bg-ds-accent text-ds-on-accent border-transparent'
-                                : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-accent'
-                        }`}
+                        className={lang === 'all' ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                     >
                         Todas ({voices.length})
                     </button>

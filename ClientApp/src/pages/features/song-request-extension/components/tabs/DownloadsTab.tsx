@@ -242,7 +242,7 @@ export default function DownloadsTab({ initialInput, onInputConsumed }: { initia
                                     <div className="flex flex-wrap gap-1.5">
                                         {probe.info.subtitles.map(l => (
                                             <button key={l} onClick={() => setSubs(v => v.includes(l) ? v.filter(x => x !== l) : v.length >= 5 ? v : [...v, l])}
-                                                className={`px-2.5 py-1 rounded-lg text-xs 3xl:text-sm font-mono font-bold ${subs.includes(l) ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}>
+                                                className={subs.includes(l) ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>
                                                 {l}
                                             </button>
                                         ))}

@@ -378,11 +378,7 @@ export const OverlayTab: React.FC<OverlayTabProps> = ({
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setSnapToGrid(!snapToGrid)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                                snapToGrid
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-bg text-ds-soft border border-ds-border '
-                            }`}
+                            className={snapToGrid ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             <Grid3x3 className="w-4 h-4" />
                             Grid {snapToGrid ? 'ON' : 'OFF'}

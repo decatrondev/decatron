@@ -61,7 +61,7 @@ export const IntegrationsTab: React.FC = () => {
     };
 
     const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
-        <button onClick={() => onChange(!checked)} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${checked ? 'bg-ds-accent text-ds-on-accent shadow-green-600/25' : 'bg-ds-raised text-ds-soft '}`}>
+        <button onClick={() => onChange(!checked)} className={checked ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>
             {checked ? 'Activado' : 'Desactivado'}
         </button>
     );
@@ -221,7 +221,7 @@ function Section({ icon, title, desc, enabled, onToggle, children }: { icon: Rea
                         <p className="text-xs text-ds-soft">{desc}</p>
                     </div>
                 </div>
-                <button onClick={() => onToggle(!enabled)} className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${enabled ? 'bg-ds-accent text-ds-on-accent shadow-green-600/25' : 'bg-ds-raised text-ds-soft '}`}>
+                <button onClick={() => onToggle(!enabled)} className={enabled ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}>
                     {enabled ? 'Activado' : 'Desactivado'}
                 </button>
             </div>

@@ -312,11 +312,7 @@ const TimerConfig = () => {
                                     <button
                                         key={tab.id}
                                         onClick={() => ui.setActiveTab(tab.id)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
-                                            ui.activeTab === tab.id
-                                                ? 'bg-ds-accent text-ds-on-accent'
-                                                : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
-                                        }`}
+                                        className={ui.activeTab === tab.id ? 'ds-btn ds-btn--primary ds-btn--sm whitespace-nowrap' : 'ds-btn ds-btn--secondary ds-btn--sm whitespace-nowrap'}
                                     >
                                         <TabIcon emoji={tab.icon} />{tab.label}
                                     </button>

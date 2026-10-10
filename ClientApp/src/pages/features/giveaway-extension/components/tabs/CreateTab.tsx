@@ -167,11 +167,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ allowAutoEntry: !config.allowAutoEntry })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                config.allowAutoEntry
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={config.allowAutoEntry ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {config.allowAutoEntry ? 'Activado' : 'Desactivado'}
                         </button>
@@ -187,11 +183,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                         </div>
                         <button
                             onClick={() => onUpdateConfig({ allowMultipleEntries: !config.allowMultipleEntries })}
-                            className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                                config.allowMultipleEntries
-                                    ? 'bg-ds-accent text-ds-on-accent'
-                                    : 'bg-ds-raised text-ds-soft '
-                            }`}
+                            className={config.allowMultipleEntries ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                         >
                             {config.allowMultipleEntries ? 'Activado' : 'Desactivado'}
                         </button>
@@ -204,11 +196,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                                 <p className="font-bold text-ds-text">Límite de Participantes</p>
                                 <button
                                     onClick={() => onUpdateConfig({ maxParticipantsEnabled: !config.maxParticipantsEnabled })}
-                                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                                        config.maxParticipantsEnabled
-                                            ? 'bg-ds-accent text-ds-on-accent'
-                                            : 'bg-ds-raised text-ds-soft '
-                                    }`}
+                                    className={config.maxParticipantsEnabled ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}
                                 >
                                     {config.maxParticipantsEnabled ? 'ON' : 'OFF'}
                                 </button>
@@ -258,11 +246,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                         <div className="flex gap-2">
                             <button
                                 onClick={() => onUpdateConfig({ hasBackupWinners: !config.hasBackupWinners })}
-                                className={`px-4 py-3 rounded-lg font-bold transition-all ${
-                                    config.hasBackupWinners
-                                        ? 'bg-ds-accent text-ds-on-accent'
-                                        : 'bg-ds-raised text-ds-soft '
-                                }`}
+                                className={config.hasBackupWinners ? 'ds-btn ds-btn--primary ds-btn--lg' : 'ds-btn ds-btn--secondary ds-btn--lg'}
                             >
                                 {config.hasBackupWinners ? 'Activado' : 'Desactivado'}
                             </button>
@@ -308,11 +292,7 @@ export const CreateTab: React.FC<CreateTabProps> = ({ config, onUpdateConfig }) 
                     </div>
                     <button
                         onClick={() => onUpdateConfig({ autoRerollOnTimeout: !config.autoRerollOnTimeout })}
-                        className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                            config.autoRerollOnTimeout
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'bg-ds-raised text-ds-soft '
-                        }`}
+                        className={config.autoRerollOnTimeout ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                     >
                         {config.autoRerollOnTimeout ? 'Activado' : 'Desactivado'}
                     </button>

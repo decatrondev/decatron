@@ -119,7 +119,7 @@ export default function AlertFormModal(props: AlertFormModalProps) {
                   <div className="flex gap-2">
                     {[1, 2, 3, 5].map(min => (
                       <button key={min} onClick={() => setDelayMinutes(min)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${delayMinutes === min ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft border border-ds-border '}`}>
+                        className={delayMinutes === min ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>
                         {min} min
                       </button>
                     ))}
@@ -134,7 +134,7 @@ export default function AlertFormModal(props: AlertFormModalProps) {
               <div className="flex gap-2">
                 {[10, 15, 20, 30].map(min => (
                   <button key={min} onClick={() => setUpdateInterval(min)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${updateInterval === min ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft border border-ds-border '}`}>
+                    className={updateInterval === min ? 'ds-btn ds-btn--primary ds-btn--sm' : 'ds-btn ds-btn--secondary ds-btn--sm'}>
                     {min} min
                   </button>
                 ))}

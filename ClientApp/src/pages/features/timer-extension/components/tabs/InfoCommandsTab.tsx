@@ -189,11 +189,7 @@ const InfoCommandCard: React.FC<{
                                         key={value}
                                         onClick={() => onChange({ ...cfg, permissionLevel: value })}
                                         title={desc}
-                                        className={`px-2 py-2 rounded-lg text-[10px] font-semibold border transition-all text-center ${
-                                            cfg.permissionLevel === value
-                                                ? 'bg-ds-accent border-ds-accent text-ds-on-accent'
-                                                : 'bg-ds-surface border-ds-border text-ds-soft hover:border-ds-accent'
-                                        }`}
+                                        className={cfg.permissionLevel === value ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                     >
                                         {label}
                                     </button>

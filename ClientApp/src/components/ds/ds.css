@@ -19,21 +19,21 @@
 .ds-btn--block { width: 100%; }
 .ds-btn svg { width: 1.15em; height: 1.15em; flex: none; }
 
-.ds-btn--primary { background: var(--ds-accent); color: var(--ds-on-accent); }
-.ds-btn--primary:hover, .ds-btn--primary.is-hover { background: var(--ds-accent-hover); }
-.ds-btn--primary:active, .ds-btn--primary.is-active { background: var(--ds-accent); opacity: .85; }
+.ds-btn.ds-btn--primary { background: var(--ds-accent); color: var(--ds-on-accent); }
+.ds-btn.ds-btn--primary:hover, .ds-btn.ds-btn--primary.is-hover { background: var(--ds-accent-hover); }
+.ds-btn.ds-btn--primary:active, .ds-btn.ds-btn--primary.is-active { background: var(--ds-accent); opacity: .85; }
 
-.ds-btn--secondary { background: transparent; color: var(--ds-text); border-color: var(--ds-border); }
-.ds-btn--secondary:hover, .ds-btn--secondary.is-hover { border-color: color-mix(in srgb, var(--ds-accent) 60%, transparent); background: var(--ds-raised); }
-.ds-btn--secondary:active, .ds-btn--secondary.is-active { background: var(--ds-surface); }
+.ds-btn.ds-btn--secondary { background: transparent; color: var(--ds-text); border-color: var(--ds-border); }
+.ds-btn.ds-btn--secondary:hover, .ds-btn.ds-btn--secondary.is-hover { border-color: color-mix(in srgb, var(--ds-accent) 60%, transparent); background: var(--ds-raised); }
+.ds-btn.ds-btn--secondary:active, .ds-btn.ds-btn--secondary.is-active { background: var(--ds-surface); }
 
-.ds-btn--ghost { background: transparent; color: var(--ds-soft); }
-.ds-btn--ghost:hover, .ds-btn--ghost.is-hover { color: var(--ds-text); background: var(--ds-raised); }
-.ds-btn--ghost:active, .ds-btn--ghost.is-active { background: var(--ds-surface); }
+.ds-btn.ds-btn--ghost { background: transparent; color: var(--ds-soft); }
+.ds-btn.ds-btn--ghost:hover, .ds-btn.ds-btn--ghost.is-hover { color: var(--ds-text); background: var(--ds-raised); }
+.ds-btn.ds-btn--ghost:active, .ds-btn.ds-btn--ghost.is-active { background: var(--ds-surface); }
 
-.ds-btn--danger { background: var(--ds-danger-solid); color: #fff; }
-.ds-btn--danger:hover, .ds-btn--danger.is-hover { background: var(--ds-danger-hover); }
-.ds-btn--danger:active, .ds-btn--danger.is-active { opacity: .85; }
+.ds-btn.ds-btn--danger { background: var(--ds-danger-solid); color: #fff; }
+.ds-btn.ds-btn--danger:hover, .ds-btn.ds-btn--danger.is-hover { background: var(--ds-danger-hover); }
+.ds-btn.ds-btn--danger:active, .ds-btn.ds-btn--danger.is-active { opacity: .85; }
 
 .ds-btn:focus-visible, .ds-btn.is-focus, .ds-input:focus-visible, .ds-tab:focus-visible, .ds-seg button:focus-visible, .ds-switch:focus-visible, .ds-check input:focus-visible + span {
     outline: 2px solid color-mix(in srgb, var(--ds-accent) 70%, transparent); outline-offset: 2px;
@@ -71,9 +71,9 @@ textarea.ds-input { height: auto; min-height: 96px; padding: 10px 12px; line-hei
 select.ds-input { appearance: none; padding-right: 36px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b93a3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; }
 
 /* ── Interruptor, casilla, radio ──────────────────────── */
-.ds-switch { position: relative; width: 40px; height: 24px; flex: none; border-radius: 999px; border: var(--ds-border-w) solid var(--ds-border); background: var(--ds-border); cursor: pointer; padding: 0; transition: background-color .15s; }
+button.ds-switch, .ds-switch { position: relative; width: 40px; height: 24px; flex: none; border-radius: 999px; border: var(--ds-border-w) solid var(--ds-border); background-color: var(--ds-border); cursor: pointer; padding: 0; transition: background-color .15s; }
 .ds-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
-.ds-switch[aria-checked="true"] { background: var(--ds-accent); border-color: var(--ds-accent); }
+button.ds-switch[aria-checked="true"], .ds-switch[aria-checked="true"] { background: var(--ds-accent); border-color: var(--ds-accent); }
 .ds-switch[aria-checked="true"]::after { transform: translateX(16px); }
 .ds-switch:disabled { opacity: .5; cursor: not-allowed; }
 .ds-check { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; color: var(--ds-text); }

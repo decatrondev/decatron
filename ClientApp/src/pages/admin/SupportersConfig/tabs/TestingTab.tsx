@@ -142,22 +142,14 @@ export function TestingTab({ tierDurations, setTierDurations, onSaveDurations }:
                         <div className="flex items-center gap-3 mb-4">
                             <button
                                 onClick={() => setDur({ isPermanent: false })}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold border-2 transition-all ${
-                                    !cur.isPermanent
-                                        ? 'bg-ds-accent text-ds-on-accent border-transparent shadow'
-                                        : 'bg-ds-surface text-ds-soft border-ds-border '
-                                }`}
+                                className={!cur.isPermanent ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
                                 <Clock className="w-4 h-4 inline mr-1.5" />
                                 Personalizada
                             </button>
                             <button
                                 onClick={() => setDur({ isPermanent: true })}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold border-2 transition-all ${
-                                    cur.isPermanent
-                                        ? 'bg-ds-accent text-ds-on-accent border-transparent shadow'
-                                        : 'bg-ds-surface text-ds-soft border-ds-border '
-                                }`}
+                                className={cur.isPermanent ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                             >
                                 ∞ Permanente
                             </button>

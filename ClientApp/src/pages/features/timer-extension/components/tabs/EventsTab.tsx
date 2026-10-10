@@ -121,11 +121,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                         <button
                             key={category.key}
                             onClick={() => setSelectedCategory(category.key)}
-                            className={`px-4 py-3 rounded-lg text-sm font-bold transition-all border-2 ${
-                                selectedCategory === category.key
-                                    ? 'bg-ds-accent text-ds-on-accent border-ds-accent '
-                                    : 'bg-ds-bg text-ds-text border-transparent hover:border-ds-faint'
-                            }`}
+                            className={selectedCategory === category.key ? 'ds-btn ds-btn--primary ds-btn--lg' : 'ds-btn ds-btn--secondary ds-btn--lg'}
                         >
                             {category.icon} {category.label}
                         </button>
@@ -143,11 +139,7 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                                 <button
                                     key={tier.key}
                                     onClick={() => setSelectedSubTier(tier.key)}
-                                    className={`px-3 py-2 rounded text-xs font-bold transition-all border ${
-                                        selectedSubTier === tier.key
-                                            ? 'bg-ds-accent text-ds-on-accent border-ds-accent'
-                                            : 'bg-ds-surface text-ds-soft border-ds-border hover:border-ds-faint'
-                                    }`}
+                                    className={selectedSubTier === tier.key ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                 >
                                     <div>{tier.icon}</div>
                                     <div>{tier.label}</div>

@@ -227,7 +227,7 @@ export const RarityRestrictionsTab: React.FC = () => {
                                 </select>
                             </div>
                             <div className="flex items-end">
-                                <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={`w-full px-4 py-3 rounded-lg font-bold transition-all ${form.isActive ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}>
+                                <button onClick={() => setForm({ ...form, isActive: !form.isActive })} className={form.isActive ? 'ds-btn ds-btn--primary ds-btn--lg w-full' : 'ds-btn ds-btn--secondary ds-btn--lg w-full'}>
                                     {form.isActive ? 'Activo' : 'Inactivo'}
                                 </button>
                             </div>

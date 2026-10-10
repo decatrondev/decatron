@@ -739,7 +739,7 @@ interface TimerSessionBasic {
                         <button
                             onClick={() => handleTimerControl('start', defaultDuration)}
                             disabled={isTimerActive}
-                            className={`py-3 text-ds-on-accent rounded-lg transition-all flex flex-col items-center justify-center gap-1 font-bold ${isTimerActive ? 'bg-ds-bg text-ds-soft cursor-not-allowed border border-ds-border ' : 'bg-ds-accent hover:bg-ds-accent-hover hover:-translate-y-0.5 hover:shadow-green-500/20'}`}
+                            className={isTimerActive ? 'ds-btn ds-btn--secondary ds-btn--lg' : 'ds-btn ds-btn--primary ds-btn--lg'}
                         >
                             <Play className="w-5 h-5" />
                             <span className="text-xs">{isTimerActive ? 'En Curso' : 'Iniciar'}</span>
@@ -810,7 +810,7 @@ interface TimerSessionBasic {
                     />
                     <button
                         onClick={handleCopy}
-                        className={`px-6 py-2 text-ds-on-accent rounded-lg transition-all flex items-center justify-center gap-2 font-bold whitespace-nowrap min-w-[120px] ${copied ? 'bg-ds-accent scale-105' : 'bg-ds-accent hover:bg-ds-accent-hover'}`}
+                        className="ds-btn ds-btn--primary whitespace-nowrap min-w-[120px]"
                     >
                         {copied ? '¡Copiado!' : <><Copy className="w-4 h-4" /> Copiar</>}
                     </button>

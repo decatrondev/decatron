@@ -261,19 +261,19 @@ export default function DecatronAIConfig() {
             <div className="flex gap-2">
                 <button
                     onClick={() => setActiveTab('config')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'config' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
+                    className={activeTab === 'config' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     <Settings className="w-4 h-4" /> {t('decatronAI.tabs.config')}
                 </button>
                 <button
                     onClick={() => setActiveTab('users')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'users' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
+                    className={activeTab === 'users' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     <Users className="w-4 h-4" /> {t('decatronAI.tabs.users')}
                 </button>
                 <button
                     onClick={() => setActiveTab('stats')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${activeTab === 'stats' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-surface text-ds-soft border border-ds-border hover:border-ds-accent'}`}
+                    className={activeTab === 'stats' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                 >
                     <BarChart3 className="w-4 h-4" /> {t('decatronAI.tabs.stats')}
                 </button>

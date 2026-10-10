@@ -137,9 +137,7 @@ export default function ChatOverlayConfig() {
                                     <button
                                         key={item.id}
                                         onClick={() => setTab(item.id)}
-                                        className={`px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold whitespace-nowrap transition-all ${tab === item.id
-                                            ? 'bg-ds-accent text-ds-on-accent'
-                                            : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '}`}
+                                        className={tab === item.id ? 'ds-btn ds-btn--primary ds-btn--sm whitespace-nowrap' : 'ds-btn ds-btn--secondary ds-btn--sm whitespace-nowrap'}
                                     >
                                         <TabIcon emoji={item.icon} />{t(`chat.tabs.${item.id}`)}
                                     </button>

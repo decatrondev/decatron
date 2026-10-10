@@ -142,22 +142,14 @@ export function CodesTab() {
                                 <div className="flex rounded-lg border border-ds-border overflow-hidden shrink-0">
                                     <button
                                         onClick={() => setForm(f => ({ ...f, discountType: 'percent' }))}
-                                        className={`px-3 py-2 text-sm font-bold flex items-center gap-1 transition-colors ${
-                                            form.discountType === 'percent'
-                                                ? 'bg-ds-accent text-ds-on-accent'
-                                                : 'bg-ds-bg text-ds-soft '
-                                        }`}
+                                        className={form.discountType === 'percent' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                     >
                                         <Percent className="w-3.5 h-3.5" />
                                         %
                                     </button>
                                     <button
                                         onClick={() => setForm(f => ({ ...f, discountType: 'fixed' }))}
-                                        className={`px-3 py-2 text-sm font-bold flex items-center gap-1 transition-colors ${
-                                            form.discountType === 'fixed'
-                                                ? 'bg-ds-accent text-ds-on-accent'
-                                                : 'bg-ds-bg text-ds-soft '
-                                        }`}
+                                        className={form.discountType === 'fixed' ? 'ds-btn ds-btn--primary' : 'ds-btn ds-btn--secondary'}
                                     >
                                         <DollarSign className="w-3.5 h-3.5" />
                                         USD

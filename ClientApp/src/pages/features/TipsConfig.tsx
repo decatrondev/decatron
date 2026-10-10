@@ -515,11 +515,7 @@ export default function TipsConfig() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-                            activeTab === tab.id
-                                ? 'bg-ds-accent text-ds-on-accent'
-                                : 'text-ds-soft hover:bg-ds-bg '
-                        }`}
+                        className={activeTab === tab.id ? 'ds-btn ds-btn--primary whitespace-nowrap' : 'ds-btn ds-btn--secondary whitespace-nowrap'}
                     >
                         {tab.icon}
                         {tab.label}

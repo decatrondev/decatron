@@ -36,7 +36,7 @@ export default function CategoryCard({ category, list, page, onPage, editingKey,
                                 {!item.hidden && (
                                     <button
                                         onClick={() => onEditingKey(editingKey === item.key ? null : item.key)}
-                                        className="shrink-0 p-1 rounded hover:bg-ds-raised text-ds-faint hover:text-ds-accent-text transition-colors"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm shrink-0"
                                         title="Descripción pública"
                                         aria-label="Descripción pública"
                                     >

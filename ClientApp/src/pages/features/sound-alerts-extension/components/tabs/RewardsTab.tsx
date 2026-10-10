@@ -198,7 +198,7 @@ export function RewardsTab({
                                     <button
                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                         disabled={safePage === 1}
-                                        className="p-1.5 rounded-md border border-ds-border text-ds-soft hover:bg-ds-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </button>
@@ -206,11 +206,7 @@ export function RewardsTab({
                                         <button
                                             key={page}
                                             onClick={() => setCurrentPage(page)}
-                                            className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${
-                                                safePage === page
-                                                    ? 'bg-ds-accent text-ds-on-accent'
-                                                    : 'text-ds-soft hover:bg-ds-bg '
-                                            }`}
+                                            className={safePage === page ? 'ds-btn ds-btn--primary w-8' : 'ds-btn ds-btn--secondary w-8'}
                                         >
                                             {page}
                                         </button>
@@ -218,7 +214,7 @@ export function RewardsTab({
                                     <button
                                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                         disabled={safePage === totalPages}
-                                        className="p-1.5 rounded-md border border-ds-border text-ds-soft hover:bg-ds-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="ds-btn ds-btn--ghost ds-icon-btn ds-btn--sm"
                                     >
                                         <ChevronRight className="w-4 h-4" />
                                     </button>
