@@ -39,7 +39,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
     return (
         <>
             <div className={cardClass}>
-                <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-ds-text mb-4 flex items-center gap-2">
                     <DollarSign className="w-5 h-5" />
                     {t('tipsTabs.amountConfig')}
                 </h3>
@@ -96,14 +96,14 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                                         newAmounts[idx] = parseFloat(e.target.value) || 0;
                                         setSuggestedAmountsArray(newAmounts);
                                     }}
-                                    className="w-20 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-center"
+                                    className="w-20 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-center"
                                 />
                                 <button
                                     onClick={() => {
                                         const newAmounts = getSuggestedAmountsArray().filter((_, i) => i !== idx);
                                         setSuggestedAmountsArray(newAmounts);
                                     }}
-                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                    className="p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -112,7 +112,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                         {getSuggestedAmountsArray().length < 6 && (
                             <button
                                 onClick={() => setSuggestedAmountsArray([...getSuggestedAmountsArray(), 10])}
-                                className="px-4 py-2 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] hover:border-purple-400 hover:text-purple-500 transition-all"
+                                className="px-4 py-2 border-2 border-dashed border-ds-border rounded-lg text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-all"
                             >
                                 {t('tipsTabs.addAmount')}
                             </button>
@@ -125,10 +125,10 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
             <div className={cardClass}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                        <h3 className="text-lg font-bold text-ds-text">
                             {t('tipsTabs.enableTips')}
                         </h3>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm text-ds-soft">
                             {t('tipsTabs.enableTipsDesc')}
                         </p>
                     </div>
@@ -139,7 +139,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
                             onChange={e => updateSettings({ isEnabled: e.target.checked })}
                             className="sr-only peer"
                         />
-                        <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-500"></div>
+                        <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-accent rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
                     </label>
                 </div>
             </div>

@@ -24,8 +24,8 @@ function useSection(cfg: ChatOverlayConfigState) {
         cfg.update({ ...cfg.config, [section]: { ...(cfg.config[section] as object), ...(patch as object) } } as ChatOverlayConfig);
 }
 
-const choice = (active: boolean) => `px-3 py-2.5 rounded-xl text-sm 3xl:text-base font-bold border transition-colors ${active ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#2563eb] dark:text-[#93c5fd]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#2563eb]'}`;
-const btnGray = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] disabled:opacity-50 flex items-center gap-2';
+const choice = (active: boolean) => `px-3 py-2.5 rounded-lg text-sm 3xl:text-base font-bold border transition-colors ${active ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text ' : 'border-ds-border text-ds-soft hover:border-ds-accent'}`;
+const btnGray = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors bg-ds-raised text-ds-soft hover:bg-ds-raised disabled:opacity-50 flex items-center gap-2';
 
 /** Lista de textos con chips (usuarios, palabras, canales) */
 function TagInput({ values, onChange, placeholder, normalize }: { values: string[]; onChange: (v: string[]) => void; placeholder: string; normalize?: (s: string) => string }) {
@@ -47,14 +47,14 @@ function TagInput({ values, onChange, placeholder, normalize }: { values: string
                     onChange={e => setText(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
                 />
-                <button type="button" onClick={add} className="px-4 py-2 rounded-lg text-sm font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white shrink-0">{t('chat.add')}</button>
+                <button type="button" onClick={add} className="px-4 py-2 rounded-lg text-sm font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shrink-0">{t('chat.add')}</button>
             </div>
             {values.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                     {values.map(v => (
-                        <span key={v} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1]">
+                        <span key={v} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft">
                             {v}
-                            <button type="button" onClick={() => onChange(values.filter(x => x !== v))} aria-label={t('chat.remove', { name: v })} className="p-0.5 rounded-full hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">
+                            <button type="button" onClick={() => onChange(values.filter(x => x !== v))} aria-label={t('chat.remove', { name: v })} className="p-0.5 rounded-full hover:bg-ds-raised">
                                 <X className="w-3.5 h-3.5" />
                             </button>
                         </span>
@@ -104,9 +104,9 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Cha
                     copiedLabel={t('chat.guide.copied')}
                 />
                 {bothLinked && (
-                    <div className="mt-5 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                        <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8]">{t('chat.guide.advancedTitle')}</p>
-                        <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1 mb-3">{t('chat.guide.perPlatform')}</p>
+                    <div className="mt-5 pt-4 border-t border-ds-border">
+                        <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-ds-soft">{t('chat.guide.advancedTitle')}</p>
+                        <p className="text-xs 3xl:text-sm text-ds-soft mt-1 mb-3">{t('chat.guide.perPlatform')}</p>
                         <div className="space-y-3">
                             <LinkRow url={`${cfg.overlayUrl}&source=twitch`} name={t('chat.guide.linkTwitch')} connected={connected(status.twitch)} loaded={loaded} copyLabel={t('chat.guide.copy')} copiedLabel={t('chat.guide.copied')} />
                             <LinkRow url={`${cfg.overlayUrl}&source=kick`} name={t('chat.guide.linkKick')} connected={connected(status.kick)} loaded={loaded} copyLabel={t('chat.guide.copy')} copiedLabel={t('chat.guide.copied')} />
@@ -120,7 +120,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Cha
                     <Warning title={t('chat.guide.warnRepeatedTitle')} text={t('chat.guide.warnRepeated')} />
                 )}
                 {!bothLinked && cfg.channel.hasTwitch !== cfg.channel.hasKick && (
-                    <p className="mt-4 text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('chat.guide.linkOtherHint')}</p>
+                    <p className="mt-4 text-xs 3xl:text-sm text-ds-soft">{t('chat.guide.linkOtherHint')}</p>
                 )}
             </Card>
 
@@ -130,20 +130,20 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Cha
                         <Send className="w-4 h-4" />
                         {t('chat.guide.testButton')}
                     </button>
-                    {test.state === 'ok' && <span className="text-sm font-semibold text-green-600 dark:text-green-400">{t('chat.guide.testOk')}</span>}
-                    {test.state === 'none' && <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">{t('chat.guide.testNone')}</span>}
-                    {test.state === 'error' && <span className="text-sm font-semibold text-red-600 dark:text-red-400">{t('chat.guide.testError')}</span>}
+                    {test.state === 'ok' && <span className="text-sm font-semibold text-ds-ok">{t('chat.guide.testOk')}</span>}
+                    {test.state === 'none' && <span className="text-sm font-semibold text-ds-warn">{t('chat.guide.testNone')}</span>}
+                    {test.state === 'error' && <span className="text-sm font-semibold text-ds-danger">{t('chat.guide.testError')}</span>}
                 </div>
             </Card>
 
             <Card title={t('chat.guide.stepsTitle')}>
-                <ol className="space-y-3 list-decimal list-inside text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc]">
+                <ol className="space-y-3 list-decimal list-inside text-sm 3xl:text-base text-ds-text">
                     {steps.map(s => <li key={s}>{t(`chat.guide.${s}`)}</li>)}
                 </ol>
             </Card>
 
             <Card title={t('chat.guide.goodToKnowTitle')}>
-                <ul className="space-y-2 list-disc list-inside text-sm 3xl:text-base text-[#475569] dark:text-[#cbd5e1]">
+                <ul className="space-y-2 list-disc list-inside text-sm 3xl:text-base text-ds-soft">
                     <li>{t('chat.guide.noteBot')}</li>
                     <li>{t('chat.guide.noteShared')}</li>
                     <li>{t('chat.guide.noteKick')}</li>
@@ -203,7 +203,7 @@ export function BubblesTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: C
     return (
         <Stack>
             {c.mode !== 'bubbles' && (
-                <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-sm 3xl:text-base text-amber-800 dark:text-amber-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-sm 3xl:text-base text-ds-warn flex flex-wrap items-center justify-between gap-3">
                     <span>{t('chat.bubbles.inactive')}</span>
                     <button type="button" className={btnGray} onClick={() => cfg.update({ ...c, mode: 'bubbles' })}>{t('chat.bubbles.activate')}</button>
                 </div>
@@ -370,8 +370,8 @@ export function EmotesTab({ cfg }: TabProps) {
                     <Toggle checked={c.emotes.globals} onChange={v => set('emotes', { globals: v })} label={t('chat.emotes.globals')} hint={t('chat.emotes.globalsHint')} />
                     <Toggle checked={c.emotes.sharedChannels} onChange={v => set('emotes', { sharedChannels: v })} label={t('chat.emotes.sharedChannels')} hint={t('chat.emotes.sharedChannelsHint')} />
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-4">{t('chat.emotes.nativeNote')}</p>
-                <div className="mt-3"><a href="/features/emotes" className="text-sm font-bold text-[#2563eb] dark:text-[#93c5fd] hover:underline">{t('chat.emotes.manageOwn')}</a></div>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-4">{t('chat.emotes.nativeNote')}</p>
+                <div className="mt-3"><a href="/features/emotes" className="text-sm font-bold text-ds-accent-text hover:underline">{t('chat.emotes.manageOwn')}</a></div>
                 <div className="mt-4">
                     <button type="button" className={btnGray} disabled={cfg.emotesLoading} onClick={() => cfg.refreshEmotes()}>
                         <RefreshCw className={`w-4 h-4 ${cfg.emotesLoading ? 'animate-spin' : ''}`} />
@@ -387,7 +387,7 @@ export function EmotesTab({ cfg }: TabProps) {
             <Card title={t('chat.emotes.hiddenTitle')} description={t('chat.emotes.hiddenDescription')}>
                 <input className={inputClass} value={search} placeholder={t('chat.emotes.search')} onChange={e => setSearch(e.target.value)} />
                 {c.emotes.hidden.length > 0 && (
-                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-3">{t('chat.emotes.hiddenCount', { count: c.emotes.hidden.length })}: {c.emotes.hidden.join(', ')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('chat.emotes.hiddenCount', { count: c.emotes.hidden.length })}: {c.emotes.hidden.join(', ')}</p>
                 )}
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2 mt-4 max-h-[360px] overflow-y-auto">
                     {shown.map(e => (
@@ -396,13 +396,13 @@ export function EmotesTab({ cfg }: TabProps) {
                             type="button"
                             title={e.name}
                             onClick={() => toggleHidden(e.name)}
-                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${hidden.has(e.name) ? 'border-red-400 bg-red-50 dark:bg-red-900/20 opacity-60' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
+                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${hidden.has(e.name) ? 'border-ds-danger/40 bg-ds-danger/10 opacity-60' : 'border-ds-border hover:border-ds-accent'}`}
                         >
                             <img src={e.url} alt={e.name} loading="lazy" className="h-8 w-auto object-contain" />
-                            <span className="text-[10px] w-full truncate text-[#64748b] dark:text-[#94a3b8]">{e.name}</span>
+                            <span className="text-[10px] w-full truncate text-ds-soft">{e.name}</span>
                         </button>
                     ))}
-                    {shown.length === 0 && <p className="col-span-full text-sm text-[#64748b] dark:text-[#94a3b8]">{cfg.emotesLoading ? t('chat.emotes.loading') : t('chat.emotes.none')}</p>}
+                    {shown.length === 0 && <p className="col-span-full text-sm text-ds-soft">{cfg.emotesLoading ? t('chat.emotes.loading') : t('chat.emotes.none')}</p>}
                 </div>
             </Card>
         </Stack>
@@ -470,7 +470,7 @@ export function ThemeTab({ cfg }: TabProps) {
     return (
         <Stack>
             {c.mode === 'bubbles' && (
-                <div className="p-4 rounded-xl border border-[#bfdbfe] dark:border-[#1e3a8a] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 text-sm 3xl:text-base text-[#1e40af] dark:text-[#93c5fd]">{t('chat.theme.bubblesNote')}</div>
+                <div className="p-4 rounded-lg border border-ds-accent bg-ds-accent/10 text-sm 3xl:text-base text-ds-accent-text">{t('chat.theme.bubblesNote')}</div>
             )}
             <Card title={t('chat.theme.presetsTitle')} description={t('chat.theme.presetsDescription')}>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
@@ -602,7 +602,7 @@ function ZonesEditor({ cfg }: TabProps) {
             title={t('chat.bubbles.editorTitle')}
             description={t('chat.bubbles.editorDescription')}
             notice={allowCount === 0
-                ? <div className="p-3 rounded-xl border border-[#bfdbfe] dark:border-[#1e3a8a] bg-[#eff6ff] dark:bg-[#1e3a8a]/20 text-sm text-[#1e40af] dark:text-[#93c5fd]">{t('chat.bubbles.noAllow')}</div>
+                ? <div className="p-3 rounded-lg border border-ds-accent bg-ds-accent/10 text-sm text-ds-accent-text">{t('chat.bubbles.noAllow')}</div>
                 : undefined}
             elements={zones.map(z => ({ id: z.id, label: labelOf(z), enabled: true, toggleable: false, x: z.x, y: z.y, width: z.width, height: z.height }))}
             onRectChange={(id, patch) => setZones(zones.map(z => (z.id === id ? { ...z, ...patch } : z)))}

@@ -69,22 +69,22 @@ export function RewardsTab({
 
     return (
         <div className="space-y-6">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 3xl:p-6 shadow-lg">
-                <h3 className="text-base 3xl:text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-1 flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-[#2563eb]" />
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-5 3xl:p-6">
+                <h3 className="text-base 3xl:text-lg font-bold text-ds-text mb-1 flex items-center gap-2">
+                    <Gift className="w-5 h-5 text-ds-accent-text" />
                     {t('soundAlertsTabs.manageAlertFiles')}
                 </h3>
-                <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] mb-4">
+                <p className="text-sm 3xl:text-base text-ds-soft mb-4">
                     {t('soundAlertsTabs.manageAlertFilesDesc')}. También puedes arrastrar un archivo directo sobre una recompensa para asignarlo.
                 </p>
 
                 {rewards.length === 0 ? (
-                    <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-8 text-center">
-                        <Gift className="w-12 h-12 text-[#64748b] dark:text-[#94a3b8] mx-auto mb-3" />
-                        <p className="text-[#64748b] dark:text-[#94a3b8] font-semibold">
+                    <div className="bg-ds-bg rounded-lg border border-ds-border p-8 text-center">
+                        <Gift className="w-12 h-12 text-ds-soft mx-auto mb-3" />
+                        <p className="text-ds-soft font-semibold">
                             {t('soundAlertsTabs.noRewards')}
                         </p>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] text-sm mt-1">
+                        <p className="text-ds-soft text-sm mt-1">
                             {t('soundAlertsTabs.createRewardsFirst')}
                         </p>
                     </div>
@@ -99,24 +99,24 @@ export function RewardsTab({
                                 return (
                                     <div
                                         key={reward.id}
-                                        className={`rounded-xl border-2 p-4 transition-all ${
-                                            isDragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10' : 'border-[#e2e8f0] dark:border-[#374151]'
-                                        } bg-[#f8fafc] dark:bg-[#262626]`}
+                                        className={`rounded-lg border-2 p-4 transition-all ${
+                                            isDragOver ? 'border-ds-accent bg-ds-accent/10 ' : 'border-ds-border '
+                                        } bg-ds-bg `}
                                         onDragOver={(e) => { e.preventDefault(); setDragOverRewardId(reward.id); }}
                                         onDragLeave={() => setDragOverRewardId(null)}
                                         onDrop={(e) => handleDrop(e, reward)}
                                     >
                                         <div className="flex items-center gap-2 mb-3">
                                             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: reward.background_color }} />
-                                            <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] truncate flex-1">
+                                            <h4 className="text-sm font-bold text-ds-text truncate flex-1">
                                                 {reward.title}
                                             </h4>
-                                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8] shrink-0">{reward.cost} pts</span>
+                                            <span className="text-xs text-ds-soft shrink-0">{reward.cost} pts</span>
                                         </div>
 
                                         {file ? (
                                             <>
-                                                <div className="aspect-video bg-white dark:bg-[#1B1C1D] rounded-lg mb-2 flex items-center justify-center overflow-hidden border border-[#e2e8f0] dark:border-[#374151]">
+                                                <div className="aspect-video bg-ds-surface rounded-lg mb-2 flex items-center justify-center overflow-hidden border border-ds-border">
                                                     {file.fileType === 'image' || file.fileType === 'gif' ? (
                                                         <img src={file.fileUrl} alt={file.fileName} className="w-full h-full object-cover" />
                                                     ) : file.fileType === 'video' ? (
@@ -133,7 +133,7 @@ export function RewardsTab({
                                                         <audio src={file.fileUrl} controls className="w-full px-2" />
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3 flex items-center gap-1">
+                                                <p className="text-xs text-ds-soft mb-3 flex items-center gap-1">
                                                     {file.fileType === 'sound' && <Music className="w-3 h-3" />}
                                                     {file.fileType === 'video' && <Video className="w-3 h-3" />}
                                                     {(file.fileType === 'image' || file.fileType === 'gif') && <ImageIcon className="w-3 h-3" />}
@@ -142,33 +142,33 @@ export function RewardsTab({
                                                 <div className="grid grid-cols-4 gap-1">
                                                     <button
                                                         onClick={() => onPreview(file)}
-                                                        className="p-2 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-2 bg-ds-accent/10 hover:bg-ds-accent/10 rounded-lg transition-colors flex items-center justify-center"
                                                         title="Ver en la vista previa"
                                                     >
-                                                        <MonitorPlay className="w-4 h-4 text-[#2563eb]" />
+                                                        <MonitorPlay className="w-4 h-4 text-ds-accent-text" />
                                                     </button>
                                                     <button
                                                         onClick={() => onEditFile(file.rewardId)}
-                                                        className="p-2 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-2 bg-ds-accent/10 hover:bg-ds-accent/10 rounded-lg transition-colors flex items-center justify-center"
                                                         title="Editar imagen y opciones"
                                                     >
-                                                        <Pencil className="w-4 h-4 text-purple-600" />
+                                                        <Pencil className="w-4 h-4 text-ds-accent-text" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleToggleFile(file.rewardId)}
                                                         className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
-                                                            file.enabled ? 'bg-green-100 dark:bg-green-900/40 hover:bg-green-200' : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200'
+                                                            file.enabled ? 'bg-ds-ok/10 hover:bg-ds-ok/10' : 'bg-ds-bg hover:bg-ds-raised'
                                                         }`}
                                                         title={file.enabled ? t('soundAlertsTabs.deactivate') : t('soundAlertsTabs.activate')}
                                                     >
-                                                        {file.enabled ? <Eye className="w-4 h-4 text-green-600" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
+                                                        {file.enabled ? <Eye className="w-4 h-4 text-ds-ok" /> : <EyeOff className="w-4 h-4 text-ds-soft" />}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteFile(file.rewardId)}
-                                                        className="p-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg transition-colors flex items-center justify-center"
+                                                        className="p-2 bg-ds-danger/10 hover:bg-ds-danger/10 rounded-lg transition-colors flex items-center justify-center"
                                                         title={t('soundAlertsTabs.delete')}
                                                     >
-                                                        <Trash2 className="w-4 h-4 text-red-600" />
+                                                        <Trash2 className="w-4 h-4 text-ds-danger" />
                                                     </button>
                                                 </div>
                                             </>
@@ -176,7 +176,7 @@ export function RewardsTab({
                                             <button
                                                 onClick={() => openPicker(reward)}
                                                 disabled={isUploading}
-                                                className="w-full aspect-video border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-lg flex flex-col items-center justify-center gap-2 text-[#64748b] dark:text-[#94a3b8] hover:border-[#2563eb] dark:hover:border-[#3b82f6] hover:text-[#2563eb] transition-all disabled:opacity-50"
+                                                className="w-full aspect-video border-2 border-dashed border-ds-border rounded-lg flex flex-col items-center justify-center gap-2 text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-all disabled:opacity-50"
                                             >
                                                 <Upload className="w-6 h-6" />
                                                 <span className="text-xs font-semibold">
@@ -191,14 +191,14 @@ export function RewardsTab({
 
                         {totalPages > 1 && (
                             <div className="flex items-center justify-between pt-4 mt-2">
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-xs text-ds-soft">
                                     {pageStart + 1}-{Math.min(pageStart + ITEMS_PER_PAGE, rewards.length)} de {rewards.length}
                                 </p>
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                         disabled={safePage === 1}
-                                        className="p-1.5 rounded-md border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="p-1.5 rounded-md border border-ds-border text-ds-soft hover:bg-ds-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </button>
@@ -208,8 +208,8 @@ export function RewardsTab({
                                             onClick={() => setCurrentPage(page)}
                                             className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${
                                                 safePage === page
-                                                    ? 'bg-[#2563eb] text-white'
-                                                    : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'
+                                                    ? 'bg-ds-accent text-ds-on-accent'
+                                                    : 'text-ds-soft hover:bg-ds-bg '
                                             }`}
                                         >
                                             {page}
@@ -218,7 +218,7 @@ export function RewardsTab({
                                     <button
                                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                         disabled={safePage === totalPages}
-                                        className="p-1.5 rounded-md border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="p-1.5 rounded-md border border-ds-border text-ds-soft hover:bg-ds-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         <ChevronRight className="w-4 h-4" />
                                     </button>
@@ -227,8 +227,8 @@ export function RewardsTab({
                         )}
 
                         {/* Info */}
-                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                        <div className="mt-4 p-4 bg-ds-accent/10 border border-ds-accent rounded-lg">
+                            <p className="text-sm text-ds-accent-text">
                                 {t('soundAlertsTabs.acceptedFormats')}
                             </p>
                         </div>

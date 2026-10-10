@@ -50,6 +50,8 @@ export default {
                     ok: 'rgb(var(--dc-ok) / <alpha-value>)',
                     warn: 'rgb(var(--dc-warn) / <alpha-value>)',
                     danger: 'rgb(var(--dc-danger) / <alpha-value>)',
+                    'danger-solid': 'rgb(var(--dc-danger-solid) / <alpha-value>)',
+                    'danger-hover': 'rgb(var(--dc-danger-hover) / <alpha-value>)',
                     'syntax-keyword': 'rgb(var(--dc-syntax-keyword) / <alpha-value>)',
                     'syntax-string': 'rgb(var(--dc-syntax-string) / <alpha-value>)',
                     'syntax-number': 'rgb(var(--dc-syntax-number) / <alpha-value>)',

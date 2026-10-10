@@ -7,21 +7,21 @@ import { Check } from 'lucide-react';
 import { TIER_LABELS } from '../../constants/defaults';
 
 export const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <div className={`bg-[#1B1C1D] rounded-xl border border-[#374151] p-5 ${className}`}>
+    <div className={`bg-ds-surface rounded-lg border border-ds-border p-5 ${className}`}>
         {children}
     </div>
 );
 
 export const SectionTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-    <h3 className={`text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-4 ${className}`}>{children}</h3>
+    <h3 className={`text-sm font-semibold text-ds-soft uppercase tracking-wider mb-4 ${className}`}>{children}</h3>
 );
 
 export const Label: React.FC<{ children: React.ReactNode; htmlFor?: string }> = ({ children, htmlFor }) => (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-[#f8fafc] mb-1.5">{children}</label>
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-ds-text mb-1.5">{children}</label>
 );
 
 export const SubLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <span className="text-xs text-[#64748b]">{children}</span>
+    <span className="text-xs text-ds-soft">{children}</span>
 );
 
 export const TierLock: React.FC<{
@@ -59,7 +59,7 @@ export const TextInput: React.FC<{
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] placeholder-[#64748b] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${className}`}
+        className={`w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder-ds-soft focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent text-sm ${className}`}
     />
 );
 
@@ -80,7 +80,7 @@ export const NumberInput: React.FC<{
         max={max}
         step={step}
         disabled={disabled}
-        className={`w-full px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:opacity-50 ${className}`}
+        className={`w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent text-sm disabled:opacity-50 ${className}`}
     />
 );
 
@@ -94,15 +94,15 @@ export const ColorInput: React.FC<{
             type="color"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-9 h-9 rounded-lg border border-[#374151] cursor-pointer bg-transparent p-0.5"
+            className="w-9 h-9 rounded-lg border border-ds-border cursor-pointer bg-transparent p-0.5"
         />
         <input
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="flex-1 px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ds-accent"
         />
-        {label && <span className="text-xs text-[#64748b] whitespace-nowrap">{label}</span>}
+        {label && <span className="text-xs text-ds-soft whitespace-nowrap">{label}</span>}
     </div>
 );
 
@@ -115,7 +115,7 @@ export const SelectInput: React.FC<{
     <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-3 py-2 bg-[#262626] border border-[#374151] rounded-lg text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${className}`}
+        className={`w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent text-sm ${className}`}
     >
         {options.map((opt) => (
             <option key={opt.value} value={opt.value} disabled={opt.disabled}>
@@ -141,9 +141,9 @@ export const Slider: React.FC<{
             min={min}
             max={max}
             step={step}
-            className="flex-1 h-2 rounded-lg appearance-none bg-[#374151] accent-blue-500 cursor-pointer"
+            className="flex-1 h-2 rounded-lg appearance-none bg-ds-raised accent-ds-accent cursor-pointer"
         />
-        <span className="text-sm text-[#94a3b8] font-mono w-16 text-right">
+        <span className="text-sm text-ds-soft font-mono w-16 text-right">
             {value}{unit}
         </span>
     </div>
@@ -164,12 +164,12 @@ export const Toggle: React.FC<{
     return (
         <label className={`flex items-center justify-between group py-1 ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
             <div className="flex-1 mr-3">
-                <span className="text-sm font-medium text-[#f8fafc] group-hover:text-white transition-colors">{label}</span>
-                {description && <p className="text-xs text-[#64748b] mt-0.5">{description}</p>}
+                <span className="text-sm font-medium text-ds-text group-hover:text-ds-text transition-colors">{label}</span>
+                {description && <p className="text-xs text-ds-soft mt-0.5">{description}</p>}
             </div>
-            <div className={`relative ${trackSize} rounded-full transition-colors ${checked ? 'bg-blue-500' : 'bg-[#374151]'}`}
+            <div className={`relative ${trackSize} rounded-full transition-colors ${checked ? 'bg-ds-accent' : 'bg-ds-raised'}`}
                 onClick={() => { if (!disabled) onChange(!checked); }}>
-                <div className={`absolute top-1/2 -translate-y-1/2 ${dotSize} rounded-full bg-white shadow transition-transform ${dotTranslate}`} />
+                <div className={`absolute top-1/2 -translate-y-1/2 ${dotSize} rounded-full bg-ds-surface transition-transform ${dotTranslate}`} />
             </div>
         </label>
     );
@@ -182,10 +182,10 @@ export const Checkbox: React.FC<{
 }> = ({ checked, onChange, label }) => (
     <label className="flex items-center gap-2.5 cursor-pointer group py-0.5">
         <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-            checked ? 'bg-blue-500 border-blue-500' : 'border-[#374151] bg-[#262626]'
+            checked ? 'bg-ds-accent border-ds-accent' : 'border-ds-border bg-ds-bg'
         }`} onClick={() => onChange(!checked)}>
-            {checked && <Check className="w-3 h-3 text-white" />}
+            {checked && <Check className="w-3 h-3 text-ds-text" />}
         </div>
-        <span className="text-sm text-[#f8fafc] group-hover:text-white transition-colors">{label}</span>
+        <span className="text-sm text-ds-text group-hover:text-ds-text transition-colors">{label}</span>
     </label>
 );

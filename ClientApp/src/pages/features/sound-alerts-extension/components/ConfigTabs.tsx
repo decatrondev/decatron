@@ -28,10 +28,10 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
     const assigned = cfg.files.length;
     const step = (n: number, title: string, body: React.ReactNode) => (
         <div className="flex gap-4">
-            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-[#2563eb] text-white font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
+            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-ds-accent text-ds-on-accent font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
             <div className="flex-1 min-w-0 space-y-2">
-                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm 3xl:text-base">{title}</h4>
-                <div className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] space-y-2">{body}</div>
+                <h4 className="font-bold text-ds-text text-sm 3xl:text-base">{title}</h4>
+                <div className="text-sm 3xl:text-base text-ds-soft space-y-2">{body}</div>
             </div>
         </div>
     );
@@ -39,7 +39,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
     return (
         <div className="space-y-6">
             {!cfg.settings.globalEnabled && (
-                <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm 3xl:text-base">
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-ds-warn text-sm 3xl:text-base">
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>
                         {t('soundAlerts.guide.disabledWarning')}{' '}
@@ -54,7 +54,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
                             <p>{t('soundAlerts.guide.step1Body')}</p>
                             <p className="font-semibold">
                                 {t('soundAlerts.guide.assigned', { count: assigned, total: cfg.rewards.length })}{' '}
-                                <button className="underline text-[#2563eb]" onClick={() => onNavigate('rewards')}>{t('soundAlerts.guide.goRewards')}</button>
+                                <button className="underline text-ds-accent-text" onClick={() => onNavigate('rewards')}>{t('soundAlerts.guide.goRewards')}</button>
                             </p>
                         </>
                     ))}
@@ -71,15 +71,15 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
                                 connected={bothLinked ? connected(status.all) : connected(status.total)}
                                 loaded={loaded}
                                 extra={bothLinked ? undefined : (
-                                    <a href={url} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] flex items-center gap-1.5 shrink-0">
+                                    <a href={url} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised flex items-center gap-1.5 shrink-0">
                                         <ExternalLink className="w-4 h-4" /> {t('soundAlerts.guide.open')}
                                     </a>
                                 )}
                             />
                             {bothLinked && status.overlayKey && (
-                                <div className="pt-3 mt-1 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                    <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-[#64748b] dark:text-[#94a3b8]">{t('soundAlerts.guide.advancedTitle')}</p>
-                                    <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1 mb-3">{t('soundAlerts.guide.perPlatform')}</p>
+                                <div className="pt-3 mt-1 border-t border-ds-border">
+                                    <p className="text-xs 3xl:text-sm font-bold uppercase tracking-wide text-ds-soft">{t('soundAlerts.guide.advancedTitle')}</p>
+                                    <p className="text-xs 3xl:text-sm text-ds-soft mt-1 mb-3">{t('soundAlerts.guide.perPlatform')}</p>
                                     <div className="space-y-3">
                                         <LinkRow url={overlayUrl(status.overlayKey, 'twitch')} name={t('soundAlerts.guide.linkTwitch')} connected={connected(status.twitch)} loaded={loaded} copyLabel={t('soundAlerts.guide.copy')} copiedLabel={t('soundAlerts.guide.copied')} />
                                         <LinkRow url={overlayUrl(status.overlayKey, 'kick')} name={t('soundAlerts.guide.linkKick')} connected={connected(status.kick)} loaded={loaded} copyLabel={t('soundAlerts.guide.copy')} copiedLabel={t('soundAlerts.guide.copied')} />
@@ -93,7 +93,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
                                 <Warning title={t('soundAlerts.guide.warnRepeatedTitle')} text={t('soundAlerts.guide.warnRepeated')} />
                             )}
                             {loaded && !bothLinked && (status.hasTwitch || status.hasKick) && (
-                                <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('soundAlerts.guide.linkOtherHint')}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft">{t('soundAlerts.guide.linkOtherHint')}</p>
                             )}
                             <ol className="list-decimal pl-5 space-y-1">
                                 <li>{t('soundAlerts.guide.obs1')}</li>
@@ -107,7 +107,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Tab
                     {step(4, t('soundAlerts.guide.step4Title'), (
                         <p>
                             {t('soundAlerts.guide.step4Body')}{' '}
-                            <button className="underline text-[#2563eb]" onClick={() => onNavigate('editor')}>{t('soundAlerts.guide.goEditor')}</button>
+                            <button className="underline text-ds-accent-text" onClick={() => onNavigate('editor')}>{t('soundAlerts.guide.goEditor')}</button>
                         </p>
                     ))}
                 </div>
@@ -154,7 +154,7 @@ export function BasicTab({ cfg }: TabProps) {
                 </div>
             </Card>
             <Card title={t('soundAlerts.basic.resetTitle')} description={t('soundAlerts.basic.resetDescription')}>
-                <button onClick={resetDesign} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">
+                <button onClick={resetDesign} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised">
                     <RotateCcw className="w-4 h-4" /> {t('soundAlerts.basic.reset')}
                 </button>
             </Card>
@@ -181,10 +181,10 @@ export function LineFields({ line, onChange }: { line: PlacedLine; onChange: (pa
                 </Field>
             </div>
             <Field label={t('soundAlerts.texts.align')}>
-                <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                     {(['left', 'center', 'right'] as const).map(a => (
                         <button key={a} onClick={() => onChange({ align: a })}
-                            className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${line.align === a ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`}>
+                            className={`px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${line.align === a ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`}>
                             {t(`soundAlerts.texts.aligns.${a}`)}
                         </button>
                     ))}
@@ -209,23 +209,23 @@ export function TextsTab({ cfg }: TabProps) {
         <div className="space-y-6">
             <Card title={t('soundAlerts.texts.linesTitle')} description={t('soundAlerts.texts.linesDescription')}
                 actions={
-                    <button onClick={addLine} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white shrink-0">
+                    <button onClick={addLine} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shrink-0">
                         <Plus className="w-4 h-4" /> {t('soundAlerts.texts.add')}
                     </button>
                 }
             >
-                {lines.length === 0 && <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('soundAlerts.texts.empty')}</p>}
+                {lines.length === 0 && <p className="text-sm 3xl:text-base text-ds-soft">{t('soundAlerts.texts.empty')}</p>}
                 <div className="space-y-3">
                     {lines.map((line, i) => (
-                        <div key={i} className={`p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] ${line.enabled ? '' : 'opacity-60'}`}>
+                        <div key={i} className={`p-4 rounded-lg border border-ds-border bg-ds-bg ${line.enabled ? '' : 'opacity-60'}`}>
                             <div className="flex items-center justify-between mb-3">
-                                <span className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('soundAlerts.texts.line', { n: i + 1 })}</span>
+                                <span className="text-sm 3xl:text-base font-bold text-ds-text">{t('soundAlerts.texts.line', { n: i + 1 })}</span>
                                 <div className="flex items-center gap-1">
-                                    <button onClick={() => setLine(i, { enabled: !line.enabled })} className="p-1.5 rounded-lg hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#64748b] dark:text-[#94a3b8]"
+                                    <button onClick={() => setLine(i, { enabled: !line.enabled })} className="p-1.5 rounded-lg hover:bg-ds-raised text-ds-soft"
                                         title={line.enabled ? t('overlayEditor.hide') : t('overlayEditor.show')}>
                                         {line.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                     </button>
-                                    <button onClick={() => removeLine(i)} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600" title={t('soundAlerts.texts.remove')}>
+                                    <button onClick={() => removeLine(i)} className="p-1.5 rounded-lg hover:bg-ds-danger/10 text-ds-danger" title={t('soundAlerts.texts.remove')}>
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
@@ -269,12 +269,12 @@ export function BackgroundTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab
     const { t } = useTranslation('overlays');
     const st = cfg.settings.design.styles;
     const setStyle = (patch: Partial<typeof st>) => cfg.updateDesign(prev => ({ ...prev, styles: { ...prev.styles, ...patch } }));
-    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
+    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`;
 
     return (
         <Card title={t('soundAlerts.background.title')} description={t('soundAlerts.background.description')}>
             <div className="space-y-5">
-                <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                     {BACKGROUND_TYPE_OPTIONS.map(o => (
                         <button key={o} className={seg(st.backgroundType === o)} onClick={() => setStyle({ backgroundType: o })}>{t(`soundAlerts.background.types.${o}`)}</button>
                     ))}
@@ -296,9 +296,9 @@ export function BackgroundTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab
                         <Field label={t('soundAlerts.background.opacity')}>
                             <Slider value={st.backgroundOpacity} min={0} max={100} suffix="%" onChange={v => setStyle({ backgroundOpacity: v })} />
                         </Field>
-                        <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm 3xl:text-base text-ds-soft">
                             {t('soundAlerts.background.moveHint')}{' '}
-                            <button className="underline text-[#2563eb]" onClick={() => onNavigate('editor')}>{t('soundAlerts.guide.goEditor')}</button>
+                            <button className="underline text-ds-accent-text" onClick={() => onNavigate('editor')}>{t('soundAlerts.guide.goEditor')}</button>
                         </p>
                     </>
                 )}
@@ -313,13 +313,13 @@ export function AnimationTab({ cfg }: TabProps) {
     const { t } = useTranslation('overlays');
     const a = cfg.settings.design.animation;
     const set = (patch: Partial<typeof a>) => cfg.updateDesign(prev => ({ ...prev, animation: { ...prev.animation, ...patch } }));
-    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
+    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`;
 
     return (
         <Card title={t('soundAlerts.animation.title')} description={t('soundAlerts.animation.description')}>
             <div className="space-y-5">
                 <Field label={t('soundAlerts.animation.type')}>
-                    <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                    <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                         {ANIMATION_TYPE_OPTIONS.map(o => (
                             <button key={o} className={seg(a.type === o)} onClick={() => set({ type: o })}>{t(`soundAlerts.animation.types.${o}`)}</button>
                         ))}
@@ -327,7 +327,7 @@ export function AnimationTab({ cfg }: TabProps) {
                 </Field>
                 {a.type !== 'none' && (
                     <Field label={t('soundAlerts.animation.speed')}>
-                        <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                        <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                             {ANIMATION_SPEED_OPTIONS.map(o => (
                                 <button key={o} className={seg(a.speed === o)} onClick={() => set({ speed: o })}>{t(`soundAlerts.animation.speeds.${o}`)}</button>
                             ))}

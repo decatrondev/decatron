@@ -35,10 +35,10 @@ export const DetectionTab: React.FC<Props> = ({ instance, detection, enabledGame
         <div className="space-y-6">
             <Card>
                 <SectionTitle>{t('statusTitle')}</SectionTitle>
-                <div className="mt-2 text-sm text-[#e6edf3] space-y-1">
-                    <div><span className="text-[#94a3b8]">{t('category')}:</span> {detection?.categoryName ?? '—'}</div>
-                    <div><span className="text-[#94a3b8]">{t('detected')}:</span> {detected ?? (detection?.categoryName ? t('noOverlayForCategory') : '—')}</div>
-                    {detection?.overrideGame && <div className="text-amber-300 flex items-center gap-1"><Zap className="w-4 h-4" /> {t('forcedTo', { game: GAME_NAMES[detection.overrideGame] })}</div>}
+                <div className="mt-2 text-sm text-ds-text space-y-1">
+                    <div><span className="text-ds-soft">{t('category')}:</span> {detection?.categoryName ?? '—'}</div>
+                    <div><span className="text-ds-soft">{t('detected')}:</span> {detected ?? (detection?.categoryName ? t('noOverlayForCategory') : '—')}</div>
+                    {detection?.overrideGame && <div className="text-ds-warn flex items-center gap-1"><Zap className="w-4 h-4" /> {t('forcedTo', { game: GAME_NAMES[detection.overrideGame] })}</div>}
                 </div>
                 <SubLabel>{t('statusHint')} <code>!juego</code>.</SubLabel>
             </Card>
@@ -70,13 +70,13 @@ export const DetectionTab: React.FC<Props> = ({ instance, detection, enabledGame
                 <SectionTitle className="flex items-center gap-2"><Radar className="w-4 h-4" /> {t('forceTitle')}</SectionTitle>
                 <SubLabel>{t('forceHint')} <code>!juego lol</code> / <code>!juego auto</code>.</SubLabel>
                 <div className="flex flex-wrap gap-2 mt-3">
-                    <button disabled={busy} onClick={() => force(null)} className={`px-3 py-1.5 rounded-lg text-sm border ${!detection?.overrideGame ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#262626] border-[#374151] text-[#e6edf3]'}`}>{t('auto')}</button>
+                    <button disabled={busy} onClick={() => force(null)} className={`px-3 py-1.5 rounded-lg text-sm border ${!detection?.overrideGame ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent'}`}>{t('auto')}</button>
                     {enabledGames.map(g => (
-                        <button key={g} disabled={busy} onClick={() => force(g)} className={`px-3 py-1.5 rounded-lg text-sm border ${detection?.overrideGame === g ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#262626] border-[#374151] text-[#e6edf3]'}`}>{GAME_NAMES[g]}</button>
+                        <button key={g} disabled={busy} onClick={() => force(g)} className={`px-3 py-1.5 rounded-lg text-sm border ${detection?.overrideGame === g ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent'}`}>{GAME_NAMES[g]}</button>
                     ))}
-                    {enabledGames.length === 0 && <span className="text-xs text-[#94a3b8]">{t('enableFirst')}</span>}
+                    {enabledGames.length === 0 && <span className="text-xs text-ds-soft">{t('enableFirst')}</span>}
                 </div>
-                {msg && <p className="text-xs text-[#94a3b8] mt-2">{msg}</p>}
+                {msg && <p className="text-xs text-ds-soft mt-2">{msg}</p>}
             </Card>
         </div>
     );

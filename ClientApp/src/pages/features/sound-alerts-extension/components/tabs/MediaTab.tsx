@@ -3,17 +3,17 @@ import MediaGallery from '../../../../../components/timer/MediaGallery';
 export function MediaTab() {
     return (
         <div className="space-y-6">
-            <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-                <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+            <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
+                <label className="text-sm font-bold text-ds-text flex items-center gap-2">
                     📁 Galería de Multimedia
                 </label>
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                <p className="text-xs text-ds-soft mt-1">
                     Sube y administra aquí los archivos de tus Sound Alerts. Es la misma galería
                     que aparece al asignar un archivo a una recompensa en "Recompensas".
                 </p>
             </div>
 
-            <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+            <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
                 <MediaGallery selectedCategory="sound-alerts" />
             </div>
         </div>

@@ -32,7 +32,7 @@ interface TipsAlertSectionProps {
 const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
   <label className="relative inline-flex items-center cursor-pointer">
     <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="sr-only peer" />
-    <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-500"></div>
+    <div className="w-14 h-7 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-ok/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
   </label>
 );
 
@@ -51,8 +51,8 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
   const [expandedTier, setExpandedTier] = useState<string | null>(null);
 
 
-  const inputClass = "w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-green-500 outline-none";
-  const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2";
+  const inputClass = "w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none";
+  const labelClass = "text-xs font-bold text-ds-soft block mb-2";
 
   // Get template for tier index
   const getMessageTemplate = (index: number) => {
@@ -123,14 +123,14 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Toggle */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-500" />
+            <label className="text-sm font-bold text-ds-text flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-ds-ok" />
               💰 Alertas de Donaciones
             </label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+            <p className="text-xs text-ds-soft mt-1">
               Configura alertas visuales y sonoras cuando recibes donaciones
             </p>
           </div>
@@ -138,36 +138,36 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
             {onTest && (
               <button
                 onClick={onTest}
-                className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg font-bold flex items-center gap-2 transition-all hover:bg-green-200 dark:hover:bg-green-900/50"
+                className="px-4 py-2 bg-ds-ok/10 text-ds-ok rounded-lg font-bold flex items-center gap-2 transition-all hover:bg-ds-ok/10"
               >
                 <Play className="w-4 h-4" />
                 Test
               </button>
             )}
             <Toggle checked={enabled} onChange={onEnabledChange} />
-            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{enabled ? 'Activado' : 'Desactivado'}</span>
+            <span className="text-sm font-bold text-ds-text">{enabled ? 'Activado' : 'Desactivado'}</span>
           </div>
         </div>
       </div>
 
       {/* Alerta Base */}
-      <div className="rounded-2xl border-2 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 p-6 shadow-lg">
+      <div className="rounded-lg border-2 border-ds-ok/40 bg-ds-ok/10 p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🔔 Alerta BASE (suena SIEMPRE)</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Se reproduce siempre. Los tiers pueden sobrescribirla.</p>
+            <label className="text-sm font-bold text-ds-text">🔔 Alerta BASE (suena SIEMPRE)</label>
+            <p className="text-xs text-ds-soft mt-1">Se reproduce siempre. Los tiers pueden sobrescribirla.</p>
           </div>
           <Toggle checked={baseAlert.enabled} onChange={v => onBaseAlertChange({ enabled: v })} />
         </div>
 
-        <div className="space-y-4 pt-4 border-t border-green-200 dark:border-green-800">
+        <div className="space-y-4 pt-4 border-t border-ds-ok/40">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className={labelClass + ' mb-0'}>Mensaje · <code className="text-green-500">{messageVariables}</code></label>
+              <label className={labelClass + ' mb-0'}>Mensaje · <code className="text-ds-ok">{messageVariables}</code></label>
               {!baseAlert.message && (
                 <button
                   onClick={() => onBaseAlertChange({ message: TIPS_MESSAGE_TEMPLATES.base })}
-                  className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 font-bold"
+                  className="text-xs px-2 py-1 bg-ds-ok/10 text-ds-ok rounded-lg hover:bg-ds-ok/10 font-bold"
                 >
                   ✨ Usar predefinido
                 </button>
@@ -179,10 +179,10 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
             {!baseAlert.message && (
               <button
                 onClick={() => onBaseAlertChange({ message: TIPS_MESSAGE_TEMPLATES.base })}
-                className="mt-2 w-full p-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800 text-left group hover:border-green-400 transition-all"
+                className="mt-2 w-full p-2 bg-ds-ok/10 rounded-lg border border-ds-ok/40 text-left group hover:border-ds-ok/40 transition-all"
               >
-                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">💡 <span className="font-bold text-green-600 dark:text-green-400">Sugerido:</span></p>
-                <p className="text-sm text-green-700 dark:text-green-300 font-mono mt-1">"{TIPS_MESSAGE_TEMPLATES.base}"</p>
+                <p className="text-xs text-ds-soft">💡 <span className="font-bold text-ds-ok">Sugerido:</span></p>
+                <p className="text-sm text-ds-ok font-mono mt-1">"{TIPS_MESSAGE_TEMPLATES.base}"</p>
               </button>
             )}
           </div>
@@ -241,20 +241,20 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
       </div>
 
       {/* Tiers por Monto */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">🎯 Tiers Específicos</label>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">Alertas diferentes según monto donado ({currency})</p>
+            <label className="text-sm font-bold text-ds-text">🎯 Tiers Específicos</label>
+            <p className="text-xs text-ds-soft mt-1">Alertas diferentes según monto donado ({currency})</p>
           </div>
           <button onClick={addTier}
-            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg font-bold text-sm flex items-center gap-2">
+            className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold text-sm flex items-center gap-2">
             <Plus className="w-4 h-4" /> Agregar Tier
           </button>
         </div>
 
         {tiers.length === 0 ? (
-          <div className="text-center py-8 text-[#64748b] dark:text-[#94a3b8]">
+          <div className="text-center py-8 text-ds-soft">
             <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p>No hay tiers configurados.</p>
             <p className="text-sm mt-1">Agrega uno para crear alertas especiales por monto de donación.</p>
@@ -262,14 +262,14 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
         ) : (
           <div className="space-y-3">
             {tiers.map((tier, index) => (
-              <div key={tier.id} className="border border-[#e2e8f0] dark:border-[#374151] rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between p-4 bg-[#f8fafc] dark:bg-[#262626] cursor-pointer hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-colors"
+              <div key={tier.id} className="border border-ds-border rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between p-4 bg-ds-bg cursor-pointer hover:bg-ds-raised transition-colors"
                   onClick={() => setExpandedTier(expandedTier === tier.id ? null : tier.id)}>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{index === 0 ? '🥉' : index === 1 ? '🥈' : index === 2 ? '🥇' : '💎'}</span>
                     <div>
-                      <div className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{tier.name}</div>
-                      <div className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                      <div className="font-bold text-ds-text">{tier.name}</div>
+                      <div className="text-xs text-ds-soft">
                         {tier.condition.type === 'range' && `${currency} ${tier.condition.min} - ${tier.condition.max}`}
                         {tier.condition.type === 'minimum' && `${currency} ${tier.condition.min}+`}
                         {tier.condition.type === 'exact' && `Exactamente ${currency} ${tier.condition.exact}`}
@@ -278,15 +278,15 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={e => { e.stopPropagation(); deleteTier(tier.id); }}
-                      className="p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      className="p-2 hover:bg-ds-danger/10 rounded-lg transition-colors">
+                      <Trash2 className="w-4 h-4 text-ds-danger" />
                     </button>
-                    {expandedTier === tier.id ? <ChevronUp className="w-5 h-5 text-[#64748b]" /> : <ChevronDown className="w-5 h-5 text-[#64748b]" />}
+                    {expandedTier === tier.id ? <ChevronUp className="w-5 h-5 text-ds-soft" /> : <ChevronDown className="w-5 h-5 text-ds-soft" />}
                   </div>
                 </div>
 
                 {expandedTier === tier.id && (
-                  <div className="p-4 space-y-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                  <div className="p-4 space-y-4 border-t border-ds-border">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className={labelClass}>Nombre del Tier</label>
@@ -294,7 +294,7 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
                       </div>
                       <div className="flex items-center gap-2 mt-6">
                         <Toggle checked={tier.enabled} onChange={v => updateTier(tier.id, { enabled: v })} />
-                        <span className="text-sm text-[#1e293b] dark:text-[#f8fafc]">{tier.enabled ? 'Activo' : 'Inactivo'}</span>
+                        <span className="text-sm text-ds-text">{tier.enabled ? 'Activo' : 'Inactivo'}</span>
                       </div>
                     </div>
 
@@ -303,7 +303,7 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
                       <div className="grid grid-cols-3 gap-3">
                         <select value={tier.condition.type}
                           onChange={e => updateTier(tier.id, { condition: { ...tier.condition, type: e.target.value as any } })}
-                          className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-green-500 outline-none text-sm">
+                          className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm">
                           <option value="range">Rango</option>
                           <option value="minimum">Mínimo</option>
                           <option value="exact">Exacto</option>
@@ -311,31 +311,31 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
                         {tier.condition.type === 'range' && (<>
                           <input type="number" min="0" step="0.01" value={tier.condition.min ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, min: parseFloat(e.target.value) || 0 } })}
-                            placeholder="Mínimo" className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-green-500 outline-none text-sm" />
+                            placeholder="Mínimo" className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
                           <input type="number" min="0" step="0.01" value={tier.condition.max ?? 100}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, max: parseFloat(e.target.value) || 100 } })}
-                            placeholder="Máximo" className="px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-green-500 outline-none text-sm" />
+                            placeholder="Máximo" className="px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
                         </>)}
                         {tier.condition.type === 'minimum' && (
                           <input type="number" min="0" step="0.01" value={tier.condition.min ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, min: parseFloat(e.target.value) || 0 } })}
-                            placeholder="Monto mínimo" className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-green-500 outline-none text-sm" />
+                            placeholder="Monto mínimo" className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
                         )}
                         {tier.condition.type === 'exact' && (
                           <input type="number" min="0" step="0.01" value={tier.condition.exact ?? 0}
                             onChange={e => updateTier(tier.id, { condition: { ...tier.condition, exact: parseFloat(e.target.value) || 0 } })}
-                            placeholder="Monto exacto" className="col-span-2 px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-green-500 outline-none text-sm" />
+                            placeholder="Monto exacto" className="col-span-2 px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-ok/40 outline-none text-sm" />
                         )}
                       </div>
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className={labelClass + ' mb-0'}>Mensaje · <code className="text-green-500">{messageVariables}</code></label>
+                        <label className={labelClass + ' mb-0'}>Mensaje · <code className="text-ds-ok">{messageVariables}</code></label>
                         {!tier.message && getMessageTemplate(index) && (
                           <button
                             onClick={() => updateTier(tier.id, { message: getMessageTemplate(index) })}
-                            className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300 rounded-lg hover:bg-green-200 font-bold"
+                            className="text-xs px-2 py-1 bg-ds-ok/10 text-ds-ok rounded-lg hover:bg-ds-ok/10 font-bold"
                           >
                             ✨ Usar predefinido
                           </button>
@@ -405,9 +405,9 @@ export const TipsAlertSection: React.FC<TipsAlertSectionProps> = ({
       </div>
 
       {/* Cooldown */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg">
-        <label className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-2">⏱️ Cooldown</label>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">Tiempo mínimo entre alertas (segundos)</p>
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-6">
+        <label className="text-sm font-bold text-ds-text flex items-center gap-2 mb-2">⏱️ Cooldown</label>
+        <p className="text-xs text-ds-soft mb-4">Tiempo mínimo entre alertas (segundos)</p>
         <input type="number" min="0" max="60" value={cooldown}
           onChange={e => onCooldownChange(parseInt(e.target.value) || 0)} className={inputClass} />
       </div>

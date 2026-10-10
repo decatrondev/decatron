@@ -130,38 +130,38 @@ const LiveOverlays: React.FC = () => {
     const setFont = (patch: Partial<NonNullable<typeof el.font>>) => setEl({ font: { ...el.font, ...patch } });
     useEffect(() => { if (!SCREEN_ELEMENTS[screen].includes(selected)) setSelected(SCREEN_ELEMENTS[screen][0]); }, [screen, selected]);
 
-    if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-blue-400" /></div>;
+    if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" /></div>;
 
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/overlays')} className="p-2 rounded-lg hover:bg-[#262626] text-[#94a3b8]"><ArrowLeft className="w-5 h-5" /></button>
-                    <Radio className="w-6 h-6 text-[#2563eb]" />
+                    <button onClick={() => navigate('/overlays')} className="p-2 rounded-lg hover:bg-ds-bg text-ds-soft"><ArrowLeft className="w-5 h-5" /></button>
+                    <Radio className="w-6 h-6 text-ds-accent-text" />
                     <div>
-                        <h1 className="text-2xl font-black text-[#f8fafc]">{t('title')}</h1>
-                        <p className="text-sm text-[#94a3b8]">{t('subtitle')}</p>
+                        <h1 className="text-2xl font-black text-ds-text">{t('title')}</h1>
+                        <p className="text-sm text-ds-soft">{t('subtitle')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    {saveMsg && <span className={`text-sm ${saveMsg.type === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>{saveMsg.text}</span>}
+                    {saveMsg && <span className={`text-sm ${saveMsg.type === 'ok' ? 'text-ds-ok' : 'text-ds-danger'}`}>{saveMsg.text}</span>}
                     {data && data.instances.length > 1 && (
                         <SelectInput value={slug} onChange={v => { if (dirty && !confirm(t('discard'))) return; load(v); }} options={data.instances.map(i => ({ value: i.slug, label: i.name }))} />
                     )}
-                    <button onClick={save} disabled={!dirty || saving} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold flex items-center gap-2">
+                    <button onClick={save} disabled={!dirty || saving} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2">
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('save')}
                     </button>
                 </div>
             </div>
 
             {data && !data.desktopLinked && (
-                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 flex items-center gap-2">
+                <div className="rounded-lg border border-ds-warn/40 bg-ds-warn/10 px-4 py-3 text-sm text-ds-warn flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                     <span>{t('needsDesktop')} <Link to="/features/lol-coach" className="underline">{t('needsDesktopLink')}</Link></span>
                 </div>
             )}
             {data?.state.connected && (
-                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200">{t('desktopOnline', { phase: t(`screens.${data.state.phase?.phase ?? 'none'}`), name: data.state.summonerName ?? '' })}</div>
+                <div className="rounded-lg border border-ds-ok/40 bg-ds-accent/10 px-4 py-2 text-sm text-ds-ok">{t('desktopOnline', { phase: t(`screens.${data.state.phase?.phase ?? 'none'}`), name: data.state.summonerName ?? '' })}</div>
             )}
 
             {!draft || !cfg ? (
@@ -170,14 +170,14 @@ const LiveOverlays: React.FC = () => {
                     <SubLabel>{t('first.hint')}</SubLabel>
                     <div className="flex items-center gap-2 mt-3">
                         <TextInput value={newName} onChange={setNewName} placeholder={t('first.placeholder')} />
-                        <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
+                        <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
                     </div>
                 </Card>
             ) : (
                 <div className="flex flex-col lg:flex-row gap-5">
                     <div className="lg:w-48 flex lg:flex-col gap-1">
                         {([['design', Palette], ['overlay', Monitor]] as [TabId, React.FC<{ className?: string }>][]).map(([id, Icon]) => (
-                            <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${tab === id ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626]'}`}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
+                            <button key={id} onClick={() => setTab(id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${tab === id ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg'}`}><Icon className="w-4 h-4" />{t(`tabs.${id}`)}</button>
                         ))}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -186,7 +186,7 @@ const LiveOverlays: React.FC = () => {
                                 <Card>
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div><SectionTitle>{t('design.title')}</SectionTitle><SubLabel>{t('design.hint')}</SubLabel></div>
-                                        <button onClick={() => { if (confirm(t('design.confirmReset'))) update(defaultLiveConfig()); }} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm border border-[#374151]" title={t('design.reset')}><RotateCcw className="w-4 h-4" /></button>
+                                        <button onClick={() => { if (confirm(t('design.confirmReset'))) update(defaultLiveConfig()); }} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm border border-ds-border" title={t('design.reset')}><RotateCcw className="w-4 h-4" /></button>
                                     </div>
                                     <div className="mt-4">
                                         <CanvasEditor width={draft.canvas.width} height={draft.canvas.height} snap={10} onMove={(_, position) => update({ position })}
@@ -201,9 +201,9 @@ const LiveOverlays: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                                        <span className="text-[11px] text-[#94a3b8] mr-1">{t('design.screen')}:</span>
+                                        <span className="text-[11px] text-ds-soft mr-1">{t('design.screen')}:</span>
                                         {LIVE_SCREENS.map(s => (
-                                            <button key={s} onClick={() => setScreen(s)} className={`px-2.5 py-1 rounded-lg text-xs border ${screen === s ? 'bg-emerald-700 border-emerald-600 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'} ${cfg.screens[s].enabled ? '' : 'line-through opacity-60'}`}>{t(`screens.${s}`)}</button>
+                                            <button key={s} onClick={() => setScreen(s)} className={`px-2.5 py-1 rounded-lg text-xs border ${screen === s ?'bg-ds-accent border-ds-ok/40 text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'} ${cfg.screens[s].enabled ?'' :'line-through opacity-60'}`}>{t(`screens.${s}`)}</button>
                                         ))}
                                     </div>
                                     <div className="flex flex-wrap items-end gap-4 mt-3">
@@ -220,13 +220,13 @@ const LiveOverlays: React.FC = () => {
                                         <div className="w-28"><Label>{t('design.boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => update({ sizeMode: 'manual', size: { ...cfg.size, height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) } })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} disabled={cfg.sizeMode === 'auto'} /></div>
                                         <div className="w-40"><Label>{t('design.scale')}</Label><Slider value={Math.round(cfg.scale * 100)} onChange={v => update({ scale: Math.max(CARD_SIZE_LIMITS.minScale, Math.min(CARD_SIZE_LIMITS.maxScale, v / 100)) })} min={CARD_SIZE_LIMITS.minScale * 100} max={CARD_SIZE_LIMITS.maxScale * 100} unit="%" /></div>
                                         {cfg.sizeMode === 'manual' && wanted && (
-                                            <button onClick={() => update({ size: wanted })} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-xs flex items-center gap-2 border border-[#374151]"><Maximize2 className="w-3.5 h-3.5" />{t('design.fit')}</button>
+                                            <button onClick={() => update({ size: wanted })} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-xs flex items-center gap-2 border border-ds-border"><Maximize2 className="w-3.5 h-3.5" />{t('design.fit')}</button>
                                         )}
                                     </div>
                                     {cfg.sizeMode === 'manual' && !fits && wanted && (
-                                        <p className="text-[11px] text-amber-400 mt-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />{t('design.sizeOverflow', { w: wanted.width, h: wanted.height })}</p>
+                                        <p className="text-[11px] text-ds-warn mt-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />{t('design.sizeOverflow', { w: wanted.width, h: wanted.height })}</p>
                                     )}
-                                    <p className="text-[11px] text-[#6b7280] mt-2">{t('design.boxHint')}</p>
+                                    <p className="text-[11px] text-ds-soft mt-2">{t('design.boxHint')}</p>
                                 </Card>
 
                                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -237,7 +237,7 @@ const LiveOverlays: React.FC = () => {
                                                 <Label>Layout</Label>
                                                 <div className="grid grid-cols-3 gap-2 mt-1">
                                                     {LIVE_LAYOUTS.map(l => (
-                                                        <button key={l} onClick={() => update({ layout: l, size: { ...LIVE_LAYOUT_DEFAULT_SIZE[l] } })} className={`px-2 py-2 rounded-lg text-xs border ${cfg.layout === l ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>{t(`layouts.${l}`)}</button>
+                                                        <button key={l} onClick={() => update({ layout: l, size: { ...LIVE_LAYOUT_DEFAULT_SIZE[l] } })} className={`px-2 py-2 rounded-lg text-xs border ${cfg.layout === l ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'}`}>{t(`layouts.${l}`)}</button>
                                                     ))}
                                                 </div>
                                             </div>
@@ -276,14 +276,14 @@ const LiveOverlays: React.FC = () => {
                                         <div className="flex flex-wrap gap-1.5 mt-3">
                                             {SCREEN_ELEMENTS[screen].map(id => {
                                                 const visible = cfg.elements[id]?.visible !== false;
-                                                return <button key={id} onClick={() => setSelected(id)} className={`px-2.5 py-1.5 rounded-lg text-xs border ${selected === id ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'} ${visible ? '' : 'line-through opacity-60'}`}>{t(`elements.${id}`)}</button>;
+                                                return <button key={id} onClick={() => setSelected(id)} className={`px-2.5 py-1.5 rounded-lg text-xs border ${selected === id ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'} ${visible ?'' :'line-through opacity-60'}`}>{t(`elements.${id}`)}</button>;
                                             })}
                                         </div>
                                         <div className="mt-4 space-y-4">
                                             <Toggle checked={el.visible !== false} onChange={v => setEl({ visible: v })} label={`${t('design.show')} ${t(`elements.${selected}`).toLowerCase()}`} size="sm" />
-                                            {selected.startsWith('scout') && <p className="text-[11px] text-amber-300/80">{t('elementHelp.scout')}</p>}
-                                            {(selected === 'coachSay' || selected === 'coachTips') && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.coach')}</p>}
-                                            {selected === 'prediction' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.prediction')}</p>}
+                                            {selected.startsWith('scout') && <p className="text-[11px] text-ds-warn/80">{t('elementHelp.scout')}</p>}
+                                            {(selected === 'coachSay' || selected === 'coachTips') && <p className="text-[11px] text-ds-soft">{t('elementHelp.coach')}</p>}
+                                            {selected === 'prediction' && <p className="text-[11px] text-ds-soft">{t('elementHelp.prediction')}</p>}
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div><Label>{t('design.font')}</Label><SelectInput value={el.font?.family ?? 'Inter'} onChange={v => setFont({ family: v })} options={FONT_FAMILIES.map(f => ({ value: f, label: f }))} /></div>
                                                 <div><Label>{t('design.weight')}</Label><SelectInput value={String(el.font?.weight ?? 500)} onChange={v => setFont({ weight: Number(v) })} options={[400, 500, 600, 700, 800].map(w => ({ value: String(w), label: String(w) }))} /></div>
@@ -303,9 +303,9 @@ const LiveOverlays: React.FC = () => {
                                     <SectionTitle>{t('url.title')}</SectionTitle>
                                     <SubLabel>{t('url.hint', { size: `${draft.canvas.width}×${draft.canvas.height}` })}</SubLabel>
                                     <div className="flex items-center gap-2 mt-3">
-                                        <input readOnly value={overlayUrl} className="flex-1 bg-[#111214] border border-[#374151] rounded-lg px-3 py-2 text-sm text-[#e6edf3] font-mono" />
-                                        <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
-                                        <a href={`${overlayUrl}&preview=champselect`} target="_blank" rel="noreferrer" className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
+                                        <input readOnly value={overlayUrl} className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text font-mono" />
+                                        <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
+                                        <a href={`${overlayUrl}&preview=champselect`} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
                                     </div>
                                     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><Label>{t('url.name')}</Label><TextInput value={draft.name} onChange={v => updateDraft({ name: v })} /></div>
@@ -313,23 +313,23 @@ const LiveOverlays: React.FC = () => {
                                     </div>
                                 </Card>
                                 <Card>
-                                    <SectionTitle>{t('instances.title')} <span className="text-[#6b7280] font-normal text-sm">({data.instances.length}/5)</span></SectionTitle>
+                                    <SectionTitle>{t('instances.title')} <span className="text-ds-soft font-normal text-sm">({data.instances.length}/5)</span></SectionTitle>
                                     <SubLabel>{t('instances.hint')}</SubLabel>
                                     <div className="space-y-2 mt-3">
                                         {data.instances.map(i => (
-                                            <div key={i.slug} className="flex items-center justify-between rounded-lg border border-[#374151] bg-[#111214] px-3 py-2">
+                                            <div key={i.slug} className="flex items-center justify-between rounded-lg border border-ds-border bg-ds-bg px-3 py-2">
                                                 <div>
-                                                    <div className="text-sm text-[#f8fafc] font-medium">{i.name} <span className="text-[#6b7280] font-mono text-xs">· {i.slug}</span></div>
-                                                    <div className="text-[11px] text-[#94a3b8]">{i.isEnabled ? t('instances.enabled') : t('instances.disabled')}</div>
+                                                    <div className="text-sm text-ds-text font-medium">{i.name} <span className="text-ds-soft font-mono text-xs">· {i.slug}</span></div>
+                                                    <div className="text-[11px] text-ds-soft">{i.isEnabled ? t('instances.enabled') : t('instances.disabled')}</div>
                                                 </div>
-                                                <button onClick={() => deleteInstance(i.slug)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title={t('instances.delete')}><Trash2 className="w-4 h-4" /></button>
+                                                <button onClick={() => deleteInstance(i.slug)} className="p-2 rounded-lg text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10" title={t('instances.delete')}><Trash2 className="w-4 h-4" /></button>
                                             </div>
                                         ))}
                                     </div>
                                     {data.instances.length < 5 && (
                                         <div className="flex items-center gap-2 mt-3">
                                             <TextInput value={newName} onChange={setNewName} placeholder={t('instances.newPlaceholder')} />
-                                            <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
+                                            <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
                                         </div>
                                     )}
                                 </Card>

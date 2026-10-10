@@ -37,14 +37,14 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             {/* Statistics */}
             <div className={cardClass}>
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                         <TrendingUp className="w-5 h-5" />
                         {t('tipsTabs.statistics')}
                     </h3>
                     <select
                         value={statsPeriod}
                         onChange={e => setStatsPeriod(e.target.value)}
-                        className="px-3 py-1 text-sm border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626]"
+                        className="px-3 py-1 text-sm border border-ds-border rounded-lg bg-ds-surface"
                     >
                         <option value="today">{t('tipsTabs.periodToday')}</option>
                         <option value="week">{t('tipsTabs.periodWeek')}</option>
@@ -56,40 +56,40 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
 
                 {stats ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                            <p className="text-xs text-green-600 dark:text-green-400 font-semibold">{t('tipsTabs.totalRaised')}</p>
-                            <p className="text-2xl font-black text-green-700 dark:text-green-300">
+                        <div className="p-4 bg-ds-ok/10 rounded-lg">
+                            <p className="text-xs text-ds-ok font-semibold">{t('tipsTabs.totalRaised')}</p>
+                            <p className="text-2xl font-black text-ds-ok">
                                 {formatCurrency(stats.totalAmount)}
                             </p>
                         </div>
-                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                            <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{t('tipsTabs.donations')}</p>
-                            <p className="text-2xl font-black text-blue-700 dark:text-blue-300">
+                        <div className="p-4 bg-ds-accent/10 rounded-lg">
+                            <p className="text-xs text-ds-accent-text font-semibold">{t('tipsTabs.donations')}</p>
+                            <p className="text-2xl font-black text-ds-accent-text">
                                 {stats.totalCount}
                             </p>
                         </div>
-                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                            <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">{t('tipsTabs.average')}</p>
-                            <p className="text-2xl font-black text-purple-700 dark:text-purple-300">
+                        <div className="p-4 bg-ds-accent/10 rounded-lg">
+                            <p className="text-xs text-ds-accent-text font-semibold">{t('tipsTabs.average')}</p>
+                            <p className="text-2xl font-black text-ds-accent-text">
                                 {formatCurrency(stats.averageAmount)}
                             </p>
                         </div>
-                        <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
-                            <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold">{t('tipsTabs.timeAdded')}</p>
-                            <p className="text-2xl font-black text-orange-700 dark:text-orange-300">
+                        <div className="p-4 bg-ds-warn/10 rounded-lg">
+                            <p className="text-xs text-ds-warn font-semibold">{t('tipsTabs.timeAdded')}</p>
+                            <p className="text-2xl font-black text-ds-warn">
                                 {stats.formattedTimeAdded}
                             </p>
                         </div>
                     </div>
                 ) : (
-                    <p className="text-[#64748b] dark:text-[#94a3b8] text-center py-4">
+                    <p className="text-ds-soft text-center py-4">
                         {t('tipsTabs.loadingStats')}
                     </p>
                 )}
 
                 {stats?.topDonor && (
-                    <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    <div className="mt-4 p-4 bg-ds-warn/10 border border-ds-warn/40 rounded-lg">
+                        <p className="text-sm text-ds-warn">
                             <span className="font-bold">{t('tipsTabs.topDonor')}</span> {stats.topDonor} ({formatCurrency(stats.topDonorTotal)})
                         </p>
                     </div>
@@ -98,7 +98,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
 
             {/* Recent Tips */}
             <div className={cardClass}>
-                <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-ds-text mb-4 flex items-center gap-2">
                     <History className="w-5 h-5" />
                     {t('tipsTabs.recentDonations')}
                 </h3>
@@ -108,27 +108,27 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         {recentTips.map(tip => (
                             <div
                                 key={tip.id}
-                                className="flex items-center justify-between p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-xl"
+                                className="flex items-center justify-between p-3 bg-ds-bg rounded-lg"
                             >
                                 <div>
-                                    <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <p className="font-bold text-ds-text">
                                         {tip.donorName}
                                     </p>
                                     {tip.message && (
-                                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] truncate max-w-xs">
+                                        <p className="text-sm text-ds-soft truncate max-w-xs">
                                             "{tip.message}"
                                         </p>
                                     )}
-                                    <p className="text-xs text-[#94a3b8]">
+                                    <p className="text-xs text-ds-soft">
                                         {new Date(tip.donatedAt).toLocaleString()}
                                     </p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                    <p className="text-lg font-bold text-ds-ok">
                                         {formatCurrency(tip.amount)}
                                     </p>
                                     {tip.timeAdded > 0 && (
-                                        <p className="text-xs text-purple-500">
+                                        <p className="text-xs text-ds-accent-text">
                                             +{Math.floor(tip.timeAdded / 60)}m {tip.timeAdded % 60}s
                                         </p>
                                     )}
@@ -137,7 +137,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         ))}
                     </div>
                 ) : (
-                    <p className="text-[#64748b] dark:text-[#94a3b8] text-center py-8">
+                    <p className="text-ds-soft text-center py-8">
                         {t('tipsTabs.noDonationsYet')}
                     </p>
                 )}

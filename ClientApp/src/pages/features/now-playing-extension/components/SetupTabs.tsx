@@ -10,7 +10,7 @@ export type NowPlayingTabId = 'guide' | 'connection' | 'theme' | 'elements' | 't
 interface TabProps { cfg: NowPlayingConfigState }
 
 const btnBase = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2';
-const btnGray = `${btnBase} bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]`;
+const btnGray = `${btnBase} bg-ds-raised text-ds-soft hover:bg-ds-raised `;
 
 /** ¿Hay de dónde sacar la canción? */
 export function isConnected(s: NowPlayingConfigState['settings']): boolean {
@@ -24,10 +24,10 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Now
     const s = cfg.settings;
     const step = (n: number, title: string, body: React.ReactNode) => (
         <div className="flex gap-4">
-            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-[#2563eb] text-white font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
+            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-ds-accent text-ds-on-accent font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
             <div className="flex-1 min-w-0 space-y-2">
-                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm 3xl:text-base">{title}</h4>
-                <div className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] space-y-2">{body}</div>
+                <h4 className="font-bold text-ds-text text-sm 3xl:text-base">{title}</h4>
+                <div className="text-sm 3xl:text-base text-ds-soft space-y-2">{body}</div>
             </div>
         </div>
     );
@@ -36,7 +36,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Now
     return (
         <div className="space-y-6">
             {warning && (
-                <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm 3xl:text-base">
+                <div className="flex items-start gap-3 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-ds-warn text-sm 3xl:text-base">
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>{warning} <button className="underline font-bold" onClick={() => onNavigate('connection')}>{t('nowPlaying.guide.goConnection')}</button></div>
                 </div>
@@ -44,7 +44,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Now
             <Card title={t('nowPlaying.guide.title')} description={t('nowPlaying.guide.description')}>
                 <div className="space-y-6">
                     {step(1, t('nowPlaying.guide.step1Title'), (
-                        <p>{t('nowPlaying.guide.step1Body')} <button className="underline text-[#2563eb]" onClick={() => onNavigate('connection')}>{t('nowPlaying.guide.goConnection')}</button></p>
+                        <p>{t('nowPlaying.guide.step1Body')} <button className="underline text-ds-accent-text" onClick={() => onNavigate('connection')}>{t('nowPlaying.guide.goConnection')}</button></p>
                     ))}
                     {step(2, t('nowPlaying.guide.step2Title'), (
                         <>
@@ -64,7 +64,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Now
                         </>
                     ))}
                     {step(3, t('nowPlaying.guide.step3Title'), (
-                        <p>{t('nowPlaying.guide.step3Body')} <button className="underline text-[#2563eb]" onClick={() => onNavigate('editor')}>{t('nowPlaying.guide.goEditor')}</button></p>
+                        <p>{t('nowPlaying.guide.step3Body')} <button className="underline text-ds-accent-text" onClick={() => onNavigate('editor')}>{t('nowPlaying.guide.goEditor')}</button></p>
                     ))}
                     {step(4, t('nowPlaying.guide.step4Title'), <p>{t('nowPlaying.guide.step4Body')}</p>)}
                 </div>
@@ -140,23 +140,23 @@ export function ConnectionTab({ cfg }: TabProps) {
     const providerCard = (id: 'lastfm' | 'spotify', color: string) => (
         <button
             onClick={() => cfg.update({ provider: id })}
-            className={`p-4 rounded-xl border-2 text-left transition-all ${s.provider === id ? '' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#94a3b8]'}`}
+            className={`p-4 rounded-lg border-2 text-left transition-all ${s.provider === id ? '' : 'border-ds-border hover:border-ds-faint'}`}
             style={s.provider === id ? { borderColor: color, background: `${color}14` } : undefined}
         >
-            <div className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc]">{t(`nowPlaying.connection.${id}`)}</div>
-            <div className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{t(`nowPlaying.connection.${id}Hint`)}</div>
+            <div className="font-bold text-sm 3xl:text-base text-ds-text">{t(`nowPlaying.connection.${id}`)}</div>
+            <div className="text-xs 3xl:text-sm text-ds-soft mt-1">{t(`nowPlaying.connection.${id}Hint`)}</div>
         </button>
     );
 
     const spotifyStatus = !s.spotifyConnected ? 'off' : s.spotifySlotAssigned ? 'ready' : s.spotifySlotRequested ? 'pending' : 'noCupo';
-    const dot = { off: 'bg-[#94a3b8]', ready: 'bg-green-500', pending: 'bg-amber-500', noCupo: 'bg-blue-500' }[spotifyStatus];
+    const dot = { off: 'bg-ds-faint', ready: 'bg-ds-accent', pending: 'bg-ds-warn', noCupo: 'bg-ds-accent' }[spotifyStatus];
 
     return (
         <div className="space-y-6">
             <Card title={t('nowPlaying.connection.statusTitle')}>
                 <div className="space-y-6">
                     <Toggle checked={s.isEnabled} onChange={v => cfg.update({ isEnabled: v })} label={t('nowPlaying.connection.enabled')} hint={t('nowPlaying.connection.enabledHint')} />
-                    <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('nowPlaying.connection.pollingFixed')}</p>
+                    <p className="text-sm 3xl:text-base text-ds-soft">{t('nowPlaying.connection.pollingFixed')}</p>
                 </div>
             </Card>
 
@@ -171,8 +171,8 @@ export function ConnectionTab({ cfg }: TabProps) {
                 <Card title={t('nowPlaying.connection.lastfmTitle')}>
                     <div className="space-y-4">
                         <p className="flex items-center gap-2 text-sm 3xl:text-base font-semibold">
-                            <span className={`w-2.5 h-2.5 rounded-full ${s.lastfmUsername ? 'bg-green-500' : 'bg-[#94a3b8]'}`} />
-                            <span className={s.lastfmUsername ? 'text-green-600 dark:text-green-400' : 'text-[#64748b] dark:text-[#94a3b8]'}>
+                            <span className={`w-2.5 h-2.5 rounded-full ${s.lastfmUsername ? 'bg-ds-accent' : 'bg-ds-faint'}`} />
+                            <span className={s.lastfmUsername ? 'text-ds-ok ' : 'text-ds-soft '}>
                                 {s.lastfmUsername ? t('nowPlaying.connection.lastfmAs', { user: s.lastfmUsername }) : t('nowPlaying.connection.notConnected')}
                             </span>
                         </p>
@@ -183,11 +183,11 @@ export function ConnectionTab({ cfg }: TabProps) {
                             <button className={btnGray} onClick={validate} disabled={!!busy || !username.trim()}>
                                 {busy === 'validate' ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} {t('nowPlaying.connection.verify')}
                             </button>
-                            <button className={`${btnBase} bg-[#D51007] hover:bg-[#b50d06] text-white`} onClick={connect} disabled={!!busy || !username.trim()}>
+                            <button className={`${btnBase} bg-[#D51007] hover:bg-[#b50d06] text-ds-text`} onClick={connect} disabled={!!busy || !username.trim()}>
                                 {busy === 'connect' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />} {t('nowPlaying.connection.connect')}
                             </button>
                             {s.lastfmUsername && (
-                                <button className={`${btnBase} border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`} onClick={disconnect} disabled={!!busy}>
+                                <button className={`${btnBase} border border-ds-danger/40 text-ds-danger hover:bg-ds-danger/10 `} onClick={disconnect} disabled={!!busy}>
                                     {busy === 'disconnect' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlink className="w-4 h-4" />} {t('nowPlaying.connection.disconnect')}
                                 </button>
                             )}
@@ -197,40 +197,40 @@ export function ConnectionTab({ cfg }: TabProps) {
             ) : (
                 <Card title={t('nowPlaying.connection.spotifyTitle')} description={t('nowPlaying.connection.spotifyDescription')}>
                     <div className="space-y-4">
-                        <p className="flex items-center gap-2 text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                        <p className="flex items-center gap-2 text-sm 3xl:text-base font-semibold text-ds-text">
                             <span className={`w-2.5 h-2.5 rounded-full ${dot}`} /> {t(`nowPlaying.connection.spotifyStatus.${spotifyStatus}`)}
                         </p>
 
                         {!s.spotifyConnected && (
-                            <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-white`} onClick={spotifyConnect} disabled={!!busy}>
+                            <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-ds-text`} onClick={spotifyConnect} disabled={!!busy}>
                                 {busy === 'spotify' ? <Loader2 className="w-4 h-4 animate-spin" /> : <LinkIcon className="w-4 h-4" />} {t('nowPlaying.connection.spotifyConnect')}
                             </button>
                         )}
 
                         {spotifyStatus === 'noCupo' && (
-                            <div className="p-4 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] space-y-3">
-                                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('nowPlaying.connection.cupoTitle')}</p>
-                                <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('nowPlaying.connection.cupoHint')}</p>
+                            <div className="p-4 rounded-lg border border-ds-border bg-ds-bg space-y-3">
+                                <p className="text-sm 3xl:text-base font-bold text-ds-text">{t('nowPlaying.connection.cupoTitle')}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft">{t('nowPlaying.connection.cupoHint')}</p>
                                 <div className="flex items-center gap-2">
                                     {Array.from({ length: cfg.cupos.total }).map((_, i) => (
-                                        <span key={i} className={`w-3 h-3 rounded-full ${i < cfg.cupos.used ? 'bg-[#1DB954]' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`} />
+                                        <span key={i} className={`w-3 h-3 rounded-full ${i < cfg.cupos.used ? 'bg-[#1DB954]' : 'bg-ds-border '}`} />
                                     ))}
-                                    <span className="text-xs 3xl:text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{cfg.cupos.used}/{cfg.cupos.total}</span>
+                                    <span className="text-xs 3xl:text-sm font-bold text-ds-text">{cfg.cupos.used}/{cfg.cupos.total}</span>
                                 </div>
                                 {cfg.cupos.available <= 0 && (
-                                    <p className="text-sm 3xl:text-base text-amber-700 dark:text-amber-300">{t('nowPlaying.connection.cupoFull', { total: cfg.cupos.total })}</p>
+                                    <p className="text-sm 3xl:text-base text-ds-warn">{t('nowPlaying.connection.cupoFull', { total: cfg.cupos.total })}</p>
                                 )}
                                 <Field label={t('nowPlaying.connection.cupoEmail')}>
                                     <input type="email" className={inputClass} value={email} onChange={e => setEmail(e.target.value)} placeholder="tu-email@ejemplo.com" />
                                 </Field>
-                                <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-white`} onClick={requestCupo} disabled={!!busy || !email.trim()}>
+                                <button className={`${btnBase} bg-[#1DB954] hover:bg-[#1aa34a] text-ds-text`} onClick={requestCupo} disabled={!!busy || !email.trim()}>
                                     {busy === 'cupo' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {cfg.cupos.available > 0 ? t('nowPlaying.connection.cupoRequest') : t('nowPlaying.connection.cupoJoinQueue')}
                                 </button>
                             </div>
                         )}
 
                         {spotifyStatus === 'pending' && (
-                            <div className="p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-sm 3xl:text-base text-amber-800 dark:text-amber-200">
+                            <div className="p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-sm 3xl:text-base text-ds-warn">
                                 <p>{t('nowPlaying.connection.cupoPending')}</p>
                                 {s.spotifyQueuePosition != null && (
                                     <p className="mt-1 font-bold">{t('nowPlaying.connection.cupoPosition', { position: s.spotifyQueuePosition, total: s.spotifyQueueTotal ?? s.spotifyQueuePosition })}</p>
@@ -240,7 +240,7 @@ export function ConnectionTab({ cfg }: TabProps) {
                         )}
 
                         {s.spotifyConnected && (
-                            <button className={`${btnBase} border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`} onClick={spotifyDisconnect} disabled={!!busy}>
+                            <button className={`${btnBase} border border-ds-danger/40 text-ds-danger hover:bg-ds-danger/10 `} onClick={spotifyDisconnect} disabled={!!busy}>
                                 {busy === 'spotifyOff' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlink className="w-4 h-4" />} {t('nowPlaying.connection.spotifyDisconnect')}
                             </button>
                         )}
@@ -249,9 +249,9 @@ export function ConnectionTab({ cfg }: TabProps) {
             )}
 
             {msg && (
-                <div className={`p-4 rounded-xl border text-sm 3xl:text-base ${msg.ok
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'}`}>
+                <div className={`p-4 rounded-lg border text-sm 3xl:text-base ${msg.ok
+                    ? 'bg-ds-ok/10 border-ds-ok/40 text-ds-ok '
+                    : 'bg-ds-danger/10 border-ds-danger/40 text-ds-danger '}`}>
                     {msg.text}
                 </div>
             )}

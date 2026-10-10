@@ -126,15 +126,15 @@ const GameOverlays: React.FC = () => {
             <div className="space-y-6 max-w-[1400px] mx-auto">
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
-                        <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-3" />
-                        <p className="text-[#94a3b8] font-medium">{t('loading')}</p>
+                        <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text mx-auto mb-3" />
+                        <p className="text-ds-soft font-medium">{t('loading')}</p>
                     </div>
                 </div>
             </div>
         );
     }
 
-    if (!data) return <div className="text-red-400">{t('loadError')} {saveMsg?.text}</div>;
+    if (!data) return <div className="text-ds-danger">{t('loadError')} {saveMsg?.text}</div>;
 
     const tierLabel = data.tier === 'admin' ? 'Admin' : data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
 
@@ -142,24 +142,24 @@ const GameOverlays: React.FC = () => {
         <div className="space-y-6 max-w-[1400px] mx-auto">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/overlays')} className="p-3 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-[#94a3b8]" />
+                    <button onClick={() => navigate('/overlays')} className="p-3 bg-ds-surface rounded-lg border border-ds-border hover:bg-ds-raised transition-colors">
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-[#0f172a] dark:text-[#f8fafc] flex items-center gap-2">
-                            <Gamepad2 className="w-6 h-6 text-blue-400" /> Game Overlays
+                        <h1 className="text-2xl font-bold text-ds-text flex items-center gap-2">
+                            <Gamepad2 className="w-6 h-6 text-ds-accent-text" /> Game Overlays
                         </h1>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                        <p className="text-sm text-ds-soft mt-0.5">
                             {t('subtitle')} · {t('channel')} <b>{data.channel.displayName}</b> ({data.channel.platform}) · {t('plan')} {tierLabel}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {saveMsg && (
-                        <span className={`text-sm font-medium px-3 py-1.5 rounded-lg ${saveMsg.type === 'ok' ? 'bg-green-900/30 text-green-400 border border-green-500/20' : 'bg-red-900/30 text-red-400 border border-red-500/20'}`}>{saveMsg.text}</span>
+                        <span className={`text-sm font-medium px-3 py-1.5 rounded-lg ${saveMsg.type === 'ok' ? 'bg-ds-ok/10 text-ds-ok border border-ds-ok/40' : 'bg-ds-danger/10 text-ds-danger border border-ds-danger/40'}`}>{saveMsg.text}</span>
                     )}
                     {draft && (
-                        <button onClick={save} disabled={saving || !dirty} className="px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl transition-colors flex items-center gap-2 font-bold">
+                        <button onClick={save} disabled={saving || !dirty} className="px-5 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg transition-colors flex items-center gap-2 font-bold">
                             <Save className="w-4 h-4" /> {saving ? t('saving') : dirty ? t('save') : t('saved')}
                         </button>
                     )}
@@ -170,21 +170,21 @@ const GameOverlays: React.FC = () => {
 
             <div className="flex gap-6">
                 <div className="w-48 flex-shrink-0">
-                    <nav className="bg-[#1B1C1D] rounded-xl border border-[#374151] p-2 space-y-1 sticky top-8">
+                    <nav className="bg-ds-surface rounded-lg border border-ds-border p-2 space-y-1 sticky top-8">
                         {TABS.map(tb => {
                             const Icon = tb.icon; const active = tab === tb.id;
                             return (
-                                <button key={tb.id} onClick={() => setTab(tb.id)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? 'bg-blue-600 text-white' : 'text-[#94a3b8] hover:bg-[#262626] hover:text-[#f8fafc]'}`}>
+                                <button key={tb.id} onClick={() => setTab(tb.id)} className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-bg hover:text-ds-text'}`}>
                                     <Icon className="w-4 h-4 flex-shrink-0" /><span>{t(`tabs.${tb.id}`)}</span>{active && <ChevronRight className="w-3 h-3 ml-auto" />}
                                 </button>
                             );
                         })}
                     </nav>
                     {data.instances.length > 1 && draft && (
-                        <div className="mt-3 bg-[#1B1C1D] rounded-xl border border-[#374151] p-2">
-                            <div className="text-[10px] uppercase tracking-wider text-[#6b7280] px-2 py-1">Overlay</div>
+                        <div className="mt-3 bg-ds-surface rounded-lg border border-ds-border p-2">
+                            <div className="text-[10px] uppercase tracking-wider text-ds-soft px-2 py-1">Overlay</div>
                             {data.instances.map(i => (
-                                <button key={i.slug} onClick={() => switchInstance(i.slug)} className={`w-full text-left px-3 py-2 rounded-lg text-sm ${i.slug === slug ? 'bg-[#262626] text-white' : 'text-[#94a3b8] hover:text-white'}`}>{i.name}</button>
+                                <button key={i.slug} onClick={() => switchInstance(i.slug)} className={`w-full text-left px-3 py-2 rounded-lg text-sm ${i.slug === slug ? 'bg-ds-bg text-ds-text' : 'text-ds-soft hover:text-ds-text'}`}>{i.name}</button>
                             ))}
                         </div>
                     )}
@@ -201,7 +201,7 @@ const GameOverlays: React.FC = () => {
                             <SubLabel>{t('first.hint')}</SubLabel>
                             <div className="flex items-center gap-2 mt-3">
                                 <TextInput value={newName} onChange={setNewName} placeholder={t('first.placeholder')} />
-                                <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
+                                <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('first.create')}</button>
                             </div>
                         </Card>
                     )}
@@ -221,9 +221,9 @@ const GameOverlays: React.FC = () => {
                                 <SectionTitle>{t('url.title')}</SectionTitle>
                                 <SubLabel>{t('url.hint', { size: `${draft.canvas.width}×${draft.canvas.height}` })}</SubLabel>
                                 <div className="flex items-center gap-2 mt-3">
-                                    <input readOnly value={overlayUrl} className="flex-1 bg-[#111214] border border-[#374151] rounded-lg px-3 py-2 text-sm text-[#e6edf3] font-mono" />
-                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
-                                    <a href={`${overlayUrl}&preview=${enabledGames[0] ?? 'lol'}`} target="_blank" rel="noreferrer" className="p-2.5 bg-[#262626] hover:bg-[#333] rounded-lg border border-[#374151] text-white" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
+                                    <input readOnly value={overlayUrl} className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-3 py-2 text-sm text-ds-text font-mono" />
+                                    <button onClick={() => navigator.clipboard.writeText(overlayUrl)} className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.copy')}><Copy className="w-4 h-4" /></button>
+                                    <a href={`${overlayUrl}&preview=${enabledGames[0] ?? 'lol'}`} target="_blank" rel="noreferrer" className="p-2.5 bg-ds-bg hover:bg-ds-raised rounded-lg border border-ds-border text-ds-text" title={t('url.openPreview')}><ExternalLink className="w-4 h-4" /></a>
                                 </div>
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div><Label>{t('url.name')}</Label><TextInput value={draft.name} onChange={v => updateDraft({ name: v })} /></div>
@@ -232,25 +232,25 @@ const GameOverlays: React.FC = () => {
                             </Card>
 
                             <Card>
-                                <SectionTitle>{t('instances.title')} <span className="text-[#6b7280] font-normal text-sm">({data.instances.length}{data.limits.maxInstances ? `/${data.limits.maxInstances}` : ''})</span></SectionTitle>
+                                <SectionTitle>{t('instances.title')} <span className="text-ds-soft font-normal text-sm">({data.instances.length}{data.limits.maxInstances ? `/${data.limits.maxInstances}` : ''})</span></SectionTitle>
                                 <div className="space-y-2 mt-3">
                                     {data.instances.map(i => (
-                                        <div key={i.slug} className="flex items-center justify-between rounded-lg border border-[#374151] bg-[#111214] px-3 py-2">
+                                        <div key={i.slug} className="flex items-center justify-between rounded-lg border border-ds-border bg-ds-bg px-3 py-2">
                                             <div>
-                                                <div className="text-sm text-[#f8fafc] font-medium">{i.name} <span className="text-[#6b7280] font-mono text-xs">· {i.slug}</span></div>
-                                                <div className="text-[11px] text-[#94a3b8]">{i.isEnabled ? t('instances.enabled') : t('instances.disabled')} · {t('instances.games', { count: Object.entries(i.games ?? {}).filter(([, g]) => g?.enabled).length })}</div>
+                                                <div className="text-sm text-ds-text font-medium">{i.name} <span className="text-ds-soft font-mono text-xs">· {i.slug}</span></div>
+                                                <div className="text-[11px] text-ds-soft">{i.isEnabled ? t('instances.enabled') : t('instances.disabled')} · {t('instances.games', { count: Object.entries(i.games ?? {}).filter(([, g]) => g?.enabled).length })}</div>
                                             </div>
-                                            <button onClick={() => deleteInstance(i.slug)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-400 hover:bg-red-900/20" title={t('instances.delete')}><Trash2 className="w-4 h-4" /></button>
+                                            <button onClick={() => deleteInstance(i.slug)} className="p-2 rounded-lg text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10" title={t('instances.delete')}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     ))}
                                 </div>
                                 {(data.limits.maxInstances == null || data.instances.length < data.limits.maxInstances) ? (
                                     <div className="flex items-center gap-2 mt-3">
                                         <TextInput value={newName} onChange={setNewName} placeholder={t('instances.newPlaceholder')} />
-                                        <button onClick={createInstance} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
+                                        <button onClick={createInstance} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('instances.new')}</button>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-[#94a3b8] mt-3">{t('instances.limit', { count: data.limits.maxInstances })} <a href="/supporters" className="text-blue-400 underline">{t('instances.seePlans')}</a></p>
+                                    <p className="text-xs text-ds-soft mt-3">{t('instances.limit', { count: data.limits.maxInstances })} <a href="/supporters" className="text-ds-accent-text underline">{t('instances.seePlans')}</a></p>
                                 )}
                             </Card>
                         </div>

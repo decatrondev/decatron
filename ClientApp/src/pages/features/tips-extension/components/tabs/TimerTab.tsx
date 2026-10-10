@@ -34,11 +34,11 @@ export const TimerTab: React.FC<TimerTabProps> = ({
         <div className={cardClass}>
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-ds-text flex items-center gap-2">
                         <Clock className="w-5 h-5" />
                         {t('tipsTabs.timerIntegration')}
                     </h3>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                    <p className="text-sm text-ds-soft">
                         {t('tipsTabs.timerIntegrationDesc')}
                     </p>
                 </div>
@@ -49,7 +49,7 @@ export const TimerTab: React.FC<TimerTabProps> = ({
                         onChange={e => updateSettings({ timerIntegrationEnabled: e.target.checked })}
                         className="sr-only peer"
                     />
-                    <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-green-500 peer-checked:to-emerald-500"></div>
+                    <div className="w-14 h-7 bg-ds-raised rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-ds-accent"></div>
                 </label>
             </div>
 
@@ -107,11 +107,11 @@ export const TimerTab: React.FC<TimerTabProps> = ({
                             </div>
                         </div>
 
-                        <div className="p-4 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
-                                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('tipsTabs.example')}</span>
+                        <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
+                            <p className="text-sm text-ds-soft">
+                                <span className="font-bold text-ds-text">{t('tipsTabs.example')}</span>
                                 {t('tipsTabs.donationAddsTime', { amount: formatCurrency(exampleAmount) })}{' '}
-                                <span className="font-bold text-purple-600 dark:text-purple-400">
+                                <span className="font-bold text-ds-accent-text">
                                     {formatPreview(totalSeconds)}
                                 </span>
                                 {' '}{t('tipsTabs.toTheTimer')}
@@ -119,14 +119,14 @@ export const TimerTab: React.FC<TimerTabProps> = ({
                             </p>
                         </div>
 
-                        <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                        <div className="p-4 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
                             <div className="flex items-center gap-3">
-                                <Zap className="w-6 h-6 text-green-500" />
+                                <Zap className="w-6 h-6 text-ds-ok" />
                                 <div>
-                                    <p className="font-bold text-green-700 dark:text-green-300">
+                                    <p className="font-bold text-ds-ok">
                                         {t('tipsTabs.donationMoreTime')}
                                     </p>
-                                    <p className="text-sm text-green-600 dark:text-green-400">
+                                    <p className="text-sm text-ds-ok">
                                         {t('tipsTabs.autoAddTime')}
                                     </p>
                                 </div>

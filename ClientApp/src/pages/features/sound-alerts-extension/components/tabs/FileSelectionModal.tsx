@@ -66,20 +66,20 @@ export function FileSelectionModal({
         <>
             {/* File Selection Dialog */}
             {showFileDialog && selectedRewardForFile && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div className="fixed inset-0 bg-ds-input/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-ds-surface rounded-lg border border-ds-border p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-ds-text flex items-center gap-2">
                                 {showGallery && (
-                                    <button onClick={() => setShowGallery(false)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-                                        <ChevronLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                                    <button onClick={() => setShowGallery(false)} className="p-1 rounded hover:bg-ds-bg">
+                                        <ChevronLeft className="w-5 h-5 text-ds-soft" />
                                     </button>
                                 )}
                                 {t('soundAlertsTabs.selectFileFor', { title: selectedRewardForFile.title })}
                             </h3>
                             <button
                                 onClick={closeDialog}
-                                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                className="text-ds-soft hover:text-ds-soft"
                             >
                                 ✕
                             </button>
@@ -97,7 +97,7 @@ export function FileSelectionModal({
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                             {/* Upload Custom File */}
                             <div
-                                className="p-6 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:border-[#2563eb] dark:hover:border-[#3b82f6] cursor-pointer transition-all text-center"
+                                className="p-6 border-2 border-dashed border-ds-border rounded-lg hover:border-ds-accent cursor-pointer transition-all text-center"
                                 onClick={() => uploadInputRef.current?.click()}
                             >
                                 <input
@@ -126,37 +126,37 @@ export function FileSelectionModal({
                                         }
                                     }}
                                 />
-                                <Upload className="w-12 h-12 mx-auto mb-3 text-[#2563eb]" />
-                                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                <Upload className="w-12 h-12 mx-auto mb-3 text-ds-accent-text" />
+                                <h4 className="font-bold text-ds-text mb-2">
                                     {t('soundAlertsTabs.uploadOwnFile')}
                                 </h4>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-sm text-ds-soft">
                                     {t('soundAlertsTabs.uploadOwnFileDesc')}
                                 </p>
                             </div>
 
                             {/* Choose from shared gallery */}
                             <div
-                                className="p-6 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:border-[#2563eb] dark:hover:border-[#3b82f6] cursor-pointer transition-all text-center"
+                                className="p-6 border-2 border-dashed border-ds-border rounded-lg hover:border-ds-accent cursor-pointer transition-all text-center"
                                 onClick={() => setShowGallery(true)}
                             >
-                                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-[#2563eb]" />
-                                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                <FolderOpen className="w-12 h-12 mx-auto mb-3 text-ds-accent-text" />
+                                <h4 className="font-bold text-ds-text mb-2">
                                     Elegir de tu galería
                                 </h4>
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-sm text-ds-soft">
                                     Reusa un archivo que ya subiste (para Sound Alerts, Timer, Event Alerts, Goals o Discord)
                                 </p>
                             </div>
 
                             {/* Use System File */}
-                            <div className="p-6 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl">
-                                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] mb-3 flex items-center gap-2">
-                                    <Music className="w-5 h-5 text-purple-600" />
+                            <div className="p-6 border-2 border-dashed border-ds-border rounded-lg">
+                                <h4 className="font-bold text-ds-text mb-3 flex items-center gap-2">
+                                    <Music className="w-5 h-5 text-ds-accent-text" />
                                     {t('soundAlertsTabs.systemFiles')}
                                 </h4>
                                 {systemFiles.length === 0 ? (
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-sm text-ds-soft">
                                         {t('soundAlertsTabs.noSystemFiles')}
                                     </p>
                                 ) : (
@@ -166,18 +166,18 @@ export function FileSelectionModal({
                                                 key={idx}
                                                 onClick={() => handleAssignSystemFile(file)}
                                                 disabled={uploading[selectedRewardForFile.id]}
-                                                className="w-full text-left p-3 bg-[#f8fafc] dark:bg-[#262626] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all disabled:opacity-50"
+                                                className="w-full text-left p-3 bg-ds-bg hover:bg-ds-accent/10 rounded-lg transition-all disabled:opacity-50"
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        {file.type === 'sound' && <Music className="w-4 h-4 text-blue-600" />}
-                                                        {file.type === 'video' && <Video className="w-4 h-4 text-purple-600" />}
-                                                        {file.type === 'image' && <ImageIcon className="w-4 h-4 text-green-600" />}
-                                                        <span className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                                        {file.type === 'sound' && <Music className="w-4 h-4 text-ds-accent-text" />}
+                                                        {file.type === 'video' && <Video className="w-4 h-4 text-ds-accent-text" />}
+                                                        {file.type === 'image' && <ImageIcon className="w-4 h-4 text-ds-ok" />}
+                                                        <span className="text-sm font-semibold text-ds-text">
                                                             {file.name}
                                                         </span>
                                                     </div>
-                                                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                                    <span className="text-xs text-ds-soft">
                                                         {(file.size / 1024 / 1024).toFixed(2)}MB
                                                     </span>
                                                 </div>
@@ -192,7 +192,7 @@ export function FileSelectionModal({
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={closeDialog}
-                                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
+                                className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-soft font-semibold rounded-lg transition-all"
                             >
                                 {t('soundAlertsTabs.cancel')}
                             </button>
@@ -203,27 +203,27 @@ export function FileSelectionModal({
 
             {/* Modal: Upload Audio + Optional Image */}
             {showAudioImageModal && pendingAudioUpload && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <div className="fixed inset-0 bg-ds-input/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-ds-surface rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-ds-border">
+                            <h3 className="text-xl font-bold text-ds-text">
                                 {t('soundAlertsTabs.uploadAudio')}
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm text-ds-soft mt-1">
                                 {t('soundAlertsTabs.addImageQuestion')}
                             </p>
                         </div>
 
                         <div className="p-6 space-y-4">
                             {/* Audio file info */}
-                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                            <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4">
                                 <div className="flex items-center gap-3">
-                                    <Music className="w-5 h-5 text-blue-600" />
+                                    <Music className="w-5 h-5 text-ds-accent-text" />
                                     <div>
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        <p className="text-sm font-semibold text-ds-text">
                                             {pendingAudioUpload.audioFile.name}
                                         </p>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                                        <p className="text-xs text-ds-soft">
                                             {(pendingAudioUpload.audioFile.size / 1024 / 1024).toFixed(2)} MB
                                         </p>
                                     </div>
@@ -233,14 +233,14 @@ export function FileSelectionModal({
                             {/* Show image toggle */}
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Mostrar imagen en overlay</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">Si está desactivado, solo se escuchará el sonido</p>
+                                    <p className="text-sm font-semibold text-ds-soft">Mostrar imagen en overlay</p>
+                                    <p className="text-xs text-ds-soft mt-0.5">Si está desactivado, solo se escuchará el sonido</p>
                                 </div>
                                 <button
                                     onClick={() => setShowImage(!showImage)}
-                                    className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${showImage ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                    className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${showImage ? 'bg-ds-accent' : 'bg-ds-raised '}`}
                                 >
-                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${showImage ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-ds-surface rounded-full transition-transform ${showImage ? 'translate-x-5' : 'translate-x-0'}`} />
                                 </button>
                             </div>
 
@@ -249,19 +249,19 @@ export function FileSelectionModal({
                                 <div className="space-y-3">
                                     {/* Image source selector */}
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                        <label className="block text-sm font-semibold text-ds-soft mb-2">
                                             Fuente de imagen
                                         </label>
                                         <div className="grid grid-cols-2 gap-2">
                                             <button
                                                 onClick={() => setImageSource('upload')}
-                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${imageSource === 'upload' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-300 dark:border-gray-700 text-gray-500'}`}
+                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${imageSource === 'upload' ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text' : 'border-ds-border text-ds-soft'}`}
                                             >
                                                 <Upload className="w-4 h-4" /> Subir archivo
                                             </button>
                                             <button
                                                 onClick={() => setImageSource('url')}
-                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${imageSource === 'url' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-300 dark:border-gray-700 text-gray-500'}`}
+                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${imageSource === 'url' ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text' : 'border-ds-border text-ds-soft'}`}
                                             >
                                                 <Link className="w-4 h-4" /> URL externa
                                             </button>
@@ -271,10 +271,10 @@ export function FileSelectionModal({
                                     {/* Upload file */}
                                     {imageSource === 'upload' && (
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                            <label className="block text-sm font-semibold text-ds-soft mb-2">
                                                 {t('soundAlertsTabs.imageOptional')}
                                             </label>
-                                            <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+                                            <div className="border-2 border-dashed border-ds-border rounded-lg p-4 hover:border-ds-accent transition-colors">
                                                 <input
                                                     type="file"
                                                     accept=".png,.jpg,.jpeg,.gif"
@@ -291,21 +291,21 @@ export function FileSelectionModal({
                                                 >
                                                     {selectedImageFile ? (
                                                         <>
-                                                            <ImageIcon className="w-8 h-8 text-green-600" />
-                                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                            <ImageIcon className="w-8 h-8 text-ds-ok" />
+                                                            <p className="text-sm font-medium text-ds-text">
                                                                 {selectedImageFile.name}
                                                             </p>
-                                                            <p className="text-xs text-gray-500">
+                                                            <p className="text-xs text-ds-soft">
                                                                 {(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB
                                                             </p>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Upload className="w-8 h-8 text-gray-400" />
-                                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                            <Upload className="w-8 h-8 text-ds-soft" />
+                                                            <p className="text-sm text-ds-soft">
                                                                 {t('soundAlertsTabs.clickToSelectImage')}
                                                             </p>
-                                                            <p className="text-xs text-gray-500">PNG, JPG, JPEG, GIF — máx 10MB</p>
+                                                            <p className="text-xs text-ds-soft">PNG, JPG, JPEG, GIF — máx 10MB</p>
                                                         </>
                                                     )}
                                                 </label>
@@ -316,7 +316,7 @@ export function FileSelectionModal({
                                     {/* URL input */}
                                     {imageSource === 'url' && (
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                            <label className="block text-sm font-semibold text-ds-soft mb-2">
                                                 URL de imagen / GIF
                                             </label>
                                             <input
@@ -324,14 +324,14 @@ export function FileSelectionModal({
                                                 value={imageUrlInput}
                                                 onChange={e => setImageUrlInput(e.target.value)}
                                                 placeholder="https://ejemplo.com/imagen.gif"
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 border border-ds-border rounded-lg text-sm bg-ds-surface text-ds-text focus:outline-none focus:border-ds-accent"
                                             />
                                         </div>
                                     )}
 
                                     {/* Preview */}
                                     {(imageSource === 'upload' && selectedImageFile) || (imageSource === 'url' && imageUrlInput) ? (
-                                        <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-black/20 flex items-center justify-center h-24">
+                                        <div className="rounded-lg overflow-hidden border border-ds-border bg-ds-input/20 flex items-center justify-center h-24">
                                             <img
                                                 src={imageSource === 'upload' && selectedImageFile ? URL.createObjectURL(selectedImageFile) : imageUrlInput}
                                                 alt="preview"
@@ -343,7 +343,7 @@ export function FileSelectionModal({
                             )}
                         </div>
 
-                        <div className="p-6 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
+                        <div className="p-6 border-t border-ds-border flex justify-end gap-3">
                             <button
                                 onClick={() => {
                                     setShowAudioImageModal(false);
@@ -353,7 +353,7 @@ export function FileSelectionModal({
                                     setImageSource('upload');
                                     setImageUrlInput('');
                                 }}
-                                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-all"
+                                className="px-4 py-2 bg-ds-bg hover:bg-ds-raised text-ds-soft font-semibold rounded-lg transition-all"
                             >
                                 {t('soundAlertsTabs.cancel')}
                             </button>
@@ -378,7 +378,7 @@ export function FileSelectionModal({
                                         setImageUrlInput('');
                                     }
                                 }}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+                                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-semibold rounded-lg transition-all flex items-center gap-2"
                             >
                                 <Upload className="w-4 h-4" />
                                 {t('soundAlertsTabs.uploadAudio')}

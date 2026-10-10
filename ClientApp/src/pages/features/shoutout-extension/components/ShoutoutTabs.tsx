@@ -24,9 +24,9 @@ export const VARIABLES = EXTRA_DATA
 interface TabProps { cfg: ShoutoutConfigState }
 
 const btnBase = 'px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2';
-const btnGray = `${btnBase} bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]`;
-const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
-const choice = (active: boolean) => `px-3 py-2.5 rounded-xl text-sm 3xl:text-base font-bold border transition-colors ${active ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#2563eb] dark:text-[#93c5fd]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#2563eb]'}`;
+const btnGray = `${btnBase} bg-ds-raised text-ds-soft hover:bg-ds-raised `;
+const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`;
+const choice = (active: boolean) => `px-3 py-2.5 rounded-lg text-sm 3xl:text-base font-bold border transition-colors ${active ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text ' : 'border-ds-border text-ds-soft hover:border-ds-accent'}`;
 
 /** Cambios sobre el diseño, siempre partiendo del último (el arrastre manda muchos seguidos). */
 function useLayoutEdit(cfg: ShoutoutConfigState) {
@@ -63,14 +63,14 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Sho
     const { t } = useTranslation('overlays');
     const step = (n: number, title: string, body: ReactNode) => (
         <div className="flex gap-4">
-            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-[#2563eb] text-white font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
+            <span className="w-8 h-8 3xl:w-10 3xl:h-10 shrink-0 rounded-full bg-ds-accent text-ds-on-accent font-black flex items-center justify-center text-sm 3xl:text-base">{n}</span>
             <div className="flex-1 min-w-0 space-y-2">
-                <h4 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-sm 3xl:text-base">{title}</h4>
-                <div className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] space-y-2">{body}</div>
+                <h4 className="font-bold text-ds-text text-sm 3xl:text-base">{title}</h4>
+                <div className="text-sm 3xl:text-base text-ds-soft space-y-2">{body}</div>
             </div>
         </div>
     );
-    const link = (tab: ShoutoutTabId, label: string) => <button className="underline text-[#2563eb]" onClick={() => onNavigate(tab)}>{label}</button>;
+    const link = (tab: ShoutoutTabId, label: string) => <button className="underline text-ds-accent-text" onClick={() => onNavigate(tab)}>{label}</button>;
 
     return (
         <Card title={t('shoutout.guide.title')} description={t('shoutout.guide.description')}>
@@ -97,7 +97,7 @@ export function GuideTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Sho
                 {step(4, t('shoutout.guide.step4Title'), (
                     <>
                         <p>{t('shoutout.guide.step4Body')}</p>
-                        <code className="inline-block px-2 py-1 rounded bg-[#f1f5f9] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] font-mono">!so @usuario</code>
+                        <code className="inline-block px-2 py-1 rounded bg-ds-raised text-ds-text font-mono">!so @usuario</code>
                         <p>{t('shoutout.guide.step4Perms')} {link('permissions', t('shoutout.guide.goPermissions'))}</p>
                     </>
                 ))}
@@ -177,7 +177,7 @@ export function ClipTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Shou
                     <Field label={t('shoutout.clip.noClipSeconds')} hint={t('shoutout.clip.noClipSecondsHint')}>
                         <Slider value={s.noClipSeconds} min={NO_CLIP_RANGE.min} max={NO_CLIP_RANGE.max} onChange={v => cfg.update({ noClipSeconds: v })} suffix="s" />
                     </Field>
-                    <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-3">{t('shoutout.clip.noClipPreview')}</p>
+                    <p className="text-xs 3xl:text-sm text-ds-soft mt-3">{t('shoutout.clip.noClipPreview')}</p>
                 </Card>
             )}
 
@@ -188,11 +188,11 @@ export function ClipTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: Shou
                             <Slider value={clip.options.volume ?? 100} min={0} max={100} step={5} onChange={v => setOptions(clip.id, { volume: v })} suffix="%" />
                         </Field>
                         {!clip.enabled && (
-                            <p className="text-sm 3xl:text-base text-amber-600 dark:text-amber-400">
+                            <p className="text-sm 3xl:text-base text-ds-warn">
                                 {t('shoutout.clip.hiddenWarning')} <button className="underline font-bold" onClick={() => setElement(clip.id, { enabled: true })}>{t('shoutout.clip.showClip')}</button>
                             </p>
                         )}
-                        <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.clip.lookHint')} <button className="underline text-[#2563eb]" onClick={() => onNavigate('elements')}>{t('shoutout.clip.goElements')}</button></p>
+                        <p className="text-sm 3xl:text-base text-ds-soft">{t('shoutout.clip.lookHint')} <button className="underline text-ds-accent-text" onClick={() => onNavigate('elements')}>{t('shoutout.clip.goElements')}</button></p>
                     </div>
                 </Card>
             )}
@@ -241,10 +241,10 @@ export function ThemeTab({ cfg }: TabProps) {
                         // La miniatura con los colores y fuentes actuales, como quedaría
                         const l = applyLayoutPreset(layout, p.build());
                         return (
-                            <button key={p.id} onClick={() => applyPreset(p.build)} className="p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left">
+                            <button key={p.id} onClick={() => applyPreset(p.build)} className="p-3 rounded-lg border border-ds-border hover:border-ds-accent transition-all text-left">
                                 <PresetThumb layout={l} />
-                                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mt-2">{t(`shoutout.theme.layouts.${p.id}`)}</p>
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t(`shoutout.theme.layoutsHint.${p.id}`)} · {l.canvas.width}×{l.canvas.height}</p>
+                                <p className="text-sm 3xl:text-base font-bold text-ds-text mt-2">{t(`shoutout.theme.layouts.${p.id}`)}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft">{t(`shoutout.theme.layoutsHint.${p.id}`)} · {l.canvas.width}×{l.canvas.height}</p>
                             </button>
                         );
                     })}
@@ -254,11 +254,11 @@ export function ThemeTab({ cfg }: TabProps) {
             <Card title={t('shoutout.theme.colorsTitle')} description={t('shoutout.theme.colorsDescription')}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {COLOR_THEMES.map(c => (
-                        <button key={c.id} onClick={() => set(applyColorTheme(layout, c))} className="text-left p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all">
-                            <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-black/10">
+                        <button key={c.id} onClick={() => set(applyColorTheme(layout, c))} className="text-left p-3 rounded-lg border border-ds-border hover:border-ds-accent transition-all">
+                            <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-ds-border/10">
                                 {c.swatch.map((s, i) => <span key={i} className="flex-1" style={{ background: s === '#00000000' ? 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 10px 10px' : s }} />)}
                             </div>
-                            <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{t(`shoutout.theme.colors.${c.id}`)}</p>
+                            <p className="text-sm 3xl:text-base font-bold text-ds-text">{t(`shoutout.theme.colors.${c.id}`)}</p>
                         </button>
                     ))}
                 </div>
@@ -266,7 +266,7 @@ export function ThemeTab({ cfg }: TabProps) {
 
             <Card title={t('shoutout.theme.panelTitle')}>
                 <div className="space-y-4">
-                    <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                    <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                         {(['gradient', 'solid', 'transparent'] as const).map(ty => (
                             <button key={ty} className={seg(bg.type === ty)} onClick={() => setBg({ type: ty })}>{t(`shoutout.theme.bg.${ty}`)}</button>
                         ))}
@@ -368,7 +368,7 @@ export function ElementsTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: 
             case 'badge':
                 return <Toggle checked={!!o.showAffiliate} onChange={v => setOptions(e.id, { showAffiliate: v })} label={t('shoutout.elementsTab.showAffiliate')} hint={t('shoutout.elementsTab.showAffiliateHint')} />;
             case 'text':
-                return <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.elementsTab.textHint')} <button className="underline text-[#2563eb]" onClick={() => onNavigate('text')}>{t('shoutout.elementsTab.goText')}</button></p>;
+                return <p className="text-sm 3xl:text-base text-ds-soft">{t('shoutout.elementsTab.textHint')} <button className="underline text-ds-accent-text" onClick={() => onNavigate('text')}>{t('shoutout.elementsTab.goText')}</button></p>;
             default:
                 return null;
         }
@@ -376,13 +376,13 @@ export function ElementsTab({ cfg, onNavigate }: TabProps & { onNavigate: (tab: 
 
     return (
         <div className="space-y-4">
-            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.elementsTab.description')} <button className="underline text-[#2563eb]" onClick={() => onNavigate('editor')}>{t('shoutout.elementsTab.goEditor')}</button></p>
+            <p className="text-sm 3xl:text-base text-ds-soft">{t('shoutout.elementsTab.description')} <button className="underline text-ds-accent-text" onClick={() => onNavigate('editor')}>{t('shoutout.elementsTab.goEditor')}</button></p>
             {list.map(e => {
                 const content = e.enabled ? body(e) : null;
                 return (
                     <Card key={e.id} title={label(e, layout)} description={t(`shoutout.elementsTab.hints.${e.kind}`)}
                         actions={<Toggle checked={e.enabled} onChange={v => setElement(e.id, { enabled: v })} label="" />}>
-                        {content ?? <p className="text-sm 3xl:text-base text-[#94a3b8]">{e.enabled ? '' : t('shoutout.elementsTab.hidden')}</p>}
+                        {content ?? <p className="text-sm 3xl:text-base text-ds-soft">{e.enabled ? '' : t('shoutout.elementsTab.hidden')}</p>}
                     </Card>
                 );
             })}
@@ -441,12 +441,12 @@ export function TextTab({ cfg }: TabProps) {
             <Card title={t('shoutout.text.variablesTitle')} description={t('shoutout.text.variablesDescription')}>
                 <div className="flex flex-wrap gap-2">
                     {VARIABLES.map(v => (
-                        <button key={v} onMouseDown={ev => ev.preventDefault()} onClick={() => insertVariable(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-[#f1f5f9] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]" title={t(`shoutout.text.vars.${v.slice(1)}`)}>
+                        <button key={v} onMouseDown={ev => ev.preventDefault()} onClick={() => insertVariable(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-ds-raised text-ds-text hover:bg-ds-raised" title={t(`shoutout.text.vars.${v.slice(1)}`)}>
                             {v}
                         </button>
                     ))}
                 </div>
-                <ul className="mt-3 text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] space-y-0.5">
+                <ul className="mt-3 text-xs 3xl:text-sm text-ds-soft space-y-0.5">
                     {VARIABLES.map(v => <li key={v}><span className="font-mono">{v}</span>: {t(`shoutout.text.vars.${v.slice(1)}`)}</li>)}
                 </ul>
             </Card>
@@ -455,10 +455,10 @@ export function TextTab({ cfg }: TabProps) {
                 const tb = e.text!;
                 return (
                     <Card key={e.id} title={label(e, layout)}
-                        actions={<button onClick={() => removeBlock(e.id)} className="p-2 rounded-lg text-[#94a3b8] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" title={t('shoutout.text.removeBlock')}><Trash2 className="w-4 h-4" /></button>}>
+                        actions={<button onClick={() => removeBlock(e.id)} className="p-2 rounded-lg text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10" title={t('shoutout.text.removeBlock')}><Trash2 className="w-4 h-4" /></button>}>
                         <div className="space-y-3 mb-5">
                             {tb.lines.map((l, i) => (
-                                <div key={i} className={`p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626] space-y-2 ${l.enabled ? '' : 'opacity-60'}`}>
+                                <div key={i} className={`p-3 rounded-lg border border-ds-border bg-ds-bg space-y-2 ${l.enabled ? '' : 'opacity-60'}`}>
                                     <div className="flex items-center gap-2">
                                         <input
                                             className={inputClass}
@@ -468,12 +468,12 @@ export function TextTab({ cfg }: TabProps) {
                                             onChange={ev => setLine(e, i, { text: ev.target.value })}
                                             placeholder={t('shoutout.text.linePlaceholder')}
                                         />
-                                        <button onClick={() => setLine(e, i, { enabled: !l.enabled })} className="p-2 text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white" title={l.enabled ? t('shoutout.text.hideLine') : t('shoutout.text.showLine')}>
+                                        <button onClick={() => setLine(e, i, { enabled: !l.enabled })} className="p-2 text-ds-soft hover:text-ds-text" title={l.enabled ? t('shoutout.text.hideLine') : t('shoutout.text.showLine')}>
                                             {l.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                         </button>
-                                        <button onClick={() => moveLine(e, i, -1)} disabled={i === 0} className="p-1 text-[#64748b] disabled:opacity-30" title={t('shoutout.text.moveUp')}><ChevronUp className="w-4 h-4" /></button>
-                                        <button onClick={() => moveLine(e, i, 1)} disabled={i === tb.lines.length - 1} className="p-1 text-[#64748b] disabled:opacity-30" title={t('shoutout.text.moveDown')}><ChevronDown className="w-4 h-4" /></button>
-                                        <button onClick={() => setText(e.id, { lines: tb.lines.filter((_, j) => j !== i) })} disabled={tb.lines.length <= 1} className="p-2 text-[#94a3b8] hover:text-red-600 disabled:opacity-30" title={t('shoutout.text.removeLine')}><Trash2 className="w-4 h-4" /></button>
+                                        <button onClick={() => moveLine(e, i, -1)} disabled={i === 0} className="p-1 text-ds-soft disabled:opacity-30" title={t('shoutout.text.moveUp')}><ChevronUp className="w-4 h-4" /></button>
+                                        <button onClick={() => moveLine(e, i, 1)} disabled={i === tb.lines.length - 1} className="p-1 text-ds-soft disabled:opacity-30" title={t('shoutout.text.moveDown')}><ChevronDown className="w-4 h-4" /></button>
+                                        <button onClick={() => setText(e.id, { lines: tb.lines.filter((_, j) => j !== i) })} disabled={tb.lines.length <= 1} className="p-2 text-ds-soft hover:text-ds-danger disabled:opacity-30" title={t('shoutout.text.removeLine')}><Trash2 className="w-4 h-4" /></button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <Field label={t('shoutout.text.size')}><NumberInput value={l.fontSize} min={8} max={160} onChange={v => setLine(e, i, { fontSize: v })} /></Field>
@@ -499,7 +499,7 @@ export function TextTab({ cfg }: TabProps) {
                             </Field>
                             <ColorField label={t('shoutout.text.color')} value={tb.color} onChange={v => setText(e.id, { color: v })} />
                             <Field label={t('shoutout.text.align')}>
-                                <div className="flex gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                                <div className="flex gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                                     {(['left', 'center', 'right'] as const).map(a => <button key={a} className={seg(tb.align === a)} onClick={() => setText(e.id, { align: a })}>{t(`shoutout.text.aligns.${a}`)}</button>)}
                                 </div>
                             </Field>
@@ -517,7 +517,7 @@ export function TextTab({ cfg }: TabProps) {
                                 </>
                             )}
                         </div>
-                        {tb.anchor && <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-4">{t('shoutout.text.anchorHint')}</p>}
+                        {tb.anchor && <p className="text-xs 3xl:text-sm text-ds-soft mt-4">{t('shoutout.text.anchorHint')}</p>}
                     </Card>
                 );
             })}
@@ -565,7 +565,7 @@ export function AnimationsTab({ cfg }: TabProps) {
     const a = layout.animations;
     return (
         <div className="space-y-6">
-            <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8]">{t('shoutout.animations.hint')}</p>
+            <p className="text-sm 3xl:text-base text-ds-soft">{t('shoutout.animations.hint')}</p>
             <AnimationCard title={t('shoutout.animations.enterTitle')} description={t('shoutout.animations.enterDescription')} value={a.enter} onChange={v => set({ ...layout, animations: { ...a, enter: v } })} />
             <AnimationCard title={t('shoutout.animations.exitTitle')} description={t('shoutout.animations.exitDescription')} value={a.exit} onChange={v => set({ ...layout, animations: { ...a, exit: v } })} />
         </div>
@@ -624,7 +624,7 @@ function NativeStatusBox() {
 
     const row = (ok: boolean | 'info', text: string) => (
         <li className="flex items-start gap-2">
-            {ok === 'info' ? <Info className="w-4 h-4 mt-0.5 text-[#64748b] shrink-0" /> : ok ? <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 shrink-0" /> : <AlertTriangle className="w-4 h-4 mt-0.5 text-amber-500 shrink-0" />}
+            {ok === 'info' ? <Info className="w-4 h-4 mt-0.5 text-ds-soft shrink-0" /> : ok ? <CheckCircle2 className="w-4 h-4 mt-0.5 text-ds-ok shrink-0" /> : <AlertTriangle className="w-4 h-4 mt-0.5 text-ds-warn shrink-0" />}
             <span>{text}</span>
         </li>
     );
@@ -635,15 +635,15 @@ function NativeStatusBox() {
     };
 
     return (
-        <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 text-sm 3xl:text-base text-[#475569] dark:text-[#cbd5e1]">
+        <div className="rounded-lg border border-ds-border p-4 text-sm 3xl:text-base text-ds-soft">
             <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{t('shoutout.auto.native.statusTitle')}</span>
-                <button onClick={load} disabled={loading} className="p-1.5 rounded-lg text-[#64748b] hover:bg-[#f1f5f9] dark:hover:bg-[#262626] disabled:opacity-50" title={t('shoutout.auto.native.refresh')}>
+                <span className="font-bold text-ds-text">{t('shoutout.auto.native.statusTitle')}</span>
+                <button onClick={load} disabled={loading} className="p-1.5 rounded-lg text-ds-soft hover:bg-ds-raised disabled:opacity-50" title={t('shoutout.auto.native.refresh')}>
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
             </div>
             {!status ? (
-                <p className="text-[#94a3b8]">{loading ? t('shoutout.auto.native.checking') : t('shoutout.auto.native.unknown')}</p>
+                <p className="text-ds-soft">{loading ? t('shoutout.auto.native.checking') : t('shoutout.auto.native.unknown')}</p>
             ) : (
                 <ul className="space-y-1.5">
                     {row(status.tokenValid && status.hasScope, status.tokenValid && status.hasScope ? t('shoutout.auto.native.scopeOk', { bot: status.botLogin }) : t('shoutout.auto.native.scopeMissing'))}
@@ -685,12 +685,12 @@ export function AutoTab({ cfg }: TabProps) {
                             </Field>
                             <div className="flex flex-wrap gap-2">
                                 {chatVars.map(v => (
-                                    <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-[#f1f5f9] dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]">{v}</button>
+                                    <button key={v} onMouseDown={e => e.preventDefault()} onClick={() => insert(v)} className="px-2.5 py-1.5 rounded-lg font-mono text-xs 3xl:text-sm bg-ds-raised text-ds-text hover:bg-ds-raised">{v}</button>
                                 ))}
                             </div>
-                            <div className="rounded-xl bg-[#f8fafc] dark:bg-[#111] border border-[#e2e8f0] dark:border-[#374151] p-3 text-sm 3xl:text-base">
-                                <span className="text-xs 3xl:text-sm font-bold uppercase text-[#94a3b8] block mb-1">{t('shoutout.auto.chatPreview')}</span>
-                                <span className="text-[#1e293b] dark:text-[#f8fafc]">{sampleMessage(s.chatMessage.trim() || t('shoutout.auto.chatDefault'))}</span>
+                            <div className="rounded-lg bg-ds-bg border border-ds-border p-3 text-sm 3xl:text-base">
+                                <span className="text-xs 3xl:text-sm font-bold uppercase text-ds-soft block mb-1">{t('shoutout.auto.chatPreview')}</span>
+                                <span className="text-ds-text">{sampleMessage(s.chatMessage.trim() || t('shoutout.auto.chatDefault'))}</span>
                             </div>
                         </>
                     )}
@@ -735,19 +735,19 @@ function UserList({ title, description, color, users, onChange, empty }: { title
         setValue('');
     };
     return (
-        <Card title={title} description={description} actions={<Shield className={`w-5 h-5 ${color === 'red' ? 'text-red-600' : 'text-green-600'}`} />}>
+        <Card title={title} description={description} actions={<Shield className={`w-5 h-5 ${color === 'red' ? 'text-ds-danger' : 'text-ds-ok'}`} />}>
             <form className="flex gap-2 mb-4" onSubmit={e => { e.preventDefault(); add(); }}>
                 <input value={value} onChange={e => setValue(e.target.value)} placeholder={t('shoutout.permissions.placeholder')} className={inputClass} maxLength={50} />
-                <button type="submit" disabled={!value.trim()} className={`${btnBase} text-white shrink-0 ${color === 'red' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}><Plus className="w-4 h-4" /> {t('shoutout.permissions.add')}</button>
+                <button type="submit" disabled={!value.trim()} className={`${btnBase} text-ds-on-accent shrink-0 ${color === 'red' ? 'bg-ds-danger-solid hover:bg-ds-danger-hover' : 'bg-ds-accent hover:bg-ds-accent-hover'}`}><Plus className="w-4 h-4" /> {t('shoutout.permissions.add')}</button>
             </form>
             {users.length === 0 ? (
-                <p className="text-sm 3xl:text-base text-[#94a3b8]">{empty}</p>
+                <p className="text-sm 3xl:text-base text-ds-soft">{empty}</p>
             ) : (
                 <div className="flex flex-wrap gap-2">
                     {users.map(u => (
-                        <span key={u} className={`flex items-center gap-1.5 pl-3 pr-1 py-1 rounded-lg text-sm 3xl:text-base font-mono border ${color === 'red' ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'} text-[#1e293b] dark:text-[#f8fafc]`}>
+                        <span key={u} className={`flex items-center gap-1.5 pl-3 pr-1 py-1 rounded-lg text-sm 3xl:text-base font-mono border ${color === 'red' ? 'bg-ds-danger/10 border-ds-danger/40 ' : 'bg-ds-ok/10 border-ds-ok/40 '} text-ds-text `}>
                             @{u}
-                            <button onClick={() => onChange(users.filter(x => x !== u))} className="p-1 rounded text-[#94a3b8] hover:text-red-600" title={t('shoutout.permissions.remove')}><Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => onChange(users.filter(x => x !== u))} className="p-1 rounded text-ds-soft hover:text-ds-danger" title={t('shoutout.permissions.remove')}><Trash2 className="w-3.5 h-3.5" /></button>
                         </span>
                     ))}
                 </div>

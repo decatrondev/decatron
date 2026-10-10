@@ -11,17 +11,17 @@ export type EmotesTabId = 'mine' | 'upload' | 'review' | 'settings';
 interface TabProps { s: ChannelEmotesState }
 
 const btn = 'px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-const btnGray = `${btn} bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]`;
-const btnBlue = `${btn} bg-[#2563eb] hover:bg-[#1d4ed8] text-white`;
-const btnRed = `${btn} bg-red-600 hover:bg-red-700 text-white`;
+const btnGray = `${btn} bg-ds-raised text-ds-soft hover:bg-ds-raised `;
+const btnBlue = `${btn} bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent`;
+const btnRed = `${btn} bg-ds-danger-solid hover:bg-ds-danger-hover text-ds-on-accent`;
 const chip = 'px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold';
 
 const STATUS_CHIP: Record<string, string> = {
-    approved: 'bg-green-500/10 text-green-600 dark:text-green-400',
-    hidden: 'bg-slate-500/10 text-slate-600 dark:text-slate-300',
-    pending: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    rejected: 'bg-red-500/10 text-red-600 dark:text-red-400',
-    removed: 'bg-red-500/10 text-red-600 dark:text-red-400',
+    approved: 'bg-ds-accent/10 text-ds-ok ',
+    hidden: 'bg-ds-faint/10 text-ds-soft ',
+    pending: 'bg-ds-warn/10 text-ds-warn ',
+    rejected: 'bg-ds-danger-solid/10 text-ds-danger ',
+    removed: 'bg-ds-danger-solid/10 text-ds-danger ',
 };
 
 // ── Mis emotes ─────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ function EmoteCard({ e, s }: { e: EmoteDto; s: ChannelEmotesState }) {
     };
 
     return (
-        <div className={`rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-3 flex flex-col gap-2 ${e.status === 'hidden' ? 'opacity-60' : ''}`}>
+        <div className={`rounded-lg border border-ds-border bg-ds-surface p-3 flex flex-col gap-2 ${e.status === 'hidden' ? 'opacity-60' : ''}`}>
             <div className="flex justify-center"><EmoteThumb src={e.urls.x2} name={e.name} height={48} bg="checker" /></div>
             {editing ? (
                 <div className="flex gap-1">
@@ -65,16 +65,16 @@ function EmoteCard({ e, s }: { e: EmoteDto; s: ChannelEmotesState }) {
                     <button type="button" className={btnBlue} onClick={saveName} disabled={busy} aria-label={t('panel.save')}><Check className="w-4 h-4" /></button>
                 </div>
             ) : (
-                <button type="button" onClick={() => setEditing(true)} className="font-bold text-sm 3xl:text-base text-[#1e293b] dark:text-[#f8fafc] truncate text-center hover:text-[#2563eb]" title={t('panel.rename')}>{e.name}</button>
+                <button type="button" onClick={() => setEditing(true)} className="font-bold text-sm 3xl:text-base text-ds-text truncate text-center hover:text-ds-accent-text" title={t('panel.rename')}>{e.name}</button>
             )}
             <div className="flex flex-wrap items-center justify-center gap-1.5">
                 <span className={`${chip} ${STATUS_CHIP[e.status]}`}>{t(`status.${e.status}`)}</span>
-                {e.animated && <span className={`${chip} bg-purple-500/10 text-purple-600 dark:text-purple-400`}>GIF</span>}
-                {e.zeroWidth && <span className={`${chip} bg-blue-500/10 text-blue-600 dark:text-blue-400`}>{t('panel.overlap')}</span>}
-                {(e.reports ?? 0) > 0 && <span className={`${chip} bg-red-500/10 text-red-600 dark:text-red-400`}>{t('panel.reports', { count: e.reports })}</span>}
+                {e.animated && <span className={`${chip} bg-ds-accent/10 text-ds-accent-text `}>GIF</span>}
+                {e.zeroWidth && <span className={`${chip} bg-ds-accent/10 text-ds-accent-text `}>{t('panel.overlap')}</span>}
+                {(e.reports ?? 0) > 0 && <span className={`${chip} bg-ds-danger-solid/10 text-ds-danger `}>{t('panel.reports', { count: e.reports })}</span>}
             </div>
-            <p className="text-[11px] 3xl:text-xs text-center text-[#94a3b8] truncate">{t('panel.by', { user: e.uploadedBy })} · {formatBytes(e.bytes)}</p>
-            {error && <p className="text-xs text-red-500 text-center">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
+            <p className="text-[11px] 3xl:text-xs text-center text-ds-soft truncate">{t('panel.by', { user: e.uploadedBy })} · {formatBytes(e.bytes)}</p>
+            {error && <p className="text-xs text-ds-danger text-center">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
             <div className="flex flex-wrap items-center justify-center gap-1 mt-auto">
                 <button type="button" className={btnGray} disabled={busy} onClick={() => act(() => s.update(e.id, { visible: e.status === 'hidden' }))} title={e.status === 'hidden' ? t('panel.show') : t('panel.hide')} aria-label={e.status === 'hidden' ? t('panel.show') : t('panel.hide')}>
                     {e.status === 'hidden' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -83,7 +83,7 @@ function EmoteCard({ e, s }: { e: EmoteDto; s: ChannelEmotesState }) {
                     <Layers className="w-4 h-4" />
                 </button>
                 <button type="button" className={btnGray} onClick={() => navigator.clipboard?.writeText(e.name)} title={t('panel.copyName')} aria-label={t('panel.copyName')}><Copy className="w-4 h-4" /></button>
-                <button type="button" className={`${btn} text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20`} disabled={busy} onClick={remove} title={t('panel.delete')} aria-label={t('panel.delete')}><Trash2 className="w-4 h-4" /></button>
+                <button type="button" className={`${btn} text-ds-danger hover:bg-ds-danger/10 `} disabled={busy} onClick={remove} title={t('panel.delete')} aria-label={t('panel.delete')}><Trash2 className="w-4 h-4" /></button>
             </div>
         </div>
     );
@@ -111,7 +111,7 @@ export function MyEmotesTab({ s, onUpload }: TabProps & { onUpload: () => void }
             {live.length === 0 ? (
                 <Card>
                     <div className="text-center py-8 space-y-4">
-                        <p className="text-[#64748b] dark:text-[#94a3b8]">{t('panel.empty')}</p>
+                        <p className="text-ds-soft">{t('panel.empty')}</p>
                         {s.canUpload && <button type="button" className={btnBlue} onClick={onUpload}>{t('panel.uploadFirst')}</button>}
                     </div>
                 </Card>
@@ -157,16 +157,16 @@ function PendingRow({ e, selected, onToggle, s }: { e: EmoteDto; selected: boole
     };
 
     return (
-        <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-3 flex flex-wrap items-center gap-4">
+        <div className="rounded-lg border border-ds-border bg-ds-surface p-3 flex flex-wrap items-center gap-4">
             <input type="checkbox" checked={selected} onChange={onToggle} className="w-4 h-4" aria-label={t('review.select', { name: e.name })} />
             <div className="flex items-center gap-2">
                 <EmoteThumb src={e.urls.x2} name={e.name} height={48} bg="dark" />
                 <EmoteThumb src={e.urls.x2} name={e.name} height={48} bg="light" />
             </div>
             <div className="min-w-0 flex-1">
-                <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{e.name}</p>
-                <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{t('panel.by', { user: e.uploadedBy })} · {formatBytes(e.bytes)}{e.animated ? ' · GIF' : ''}</p>
-                {error && <p className="text-xs text-red-500 mt-1">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
+                <p className="font-bold text-ds-text truncate">{e.name}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft">{t('panel.by', { user: e.uploadedBy })} · {formatBytes(e.bytes)}{e.animated ? ' · GIF' : ''}</p>
+                {error && <p className="text-xs text-ds-danger mt-1">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
             </div>
             {rejecting ? (
                 <div className="flex flex-wrap items-center gap-2">
@@ -206,7 +206,7 @@ export function ReviewTab({ s }: TabProps) {
         <div className="space-y-6">
             <Card title={t('review.pendingTitle', { count: pending.length })} description={t('review.pendingDescription')}>
                 {pending.length === 0 ? (
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('review.noPending')}</p>
+                    <p className="text-sm text-ds-soft">{t('review.noPending')}</p>
                 ) : (
                     <div className="space-y-3">
                         <div className="flex flex-wrap items-center gap-2">
@@ -221,7 +221,7 @@ export function ReviewTab({ s }: TabProps) {
                                 </>
                             )}
                         </div>
-                        {message && <p className="text-sm text-red-500 font-semibold">{message}</p>}
+                        {message && <p className="text-sm text-ds-danger font-semibold">{message}</p>}
                         {pending.map(e => <PendingRow key={e.id} e={e} selected={selected.has(e.id)} onToggle={() => toggle(e.id)} s={s} />)}
                     </div>
                 )}
@@ -233,11 +233,11 @@ export function ReviewTab({ s }: TabProps) {
                         {reported.map(e => {
                             const info = s.reports.find(r => r.emoteId === e.id);
                             return (
-                                <div key={e.id} className="rounded-xl border border-red-200 dark:border-red-900/50 p-3 flex flex-wrap items-center gap-4">
+                                <div key={e.id} className="rounded-lg border border-ds-danger/40 p-3 flex flex-wrap items-center gap-4">
                                     <EmoteThumb src={e.urls.x2} name={e.name} height={44} bg="checker" />
                                     <div className="min-w-0 flex-1">
-                                        <p className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{e.name} · {t('panel.reports', { count: e.reports })}</p>
-                                        {info && info.reasons.length > 0 && <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] break-words">{info.reasons.join(' · ')}</p>}
+                                        <p className="font-bold text-ds-text">{e.name} · {t('panel.reports', { count: e.reports })}</p>
+                                        {info && info.reasons.length > 0 && <p className="text-xs 3xl:text-sm text-ds-soft break-words">{info.reasons.join(' · ')}</p>}
                                     </div>
                                     <button type="button" className={btnGray} onClick={() => s.dismissReports(e.id)}>{t('review.dismiss')}</button>
                                     <button type="button" className={btnGray} onClick={() => s.update(e.id, { visible: false })}>{t('panel.hide')}</button>
@@ -254,9 +254,9 @@ export function ReviewTab({ s }: TabProps) {
                     <div className="space-y-2">
                         {history.map(e => (
                             <div key={e.id} className="flex flex-wrap items-center gap-3 text-sm">
-                                <span className="font-bold text-[#1e293b] dark:text-[#f8fafc]">{e.name}</span>
+                                <span className="font-bold text-ds-text">{e.name}</span>
                                 <span className={`${chip} ${STATUS_CHIP[e.status]}`}>{t(`status.${e.status}`)}</span>
-                                <span className="text-[#64748b] dark:text-[#94a3b8]">{t('panel.by', { user: e.uploadedBy })}{e.reviewedBy ? ` · ${t('review.reviewedBy', { user: e.reviewedBy })}` : ''}{e.reason ? ` · ${e.reason}` : ''}</span>
+                                <span className="text-ds-soft">{t('panel.by', { user: e.uploadedBy })}{e.reviewedBy ? ` · ${t('review.reviewedBy', { user: e.reviewedBy })}` : ''}{e.reason ? ` · ${e.reason}` : ''}</span>
                             </div>
                         ))}
                     </div>
@@ -299,7 +299,7 @@ export function SettingsTab({ s }: TabProps) {
     };
 
     if (!s.isOwnerLevel) {
-        return <Card title={t('settings.title')}><p className="text-sm text-[#64748b] dark:text-[#94a3b8]">{t('settings.ownerOnly')}</p></Card>;
+        return <Card title={t('settings.title')}><p className="text-sm text-ds-soft">{t('settings.ownerOnly')}</p></Card>;
     }
 
     return (
@@ -311,10 +311,10 @@ export function SettingsTab({ s }: TabProps) {
                             key={m}
                             type="button"
                             onClick={() => save({ uploadMode: m })}
-                            className={`text-left p-4 rounded-xl border transition-colors ${s.settings.uploadMode === m ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}
+                            className={`text-left p-4 rounded-lg border transition-colors ${s.settings.uploadMode === m ? 'border-ds-accent bg-ds-accent/10 ' : 'border-ds-border hover:border-ds-accent'}`}
                         >
-                            <span className="block font-bold text-[#1e293b] dark:text-[#f8fafc]">{t(`settings.modes.${m}.name`)}</span>
-                            <span className="block text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">{t(`settings.modes.${m}.description`)}</span>
+                            <span className="block font-bold text-ds-text">{t(`settings.modes.${m}.name`)}</span>
+                            <span className="block text-xs 3xl:text-sm text-ds-soft mt-1">{t(`settings.modes.${m}.description`)}</span>
                         </button>
                     ))}
                 </div>
@@ -326,8 +326,8 @@ export function SettingsTab({ s }: TabProps) {
                         </Field>
                     </div>
                 )}
-                {saved && <p className="text-sm font-semibold text-green-600 dark:text-green-400 mt-3">{t('settings.saved')}</p>}
-                {error && <p className="text-sm font-semibold text-red-500 mt-3">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
+                {saved && <p className="text-sm font-semibold text-ds-ok mt-3">{t('settings.saved')}</p>}
+                {error && <p className="text-sm font-semibold text-ds-danger mt-3">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
             </Card>
 
             <Card title={t('settings.uploadersTitle')} description={t('settings.uploadersDescription')}>
@@ -339,9 +339,9 @@ export function SettingsTab({ s }: TabProps) {
                 {s.uploaders.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-4">
                         {s.uploaders.map(u => (
-                            <span key={u.id} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1]">
+                            <span key={u.id} className="inline-flex items-center gap-1 pl-3 pr-1.5 py-1 rounded-full text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft">
                                 {u.login} <span className="opacity-60 font-normal">({u.platform})</span>
-                                <button type="button" onClick={() => s.removeUploader(u.id)} aria-label={t('settings.remove', { name: u.login })} className="p-0.5 rounded-full hover:bg-[#e2e8f0] dark:hover:bg-[#374151]"><X className="w-3.5 h-3.5" /></button>
+                                <button type="button" onClick={() => s.removeUploader(u.id)} aria-label={t('settings.remove', { name: u.login })} className="p-0.5 rounded-full hover:bg-ds-raised"><X className="w-3.5 h-3.5" /></button>
                             </span>
                         ))}
                     </div>
@@ -353,7 +353,7 @@ export function SettingsTab({ s }: TabProps) {
                     <input className={`${inputClass} font-mono`} readOnly value={publicUrl} onFocus={e => e.currentTarget.select()} />
                     <button type="button" className={btnBlue} onClick={() => navigator.clipboard?.writeText(publicUrl)}>{t('settings.copy')}</button>
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-4">{t('settings.shownInOverlayHint')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-4">{t('settings.shownInOverlayHint')}</p>
             </Card>
         </div>
     );

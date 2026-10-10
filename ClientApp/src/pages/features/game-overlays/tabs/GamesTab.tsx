@@ -44,8 +44,8 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                 <Gamepad2 className="w-5 h-5" />
                             </div>
                             <div>
-                                <div className="font-semibold text-[#f8fafc]">{GAME_NAMES[game]}</div>
-                                <div className="text-xs text-[#94a3b8]">{entry?.hasApi ? t('autoData') : t('manualData')} · {t('linkedCount', { count: mine.length })}</div>
+                                <div className="font-semibold text-ds-text">{GAME_NAMES[game]}</div>
+                                <div className="text-xs text-ds-soft">{entry?.hasApi ? t('autoData') : t('manualData')} · {t('linkedCount', { count: mine.length })}</div>
                             </div>
                         </div>
                         <Toggle checked={cfg.enabled} onChange={v => onChange(game, { enabled: v })} label="" size="sm" />
@@ -54,9 +54,9 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                     {cfg.enabled && (
                         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-5">
                             <div>
-                                <Label>{t('accountsToShow')} <span className="text-[#6b7280] font-normal">({t('max')} {limits.maxAccountsPerGame})</span></Label>
+                                <Label>{t('accountsToShow')} <span className="text-ds-soft font-normal">({t('max')} {limits.maxAccountsPerGame})</span></Label>
                                 {mine.length === 0 ? (
-                                    <p className="text-xs text-amber-400 mt-1">{t('noAccounts', { game: GAME_NAMES[game] })}</p>
+                                    <p className="text-xs text-ds-warn mt-1">{t('noAccounts', { game: GAME_NAMES[game] })}</p>
                                 ) : (
                                     <div className="space-y-1.5 mt-1">
                                         {mine.map(a => {
@@ -78,7 +78,7 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                                                 if (e.target.value) next[String(a.id)] = e.target.value; else delete next[String(a.id)];
                                                                 onChange(game, { accountQueues: next });
                                                             }}
-                                                            className="bg-[#111214] border border-[#374151] rounded-md px-2 py-1 text-xs text-[#e6edf3]"
+                                                            className="bg-ds-bg border border-ds-border rounded-md px-2 py-1 text-xs text-ds-text"
                                                             title={t('accountQueue')}
                                                         >
                                                             <option value="">{t('sameAsGame')} ({QUEUE_LABELS[gameQueue] ?? gameQueue})</option>
@@ -91,7 +91,7 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                     </div>
                                 )}
                                 {cfg.accounts.length > 1 && (
-                                    <p className="text-[11px] text-[#6b7280] mt-2">{t('rotationOrder')}</p>
+                                    <p className="text-[11px] text-ds-soft mt-2">{t('rotationOrder')}</p>
                                 )}
                             </div>
 
@@ -100,7 +100,7 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                     <div>
                                         <Label>{t('queue')}</Label>
                                         <SelectInput value={gameQueue} onChange={v => onChange(game, { queue: v })} options={queueOptions} />
-                                        <p className="text-[11px] text-[#6b7280] mt-1">{t('queueHint')}</p>
+                                        <p className="text-[11px] text-ds-soft mt-1">{t('queueHint')}</p>
                                     </div>
                                 )}
                                 <div>
@@ -118,9 +118,9 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                         {cfg.rotation.mode !== 'none' && (
                                             <TierLock allowed={canInterval} requiredTier="supporter">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-[#94a3b8]">{t('every')}</span>
+                                                    <span className="text-xs text-ds-soft">{t('every')}</span>
                                                     <div className="w-24"><NumberInput value={cfg.rotation.seconds} onChange={v => onChange(game, { rotation: { ...cfg.rotation, seconds: v } })} min={5} max={600} /></div>
-                                                    <span className="text-xs text-[#94a3b8]">{t('seconds')}</span>
+                                                    <span className="text-xs text-ds-soft">{t('seconds')}</span>
                                                 </div>
                                             </TierLock>
                                         )}
@@ -134,7 +134,7 @@ export const GamesTab: React.FC<Props> = ({ games, accounts, catalog, limits, on
                                         options={[{ value: 'visible_account', label: t('sessionVisible') }, { value: 'all_accounts', label: t('sessionAll') }]}
                                     />
                                 </div>
-                                <button onClick={() => onDesign(game)} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm flex items-center gap-2 border border-[#374151]">
+                                <button onClick={() => onDesign(game)} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm flex items-center gap-2 border border-ds-border">
                                     <Palette className="w-4 h-4" /> {t('editDesign')}
                                 </button>
                             </div>

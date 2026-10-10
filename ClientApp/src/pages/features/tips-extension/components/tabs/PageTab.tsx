@@ -25,7 +25,7 @@ export const PageTab: React.FC<PageTabProps> = ({
     const { t } = useTranslation('features');
     return (
         <div className={cardClass}>
-            <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-ds-text mb-4 flex items-center gap-2">
                 <ImageIcon className="w-5 h-5" />
                 {t('tipsTabs.pageCustomization')}
             </h3>

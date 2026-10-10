@@ -69,14 +69,14 @@ export default function EditorTab({ cfg, content }: Props) {
             layersActions={
                 <button
                     onClick={() => apply({ ...designRef.current, textLines: [...designRef.current.textLines, newLine(designRef.current, t('soundAlerts.texts.newLine'))] })}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shrink-0"
                 >
                     <Plus className="w-4 h-4" /> {t('soundAlerts.texts.add')}
                 </button>
             }
             selectedExtra={id => {
-                if (id === 'media') return <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('soundAlerts.editor.mediaHint')}</p>;
-                if (id === 'panel') return <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('soundAlerts.editor.panelHint')}</p>;
+                if (id === 'media') return <p className="text-xs 3xl:text-sm text-ds-soft">{t('soundAlerts.editor.mediaHint')}</p>;
+                if (id === 'panel') return <p className="text-xs 3xl:text-sm text-ds-soft">{t('soundAlerts.editor.panelHint')}</p>;
                 const i = Number(id.slice(5));
                 const line = design.textLines[i];
                 return line ? <LineFields line={line} onChange={patch => setLine(i, patch)} /> : null;

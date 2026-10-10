@@ -323,14 +323,14 @@ export default function TipsConfig() {
         setSettings(prev => ({ ...prev, ...updates }));
     };
 
-    const inputClass = "w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-purple-500 outline-none";
-    const labelClass = "text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2";
-    const cardClass = "rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg";
+    const inputClass = "w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none";
+    const labelClass = "text-xs font-bold text-ds-soft block mb-2";
+    const cardClass = "rounded-lg border border-ds-border bg-ds-surface p-6 ";
 
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ds-accent"></div>
             </div>
         );
     }
@@ -340,11 +340,11 @@ export default function TipsConfig() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-3">
-                        <DollarSign className="w-8 h-8 text-green-500" />
+                    <h1 className="text-2xl font-black text-ds-text flex items-center gap-3">
+                        <DollarSign className="w-8 h-8 text-ds-ok" />
                         {t('tipsConfig.title')}
                     </h1>
-                    <p className="text-[#64748b] dark:text-[#94a3b8] mt-1">
+                    <p className="text-ds-soft mt-1">
                         {t('tipsConfig.subtitle')}
                     </p>
                 </div>
@@ -353,7 +353,7 @@ export default function TipsConfig() {
                     <button
                         onClick={testTip}
                         disabled={testing || !settings.isEnabled}
-                        className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg font-bold flex items-center gap-2 transition-all hover:bg-purple-200 dark:hover:bg-purple-900/50 disabled:opacity-50"
+                        className="px-4 py-2 bg-ds-accent/10 text-ds-accent-text rounded-lg font-bold flex items-center gap-2 transition-all hover:bg-ds-accent/10 disabled:opacity-50"
                     >
                         <Play className="w-4 h-4" />
                         {testing ? t('tipsConfig.sending') : t('tipsConfig.test')}
@@ -361,10 +361,10 @@ export default function TipsConfig() {
                     <button
                         onClick={saveSettings}
                         disabled={saving}
-                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white rounded-lg font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+                        className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-bold flex items-center gap-2 transition-all disabled:opacity-50"
                     >
                         {saving ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-ds-border border-t-transparent rounded-full animate-spin" />
                         ) : copied === 'saved' ? (
                             <Check className="w-4 h-4" />
                         ) : (
@@ -379,27 +379,27 @@ export default function TipsConfig() {
             <div className={cardClass}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                        <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${
                             settings.paypalConnected && settings.paypalEmail
-                                ? 'bg-green-100 dark:bg-green-900/30'
-                                : 'bg-gray-100 dark:bg-gray-800'
+                                ? 'bg-ds-ok/10 '
+                                : 'bg-ds-bg '
                         }`}>
                             <DollarSign className={`w-7 h-7 ${
-                                settings.paypalConnected && settings.paypalEmail ? 'text-green-600' : 'text-gray-500'
+                                settings.paypalConnected && settings.paypalEmail ? 'text-ds-ok' : 'text-ds-soft'
                             }`} />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <h2 className="text-lg font-bold text-ds-text">
                                 {t('tipsConfig.paypalAccount')}
                             </h2>
                             {settings.paypalConnected && settings.paypalEmail ? (
                                 <div className="flex items-center gap-2 mt-1">
-                                    <Check className="w-4 h-4 text-green-500" />
-                                    <span className="text-green-600 dark:text-green-400 font-semibold">{t('tipsConfig.connected')}</span>
-                                    <span className="text-[#64748b] dark:text-[#94a3b8]">· {settings.paypalEmail}</span>
+                                    <Check className="w-4 h-4 text-ds-ok" />
+                                    <span className="text-ds-ok font-semibold">{t('tipsConfig.connected')}</span>
+                                    <span className="text-ds-soft">· {settings.paypalEmail}</span>
                                 </div>
                             ) : (
-                                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-sm text-ds-soft">
                                     {t('tipsConfig.connectDesc')}
                                 </p>
                             )}
@@ -409,7 +409,7 @@ export default function TipsConfig() {
                     {settings.paypalConnected && settings.paypalEmail ? (
                         <button
                             onClick={disconnectPayPal}
-                            className="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center gap-2 hover:bg-red-200 dark:hover:bg-red-900/50"
+                            className="px-4 py-2 bg-ds-danger/10 text-ds-danger rounded-lg font-bold flex items-center gap-2 hover:bg-ds-danger/10"
                         >
                             <Unlink className="w-4 h-4" />
                             {t('tipsConfig.disconnect')}
@@ -418,10 +418,10 @@ export default function TipsConfig() {
                         <button
                             onClick={connectPayPal}
                             disabled={connecting}
-                            className="px-6 py-3 bg-[#0070ba] hover:bg-[#005ea6] text-white rounded-xl font-bold flex items-center gap-2 disabled:opacity-50"
+                            className="px-6 py-3 bg-[#0070ba] hover:bg-[#005ea6] text-ds-text rounded-lg font-bold flex items-center gap-2 disabled:opacity-50"
                         >
                             {connecting ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <div className="w-5 h-5 border-2 border-ds-border border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <ExternalLink className="w-5 h-5" />
                             )}
@@ -431,10 +431,10 @@ export default function TipsConfig() {
                 </div>
 
                 {settings.paypalConnected && settings.paypalEmail && (
-                    <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                    <div className="mt-4 p-4 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
                         <div className="flex items-start gap-3">
-                            <Check className="w-5 h-5 text-green-500 mt-0.5" />
-                            <div className="text-sm text-green-700 dark:text-green-300" dangerouslySetInnerHTML={{ __html: t('tipsConfig.donationsSentTo', { email: settings.paypalEmail }) }}>
+                            <Check className="w-5 h-5 text-ds-ok mt-0.5" />
+                            <div className="text-sm text-ds-ok" dangerouslySetInnerHTML={{ __html: t('tipsConfig.donationsSentTo', { email: settings.paypalEmail }) }}>
                             </div>
                         </div>
                     </div>
@@ -445,13 +445,13 @@ export default function TipsConfig() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Donation Page URL */}
                 <div className={cardClass}>
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-bold text-ds-text flex items-center gap-2 mb-3">
                         <Link2 className="w-4 h-4" />
                         {t('tipsConfig.donationPage')}
                     </h3>
                     <div className="flex items-center gap-2">
-                        <div className="flex-1 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                            <code className="text-xs text-purple-600 dark:text-purple-400 font-mono break-all">
+                        <div className="flex-1 p-3 bg-ds-bg rounded-lg border border-ds-border">
+                            <code className="text-xs text-ds-accent-text font-mono break-all">
                                 {tipsUrl}
                             </code>
                         </div>
@@ -459,8 +459,8 @@ export default function TipsConfig() {
                             onClick={() => copyToClipboard(tipsUrl, 'tipsUrl')}
                             className={`p-2 rounded-lg transition-all ${
                                 copied === 'tipsUrl'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                    ? 'bg-ds-accent text-ds-on-accent'
+                                    : 'bg-ds-bg hover:bg-ds-raised '
                             }`}
                         >
                             {copied === 'tipsUrl' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -469,7 +469,7 @@ export default function TipsConfig() {
                             href={tipsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 rounded-lg bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] transition-all"
+                            className="p-2 rounded-lg bg-ds-bg hover:bg-ds-raised transition-all"
                         >
                             <ExternalLink className="w-4 h-4" />
                         </a>
@@ -478,13 +478,13 @@ export default function TipsConfig() {
 
                 {/* Overlay URL */}
                 <div className={cardClass}>
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-bold text-ds-text flex items-center gap-2 mb-3">
                         <Eye className="w-4 h-4" />
                         {t('tipsConfig.overlayObs')}
                     </h3>
                     <div className="flex items-center gap-2">
-                        <div className="flex-1 p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                            <code className="text-xs text-purple-600 dark:text-purple-400 font-mono break-all">
+                        <div className="flex-1 p-3 bg-ds-bg rounded-lg border border-ds-border">
+                            <code className="text-xs text-ds-accent-text font-mono break-all">
                                 {overlayUrl}
                             </code>
                         </div>
@@ -492,8 +492,8 @@ export default function TipsConfig() {
                             onClick={() => copyToClipboard(overlayUrl, 'overlayUrl')}
                             className={`p-2 rounded-lg transition-all ${
                                 copied === 'overlayUrl'
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-[#f8fafc] dark:bg-[#262626] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                                    ? 'bg-ds-accent text-ds-on-accent'
+                                    : 'bg-ds-bg hover:bg-ds-raised '
                             }`}
                         >
                             {copied === 'overlayUrl' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -503,7 +503,7 @@ export default function TipsConfig() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 border-b border-[#e2e8f0] dark:border-[#374151] pb-4 overflow-x-auto">
+            <div className="flex gap-2 border-b border-ds-border pb-4 overflow-x-auto">
                 {[
                     { id: 'general', icon: <Settings className="w-4 h-4" />, label: t('tipsConfig.tabs.general') },
                     { id: 'page', icon: <ImageIcon className="w-4 h-4" />, label: t('tipsConfig.tabs.page') },
@@ -517,8 +517,8 @@ export default function TipsConfig() {
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
                             activeTab === tab.id
-                                ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white'
-                                : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'
+                                ? 'bg-ds-accent text-ds-on-accent'
+                                : 'text-ds-soft hover:bg-ds-bg '
                         }`}
                     >
                         {tab.icon}

@@ -123,7 +123,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <div className="flex items-center gap-2">
                         <SelectInput value={game} onChange={v => onSelectGame(v as GameId)} options={GAME_IDS.map(g => ({ value: g, label: `${GAME_NAMES[g]}${games[g].enabled ? '' : ` (${t('disabled')})`}` }))} />
                         <button onClick={() => { if (confirm(t('confirmReset'))) onChange(game, { ...defaultGameConfig(game), enabled: cfg.enabled, accounts: cfg.accounts, rotation: cfg.rotation, sessionScope: cfg.sessionScope }); }}
-                            className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-sm flex items-center gap-2 border border-[#374151]" title={t('reset')}>
+                            className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-sm flex items-center gap-2 border border-ds-border" title={t('reset')}>
                             <RotateCcw className="w-4 h-4" />
                         </button>
                     </div>
@@ -152,9 +152,9 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                    <span className="text-[11px] text-[#94a3b8] mr-1">{t('view')}:</span>
+                    <span className="text-[11px] text-ds-soft mr-1">{t('view')}:</span>
                     {([...(hasStats ? availableViews(cfg, account) : ['main' as SlideView]), 'promo'] as CardView[]).map(v => (
-                        <button key={v} onClick={() => setPreviewView(v)} className={`px-2.5 py-1 rounded-lg text-xs border ${previewView === v ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>
+                        <button key={v} onClick={() => setPreviewView(v)} className={`px-2.5 py-1 rounded-lg text-xs border ${previewView === v ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'}`}>
                             {v === 'promo' ? t('promoView') : t(`slideViews.${v}`)}
                         </button>
                     ))}
@@ -174,15 +174,15 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <div className="w-28"><Label>{t('boxHeight')}</Label><NumberInput value={cfg.size.height} onChange={h => setManualSize({ height: Math.max(CARD_SIZE_LIMITS.minHeight, Math.min(CARD_SIZE_LIMITS.maxHeight, h)) })} min={CARD_SIZE_LIMITS.minHeight} max={CARD_SIZE_LIMITS.maxHeight} disabled={cfg.sizeMode === 'auto'} /></div>
                     <div className="w-40"><Label>{t('scale')}</Label><Slider value={Math.round((cfg.scale ?? 1) * 100)} onChange={v => onChange(game, { scale: Math.max(CARD_SIZE_LIMITS.minScale, Math.min(CARD_SIZE_LIMITS.maxScale, v / 100)) })} min={CARD_SIZE_LIMITS.minScale * 100} max={CARD_SIZE_LIMITS.maxScale * 100} unit="%" /></div>
                     {cfg.sizeMode === 'manual' && (
-                        <button onClick={fitToContent} className="px-3 py-2 bg-[#262626] hover:bg-[#333] text-white rounded-lg text-xs flex items-center gap-2 border border-[#374151]" title={t('fitHint')}>
+                        <button onClick={fitToContent} className="px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text rounded-lg text-xs flex items-center gap-2 border border-ds-border" title={t('fitHint')}>
                             <Maximize2 className="w-3.5 h-3.5" />{t('fit')}
                         </button>
                     )}
                 </div>
                 {cfg.sizeMode === 'manual' && !fits && wanted && (
-                    <p className="text-[11px] text-amber-400 mt-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />{t('sizeOverflow', { w: wanted.width, h: wanted.height })}</p>
+                    <p className="text-[11px] text-ds-warn mt-2 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" />{t('sizeOverflow', { w: wanted.width, h: wanted.height })}</p>
                 )}
-                <p className="text-[11px] text-[#6b7280] mt-2">{cfg.sizeMode === 'auto' ? t('boxHintAuto') : t('boxHint')}</p>
+                <p className="text-[11px] text-ds-soft mt-2">{cfg.sizeMode === 'auto' ? t('boxHintAuto') : t('boxHint')}</p>
             </Card>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -193,14 +193,14 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                             <Label>Layout</Label>
                             <div className="grid grid-cols-4 gap-2 mt-1">
                                 {LAYOUT_PRESETS.map(l => (
-                                    <button key={l} onClick={() => setLayout(l)} className={`px-2 py-2 rounded-lg text-xs border ${cfg.layout === l ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'}`}>{t(`layouts.${l}`)}</button>
+                                    <button key={l} onClick={() => setLayout(l)} className={`px-2 py-2 rounded-lg text-xs border ${cfg.layout === l ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'}`}>{t(`layouts.${l}`)}</button>
                                 ))}
                             </div>
                         </div>
                         <div>
                             <Label>{t('accent')}</Label>
                             <ColorInput value={cfg.accent ?? GAME_ACCENTS[game]} onChange={v => onChange(game, { accent: v })} />
-                            <button className="text-[11px] text-[#94a3b8] underline mt-1" onClick={() => onChange(game, { accent: GAME_ACCENTS[game] })}>{t('useGameColor')}</button>
+                            <button className="text-[11px] text-ds-soft underline mt-1" onClick={() => onChange(game, { accent: GAME_ACCENTS[game] })}>{t('useGameColor')}</button>
                         </div>
                         <div>
                             <Label>{t('background')}</Label>
@@ -237,9 +237,9 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <SectionTitle>{t('elements')}</SectionTitle>
                     {hasStats && (
                         <div className="flex flex-wrap items-center gap-2 mt-3">
-                            <span className="text-[11px] text-[#94a3b8]">{t('preset')}:</span>
+                            <span className="text-[11px] text-ds-soft">{t('preset')}:</span>
                             {STYLE_PRESETS.map(p => (
-                                <button key={p} onClick={() => applyPreset(p)} className="px-2.5 py-1 rounded-lg text-xs border bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]" title={t('presetHint')}>{t(`presets.${p}`)}</button>
+                                <button key={p} onClick={() => applyPreset(p)} className="px-2.5 py-1 rounded-lg text-xs border bg-ds-bg border-ds-border text-ds-text hover:bg-ds-bg" title={t('presetHint')}>{t(`presets.${p}`)}</button>
                             ))}
                         </div>
                     )}
@@ -247,7 +247,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         {ELEMENT_ORDER.map(id => {
                             const visible = cfg.elements[id]?.visible !== false;
                             return (
-                                <button key={id} onClick={() => setSelected(id)} className={`px-2.5 py-1.5 rounded-lg text-xs border ${selected === id ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#111214] border-[#374151] text-[#e6edf3] hover:bg-[#262626]'} ${visible ? '' : 'line-through opacity-60'}`}>
+                                <button key={id} onClick={() => setSelected(id)} className={`px-2.5 py-1.5 rounded-lg text-xs border ${selected === id ?'bg-ds-accent border-ds-accent text-ds-on-accent' :'bg-ds-bg border-ds-border text-ds-on-accent hover:bg-ds-bg'} ${visible ?'' :'line-through opacity-60'}`}>
                                     {t(`elementNames.${id}`)}
                                 </button>
                             );
@@ -286,11 +286,11 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                         {selected === 'lpGraph' && (
                             <div><Label>{t('graphHeight')}</Label><Slider value={el.height ?? 48} onChange={v => setEl({ height: v })} min={24} max={120} unit="px" /></div>
                         )}
-                        {selected === 'streak' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.streak')}</p>}
-                        {selected === 'topChamps' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.topChamps')}</p>}
-                        {selected === 'mastery' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.mastery')}</p>}
-                        {selected === 'lpGraph' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.lpGraph')}</p>}
-                        {selected === 'liveCharacter' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.liveCharacter')}</p>}
+                        {selected === 'streak' && <p className="text-[11px] text-ds-soft">{t('elementHelp.streak')}</p>}
+                        {selected === 'topChamps' && <p className="text-[11px] text-ds-soft">{t('elementHelp.topChamps')}</p>}
+                        {selected === 'mastery' && <p className="text-[11px] text-ds-soft">{t('elementHelp.mastery')}</p>}
+                        {selected === 'lpGraph' && <p className="text-[11px] text-ds-soft">{t('elementHelp.lpGraph')}</p>}
+                        {selected === 'liveCharacter' && <p className="text-[11px] text-ds-soft">{t('elementHelp.liveCharacter')}</p>}
                         {selected === 'session' && (
                             <Checkbox checked={el.showDelta !== false} onChange={v => setEl({ showDelta: v })} label={t('showDelta')} />
                         )}
@@ -311,7 +311,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                                 <Checkbox checked={!!el.font?.shadow} onChange={v => setFont({ shadow: v })} label={t('shadow')} />
                             </div>
                         )}
-                        {selected === 'gameLogo' && <p className="text-[11px] text-[#6b7280]">{t('elementHelp.gameLogo')}</p>}
+                        {selected === 'gameLogo' && <p className="text-[11px] text-ds-soft">{t('elementHelp.gameLogo')}</p>}
                     </div>
                 </Card>
             </div>
@@ -322,7 +322,7 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <SubLabel>{t('slidesHint')}</SubLabel>
                     <div className="space-y-4 mt-3">
                         <Toggle checked={cfg.slides.enabled} onChange={v => onChange(game, { slides: { ...cfg.slides, enabled: v } })} label={t('slidesToggle')} size="sm" disabled={!hasStats} />
-                        {!hasStats && <p className="text-[11px] text-[#6b7280]">{t('slidesOnlyStats')}</p>}
+                        {!hasStats && <p className="text-[11px] text-ds-soft">{t('slidesOnlyStats')}</p>}
                         {hasStats && (
                             <>
                                 <div className="grid grid-cols-2 gap-3">
@@ -347,9 +347,9 @@ export const DesignTab: React.FC<Props> = ({ slug, game, games, canvas, canHideP
                     <SubLabel>{t('promoHint')}</SubLabel>
                     <div className="space-y-4 mt-3">
                         <Toggle checked={promoForced || cfg.promo.enabled} onChange={v => onChange(game, { promo: { ...cfg.promo, enabled: v } })} label={t('promoToggle')} size="sm" disabled={promoForced} />
-                        {promoForced && <p className="text-[11px] text-[#94a3b8]">{t('promoForced')} <a href="/supporters" className="text-blue-400 underline">{t('seePlans')}</a></p>}
-                        <p className="text-[11px] text-[#6b7280]">{t('promoManaged', { every: promoCatalog?.everySeconds ?? 180, n: promoCatalog?.items.length ?? 0 })}</p>
-                        <p className="text-[11px] text-[#6b7280]">{t('promoNote')}</p>
+                        {promoForced && <p className="text-[11px] text-ds-soft">{t('promoForced')} <a href="/supporters" className="text-ds-accent-text underline">{t('seePlans')}</a></p>}
+                        <p className="text-[11px] text-ds-soft">{t('promoManaged', { every: promoCatalog?.everySeconds ?? 180, n: promoCatalog?.items.length ?? 0 })}</p>
+                        <p className="text-[11px] text-ds-soft">{t('promoNote')}</p>
                     </div>
                 </Card>
             </div>

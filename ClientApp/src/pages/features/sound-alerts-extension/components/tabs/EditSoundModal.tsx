@@ -55,50 +55,50 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl w-full max-w-md border border-[#e2e8f0] dark:border-[#374151] shadow-2xl">
+        <div className="fixed inset-0 bg-ds-input/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-ds-surface rounded-lg w-full max-w-md border border-ds-border">
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[#e2e8f0] dark:border-[#374151]">
-                    <h3 className="font-bold text-[#1e293b] dark:text-[#f8fafc] text-lg">Editar sonido</h3>
-                    <button onClick={onClose} className="text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc] transition-colors">
+                <div className="flex items-center justify-between p-5 border-b border-ds-border">
+                    <h3 className="font-bold text-ds-text text-lg">Editar sonido</h3>
+                    <button onClick={onClose} className="text-ds-soft hover:text-ds-text transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 <div className="p-5 space-y-5">
                     {/* Reward title */}
-                    <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl px-4 py-2 text-sm text-[#1e293b] dark:text-[#f8fafc]">
-                        🎵 {file.rewardTitle} — <span className="text-[#64748b] dark:text-[#94a3b8]">{file.fileName}</span>
+                    <div className="bg-ds-bg rounded-lg px-4 py-2 text-sm text-ds-text">
+                        🎵 {file.rewardTitle} — <span className="text-ds-soft">{file.fileName}</span>
                     </div>
 
                     {/* Show image toggle */}
                     <div className="flex items-center justify-between gap-3">
                         <div>
-                            <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">Mostrar imagen en overlay</p>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">Si está desactivado, no se mostrará ninguna imagen ni icono</p>
+                            <p className="text-sm font-semibold text-ds-text">Mostrar imagen en overlay</p>
+                            <p className="text-xs text-ds-soft mt-0.5">Si está desactivado, no se mostrará ninguna imagen ni icono</p>
                         </div>
                         <button
                             onClick={() => setShowImage(!showImage)}
-                            className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${showImage ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}
+                            className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${showImage ? 'bg-ds-accent' : 'bg-ds-raised '}`}
                         >
-                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${showImage ? 'translate-x-5' : 'translate-x-0'}`} />
+                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-ds-surface rounded-full transition-transform ${showImage ? 'translate-x-5' : 'translate-x-0'}`} />
                         </button>
                     </div>
 
                     {/* Image source (only if showImage) */}
                     {showImage && (
                         <div className="space-y-3">
-                            <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">Fuente de imagen</p>
+                            <p className="text-sm font-semibold text-ds-text">Fuente de imagen</p>
                             <div className="grid grid-cols-2 gap-2">
                                 <button
                                     onClick={() => setImageSource('upload')}
-                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${imageSource === 'upload' ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20 text-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#94a3b8]'}`}
+                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${imageSource === 'upload' ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text' : 'border-ds-border text-ds-soft hover:border-ds-faint'}`}
                                 >
                                     <Upload className="w-4 h-4" /> Subir archivo
                                 </button>
                                 <button
                                     onClick={() => setImageSource('url')}
-                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${imageSource === 'url' ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20 text-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#94a3b8]'}`}
+                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${imageSource === 'url' ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text' : 'border-ds-border text-ds-soft hover:border-ds-faint'}`}
                                 >
                                     <Link className="w-4 h-4" /> URL externa
                                 </button>
@@ -109,14 +109,14 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
                                     <input ref={imageInputRef} type="file" accept=".png,.jpg,.jpeg,.gif" onChange={handleImageFile} className="hidden" />
                                     <button
                                         onClick={() => imageInputRef.current?.click()}
-                                        className="w-full border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4 text-center hover:border-[#2563eb] transition-colors group"
+                                        className="w-full border-2 border-dashed border-ds-border rounded-lg p-4 text-center hover:border-ds-accent transition-colors group"
                                     >
                                         {newImageFile ? (
-                                            <p className="text-sm text-green-600 dark:text-green-400">✓ {newImageFile.name}</p>
+                                            <p className="text-sm text-ds-ok">✓ {newImageFile.name}</p>
                                         ) : file.imagePath ? (
-                                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Imagen actual: <span className="text-[#1e293b] dark:text-[#f8fafc]">{file.imagePath.split('/').pop()}</span> — click para cambiar</p>
+                                            <p className="text-sm text-ds-soft">Imagen actual: <span className="text-ds-text">{file.imagePath.split('/').pop()}</span> — click para cambiar</p>
                                         ) : (
-                                            <p className="text-sm text-[#94a3b8] dark:text-[#64748b] group-hover:text-[#2563eb]">Click para subir PNG, JPG, JPEG o GIF (máx 10MB)</p>
+                                            <p className="text-sm text-ds-soft group-hover:text-ds-accent-text">Click para subir PNG, JPG, JPEG o GIF (máx 10MB)</p>
                                         )}
                                     </button>
                                 </div>
@@ -128,13 +128,13 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
                                     value={imageUrlInput}
                                     onChange={e => setImageUrlInput(e.target.value)}
                                     placeholder="https://ejemplo.com/imagen.gif"
-                                    className="w-full bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-2.5 text-sm text-[#1e293b] dark:text-[#f8fafc] placeholder-[#94a3b8] focus:outline-none focus:border-[#2563eb]"
+                                    className="w-full bg-ds-bg border border-ds-border rounded-lg px-4 py-2.5 text-sm text-ds-text placeholder-ds-soft focus:outline-none focus:border-ds-accent"
                                 />
                             )}
 
                             {/* Preview */}
                             {currentImagePreview && (
-                                <div className="rounded-xl overflow-hidden border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-black/30 flex items-center justify-center h-32">
+                                <div className="rounded-lg overflow-hidden border border-ds-border bg-ds-bg flex items-center justify-center h-32">
                                     <img src={currentImagePreview} alt="preview" className="max-h-full max-w-full object-contain" />
                                 </div>
                             )}
@@ -144,16 +144,16 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
                     {/* Volume */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] flex items-center gap-2"><Volume2 className="w-4 h-4" /> Volumen</p>
-                            <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">{volume === null ? 'Global' : `${volume}%`}</span>
+                            <p className="text-sm font-semibold text-ds-text flex items-center gap-2"><Volume2 className="w-4 h-4" /> Volumen</p>
+                            <span className="text-xs text-ds-soft">{volume === null ? 'Global' : `${volume}%`}</span>
                         </div>
                         <input
                             type="range" min={0} max={100} value={volume ?? 70}
                             onChange={e => setVolume(Number(e.target.value))}
-                            className="w-full accent-[#2563eb]"
+                            className="w-full accent-ds-accent"
                         />
                         {volume !== null && (
-                            <button onClick={() => setVolume(null)} className="text-xs text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc]">
+                            <button onClick={() => setVolume(null)} className="text-xs text-ds-soft hover:text-ds-text">
                                 Usar volumen global
                             </button>
                         )}
@@ -161,14 +161,14 @@ export default function EditSoundModal({ file, onClose, onSave, saving }: EditSo
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3 p-5 border-t border-[#e2e8f0] dark:border-[#374151]">
-                    <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] text-sm font-medium hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors">
+                <div className="flex gap-3 p-5 border-t border-ds-border">
+                    <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-ds-border text-ds-soft text-sm font-medium hover:bg-ds-bg transition-colors">
                         Cancelar
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex-1 py-2.5 rounded-xl bg-[#2563eb] hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold transition-colors"
+                        className="flex-1 py-2.5 rounded-lg bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent text-sm font-bold transition-colors"
                     >
                         {saving ? 'Guardando...' : 'Guardar'}
                     </button>
