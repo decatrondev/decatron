@@ -94,8 +94,8 @@ export default function DiscordWelcome() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563eb] mx-auto mb-3" />
-          <p className="text-sm text-[#64748b]">Cargando configuracion...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text mx-auto mb-3" />
+          <p className="text-sm text-ds-soft">Cargando configuracion...</p>
         </div>
       </div>
     );
@@ -105,10 +105,10 @@ export default function DiscordWelcome() {
   if (!hasMinimumLevel('control_total')) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
-          <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">Acceso denegado</h2>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">
+        <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
+          <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
+          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors">
             Volver
           </button>
         </div>
@@ -117,17 +117,17 @@ export default function DiscordWelcome() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#111214] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg mb-6">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-14 h-14 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 bg-ds-ok/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-2xl">👋</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">Bienvenida y Despedida</h1>
-              <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Configura mensajes automaticos cuando alguien entra o sale del servidor</p>
+              <h1 className="text-2xl font-black text-ds-text">Bienvenida y Despedida</h1>
+              <p className="text-sm text-ds-soft">Configura mensajes automaticos cuando alguien entra o sale del servidor</p>
             </div>
 
             {/* Guild selector + Actions */}
@@ -136,14 +136,14 @@ export default function DiscordWelcome() {
                 <select
                   value={selectedGuild.guildId}
                   onChange={(e) => handleGuildChange(e.target.value)}
-                  className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                  className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                   {linkedGuilds.map(g => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
                 </select>
               )}
               <button
                 onClick={handleReset}
-                className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]/80 transition-colors"
+                className="px-4 py-2 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border hover:bg-ds-raised transition-colors"
                 title="Restaurar valores por defecto"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -151,7 +151,7 @@ export default function DiscordWelcome() {
               <button
                 onClick={handleSave}
                 disabled={saving || !selectedGuild}
-                className="px-6 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all disabled:opacity-50 flex items-center gap-2 shadow-blue-500/20"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                 Guardar
@@ -161,10 +161,10 @@ export default function DiscordWelcome() {
 
           {/* Save message */}
           {saveMessage && (
-            <div className={`mt-4 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${
+            <div className={`mt-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium ${
               saveMessage.type === 'success'
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                ? 'bg-ds-ok/10 text-ds-ok '
+                : 'bg-ds-danger/10 text-ds-danger '
             }`}>
               {saveMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
               {saveMessage.text}
@@ -173,8 +173,8 @@ export default function DiscordWelcome() {
         </div>
 
         {!selectedGuild ? (
-          <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-12 text-center border border-[#e2e8f0] dark:border-[#374151]">
-            <p className="text-[#64748b]">Vincula un servidor desde la pagina de Discord</p>
+          <div className="bg-ds-surface rounded-lg p-12 text-center border border-ds-border">
+            <p className="text-ds-soft">Vincula un servidor desde la pagina de Discord</p>
           </div>
         ) : (
           <>
@@ -183,16 +183,16 @@ export default function DiscordWelcome() {
               {/* Left: Editor (2/3) */}
               <div className="xl:col-span-2 space-y-6">
                 {/* Tab navigation */}
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                   <div className="flex flex-wrap gap-2">
                     {WELCOME_TABS.map(tab => (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                        className={`px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                           activeTab === tab.id
-                            ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg shadow-blue-500/20'
-                            : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                            ? 'bg-ds-accent text-ds-on-accent shadow-blue-500/20'
+                            : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                         }`}
                       >
                         {tab.icon} {tab.label}
@@ -254,21 +254,21 @@ export default function DiscordWelcome() {
 
               {/* Right: Preview (1/3) */}
               <div className="xl:col-span-1">
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg sticky top-6">
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-6 sticky top-6">
+                  <h3 className="text-lg font-black text-ds-text mb-1">
                     Preview — {WELCOME_TABS.find(t => t.id === activeTab)?.label || 'Bienvenida'}
                   </h3>
-                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-4">
+                  <p className="text-xs text-ds-soft mb-4">
                     Asi se vera el mensaje en Discord
                   </p>
 
                   {activeTab === 'testing' ? (
-                    <div className="bg-[#313338] rounded-xl p-6 text-center">
+                    <div className="dark bg-[#313338] rounded-lg p-6 text-center">
                       <span className="text-3xl mb-2 block">🧪</span>
                       <p className="text-sm text-[#949ba4]">Selecciona Bienvenida o Despedida para ver el preview</p>
                     </div>
                   ) : activeTab === 'editor' ? (
-                    <div className="bg-[#313338] rounded-xl p-6 text-center">
+                    <div className="dark bg-[#313338] rounded-lg p-6 text-center">
                       <span className="text-3xl mb-2 block">🎨</span>
                       <p className="text-sm text-[#949ba4]">El editor tiene su propio canvas</p>
                     </div>
@@ -278,15 +278,15 @@ export default function DiscordWelcome() {
                       return (
                         <div className="space-y-2">
                           {/* Simula como Discord muestra un attachment */}
-                          <div className="bg-[#313338] rounded-xl p-3">
+                          <div className="dark bg-[#313338] rounded-lg p-3">
                             <div className="flex items-center gap-2 mb-2">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
-                                <span className="text-white text-[9px] font-bold">D</span>
+                              <div className="w-8 h-8 rounded-full bg-ds-accent flex items-center justify-center flex-shrink-0">
+                                <span className="text-ds-text text-[9px] font-bold">D</span>
                               </div>
                               <div>
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[#f2f3f5] font-medium text-xs">Decatron</span>
-                                  <span className="bg-[#5865f2] text-white text-[8px] font-bold px-1 py-0.5 rounded">BOT</span>
+                                  <span className="bg-[#5865f2] text-ds-text text-[8px] font-bold px-1 py-0.5 rounded">BOT</span>
                                 </div>
                                 {previewConfig.mentionUser && (
                                   <p className="text-[11px] text-[#dee0fc] mt-0.5">
@@ -297,7 +297,7 @@ export default function DiscordWelcome() {
                             </div>
                             <img src={genImage} alt="Preview" className="w-full rounded-lg" />
                           </div>
-                          <p className="text-[10px] text-[#94a3b8] text-center">
+                          <p className="text-[10px] text-ds-soft text-center">
                             Si cambias el mensaje o configuracion, ve al <strong>Editor Visual</strong> y guarda para actualizar la imagen.
                           </p>
                         </div>
@@ -313,22 +313,22 @@ export default function DiscordWelcome() {
 
                   {/* Quick stats */}
                   <div className="mt-4 grid grid-cols-2 gap-2">
-                    <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-center">
-                      <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">BIENVENIDA</p>
+                    <div className="p-3 bg-ds-bg rounded-lg text-center">
+                      <p className="text-[10px] font-bold text-ds-soft mb-1">BIENVENIDA</p>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                         welcomeConfig.enabled
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-gray-100 dark:bg-gray-800 text-[#64748b]'
+                          ? 'bg-ds-ok/10 text-ds-ok '
+                          : 'bg-ds-bg text-ds-soft'
                       }`}>
                         {welcomeConfig.enabled ? 'Activo' : 'Inactivo'}
                       </span>
                     </div>
-                    <div className="p-3 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-center">
-                      <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">DESPEDIDA</p>
+                    <div className="p-3 bg-ds-bg rounded-lg text-center">
+                      <p className="text-[10px] font-bold text-ds-soft mb-1">DESPEDIDA</p>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                         goodbyeConfig.enabled
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-gray-100 dark:bg-gray-800 text-[#64748b]'
+                          ? 'bg-ds-ok/10 text-ds-ok '
+                          : 'bg-ds-bg text-ds-soft'
                       }`}>
                         {goodbyeConfig.enabled ? 'Activo' : 'Inactivo'}
                       </span>
@@ -338,20 +338,20 @@ export default function DiscordWelcome() {
                   {/* Features summary */}
                   <div className="mt-3 space-y-1.5">
                     {welcomeConfig.enabled && welcomeConfig.dmEnabled && (
-                      <div className="flex items-center gap-2 text-xs text-[#64748b]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      <div className="flex items-center gap-2 text-xs text-ds-soft">
+                        <span className="w-1.5 h-1.5 rounded-full bg-ds-accent" />
                         DM privado activado
                       </div>
                     )}
                     {welcomeConfig.enabled && welcomeConfig.autoRoleId && (
-                      <div className="flex items-center gap-2 text-xs text-[#64748b]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                      <div className="flex items-center gap-2 text-xs text-ds-soft">
+                        <span className="w-1.5 h-1.5 rounded-full bg-ds-accent" />
                         Rol automatico configurado
                       </div>
                     )}
                     {welcomeConfig.enabled && welcomeConfig.mentionUser && (
-                      <div className="flex items-center gap-2 text-xs text-[#64748b]">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <div className="flex items-center gap-2 text-xs text-ds-soft">
+                        <span className="w-1.5 h-1.5 rounded-full bg-ds-accent" />
                         Mencion de usuario activada
                       </div>
                     )}

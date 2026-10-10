@@ -104,7 +104,7 @@ export const TimerIntegrationTab: React.FC<TimerIntegrationTabProps> = ({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-ds-accent rounded-lg flex items-center justify-center">
-                            <Timer className="w-5 h-5 text-ds-text" />
+                            <Timer className="w-5 h-5 text-ds-on-accent" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-ds-text">
@@ -159,7 +159,7 @@ export const TimerIntegrationTab: React.FC<TimerIntegrationTabProps> = ({
                                 >
                                     {timerIntegration.mode === mode.id && (
                                         <div className="absolute top-2 right-2 w-5 h-5 bg-ds-accent rounded-full flex items-center justify-center">
-                                            <Check className="w-3 h-3 text-ds-text" />
+                                            <Check className="w-3 h-3 text-ds-on-accent" />
                                         </div>
                                     )}
                                     <div className={`w-10 h-10 bg-gradient-to-br ${mode.color} rounded-lg flex items-center justify-center mb-3 text-ds-text`}>

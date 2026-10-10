@@ -149,8 +149,8 @@ export default function EmbedEditorTab({
   const colorPresets = editMode === 'welcome' ? WELCOME_COLOR_PRESETS : GOODBYE_COLOR_PRESETS;
   const msgTemplates = editMode === 'welcome' ? WELCOME_MESSAGE_TEMPLATES : GOODBYE_MESSAGE_TEMPLATES;
   const sample = SAMPLE[editMode];
-  const inputCls = "w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]";
-  const selectCls = `${inputCls} appearance-none [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`;
+  const inputCls = "w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent";
+  const selectCls = `${inputCls} appearance-none [&>option]:bg-ds-surface `;
 
   // ============================================
   // LOAD IMAGES
@@ -561,7 +561,7 @@ export default function EmbedEditorTab({
     if (!selectedId || !elements[selectedId]) {
       return (
         <div className="flex flex-col items-center justify-center py-8 text-center">
-          <p className="text-sm text-[#64748b]">Selecciona un elemento en el canvas</p>
+          <p className="text-sm text-ds-soft">Selecciona un elemento en el canvas</p>
         </div>
       );
     }
@@ -571,10 +571,10 @@ export default function EmbedEditorTab({
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="font-bold text-sm text-gray-900 dark:text-white">{el.label}</span>
+          <span className="font-bold text-sm text-ds-text">{el.label}</span>
           {el.id !== 'background' && (
             <button onClick={() => updateEl(el.id, { enabled: !el.enabled })}
-              className={`p-1.5 rounded-lg ${el.enabled ? 'text-green-500 bg-green-50 dark:bg-green-900/20' : 'text-[#64748b] bg-gray-100 dark:bg-gray-800'}`}>
+              className={`p-1.5 rounded-lg ${el.enabled ? 'text-ds-ok bg-ds-ok/10 ' : 'text-ds-soft bg-ds-bg '}`}>
               {el.enabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
             </button>
           )}
@@ -583,13 +583,13 @@ export default function EmbedEditorTab({
         {/* Position */}
         {el.id !== 'background' && (
           <div>
-            <p className="text-[10px] font-bold text-[#94a3b8] mb-1">POSICION / TAMAÑO</p>
+            <p className="text-[10px] font-bold text-ds-soft mb-1">POSICION / TAMAÑO</p>
             <div className="grid grid-cols-4 gap-1.5">
               {(['x', 'y', 'width', 'height'] as const).map(k => (
                 <div key={k}>
-                  <label className="text-[9px] text-[#94a3b8]">{k === 'width' ? 'W' : k === 'height' ? 'H' : k.toUpperCase()}</label>
+                  <label className="text-[9px] text-ds-soft">{k === 'width' ? 'W' : k === 'height' ? 'H' : k.toUpperCase()}</label>
                   <input type="number" value={el[k]} onChange={(e) => updateEl(el.id, { [k]: parseInt(e.target.value) || 0 })}
-                    className="w-full px-1.5 py-1 text-[11px] border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
+                    className="w-full px-1.5 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
                 </div>
               ))}
             </div>
@@ -599,18 +599,18 @@ export default function EmbedEditorTab({
         {/* Background */}
         {selectedId === 'background' && (
           <div>
-            <p className="text-[10px] font-bold text-[#94a3b8] mb-1">IMAGEN DE FONDO</p>
+            <p className="text-[10px] font-bold text-ds-soft mb-1">IMAGEN DE FONDO</p>
             <div className="grid grid-cols-3 gap-1.5 mb-2">
               {([{ v: 'custom' as ImageMode, l: 'Imagen' }, { v: 'none' as ImageMode, l: 'Color' }]).map(o => (
                 <button key={o.v} onClick={() => updateConfig({ imageMode: o.v })}
-                  className={`px-2 py-1.5 rounded-lg text-[10px] font-medium border-2 ${config.imageMode === o.v ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20 text-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b]'}`}>
+                  className={`px-2 py-1.5 rounded-lg text-[10px] font-medium border-2 ${config.imageMode === o.v ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text' : 'border-ds-border text-ds-soft'}`}>
                   {o.l}
                 </button>
               ))}
             </div>
 
             {/* Templates prediseñados */}
-            <p className="text-[10px] font-bold text-[#94a3b8] mb-1.5">TEMPLATES</p>
+            <p className="text-[10px] font-bold text-ds-soft mb-1.5">TEMPLATES</p>
             <div className="grid grid-cols-3 gap-1.5 mb-2">
               {[
                 { id: 'gaming-neon', label: 'Gaming' },
@@ -623,9 +623,9 @@ export default function EmbedEditorTab({
                 const isActive = config.imageUrl === tUrl;
                 return (
                   <button key={t.id} onClick={() => updateConfig({ imageMode: 'custom', imageUrl: tUrl })}
-                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${isActive ? 'border-[#2563eb] ring-1 ring-[#2563eb]' : 'border-[#374151] hover:border-[#64748b]'}`}>
+                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${isActive ? 'border-ds-accent ring-1 ring-ds-accent' : 'border-ds-border hover:border-ds-faint'}`}>
                     <img src={tUrl} alt={t.label} className="w-full h-12 object-cover" />
-                    <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-white text-center py-0.5 font-bold">{t.label}</span>
+                    <span className="absolute bottom-0 inset-x-0 bg-ds-input/60 text-[8px] text-ds-text text-center py-0.5 font-bold">{t.label}</span>
                   </button>
                 );
               })}
@@ -634,17 +634,17 @@ export default function EmbedEditorTab({
             {config.imageMode === 'custom' && (
               <div className="space-y-1.5">
                 <input type="url" value={config.imageUrl || ''} onChange={(e) => updateConfig({ imageUrl: e.target.value || null })} placeholder="URL de imagen o selecciona template" className={`${inputCls} text-xs`} />
-                <button onClick={() => setShowGallery(true)} className="w-full px-2 py-1.5 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[10px] text-[#64748b] hover:border-[#2563eb] hover:text-[#2563eb]">Mi Galeria</button>
+                <button onClick={() => setShowGallery(true)} className="w-full px-2 py-1.5 border-2 border-dashed border-ds-border rounded-lg text-[10px] text-ds-soft hover:border-ds-accent hover:text-ds-accent-text">Mi Galeria</button>
               </div>
             )}
             <div className="mt-2">
-              <p className="text-[10px] font-bold text-[#94a3b8] mb-1">COLOR ACCENT</p>
+              <p className="text-[10px] font-bold text-ds-soft mb-1">COLOR ACCENT</p>
               <div className="flex items-center gap-2">
                 <input type="color" value={config.embedColor} onChange={(e) => updateConfig({ embedColor: e.target.value })} className="w-8 h-8 rounded border cursor-pointer" />
                 <div className="flex gap-1 flex-wrap">
                   {colorPresets.map(({ color }) => (
                     <button key={color} onClick={() => updateConfig({ embedColor: color })}
-                      className={`w-5 h-5 rounded-full border-2 ${config.embedColor === color ? 'border-white scale-110' : 'border-[#374151]'}`}
+                      className={`w-5 h-5 rounded-full border-2 ${config.embedColor === color ? 'border-ds-border scale-110' : 'border-ds-border'}`}
                       style={{ backgroundColor: color }} />
                   ))}
                 </div>
@@ -656,37 +656,37 @@ export default function EmbedEditorTab({
         {/* Text */}
         {selectedId === 'text' && (
           <div className="space-y-2">
-            <p className="text-[10px] font-bold text-[#94a3b8]">TAMAÑO DE FUENTE</p>
+            <p className="text-[10px] font-bold text-ds-soft">TAMAÑO DE FUENTE</p>
             <div className="flex items-center gap-2">
               <input type="number" value={el.fontSize || Math.round(el.height * 0.45)} min={8} max={200}
                 onChange={(e) => updateEl('text', { fontSize: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1 text-[11px] border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
-              <span className="text-[10px] text-[#94a3b8]">px</span>
-              <button onClick={() => updateEl('text', { fontSize: 0 })} className="text-[10px] text-[#2563eb] hover:underline">Auto</button>
+                className="w-20 px-2 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+              <span className="text-[10px] text-ds-soft">px</span>
+              <button onClick={() => updateEl('text', { fontSize: 0 })} className="text-[10px] text-ds-accent-text hover:underline">Auto</button>
             </div>
 
-            <p className="text-[10px] font-bold text-[#94a3b8]">COLOR DEL TEXTO</p>
+            <p className="text-[10px] font-bold text-ds-soft">COLOR DEL TEXTO</p>
             <div className="flex items-center gap-2 mb-2">
               <input type="color" value={el.textColor.startsWith('rgba') ? '#ffffff' : el.textColor} onChange={(e) => updateEl('text', { textColor: e.target.value })} className="w-7 h-7 rounded border cursor-pointer" />
-              <input type="text" value={el.textColor} onChange={(e) => updateEl('text', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
+              <input type="text" value={el.textColor} onChange={(e) => updateEl('text', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-ds-border rounded bg-ds-bg text-ds-text" />
               <div className="flex gap-1">
                 {['#ffffff', '#ffff00', '#00ff00', '#ff6b6b', '#00d4ff', '#ff69b4'].map(c => (
-                  <button key={c} onClick={() => updateEl('text', { textColor: c })} className={`w-5 h-5 rounded-full border ${el.textColor === c ? 'border-white scale-110' : 'border-[#374151]'}`} style={{ backgroundColor: c }} />
+                  <button key={c} onClick={() => updateEl('text', { textColor: c })} className={`w-5 h-5 rounded-full border ${el.textColor === c ? 'border-ds-border scale-110' : 'border-ds-border'}`} style={{ backgroundColor: c }} />
                 ))}
               </div>
             </div>
-            <p className="text-[10px] font-bold text-[#94a3b8]">MENSAJE</p>
+            <p className="text-[10px] font-bold text-ds-soft">MENSAJE</p>
             <textarea value={config.message} onChange={(e) => updateConfig({ message: e.target.value })} rows={3} className={`${inputCls} resize-none text-xs`} />
             <div className="flex flex-wrap gap-1">
               {MESSAGE_VARIABLES.map(v => (
                 <button key={v.key} onClick={() => updateConfig({ message: config.message + v.key })}
-                  className="text-[9px] font-mono text-[#2563eb] bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded hover:bg-blue-100">{v.key}</button>
+                  className="text-[9px] font-mono text-ds-accent-text bg-ds-accent/10 px-1.5 py-0.5 rounded hover:bg-ds-accent/10">{v.key}</button>
               ))}
             </div>
             <div className="space-y-1">
               {msgTemplates.slice(0, 3).map((t, i) => (
                 <button key={i} onClick={() => updateConfig({ message: t })}
-                  className={`w-full text-left px-2 py-1 rounded text-[10px] ${config.message === t ? 'bg-blue-50 dark:bg-blue-900/20 text-[#2563eb]' : 'text-[#64748b] hover:bg-[#f8fafc]'}`}>
+                  className={`w-full text-left px-2 py-1 rounded text-[10px] ${config.message === t ? 'bg-ds-accent/10 text-ds-accent-text' : 'text-ds-soft hover:bg-ds-bg'}`}>
                   {t.length > 50 ? t.slice(0, 50) + '...' : t}
                 </button>
               ))}
@@ -697,48 +697,48 @@ export default function EmbedEditorTab({
         {/* Avatar */}
         {selectedId === 'avatar' && (
           <div>
-            <p className="text-[10px] font-bold text-[#94a3b8] mb-1">AVATAR</p>
+            <p className="text-[10px] font-bold text-ds-soft mb-1">AVATAR</p>
             <Toggle checked={config.showAvatar} onChange={(v) => updateConfig({ showAvatar: v })} label="Mostrar avatar del miembro" />
-            <p className="text-[10px] text-[#94a3b8] mt-2">Se muestra en circulo con borde blanco. En Discord real se usa el avatar del usuario que entra.</p>
+            <p className="text-[10px] text-ds-soft mt-2">Se muestra en circulo con borde blanco. En Discord real se usa el avatar del usuario que entra.</p>
           </div>
         )}
 
         {selectedId === 'subtext' && (
           <div className="space-y-2">
-            <p className="text-[10px] font-bold text-[#94a3b8]">SUBTEXTO</p>
-            <p className="text-xs text-[#64748b]">Muestra el nombre del servidor: <strong>{guildName}</strong></p>
-            <p className="text-[10px] font-bold text-[#94a3b8] mt-2">TAMAÑO DE FUENTE</p>
+            <p className="text-[10px] font-bold text-ds-soft">SUBTEXTO</p>
+            <p className="text-xs text-ds-soft">Muestra el nombre del servidor: <strong>{guildName}</strong></p>
+            <p className="text-[10px] font-bold text-ds-soft mt-2">TAMAÑO DE FUENTE</p>
             <div className="flex items-center gap-2">
               <input type="number" value={el.fontSize || Math.round(el.height * 0.5)} min={8} max={200}
                 onChange={(e) => updateEl('subtext', { fontSize: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1 text-[11px] border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
-              <span className="text-[10px] text-[#94a3b8]">px</span>
-              <button onClick={() => updateEl('subtext', { fontSize: 0 })} className="text-[10px] text-[#2563eb] hover:underline">Auto</button>
+                className="w-20 px-2 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+              <span className="text-[10px] text-ds-soft">px</span>
+              <button onClick={() => updateEl('subtext', { fontSize: 0 })} className="text-[10px] text-ds-accent-text hover:underline">Auto</button>
             </div>
-            <p className="text-[10px] font-bold text-[#94a3b8] mt-2">COLOR DEL TEXTO</p>
+            <p className="text-[10px] font-bold text-ds-soft mt-2">COLOR DEL TEXTO</p>
             <div className="flex items-center gap-2">
               <input type="color" value={el.textColor.startsWith('rgba') ? '#b3b3b3' : el.textColor} onChange={(e) => updateEl('subtext', { textColor: e.target.value })} className="w-7 h-7 rounded border cursor-pointer" />
-              <input type="text" value={el.textColor} onChange={(e) => updateEl('subtext', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
+              <input type="text" value={el.textColor} onChange={(e) => updateEl('subtext', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-ds-border rounded bg-ds-bg text-ds-text" />
             </div>
           </div>
         )}
 
         {selectedId === 'footer' && (
           <div className="space-y-2">
-            <p className="text-[10px] font-bold text-[#94a3b8]">FOOTER</p>
-            <p className="text-xs text-[#64748b]">Automatico: {guildName} • Decatron Bot</p>
-            <p className="text-[10px] font-bold text-[#94a3b8] mt-2">TAMAÑO DE FUENTE</p>
+            <p className="text-[10px] font-bold text-ds-soft">FOOTER</p>
+            <p className="text-xs text-ds-soft">Automatico: {guildName} • Decatron Bot</p>
+            <p className="text-[10px] font-bold text-ds-soft mt-2">TAMAÑO DE FUENTE</p>
             <div className="flex items-center gap-2">
               <input type="number" value={el.fontSize || Math.round(el.height * 0.5)} min={8} max={200}
                 onChange={(e) => updateEl('footer', { fontSize: parseInt(e.target.value) || 0 })}
-                className="w-20 px-2 py-1 text-[11px] border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
-              <span className="text-[10px] text-[#94a3b8]">px</span>
-              <button onClick={() => updateEl('footer', { fontSize: 0 })} className="text-[10px] text-[#2563eb] hover:underline">Auto</button>
+                className="w-20 px-2 py-1 text-[11px] border border-ds-border rounded bg-ds-bg text-ds-text" />
+              <span className="text-[10px] text-ds-soft">px</span>
+              <button onClick={() => updateEl('footer', { fontSize: 0 })} className="text-[10px] text-ds-accent-text hover:underline">Auto</button>
             </div>
-            <p className="text-[10px] font-bold text-[#94a3b8] mt-2">COLOR DEL TEXTO</p>
+            <p className="text-[10px] font-bold text-ds-soft mt-2">COLOR DEL TEXTO</p>
             <div className="flex items-center gap-2">
               <input type="color" value={el.textColor.startsWith('rgba') ? '#949ba4' : el.textColor} onChange={(e) => updateEl('footer', { textColor: e.target.value })} className="w-7 h-7 rounded border cursor-pointer" />
-              <input type="text" value={el.textColor} onChange={(e) => updateEl('footer', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-[#e2e8f0] dark:border-[#374151] rounded bg-[#f8fafc] dark:bg-[#374151]/50 text-gray-900 dark:text-white" />
+              <input type="text" value={el.textColor} onChange={(e) => updateEl('footer', { textColor: e.target.value })} className="flex-1 px-2 py-1 text-[11px] font-mono border border-ds-border rounded bg-ds-bg text-ds-text" />
             </div>
           </div>
         )}
@@ -753,25 +753,25 @@ export default function EmbedEditorTab({
   return (
     <div className="space-y-6">
       {/* Top bar */}
-      <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-4 shadow-lg">
+      <div className="rounded-lg border border-ds-border bg-ds-surface p-4">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-bold text-[#64748b]">EDITANDO:</span>
+          <span className="text-xs font-bold text-ds-soft">EDITANDO:</span>
           {(['welcome', 'goodbye'] as EditMode[]).map(m => (
             <button key={m} onClick={() => { setEditMode(m); setSelectedId('text'); }}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${editMode === m ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg' : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b]'}`}>
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editMode === m ?'bg-ds-accent text-ds-on-accent' :'bg-ds-bg text-ds-soft'}`}>
               {m === 'welcome' ? '👋 Bienvenida' : '💨 Despedida'}
             </button>
           ))}
           <div className="ml-auto flex items-center gap-2">
             <button onClick={() => updateConfig({ enabled: !config.enabled })}
-              className={`relative w-12 h-6 rounded-full transition-all ${config.enabled ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]' : 'bg-gray-300 dark:bg-gray-600'}`}>
-              <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${config.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              className={`relative w-12 h-6 rounded-full transition-all ${config.enabled ?'bg-ds-accent' :'bg-ds-raised'}`}>
+              <div className={`absolute top-0.5 w-5 h-5 bg-ds-surface rounded-full transition-transform ${config.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
           </div>
         </div>
         {config.enabled && (
           <div className="mt-3 flex items-center gap-2">
-            <Hash className="w-4 h-4 text-[#64748b]" />
+            <Hash className="w-4 h-4 text-ds-soft" />
             <select value={config.channelId || ''} onChange={(e) => updateConfig({ channelId: e.target.value || null })} className={`flex-1 ${selectCls}`}>
               <option value="">Seleccionar canal...</option>
               {channels.map(ch => <option key={ch.id} value={ch.id}>#{ch.name}</option>)}
@@ -784,26 +784,26 @@ export default function EmbedEditorTab({
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Canvas (2/3) */}
           <div className="xl:col-span-2">
-            <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-lg overflow-hidden">
-              <div className="px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/30 flex items-center justify-between border-b border-[#e2e8f0] dark:border-[#374151]">
-                <span className="text-xs font-bold text-[#64748b]">CANVAS — Lo que ves es lo que sale en Discord</span>
+            <div className="rounded-lg border border-ds-border bg-ds-surface overflow-hidden">
+              <div className="px-4 py-2.5 bg-ds-bg flex items-center justify-between border-b border-ds-border">
+                <span className="text-xs font-bold text-ds-soft">CANVAS — Lo que ves es lo que sale en Discord</span>
                 <div className="flex items-center gap-2">
                   <select
                     value={resolution}
                     onChange={(e) => changeResolution(e.target.value as CanvasResolution)}
-                    className="px-2 py-1 text-[10px] font-bold bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-gray-700 dark:text-gray-300 [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                    className="px-2 py-1 text-[10px] font-bold bg-ds-bg border border-ds-border rounded-lg text-ds-soft [&>option]:bg-ds-surface"
                   >
                     {RESOLUTIONS.map(r => (
                       <option key={r.id} value={r.id}>{r.label}</option>
                     ))}
                   </select>
-                  <button onClick={resetLayout} className="flex items-center gap-1 px-2 py-1 text-[10px] text-[#64748b] hover:text-[#2563eb] rounded-lg hover:bg-blue-50">
+                  <button onClick={resetLayout} className="flex items-center gap-1 px-2 py-1 text-[10px] text-ds-soft hover:text-ds-accent-text rounded-lg hover:bg-ds-accent/10">
                     <RotateCcw className="w-3 h-3" /> Reset
                   </button>
                 </div>
               </div>
 
-              <div ref={containerRef} className="p-4 bg-[#1e1f22]">
+              <div ref={containerRef} className="dark p-4 bg-[#1e1f22]">
                 <canvas
                   ref={canvasRef}
                   width={CW}
@@ -818,12 +818,12 @@ export default function EmbedEditorTab({
               </div>
 
               {/* Element buttons */}
-              <div className="px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/30 border-t border-[#e2e8f0] dark:border-[#374151]">
+              <div className="px-4 py-2.5 bg-ds-bg border-t border-ds-border">
                 <div className="flex flex-wrap gap-1.5">
                   {Object.values(elements).map(el => (
                     <button key={el.id} onClick={() => setSelectedId(el.id)}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
-                        selectedId === el.id ? 'bg-[#2563eb] text-white border-[#2563eb]' : el.enabled ? 'bg-white dark:bg-[#1B1C1D] border-[#e2e8f0] dark:border-[#374151] text-gray-600 dark:text-gray-400' : 'bg-gray-100 dark:bg-gray-800 border-transparent text-[#94a3b8] opacity-50'
+                        selectedId === el.id ? 'bg-ds-accent text-ds-on-accent border-ds-accent' : el.enabled ? 'bg-ds-surface border-ds-border text-ds-soft ' : 'bg-ds-bg border-transparent text-ds-soft opacity-50'
                       }`}>
                       {el.label}
                     </button>
@@ -835,9 +835,9 @@ export default function EmbedEditorTab({
 
           {/* Properties (1/3) */}
           <div className="xl:col-span-1 space-y-4">
-            <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-lg sticky top-6 overflow-hidden">
-              <div className="px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/30 border-b border-[#e2e8f0] dark:border-[#374151]">
-                <span className="text-xs font-bold text-[#64748b]">PROPIEDADES</span>
+            <div className="rounded-lg border border-ds-border bg-ds-surface sticky top-6 overflow-hidden">
+              <div className="px-4 py-2.5 bg-ds-bg border-b border-ds-border">
+                <span className="text-xs font-bold text-ds-soft">PROPIEDADES</span>
               </div>
               <div className="p-4">{renderProperties()}</div>
             </div>
@@ -845,10 +845,10 @@ export default function EmbedEditorTab({
             {/* Welcome extras */}
             {editMode === 'welcome' && (
               <>
-                <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-lg p-4">
+                <div className="rounded-lg border border-ds-border bg-ds-surface p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare className="w-4 h-4 text-[#f97316]" />
-                    <span className="text-xs font-bold text-[#64748b]">MENCION / DM</span>
+                    <span className="text-xs font-bold text-ds-soft">MENCION / DM</span>
                   </div>
                   <Toggle checked={welcomeConfig.mentionUser} onChange={(v) => onWelcomeChange({ mentionUser: v })} label="Mencionar @usuario" />
                   <div className="mt-2">
@@ -862,10 +862,10 @@ export default function EmbedEditorTab({
                     <textarea value={welcomeConfig.dmMessage || ''} onChange={(e) => onWelcomeChange({ dmMessage: e.target.value || null })} rows={2} placeholder="Bienvenido a {server}!" className={`${inputCls} resize-none text-xs mt-2`} />
                   )}
                 </div>
-                <div className="rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] shadow-lg p-4">
+                <div className="rounded-lg border border-ds-border bg-ds-surface p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Shield className="w-4 h-4 text-[#8b5cf6]" />
-                    <span className="text-xs font-bold text-[#64748b]">ROL AUTOMATICO</span>
+                    <Shield className="w-4 h-4 text-ds-accent-text" />
+                    <span className="text-xs font-bold text-ds-soft">ROL AUTOMATICO</span>
                   </div>
                   <select value={welcomeConfig.autoRoleId || ''} onChange={(e) => onWelcomeChange({ autoRoleId: e.target.value || null })} className={selectCls}>
                     <option value="">Ninguno</option>
@@ -880,11 +880,11 @@ export default function EmbedEditorTab({
 
       {/* Gallery modal */}
       {showGallery && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-ds-surface rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto border border-ds-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-black text-gray-900 dark:text-white">Seleccionar imagen</h3>
-              <button onClick={() => setShowGallery(false)} className="text-[#64748b] hover:text-gray-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-lg font-black text-ds-text">Seleccionar imagen</h3>
+              <button onClick={() => setShowGallery(false)} className="text-ds-soft hover:text-ds-text"><X className="w-5 h-5" /></button>
             </div>
             <MediaGallery selectedFileType="image" onFileSelect={(file) => { updateConfig({ imageUrl: file.fileUrl }); setShowGallery(false); }} />
           </div>
@@ -899,11 +899,11 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     <label className="flex items-center gap-2.5 cursor-pointer">
       <div className="relative">
         <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
-        <div className={`w-9 h-5 rounded-full transition-all ${checked ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]' : 'bg-gray-300 dark:bg-gray-600'}`}>
-          <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+        <div className={`w-9 h-5 rounded-full transition-all ${checked ?'bg-ds-accent' :'bg-ds-raised'}`}>
+          <div className={`absolute top-0.5 w-4 h-4 bg-ds-surface rounded-full transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
         </div>
       </div>
-      <span className="text-xs font-medium text-gray-900 dark:text-white">{label}</span>
+      <span className="text-xs font-medium text-ds-text">{label}</span>
     </label>
   );
 }

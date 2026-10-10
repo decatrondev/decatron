@@ -602,7 +602,7 @@ export default function TipsOverlay() {
 
     if (!channelName) {
         return (
-            <div className="w-screen h-screen flex items-center justify-center bg-black text-white">
+            <div className="w-screen h-screen flex items-center justify-center bg-ds-input text-ds-text">
                 <p>Missing channel parameter. Use ?channel=YOUR_CHANNEL</p>
             </div>
         );
@@ -629,7 +629,7 @@ export default function TipsOverlay() {
         <div className="w-screen h-screen overflow-hidden relative" style={{ background: 'transparent' }}>
             {/* Debug info */}
             {debugMode && (
-                <div className="absolute top-2 left-2 bg-black/80 text-white text-xs p-2 rounded z-50">
+                <div className="absolute top-2 left-2 bg-ds-input/80 text-ds-text text-xs p-2 rounded z-50">
                     <div>Channel: {channelName}</div>
                     <div>Queue: {queueCount}</div>
                     <div>Processing: {isProcessingRef.current ? 'Yes' : 'No'}</div>
@@ -639,7 +639,7 @@ export default function TipsOverlay() {
 
             {/* Queue counter */}
             {queueCount > 0 && (
-                <div className="absolute top-2 right-2 bg-purple-600 text-white text-sm px-3 py-1 rounded-full z-50">
+                <div className="absolute top-2 right-2 bg-ds-accent text-ds-on-accent text-sm px-3 py-1 rounded-full z-50">
                     {queueCount} in queue
                 </div>
             )}
@@ -780,7 +780,7 @@ export default function TipsOverlay() {
                         fontFamily: currentTip.alertConfig?.style?.fontFamily || 'Inter, sans-serif'
                     }}
                 >
-                    <div className="flex flex-col items-center p-8 rounded-2xl shadow-2xl min-w-[400px] max-w-[600px]"
+                    <div className="flex flex-col items-center p-8 rounded-lg min-w-[400px] max-w-[600px]"
                          style={{ backgroundColor: currentTip.alertConfig?.style?.backgroundColor || 'rgba(0,0,0,0.9)' }}>
 
                         {/* Media (image/video) */}

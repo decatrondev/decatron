@@ -210,7 +210,7 @@ export const ParticipantsTab: React.FC = () => {
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
                     <div className="p-3 bg-ds-accent rounded-lg">
-                        <DollarSign className="w-6 h-6 text-ds-text" />
+                        <DollarSign className="w-6 h-6 text-ds-on-accent" />
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-ds-text">Registrar Donacion</h2>
@@ -237,7 +237,7 @@ export const ParticipantsTab: React.FC = () => {
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
                 <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
                     <div className="p-3 bg-ds-accent rounded-lg">
-                        <Gift className="w-6 h-6 text-ds-text" />
+                        <Gift className="w-6 h-6 text-ds-on-accent" />
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-ds-text">Regalar Tiros Bonus</h2>
@@ -265,7 +265,7 @@ export const ParticipantsTab: React.FC = () => {
                 <div className="bg-ds-surface rounded-lg border border-ds-border p-6 space-y-4">
                     <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
                         <div className="p-3 bg-ds-danger-solid rounded-lg">
-                            <Heart className="w-6 h-6 text-ds-text" />
+                            <Heart className="w-6 h-6 text-ds-on-accent" />
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-ds-text">Cartas Mas Deseadas</h2>
@@ -310,7 +310,7 @@ export const ParticipantsTab: React.FC = () => {
                 <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-ds-accent rounded-lg">
-                            <Users className="w-6 h-6 text-ds-text" />
+                            <Users className="w-6 h-6 text-ds-on-accent" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-black text-ds-text">Participantes ({participants.length})</h2>

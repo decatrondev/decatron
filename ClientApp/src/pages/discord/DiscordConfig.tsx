@@ -41,16 +41,16 @@ export default function DiscordConfig() {
     }).catch(() => {});
   }, [selectedGuild]);
 
-  if (permissionsLoading || loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" /></div>;
+  if (permissionsLoading || loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" /></div>;
 
   if (!hasMinimumLevel('control_total')) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
-          <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">Acceso denegado</h2>
-          <p className="text-[#64748b] mb-6">Necesitas permisos de control total.</p>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl">Volver</button>
+        <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
+          <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
+          <p className="text-ds-soft mb-6">Necesitas permisos de control total.</p>
+          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg">Volver</button>
         </div>
       </div>
     );
@@ -59,19 +59,19 @@ export default function DiscordConfig() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+      <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center">
-              <MessageSquare className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-14 h-14 bg-ds-accent/10 rounded-lg flex items-center justify-center">
+              <MessageSquare className="w-7 h-7 text-ds-accent-text" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">Discord</h1>
-              <p className="text-sm text-[#64748b]">Configura la integracion de Discord con tu canal</p>
+              <h1 className="text-2xl font-black text-ds-text">Discord</h1>
+              <p className="text-sm text-ds-soft">Configura la integracion de Discord con tu canal</p>
             </div>
           </div>
           {botStatus && (
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium ${botStatus.connected ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${botStatus.connected ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-danger/10 text-ds-danger '}`}>
               {botStatus.connected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
               {botStatus.connected ? `Bot conectado${botStatus.linkedCount > 0 ? ` (${botStatus.linkedCount} vinculado${botStatus.linkedCount > 1 ? 's' : ''})` : ''}` : 'Bot desconectado'}
             </div>
@@ -80,7 +80,7 @@ export default function DiscordConfig() {
       </div>
 
       {saveMessage && (
-        <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${saveMessage.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+        <div className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium ${saveMessage.type === 'success' ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-danger/10 text-ds-danger '}`}>
           {saveMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
           {saveMessage.text}
         </div>
@@ -90,21 +90,21 @@ export default function DiscordConfig() {
         {/* Servers (left) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Servidores</h2>
-            <button onClick={startDiscordAuth} className="flex items-center gap-2 px-3 py-1.5 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors"><Plus className="w-4 h-4" /> Vincular</button>
+            <h2 className="text-lg font-bold text-ds-text">Servidores</h2>
+            <button onClick={startDiscordAuth} className="flex items-center gap-2 px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-bold rounded-lg transition-colors"><Plus className="w-4 h-4" /> Vincular</button>
           </div>
           {linkedGuilds.length === 0 ? (
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 text-center border border-[#e2e8f0] dark:border-[#374151]">
-              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-[#64748b] opacity-50" />
-              <p className="text-[#64748b] mb-4">No hay servidores vinculados</p>
-              <button onClick={startDiscordAuth} className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl text-sm">Vincular servidor</button>
+            <div className="bg-ds-surface rounded-lg p-8 text-center border border-ds-border">
+              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-ds-soft opacity-50" />
+              <p className="text-ds-soft mb-4">No hay servidores vinculados</p>
+              <button onClick={startDiscordAuth} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg text-sm">Vincular servidor</button>
             </div>
           ) : linkedGuilds.map(guild => (
-            <div key={guild.guildId} onClick={() => selectGuild(guild)} className={`bg-white dark:bg-[#1B1C1D] rounded-xl p-4 cursor-pointer transition-all border-2 ${selectedGuild?.guildId === guild.guildId ? 'border-[#2563eb]' : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'}`}>
+            <div key={guild.guildId} onClick={() => selectGuild(guild)} className={`bg-ds-surface rounded-lg p-4 cursor-pointer transition-all border-2 ${selectedGuild?.guildId === guild.guildId ? 'border-ds-accent' : 'border-ds-border hover:border-ds-accent'}`}>
               <div className="flex items-center gap-3">
-                {guild.guildIcon ? <img src={guild.guildIcon} alt="" className="w-10 h-10 rounded-full" /> : <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold">{guild.guildName.charAt(0)}</div>}
-                <div className="flex-1 min-w-0"><h3 className="font-bold text-gray-900 dark:text-white truncate">{guild.guildName}</h3></div>
-                <button onClick={(e) => { e.stopPropagation(); unlinkGuild(guild.guildId); }} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 transition-colors"><Unlink className="w-4 h-4" /></button>
+                {guild.guildIcon ? <img src={guild.guildIcon} alt="" className="w-10 h-10 rounded-full" /> : <div className="w-10 h-10 bg-ds-accent/10 rounded-full flex items-center justify-center text-ds-accent-text font-bold">{guild.guildName.charAt(0)}</div>}
+                <div className="flex-1 min-w-0"><h3 className="font-bold text-ds-text truncate">{guild.guildName}</h3></div>
+                <button onClick={(e) => { e.stopPropagation(); unlinkGuild(guild.guildId); }} className="p-1.5 hover:bg-ds-danger/10 rounded-lg text-ds-danger transition-colors"><Unlink className="w-4 h-4" /></button>
               </div>
             </div>
           ))}
@@ -117,71 +117,71 @@ export default function DiscordConfig() {
               {/* Quick nav cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Live Alerts card */}
-                <Link to="/discord/alerts" className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all group">
+                <Link to="/discord/alerts" className="bg-ds-surface rounded-lg p-5 border border-ds-border hover:border-ds-accent transition-all group">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center">
-                      <Bell className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <div className="w-10 h-10 bg-ds-danger/10 rounded-lg flex items-center justify-center">
+                      <Bell className="w-5 h-5 text-ds-accent-text" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 dark:text-white">Live Alerts</h3>
-                      <p className="text-xs text-[#64748b]">{alertCount} alerta{alertCount !== 1 ? 's' : ''} configurada{alertCount !== 1 ? 's' : ''}</p>
+                      <h3 className="font-bold text-ds-text">Live Alerts</h3>
+                      <p className="text-xs text-ds-soft">{alertCount} alerta{alertCount !== 1 ? 's' : ''} configurada{alertCount !== 1 ? 's' : ''}</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#64748b] group-hover:text-[#2563eb] transition-colors" />
+                    <ArrowRight className="w-4 h-4 text-ds-soft group-hover:text-ds-accent-text transition-colors" />
                   </div>
-                  <p className="text-sm text-[#64748b]">Notifica cuando un streamer inicia stream</p>
+                  <p className="text-sm text-ds-soft">Notifica cuando un streamer inicia stream</p>
                 </Link>
 
                 {/* Welcome card */}
-                <Link to="/discord/welcome" className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] transition-all group">
+                <Link to="/discord/welcome" className="bg-ds-surface rounded-lg p-5 border border-ds-border hover:border-ds-accent transition-all group">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
-                      <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <div className="w-10 h-10 bg-ds-ok/10 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5 text-ds-accent-text" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 dark:text-white">Bienvenida</h3>
-                      <p className="text-xs text-[#64748b]">{welcomeEnabled ? 'Activo' : 'Inactivo'}</p>
+                      <h3 className="font-bold text-ds-text">Bienvenida</h3>
+                      <p className="text-xs text-ds-soft">{welcomeEnabled ? 'Activo' : 'Inactivo'}</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#64748b] group-hover:text-[#2563eb] transition-colors" />
+                    <ArrowRight className="w-4 h-4 text-ds-soft group-hover:text-ds-accent-text transition-colors" />
                   </div>
-                  <p className="text-sm text-[#64748b]">Mensajes de bienvenida y despedida con editor visual</p>
+                  <p className="text-sm text-ds-soft">Mensajes de bienvenida y despedida con editor visual</p>
                 </Link>
 
                 {/* XP & Levels card */}
-                <Link to="/discord/levels" className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151] hover:border-[#f59e0b] transition-all group">
+                <Link to="/discord/levels" className="bg-ds-surface rounded-lg p-5 border border-ds-border hover:border-ds-warn/40 transition-all group">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-ds-warn/10 rounded-lg flex items-center justify-center">
                       <span className="text-lg">⚡</span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 dark:text-white">XP & Niveles</h3>
-                      <p className="text-xs text-[#64748b]">Sistema de gamificacion</p>
+                      <h3 className="font-bold text-ds-text">XP & Niveles</h3>
+                      <p className="text-xs text-ds-soft">Sistema de gamificacion</p>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-[#64748b] group-hover:text-[#f59e0b] transition-colors" />
+                    <ArrowRight className="w-4 h-4 text-ds-soft group-hover:text-ds-warn transition-colors" />
                   </div>
-                  <p className="text-sm text-[#64748b]">Niveles, roles automaticos, leaderboard, boosts y mas</p>
+                  <p className="text-sm text-ds-soft">Niveles, roles automaticos, leaderboard, boosts y mas</p>
                 </Link>
               </div>
 
               {/* Slash Commands */}
-              <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+              <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center"><Settings className="w-5 h-5 text-[#2563eb]" /></div>
-                  <div><h3 className="font-bold text-gray-900 dark:text-white">Slash Commands</h3><p className="text-sm text-[#64748b]">Comandos disponibles en Discord</p></div>
+                  <div className="w-10 h-10 bg-ds-accent/10 rounded-lg flex items-center justify-center"><Settings className="w-5 h-5 text-ds-accent-text" /></div>
+                  <div><h3 className="font-bold text-ds-text">Slash Commands</h3><p className="text-sm text-ds-soft">Comandos disponibles en Discord</p></div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[{ cmd: '/live', desc: 'Estado del stream' }, { cmd: '/timer', desc: 'Timer actual' }, { cmd: '/stats', desc: 'Estadisticas' }, { cmd: '/followage', desc: 'Info y followage' }, { cmd: '/song', desc: 'Cancion sonando' }].map(c => (
-                    <div key={c.cmd} className="flex items-center gap-3 p-3 bg-[#f8fafc] dark:bg-[#374151]/50 rounded-xl">
-                      <code className="text-sm font-mono text-[#2563eb] font-bold">{c.cmd}</code>
-                      <span className="text-sm text-[#64748b]">{c.desc}</span>
+                    <div key={c.cmd} className="flex items-center gap-3 p-3 bg-ds-bg rounded-lg">
+                      <code className="text-sm font-mono text-ds-accent-text font-bold">{c.cmd}</code>
+                      <span className="text-sm text-ds-soft">{c.desc}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-12 text-center border border-[#e2e8f0] dark:border-[#374151]">
-              <Settings className="w-12 h-12 mx-auto mb-4 text-[#64748b] opacity-50" />
-              <p className="text-[#64748b]">{linkedGuilds.length > 0 ? 'Selecciona un servidor para configurar' : 'Vincula un servidor para empezar'}</p>
+            <div className="bg-ds-surface rounded-lg p-12 text-center border border-ds-border">
+              <Settings className="w-12 h-12 mx-auto mb-4 text-ds-soft opacity-50" />
+              <p className="text-ds-soft">{linkedGuilds.length > 0 ? 'Selecciona un servidor para configurar' : 'Vincula un servidor para empezar'}</p>
             </div>
           )}
         </div>

@@ -136,15 +136,15 @@ export default function DiscordAlerts() {
     if (await deleteAlert(alertId)) showMsg('success', 'Alerta eliminada');
   };
 
-  if (permissionsLoading || loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" /></div>;
+  if (permissionsLoading || loading) return <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" /></div>;
   if (!hasMinimumLevel('control_total')) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
-          <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">Acceso denegado</h2>
-          <p className="text-[#64748b] mb-6">Necesitas permisos de control total.</p>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl">Volver</button>
+        <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
+          <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
+          <p className="text-ds-soft mb-6">Necesitas permisos de control total.</p>
+          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg">Volver</button>
         </div>
       </div>
     );
@@ -153,20 +153,20 @@ export default function DiscordAlerts() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+      <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center">
-              <Bell className="w-7 h-7 text-red-600 dark:text-red-400" />
+            <div className="w-14 h-14 bg-ds-danger/10 rounded-lg flex items-center justify-center">
+              <Bell className="w-7 h-7 text-ds-accent-text" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">Live Alerts</h1>
-              <p className="text-sm text-[#64748b]">Notificaciones cuando un streamer inicia stream</p>
+              <h1 className="text-2xl font-black text-ds-text">Live Alerts</h1>
+              <p className="text-sm text-ds-soft">Notificaciones cuando un streamer inicia stream</p>
             </div>
           </div>
           {linkedGuilds.length > 1 && (
             <select value={selectedGuild?.guildId || ''} onChange={(e) => handleSelectGuild(e.target.value)}
-              className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm font-medium text-gray-900 dark:text-white [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]">
+              className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm font-medium text-ds-text [&>option]:bg-ds-surface">
               {linkedGuilds.map(g => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
             </select>
           )}
@@ -174,32 +174,32 @@ export default function DiscordAlerts() {
       </div>
 
       {saveMessage && (
-        <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${saveMessage.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+        <div className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium ${saveMessage.type === 'success' ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-danger/10 text-ds-danger '}`}>
           {saveMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
           {saveMessage.text}
         </div>
       )}
 
       {!selectedGuild ? (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-12 text-center border border-[#e2e8f0] dark:border-[#374151]">
-          <Bell className="w-12 h-12 mx-auto mb-4 text-[#64748b] opacity-50" />
-          <p className="text-[#64748b]">Vincula un servidor en la pagina General para empezar</p>
+        <div className="bg-ds-surface rounded-lg p-12 text-center border border-ds-border">
+          <Bell className="w-12 h-12 mx-auto mb-4 text-ds-soft opacity-50" />
+          <p className="text-ds-soft">Vincula un servidor en la pagina General para empezar</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center"><Bell className="w-5 h-5 text-red-600 dark:text-red-400" /></div>
+              <div className="w-10 h-10 bg-ds-danger/10 rounded-lg flex items-center justify-center"><Bell className="w-5 h-5 text-ds-accent-text" /></div>
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-white">Alertas de Live — {selectedGuild.guildName}</h3>
-                <p className="text-sm text-[#64748b]">{alerts.length} alerta{alerts.length !== 1 ? 's' : ''} configurada{alerts.length !== 1 ? 's' : ''}</p>
+                <h3 className="font-bold text-ds-text">Alertas de Live — {selectedGuild.guildName}</h3>
+                <p className="text-sm text-ds-soft">{alerts.length} alerta{alerts.length !== 1 ? 's' : ''} configurada{alerts.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
-            <button onClick={() => setShowAddAlert(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#2563eb] hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors"><Plus className="w-4 h-4" /> Agregar</button>
+            <button onClick={() => setShowAddAlert(true)} className="flex items-center gap-2 px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-sm font-bold rounded-lg transition-colors"><Plus className="w-4 h-4" /> Agregar</button>
           </div>
 
-          {loadingAlerts ? <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" /></div> : alerts.length === 0 ? (
-            <div className="text-center py-8 text-[#64748b]">
+          {loadingAlerts ? <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" /></div> : alerts.length === 0 ? (
+            <div className="text-center py-8 text-ds-soft">
               <Bell className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p>No hay alertas configuradas</p>
               <p className="text-xs mt-1">Agrega canales para recibir notificaciones</p>
@@ -209,31 +209,31 @@ export default function DiscordAlerts() {
               {alerts.map(alert => {
                 const status = getStatus(alert.channelName);
                 return (
-                  <div key={alert.id} className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+                  <div key={alert.id} className="p-4 bg-ds-bg rounded-lg border border-ds-border">
                     <div className="flex items-start gap-3">
                       <div className="relative flex-shrink-0">
                         {status?.profileImage ? (
-                          <img src={status.profileImage} alt="" className={`w-11 h-11 rounded-full ${status.isLive ? 'ring-2 ring-red-500' : ''}`} />
+                          <img src={status.profileImage} alt="" className={`w-11 h-11 rounded-full ${status.isLive ? 'ring-2 ring-ds-danger/40' : ''}`} />
                         ) : (
-                          <div className="w-11 h-11 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                          <div className="w-11 h-11 bg-ds-raised rounded-full" />
                         )}
-                        {status?.isLive && <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-[#374151]" />}
+                        {status?.isLive && <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-ds-danger-solid rounded-full border-2 border-ds-border" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-900 dark:text-white">{status?.displayName || alert.channelName}</span>
-                          {alert.isOwnChannel && <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full">Tu canal</span>}
-                          {status?.isLive && <span className="px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">EN VIVO</span>}
+                          <span className="font-bold text-ds-text">{status?.displayName || alert.channelName}</span>
+                          {alert.isOwnChannel && <span className="px-2 py-0.5 text-xs font-medium bg-ds-accent/10 text-ds-accent-text rounded-full">Tu canal</span>}
+                          {status?.isLive && <span className="px-2 py-0.5 text-xs font-medium bg-ds-danger/10 text-ds-danger rounded-full">EN VIVO</span>}
                         </div>
-                        {status?.isLive && <p className="text-xs text-[#64748b] mt-0.5">{status.game} • {status.viewers.toLocaleString()} viewers</p>}
-                        <div className="flex items-center gap-2 mt-2 text-sm text-[#64748b]">
+                        {status?.isLive && <p className="text-xs text-ds-soft mt-0.5">{status.game} • {status.viewers.toLocaleString()} viewers</p>}
+                        <div className="flex items-center gap-2 mt-2 text-sm text-ds-soft">
                           <Hash className="w-3 h-3" />
                           <select value={alert.discordChannelId} onChange={(e) => updateAlertChannel(alert, e.target.value, channels)}
-                            className="bg-white dark:bg-[#1B1C1D] border-none p-0 text-sm text-[#64748b] focus:outline-none cursor-pointer [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]">
+                            className="bg-ds-surface border-none p-0 text-sm text-ds-soft focus:outline-none cursor-pointer [&>option]:bg-ds-surface">
                             {channels.map(ch => <option key={ch.id} value={ch.id}>#{ch.name}</option>)}
                           </select>
                           <span className="text-xs">•</span>
-                          <button onClick={() => updateAlertMention(alert)} className={`text-xs px-2 py-0.5 rounded-full transition-colors ${alert.mentionEveryone ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                          <button onClick={() => updateAlertMention(alert)} className={`text-xs px-2 py-0.5 rounded-full transition-colors ${alert.mentionEveryone ? 'bg-ds-warn/10 text-ds-warn ' : 'bg-ds-bg text-ds-soft'}`}>
                             {alert.mentionEveryone ? '@everyone' : 'sin mencion'}
                           </button>
                           <span className="text-xs">•</span>
@@ -243,11 +243,11 @@ export default function DiscordAlerts() {
                         </div>
                       </div>
                       {status?.isLive && status.thumbnail && <img src={status.thumbnail} alt="" className="w-28 h-16 rounded-lg object-cover flex-shrink-0 hidden sm:block" />}
-                      <button onClick={() => openEditAlert(alert)} className="p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg text-[#2563eb] flex-shrink-0"><Settings className="w-4 h-4" /></button>
-                      <button onClick={() => toggleAlert(alert)} className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${alert.enabled ? 'bg-[#2563eb]' : 'bg-gray-300 dark:bg-gray-600'}`}>
-                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${alert.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                      <button onClick={() => openEditAlert(alert)} className="p-1.5 hover:bg-ds-accent/10 rounded-lg text-ds-accent-text flex-shrink-0"><Settings className="w-4 h-4" /></button>
+                      <button onClick={() => toggleAlert(alert)} className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${alert.enabled ? 'bg-ds-accent' : 'bg-ds-raised '}`}>
+                        <div className={`absolute top-0.5 w-5 h-5 bg-ds-surface rounded-full shadow transition-transform ${alert.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
                       </button>
-                      <button onClick={() => handleDeleteAlert(alert.id)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteAlert(alert.id)} className="p-1.5 hover:bg-ds-danger/10 rounded-lg text-ds-danger flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                 );
@@ -277,30 +277,30 @@ export default function DiscordAlerts() {
           offlineAction={newAlertOfflineAction} setOfflineAction={setNewAlertOfflineAction}
         >
           <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Canal de Twitch</label>
+            <label className="block text-sm font-medium text-ds-text mb-2">Canal de Twitch</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748b]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ds-soft" />
               <input type="text" value={searchQuery} onChange={(e) => searchChannel(e.target.value)} placeholder="Buscar canal..."
-                className="w-full pl-9 pr-4 py-3 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] placeholder-[#94a3b8]" />
-              {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#2563eb]" />}
+                className="w-full pl-9 pr-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent placeholder-ds-soft" />
+              {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-ds-accent-text" />}
             </div>
             {searchResult && (
-              <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/50 rounded-xl">
+              <div className="mt-3 p-3 bg-ds-ok/10 border border-ds-ok/40 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <img src={searchResult.profileImage} alt="" className={`w-12 h-12 rounded-full ${searchResult.isLive ? 'ring-2 ring-red-500' : ''}`} />
+                  <img src={searchResult.profileImage} alt="" className={`w-12 h-12 rounded-full ${searchResult.isLive ? 'ring-2 ring-ds-danger/40' : ''}`} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-gray-900 dark:text-white">{searchResult.displayName}</span>
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      {searchResult.isLive && <span className="px-2 py-0.5 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">EN VIVO</span>}
+                      <span className="font-bold text-ds-text">{searchResult.displayName}</span>
+                      <CheckCircle className="w-4 h-4 text-ds-ok" />
+                      {searchResult.isLive && <span className="px-2 py-0.5 text-xs bg-ds-danger/10 text-ds-danger rounded-full">EN VIVO</span>}
                     </div>
-                    {searchResult.isLive && <p className="text-xs text-[#64748b] mt-0.5">{searchResult.game} • {searchResult.viewers.toLocaleString()} viewers</p>}
+                    {searchResult.isLive && <p className="text-xs text-ds-soft mt-0.5">{searchResult.game} • {searchResult.viewers.toLocaleString()} viewers</p>}
                   </div>
                   {searchResult.isLive && searchResult.thumbnail && <img src={searchResult.thumbnail} alt="" className="w-24 h-14 rounded-lg object-cover hidden sm:block" />}
                 </div>
               </div>
             )}
-            {searchError && <p className="mt-2 text-sm text-red-500">{searchError}</p>}
+            {searchError && <p className="mt-2 text-sm text-ds-danger">{searchError}</p>}
           </div>
         </AlertFormModal>
       )}

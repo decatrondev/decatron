@@ -52,15 +52,15 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
     };
 
     const dark = tone === 'public';
-    const box = dark ? 'border-pub-border bg-pub-surface text-[#d4d4d8]' : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc]';
-    const muted = dark ? 'text-[#a1a1aa]' : 'text-[#64748b] dark:text-[#94a3b8]';
+    const box = dark ? 'border-pub-border bg-pub-surface text-ds-text' : 'border-ds-border bg-ds-surface text-ds-text ';
+    const muted = dark ? 'text-ds-soft' : 'text-ds-soft ';
     const input = dark
-        ? 'bg-pub-bg border border-pub-border text-white focus:border-pub-accent/60'
-        : 'bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-[#2563eb]/40';
-    const accent = dark ? 'bg-pub-accent hover:bg-pub-accent-hover text-white' : 'bg-[#2563eb] hover:bg-[#1d4ed8] text-white';
+        ? 'bg-pub-bg border border-pub-border text-ds-text focus:border-pub-accent/60'
+        : 'bg-ds-surface border border-ds-border text-ds-text focus:ring-2 focus:ring-ds-accent/40';
+    const accent = dark ? 'bg-pub-accent hover:bg-pub-accent-hover text-ds-on-accent' : 'bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent';
 
     return (
-        <div className={`rounded-2xl border p-5 3xl:p-6 space-y-5 ${box}`}>
+        <div className={`rounded-lg border p-5 3xl:p-6 space-y-5 ${box}`}>
             {disabledReason && <p className={`text-sm 3xl:text-base ${muted}`}>{disabledReason}</p>}
 
             <div
@@ -71,7 +71,7 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
                 role="button"
                 tabIndex={0}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click(); }}
-                className={`cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors ${drag ? (dark ? 'border-pub-accent' : 'border-[#2563eb]') : (dark ? 'border-[#3f3f46]' : 'border-[#cbd5e1] dark:border-[#4b5563]')}`}
+                className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${drag ? (dark ? 'border-pub-accent' : 'border-ds-accent') : (dark ? 'border-[#3f3f46]' : 'border-ds-border ')}`}
             >
                 <Upload className={`w-8 h-8 mx-auto mb-2 ${muted}`} />
                 <p className="font-semibold text-sm 3xl:text-base">{file ? file.name : t('upload.drop')}</p>
@@ -84,7 +84,7 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
                     <p className={`text-xs 3xl:text-sm font-bold uppercase mb-2 ${muted}`}>{t('upload.preview')}</p>
                     <div className="flex flex-wrap gap-3">
                         {(['#171b24', '#ffffff'] as const).map(bg => (
-                            <div key={bg} className="flex items-end gap-3 rounded-xl p-3" style={{ background: bg }}>
+                            <div key={bg} className="flex items-end gap-3 rounded-lg p-3" style={{ background: bg }}>
                                 {[28, 56, 112].map(h => <img key={h} src={preview} alt="" style={{ height: h, width: 'auto', maxWidth: h * 4 }} />)}
                             </div>
                         ))}
@@ -101,7 +101,7 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
                         placeholder="MiEmote"
                         className={`w-full px-3 py-2 rounded-lg text-sm 3xl:text-base focus:outline-none ${input}`}
                     />
-                    <p className={`text-xs 3xl:text-sm mt-1 ${name && !nameOk ? 'text-red-500' : muted}`}>{t('upload.nameHint')}</p>
+                    <p className={`text-xs 3xl:text-sm mt-1 ${name && !nameOk ? 'text-ds-danger' : muted}`}>{t('upload.nameHint')}</p>
                 </div>
                 {allowZeroWidth && (
                     <label className="flex items-start gap-3 cursor-pointer select-none self-end pb-1">
@@ -114,14 +114,14 @@ export default function UploadForm({ onSubmit, allowZeroWidth = false, tone = 'p
                 )}
             </div>
 
-            {error && <p className="text-sm 3xl:text-base font-semibold text-red-500">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
-            {done && <p className="text-sm 3xl:text-base font-semibold text-green-500">{t('upload.done')}</p>}
+            {error && <p className="text-sm 3xl:text-base font-semibold text-ds-danger">{t(`errors.${error}`, { defaultValue: t('errors.server_error') })}</p>}
+            {done && <p className="text-sm 3xl:text-base font-semibold text-ds-ok">{t('upload.done')}</p>}
 
             <button
                 type="button"
                 onClick={submit}
                 disabled={!file || !nameOk || busy || !!disabledReason}
-                className={`px-6 py-2.5 rounded-xl font-bold text-sm 3xl:text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${accent}`}
+                className={`px-6 py-2.5 rounded-lg font-bold text-sm 3xl:text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${accent}`}
             >
                 {busy ? t('upload.uploading') : t('upload.submit')}
             </button>

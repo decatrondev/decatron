@@ -47,15 +47,15 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
     useEffect(() => { load(0, true); }, [load, currentId]);
 
     if (failed && rows.length === 0)
-        return <p className="text-sm 3xl:text-base 4xl:text-lg text-red-400">{t('songRequestPublic.history.error')}</p>;
+        return <p className="text-sm 3xl:text-base 4xl:text-lg text-ds-danger">{t('songRequestPublic.history.error')}</p>;
     if (loading && rows.length === 0)
-        return <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">{t('songRequestPublic.loading')}</p>;
+        return <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">{t('songRequestPublic.loading')}</p>;
     if (rows.length === 0)
-        return <p className="text-sm 3xl:text-base 4xl:text-lg text-[#71717a]">{t('songRequestPublic.history.empty')}</p>;
+        return <p className="text-sm 3xl:text-base 4xl:text-lg text-ds-soft">{t('songRequestPublic.history.empty')}</p>;
 
     return (
         <div>
-            <p className="mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a]">{t('songRequestPublic.history.count', { count: total })}</p>
+            <p className="mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft">{t('songRequestPublic.history.count', { count: total })}</p>
             <ol className="divide-y divide-pub-border-soft border-y border-pub-border-soft">
                 {rows.map(row => (
                     <li key={row.id}>
@@ -71,8 +71,8 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
                                 <div className="w-20 h-[45px] 3xl:w-24 3xl:h-[54px] 4xl:w-32 4xl:h-[72px] rounded shrink-0 bg-pub-raised" />
                             )}
                             <div className="min-w-0 flex-1">
-                                <p className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{row.track.title}</p>
-                                <p className="text-xs 3xl:text-sm 4xl:text-base text-[#71717a] truncate">
+                                <p className="text-ds-text font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{row.track.title}</p>
+                                <p className="text-xs 3xl:text-sm 4xl:text-base text-ds-soft truncate">
                                     {row.track.artist}
                                     <span className="text-[#3f3f46]"> · </span>
                                     {row.isFallback ? t('songRequestPublic.fromPlaylist') : (
@@ -82,14 +82,14 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
                                         </>
                                     )}
                                 </p>
-                                <p className="sm:hidden font-mono text-xs text-[#52525b] truncate">
+                                <p className="sm:hidden font-mono text-xs text-ds-soft truncate">
                                     {formatWhen(row.playedAt, i18n.language)}
                                     {row.track.durationSeconds ? ` · ${formatDuration(row.track.durationSeconds)}` : ''}
                                 </p>
                             </div>
-                            <div className="hidden sm:block text-right shrink-0 font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a]">
+                            <div className="hidden sm:block text-right shrink-0 font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft">
                                 <p>{formatWhen(row.playedAt, i18n.language)}</p>
-                                <p className="text-[#52525b]">{formatDuration(row.track.durationSeconds)}</p>
+                                <p className="text-ds-soft">{formatDuration(row.track.durationSeconds)}</p>
                             </div>
                         </a>
                     </li>
@@ -99,7 +99,7 @@ export default function HistoryTab({ channel, currentId }: { channel: string; cu
                 <button
                     disabled={loading}
                     onClick={() => load(page + 1, false)}
-                    className="mt-4 w-full py-2.5 rounded border border-pub-border font-mono text-xs 3xl:text-sm 4xl:text-base text-[#a1a1aa] hover:border-pub-accent/60 hover:text-white disabled:opacity-50 transition-colors"
+                    className="mt-4 w-full py-2.5 rounded border border-pub-border font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft hover:border-pub-accent/60 hover:text-ds-text disabled:opacity-50 transition-colors"
                 >
                     {loading ? t('songRequestPublic.loading') : t('songRequestPublic.history.more')}
                 </button>

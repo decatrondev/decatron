@@ -187,7 +187,7 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                                 className="absolute inset-0 flex items-center justify-center bg-ds-input/40 hover:bg-ds-input/30 transition-colors group"
                             >
                                 <div className="w-20 h-20 rounded-full bg-ds-accent flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Play className="w-10 h-10 text-ds-text ml-1" />
+                                    <Play className="w-10 h-10 text-ds-on-accent ml-1" />
                                 </div>
                             </button>
                         )}
@@ -197,7 +197,7 @@ const AlertPreviewModal: React.FC<AlertPreviewModalProps> = ({
                                 onClick={handleStop}
                                 className="absolute top-3 right-3 p-2 bg-ds-danger-solid hover:bg-ds-danger-hover rounded-full transition-colors"
                             >
-                                <X className="w-5 h-5 text-ds-text" />
+                                <X className="w-5 h-5 text-ds-on-accent" />
                             </button>
                         )}
                     </div>

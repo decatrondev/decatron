@@ -26,7 +26,7 @@ export default function AccessTab({ s }: { s: SettingsCtx }) {
                     title={userInfo.displayName}
                     description={`@${userInfo.login}`}
                 >
-                    <span className="px-3 py-1 bg-ds-accent text-white text-xs 4xl:text-sm font-bold rounded">{t('settings:accessLevels.owner')}</span>
+                    <span className="px-3 py-1 bg-ds-accent text-ds-on-accent text-xs 4xl:text-sm font-bold rounded">{t('settings:accessLevels.owner')}</span>
                 </SettingsRow>
             </SettingsGroup>
 
@@ -70,7 +70,7 @@ export default function AccessTab({ s }: { s: SettingsCtx }) {
                                         </td>
                                         <td className="px-4 py-3 text-ds-soft">{user.isAliased ? '—' : `@${user.username}`}</td>
                                         <td className="px-4 py-3">
-                                            <span className={`px-2 py-1 rounded text-xs font-bold ${user.accessLevel === 'control_total' ? 'bg-ds-accent text-white' : user.accessLevel === 'moderation' ? 'bg-ds-accent/15 text-ds-accent-text border border-ds-accent/30' : 'bg-ds-bg text-ds-soft border border-ds-border'}`}>
+                                            <span className={`px-2 py-1 rounded text-xs font-bold ${user.accessLevel === 'control_total' ? 'bg-ds-accent text-ds-on-accent' : user.accessLevel === 'moderation' ? 'bg-ds-accent/15 text-ds-accent-text border border-ds-accent/30' : 'bg-ds-bg text-ds-soft border border-ds-border'}`}>
                                                 {user.permissionLabel}
                                             </span>
                                         </td>
@@ -82,7 +82,7 @@ export default function AccessTab({ s }: { s: SettingsCtx }) {
                                                         onClick={() => openEditAccess(user)}
                                                         disabled={loading}
                                                         title={t('settings:accessManagement.editAccess')}
-                                                        className="p-1.5 hover:bg-ds-accent-hover rounded text-ds-accent-text hover:text-white transition-all disabled:opacity-50"
+                                                        className="p-1.5 hover:bg-ds-accent-hover rounded text-ds-accent-text hover:text-ds-on-accent transition-all disabled:opacity-50"
                                                     >
                                                         <Pencil className="w-4 h-4" />
                                                     </button>
@@ -90,7 +90,7 @@ export default function AccessTab({ s }: { s: SettingsCtx }) {
                                                 <button
                                                     onClick={() => removeUser(user.id)}
                                                     disabled={loading}
-                                                    className="p-1.5 hover:bg-ds-danger rounded text-ds-danger hover:text-white transition-all disabled:opacity-50"
+                                                    className="p-1.5 hover:bg-ds-danger rounded text-ds-danger hover:text-ds-text transition-all disabled:opacity-50"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>

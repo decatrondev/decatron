@@ -262,9 +262,9 @@ export default function TipsDonate() {
         return (
             <div className="min-h-screen bg-pub-bg flex items-center justify-center p-4">
                 <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-8 max-w-md text-center">
-                    <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-white mb-2">{t('notAvailableTitle')}</h1>
-                    <p className="text-gray-400">{error}</p>
+                    <AlertCircle className="w-16 h-16 text-ds-danger mx-auto mb-4" />
+                    <h1 className="text-2xl font-bold text-ds-text mb-2">{t('notAvailableTitle')}</h1>
+                    <p className="text-ds-soft">{error}</p>
                 </div>
             </div>
         );
@@ -279,10 +279,10 @@ export default function TipsDonate() {
                         className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
                         style={{ backgroundColor: config.pageAccentColor }}
                     >
-                        <CheckCircle className="w-12 h-12 text-white" />
+                        <CheckCircle className="w-12 h-12 text-ds-text" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">{t('thankYouTitle')}</h1>
-                    <p className="text-xl text-gray-300 mb-4">
+                    <h1 className="text-3xl font-bold text-ds-text mb-2">{t('thankYouTitle')}</h1>
+                    <p className="text-xl text-ds-soft mb-4">
                         {t('donationReceived', { amount: formatCurrency(getEffectiveAmount()) })}
                     </p>
                     {timeAdded > 0 && (
@@ -295,7 +295,7 @@ export default function TipsDonate() {
                             setStatus('idle');
                             setMessage('');
                         }}
-                        className="mt-6 px-6 py-3 rounded-lg font-semibold text-white transition-colors"
+                        className="mt-6 px-6 py-3 rounded-lg font-semibold text-ds-text transition-colors"
                         style={{ backgroundColor: config.pageAccentColor }}
                     >
                         {t('donateAgain')}
@@ -321,11 +321,11 @@ export default function TipsDonate() {
                         className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                         style={{ backgroundColor: config.pageAccentColor }}
                     >
-                        <Heart className="w-8 h-8 text-white" />
+                        <Heart className="w-8 h-8 text-ds-text" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">{config.pageTitle}</h1>
+                    <h1 className="text-3xl font-bold text-ds-text mb-2">{config.pageTitle}</h1>
                     {config.pageDescription && (
-                        <p className="text-gray-400">{config.pageDescription}</p>
+                        <p className="text-ds-soft">{config.pageDescription}</p>
                     )}
                     <p className="text-lg text-pub-accent-hi mt-2">
                         {t('supportChannel', { channelName: config.channelName })}
@@ -336,7 +336,7 @@ export default function TipsDonate() {
                 <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 space-y-6">
                     {/* Donor Name */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             {t('donorNameLabel')}
                         </label>
                         <input
@@ -345,13 +345,13 @@ export default function TipsDonate() {
                             onChange={(e) => setDonorName(e.target.value)}
                             placeholder={t('donorNamePlaceholder')}
                             maxLength={50}
-                            className="w-full px-4 py-3 bg-pub-bg border border-pub-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pub-accent"
+                            className="w-full px-4 py-3 bg-pub-bg border border-pub-border rounded-lg text-ds-text placeholder-ds-soft focus:outline-none focus:border-pub-accent"
                         />
                     </div>
 
                     {/* Amount Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             {t('donationAmountLabel')}
                         </label>
 
@@ -366,8 +366,8 @@ export default function TipsDonate() {
                                     }}
                                     className={`py-3 rounded-lg font-semibold transition-all ${
                                         !useCustomAmount && amount === amt
-                                            ? 'text-white ring-2 ring-offset-2 ring-offset-gray-800'
-                                            : 'bg-pub-bg border border-pub-border text-gray-300 hover:border-pub-accent/60'
+                                            ? 'text-ds-text ring-2 ring-offset-2 ring-offset-ds-border'
+                                            : 'bg-pub-bg border border-pub-border text-ds-soft hover:border-pub-accent/60'
                                     }`}
                                     style={!useCustomAmount && amount === amt ? {
                                         backgroundColor: config.pageAccentColor,
@@ -381,7 +381,7 @@ export default function TipsDonate() {
 
                         {/* Custom Amount */}
                         <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ds-soft" />
                             <input
                                 type="number"
                                 value={customAmount}
@@ -394,21 +394,21 @@ export default function TipsDonate() {
                                 min={config.minAmount}
                                 max={config.maxAmount}
                                 step="0.01"
-                                className={`w-full pl-10 pr-4 py-3 bg-pub-bg border rounded-lg text-white placeholder-gray-500 focus:outline-none ${
+                                className={`w-full pl-10 pr-4 py-3 bg-pub-bg border rounded-lg text-ds-text placeholder-ds-soft focus:outline-none ${
                                     useCustomAmount
                                         ? 'border-pub-accent'
                                         : 'border-pub-border'
                                 }`}
                             />
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-ds-soft mt-1">
                             {t('amountRange', { min: formatCurrency(config.minAmount), max: formatCurrency(config.maxAmount) })}
                         </p>
                     </div>
 
                     {/* Message */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-ds-soft mb-2">
                             <MessageSquare className="inline w-4 h-4 mr-1" />
                             {t('messageLabel')} {config.requireMessage ? t('messageRequired') : t('messageOptional')}
                         </label>
@@ -418,26 +418,26 @@ export default function TipsDonate() {
                             placeholder={t('messagePlaceholder')}
                             maxLength={config.maxMessageLength}
                             rows={3}
-                            className="w-full px-4 py-3 bg-pub-bg border border-pub-border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pub-accent resize-none"
+                            className="w-full px-4 py-3 bg-pub-bg border border-pub-border rounded-lg text-ds-text placeholder-ds-soft focus:outline-none focus:border-pub-accent resize-none"
                         />
-                        <p className="text-xs text-gray-500 mt-1 text-right">
+                        <p className="text-xs text-ds-soft mt-1 text-right">
                             {message.length}/{config.maxMessageLength}
                         </p>
                     </div>
 
                     {/* Validation Errors */}
                     {!donorName.trim() && (
-                        <p className="text-yellow-500 text-sm">
+                        <p className="text-ds-warn text-sm">
                             {t('enterNameToContinue')}
                         </p>
                     )}
                     {config.requireMessage && !message.trim() && (
-                        <p className="text-yellow-500 text-sm">
+                        <p className="text-ds-warn text-sm">
                             {t('messageIsRequired')}
                         </p>
                     )}
                     {(getEffectiveAmount() < config.minAmount || getEffectiveAmount() > config.maxAmount) && (
-                        <p className="text-red-500 text-sm">
+                        <p className="text-ds-danger text-sm">
                             {t('amountOutOfRange', { min: formatCurrency(config.minAmount), max: formatCurrency(config.maxAmount) })}
                         </p>
                     )}
@@ -445,7 +445,7 @@ export default function TipsDonate() {
                     {/* PayPal Buttons */}
                     <div className="pt-4">
                         {paypalBlocked && (
-                            <div className="flex items-center gap-2 py-4 px-4 bg-yellow-900/30 border border-yellow-700 rounded-lg text-yellow-400 text-sm mb-4">
+                            <div className="flex items-center gap-2 py-4 px-4 bg-ds-warn/10 border border-ds-warn/40 rounded-lg text-ds-warn text-sm mb-4">
                                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                                 <span>{t('adBlockerDetected', 'Your ad blocker is preventing PayPal from loading. Please disable it for this page to make a donation.')}</span>
                             </div>
@@ -453,11 +453,11 @@ export default function TipsDonate() {
                         {status === 'processing' && (
                             <div className="flex items-center justify-center gap-2 py-4">
                                 <Loader2 className="w-5 h-5 animate-spin text-pub-accent-hi" />
-                                <span className="text-gray-300">{statusMessage}</span>
+                                <span className="text-ds-soft">{statusMessage}</span>
                             </div>
                         )}
                         {status === 'error' && (
-                            <div className="flex items-center justify-center gap-2 py-4 text-red-500">
+                            <div className="flex items-center justify-center gap-2 py-4 text-ds-danger">
                                 <AlertCircle className="w-5 h-5" />
                                 <span>{statusMessage}</span>
                             </div>
@@ -471,8 +471,8 @@ export default function TipsDonate() {
                     {/* Total */}
                     <div className="border-t border-pub-border pt-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-400">{t('totalToPay')}</span>
-                            <span className="text-2xl font-bold text-white">
+                            <span className="text-ds-soft">{t('totalToPay')}</span>
+                            <span className="text-2xl font-bold text-ds-text">
                                 {formatCurrency(getEffectiveAmount())}
                             </span>
                         </div>
@@ -480,7 +480,7 @@ export default function TipsDonate() {
                 </div>
 
                 {/* Footer */}
-                <div className="text-center mt-6 text-gray-500 text-sm">
+                <div className="text-center mt-6 text-ds-soft text-sm">
                     <p>{t('securePaypal')}</p>
                     <div className="mt-2 flex items-center justify-center gap-4">
                         <Link to="/tip/privacy" className="hover:text-pub-accent-hi underline">

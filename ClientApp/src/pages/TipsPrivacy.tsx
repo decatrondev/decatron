@@ -8,17 +8,17 @@ export default function TipsPrivacy() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 rounded-full bg-pub-accent flex items-center justify-center mx-auto mb-4">
-                        <Shield className="w-8 h-8 text-white" />
+                        <Shield className="w-8 h-8 text-ds-text" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
-                    <p className="text-gray-400">Decatron Tips & Donations</p>
-                    <p className="text-sm text-gray-500 mt-2">Last updated: February 2026</p>
+                    <h1 className="text-3xl font-bold text-ds-text mb-2">Privacy Policy</h1>
+                    <p className="text-ds-soft">Decatron Tips & Donations</p>
+                    <p className="text-sm text-ds-soft mt-2">Last updated: February 2026</p>
                 </div>
 
                 {/* Content */}
-                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 md:p-8 space-y-6 text-gray-300">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 md:p-8 space-y-6 text-ds-soft">
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">1. Information We Collect</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">1. Information We Collect</h2>
                         <p className="mb-3">When you make a donation through our platform, we collect:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>Display Name:</strong> The name you choose to show on the stream</li>
@@ -29,7 +29,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">2. Payment Processing</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">2. Payment Processing</h2>
                         <p className="mb-3">
                             All payments are processed securely through <strong>PayPal</strong>. We do not store,
                             process, or have access to your payment card details, bank account information,
@@ -41,7 +41,7 @@ export default function TipsPrivacy() {
                                 href="https://www.paypal.com/us/legalhub/privacy-full"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-pub-accent-hi hover:text-white underline"
+                                className="text-pub-accent-hi hover:text-ds-text underline"
                             >
                                 Privacy Policy
                             </a>.
@@ -49,7 +49,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">3. How We Use Your Information</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">3. How We Use Your Information</h2>
                         <p className="mb-3">The information collected is used to:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Display your donation and message on the streamer's broadcast</li>
@@ -60,7 +60,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">4. Information Sharing</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">4. Information Sharing</h2>
                         <p className="mb-3">We share your information with:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li><strong>The Streamer:</strong> Your display name, donation amount, and message are shared with and displayed by the content creator you're supporting</li>
@@ -71,7 +71,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">5. Data Retention</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">5. Data Retention</h2>
                         <p>
                             Donation records are retained for accounting and support purposes.
                             Transaction history is kept for the duration required by applicable laws
@@ -80,7 +80,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">6. Your Rights</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">6. Your Rights</h2>
                         <p className="mb-3">You have the right to:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Request information about data we hold about you</li>
@@ -90,7 +90,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">7. Cookies and Tracking</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">7. Cookies and Tracking</h2>
                         <p>
                             The donation page uses minimal cookies necessary for the PayPal integration
                             to function. We do not use tracking cookies or analytics on public donation pages.
@@ -98,7 +98,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">8. Children's Privacy</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">8. Children's Privacy</h2>
                         <p>
                             Our donation service is not intended for users under 18 years of age.
                             We do not knowingly collect information from minors.
@@ -106,7 +106,7 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">9. Changes to This Policy</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">9. Changes to This Policy</h2>
                         <p>
                             We may update this privacy policy from time to time. Changes will be posted
                             on this page with an updated revision date.
@@ -114,12 +114,12 @@ export default function TipsPrivacy() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">10. Contact Us</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">10. Contact Us</h2>
                         <p>
                             For privacy-related inquiries, please contact us at:{' '}
                             <a
                                 href="mailto:privacy@decatron.net"
-                                className="text-pub-accent-hi hover:text-white underline"
+                                className="text-pub-accent-hi hover:text-ds-text underline"
                             >
                                 privacy@decatron.net
                             </a>
@@ -131,11 +131,11 @@ export default function TipsPrivacy() {
                 <div className="text-center mt-6 space-y-4">
                     <Link
                         to="/tip/terms"
-                        className="text-pub-accent-hi hover:text-white underline"
+                        className="text-pub-accent-hi hover:text-ds-text underline"
                     >
                         View Terms of Service
                     </Link>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-ds-soft text-sm">
                         Powered by Decatron
                     </p>
                 </div>

@@ -44,28 +44,28 @@ export default function BillingConfirmModal({
     const perfilIncompleto = error === 'PROFILE_REQUIRED';
 
     return (
-        <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-2xl w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[90] bg-ds-input/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-ds-surface border border-ds-border rounded-lg w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-[#2563eb]" />
-                    <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Tu comprobante</h2>
+                    <FileText className="w-5 h-5 text-ds-accent-text" />
+                    <h2 className="text-lg font-black text-ds-text">Tu comprobante</h2>
                 </div>
 
                 {loading && (
                     <div className="flex items-center justify-center py-10">
-                        <Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" />
+                        <Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" />
                     </div>
                 )}
 
                 {perfilIncompleto && (
                     <div className="space-y-4">
-                        <div className="flex items-start gap-2 text-sm text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-4 py-3">
+                        <div className="flex items-start gap-2 text-sm text-ds-warn bg-ds-warn/10 border border-ds-warn/40 rounded-lg px-4 py-3">
                             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                             <span>Completá tus datos de facturación antes de comprar. Se piden una sola vez.</span>
                         </div>
                         <button
                             onClick={() => navigate('/me/billing')}
-                            className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-2.5 rounded-xl transition-colors"
+                            className="w-full bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold py-2.5 rounded-lg transition-colors"
                         >
                             Completar mis datos
                         </button>
@@ -73,7 +73,7 @@ export default function BillingConfirmModal({
                 )}
 
                 {error && !perfilIncompleto && (
-                    <div className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</div>
+                    <div className="text-sm font-semibold text-ds-danger">{error}</div>
                 )}
 
                 {!loading && preview && (
@@ -83,57 +83,57 @@ export default function BillingConfirmModal({
                             <div className="grid grid-cols-2 gap-2">
                                 <button
                                     onClick={() => onChangeFactura(false)}
-                                    className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                    className={`py-2 px-3 rounded-lg text-sm font-bold border-2 transition-colors ${!prefiereFactura ? 'border-ds-accent text-ds-accent-text bg-ds-accent/5' : 'border-ds-border text-ds-soft '}`}
                                 >
                                     Quiero boleta
                                 </button>
                                 <button
                                     onClick={() => onChangeFactura(true)}
-                                    className={`py-2 px-3 rounded-xl text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-[#2563eb] text-[#2563eb] bg-[#2563eb]/5' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                    className={`py-2 px-3 rounded-lg text-sm font-bold border-2 transition-colors ${prefiereFactura ? 'border-ds-accent text-ds-accent-text bg-ds-accent/5' : 'border-ds-border text-ds-soft '}`}
                                 >
                                     Quiero factura
                                 </button>
                             </div>
                         )}
 
-                        <div className="rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden text-sm">
-                            <div className="bg-[#f8fafc] dark:bg-[#111213] px-4 py-2.5 font-black text-[#1e293b] dark:text-[#f8fafc]">
+                        <div className="rounded-lg border border-ds-border overflow-hidden text-sm">
+                            <div className="bg-ds-bg px-4 py-2.5 font-black text-ds-text">
                                 {preview.documentType === 'FACTURA' ? 'Factura electrónica' : 'Boleta de venta electrónica'}
                             </div>
-                            <dl className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                            <dl className="divide-y divide-ds-border">
                                 <div className="flex justify-between gap-4 px-4 py-2">
-                                    <dt className="text-[#64748b] dark:text-[#94a3b8]">Nombre</dt>
-                                    <dd className="font-semibold text-right text-[#1e293b] dark:text-[#f8fafc]">{preview.customerName}</dd>
+                                    <dt className="text-ds-soft">Nombre</dt>
+                                    <dd className="font-semibold text-right text-ds-text">{preview.customerName}</dd>
                                 </div>
                                 <div className="flex justify-between gap-4 px-4 py-2">
-                                    <dt className="text-[#64748b] dark:text-[#94a3b8]">Documento</dt>
-                                    <dd className="font-semibold text-right text-[#1e293b] dark:text-[#f8fafc]">{preview.customerDoc}</dd>
+                                    <dt className="text-ds-soft">Documento</dt>
+                                    <dd className="font-semibold text-right text-ds-text">{preview.customerDoc}</dd>
                                 </div>
                                 <div className="flex justify-between gap-4 px-4 py-2">
-                                    <dt className="text-[#64748b] dark:text-[#94a3b8]">Subtotal</dt>
-                                    <dd className="text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.subtotal?.toFixed(2)}</dd>
+                                    <dt className="text-ds-soft">Subtotal</dt>
+                                    <dd className="text-right text-ds-text">S/ {preview.subtotal?.toFixed(2)}</dd>
                                 </div>
                                 <div className="flex justify-between gap-4 px-4 py-2">
-                                    <dt className="text-[#64748b] dark:text-[#94a3b8]">
+                                    <dt className="text-ds-soft">
                                         IGV {preview.igvRate > 0 ? `${preview.igvRate}%` : ''}
                                     </dt>
-                                    <dd className="text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.igv?.toFixed(2)}</dd>
+                                    <dd className="text-right text-ds-text">S/ {preview.igv?.toFixed(2)}</dd>
                                 </div>
-                                <div className="flex justify-between gap-4 px-4 py-2.5 bg-[#f8fafc] dark:bg-[#111213]">
-                                    <dt className="font-black text-[#1e293b] dark:text-[#f8fafc]">Total</dt>
-                                    <dd className="font-black text-right text-[#1e293b] dark:text-[#f8fafc]">S/ {preview.total?.toFixed(2)}</dd>
+                                <div className="flex justify-between gap-4 px-4 py-2.5 bg-ds-bg">
+                                    <dt className="font-black text-ds-text">Total</dt>
+                                    <dd className="font-black text-right text-ds-text">S/ {preview.total?.toFixed(2)}</dd>
                                 </div>
                             </dl>
                         </div>
 
-                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{preview.note}</p>
+                        <p className="text-xs text-ds-soft">{preview.note}</p>
 
                         {submitError && (
-                            <div className="flex items-start gap-2 text-sm font-semibold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+                            <div className="flex items-start gap-2 text-sm font-semibold text-ds-danger bg-ds-danger/10 border border-ds-danger/40 rounded-lg px-4 py-3">
                                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                                 <div>
                                     <p>{submitError}</p>
-                                    <p className="font-normal text-xs mt-1 text-red-600/80 dark:text-red-400/70">
+                                    <p className="font-normal text-xs mt-1 text-ds-danger/80">
                                         No se te cobró nada. Podés intentar con otra tarjeta o con Yape.
                                     </p>
                                 </div>
@@ -144,14 +144,14 @@ export default function BillingConfirmModal({
                             <button
                                 onClick={onCancel}
                                 disabled={confirming}
-                                className="flex-1 border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] font-bold py-2.5 rounded-xl transition-colors disabled:opacity-50"
+                                className="flex-1 border border-ds-border text-ds-soft font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={onConfirm}
                                 disabled={confirming}
-                                className="flex-1 bg-[#2563eb] hover:bg-[#1d4ed8] disabled:opacity-50 text-white font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                className="flex-1 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-50 text-ds-on-accent font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
                                 {confirming ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                                 {submitError ? 'Reintentar' : 'Pagar'}
@@ -163,7 +163,7 @@ export default function BillingConfirmModal({
                 {!loading && !preview && !error && (
                     <button
                         onClick={onCancel}
-                        className="w-full border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] font-bold py-2.5 rounded-xl"
+                        className="w-full border border-ds-border text-ds-soft font-bold py-2.5 rounded-lg"
                     >
                         Cerrar
                     </button>

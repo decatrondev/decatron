@@ -13,7 +13,7 @@ export default function SettingsHeader({ s }: { s: SettingsCtx }) {
                 {headerAvatar ? (
                     <img src={headerAvatar} alt="" className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-lg object-cover flex-shrink-0" />
                 ) : (
-                    <div className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-lg bg-ds-accent text-white flex items-center justify-center text-2xl 4xl:text-4xl font-black flex-shrink-0">
+                    <div className="w-16 h-16 4xl:w-24 4xl:h-24 rounded-lg bg-ds-accent text-ds-on-accent flex items-center justify-center text-2xl 4xl:text-4xl font-black flex-shrink-0">
                         {(headerName || '?').slice(0, 1).toUpperCase()}
                     </div>
                 )}
@@ -22,7 +22,7 @@ export default function SettingsHeader({ s }: { s: SettingsCtx }) {
                         <h1 className="text-2xl md:text-3xl 4xl:text-4xl font-extrabold text-ds-text truncate">{headerName}</h1>
                         {accountTier && <TierPill tier={accountTier} />}
                         {!viewerIsOwner && (
-                            <span className="px-2.5 py-0.5 bg-ds-accent text-white font-bold rounded-md text-xs 4xl:text-sm">{t('settings:header.delegatedBadge')}</span>
+                            <span className="px-2.5 py-0.5 bg-ds-accent text-ds-on-accent font-bold rounded-md text-xs 4xl:text-sm">{t('settings:header.delegatedBadge')}</span>
                         )}
                     </div>
                     <p className="text-sm 4xl:text-base text-ds-soft mt-0.5">

@@ -23,23 +23,23 @@ export default function ApiReference() {
     const baseUrl = 'https://twitch.decatron.net';
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-6">
+        <div className="min-h-screen bg-ds-bg text-ds-text p-6">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
                     <Link
                         to="/developer"
-                        className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                        className="p-2 hover:bg-ds-raised rounded-lg transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div>
                         <h1 className="text-2xl font-bold">API Reference</h1>
-                        <p className="text-gray-400">Referencia rapida de endpoints</p>
+                        <p className="text-ds-soft">Referencia rapida de endpoints</p>
                     </div>
                     <Link
                         to="/docs/api"
-                        className="ml-auto flex items-center gap-2 text-purple-400 hover:text-purple-300"
+                        className="ml-auto flex items-center gap-2 text-ds-accent-text hover:text-ds-accent-text"
                     >
                         <ExternalLink className="w-4 h-4" />
                         Documentacion completa
@@ -47,16 +47,16 @@ export default function ApiReference() {
                 </div>
 
                 {/* Base URL */}
-                <div className="bg-gray-800 rounded-xl p-4 mb-8">
-                    <label className="text-xs text-gray-400 mb-2 block">Base URL</label>
+                <div className="bg-ds-raised rounded-lg p-4 mb-8">
+                    <label className="text-xs text-ds-soft mb-2 block">Base URL</label>
                     <div className="flex items-center gap-2">
-                        <code className="flex-1 text-green-400 font-mono">{baseUrl}</code>
+                        <code className="flex-1 text-ds-ok font-mono">{baseUrl}</code>
                         <button
                             onClick={() => copyToClipboard(baseUrl, 'base')}
-                            className="p-2 hover:bg-gray-700 rounded transition-colors"
+                            className="p-2 hover:bg-ds-raised rounded transition-colors"
                         >
                             {copiedItem === 'base' ? (
-                                <CheckCircle className="w-4 h-4 text-green-400" />
+                                <CheckCircle className="w-4 h-4 text-ds-ok" />
                             ) : (
                                 <Copy className="w-4 h-4" />
                             )}
@@ -67,10 +67,10 @@ export default function ApiReference() {
                 {/* OAuth Endpoints */}
                 <section className="mb-8">
                     <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Terminal className="w-5 h-5 text-purple-400" />
+                        <Terminal className="w-5 h-5 text-ds-accent-text" />
                         OAuth
                     </h2>
-                    <div className="bg-gray-800 rounded-xl divide-y divide-gray-700">
+                    <div className="bg-ds-raised rounded-lg divide-y divide-ds-border">
                         <EndpointRow
                             method="GET"
                             path="/oauth/authorize"
@@ -106,7 +106,7 @@ export default function ApiReference() {
                 {/* Timer */}
                 <section className="mb-8">
                     <h2 className="text-lg font-semibold mb-4">Timer</h2>
-                    <div className="bg-gray-800 rounded-xl divide-y divide-gray-700">
+                    <div className="bg-ds-raised rounded-lg divide-y divide-ds-border">
                         <EndpointRow
                             method="GET"
                             path="/api/v1/timer"
@@ -153,7 +153,7 @@ export default function ApiReference() {
                 {/* Alerts */}
                 <section className="mb-8">
                     <h2 className="text-lg font-semibold mb-4">Alertas</h2>
-                    <div className="bg-gray-800 rounded-xl divide-y divide-gray-700">
+                    <div className="bg-ds-raised rounded-lg divide-y divide-ds-border">
                         <EndpointRow
                             method="POST"
                             path="/api/v1/alerts/trigger"
@@ -168,7 +168,7 @@ export default function ApiReference() {
                 {/* Chat */}
                 <section className="mb-8">
                     <h2 className="text-lg font-semibold mb-4">Chat</h2>
-                    <div className="bg-gray-800 rounded-xl divide-y divide-gray-700">
+                    <div className="bg-ds-raised rounded-lg divide-y divide-ds-border">
                         <EndpointRow
                             method="POST"
                             path="/api/v1/chat/send"
@@ -184,45 +184,45 @@ export default function ApiReference() {
                 <section>
                     <h2 className="text-lg font-semibold mb-4">Scopes</h2>
                     <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-gray-800 rounded-xl p-4">
+                        <div className="bg-ds-raised rounded-lg p-4">
                             <h3 className="flex items-center gap-2 text-sm font-medium mb-3">
-                                <Eye className="w-4 h-4 text-blue-400" />
+                                <Eye className="w-4 h-4 text-ds-accent-text" />
                                 Lectura
                             </h3>
                             <div className="space-y-1 text-xs">
-                                <code className="block text-blue-400">read:profile</code>
-                                <code className="block text-blue-400">read:timer</code>
-                                <code className="block text-blue-400">read:commands</code>
-                                <code className="block text-blue-400">read:alerts</code>
-                                <code className="block text-blue-400">read:giveaways</code>
-                                <code className="block text-blue-400">read:goals</code>
-                                <code className="block text-blue-400">read:analytics</code>
+                                <code className="block text-ds-accent-text">read:profile</code>
+                                <code className="block text-ds-accent-text">read:timer</code>
+                                <code className="block text-ds-accent-text">read:commands</code>
+                                <code className="block text-ds-accent-text">read:alerts</code>
+                                <code className="block text-ds-accent-text">read:giveaways</code>
+                                <code className="block text-ds-accent-text">read:goals</code>
+                                <code className="block text-ds-accent-text">read:analytics</code>
                             </div>
                         </div>
-                        <div className="bg-gray-800 rounded-xl p-4">
+                        <div className="bg-ds-raised rounded-lg p-4">
                             <h3 className="flex items-center gap-2 text-sm font-medium mb-3">
-                                <Edit3 className="w-4 h-4 text-orange-400" />
+                                <Edit3 className="w-4 h-4 text-ds-accent-text" />
                                 Escritura
                             </h3>
                             <div className="space-y-1 text-xs">
-                                <code className="block text-orange-400">write:timer</code>
-                                <code className="block text-orange-400">write:commands</code>
-                                <code className="block text-orange-400">write:alerts</code>
-                                <code className="block text-orange-400">write:giveaways</code>
-                                <code className="block text-orange-400">write:goals</code>
+                                <code className="block text-ds-warn">write:timer</code>
+                                <code className="block text-ds-warn">write:commands</code>
+                                <code className="block text-ds-warn">write:alerts</code>
+                                <code className="block text-ds-warn">write:giveaways</code>
+                                <code className="block text-ds-warn">write:goals</code>
                             </div>
                         </div>
-                        <div className="bg-gray-800 rounded-xl p-4">
+                        <div className="bg-ds-raised rounded-lg p-4">
                             <h3 className="flex items-center gap-2 text-sm font-medium mb-3">
-                                <Zap className="w-4 h-4 text-red-400" />
+                                <Zap className="w-4 h-4 text-ds-accent-text" />
                                 Acciones
                             </h3>
                             <div className="space-y-1 text-xs">
-                                <code className="block text-red-400">action:timer</code>
-                                <code className="block text-red-400">action:alerts</code>
-                                <code className="block text-red-400">action:chat</code>
-                                <code className="block text-red-400">action:giveaway</code>
-                                <code className="block text-red-400">action:commands</code>
+                                <code className="block text-ds-danger">action:timer</code>
+                                <code className="block text-ds-danger">action:alerts</code>
+                                <code className="block text-ds-danger">action:chat</code>
+                                <code className="block text-ds-danger">action:giveaway</code>
+                                <code className="block text-ds-danger">action:commands</code>
                             </div>
                         </div>
                     </div>
@@ -243,10 +243,10 @@ interface EndpointRowProps {
 
 function EndpointRow({ method, path, description, scope, copiedItem, onCopy }: EndpointRowProps) {
     const methodColors = {
-        GET: 'bg-green-600',
-        POST: 'bg-blue-600',
-        PUT: 'bg-yellow-600',
-        DELETE: 'bg-red-600'
+        GET: 'bg-ds-accent',
+        POST: 'bg-ds-accent',
+        PUT: 'bg-ds-warn',
+        DELETE: 'bg-ds-danger-solid'
     };
 
     const id = `${method}-${path}`;
@@ -256,25 +256,25 @@ function EndpointRow({ method, path, description, scope, copiedItem, onCopy }: E
             <span className={`px-2 py-1 text-xs font-bold rounded ${methodColors[method]}`}>
                 {method}
             </span>
-            <code className="flex-1 text-sm text-gray-300">{path}</code>
-            <span className="text-sm text-gray-500">{description}</span>
+            <code className="flex-1 text-sm text-ds-soft">{path}</code>
+            <span className="text-sm text-ds-soft">{description}</span>
             {scope && (
                 <span className={`text-xs px-2 py-1 rounded ${
-                    scope.startsWith('read') ? 'bg-blue-600/20 text-blue-400' :
-                    scope.startsWith('write') ? 'bg-orange-600/20 text-orange-400' :
-                    'bg-red-600/20 text-red-400'
+                    scope.startsWith('read') ? 'bg-ds-accent/20 text-ds-accent-text' :
+                    scope.startsWith('write') ? 'bg-ds-warn/20 text-ds-warn' :
+                    'bg-ds-danger-solid/20 text-ds-danger'
                 }`}>
                     {scope}
                 </span>
             )}
             <button
                 onClick={() => onCopy(path, id)}
-                className="p-1.5 hover:bg-gray-700 rounded transition-colors"
+                className="p-1.5 hover:bg-ds-raised rounded transition-colors"
             >
                 {copiedItem === id ? (
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-ds-ok" />
                 ) : (
-                    <Copy className="w-4 h-4 text-gray-500" />
+                    <Copy className="w-4 h-4 text-ds-soft" />
                 )}
             </button>
         </div>

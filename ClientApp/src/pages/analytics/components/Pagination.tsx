@@ -28,20 +28,20 @@ export default function Pagination({
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-gray-50 dark:bg-[#1B1C1D] border-t border-[#e2e8f0] dark:border-[#374151]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-ds-surface border-t border-ds-border">
             {/* Items info */}
             <div className="flex items-center gap-4">
-                <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                <span className="text-xs text-ds-soft">
                     {t('pagination.showing', 'Mostrando')} {startItem}-{endItem} {t('pagination.of', 'de')} {totalItems}
                 </span>
 
                 {/* Items per page selector */}
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">{t('pagination.perPage', 'Por página:')}</span>
+                    <span className="text-xs text-ds-soft">{t('pagination.perPage', 'Por página:')}</span>
                     <select
                         value={itemsPerPage}
                         onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-                        className="px-2 py-1 text-xs bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20"
+                        className="px-2 py-1 text-xs bg-ds-surface border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent/20"
                     >
                         {PAGE_SIZE_OPTIONS.map(size => (
                             <option key={size} value={size}>{size}</option>
@@ -56,33 +56,33 @@ export default function Pagination({
                     <button
                         onClick={() => onPageChange(1)}
                         disabled={currentPage === 1}
-                        className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] transition-colors text-[#64748b] dark:text-[#94a3b8]"
+                        className="px-2 py-1 text-xs rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors text-ds-soft"
                     >
                         {t('pagination.first', 'Primera')}
                     </button>
                     <button
                         onClick={() => onPageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="p-1.5 rounded-lg bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] transition-colors"
+                        className="p-1.5 rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors"
                     >
-                        <ChevronLeft className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                        <ChevronLeft className="w-4 h-4 text-ds-soft" />
                     </button>
 
-                    <span className="px-3 py-1 text-xs font-medium text-[#1e293b] dark:text-[#f8fafc]">
+                    <span className="px-3 py-1 text-xs font-medium text-ds-text">
                         {currentPage} / {totalPages}
                     </span>
 
                     <button
                         onClick={() => onPageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="p-1.5 rounded-lg bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] transition-colors"
+                        className="p-1.5 rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors"
                     >
-                        <ChevronRight className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                        <ChevronRight className="w-4 h-4 text-ds-soft" />
                     </button>
                     <button
                         onClick={() => onPageChange(totalPages)}
                         disabled={currentPage === totalPages}
-                        className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#f8fafc] dark:hover:bg-[#1B1C1D] transition-colors text-[#64748b] dark:text-[#94a3b8]"
+                        className="px-2 py-1 text-xs rounded-lg bg-ds-surface border border-ds-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ds-bg transition-colors text-ds-soft"
                     >
                         {t('pagination.last', 'Última')}
                     </button>

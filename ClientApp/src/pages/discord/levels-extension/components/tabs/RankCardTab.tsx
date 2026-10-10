@@ -69,10 +69,10 @@ const SAMPLE_DATA: Record<string, string | number> = {
   tier: 'premium',
 };
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const inputClass = 'w-full px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent';
-const labelClass = 'text-[11px] font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider';
-const btnClass = 'px-3 py-2 rounded-xl text-sm font-bold transition-all';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const inputClass = 'w-full px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
+const labelClass = 'text-[11px] font-bold text-ds-soft uppercase tracking-wider';
+const btnClass = 'px-3 py-2 rounded-lg text-sm font-bold transition-all';
 
 // ── Templates ──────────────────────────────────────────────────────────────
 
@@ -416,21 +416,21 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
       return (
         <div className="text-center py-12">
           <Layers className="w-10 h-10 text-[#374151] mx-auto mb-3" />
-          <p className="text-sm text-[#64748b] font-medium">Selecciona un elemento en el canvas para editar sus propiedades</p>
+          <p className="text-sm text-ds-soft font-medium">Selecciona un elemento en el canvas para editar sus propiedades</p>
           <div className="mt-6 space-y-2">
             {config.elements.map(el => (
               <button
                 key={el.id}
                 onClick={() => setSelectedElement(el.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left transition-all ${
-                  'bg-[#f8fafc] dark:bg-[#374151]/30 hover:bg-[#e2e8f0] dark:hover:bg-[#374151]/60'
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-all ${
+                  'bg-ds-bg hover:bg-ds-raised '
                 }`}
               >
-                {el.type === 'avatar' && <Image className="w-4 h-4 text-[#64748b]" />}
-                {el.type === 'text' && <Type className="w-4 h-4 text-[#64748b]" />}
-                {el.type === 'progress_bar' && <BarChart3 className="w-4 h-4 text-[#64748b]" />}
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{el.id}</span>
-                {!el.visible && <EyeOff className="w-3 h-3 text-[#64748b] ml-auto" />}
+                {el.type === 'avatar' && <Image className="w-4 h-4 text-ds-soft" />}
+                {el.type === 'text' && <Type className="w-4 h-4 text-ds-soft" />}
+                {el.type === 'progress_bar' && <BarChart3 className="w-4 h-4 text-ds-soft" />}
+                <span className="text-sm font-medium text-ds-text">{el.id}</span>
+                {!el.visible && <EyeOff className="w-3 h-3 text-ds-soft ml-auto" />}
               </button>
             ))}
           </div>
@@ -443,15 +443,15 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         {/* Element header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {selected.type === 'avatar' && <Image className="w-4 h-4 text-[#2563eb]" />}
-            {selected.type === 'text' && <Type className="w-4 h-4 text-[#2563eb]" />}
-            {selected.type === 'progress_bar' && <BarChart3 className="w-4 h-4 text-[#2563eb]" />}
-            <span className="text-sm font-black text-gray-900 dark:text-white">{selected.id}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-[#2563eb]/10 text-[#2563eb] font-bold uppercase">{selected.type}</span>
+            {selected.type === 'avatar' && <Image className="w-4 h-4 text-ds-accent-text" />}
+            {selected.type === 'text' && <Type className="w-4 h-4 text-ds-accent-text" />}
+            {selected.type === 'progress_bar' && <BarChart3 className="w-4 h-4 text-ds-accent-text" />}
+            <span className="text-sm font-black text-ds-text">{selected.id}</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-ds-accent/10 text-ds-accent-text font-bold uppercase">{selected.type}</span>
           </div>
           <button
             onClick={() => setSelectedElement(null)}
-            className="text-xs text-[#64748b] hover:text-white transition-colors"
+            className="text-xs text-ds-soft hover:text-ds-text transition-colors"
           >
             Cerrar
           </button>
@@ -463,10 +463,10 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
             <label className={labelClass}>Visible</label>
             <button
               onClick={() => updateElement(selected.id, { visible: !selected.visible })}
-              className={`mt-1 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold w-full ${
+              className={`mt-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold w-full ${
                 selected.visible
-                  ? 'bg-green-500/10 text-green-500 border border-green-500/30'
-                  : 'bg-red-500/10 text-red-500 border border-red-500/30'
+                  ? 'bg-ds-accent/10 text-ds-ok border border-ds-ok/40'
+                  : 'bg-ds-danger-solid/10 text-ds-danger border border-ds-danger/40'
               }`}
             >
               {selected.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -487,12 +487,12 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         {/* Position */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Move className="w-3.5 h-3.5 text-[#64748b]" />
+            <Move className="w-3.5 h-3.5 text-ds-soft" />
             <span className={labelClass}>Posicion</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] text-[#64748b]">X</label>
+              <label className="text-[10px] text-ds-soft">X</label>
               <input
                 type="number"
                 value={selected.x}
@@ -501,7 +501,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
               />
             </div>
             <div>
-              <label className="text-[10px] text-[#64748b]">Y</label>
+              <label className="text-[10px] text-ds-soft">Y</label>
               <input
                 type="number"
                 value={selected.y}
@@ -517,7 +517,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
           <span className={labelClass}>Tamano</span>
           <div className="grid grid-cols-2 gap-3 mt-2">
             <div>
-              <label className="text-[10px] text-[#64748b]">Ancho</label>
+              <label className="text-[10px] text-ds-soft">Ancho</label>
               <input
                 type="number"
                 value={selected.width}
@@ -526,7 +526,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
               />
             </div>
             <div>
-              <label className="text-[10px] text-[#64748b]">Alto</label>
+              <label className="text-[10px] text-ds-soft">Alto</label>
               <input
                 type="number"
                 value={selected.height}
@@ -549,7 +549,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                 className={`mt-1 ${inputClass}`}
                 placeholder="{username}, {level}, {rank}..."
               />
-              <p className="text-[10px] text-[#64748b] mt-1">Usa &#123;variable&#125; para datos dinamicos</p>
+              <p className="text-[10px] text-ds-soft mt-1">Usa &#123;variable&#125; para datos dinamicos</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -581,7 +581,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                     type="color"
                     value={selected.color || '#ffffff'}
                     onChange={(e) => updateElement(selected.id, { color: e.target.value })}
-                    className="w-9 h-9 rounded-lg border border-[#374151] cursor-pointer bg-transparent"
+                    className="w-9 h-9 rounded-lg border border-ds-border cursor-pointer bg-transparent"
                   />
                   <input
                     type="text"
@@ -600,8 +600,8 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                       onClick={() => updateElement(selected.id, { textAlign: align })}
                       className={`flex-1 px-2 py-2 rounded-lg text-xs font-bold transition-all ${
                         (selected.textAlign || 'left') === align
-                          ? 'bg-[#2563eb] text-white'
-                          : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                          ? 'bg-ds-accent text-ds-on-accent'
+                          : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                       }`}
                     >
                       {align === 'left' ? 'Izq' : align === 'center' ? 'Centro' : 'Der'}
@@ -636,7 +636,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                     type="color"
                     value={selected.borderColor || '#2563eb'}
                     onChange={(e) => updateElement(selected.id, { borderColor: e.target.value })}
-                    className="w-9 h-9 rounded-lg border border-[#374151] cursor-pointer bg-transparent"
+                    className="w-9 h-9 rounded-lg border border-ds-border cursor-pointer bg-transparent"
                   />
                   <input
                     type="text"
@@ -670,7 +670,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                     type="color"
                     value={selected.barBgColor || '#374151'}
                     onChange={(e) => updateElement(selected.id, { barBgColor: e.target.value })}
-                    className="w-9 h-9 rounded-lg border border-[#374151] cursor-pointer bg-transparent"
+                    className="w-9 h-9 rounded-lg border border-ds-border cursor-pointer bg-transparent"
                   />
                   <input
                     type="text"
@@ -687,7 +687,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                     type="color"
                     value={selected.barFillColor || '#2563eb'}
                     onChange={(e) => updateElement(selected.id, { barFillColor: e.target.value })}
-                    className="w-9 h-9 rounded-lg border border-[#374151] cursor-pointer bg-transparent"
+                    className="w-9 h-9 rounded-lg border border-ds-border cursor-pointer bg-transparent"
                   />
                   <input
                     type="text"
@@ -719,8 +719,8 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
     return (
       <div className={cardClass}>
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-[#2563eb] mr-3" />
-          <span className="text-sm text-[#64748b]">Cargando rank card...</span>
+          <Loader2 className="w-6 h-6 animate-spin text-ds-accent-text mr-3" />
+          <span className="text-sm text-ds-soft">Cargando rank card...</span>
         </div>
       </div>
     );
@@ -735,7 +735,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         <div className="flex flex-wrap items-center gap-3">
           {/* Template selector */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-[#64748b]">Plantilla:</label>
+            <label className="text-xs font-bold text-ds-soft">Plantilla:</label>
             <select
               value={selectedTemplate}
               onChange={(e) => {
@@ -753,35 +753,35 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
 
           {/* Background controls */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-[#64748b]">Color:</label>
+            <label className="text-xs font-bold text-ds-soft">Color:</label>
             <input
               type="color"
               value={config.background.color}
               onChange={(e) => updateBackground({ color: e.target.value, type: config.background.imageUrl ? 'image' : 'solid' })}
-              className="w-8 h-8 rounded-lg border border-[#374151] cursor-pointer bg-transparent"
+              className="w-8 h-8 rounded-lg border border-ds-border cursor-pointer bg-transparent"
             />
           </div>
           <button
             onClick={() => setShowBgPanel(!showBgPanel)}
-            className={`${btnClass} ${showBgPanel ? 'bg-[#2563eb] text-white' : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'} flex items-center gap-1`}
+            className={`${btnClass} ${showBgPanel ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '} flex items-center gap-1`}
           >
             <Image className="w-4 h-4" />
             Fondo
-            {config.background.imageUrl && <span className="w-2 h-2 rounded-full bg-green-400" />}
+            {config.background.imageUrl && <span className="w-2 h-2 rounded-full bg-ds-ok" />}
           </button>
 
           {/* Zoom */}
           <div className="flex items-center gap-1 ml-auto">
             <button
               onClick={() => setScale(s => Math.max(0.25, s - 0.1))}
-              className={`${btnClass} bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]`}
+              className={`${btnClass} bg-ds-bg text-ds-soft hover:bg-ds-raised `}
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="text-xs font-bold text-[#64748b] w-12 text-center">{Math.round(scale * 100)}%</span>
+            <span className="text-xs font-bold text-ds-soft w-12 text-center">{Math.round(scale * 100)}%</span>
             <button
               onClick={() => setScale(s => Math.min(1.0, s + 0.1))}
-              className={`${btnClass} bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]`}
+              className={`${btnClass} bg-ds-bg text-ds-soft hover:bg-ds-raised `}
             >
               <ZoomIn className="w-4 h-4" />
             </button>
@@ -794,7 +794,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                 loadTemplate(selectedTemplate);
               }
             }}
-            className={`${btnClass} bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] flex items-center gap-2`}
+            className={`${btnClass} bg-ds-bg text-ds-soft hover:bg-ds-raised flex items-center gap-2`}
           >
             <RotateCcw className="w-4 h-4" />
             Reset
@@ -804,7 +804,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className={`${btnClass} bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white shadow-lg shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50`}
+            className={`${btnClass} bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50`}
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Guardar
@@ -812,10 +812,10 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         </div>
 
         {saveMessage && (
-          <div className={`mt-3 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium ${
+          <div className={`mt-3 flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium ${
             saveMessage.type === 'success'
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-              : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+              ? 'bg-ds-ok/10 text-ds-ok '
+              : 'bg-ds-danger/10 text-ds-danger '
           }`}>
             {saveMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
             {saveMessage.text}
@@ -828,13 +828,13 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         <div className="flex items-center gap-4">
           <button
             onClick={() => { setEditingMode('base'); setSelectedLevelRange(null); loadRankCard(); }}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editingMode === 'base' ? 'bg-[#2563eb] text-white' : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b]'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editingMode === 'base' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft'}`}
           >
             Card Base (todos)
           </button>
           <button
             onClick={() => setEditingMode('level')}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editingMode === 'level' ? 'bg-[#2563eb] text-white' : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b]'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${editingMode === 'level' ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-bg text-ds-soft'}`}
           >
             Card por Nivel
           </button>
@@ -850,7 +850,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                   loadLevelCard(levelMin);
                 }
               }}
-              className="px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-[#1e293b] dark:text-[#f8fafc]"
+              className="px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text"
             >
               <option value="">Seleccionar rango...</option>
               {xpRoles.map((role: any, idx: number) => {
@@ -866,7 +866,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
           )}
 
           {editingMode === 'level' && xpRoles.length === 0 && (
-            <span className="text-xs text-[#94a3b8]">No hay roles de XP configurados. Crea roles en el tab Roles primero.</span>
+            <span className="text-xs text-ds-soft">No hay roles de XP configurados. Crea roles en el tab Roles primero.</span>
           )}
         </div>
       </div>
@@ -875,13 +875,13 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
       {showBgPanel && (
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-black text-gray-900 dark:text-white">Fondo de la Card</h3>
-            <button onClick={() => setShowBgPanel(false)} className="text-[#64748b] hover:text-white text-xs">Cerrar</button>
+            <h3 className="text-sm font-black text-ds-text">Fondo de la Card</h3>
+            <button onClick={() => setShowBgPanel(false)} className="text-ds-soft hover:text-ds-text text-xs">Cerrar</button>
           </div>
 
           {/* Predefined templates */}
           <div className="mb-4">
-            <p className="text-xs font-bold text-[#64748b] mb-2 uppercase">Templates</p>
+            <p className="text-xs font-bold text-ds-soft mb-2 uppercase">Templates</p>
             <div className="grid grid-cols-5 gap-2">
               {[
                 { id: 'gaming-neon', label: 'Gaming' },
@@ -896,10 +896,10 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                   <button
                     key={t.id}
                     onClick={() => updateBackground({ imageUrl: tUrl, type: 'image' })}
-                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${isActive ? 'border-[#2563eb] shadow-lg shadow-blue-500/20' : 'border-[#374151] hover:border-[#64748b]'}`}
+                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${isActive ? 'border-ds-accent shadow-blue-500/20' : 'border-ds-border hover:border-ds-faint'}`}
                   >
                     <img src={tUrl} alt={t.label} className="w-full h-12 object-cover" />
-                    <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[10px] text-white font-bold text-center py-0.5">{t.label}</span>
+                    <span className="absolute bottom-0 left-0 right-0 bg-ds-input/60 text-[10px] text-ds-text font-bold text-center py-0.5">{t.label}</span>
                   </button>
                 );
               })}
@@ -908,14 +908,14 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
 
           {/* URL input */}
           <div className="mb-4">
-            <p className="text-xs font-bold text-[#64748b] mb-2 uppercase">URL personalizada</p>
+            <p className="text-xs font-bold text-ds-soft mb-2 uppercase">URL personalizada</p>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={bgUrlInput || config.background.imageUrl || ''}
                 onChange={(e) => setBgUrlInput(e.target.value)}
                 placeholder="https://ejemplo.com/imagen.png"
-                className="flex-1 px-3 py-2 text-xs bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc]"
+                className="flex-1 px-3 py-2 text-xs bg-ds-bg border border-ds-border rounded-lg text-ds-text"
               />
               <button
                 onClick={() => {
@@ -923,7 +923,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                     updateBackground({ imageUrl: bgUrlInput, type: 'image' });
                   }
                 }}
-                className={`${btnClass} bg-[#2563eb] text-white text-xs`}
+                className={`${btnClass} bg-ds-accent text-ds-on-accent text-xs`}
               >
                 Aplicar
               </button>
@@ -932,7 +932,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
 
           {/* Gallery button */}
           <div className="mb-3">
-            <p className="text-xs font-bold text-[#64748b] mb-2 uppercase">Mi Galeria</p>
+            <p className="text-xs font-bold text-ds-soft mb-2 uppercase">Mi Galeria</p>
             <button
               onClick={async () => {
                 try {
@@ -943,7 +943,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                   }
                 } catch { /* ignore */ }
               }}
-              className={`${btnClass} bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] w-full flex items-center justify-center gap-2`}
+              className={`${btnClass} bg-ds-bg text-ds-soft hover:bg-ds-raised w-full flex items-center justify-center gap-2`}
             >
               <Image className="w-4 h-4" />
               Abrir galeria de imagenes
@@ -954,7 +954,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
           {config.background.imageUrl && (
             <button
               onClick={() => { updateBackground({ imageUrl: undefined, type: 'solid' }); setBgUrlInput(''); }}
-              className="text-xs text-red-400 hover:text-red-300 font-bold"
+              className="text-xs text-ds-danger hover:text-ds-danger font-bold"
             >
               Quitar imagen de fondo
             </button>
@@ -962,7 +962,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
 
           {/* Current background preview */}
           {config.background.imageUrl && (
-            <div className="mt-3 rounded-lg overflow-hidden border border-[#374151]">
+            <div className="mt-3 rounded-lg overflow-hidden border border-ds-border">
               <img src={config.background.imageUrl} alt="Fondo actual" className="w-full h-20 object-cover" />
             </div>
           )}
@@ -971,14 +971,14 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
 
       {/* Gallery Modal */}
       {showGallery && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 max-w-3xl w-full border border-[#e2e8f0] dark:border-[#374151] max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-ds-surface rounded-lg p-6 max-w-3xl w-full border border-ds-border max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Selecciona una imagen</h3>
-              <button onClick={() => setShowGallery(false)} className="text-[#64748b] hover:text-white">✕</button>
+              <h3 className="text-xl font-black text-ds-text">Selecciona una imagen</h3>
+              <button onClick={() => setShowGallery(false)} className="text-ds-soft hover:text-ds-text">✕</button>
             </div>
             {galleryFiles.length === 0 ? (
-              <p className="text-center text-[#64748b] py-8">No hay imagenes en tu galeria</p>
+              <p className="text-center text-ds-soft py-8">No hay imagenes en tu galeria</p>
             ) : (
               <div className="grid grid-cols-3 gap-3">
                 {galleryFiles.map((f: any) => (
@@ -989,10 +989,10 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                       setBgUrlInput(f.fileUrl);
                       setShowGallery(false);
                     }}
-                    className="rounded-lg overflow-hidden border-2 border-[#374151] hover:border-[#2563eb] transition-all"
+                    className="rounded-lg overflow-hidden border-2 border-ds-border hover:border-ds-accent transition-all"
                   >
                     <img src={f.fileUrl} alt={f.fileName || 'image'} className="w-full h-24 object-cover" />
-                    {f.fileName && <p className="text-[10px] text-[#64748b] p-1 truncate">{f.fileName}</p>}
+                    {f.fileName && <p className="text-[10px] text-ds-soft p-1 truncate">{f.fileName}</p>}
                   </button>
                 ))}
               </div>
@@ -1006,13 +1006,13 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
         {/* Canvas */}
         <div className={cardClass}>
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-xs font-bold text-[#64748b]">PREVIEW</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-[#374151]/30 text-[#94a3b8] font-medium">{CANVAS_WIDTH} x {CANVAS_HEIGHT}</span>
+            <span className="text-xs font-bold text-ds-soft">PREVIEW</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-ds-raised/30 text-ds-soft font-medium">{CANVAS_WIDTH} x {CANVAS_HEIGHT}</span>
           </div>
 
             {/* Canvas container */}
             <div
-              className="rounded-xl border border-[#374151]/50"
+              className="rounded-lg border border-ds-border/50"
               style={{
                 background: 'repeating-conic-gradient(#1a1a2e 0% 25%, #151525 0% 50%) 0 0 / 20px 20px',
                 overflow: 'hidden',
@@ -1065,8 +1065,8 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
                   onClick={() => setSelectedElement(el.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     selectedElement === el.id
-                      ? 'bg-[#2563eb] text-white'
-                      : 'bg-[#f8fafc] dark:bg-[#374151]/30 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]/60'
+                      ? 'bg-ds-accent text-ds-on-accent'
+                      : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                   }`}
                 >
                   {el.type === 'avatar' && <Image className="w-3 h-3" />}
@@ -1081,7 +1081,7 @@ export default function RankCardTab({ guildId }: RankCardTabProps) {
 
         {/* Properties panel (below canvas) */}
         <div className={cardClass}>
-          <h3 className="text-sm font-black text-gray-900 dark:text-white mb-4">Propiedades</h3>
+          <h3 className="text-sm font-black text-ds-text mb-4">Propiedades</h3>
           {renderProperties()}
         </div>
       </div>

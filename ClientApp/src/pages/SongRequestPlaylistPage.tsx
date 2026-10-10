@@ -103,7 +103,7 @@ export default function SongRequestPlaylistPage() {
     }, [contributor, loginRedirect, playlistApi, t]);
 
     return (
-        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-ds-text relative overflow-x-hidden">
             <div
                 className="pointer-events-none fixed inset-0 opacity-[0.04]"
                 style={{
@@ -122,29 +122,29 @@ export default function SongRequestPlaylistPage() {
                         <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-pub-accent-hi/80">
                             {t('songRequestPublic.playlistPage.label', { channel: displayName || channelName })}
                         </p>
-                        <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-white break-words">
+                        <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-ds-text break-words">
                             {playlist?.name ?? '…'}
                         </h1>
                     </div>
                 </header>
 
-                {status === 'loading' && <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">{t('songRequestPublic.loading')}</p>}
+                {status === 'loading' && <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">{t('songRequestPublic.loading')}</p>}
                 {status === 'notfound' && <Notice text={t('songRequestPublic.playlistPage.notFound')} tone="error" />}
                 {status === 'error' && <Notice text={t('songRequestPublic.error')} tone="error" />}
 
                 {status === 'ok' && playlist && items && (
                     <>
                         <div className="flex flex-wrap items-center gap-2 mb-4 font-mono text-xs 3xl:text-sm 4xl:text-base">
-                            <span className="text-[#71717a]">{t('songRequestPublic.songs', { count: items.length })}</span>
-                            {playlist.isActive && <span className="px-1.5 py-0.5 rounded border border-amber-400/50 uppercase tracking-wider text-amber-300">▶ {t('songRequestPublic.playing')}</span>}
-                            {!playlist.listed && <span className="px-1.5 py-0.5 rounded border border-pub-border uppercase tracking-wider text-[#a1a1aa]">{t('songRequestPublic.playlistPage.unlisted')}</span>}
+                            <span className="text-ds-soft">{t('songRequestPublic.songs', { count: items.length })}</span>
+                            {playlist.isActive && <span className="px-1.5 py-0.5 rounded border border-ds-warn/40 uppercase tracking-wider text-ds-warn">▶ {t('songRequestPublic.playing')}</span>}
+                            {!playlist.listed && <span className="px-1.5 py-0.5 rounded border border-pub-border uppercase tracking-wider text-ds-soft">{t('songRequestPublic.playlistPage.unlisted')}</span>}
                             <a href={`/sr/${channel}?tab=playlists`} className="ml-auto text-pub-accent-hi hover:underline">← {t('songRequestPublic.playlistPage.back')}</a>
                         </div>
 
                         <ListenPlayerView controller={player} hasPlayable={hasPlayable} />
 
                         {notice && (
-                            <p role="status" className={`mb-4 px-4 py-3 rounded-lg border text-sm 3xl:text-base ${notice.ok ? 'border-emerald-400/30 bg-emerald-400/5 text-emerald-400' : 'border-red-500/30 bg-red-500/5 text-red-400'}`}>
+                            <p role="status" className={`mb-4 px-4 py-3 rounded-lg border text-sm 3xl:text-base ${notice.ok ? 'border-ds-ok/40 bg-ds-accent/5 text-ds-ok' : 'border-ds-danger/40 bg-ds-danger-solid/5 text-ds-danger'}`}>
                                 {notice.text}
                             </p>
                         )}
@@ -154,7 +154,7 @@ export default function SongRequestPlaylistPage() {
                                 <ContributeBox channel={channel} playlist={{ ...playlist, id: 0 }} contributor={contributor} onAdded={reload} />
                             )}
                             {items.length === 0 ? (
-                                <p className="px-4 pb-3 text-sm 3xl:text-base text-[#71717a]">{t('songRequestPublic.playlistEmpty')}</p>
+                                <p className="px-4 pb-3 text-sm 3xl:text-base text-ds-soft">{t('songRequestPublic.playlistEmpty')}</p>
                             ) : (
                                 <ol className="divide-y divide-pub-border-soft border-t border-pub-border-soft">
                                     {items.map(item => {
@@ -167,15 +167,15 @@ export default function SongRequestPlaylistPage() {
                                                     onClick={() => (canPlay ? player.play(item) : window.open(item.track.url ?? undefined, '_blank', 'noopener'))}
                                                     className="flex-1 min-w-0 flex items-center gap-3 4xl:gap-5 py-2 4xl:py-3 px-3 text-left hover:bg-pub-surface transition-colors"
                                                 >
-                                                    <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#52525b] w-9 4xl:w-12 text-right shrink-0">
+                                                    <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft w-9 4xl:w-12 text-right shrink-0">
                                                         {isNow && player.playing ? '▶' : `#${item.number}`}
                                                     </span>
                                                     {item.track.thumbnailUrl
                                                         ? <img src={item.track.thumbnailUrl} alt="" loading="lazy" className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] object-cover rounded shrink-0 bg-pub-raised" />
                                                         : <div className="w-16 h-9 3xl:w-20 3xl:h-[45px] 4xl:w-28 4xl:h-[63px] rounded shrink-0 bg-pub-raised" />}
                                                     <div className="min-w-0 flex-1">
-                                                        <p className={`text-sm 3xl:text-base 4xl:text-xl truncate ${isNow ? 'text-pub-accent-hi font-semibold' : 'text-white'}`}>{item.track.title}</p>
-                                                        <p className="text-xs 3xl:text-sm 4xl:text-base text-[#71717a] truncate">
+                                                        <p className={`text-sm 3xl:text-base 4xl:text-xl truncate ${isNow ? 'text-pub-accent-hi font-semibold' : 'text-ds-text'}`}>{item.track.title}</p>
+                                                        <p className="text-xs 3xl:text-sm 4xl:text-base text-ds-soft truncate">
                                                             {item.track.artist}
                                                             {item.addedBy && (
                                                                 <>
@@ -185,13 +185,13 @@ export default function SongRequestPlaylistPage() {
                                                                 </>
                                                             )}
                                                             {!canPlay && (
-                                                                <span className="ml-2 px-1.5 py-0.5 rounded border border-amber-400/40 text-amber-300 text-[10px] 3xl:text-xs uppercase tracking-wide">
+                                                                <span className="ml-2 px-1.5 py-0.5 rounded border border-ds-warn/40 text-ds-warn text-[10px] 3xl:text-xs uppercase tracking-wide">
                                                                     {t('songRequestPublic.listen.onlyOn', { source: sourceName(item.track.source) })} ↗
                                                                 </span>
                                                             )}
                                                         </p>
                                                     </div>
-                                                    <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">{formatDuration(item.track.durationSeconds)}</span>
+                                                    <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft shrink-0">{formatDuration(item.track.durationSeconds)}</span>
                                                 </button>
                                                 <div className="flex items-center gap-2 pr-3 pb-2 sm:pb-0 ml-auto">
                                                     {canRequest && (
@@ -199,7 +199,7 @@ export default function SongRequestPlaylistPage() {
                                                             onClick={() => requestToStream(item)}
                                                             disabled={requesting === item.id}
                                                             title={stream?.mode === 'review' ? t('songRequestPublic.listen.requestReviewHint') : t('songRequestPublic.listen.requestHint')}
-                                                            className="shrink-0 px-2 py-1 rounded font-mono text-xs 3xl:text-sm 4xl:text-base border border-pub-border text-[#a1a1aa] hover:border-pub-accent/60 hover:text-pub-accent-hi disabled:opacity-50 transition-colors"
+                                                            className="shrink-0 px-2 py-1 rounded font-mono text-xs 3xl:text-sm 4xl:text-base border border-pub-border text-ds-soft hover:border-pub-accent/60 hover:text-pub-accent-hi disabled:opacity-50 transition-colors"
                                                         >
                                                             {requesting === item.id ? '…' : t('songRequestPublic.listen.request')}
                                                         </button>
@@ -210,7 +210,7 @@ export default function SongRequestPlaylistPage() {
                                                             title={contributor ? t('songRequestPublic.vote') : t('songRequestPublic.loginToVote')}
                                                             className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded font-mono text-xs 3xl:text-sm 4xl:text-base border transition-colors ${myVotes.has(item.id)
                                                                 ? 'border-pub-accent text-pub-accent-hi bg-pub-accent/10'
-                                                                : 'border-pub-border text-[#a1a1aa] hover:border-pub-accent/60'}`}
+                                                                : 'border-pub-border text-ds-soft hover:border-pub-accent/60'}`}
                                                         >
                                                             ▲ {item.votes}
                                                         </button>

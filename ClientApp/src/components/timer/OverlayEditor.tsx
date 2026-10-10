@@ -396,8 +396,8 @@ export default function OverlayEditor({
                 onMouseDown={(e) => handleMouseDown(element, e)}
                 className={`absolute cursor-move border-2 transition-all ${
                     isDragging || isResizing
-                        ? 'border-[#64748b] ring-2 ring-[#64748b] ring-offset-1 ring-offset-black'
-                        : 'border-[#cbd5e1] dark:border-[#475569] hover:border-[#94a3b8]'
+                        ? 'border-ds-faint ring-2 ring-ds-faint ring-offset-1 ring-offset-ds-border'
+                        : 'border-ds-border hover:border-ds-faint'
                 }`}
                 style={{
                     left: `${(config.position.x / canvasWidth) * 100}%`,
@@ -407,37 +407,37 @@ export default function OverlayEditor({
                 }}
             >
                 {/* Label */}
-                <div className={`absolute -top-5 left-0 text-xs font-bold px-2 py-0.5 rounded-t ${color} text-white whitespace-nowrap`}>
+                <div className={`absolute -top-5 left-0 text-xs font-bold px-2 py-0.5 rounded-t ${color} text-ds-text whitespace-nowrap`}>
                     {label} ({config.position.x}, {config.position.y})
                 </div>
 
                 {/* Content */}
                 <div className="w-full h-full flex items-center justify-center overflow-hidden">
                     {element === 'title' && (
-                        <div className="text-sm font-bold text-white">
+                        <div className="text-sm font-bold text-ds-text">
                             {displayConfig?.title || 'Título'}
                         </div>
                     )}
                     {element === 'counter' && (
-                        <div className="text-2xl font-bold text-white">
+                        <div className="text-2xl font-bold text-ds-text">
                             00:00:00
                         </div>
                     )}
                     {element === 'percentage' && (
-                        <div className="text-sm font-bold text-white">
+                        <div className="text-sm font-bold text-ds-text">
                             0%
                         </div>
                     )}
                     {element === 'progressbar' && (
                         <div className="w-full h-full flex items-center justify-center">
-                            <div className="text-xs font-bold text-white bg-[#64748b]/50 px-2 py-1 rounded">
+                            <div className="text-xs font-bold text-ds-text bg-ds-raised/50 px-2 py-1 rounded">
                                 {progressBarConfig.type === 'horizontal' ? '━' : progressBarConfig.type === 'vertical' ? '┃' : '◉'} Barra
                             </div>
                         </div>
                     )}
                     {element === 'alerts' && (
                         <div
-                            className="w-full h-full flex items-center justify-center text-white font-bold text-xs"
+                            className="w-full h-full flex items-center justify-center text-ds-text font-bold text-xs"
                             style={{
                                 backgroundColor: alertsConfig.global.style.backgroundColor,
                                 opacity: alertsConfig.global.style.opacity / 100
@@ -447,7 +447,7 @@ export default function OverlayEditor({
                         </div>
                     )}
                     {element?.startsWith('w_') && (
-                        <div className="text-xs font-bold text-white truncate px-1">
+                        <div className="text-xs font-bold text-ds-text truncate px-1">
                             {element === 'w_accumulatedTime' ? (accumulatedSampleText || label) : label}
                         </div>
                     )}
@@ -460,7 +460,7 @@ export default function OverlayEditor({
                             <div
                                 key={handle}
                                 onMouseDown={(e) => handleResizeMouseDown(element, handle as ResizeHandle, e)}
-                                className={`absolute w-3 h-3 bg-white border-2 border-[#64748b] rounded-full cursor-${
+                                className={`absolute w-3 h-3 bg-ds-surface border-2 border-ds-faint rounded-full cursor-${
                                     handle === 'nw' ? 'nwse' : handle === 'ne' ? 'nesw' : handle === 'sw' ? 'nesw' : 'nwse'
                                 }-resize hover:scale-125 transition-transform`}
                                 style={{
@@ -480,20 +480,20 @@ export default function OverlayEditor({
     return (
         <div className="space-y-4">
             {/* Canvas */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg">
+            <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
                         <div>
-                            <h3 className="text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <h3 className="text-lg font-bold text-ds-text">
                                 Vista del Overlay
                             </h3>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-xs text-ds-soft">
                                 Arrastra los elementos para posicionarlos
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Ancho:</label>
+                            <label className="text-xs font-bold text-ds-soft">Ancho:</label>
                             <input
                                 type="number"
                                 value={canvasWidth}
@@ -503,12 +503,12 @@ export default function OverlayEditor({
                                         propSetCanvasWidth(newWidth);
                                     }
                                 }}
-                                className="w-20 px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-xs"
+                                className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
                                 min="500"
                                 max="3840"
                             />
-                            <span className="text-[#64748b] dark:text-[#94a3b8]">×</span>
-                            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">Alto:</label>
+                            <span className="text-ds-soft">×</span>
+                            <label className="text-xs font-bold text-ds-soft">Alto:</label>
                             <input
                                 type="number"
                                 value={canvasHeight}
@@ -518,7 +518,7 @@ export default function OverlayEditor({
                                         propSetCanvasHeight(newHeight);
                                     }
                                 }}
-                                className="w-20 px-2 py-1 border border-[#e2e8f0] dark:border-[#374151] rounded bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-xs"
+                                className="w-20 px-2 py-1 border border-ds-border rounded bg-ds-surface text-ds-text text-xs"
                                 min="200"
                                 max="2160"
                             />
@@ -529,8 +529,8 @@ export default function OverlayEditor({
                             onClick={() => setSnapToGrid(!snapToGrid)}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                                 snapToGrid
-                                    ? 'bg-[#e2e8f0] dark:bg-[#374151] text-[#1e293b] dark:text-[#f8fafc]'
-                                    : 'bg-[#f8fafc] dark:bg-[#1B1C1D] text-[#64748b] dark:text-[#94a3b8] border border-[#e2e8f0] dark:border-[#374151]'
+                                    ? 'bg-ds-raised text-ds-text '
+                                    : 'bg-ds-bg text-ds-soft border border-ds-border '
                             }`}
                         >
                             <Grid3x3 className="w-4 h-4" />
@@ -538,7 +538,7 @@ export default function OverlayEditor({
                         </button>
                         <button
                             onClick={resetAllPositions}
-                            className="flex items-center gap-2 px-3 py-2 bg-[#f8fafc] dark:bg-[#1B1C1D] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] text-[#1e293b] dark:text-[#f8fafc] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-xs font-semibold transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 bg-ds-bg hover:bg-ds-raised text-ds-text border border-ds-border rounded-lg text-xs font-semibold transition-colors"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Reset
@@ -547,10 +547,10 @@ export default function OverlayEditor({
                 </div>
 
                 {/* Canvas Container - Centered */}
-                <div className="w-full overflow-auto flex justify-center items-center bg-[#0a0a0a] rounded-xl border-2 border-dashed border-[#cbd5e1] dark:border-[#475569] p-4 min-h-[400px]">
+                <div className="w-full overflow-auto flex justify-center items-center bg-[#0a0a0a] rounded-lg border-2 border-dashed border-ds-border p-4 min-h-[400px]">
                     <div
                         ref={canvasRef}
-                        className="relative overflow-hidden shadow-2xl transition-all duration-300 ease-in-out"
+                        className="relative overflow-hidden transition-all duration-300 ease-in-out"
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseUp}
@@ -564,33 +564,33 @@ export default function OverlayEditor({
                             backgroundColor: '#000000' // Base black background
                         }}
                     >
-                        {renderElement('title', 'Título', 'bg-[#64748b]')}
-                        {renderElement('counter', 'Contador', 'bg-[#64748b]')}
-                        {renderElement('percentage', 'Porcentaje', 'bg-[#64748b]')}
-                        {renderElement('progressbar', 'Barra', 'bg-[#64748b]')}
-                        {renderElement('alerts', 'Alertas', 'bg-[#64748b]')}
-                        {renderElement('elapsed', 'Transcurrido', 'bg-[#64748b]')}
+                        {renderElement('title', 'Título', 'bg-ds-raised')}
+                        {renderElement('counter', 'Contador', 'bg-ds-raised')}
+                        {renderElement('percentage', 'Porcentaje', 'bg-ds-raised')}
+                        {renderElement('progressbar', 'Barra', 'bg-ds-raised')}
+                        {renderElement('alerts', 'Alertas', 'bg-ds-raised')}
+                        {renderElement('elapsed', 'Transcurrido', 'bg-ds-raised')}
                         {/* Widget elements */}
-                        {renderElement('w_subsToday', 'Subs Hoy', 'bg-[#2563eb]')}
-                        {renderElement('w_totalSubs', 'Total Subs', 'bg-[#2563eb]')}
-                        {renderElement('w_bitsToday', 'Bits Hoy', 'bg-[#7c3aed]')}
+                        {renderElement('w_subsToday', 'Subs Hoy', 'bg-ds-accent')}
+                        {renderElement('w_totalSubs', 'Total Subs', 'bg-ds-accent')}
+                        {renderElement('w_bitsToday', 'Bits Hoy', 'bg-ds-accent')}
                         {renderElement('w_tipsToday', 'Tips Hoy', 'bg-[#059669]')}
-                        {renderElement('w_totalRevenue', 'Recaudado', 'bg-[#d97706]')}
-                        {renderElement('w_eventCount', 'Eventos', 'bg-[#64748b]')}
+                        {renderElement('w_totalRevenue', 'Recaudado', 'bg-ds-warn')}
+                        {renderElement('w_eventCount', 'Eventos', 'bg-ds-raised')}
                         {renderElement('w_uptime', 'Uptime', 'bg-[#059669]')}
                         {renderElement('w_happyHour', 'Happy Hour', 'bg-[#ea580c]')}
-                        {renderElement('w_accumulatedTime', 'Tiempo acumulado', 'bg-[#9333ea]')}
+                        {renderElement('w_accumulatedTime', 'Tiempo acumulado', 'bg-ds-accent')}
                     </div>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 <button
                     onClick={() => setControlsCollapsed(!controlsCollapsed)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors"
+                    className="w-full flex items-center justify-between p-4 hover:bg-ds-bg transition-colors"
                 >
-                    <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                    <span className="text-sm font-bold text-ds-text">
                         Controles de Posición y Tamaño
                     </span>
                     {controlsCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
@@ -601,9 +601,9 @@ export default function OverlayEditor({
                         {/* Title Controls */}
                         {displayConfig?.showTitle && (
                             <div className="space-y-3">
-                                <h4 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Título</h4>
+                                <h4 className="text-sm font-bold text-ds-soft">Título</h4>
                                 <div className="space-y-2">
-                                    <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición X</label>
+                                    <label className="text-xs text-ds-soft">Posición X</label>
                                     <input
                                         type="number"
                                         value={styleConfig?.titlePosition?.x || 50}
@@ -615,11 +615,11 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición Y</label>
+                                    <label className="text-xs text-ds-soft">Posición Y</label>
                                     <input
                                         type="number"
                                         value={styleConfig?.titlePosition?.y || 20}
@@ -631,7 +631,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                     />
                                 </div>
                             </div>
@@ -639,9 +639,9 @@ export default function OverlayEditor({
 
                         {/* Counter Controls */}
                         <div className="space-y-3">
-                            <h4 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Contador</h4>
+                            <h4 className="text-sm font-bold text-ds-soft">Contador</h4>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición X</label>
+                                <label className="text-xs text-ds-soft">Posición X</label>
                                 <input
                                     type="number"
                                     value={styleConfig?.timePosition?.x || 50}
@@ -653,11 +653,11 @@ export default function OverlayEditor({
                                             });
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición Y</label>
+                                <label className="text-xs text-ds-soft">Posición Y</label>
                                 <input
                                     type="number"
                                     value={styleConfig?.timePosition?.y || 80}
@@ -669,16 +669,16 @@ export default function OverlayEditor({
                                             });
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
 
                         {displayConfig?.showElapsedTime && (
                             <div className="space-y-3">
-                                <h4 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Transcurrido</h4>
+                                <h4 className="text-sm font-bold text-ds-soft">Transcurrido</h4>
                                 <div className="space-y-2">
-                                    <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición X</label>
+                                    <label className="text-xs text-ds-soft">Posición X</label>
                                     <input
                                         type="number"
                                         value={styleConfig?.elapsedTimePosition?.x || 50}
@@ -690,11 +690,11 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición Y</label>
+                                    <label className="text-xs text-ds-soft">Posición Y</label>
                                     <input
                                         type="number"
                                         value={styleConfig?.elapsedTimePosition?.y || 120}
@@ -706,7 +706,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                     />
                                 </div>
                             </div>
@@ -715,9 +715,9 @@ export default function OverlayEditor({
                         {/* Percentage Controls */}
                         {displayConfig?.showPercentage && (
                             <div className="space-y-3">
-                                <h4 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Porcentaje</h4>
+                                <h4 className="text-sm font-bold text-ds-soft">Porcentaje</h4>
                                 <div className="space-y-2">
-                                    <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición X</label>
+                                    <label className="text-xs text-ds-soft">Posición X</label>
                                     <input
                                         type="number"
                                         value={styleConfig?.percentagePosition?.x || 50}
@@ -729,11 +729,11 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición Y</label>
+                                    <label className="text-xs text-ds-soft">Posición Y</label>
                                     <input
                                         type="number"
                                         value={styleConfig?.percentagePosition?.y || 160}
@@ -745,7 +745,7 @@ export default function OverlayEditor({
                                                 });
                                             }
                                         }}
-                                        className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                        className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                     />
                                 </div>
                             </div>
@@ -753,9 +753,9 @@ export default function OverlayEditor({
 
                         {/* Progress Bar Controls */}
                         <div className="space-y-3">
-                            <h4 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Barra de Progreso</h4>
+                            <h4 className="text-sm font-bold text-ds-soft">Barra de Progreso</h4>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición X</label>
+                                <label className="text-xs text-ds-soft">Posición X</label>
                                 <input
                                     type="number"
                                     value={progressBarConfig.position.x}
@@ -765,11 +765,11 @@ export default function OverlayEditor({
                                             position: { ...progressBarConfig.position, x: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición Y</label>
+                                <label className="text-xs text-ds-soft">Posición Y</label>
                                 <input
                                     type="number"
                                     value={progressBarConfig.position.y}
@@ -779,11 +779,11 @@ export default function OverlayEditor({
                                             position: { ...progressBarConfig.position, y: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Ancho</label>
+                                <label className="text-xs text-ds-soft">Ancho</label>
                                 <input
                                     type="number"
                                     value={progressBarConfig.size.width}
@@ -793,11 +793,11 @@ export default function OverlayEditor({
                                             size: { ...progressBarConfig.size, width: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Alto</label>
+                                <label className="text-xs text-ds-soft">Alto</label>
                                 <input
                                     type="number"
                                     value={progressBarConfig.size.height}
@@ -807,16 +807,16 @@ export default function OverlayEditor({
                                             size: { ...progressBarConfig.size, height: Number(e.target.value) }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>
 
                         {/* Alerts Controls */}
                         <div className="space-y-3">
-                            <h4 className="text-sm font-bold text-[#64748b] dark:text-[#94a3b8]">Alertas</h4>
+                            <h4 className="text-sm font-bold text-ds-soft">Alertas</h4>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición X</label>
+                                <label className="text-xs text-ds-soft">Posición X</label>
                                 <input
                                     type="number"
                                     value={alertsConfig.global.position.x}
@@ -829,11 +829,11 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Posición Y</label>
+                                <label className="text-xs text-ds-soft">Posición Y</label>
                                 <input
                                     type="number"
                                     value={alertsConfig.global.position.y}
@@ -846,11 +846,11 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Ancho</label>
+                                <label className="text-xs text-ds-soft">Ancho</label>
                                 <input
                                     type="number"
                                     value={alertsConfig.global.size.width}
@@ -863,11 +863,11 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs text-[#64748b] dark:text-[#94a3b8]">Alto</label>
+                                <label className="text-xs text-ds-soft">Alto</label>
                                 <input
                                     type="number"
                                     value={alertsConfig.global.size.height}
@@ -880,7 +880,7 @@ export default function OverlayEditor({
                                             }
                                         });
                                     }}
-                                    className="w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                         </div>

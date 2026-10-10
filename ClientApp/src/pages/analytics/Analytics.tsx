@@ -1,3 +1,4 @@
+import TabIcon from '../../components/dashboard/TabIcon';
 import { useState } from 'react';
 import { ArrowLeft, Download, RefreshCw, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -38,15 +39,15 @@ export default function Analytics() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="p-2 hover:bg-[#f8fafc] dark:hover:bg-[#262626] rounded-lg transition-colors"
+                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-[#64748b] dark:text-[#94a3b8]" />
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                        <h1 className="text-2xl font-black text-ds-text">
                             {t('title', 'Analytics')}
                         </h1>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm text-ds-soft">
                             {t('subtitle', 'Estadísticas y logs de tu canal')}
                         </p>
                     </div>
@@ -61,28 +62,28 @@ export default function Analytics() {
                     <button
                         onClick={refetch}
                         disabled={isLoading}
-                        className="p-2.5 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors"
+                        className="p-2.5 bg-ds-bg border border-ds-border rounded-lg hover:bg-ds-surface transition-colors"
                         title={t('refresh', 'Actualizar')}
                     >
-                        <RefreshCw className={`w-4 h-4 text-[#64748b] dark:text-[#94a3b8] ${isLoading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 text-ds-soft ${isLoading ? 'animate-spin' : ''}`} />
                     </button>
                     <div className="relative group">
                         <button
                             onClick={exportCSV}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-[#2563eb] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors font-semibold text-sm"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-ds-accent text-ds-on-accent rounded-lg hover:bg-ds-accent-hover transition-colors font-semibold text-sm"
                         >
                             <Download className="w-4 h-4" />
                             <span className="hidden sm:inline">{t('exportCSV', 'Exportar CSV')}</span>
                         </button>
                         {/* Tooltip */}
-                        <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                        <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-ds-surface border border-ds-border rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                             <div className="flex items-start gap-2">
-                                <Info className="w-4 h-4 text-[#2563eb] flex-shrink-0 mt-0.5" />
+                                <Info className="w-4 h-4 text-ds-accent-text flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <p className="text-xs font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-1">
+                                    <p className="text-xs font-semibold text-ds-text mb-1">
                                         {t('csvIncludes', 'El CSV incluye:')}
                                     </p>
-                                    <ul className="text-xs text-[#64748b] dark:text-[#94a3b8] space-y-0.5">
+                                    <ul className="text-xs text-ds-soft space-y-0.5">
                                         <li>• {t('csvTimer', 'Eventos del Timer (follows, subs, bits, etc.)')}</li>
                                         <li>• {t('csvModeration', 'Acciones de Moderación')}</li>
                                         <li>• {t('csvHistory', 'Historial de Juegos y Títulos')}</li>
@@ -97,26 +98,26 @@ export default function Analytics() {
 
             {/* Error State */}
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl p-4">
+                <div className="bg-ds-danger/10 border border-ds-danger/40 text-ds-danger rounded-lg p-4">
                     {error}
                 </div>
             )}
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] shadow-lg overflow-hidden">
+            <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                 {/* Tab List */}
-                <div className="flex border-b border-[#e2e8f0] dark:border-[#374151] overflow-x-auto">
+                <div className="flex border-b border-ds-border overflow-x-auto">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px
                                 ${activeTab === tab.id
-                                    ? 'border-[#2563eb] text-[#2563eb] bg-blue-50/50 dark:bg-blue-900/10'
-                                    : 'border-transparent text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'
+                                    ? 'border-ds-accent text-ds-accent-text bg-ds-accent/10 '
+                                    : 'border-transparent text-ds-soft hover:text-ds-text hover:bg-ds-bg '
                                 }`}
                         >
-                            <span>{tab.icon}</span>
+                            <TabIcon emoji={tab.icon} />
                             <span>{tab.name}</span>
                         </button>
                     ))}

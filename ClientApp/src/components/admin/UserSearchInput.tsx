@@ -68,23 +68,23 @@ export function UserSearchInput({
     }, [query, value]);
 
     const inputClass = inputClassName ??
-        'w-full px-4 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 outline-none text-sm';
+        'w-full px-4 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent outline-none text-sm';
 
     if (value) {
         return (
-            <div className="flex items-center gap-3 p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-[#f8fafc] dark:bg-[#262626]">
+            <div className="flex items-center gap-3 p-2 rounded-lg border border-ds-border bg-ds-bg">
                 {value.profileImageUrl && (
                     <img src={value.profileImageUrl} alt="" className="w-8 h-8 rounded-full" />
                 )}
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">
+                    <p className="text-sm font-bold text-ds-text truncate">
                         {value.displayName || value.login}
                     </p>
-                    <p className="text-xs text-[#94a3b8] truncate">@{value.login}</p>
+                    <p className="text-xs text-ds-soft truncate">@{value.login}</p>
                 </div>
                 <button
                     onClick={() => { setQuery(''); setHits([]); setTouched(false); onClear(); }}
-                    className="p-1 text-[#94a3b8] hover:text-red-500 transition-colors"
+                    className="p-1 text-ds-soft hover:text-ds-danger transition-colors"
                     title="Elegir otro canal"
                 >
                     <X className="w-4 h-4" />
@@ -96,7 +96,7 @@ export function UserSearchInput({
     return (
         <div>
             <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ds-soft" />
                 <input
                     value={query}
                     onChange={e => { setQuery(e.target.value); setTouched(true); }}
@@ -104,7 +104,7 @@ export function UserSearchInput({
                     className={inputClass + ' pl-9'}
                 />
                 {searching && (
-                    <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] animate-spin" />
+                    <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-ds-soft animate-spin" />
                 )}
             </div>
 
@@ -114,22 +114,22 @@ export function UserSearchInput({
                         <button
                             key={u.id}
                             onClick={() => { setHits([]); setQuery(''); onSelect(u); }}
-                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#f8fafc] dark:hover:bg-[#262626] transition-colors text-left"
+                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-ds-bg transition-colors text-left"
                         >
                             {u.profileImageUrl && (
                                 <img src={u.profileImageUrl} alt="" className="w-8 h-8 rounded-full" />
                             )}
-                            <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                            <span className="text-sm font-bold text-ds-text">
                                 {u.displayName || u.login}
                             </span>
-                            <span className="text-xs text-[#94a3b8]">@{u.login}</span>
+                            <span className="text-xs text-ds-soft">@{u.login}</span>
                         </button>
                     ))}
                 </div>
             )}
 
             {touched && query.trim().length >= 2 && !searching && hits.length === 0 && (
-                <p className="text-xs text-[#94a3b8] mt-2">Ningún canal coincide.</p>
+                <p className="text-xs text-ds-soft mt-2">Ningún canal coincide.</p>
             )}
         </div>
     );

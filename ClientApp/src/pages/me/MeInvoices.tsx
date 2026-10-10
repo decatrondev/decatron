@@ -90,7 +90,7 @@ function tipoLabel(tipo: string | null): string {
 function Estado({ estado }: { estado: string | null }) {
     if (estado === 'ACCEPTED') {
         return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700 dark:text-green-400">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ds-ok">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Aceptado por SUNAT
             </span>
@@ -99,7 +99,7 @@ function Estado({ estado }: { estado: string | null }) {
 
     if (estado === 'PENDING' || estado === null) {
         return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ds-warn">
                 <Clock className="w-3.5 h-3.5" />
                 Emitiéndose
             </span>
@@ -109,7 +109,7 @@ function Estado({ estado }: { estado: string | null }) {
     // REJECTED o ERROR. Al comprador no le sirve el detalle técnico: le sirve saber que
     // alguien lo va a mirar y que no tiene que volver a pagar.
     return (
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 dark:text-red-400">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-ds-danger">
             <AlertCircle className="w-3.5 h-3.5" />
             Con un problema
         </span>
@@ -220,7 +220,7 @@ export default function MeInvoices() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-24">
-                <Loader2 className="w-7 h-7 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-7 h-7 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -228,32 +228,32 @@ export default function MeInvoices() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">Mis comprobantes</h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">
+                <h1 className="text-3xl font-black text-ds-text">Mis comprobantes</h1>
+                <p className="text-ds-soft mt-2">
                     Las boletas y facturas de tus compras de tier.{' '}
-                    <Link to="/me/billing" className="text-[#2563eb] font-bold hover:underline">
+                    <Link to="/me/billing" className="text-ds-accent-text font-bold hover:underline">
                         Editar mis datos de facturación
                     </Link>
                 </p>
             </div>
 
             {error && (
-                <div className="flex items-start gap-2 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+                <div className="flex items-start gap-2 text-sm text-ds-danger bg-ds-danger/10 border border-ds-danger/40 rounded-lg px-4 py-3">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>{error}</span>
                 </div>
             )}
 
             {items.length === 0 ? (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-10 border border-[#e2e8f0] dark:border-[#374151] text-center">
-                    <Receipt className="w-10 h-10 mx-auto mb-3 text-[#94a3b8]" />
-                    <p className="font-black text-[#1e293b] dark:text-[#f8fafc]">Todavía no compraste ningún tier</p>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                <div className="bg-ds-surface rounded-lg p-10 border border-ds-border text-center">
+                    <Receipt className="w-10 h-10 mx-auto mb-3 text-ds-soft" />
+                    <p className="font-black text-ds-text">Todavía no compraste ningún tier</p>
+                    <p className="text-sm text-ds-soft mt-1">
                         Cuando lo hagas, tu comprobante aparece acá.
                     </p>
                     <Link
                         to="/supporters"
-                        className="inline-block mt-5 px-5 py-2.5 rounded-xl bg-[#2563eb] text-white text-sm font-black hover:bg-[#1d4ed8] transition-colors"
+                        className="inline-block mt-5 px-5 py-2.5 rounded-lg bg-ds-accent text-ds-on-accent text-sm font-black hover:bg-ds-accent-hover transition-colors"
                     >
                         Ver los tiers
                     </Link>
@@ -263,24 +263,24 @@ export default function MeInvoices() {
                     {items.map(c => (
                         <div
                             key={c.key}
-                            className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-5 border border-[#e2e8f0] dark:border-[#374151]"
+                            className="bg-ds-surface rounded-lg p-5 border border-ds-border"
                         >
                             <div className="flex flex-wrap items-start justify-between gap-4">
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <FileText className="w-4 h-4 text-[#2563eb] shrink-0" />
-                                        <h3 className="font-black text-[#1e293b] dark:text-[#f8fafc] truncate">
+                                        <FileText className="w-4 h-4 text-ds-accent-text shrink-0" />
+                                        <h3 className="font-black text-ds-text truncate">
                                             {c.number ?? tipoLabel(c.type)}
                                         </h3>
                                     </div>
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-sm text-ds-soft">
                                         {c.concepto} · {fecha(c.fechaIso)}
                                     </p>
                                     {c.number && (
-                                        <p className="text-xs text-[#94a3b8] mt-0.5">{tipoLabel(c.type)}</p>
+                                        <p className="text-xs text-ds-soft mt-0.5">{tipoLabel(c.type)}</p>
                                     )}
                                     {c.customerName && (
-                                        <p className="text-xs text-[#94a3b8] mt-0.5">
+                                        <p className="text-xs text-ds-soft mt-0.5">
                                             A nombre de {c.customerName}
                                             {c.customerDoc ? ` · ${c.customerDoc}` : ''}
                                         </p>
@@ -288,14 +288,14 @@ export default function MeInvoices() {
                                 </div>
 
                                 <div className="text-right shrink-0">
-                                    <p className="font-black text-lg text-[#1e293b] dark:text-[#f8fafc]">
+                                    <p className="font-black text-lg text-ds-text">
                                         {importe(c.amount, c.currency)}
                                     </p>
                                     <Estado estado={c.status} />
                                 </div>
                             </div>
 
-                            <div className="mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="mt-4 pt-4 border-t border-ds-border">
                                 {c.canDownload ? (
                                     <div className="flex flex-wrap gap-2">
                                         {FORMATOS.map(f => (
@@ -304,10 +304,10 @@ export default function MeInvoices() {
                                                 onClick={() => bajar(c, f.id)}
                                                 disabled={bajando === `${c.key}-${f.id}`}
                                                 title={f.hint}
-                                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 ${
+                                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-60 ${
                                                     f.id === 'pdf'
-                                                        ? 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]'
-                                                        : 'border border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f8fafc] dark:hover:bg-[#111213]'
+                                                        ? 'bg-ds-accent text-ds-on-accent hover:bg-ds-accent-hover'
+                                                        : 'border border-ds-border text-ds-soft hover:bg-ds-bg '
                                                 }`}
                                             >
                                                 {bajando === `${c.key}-${f.id}`
@@ -318,7 +318,7 @@ export default function MeInvoices() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-sm text-ds-soft">
                                         {c.status === 'PENDING' || c.status === null
                                             ? 'Tu comprobante se está emitiendo. Suele tardar un par de minutos; volvé a entrar y ya va a estar acá.'
                                             : `Hubo un problema al emitir este comprobante. ${c.yaAcreditado} y ya lo estamos revisando — no tenés que hacer nada.`}

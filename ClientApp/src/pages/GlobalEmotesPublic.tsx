@@ -42,25 +42,25 @@ export default function GlobalEmotesPublic() {
     };
 
     return (
-        <div className="dark min-h-screen bg-[#0a0a0c] text-[#e4e4e7] px-4 sm:px-6 lg:px-8 py-8">
+        <div className="dark min-h-screen bg-[#0a0a0c] text-ds-text px-4 sm:px-6 lg:px-8 py-8">
             <div className="max-w-6xl 3xl:max-w-7xl mx-auto">
-                <h1 className="text-2xl sm:text-3xl 3xl:text-4xl font-bold text-white">{t('global.publicTitle')}</h1>
-                <p className="mt-2 mb-6 text-sm 3xl:text-base text-[#a1a1aa]">{t('global.publicSubtitle')}</p>
+                <h1 className="text-2xl sm:text-3xl 3xl:text-4xl font-bold text-ds-text">{t('global.publicTitle')}</h1>
+                <p className="mt-2 mb-6 text-sm 3xl:text-base text-ds-soft">{t('global.publicSubtitle')}</p>
 
-                {items === null ? <p className="font-mono text-sm text-[#71717a] animate-pulse">{t('global.loading')}</p> : (
+                {items === null ? <p className="font-mono text-sm text-ds-soft animate-pulse">{t('global.loading')}</p> : (
                     <>
                         <div className="flex flex-wrap items-center gap-3 mb-5">
                             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('global.search')}
-                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-xl bg-pub-surface border border-pub-border text-white text-sm 3xl:text-base focus:outline-none focus:border-pub-accent/60" />
-                            <span className="font-mono text-xs 3xl:text-sm text-[#71717a]">{t('public.count', { count: items.length })}</span>
+                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-lg bg-pub-surface border border-pub-border text-ds-text text-sm 3xl:text-base focus:outline-none focus:border-pub-accent/60" />
+                            <span className="font-mono text-xs 3xl:text-sm text-ds-soft">{t('public.count', { count: items.length })}</span>
                         </div>
-                        {items.length === 0 ? <p className="font-mono text-sm text-[#71717a] py-8">{t('global.publicEmpty')}</p> : (
+                        {items.length === 0 ? <p className="font-mono text-sm text-ds-soft py-8">{t('global.publicEmpty')}</p> : (
                             <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] 3xl:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] 4xl:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
                                 {shown.map(e => (
                                     <button key={e.id} type="button" onClick={() => copy(e.name)} title={t('public.clickToCopy')}
-                                        className="rounded-xl border border-pub-border bg-pub-surface p-3 flex flex-col items-center gap-2 hover:border-pub-accent/40 transition-colors">
+                                        className="rounded-lg border border-pub-border bg-pub-surface p-3 flex flex-col items-center gap-2 hover:border-pub-accent/40 transition-colors">
                                         <EmoteThumb src={e.urls.x2} name={e.name} height={48} bg="dark" />
-                                        <span className="font-mono text-xs 3xl:text-sm font-bold text-white truncate max-w-full">{copied === e.name ? t('global.copied') : e.name}</span>
+                                        <span className="font-mono text-xs 3xl:text-sm font-bold text-ds-text truncate max-w-full">{copied === e.name ? t('global.copied') : e.name}</span>
                                     </button>
                                 ))}
                             </div>
@@ -69,16 +69,16 @@ export default function GlobalEmotesPublic() {
                 )}
 
                 <section className="mt-12">
-                    <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm uppercase tracking-widest text-[#a1a1aa] font-bold">
+                    <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm uppercase tracking-widest text-ds-soft font-bold">
                         <span className="text-pub-accent-hi">#</span>{access === 'yes' ? t('global.manageTitle') : t('global.loginTitle')}
                     </h2>
                     {!loggedIn && (
-                        <div className="rounded-2xl border border-pub-border bg-pub-surface p-5 space-y-3">
+                        <div className="rounded-lg border border-pub-border bg-pub-surface p-5 space-y-3">
                             <p className="text-sm 3xl:text-base">{t('global.loginText')}</p>
-                            <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hover text-white font-bold text-sm 3xl:text-base">{t('global.loginButton')}</a>
+                            <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-lg bg-pub-accent hover:bg-pub-accent-hover text-ds-text font-bold text-sm 3xl:text-base">{t('global.loginButton')}</a>
                         </div>
                     )}
-                    {loggedIn && access === 'checking' && <p className="font-mono text-sm text-[#71717a] animate-pulse">{t('global.loading')}</p>}
+                    {loggedIn && access === 'checking' && <p className="font-mono text-sm text-ds-soft animate-pulse">{t('global.loading')}</p>}
                     {loggedIn && access === 'no' && <GlobalEmotesAccessCard onGranted={() => setAccess('yes')} />}
                     {access === 'yes' && <GlobalEmotesAdmin embedded />}
                 </section>

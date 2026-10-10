@@ -52,34 +52,34 @@ export default function MediaSelector({
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ds-input bg-opacity-50 backdrop-blur-sm">
+            <div className="bg-ds-surface rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-[#e2e8f0] dark:border-[#374151]">
+                <div className="flex items-center justify-between p-6 border-b border-ds-border">
                     <div>
-                        <h2 className="text-2xl font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                        <h2 className="text-2xl font-bold text-ds-text">
                             Seleccionar Archivo
                         </h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mt-1">
+                        <p className="text-sm text-ds-soft mt-1">
                             Elige un archivo de tu galería o usa una URL externa
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
                     >
-                        <X className="w-6 h-6 text-[#64748b] dark:text-[#94a3b8]" />
+                        <X className="w-6 h-6 text-ds-soft" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-[#e2e8f0] dark:border-[#374151] px-6">
+                <div className="flex border-b border-ds-border px-6">
                     <button
                         onClick={() => setActiveTab('gallery')}
                         className={`px-6 py-3 font-semibold border-b-2 transition-colors ${
                             activeTab === 'gallery'
-                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                : 'border-transparent text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc]'
+                                ? 'border-ds-accent text-ds-accent-text '
+                                : 'border-transparent text-ds-soft hover:text-ds-text '
                         }`}
                     >
                         <span className="flex items-center gap-2">
@@ -91,8 +91,8 @@ export default function MediaSelector({
                         onClick={() => setActiveTab('url')}
                         className={`px-6 py-3 font-semibold border-b-2 transition-colors ${
                             activeTab === 'url'
-                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                : 'border-transparent text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-[#f8fafc]'
+                                ? 'border-ds-accent text-ds-accent-text '
+                                : 'border-transparent text-ds-soft hover:text-ds-text '
                         }`}
                     >
                         <span className="flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function MediaSelector({
                     ) : (
                         <div className="max-w-2xl mx-auto space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                <label className="block text-sm font-semibold text-ds-text mb-2">
                                     URL del archivo
                                 </label>
                                 <input
@@ -123,13 +123,13 @@ export default function MediaSelector({
                                     value={externalUrl}
                                     onChange={(e) => setExternalUrl(e.target.value)}
                                     placeholder="https://ejemplo.com/imagen.png"
-                                    className="w-full px-4 py-3 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-ds-border rounded-lg bg-ds-surface text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent"
                                 />
                             </div>
 
                             {externalUrl && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                                <div className="bg-ds-accent/10 border border-ds-accent rounded-lg p-4">
+                                    <p className="text-sm text-ds-accent-text">
                                         ℹ️ Asegúrate de que la URL sea pública y accesible desde cualquier navegador.
                                     </p>
                                 </div>
@@ -137,8 +137,8 @@ export default function MediaSelector({
 
                             {/* Preview de URL externa */}
                             {externalUrl && (externalUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) && (
-                                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-                                    <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                                <div className="bg-ds-bg rounded-lg p-4">
+                                    <p className="text-sm font-semibold text-ds-text mb-2">
                                         Vista previa:
                                     </p>
                                     <img
@@ -156,23 +156,23 @@ export default function MediaSelector({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between p-6 border-t border-[#e2e8f0] dark:border-[#374151] bg-gray-50 dark:bg-[#262626]">
-                    <div className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                <div className="flex items-center justify-between p-6 border-t border-ds-border bg-ds-surface">
+                    <div className="text-sm text-ds-soft">
                         {activeTab === 'gallery' && selectedFile && (
                             <span>
-                                Seleccionado: <strong className="text-[#1e293b] dark:text-[#f8fafc]">{selectedFile.originalFileName}</strong>
+                                Seleccionado: <strong className="text-ds-text">{selectedFile.originalFileName}</strong>
                             </span>
                         )}
                         {activeTab === 'url' && externalUrl && (
                             <span>
-                                URL: <strong className="text-[#1e293b] dark:text-[#f8fafc] truncate max-w-md inline-block align-bottom">{externalUrl}</strong>
+                                URL: <strong className="text-ds-text truncate max-w-md inline-block align-bottom">{externalUrl}</strong>
                             </span>
                         )}
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold transition-colors"
+                            className="px-6 py-2.5 border border-ds-border rounded-lg text-ds-soft hover:bg-ds-bg font-semibold transition-colors"
                         >
                             Cancelar
                         </button>
@@ -182,7 +182,7 @@ export default function MediaSelector({
                                 (activeTab === 'gallery' && !selectedFile) ||
                                 (activeTab === 'url' && !externalUrl)
                             }
-                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
+                            className="px-6 py-2.5 bg-ds-accent hover:bg-ds-accent-hover disabled:bg-ds-faint disabled:cursor-not-allowed text-ds-on-accent rounded-lg font-semibold transition-colors"
                         >
                             Seleccionar
                         </button>

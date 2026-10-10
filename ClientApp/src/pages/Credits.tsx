@@ -31,10 +31,10 @@ const FEATURE_ICON: Record<string, JSX.Element> = {
     event_alerts: <Bell className="w-4 h-4" />, speak_chat: <MessageSquare className="w-4 h-4" />, timer_alerts: <Clock className="w-4 h-4" />,
 };
 const fmt = (n: number) => n.toLocaleString();
-const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]';
-const muted = 'text-sm text-[#64748b] dark:text-[#94a3b8]';
-const h2 = 'text-lg font-black text-[#1e293b] dark:text-[#f8fafc]';
-const select = 'px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#111213] text-sm text-[#1e293b] dark:text-[#f8fafc]';
+const card = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const muted = 'text-sm text-ds-soft ';
+const h2 = 'text-lg font-black text-ds-text ';
+const select = 'px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-sm text-ds-text ';
 
 export default function Credits() {
     const { t } = useTranslation('features', { keyPrefix: 'credits' });
@@ -72,8 +72,8 @@ export default function Credits() {
     useEffect(() => { loadSummary(); }, [loadSummary]);
     useEffect(() => { loadHistory(); }, [loadHistory]);
 
-    if (loading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" /></div>;
-    if (!summary) return <div className={`${card} text-red-500`}>{error ?? t('loadError')}</div>;
+    if (loading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" /></div>;
+    if (!summary) return <div className={`${card} text-ds-danger`}>{error ?? t('loadError')}</div>;
 
     const s = summary;
     const pct = s.monthlyGranted > 0 ? Math.min(100, (s.monthlyUsed / s.monthlyGranted) * 100) : 0;
@@ -85,43 +85,43 @@ export default function Credits() {
         <div className="space-y-6 max-w-[1100px] mx-auto">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{t('title')}</h1>
+                    <h1 className="text-3xl font-black text-ds-text">{t('title')}</h1>
                     <p className={`${muted} mt-2`}>{t('subtitle')}</p>
                 </div>
-                <button onClick={() => { loadSummary(); loadHistory(); }} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]" title={t('refresh')}><RefreshCw className="w-4 h-4 text-[#64748b]" /></button>
+                <button onClick={() => { loadSummary(); loadHistory(); }} className="p-2 rounded-lg border border-ds-border hover:bg-ds-raised" title={t('refresh')}><RefreshCw className="w-4 h-4 text-ds-soft" /></button>
             </div>
 
             {/* Saldo */}
-            <div className="bg-gradient-to-r from-[#1a1b1e] to-[#2d2f36] rounded-2xl p-6 border border-[#374151] shadow-lg">
+            <div className="bg-gradient-to-r from-[#1a1b1e] to-[#2d2f36] rounded-lg p-6 border border-ds-border">
                 <div className="flex flex-wrap items-center gap-6">
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-full bg-[#9146FF]/20 flex items-center justify-center flex-shrink-0"><Coins className="w-8 h-8 text-[#bf94ff]" /></div>
                         <div>
-                            <p className="text-sm text-[#94a3b8]">{t('available')}</p>
-                            <p className="text-4xl font-black text-white">{s.isUnlimited ? '∞' : fmt(s.totalAvailable)}</p>
-                            <p className="text-sm text-[#94a3b8]">{t('credits')} · {t('plan')} <b className="text-white capitalize">{s.tier}</b></p>
+                            <p className="text-sm text-ds-soft">{t('available')}</p>
+                            <p className="text-4xl font-black text-ds-text">{s.isUnlimited ? '∞' : fmt(s.totalAvailable)}</p>
+                            <p className="text-sm text-ds-soft">{t('credits')} · {t('plan')} <b className="text-ds-text capitalize">{s.tier}</b></p>
                         </div>
                     </div>
                     <div className="flex-1 min-w-[260px] grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <p className="text-[#94a3b8]">{t('monthly')}</p>
-                            <p className="text-white font-bold">{s.isUnlimited ? '∞' : `${fmt(s.monthlyRemaining)} / ${fmt(s.monthlyGranted)}`}</p>
-                            {!s.isUnlimited && <div className="h-1.5 mt-1.5 rounded-full bg-white/10"><div className="h-1.5 rounded-full bg-[#bf94ff]" style={{ width: `${100 - pct}%` }} /></div>}
+                            <p className="text-ds-soft">{t('monthly')}</p>
+                            <p className="text-ds-text font-bold">{s.isUnlimited ? '∞' : `${fmt(s.monthlyRemaining)} / ${fmt(s.monthlyGranted)}`}</p>
+                            {!s.isUnlimited && <div className="h-1.5 mt-1.5 rounded-full bg-ds-surface/10"><div className="h-1.5 rounded-full bg-[#bf94ff]" style={{ width: `${100 - pct}%` }} /></div>}
                         </div>
                         <div>
-                            <p className="text-[#94a3b8]">{t('purchased')}</p>
-                            <p className="text-white font-bold">{fmt(s.purchasedBalance)}</p>
-                            <p className="text-xs text-[#94a3b8] mt-1">{t('purchasedHint')}</p>
+                            <p className="text-ds-soft">{t('purchased')}</p>
+                            <p className="text-ds-text font-bold">{fmt(s.purchasedBalance)}</p>
+                            <p className="text-xs text-ds-soft mt-1">{t('purchasedHint')}</p>
                         </div>
                     </div>
                     <div className="w-full sm:w-auto">
-                        <a href="#buy" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#9146FF] hover:bg-[#7c3aed] text-white font-bold text-sm">{t('getMore')}</a>
-                        <Link to="/supporters" className="block mt-2 text-xs text-[#94a3b8] hover:underline">{t('orPlan')}</Link>
+                        <a href="#buy" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover text-ds-text font-bold text-sm">{t('getMore')}</a>
+                        <Link to="/supporters" className="block mt-2 text-xs text-ds-soft hover:underline">{t('orPlan')}</Link>
                     </div>
                 </div>
-                {s.inTransitionWindow && s.transitionEndsAt && <p className="text-xs text-amber-300 mt-4">{t('transition', { date: new Date(s.transitionEndsAt).toLocaleDateString() })}</p>}
-                {s.tierExpiresAt && <p className="text-xs text-[#94a3b8] mt-2">{t('expires', { date: new Date(s.tierExpiresAt).toLocaleDateString() })}</p>}
-                {!s.isUnlimited && s.totalAvailable <= 0 && <p className="text-sm text-amber-300 mt-4">{t('empty')}</p>}
+                {s.inTransitionWindow && s.transitionEndsAt && <p className="text-xs text-ds-warn mt-4">{t('transition', { date: new Date(s.transitionEndsAt).toLocaleDateString() })}</p>}
+                {s.tierExpiresAt && <p className="text-xs text-ds-soft mt-2">{t('expires', { date: new Date(s.tierExpiresAt).toLocaleDateString() })}</p>}
+                {!s.isUnlimited && s.totalAvailable <= 0 && <p className="text-sm text-ds-warn mt-4">{t('empty')}</p>}
             </div>
 
             <BuyCreditsSection canBuy={permissions.isOwner} onPurchased={loadSummary} />
@@ -131,7 +131,7 @@ export default function Credits() {
                 <div className={card}>
                     <div className="flex items-center justify-between mb-1">
                         <h2 className={h2}>{t('spentTitle')}</h2>
-                        <span className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{fmt(spentPeriod)} <span className={muted}>({usdPer(spentPeriod)})</span></span>
+                        <span className="text-sm font-bold text-ds-text">{fmt(spentPeriod)} <span className={muted}>({usdPer(spentPeriod)})</span></span>
                     </div>
                     <p className={`${muted} mb-4`}>{t('spentHint', { date: new Date(s.monthlyPeriod).toLocaleDateString() })}</p>
                     {s.byFeature.length === 0 ? <p className={muted}>{t('nothingYet')}</p> : (
@@ -139,10 +139,10 @@ export default function Credits() {
                             {s.byFeature.map(f => (
                                 <li key={f.feature}>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="flex items-center gap-2 text-[#1e293b] dark:text-[#f8fafc]"><span className="text-[#9146FF]">{FEATURE_ICON[f.feature] ?? <Cpu className="w-4 h-4" />}</span>{featureName(f.feature)} <span className={muted}>· {f.entries}</span></span>
-                                        <span className="font-mono font-semibold text-[#1e293b] dark:text-[#f8fafc]">{fmt(f.credits)}</span>
+                                        <span className="flex items-center gap-2 text-ds-text"><span className="text-[#9146FF]">{FEATURE_ICON[f.feature] ?? <Cpu className="w-4 h-4" />}</span>{featureName(f.feature)} <span className={muted}>· {f.entries}</span></span>
+                                        <span className="font-mono font-semibold text-ds-text">{fmt(f.credits)}</span>
                                     </div>
-                                    <div className="h-1.5 mt-1 rounded-full bg-[#f1f5f9] dark:bg-[#262626]"><div className="h-1.5 rounded-full bg-[#9146FF]" style={{ width: `${spentPeriod ? (f.credits / spentPeriod) * 100 : 0}%` }} /></div>
+                                    <div className="h-1.5 mt-1 rounded-full bg-ds-raised"><div className="h-1.5 rounded-full bg-[#9146FF]" style={{ width: `${spentPeriod ? (f.credits / spentPeriod) * 100 : 0}%` }} /></div>
                                 </li>
                             ))}
                         </ul>
@@ -154,13 +154,13 @@ export default function Credits() {
                     <h2 className={h2}>{t('standardTitle')}</h2>
                     <p className={`${muted} mb-4`}>{t('standardHint')}</p>
                     <div className="flex items-baseline justify-between text-sm mb-1">
-                        <span className="text-[#1e293b] dark:text-[#f8fafc] font-bold">{s.isUnlimited ? '∞' : `${fmt(s.standardRemaining)} / ${fmt(s.standardGranted)}`}</span>
+                        <span className="text-ds-text font-bold">{s.isUnlimited ? '∞' : `${fmt(s.standardRemaining)} / ${fmt(s.standardGranted)}`}</span>
                         <span className={muted}>{t('standardUsed', { n: fmt(s.standardUsed) })}</span>
                     </div>
-                    {!s.isUnlimited && <div className="h-1.5 rounded-full bg-[#f1f5f9] dark:bg-[#262626]"><div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${100 - stdPct}%` }} /></div>}
+                    {!s.isUnlimited && <div className="h-1.5 rounded-full bg-ds-raised"><div className="h-1.5 rounded-full bg-ds-accent" style={{ width: `${100 - stdPct}%` }} /></div>}
                     {s.standardByFeature.length > 0 && (
                         <ul className="mt-4 space-y-1 text-sm">
-                            {s.standardByFeature.map(f => <li key={f.feature} className="flex justify-between"><span className="text-[#1e293b] dark:text-[#f8fafc]">{featureName(f.feature)}</span><span className={`font-mono ${muted}`}>{fmt(f.credits)}</span></li>)}
+                            {s.standardByFeature.map(f => <li key={f.feature} className="flex justify-between"><span className="text-ds-text">{featureName(f.feature)}</span><span className={`font-mono ${muted}`}>{fmt(f.credits)}</span></li>)}
                         </ul>
                     )}
                 </div>
@@ -191,18 +191,18 @@ export default function Credits() {
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead><tr className="text-left text-[#64748b] dark:text-[#94a3b8]"><th className="py-1 font-medium">{t('col.when')}</th><th className="py-1 font-medium">{t('col.what')}</th><th className="py-1 font-medium">{t('col.detail')}</th><th className="py-1 font-medium text-right">{t('col.credits')}</th></tr></thead>
-                        <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                        <thead><tr className="text-left text-ds-soft"><th className="py-1 font-medium">{t('col.when')}</th><th className="py-1 font-medium">{t('col.what')}</th><th className="py-1 font-medium">{t('col.detail')}</th><th className="py-1 font-medium text-right">{t('col.credits')}</th></tr></thead>
+                        <tbody className="text-ds-text">
                             {history?.entries.map(e => (
                                 <Fragment key={e.id}>
-                                    <tr className="border-t border-[#f1f5f9] dark:border-[#26262c]">
+                                    <tr className="border-t border-ds-border">
                                         <td className="py-1.5 text-xs whitespace-nowrap">{new Date(e.createdAt).toLocaleString()}</td>
                                         <td className="text-xs">
-                                            <span className="inline-flex items-center gap-1.5">{e.type === 'consume' ? <span className="text-[#9146FF]">{FEATURE_ICON[e.feature ?? ''] ?? <Cpu className="w-4 h-4" />}</span> : <Coins className="w-4 h-4 text-emerald-500" />}{e.type === 'consume' ? featureName(e.feature) : t(`types.${e.type}`, { defaultValue: e.type })}</span>
-                                            {e.bucket === 'standard' && <span className="ml-1 text-[10px] uppercase text-emerald-600 dark:text-emerald-400">{t('standardTag')}</span>}
+                                            <span className="inline-flex items-center gap-1.5">{e.type === 'consume' ? <span className="text-[#9146FF]">{FEATURE_ICON[e.feature ?? ''] ?? <Cpu className="w-4 h-4" />}</span> : <Coins className="w-4 h-4 text-ds-accent-text" />}{e.type === 'consume' ? featureName(e.feature) : t(`types.${e.type}`, { defaultValue: e.type })}</span>
+                                            {e.bucket === 'standard' && <span className="ml-1 text-[10px] uppercase text-ds-ok">{t('standardTag')}</span>}
                                         </td>
-                                        <td className="text-xs text-[#64748b] dark:text-[#94a3b8]">{[engineName(e.engine, e.voice), e.engine !== 'ai' && e.voice ? e.voice : null, e.language?.toUpperCase(), e.chars != null && e.engine !== 'ai' ? t('chars', { n: fmt(e.chars) }) : null, e.note].filter(Boolean).join(' · ')}</td>
-                                        <td className={`text-right font-mono text-xs ${e.credits < 0 ? '' : 'text-emerald-500'}`}>{e.credits > 0 ? '+' : ''}{fmt(e.credits)}</td>
+                                        <td className="text-xs text-ds-soft">{[engineName(e.engine, e.voice), e.engine !== 'ai' && e.voice ? e.voice : null, e.language?.toUpperCase(), e.chars != null && e.engine !== 'ai' ? t('chars', { n: fmt(e.chars) }) : null, e.note].filter(Boolean).join(' · ')}</td>
+                                        <td className={`text-right font-mono text-xs ${e.credits < 0 ? '' : 'text-ds-ok'}`}>{e.credits > 0 ? '+' : ''}{fmt(e.credits)}</td>
                                     </tr>
                                 </Fragment>
                             ))}
@@ -212,9 +212,9 @@ export default function Credits() {
                 </div>
                 {history && history.totalPages > 1 && (
                     <div className="flex items-center justify-end gap-1 mt-4">
-                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || loadingHistory} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40"><ChevronLeft className="w-4 h-4" /></button>
+                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || loadingHistory} className="p-2 rounded-lg border border-ds-border disabled:opacity-40"><ChevronLeft className="w-4 h-4" /></button>
                         <span className="text-xs px-2">{history.page} / {history.totalPages}</span>
-                        <button onClick={() => setPage(p => Math.min(history.totalPages, p + 1))} disabled={page >= history.totalPages || loadingHistory} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40"><ChevronRight className="w-4 h-4" /></button>
+                        <button onClick={() => setPage(p => Math.min(history.totalPages, p + 1))} disabled={page >= history.totalPages || loadingHistory} className="p-2 rounded-lg border border-ds-border disabled:opacity-40"><ChevronRight className="w-4 h-4" /></button>
                     </div>
                 )}
             </div>
@@ -224,10 +224,10 @@ export default function Credits() {
 
 function Rate({ icon, label, value, sub }: { icon: JSX.Element; label: string; value: string; sub?: string }) {
     return (
-        <div className="p-3 rounded-xl bg-[#f8fafc] dark:bg-[#111213] border border-[#e2e8f0] dark:border-[#26262c]">
-            <div className="flex items-center gap-2 text-[#64748b] dark:text-[#94a3b8]"><span className="text-[#9146FF]">{icon}</span><span className="text-xs">{label}</span></div>
-            <div className="font-bold text-[#1e293b] dark:text-[#f8fafc] mt-1">{value}</div>
-            {sub && <div className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">{sub}</div>}
+        <div className="p-3 rounded-lg bg-ds-bg border border-ds-border">
+            <div className="flex items-center gap-2 text-ds-soft"><span className="text-[#9146FF]">{icon}</span><span className="text-xs">{label}</span></div>
+            <div className="font-bold text-ds-text mt-1">{value}</div>
+            {sub && <div className="text-xs text-ds-soft mt-0.5">{sub}</div>}
         </div>
     );
 }

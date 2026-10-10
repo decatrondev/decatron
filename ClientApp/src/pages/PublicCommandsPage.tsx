@@ -62,7 +62,7 @@ export default function PublicCommandsPage() {
         .filter(g => g.list.length > 0);
 
     return (
-        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] font-mono relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-ds-text font-mono relative overflow-x-hidden">
             {/* Textura de fondo: scanlines + grid sutil */}
             <div
                 className="pointer-events-none fixed inset-0 opacity-[0.04]"
@@ -87,37 +87,37 @@ export default function PublicCommandsPage() {
                         <span className="opacity-40">:</span>
                         <span className="opacity-90">~</span>
                         <span className="opacity-40">$</span>{' '}
-                        <span className="text-[#d4d4d8]">./comandos --canal={channelName}</span>
+                        <span className="text-ds-text">./comandos --canal={channelName}</span>
                         <span className="inline-block w-2 h-4 bg-pub-accent ml-1 align-middle animate-[blink_1s_step-end_infinite]" />
                     </p>
-                    <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                    <h1 className="text-3xl sm:text-4xl font-black text-ds-text tracking-tight">
                         {displayName || channelName}
                         <span className="text-pub-accent-hi">_</span>
                     </h1>
-                    <p className="text-sm text-[#71717a] mt-2">
+                    <p className="text-sm text-ds-soft mt-2">
                         {status === 'ok' && `${items.length} comando${items.length === 1 ? '' : 's'} disponible${items.length === 1 ? '' : 's'} en este canal`}
                     </p>
                 </div>
 
                 {status === 'loading' && (
-                    <p className="text-[#71717a] text-sm animate-pulse">cargando comandos...</p>
+                    <p className="text-ds-soft text-sm animate-pulse">cargando comandos...</p>
                 )}
 
                 {status === 'notfound' && (
                     <div className="border border-[#3f3f46] rounded-lg p-6 bg-pub-surface">
-                        <p className="text-red-400 text-sm">error: canal "{channelName}" no encontrado</p>
+                        <p className="text-ds-danger text-sm">error: canal "{channelName}" no encontrado</p>
                     </div>
                 )}
 
                 {status === 'error' && (
                     <div className="border border-[#3f3f46] rounded-lg p-6 bg-pub-surface">
-                        <p className="text-red-400 text-sm">error: no se pudo cargar la lista de comandos</p>
+                        <p className="text-ds-danger text-sm">error: no se pudo cargar la lista de comandos</p>
                     </div>
                 )}
 
                 {status === 'ok' && items.length === 0 && (
                     <div className="border border-[#3f3f46] rounded-lg p-6 bg-pub-surface">
-                        <p className="text-[#71717a] text-sm"># este canal todavía no tiene comandos públicos</p>
+                        <p className="text-ds-soft text-sm"># este canal todavía no tiene comandos públicos</p>
                     </div>
                 )}
 
@@ -129,7 +129,7 @@ export default function PublicCommandsPage() {
                     >
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-pub-accent-hi text-xs">#</span>
-                            <span className="text-xs uppercase tracking-widest text-[#a1a1aa] font-bold">
+                            <span className="text-xs uppercase tracking-widest text-ds-soft font-bold">
                                 {CATEGORY_LABELS[group.category]}
                             </span>
                             <span className="text-[#3f3f46] text-xs">({group.list.length})</span>
@@ -151,7 +151,7 @@ export default function PublicCommandsPage() {
                                     key={`${item.category}-${item.name}-${i}`}
                                     className="group flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-1.5 hover:bg-pub-surface hover:pl-2 -ml-2 pr-2 rounded transition-all"
                                 >
-                                    <span className="text-white font-bold text-sm">
+                                    <span className="text-ds-text font-bold text-sm">
                                         {item.name}
                                     </span>
                                     {item.restriction && RESTRICTION_LABELS[item.restriction] && (
@@ -160,7 +160,7 @@ export default function PublicCommandsPage() {
                                         </span>
                                     )}
                                     {item.description && (
-                                        <span className="text-[#71717a] text-sm">
+                                        <span className="text-ds-soft text-sm">
                                             {item.description}
                                         </span>
                                     )}

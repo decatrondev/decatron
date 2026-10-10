@@ -4,17 +4,17 @@ import { ColorWithAlphaField } from '../../pages/features/timer-extension/compon
 // Piezas de formulario compartidas por los editores de overlays (mismo estilo que /overlays/timer).
 
 export const inputClass =
-    'w-full px-3 py-2 border border-[#e2e8f0] dark:border-[#374151] rounded-lg bg-white dark:bg-[#262626] text-[#1e293b] dark:text-[#f8fafc] text-sm 3xl:text-base focus:outline-none focus:ring-2 focus:ring-[#2563eb]/40';
-export const labelClass = 'block text-xs 3xl:text-sm font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 uppercase';
+    'w-full px-3 py-2 border border-ds-border rounded-lg bg-ds-surface text-ds-text text-sm 3xl:text-base focus:outline-none focus:ring-2 focus:ring-ds-accent/40';
+export const labelClass = 'block text-xs 3xl:text-sm font-bold text-ds-soft mb-1 uppercase';
 
 export function Card({ title, description, children, actions }: { title?: string; description?: string; children: ReactNode; actions?: ReactNode }) {
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-5 3xl:p-6 shadow-lg">
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-5 3xl:p-6">
             {(title || actions) && (
                 <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
-                        {title && <h3 className="text-base 3xl:text-lg font-bold text-[#1e293b] dark:text-[#f8fafc]">{title}</h3>}
-                        {description && <p className="text-sm 3xl:text-base text-[#64748b] dark:text-[#94a3b8] mt-1">{description}</p>}
+                        {title && <h3 className="text-base 3xl:text-lg font-bold text-ds-text">{title}</h3>}
+                        {description && <p className="text-sm 3xl:text-base text-ds-soft mt-1">{description}</p>}
                     </div>
                     {actions}
                 </div>
@@ -29,7 +29,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
         <div>
             <label className={labelClass}>{label}</label>
             {children}
-            {hint && <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-1">{hint}</p>}
+            {hint && <p className="text-xs 3xl:text-sm text-ds-soft mt-1">{hint}</p>}
         </div>
     );
 }
@@ -42,13 +42,13 @@ export function Toggle({ checked, onChange, label, hint }: { checked: boolean; o
                 role="switch"
                 aria-checked={checked}
                 onClick={() => onChange(!checked)}
-                className={`mt-0.5 relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? 'bg-[#2563eb]' : 'bg-[#cbd5e1] dark:bg-[#374151]'}`}
+                className={`mt-0.5 relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? 'bg-ds-accent' : 'bg-ds-border '}`}
             >
-                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-ds-surface shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </button>
             <span>
-                <span className="block text-sm 3xl:text-base font-semibold text-[#1e293b] dark:text-[#f8fafc]">{label}</span>
-                {hint && <span className="block text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mt-0.5">{hint}</span>}
+                <span className="block text-sm 3xl:text-base font-semibold text-ds-text">{label}</span>
+                {hint && <span className="block text-xs 3xl:text-sm text-ds-soft mt-0.5">{hint}</span>}
             </span>
         </label>
     );
@@ -74,8 +74,8 @@ export function NumberInput({ value, onChange, min, max, step = 1 }: { value: nu
 export function Slider({ value, onChange, min, max, step = 1, suffix = '' }: { value: number; onChange: (v: number) => void; min: number; max: number; step?: number; suffix?: string }) {
     return (
         <div className="flex items-center gap-3">
-            <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} className="flex-1 accent-[#2563eb]" />
-            <span className="w-14 text-right font-mono text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8]">{value}{suffix}</span>
+            <input type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} className="flex-1 accent-ds-accent" />
+            <span className="w-14 text-right font-mono text-xs 3xl:text-sm text-ds-soft">{value}{suffix}</span>
         </div>
     );
 }
@@ -106,7 +106,7 @@ export function CopyButton({ text, label, doneLabel }: { text: string; label: st
                 window.clearTimeout(timer.current);
                 timer.current = window.setTimeout(() => setDone(false), 1800);
             }}
-            className="px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-colors shrink-0"
+            className="px-3 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent transition-colors shrink-0"
         >
             {done ? doneLabel : label}
         </button>

@@ -22,11 +22,11 @@ interface AchievementsTabProps {
   onResetAll?: () => void;
 }
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const labelClass = 'text-sm font-bold text-gray-700 dark:text-gray-300';
-const inputClass = 'w-full px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent';
-const selectClass = `${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`;
-const btnPrimary = 'px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white font-bold rounded-xl';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const labelClass = 'text-sm font-bold text-ds-soft ';
+const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
+const selectClass = `${inputClass} [&>option]:bg-ds-surface `;
+const btnPrimary = 'px-4 py-2 bg-ds-accent text-ds-on-accent font-bold rounded-lg';
 
 const conditionLabel = (type: string, value: number): string => {
   switch (type) {
@@ -66,20 +66,20 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
   const renderRow = (achievement: AchievementData, showDelete: boolean) => (
     <div
       key={achievement.id}
-      className="flex items-center gap-4 p-4 rounded-xl bg-[#f8fafc] dark:bg-[#374151]/30 hover:bg-[#f1f5f9] dark:hover:bg-[#374151]/50 transition-colors"
+      className="flex items-center gap-4 p-4 rounded-lg bg-ds-bg hover:bg-ds-raised transition-colors"
     >
       <span className="text-2xl flex-shrink-0">{achievement.icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{achievement.name}</p>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] truncate">{achievement.description}</p>
+        <p className="text-sm font-bold text-ds-text truncate">{achievement.name}</p>
+        <p className="text-xs text-ds-soft truncate">{achievement.description}</p>
       </div>
-      <span className="flex-shrink-0 px-3 py-1 rounded-lg text-xs font-bold bg-[#2563eb]/10 text-[#2563eb] dark:bg-[#2563eb]/20 dark:text-[#60a5fa]">
+      <span className="flex-shrink-0 px-3 py-1 rounded-lg text-xs font-bold bg-ds-accent/10 text-ds-accent-text">
         {conditionLabel(achievement.conditionType, achievement.conditionValue)}
       </span>
       {showDelete && (
         <button
           onClick={() => onDelete(achievement.id)}
-          className="flex-shrink-0 p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+          className="flex-shrink-0 p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -91,7 +91,7 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
           onChange={e => onToggle(achievement.id, e.target.checked)}
           className="sr-only peer"
         />
-        <div className="w-14 h-7 bg-[#e2e8f0] dark:bg-[#374151] rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-[#2563eb] peer-checked:to-[#3b82f6] transition-all duration-300 after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-7 after:shadow-md" />
+        <div className="w-14 h-7 bg-ds-raised rounded-full peer peer-checked:bg-ds-accent transition-all duration-300 after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-ds-surface after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-7" />
       </label>
     </div>
   );
@@ -99,9 +99,9 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
   if (achievements.length === 0) {
     return (
       <div className={`${cardClass} text-center py-12`}>
-        <Sparkles className="w-12 h-12 text-[#2563eb] mx-auto mb-4" />
-        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Sin Achievements</h3>
-        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-6">
+        <Sparkles className="w-12 h-12 text-ds-accent-text mx-auto mb-4" />
+        <h3 className="text-xl font-black text-ds-text mb-2">Sin Achievements</h3>
+        <p className="text-sm text-ds-soft mb-6">
           Aun no hay achievements configurados para este servidor.
         </p>
         <button
@@ -120,9 +120,9 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
       <div className={cardClass}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Trophy className="w-5 h-5 text-[#f59e0b]" />
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Achievements</h3>
-            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#f59e0b]/10 text-[#f59e0b]">
+            <Trophy className="w-5 h-5 text-ds-accent-text" />
+            <h3 className="text-lg font-black text-ds-text">Achievements</h3>
+            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-ds-warn/10 text-ds-warn">
               {achievements.length} total
             </span>
           </div>
@@ -136,7 +136,7 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
           {onResetAll && achievements.length > 0 && (
             <button
               onClick={() => { if (window.confirm('Resetear achievements de TODOS los usuarios? (Los badges se mantienen, pero todos los usuarios deberan desbloquearlos de nuevo)')) onResetAll(); }}
-              className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl border border-red-200 dark:border-red-800 flex items-center gap-2 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              className="px-4 py-2 bg-ds-danger/10 text-ds-danger font-bold rounded-lg border border-ds-danger/40 flex items-center gap-2 hover:bg-ds-danger/10 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Reset Todos
@@ -149,8 +149,8 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
       {showForm && (
         <div className={cardClass}>
           <div className="flex items-center gap-3 mb-5">
-            <Plus className="w-5 h-5 text-[#2563eb]" />
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Nuevo Achievement</h3>
+            <Plus className="w-5 h-5 text-ds-accent-text" />
+            <h3 className="text-lg font-black text-ds-text">Nuevo Achievement</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -210,7 +210,7 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
           <div className="flex justify-end gap-3 mt-5">
             <button
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl hover:bg-[#f1f5f9] dark:hover:bg-[#374151] transition-colors"
+              className="px-4 py-2 text-sm font-bold text-ds-soft bg-ds-bg border border-ds-border rounded-lg hover:bg-ds-raised transition-colors"
             >
               Cancelar
             </button>
@@ -225,9 +225,9 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
       {systemAchievements.length > 0 && (
         <div className={cardClass}>
           <div className="flex items-center gap-3 mb-5">
-            <Sparkles className="w-5 h-5 text-[#8b5cf6]" />
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Achievements del Sistema</h3>
-            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#8b5cf6]/10 text-[#8b5cf6]">
+            <Sparkles className="w-5 h-5 text-ds-accent-text" />
+            <h3 className="text-lg font-black text-ds-text">Achievements del Sistema</h3>
+            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-ds-accent/10 text-ds-accent-text">
               {systemAchievements.length}
             </span>
           </div>
@@ -241,9 +241,9 @@ export default function AchievementsTab({ guildId, achievements, onToggle, onCre
       {customAchievements.length > 0 && (
         <div className={cardClass}>
           <div className="flex items-center gap-3 mb-5">
-            <Trophy className="w-5 h-5 text-[#f59e0b]" />
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Achievements Personalizados</h3>
-            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#f59e0b]/10 text-[#f59e0b]">
+            <Trophy className="w-5 h-5 text-ds-accent-text" />
+            <h3 className="text-lg font-black text-ds-text">Achievements Personalizados</h3>
+            <span className="px-3 py-1 rounded-lg text-xs font-bold bg-ds-warn/10 text-ds-warn">
               {customAchievements.length}
             </span>
           </div>

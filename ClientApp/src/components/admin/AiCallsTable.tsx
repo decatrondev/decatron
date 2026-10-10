@@ -9,12 +9,12 @@ import api from '../../services/api';
 
 export const MODULE_LABEL: Record<string, string> = { 'twitch-chat': '!decatronai (Twitch)', 'web-chat': 'Chat web', translation: 'Traducción en vivo', 'lol-coach': 'Coach de LoL', unknown: 'Sin módulo' };
 const usd = (n: number) => `$${n.toFixed(n < 0.01 && n > 0 ? 4 : 2)}`;
-const cardClass = 'rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg';
-const h2 = 'text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4';
-const muted = 'text-xs text-[#64748b] dark:text-[#94a3b8]';
-const input = 'w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#111213] text-sm text-[#1e293b] dark:text-[#f8fafc] font-mono';
-const th = 'py-1 text-left text-[#64748b] dark:text-[#94a3b8] font-medium';
-const tr = 'border-t border-[#f1f5f9] dark:border-[#26262c]';
+const cardClass = 'rounded-lg border border-ds-border bg-ds-surface p-6 ';
+const h2 = 'text-sm font-bold text-ds-text mb-4';
+const muted = 'text-xs text-ds-soft ';
+const input = 'w-full px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-sm text-ds-text font-mono';
+const th = 'py-1 text-left text-ds-soft font-medium';
+const tr = 'border-t border-ds-border ';
 
 interface Call { id: number; module: string; provider: string; model: string; userId: number; channelName: string | null; promptTokens: number; completionTokens: number; estimatedCostUsd: number; responseTimeMs: number; success: boolean; errorMessage: string | null; usedAt: string; creditsCharged: number | null }
 interface CallsPage { page: number; pageSize: number; total: number; totalPages: number; items: Call[]; modules: string[]; models: string[] }
@@ -56,7 +56,7 @@ export function CallsTable() {
                 <h2 className={`${h2} !mb-0`}>Llamadas {data ? <span className={`${muted} font-normal`}>· {data.total.toLocaleString()} en total</span> : null}</h2>
                 <div className="flex items-center gap-2">
                     {hasFilters && <button onClick={() => { setFilters(EMPTY_FILTERS); setChannelDraft(''); setPage(1); }} className={`${muted} inline-flex items-center gap-1 hover:underline`}><X className="w-3 h-3" /> Limpiar filtros</button>}
-                    <button onClick={load} disabled={loading} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]" title="Actualizar"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
+                    <button onClick={load} disabled={loading} className="p-2 rounded-lg border border-ds-border hover:bg-ds-raised" title="Actualizar"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
                 </div>
             </div>
 
@@ -70,7 +70,7 @@ export function CallsTable() {
                     {data?.models.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
                 <form onSubmit={e => { e.preventDefault(); setFilter({ channel: channelDraft.trim() }); }} className="relative">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94a3b8]" />
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-ds-soft" />
                     <input value={channelDraft} onChange={e => setChannelDraft(e.target.value)} onBlur={() => { if (channelDraft.trim() !== filters.channel) setFilter({ channel: channelDraft.trim() }); }} placeholder="Canal…" className={`${select} !pl-8`} />
                 </form>
                 <select value={filters.success} onChange={e => setFilter({ success: e.target.value as CallFilters['success'] })} className={select}>
@@ -85,13 +85,13 @@ export function CallsTable() {
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                     <thead><tr><th className={th}></th><th className={th}>Cuándo</th><th className={th}>Módulo</th><th className={th}>Modelo</th><th className={th}>Canal</th><th className={th}>in/out</th><th className={th}>ms</th><th className={`${th} text-right`}>Costo</th><th className={`${th} text-right`}>Créditos</th><th className={`${th} text-right`}>Estado</th></tr></thead>
-                    <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                    <tbody className="text-ds-text">
                         {data?.items.map(r => {
                             const expanded = open === r.id;
                             return (
                                 <Fragment key={r.id}>
-                                    <tr className={`${tr} ${r.success ? '' : 'text-red-500'} ${r.errorMessage ? 'cursor-pointer' : ''}`} onClick={() => r.errorMessage && setOpen(expanded ? null : r.id)}>
-                                        <td className="w-5 text-[#94a3b8]">{r.errorMessage ? (expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />) : null}</td>
+                                    <tr className={`${tr} ${r.success ? '' : 'text-ds-danger'} ${r.errorMessage ? 'cursor-pointer' : ''}`} onClick={() => r.errorMessage && setOpen(expanded ? null : r.id)}>
+                                        <td className="w-5 text-ds-soft">{r.errorMessage ? (expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />) : null}</td>
                                         <td className="py-1.5 text-xs whitespace-nowrap">{new Date(r.usedAt).toLocaleString()}</td>
                                         <td className="text-xs">{MODULE_LABEL[r.module] ?? r.module}</td>
                                         <td className="font-mono text-xs">{r.model}</td>
@@ -100,10 +100,10 @@ export function CallsTable() {
                                         <td className="text-xs">{r.responseTimeMs}</td>
                                         <td className="text-right font-mono text-xs">{r.success ? usd(r.estimatedCostUsd) : '—'}</td>
                                         <td className="text-right font-mono text-xs" title={r.creditsCharged == null ? 'Anterior al cobro por créditos o sin canal' : undefined}>{r.creditsCharged == null ? '—' : r.creditsCharged.toLocaleString()}</td>
-                                        <td className="text-right text-xs">{r.success ? <span className="text-green-500">OK</span> : <span title={r.errorMessage ?? undefined}>{(r.errorMessage ?? 'error').slice(0, 24)}</span>}</td>
+                                        <td className="text-right text-xs">{r.success ? <span className="text-ds-ok">OK</span> : <span title={r.errorMessage ?? undefined}>{(r.errorMessage ?? 'error').slice(0, 24)}</span>}</td>
                                     </tr>
                                     {expanded && r.errorMessage && (
-                                        <tr className={tr}><td colSpan={10} className="py-2"><pre className="text-[11px] whitespace-pre-wrap break-all rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3">{r.errorMessage}</pre></td></tr>
+                                        <tr className={tr}><td colSpan={10} className="py-2"><pre className="text-[11px] whitespace-pre-wrap break-all rounded-lg bg-ds-danger/10 text-ds-danger p-3">{r.errorMessage}</pre></td></tr>
                                     )}
                                 </Fragment>
                             );
@@ -123,9 +123,9 @@ export function CallsTable() {
                         <span>· {(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.total)} de {data.total.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40 hover:bg-[#f1f5f9] dark:hover:bg-[#262626]"><ChevronLeft className="w-4 h-4" /></button>
-                        <span className="text-xs px-2 text-[#1e293b] dark:text-[#f8fafc]">{data.page} / {data.totalPages}</span>
-                        <button onClick={() => setPage(p => Math.min(data.totalPages, p + 1))} disabled={page >= data.totalPages || loading} className="p-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] disabled:opacity-40 hover:bg-[#f1f5f9] dark:hover:bg-[#262626]"><ChevronRight className="w-4 h-4" /></button>
+                        <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="p-2 rounded-lg border border-ds-border disabled:opacity-40 hover:bg-ds-raised"><ChevronLeft className="w-4 h-4" /></button>
+                        <span className="text-xs px-2 text-ds-text">{data.page} / {data.totalPages}</span>
+                        <button onClick={() => setPage(p => Math.min(data.totalPages, p + 1))} disabled={page >= data.totalPages || loading} className="p-2 rounded-lg border border-ds-border disabled:opacity-40 hover:bg-ds-raised"><ChevronRight className="w-4 h-4" /></button>
                     </div>
                 </div>
             )}

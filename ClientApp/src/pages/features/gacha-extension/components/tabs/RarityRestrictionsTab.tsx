@@ -94,7 +94,7 @@ export const RarityRestrictionsTab: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-ds-accent rounded-lg">
-                        <Clock className="w-6 h-6 text-ds-text" />
+                        <Clock className="w-6 h-6 text-ds-on-accent" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-ds-text">Limites por Rareza</h2>

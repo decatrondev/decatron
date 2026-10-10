@@ -14,9 +14,9 @@ import BillingConfirmModal, { type ComprobantePreview } from '../me/BillingConfi
 interface Package { id: number; name: string; description: string | null; credits: number; bonusCredits: number; total: number; priceUsd: number; highlight: boolean; perMillionUsd: number }
 interface Purchase { purchaseId: number; creditsReceived: number; createdAt: string; amount: number; currency: string; priceUsd: number; isTest: boolean; status: string | null; type: string | null; number: string | null; canDownload: boolean }
 
-const card = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]';
-const muted = 'text-sm text-[#64748b] dark:text-[#94a3b8]';
-const h2 = 'text-lg font-black text-[#1e293b] dark:text-[#f8fafc]';
+const card = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const muted = 'text-sm text-ds-soft ';
+const h2 = 'text-lg font-black text-ds-text ';
 
 export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boolean; onPurchased: () => void }) {
     const { t } = useTranslation('features', { keyPrefix: 'credits.buy' });
@@ -77,7 +77,7 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
         <>
             {pending && <BillingConfirmModal preview={preview} loading={previewLoading} error={previewError} submitError={submitError} prefiereFactura={prefiereFactura} onChangeFactura={cambiarFactura} onConfirm={confirmar} onCancel={cancelar} confirming={confirming} />}
             {toast && (
-                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-xl shadow-2xl font-semibold text-white ${toast.ok ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-lg font-semibold text-ds-on-accent ${toast.ok ? 'bg-ds-accent' : 'bg-ds-danger-solid'}`}>
                     {toast.ok ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}<p>{toast.text}</p>
                 </div>
             )}
@@ -85,21 +85,21 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
             <div id="buy" className={card}>
                 <div className="flex items-center gap-2 mb-1"><ShoppingBag className="w-5 h-5 text-[#9146FF]" /><h2 className={h2}>{t('title')}</h2></div>
                 <p className={`${muted} mb-4`}>{t('hint')}</p>
-                {!canBuy && <p className="text-sm text-amber-500 mb-4">{t('onlyOwner')}</p>}
+                {!canBuy && <p className="text-sm text-ds-warn mb-4">{t('onlyOwner')}</p>}
                 <div className="grid sm:grid-cols-3 gap-4">
                     {packages.map(p => (
-                        <div key={p.id} className={`relative p-5 rounded-xl border ${p.highlight ? 'border-[#9146FF] bg-[#9146FF]/5' : 'border-[#e2e8f0] dark:border-[#374151]'} flex flex-col`}>
-                            {p.highlight && <span className="absolute -top-2.5 left-4 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#9146FF] text-white text-[10px] font-bold uppercase"><Star className="w-3 h-3" /> {t('popular')}</span>}
-                            <div className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">{p.name}</div>
-                            <div className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc] mt-1">{p.total.toLocaleString()}</div>
+                        <div key={p.id} className={`relative p-5 rounded-lg border ${p.highlight ? 'border-[#9146FF] bg-[#9146FF]/5' : 'border-ds-border '} flex flex-col`}>
+                            {p.highlight && <span className="absolute -top-2.5 left-4 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#9146FF] text-ds-text text-[10px] font-bold uppercase"><Star className="w-3 h-3" /> {t('popular')}</span>}
+                            <div className="text-sm font-bold text-ds-text">{p.name}</div>
+                            <div className="text-3xl font-black text-ds-text mt-1">{p.total.toLocaleString()}</div>
                             <div className={muted}>{t('credits')}{p.bonusCredits > 0 && <> · {t('bonus', { n: p.bonusCredits.toLocaleString() })}</>}</div>
                             {p.description && <p className={`${muted} mt-2 flex-1`}>{p.description}</p>}
                             <div className="mt-4 flex items-end justify-between gap-2">
                                 <div>
-                                    <div className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">${p.priceUsd.toFixed(2)}</div>
-                                    <div className="text-[11px] text-[#94a3b8]">{t('perMillion', { usd: p.perMillionUsd.toFixed(0) })}</div>
+                                    <div className="text-2xl font-black text-ds-text">${p.priceUsd.toFixed(2)}</div>
+                                    <div className="text-[11px] text-ds-soft">{t('perMillion', { usd: p.perMillionUsd.toFixed(0) })}</div>
                                 </div>
-                                <button onClick={() => iniciar(p)} disabled={!canBuy || confirming} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-[#7c3aed] disabled:opacity-50 text-white text-sm font-bold">{confirming && pending?.id === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t('buy')}</button>
+                                <button onClick={() => iniciar(p)} disabled={!canBuy || confirming} className="px-4 py-2 rounded-lg bg-[#9146FF] hover:bg-ds-accent-hover disabled:opacity-50 text-ds-text text-sm font-bold">{confirming && pending?.id === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : t('buy')}</button>
                             </div>
                         </div>
                     ))}
@@ -113,14 +113,14 @@ export default function BuyCreditsSection({ canBuy, onPurchased }: { canBuy: boo
                     <h2 className={`${h2} mb-4`}>{t('purchasesTitle')}</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead><tr className="text-left text-[#64748b] dark:text-[#94a3b8]"><th className="py-1 font-medium">{t('col.when')}</th><th className="py-1 font-medium">{t('col.credits')}</th><th className="py-1 font-medium">{t('col.paid')}</th><th className="py-1 font-medium">{t('col.invoice')}</th><th className="py-1 font-medium text-right"></th></tr></thead>
-                            <tbody className="text-[#1e293b] dark:text-[#f8fafc]">
+                            <thead><tr className="text-left text-ds-soft"><th className="py-1 font-medium">{t('col.when')}</th><th className="py-1 font-medium">{t('col.credits')}</th><th className="py-1 font-medium">{t('col.paid')}</th><th className="py-1 font-medium">{t('col.invoice')}</th><th className="py-1 font-medium text-right"></th></tr></thead>
+                            <tbody className="text-ds-text">
                                 {purchases.map(p => (
-                                    <tr key={p.purchaseId} className="border-t border-[#f1f5f9] dark:border-[#26262c]">
+                                    <tr key={p.purchaseId} className="border-t border-ds-border">
                                         <td className="py-1.5 text-xs whitespace-nowrap">{new Date(p.createdAt).toLocaleString()}</td>
                                         <td className="font-mono text-xs">+{p.creditsReceived.toLocaleString()}</td>
-                                        <td className="text-xs">{p.currency === 'PEN' ? 'S/ ' : '$'}{p.amount.toFixed(2)} <span className={muted}>(${p.priceUsd.toFixed(2)})</span>{p.isTest && <span className="ml-1 text-[10px] uppercase text-amber-500">test</span>}</td>
-                                        <td className="text-xs">{p.number ? <>{p.type === 'FACTURA' ? t('factura') : t('boleta')} {p.number}</> : p.status === 'PENDING' ? <span className={muted}>{t('invoicePending')}</span> : p.status === 'ERROR' ? <span className="text-red-500">{t('invoiceError')}</span> : <span className={muted}>—</span>}</td>
+                                        <td className="text-xs">{p.currency === 'PEN' ? 'S/ ' : '$'}{p.amount.toFixed(2)} <span className={muted}>(${p.priceUsd.toFixed(2)})</span>{p.isTest && <span className="ml-1 text-[10px] uppercase text-ds-warn">test</span>}</td>
+                                        <td className="text-xs">{p.number ? <>{p.type === 'FACTURA' ? t('factura') : t('boleta')} {p.number}</> : p.status === 'PENDING' ? <span className={muted}>{t('invoicePending')}</span> : p.status === 'ERROR' ? <span className="text-ds-danger">{t('invoiceError')}</span> : <span className={muted}>—</span>}</td>
                                         <td className="text-right">{p.canDownload && <button onClick={() => descargar(p)} disabled={downloading === p.purchaseId} className="inline-flex items-center gap-1 text-xs text-[#9146FF] hover:underline disabled:opacity-50">{downloading === p.purchaseId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} PDF</button>}</td>
                                     </tr>
                                 ))}

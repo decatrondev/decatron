@@ -143,7 +143,7 @@ export const SoundsTab: React.FC = () => {
             {/* Header */}
             <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
                 <div className="p-3 bg-gradient-to-r from-ds-accent to-fuchsia-600 rounded-lg">
-                    <Volume2 className="w-6 h-6 text-ds-text" />
+                    <Volume2 className="w-6 h-6 text-ds-on-accent" />
                 </div>
                 <div className="flex-1">
                     <h2 className="text-2xl font-black text-ds-text">Sonidos</h2>

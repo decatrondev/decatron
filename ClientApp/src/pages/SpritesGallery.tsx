@@ -124,17 +124,17 @@ export default function SpritesGallery() {
 
             {!isLoggedIn && showGuestBanner && !dismissedBanner && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
-                    <div className="bg-pub-surface border border-pub-accent/40 rounded-lg p-4 shadow-2xl shadow-black/60">
+                    <div className="bg-pub-surface border border-pub-accent/40 rounded-lg p-4 shadow-black/60">
                         <div className="flex items-start gap-3">
                             <Zap className="w-5 h-5 text-pub-accent-hi flex-shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
-                                <p className="font-bold text-white text-sm">
+                                <p className="font-bold text-ds-text text-sm">
                                     {localKeys.size === 1 ? t('public.guest_one') : t('public.guest_many', { count: localKeys.size })}
                                 </p>
-                                <p className="text-[#a1a1aa] text-xs mt-1">{t('public.guest_body')}</p>
+                                <p className="text-ds-soft text-xs mt-1">{t('public.guest_body')}</p>
                                 <div className="flex gap-2 mt-3">
                                     <a href="/login" className={`${primaryButton} !text-xs !px-3`}>{t('public.guest_cta')}</a>
-                                    <button onClick={() => setDismissedBanner(true)} className="px-3 py-2 text-[#71717a] hover:text-[#d4d4d8] text-xs font-semibold transition-colors">
+                                    <button onClick={() => setDismissedBanner(true)} className="px-3 py-2 text-ds-soft hover:text-ds-text text-xs font-semibold transition-colors">
                                         {t('public.guest_later')}
                                     </button>
                                 </div>
@@ -150,7 +150,7 @@ export default function SpritesGallery() {
                 <ProgressPanel
                     items={allItems}
                     badge={!isLoggedIn && (
-                        <span className="font-mono text-xs px-2 py-0.5 rounded border uppercase tracking-wide bg-amber-400/10 text-amber-300 border-amber-400/25">
+                        <span className="font-mono text-xs px-2 py-0.5 rounded border uppercase tracking-wide bg-ds-warn/10 text-ds-warn border-ds-warn/40">
                             {t('public.unsaved')}
                         </span>
                     )}
@@ -160,13 +160,13 @@ export default function SpritesGallery() {
                     )}
                 </ProgressPanel>
             ) : (
-                <p className="mb-8 font-mono text-xs 3xl:text-sm text-[#71717a]">{t('public.hint')}</p>
+                <p className="mb-8 font-mono text-xs 3xl:text-sm text-ds-soft">{t('public.hint')}</p>
             )}
 
             <SpiritFilterBar f={f} items={allItems} />
 
             {isLoading ? (
-                <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">...</p>
+                <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">...</p>
             ) : f.filtered.length === 0 ? (
                 <EmptyNotice title={t('gallery.no_results')} hint={t('gallery.no_results_hint')} />
             ) : (
@@ -174,7 +174,7 @@ export default function SpritesGallery() {
                     {f.filtered.map(item => (
                         <div key={item.sprite.id} className="relative">
                             {pendingKey === item.sprite.spriteKey && (
-                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 rounded-xl">
+                                <div className="absolute inset-0 z-20 flex items-center justify-center bg-ds-input/50 rounded-lg">
                                     <Loader className="w-5 h-5 animate-spin text-pub-accent-hi" />
                                 </div>
                             )}

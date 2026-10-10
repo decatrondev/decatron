@@ -98,7 +98,7 @@ export function PlatformTile({
             {children}
             {on && (
                 <span className="absolute -right-1 -bottom-1 w-4 h-4 rounded-full bg-ds-ok border-2 border-ds-surface flex items-center justify-center">
-                    <CheckCircle className="w-2.5 h-2.5 text-white" />
+                    <CheckCircle className="w-2.5 h-2.5 text-ds-text" />
                 </span>
             )}
         </button>
@@ -106,7 +106,7 @@ export function PlatformTile({
 }
 
 const TIER_NEUTRAL = 'bg-ds-bg text-ds-soft border border-ds-border';
-const TIER_BRAND = 'bg-ds-accent text-white';
+const TIER_BRAND = 'bg-ds-accent text-ds-on-accent';
 const TIER_CONFIG: Record<string, { label: string; color: string; description: string }> = {
     free:      { label: 'Free',      color: TIER_NEUTRAL, description: 'Plan gratuito' },
     supporter: { label: '⚡ Supporter', color: TIER_BRAND, description: 'Gracias por apoyar el proyecto' },

@@ -50,11 +50,11 @@ interface StoreTabProps {
   onLoadPending?: () => void;
 }
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const labelClass = 'text-sm font-bold text-gray-700 dark:text-gray-300';
-const inputClass = 'w-full px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent';
-const selectClass = `${inputClass} [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]`;
-const btnPrimary = 'px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white font-bold rounded-xl';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const labelClass = 'text-sm font-bold text-ds-soft ';
+const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
+const selectClass = `${inputClass} [&>option]:bg-ds-surface `;
+const btnPrimary = 'px-4 py-2 bg-ds-accent text-ds-on-accent font-bold rounded-lg';
 
 const itemTypeLabels: Record<string, string> = {
   custom: 'Custom',
@@ -64,10 +64,10 @@ const itemTypeLabels: Record<string, string> = {
 };
 
 const itemTypeBadgeColors: Record<string, string> = {
-  custom: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
-  role_temp: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
-  channel_access: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-  shoutout: 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300',
+  custom: 'bg-ds-accent/10 text-ds-accent-text ',
+  role_temp: 'bg-ds-warn/10 text-ds-warn ',
+  channel_access: 'bg-ds-ok/10 text-ds-ok ',
+  shoutout: 'bg-ds-accent/10 text-ds-accent-text ',
 };
 
 export default function StoreTab({
@@ -226,19 +226,19 @@ export default function StoreTab({
       <div className={cardClass}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2563eb] to-[#7c3aed] flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-ds-accent flex items-center justify-center">
+              <ShoppingBag className="w-5 h-5 text-ds-on-accent" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">XP Store</h3>
-              <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+              <h3 className="text-lg font-bold text-ds-text">XP Store</h3>
+              <p className="text-sm text-ds-soft">
                 {storeItems.length} {storeItems.length === 1 ? 'item' : 'items'} disponibles
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`${btnPrimary} flex items-center gap-2 hover:shadow-lg transition-shadow`}
+            className={`${btnPrimary} flex items-center gap-2 transition-shadow`}
           >
             <Plus className="w-4 h-4" />
             Crear Item
@@ -249,8 +249,8 @@ export default function StoreTab({
       {/* Create Form */}
       {showForm && (
         <div className={cardClass}>
-          <h4 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Package className="w-5 h-5 text-[#2563eb]" />
+          <h4 className="text-base font-bold text-ds-text mb-4 flex items-center gap-2">
+            <Package className="w-5 h-5 text-ds-accent-text" />
             {editingId ? 'Editar Item' : 'Nuevo Item'}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,8 +346,8 @@ export default function StoreTab({
           {/* Conditional fields based on type */}
           {formData.itemType === 'role_temp' && (
             <div className="mt-4 space-y-3">
-              <div className="p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/50">
-                <p className="text-xs text-amber-700 dark:text-amber-400">
+              <div className="p-3 bg-ds-warn/10 rounded-lg border border-ds-warn/40">
+                <p className="text-xs text-ds-warn">
                   <strong>Importante:</strong> El rol "Decatron" debe estar arriba del rol que quieras asignar en la jerarquia de Discord.
                 </p>
               </div>
@@ -384,7 +384,7 @@ export default function StoreTab({
           {['shoutout', 'custom'].includes(formData.itemType) && (
             <div className="mt-4">
               <label className={labelClass}>Mensaje personalizado</label>
-              <p className="text-xs text-[#64748b] mt-1 mb-2">Variables: {'{user}'} = nombre, {'{mention}'} = @mencion, {'{item}'} = nombre del item</p>
+              <p className="text-xs text-ds-soft mt-1 mb-2">Variables: {'{user}'} = nombre, {'{mention}'} = @mencion, {'{item}'} = nombre del item</p>
               <input
                 type="text"
                 value={formData.customMessage || ''}
@@ -398,7 +398,7 @@ export default function StoreTab({
           {['shoutout', 'role_temp', 'channel_access', 'custom'].includes(formData.itemType) && (
             <div className="mt-4">
               <label className={labelClass}>Canal de anuncio</label>
-              <p className="text-xs text-[#64748b] mt-1 mb-2">Donde se anuncia la compra</p>
+              <p className="text-xs text-ds-soft mt-1 mb-2">Donde se anuncia la compra</p>
               <select
                 value={formData.announcementChannelId}
                 onChange={e => setFormData({ ...formData, announcementChannelId: e.target.value })}
@@ -413,12 +413,12 @@ export default function StoreTab({
           )}
 
           <div className="flex items-center gap-3 mt-5">
-            <button onClick={handleSubmit} className={`${btnPrimary} hover:shadow-lg transition-shadow`}>
+            <button onClick={handleSubmit} className={`${btnPrimary} transition-shadow`}>
               {editingId ? 'Guardar Cambios' : 'Crear Item'}
             </button>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="px-4 py-2 text-sm font-bold text-ds-soft hover:text-ds-text transition-colors"
             >
               Cancelar
             </button>
@@ -430,9 +430,9 @@ export default function StoreTab({
       {storeItems.length === 0 ? (
         <div className={cardClass}>
           <div className="text-center py-12">
-            <ShoppingBag className="w-12 h-12 mx-auto text-[#64748b] dark:text-[#94a3b8] mb-3 opacity-50" />
-            <p className="text-base font-bold text-gray-900 dark:text-white mb-1">Sin items en la tienda</p>
-            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+            <ShoppingBag className="w-12 h-12 mx-auto text-ds-soft mb-3 opacity-50" />
+            <p className="text-base font-bold text-ds-text mb-1">Sin items en la tienda</p>
+            <p className="text-sm text-ds-soft">
               Crea tu primer item para que los usuarios gasten su XP.
             </p>
           </div>
@@ -445,28 +445,28 @@ export default function StoreTab({
                 <span className="text-3xl flex-shrink-0">{item.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.name}</p>
+                    <p className="text-sm font-bold text-ds-text truncate">{item.name}</p>
                     {!item.enabled && (
-                      <span className="flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400">
+                      <span className="flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-ds-danger/10 text-ds-danger">
                         Desactivado
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3 line-clamp-2">{item.description}</p>
+                  <p className="text-xs text-ds-soft mb-3 line-clamp-2">{item.description}</p>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#2563eb]/10 text-[#2563eb] dark:bg-[#2563eb]/20 dark:text-[#60a5fa]">
+                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-ds-accent/10 text-ds-accent-text">
                       {item.cost.toLocaleString()} XP
                     </span>
                     <span className={`px-3 py-1 rounded-lg text-xs font-bold ${itemTypeBadgeColors[item.itemType] || itemTypeBadgeColors.custom}`}>
                       {itemTypeLabels[item.itemType] || item.itemType}
                     </span>
                     {['role_temp', 'channel_access'].includes(item.itemType) && item.durationHours && (
-                      <span className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 flex items-center gap-1">
+                      <span className="px-3 py-1 rounded-lg text-xs font-bold bg-ds-accent/10 text-ds-accent-text flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {formatDuration(item.durationHours)}
                       </span>
                     )}
-                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-300">
+                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-ds-bg text-ds-soft">
                       {item.maxStock === 0
                         ? 'Ilimitado'
                         : `${item.currentStock}/${item.maxStock}`}
@@ -474,30 +474,30 @@ export default function StoreTab({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-ds-border">
                 <button
                   onClick={() => handleToggleEnabled(item)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-[#2563eb] dark:hover:text-[#60a5fa] transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-bold text-ds-soft hover:text-ds-accent-text transition-colors"
                   title={item.enabled ? 'Desactivar' : 'Activar'}
                 >
                   {item.enabled ? (
-                    <ToggleRight className="w-5 h-5 text-emerald-500" />
+                    <ToggleRight className="w-5 h-5 text-ds-accent-text" />
                   ) : (
-                    <ToggleLeft className="w-5 h-5 text-gray-400" />
+                    <ToggleLeft className="w-5 h-5 text-ds-soft" />
                   )}
                   {item.enabled ? 'Activo' : 'Inactivo'}
                 </button>
                 <div className="flex-1" />
                 <button
                   onClick={() => startEdit(item)}
-                  className="p-2 rounded-lg text-[#2563eb] hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                  className="p-2 rounded-lg text-ds-accent-text hover:bg-ds-accent/10 transition-colors"
                   title="Editar item"
                 >
                   <Package className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => { if (window.confirm(`Eliminar "${item.name}"?`)) onDeleteItem(item.id); }}
-                  className="p-2 rounded-lg text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  className="p-2 rounded-lg text-ds-danger hover:text-ds-danger hover:bg-ds-danger/10 transition-colors"
                   title="Eliminar item"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -512,23 +512,23 @@ export default function StoreTab({
       {/* Pending deliveries */}
       {pendingPurchases.length > 0 && (
         <div className={cardClass}>
-          <h4 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-500" />
+          <h4 className="text-base font-bold text-ds-text mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-ds-accent-text" />
             Canjes Pendientes ({pendingPurchases.length})
           </h4>
           <div className="space-y-2">
             {pendingPurchases.map((p: any) => (
-              <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30">
+              <div key={p.id} className="flex items-center gap-3 p-3 rounded-lg bg-ds-warn/10 border border-ds-warn/40">
                 <span className="text-lg">{p.itemIcon}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">{p.username}</p>
-                  <p className="text-xs text-[#64748b]">{p.itemName} — {p.costPaid} XP</p>
+                  <p className="text-sm font-bold text-ds-text">{p.username}</p>
+                  <p className="text-xs text-ds-soft">{p.itemName} — {p.costPaid} XP</p>
                 </div>
-                <span className="text-xs text-amber-600 font-bold">Pendiente</span>
+                <span className="text-xs text-ds-warn font-bold">Pendiente</span>
                 {onDeliverPurchase && (
                   <button
                     onClick={() => onDeliverPurchase(p.id)}
-                    className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-colors"
+                    className="px-3 py-1.5 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent text-xs font-bold rounded-lg transition-colors"
                   >
                     Entregar
                   </button>
@@ -542,11 +542,11 @@ export default function StoreTab({
       {purchases.length > 0 && (
         <div className={cardClass}>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-base font-bold text-gray-900 dark:text-white">Compras Recientes</h4>
+            <h4 className="text-base font-bold text-ds-text">Compras Recientes</h4>
             {onResetAllPurchases && (
               <button
                 onClick={onResetAllPurchases}
-                className="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-red-200 dark:border-red-800"
+                className="px-3 py-1.5 text-xs font-bold text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-colors border border-ds-danger/40"
               >
                 Reset Historial
               </button>
@@ -555,26 +555,26 @@ export default function StoreTab({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                  <th className="text-left py-2 px-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">Usuario</th>
-                  <th className="text-left py-2 px-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">Item</th>
-                  <th className="text-right py-2 px-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">Costo</th>
-                  <th className="text-right py-2 px-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">Fecha</th>
-                  <th className="text-right py-2 px-3 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider"></th>
+                <tr className="border-b border-ds-border">
+                  <th className="text-left py-2 px-3 text-xs font-bold text-ds-soft uppercase tracking-wider">Usuario</th>
+                  <th className="text-left py-2 px-3 text-xs font-bold text-ds-soft uppercase tracking-wider">Item</th>
+                  <th className="text-right py-2 px-3 text-xs font-bold text-ds-soft uppercase tracking-wider">Costo</th>
+                  <th className="text-right py-2 px-3 text-xs font-bold text-ds-soft uppercase tracking-wider">Fecha</th>
+                  <th className="text-right py-2 px-3 text-xs font-bold text-ds-soft uppercase tracking-wider"></th>
                 </tr>
               </thead>
               <tbody>
                 {purchases.map(p => (
-                  <tr key={p.id} className="border-b border-[#e2e8f0]/50 dark:border-[#374151]/50 last:border-0">
-                    <td className="py-2.5 px-3 text-gray-900 dark:text-white font-medium">{p.username}</td>
-                    <td className="py-2.5 px-3 text-gray-600 dark:text-gray-400">{p.itemName || '—'}</td>
-                    <td className="py-2.5 px-3 text-right font-bold text-[#2563eb] dark:text-[#60a5fa]">{p.costPaid.toLocaleString()} XP</td>
-                    <td className="py-2.5 px-3 text-right text-[#64748b] dark:text-[#94a3b8]">{formatDate(p.purchasedAt)}</td>
+                  <tr key={p.id} className="border-b border-ds-border/50 last:border-0">
+                    <td className="py-2.5 px-3 text-ds-text font-medium">{p.username}</td>
+                    <td className="py-2.5 px-3 text-ds-soft">{p.itemName || '—'}</td>
+                    <td className="py-2.5 px-3 text-right font-bold text-ds-accent-text">{p.costPaid.toLocaleString()} XP</td>
+                    <td className="py-2.5 px-3 text-right text-ds-soft">{formatDate(p.purchasedAt)}</td>
                     <td className="py-2.5 px-3 text-right">
                       {onResetUserPurchases && (
                         <button
                           onClick={() => { if (window.confirm(`Resetear compras de ${p.username}?`)) onResetUserPurchases(p.userId); }}
-                          className="text-xs text-red-500 hover:text-red-700 font-bold"
+                          className="text-xs text-ds-danger hover:text-ds-danger font-bold"
                           title={`Reset compras de ${p.username}`}
                         >
                           Reset

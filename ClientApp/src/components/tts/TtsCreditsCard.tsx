@@ -78,32 +78,32 @@ function StandardCard({
     const exhausted = !isUnlimited && granted > 0 && remaining === 0;
 
     return (
-        <div className={`rounded-2xl border ${
+        <div className={`rounded-lg border ${
             exhausted
-                ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
-                : 'border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-900/10'
-        } ${compact ? 'p-4' : 'p-6'} shadow-lg`}>
+                ? 'border-ds-danger/40 bg-ds-danger/10 '
+                : 'border-ds-ok/40 bg-ds-ok/10 '
+        } ${compact ? 'p-4' : 'p-6'} `}>
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                     {isUnlimited
-                        ? <InfinityIcon className="w-6 h-6 text-green-600" />
-                        : <Coins className={`w-6 h-6 ${exhausted ? 'text-red-500' : 'text-green-600'}`} />
+                        ? <InfinityIcon className="w-6 h-6 text-ds-accent-text" />
+                        : <Coins className={`w-6 h-6 ${exhausted ? 'text-ds-danger' : 'text-ds-ok'}`} />
                     }
                     <div>
-                        <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                        <p className="text-xs font-bold text-ds-soft uppercase tracking-wide">
                             Voz estándar
                         </p>
-                        <p className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] leading-tight">
+                        <p className="text-xl font-black text-ds-text leading-tight">
                             {isUnlimited ? 'Ilimitada' : remaining.toLocaleString()}
                         </p>
                     </div>
                 </div>
 
                 <div className="text-right">
-                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                    <p className="text-xs font-bold text-ds-soft uppercase tracking-wide">
                         Plan
                     </p>
-                    <p className="text-sm font-black text-[#1e293b] dark:text-[#f8fafc]">
+                    <p className="text-sm font-black text-ds-text">
                         {TIER_LABEL[tier] ?? tier}
                     </p>
                 </div>
@@ -111,15 +111,15 @@ function StandardCard({
 
             {!isUnlimited && granted > 0 && (
                 <>
-                    <div className="mt-3 h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                    <div className="mt-3 h-2 bg-ds-raised rounded-full overflow-hidden">
                         <div
                             className={`h-full rounded-full transition-all ${
-                                percentage > 90 ? 'bg-red-500' : 'bg-gradient-to-r from-green-500 to-emerald-600'
+                                percentage > 90 ? 'bg-ds-danger-solid' : 'bg-ds-accent'
                             }`}
                             style={{ width: `${Math.min(percentage, 100)}%` }}
                         />
                     </div>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-3">
+                    <p className="text-xs text-ds-soft mt-3">
                         {remaining.toLocaleString()} de {granted.toLocaleString()} caracteres este mes.
                         Se reinicia el día 1 y está incluido en tu plan: no gasta créditos premium.
                     </p>
@@ -127,7 +127,7 @@ function StandardCard({
             )}
 
             {exhausted && (
-                <div className="mt-3 flex items-start gap-2 text-xs font-bold text-red-600 dark:text-red-400">
+                <div className="mt-3 flex items-start gap-2 text-xs font-bold text-ds-danger">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     Has agotado la voz estándar del mes. Puedes usar voz premium mientras tanto.
                 </div>
@@ -183,34 +183,34 @@ export function TtsCreditsCard({
     const expiryLabel = fmtDate(tierExpiresAt);
 
     const borderClass = exhausted
-        ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+        ? 'border-ds-danger/40 bg-ds-danger/10 '
         : low
-            ? 'border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20'
-            : 'border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D]';
+            ? 'border-ds-warn/40 bg-ds-warn/10 '
+            : 'border-ds-border bg-ds-surface ';
 
     return (
-        <div className={`rounded-2xl border ${borderClass} ${compact ? 'p-4' : 'p-6'} shadow-lg`}>
+        <div className={`rounded-lg border ${borderClass} ${compact ? 'p-4' : 'p-6'} `}>
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                     {isUnlimited
-                        ? <InfinityIcon className="w-6 h-6 text-[#2563eb]" />
-                        : <Coins className={`w-6 h-6 ${exhausted ? 'text-red-500' : low ? 'text-yellow-500' : 'text-[#2563eb]'}`} />
+                        ? <InfinityIcon className="w-6 h-6 text-ds-accent-text" />
+                        : <Coins className={`w-6 h-6 ${exhausted ? 'text-ds-danger' : low ? 'text-ds-warn' : 'text-ds-accent-text'}`} />
                     }
                     <div>
-                        <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                        <p className="text-xs font-bold text-ds-soft uppercase tracking-wide">
                             Créditos TTS
                         </p>
-                        <p className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc] leading-tight">
+                        <p className="text-xl font-black text-ds-text leading-tight">
                             {isUnlimited ? 'Ilimitados' : totalAvailable.toLocaleString()}
                         </p>
                     </div>
                 </div>
 
                 <div className="text-right">
-                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wide">
+                    <p className="text-xs font-bold text-ds-soft uppercase tracking-wide">
                         Plan
                     </p>
-                    <p className="text-sm font-black text-[#1e293b] dark:text-[#f8fafc]">
+                    <p className="text-sm font-black text-ds-text">
                         {TIER_LABEL[tier] ?? tier}
                     </p>
                 </div>
@@ -219,34 +219,34 @@ export function TtsCreditsCard({
             {!isUnlimited && (
                 <>
                     <div className="grid grid-cols-2 gap-3 mt-4">
-                        <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Cuota del mes</p>
-                            <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                        <div className="p-3 rounded-lg bg-ds-bg">
+                            <p className="text-xs text-ds-soft">Cuota del mes</p>
+                            <p className="text-sm font-bold text-ds-text">
                                 {monthlyRemaining.toLocaleString()} / {monthlyGranted.toLocaleString()}
                             </p>
-                            <p className="text-[10px] text-[#94a3b8]">se reinicia el día 1</p>
+                            <p className="text-[10px] text-ds-soft">se reinicia el día 1</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-[#f8fafc] dark:bg-[#262626]">
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Comprados</p>
-                            <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                        <div className="p-3 rounded-lg bg-ds-bg">
+                            <p className="text-xs text-ds-soft">Comprados</p>
+                            <p className="text-sm font-bold text-ds-text">
                                 {purchasedBalance.toLocaleString()}
                             </p>
-                            <p className="text-[10px] text-[#94a3b8]">no caducan</p>
+                            <p className="text-[10px] text-ds-soft">no caducan</p>
                         </div>
                     </div>
 
                     {monthlyGranted > 0 && (
-                        <div className="mt-3 h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                        <div className="mt-3 h-2 bg-ds-raised rounded-full overflow-hidden">
                             <div
                                 className={`h-full rounded-full transition-all ${
-                                    percentage > 90 ? 'bg-red-500' : percentage > 70 ? 'bg-yellow-500' : 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]'
+                                    percentage > 90 ? 'bg-ds-danger-solid' : percentage > 70 ? 'bg-ds-warn' : 'bg-ds-accent'
                                 }`}
                                 style={{ width: `${Math.min(percentage, 100)}%` }}
                             />
                         </div>
                     )}
 
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-3">
+                    <p className="text-xs text-ds-soft mt-3">
                         1 crédito premium = 1 carácter. Las voces neurales cuestan 4 créditos por carácter.
                         Las frases repetidas salen del caché y no gastan.
                     </p>
@@ -254,21 +254,21 @@ export function TtsCreditsCard({
             )}
 
             {exhausted && (
-                <div className="mt-3 flex items-start gap-2 text-xs font-bold text-red-600 dark:text-red-400">
+                <div className="mt-3 flex items-start gap-2 text-xs font-bold text-ds-danger">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     Sin créditos: el TTS de esta función no sonará. Las alertas se siguen viendo, sin voz.
                 </div>
             )}
 
             {low && (
-                <div className="mt-3 flex items-start gap-2 text-xs font-bold text-yellow-600 dark:text-yellow-500">
+                <div className="mt-3 flex items-start gap-2 text-xs font-bold text-ds-warn">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     Te queda poco saldo. Al agotarse, el TTS dejará de sonar hasta tu próxima cuota.
                 </div>
             )}
 
             {inTransitionWindow && tier === 'free' && transitionLabel && (
-                <div className="mt-3 flex items-start gap-2 text-xs text-blue-600 dark:text-blue-400">
+                <div className="mt-3 flex items-start gap-2 text-xs text-ds-accent-text">
                     <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     Créditos de bienvenida disponibles hasta el {transitionLabel}. Después necesitarás un plan
                     o un paquete de créditos.
@@ -276,7 +276,7 @@ export function TtsCreditsCard({
             )}
 
             {expiryLabel && !isUnlimited && (
-                <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-2">
+                <p className="text-xs text-ds-warn mt-2">
                     ⏳ Tu plan vence el {expiryLabel}. Los créditos comprados no se pierden.
                 </p>
             )}

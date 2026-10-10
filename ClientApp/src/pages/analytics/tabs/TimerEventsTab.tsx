@@ -24,17 +24,17 @@ interface TimerEventsTabProps {
 }
 
 const eventTypeColors: Record<string, string> = {
-    follow: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    subscribe: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    subscribe_prime: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    cheer: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    bits: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    raid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    giftsub: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-    tip: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    command: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
-    hypetrain: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    default: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+    follow: 'bg-ds-accent/10 text-ds-accent-text ',
+    subscribe: 'bg-ds-accent/10 text-ds-accent-text ',
+    subscribe_prime: 'bg-ds-bg text-ds-soft ',
+    cheer: 'bg-ds-bg text-ds-soft ',
+    bits: 'bg-ds-bg text-ds-soft ',
+    raid: 'bg-ds-bg text-ds-soft ',
+    giftsub: 'bg-ds-accent/10 text-ds-accent-text ',
+    tip: 'bg-ds-bg text-ds-soft ',
+    command: 'bg-ds-bg text-ds-soft ',
+    hypetrain: 'bg-ds-bg text-ds-soft ',
+    default: 'bg-ds-bg text-ds-soft '
 };
 
 function formatTime(seconds: number): string {
@@ -102,11 +102,11 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
             {/* Stats Summary */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                 {Object.entries(stats.byType).slice(0, 6).map(([type, count]) => (
-                    <div key={type} className="p-3 bg-[#f8fafc] dark:bg-[#262626] rounded-lg border border-[#e2e8f0] dark:border-[#374151]">
-                        <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-1 capitalize">
+                    <div key={type} className="p-3 bg-ds-bg rounded-lg border border-ds-border">
+                        <p className="text-xs font-bold text-ds-soft mb-1 capitalize">
                             {getEventLabel(type)}
                         </p>
-                        <p className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">
+                        <p className="text-lg font-black text-ds-text">
                             {count}
                         </p>
                     </div>
@@ -114,12 +114,12 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
             </div>
 
             {/* Table */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
-                <div className="p-4 border-b border-[#e2e8f0] dark:border-[#374151]">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+            <div className="bg-ds-bg rounded-lg border border-ds-border overflow-hidden">
+                <div className="p-4 border-b border-ds-border">
+                    <h3 className="text-sm font-bold text-ds-text">
                         {t('timerEvents.historyTitle', 'Historial de Eventos')}
                     </h3>
-                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                    <p className="text-xs text-ds-soft mt-1">
                         {data?.length || 0} {t('timerEvents.eventsInPeriod', 'eventos en el período seleccionado')}
                     </p>
                 </div>
@@ -127,13 +127,13 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
                 {isLoading ? (
                     <div className="p-4 space-y-2">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                            <div key={i} className="h-12 bg-ds-raised rounded animate-pulse" />
                         ))}
                     </div>
                 ) : paginatedData.length > 0 ? (
                     <>
                         {/* Table Header */}
-                        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-100 dark:bg-gray-800 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">
+                        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-ds-bg text-xs font-bold text-ds-soft uppercase tracking-wider">
                             <div className="col-span-2">{t('timerEvents.date', 'Fecha')}</div>
                             <div className="col-span-2">{t('timerEvents.type', 'Tipo')}</div>
                             <div className="col-span-3">{t('timerEvents.username', 'Usuario')}</div>
@@ -142,15 +142,15 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
                         </div>
 
                         {/* Table Body */}
-                        <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <div className="divide-y divide-ds-border">
                             {paginatedData.map((event) => (
-                                <div key={event.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors">
+                                <div key={event.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 hover:bg-ds-surface transition-colors">
                                     {/* Mobile: Date on top */}
                                     <div className="md:hidden flex items-center justify-between">
                                         <span className={`text-xs px-2 py-1 rounded-full font-medium ${eventTypeColors[event.eventType.toLowerCase()] || eventTypeColors.default}`}>
                                             {getEventLabel(event.eventType)}
                                         </span>
-                                        <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                        <span className="text-xs text-ds-soft">
                                             {new Date(event.occurredAt).toLocaleString(locale, {
                                                 day: '2-digit',
                                                 month: 'short',
@@ -161,7 +161,7 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
                                     </div>
 
                                     {/* Desktop: Date */}
-                                    <div className="hidden md:block col-span-2 text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="hidden md:block col-span-2 text-sm text-ds-text">
                                         {new Date(event.occurredAt).toLocaleString(locale, {
                                             day: '2-digit',
                                             month: 'short',
@@ -178,7 +178,7 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
                                     </div>
 
                                     {/* Username */}
-                                    <div className="md:col-span-3 text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="md:col-span-3 text-sm font-semibold text-ds-text">
                                         {event.username}
                                     </div>
 
@@ -186,15 +186,15 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
                                     <div className="md:col-span-2">
                                         <span className={`text-sm font-mono font-bold ${
                                             event.timeAdded >= 0
-                                                ? 'text-green-600 dark:text-green-400'
-                                                : 'text-red-600 dark:text-red-400'
+                                                ? 'text-ds-ok '
+                                                : 'text-ds-danger '
                                         }`}>
                                             {formatTime(event.timeAdded)}
                                         </span>
                                     </div>
 
                                     {/* Details */}
-                                    <div className="md:col-span-3 text-sm text-[#64748b] dark:text-[#94a3b8] truncate">
+                                    <div className="md:col-span-3 text-sm text-ds-soft truncate">
                                         {event.details || '-'}
                                     </div>
                                 </div>
@@ -213,8 +213,8 @@ export default function TimerEventsTab({ data, isLoading, dateRange }: TimerEven
                     </>
                 ) : (
                     <div className="p-12 text-center">
-                        <Clock className="w-12 h-12 text-[#94a3b8] dark:text-[#64748b] mx-auto mb-4" />
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <Clock className="w-12 h-12 text-ds-soft mx-auto mb-4" />
+                        <p className="text-sm text-ds-soft">
                             {t('timerEvents.noEvents', 'No hay eventos en este período')}
                         </p>
                     </div>

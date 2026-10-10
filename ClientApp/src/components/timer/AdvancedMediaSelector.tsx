@@ -132,18 +132,18 @@ export default function AdvancedMediaSelector({
     return (
         <div className={`space-y-4 ${className}`}>
             {label && (
-                <h4 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+                <h4 className="text-sm font-bold text-ds-text">
                     {label}
                 </h4>
             )}
 
             {/* Archivo Principal */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4">
+            <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
-                    {primaryType === 'video' && <Film className="w-4 h-4 text-[#64748b]" />}
-                    {primaryType === 'audio' && <Music className="w-4 h-4 text-[#64748b]" />}
-                    {primaryType === 'image' && <ImageIcon className="w-4 h-4 text-[#64748b]" />}
-                    <h5 className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                    {primaryType === 'video' && <Film className="w-4 h-4 text-ds-soft" />}
+                    {primaryType === 'audio' && <Music className="w-4 h-4 text-ds-soft" />}
+                    {primaryType === 'image' && <ImageIcon className="w-4 h-4 text-ds-soft" />}
+                    <h5 className="text-xs font-bold text-ds-soft">
                         Archivo Principal
                     </h5>
                 </div>
@@ -157,17 +157,17 @@ export default function AdvancedMediaSelector({
                 />
 
                 {value.primaryUrl && (
-                    <div className="mt-2 p-2 bg-[#f8fafc] dark:bg-[#262626] rounded-lg">
+                    <div className="mt-2 p-2 bg-ds-bg rounded-lg">
                         <div className="flex items-start gap-2 mb-2">
-                            <Info className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8] flex-shrink-0 mt-0.5" />
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                            <Info className="w-4 h-4 text-ds-soft flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-ds-soft">
                                 Detectado: <strong>{primaryType}</strong>
                             </p>
                         </div>
                         
                         {(primaryType === 'video' || primaryType === 'audio') && !value.muteVideo && (
                             <div className="mt-2">
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-1">
+                                <label className="text-xs font-bold text-ds-soft block mb-1">
                                     🎚️ Volumen Principal: {value.primaryVolume ?? 100}%
                                 </label>
                                 <input
@@ -188,19 +188,19 @@ export default function AdvancedMediaSelector({
             {primaryType === 'video' && (
                 <div className="space-y-4">
                     {/* Mutear Video */}
-                    <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4">
+                    <div className="bg-ds-surface border border-ds-border rounded-lg p-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 {value.muteVideo ? (
-                                    <VolumeX className="w-4 h-4 text-red-600" />
+                                    <VolumeX className="w-4 h-4 text-ds-accent-text" />
                                 ) : (
-                                    <Volume2 className="w-4 h-4 text-[#64748b]" />
+                                    <Volume2 className="w-4 h-4 text-ds-soft" />
                                 )}
                                 <div>
-                                    <label className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                                    <label className="text-xs font-bold text-ds-text block">
                                         Silenciar Video
                                     </label>
-                                    <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                    <p className="text-xs text-ds-soft">
                                         Desactiva el audio del video
                                     </p>
                                 </div>
@@ -212,22 +212,22 @@ export default function AdvancedMediaSelector({
                                     onChange={(e) => handleMuteVideoChange(e.target.checked)}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+                                <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                             </label>
                         </div>
                     </div>
 
                     {/* Audio Complementario (solo si video está muteado) */}
                     {value.muteVideo && (
-                        <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4 space-y-4">
+                        <div className="bg-ds-surface border border-ds-border rounded-lg p-4 space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Music className="w-4 h-4 text-[#64748b]" />
+                                    <Music className="w-4 h-4 text-ds-soft" />
                                     <div>
-                                        <label className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                                        <label className="text-xs font-bold text-ds-text block">
                                             Agregar Audio Separado
                                         </label>
-                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                        <p className="text-xs text-ds-soft">
                                             Reproduce un audio junto con el video mudo
                                         </p>
                                     </div>
@@ -239,7 +239,7 @@ export default function AdvancedMediaSelector({
                                         onChange={(e) => handleAudioToggle(e.target.checked)}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+                                    <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                                 </label>
                             </div>
 
@@ -254,7 +254,7 @@ export default function AdvancedMediaSelector({
                                     />
 
                                     <div>
-                                        <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                        <label className="text-xs font-bold text-ds-soft block mb-2">
                                             🎚️ Volumen Individual: {value.audioVolume ?? 100}%
                                         </label>
                                         <input
@@ -265,7 +265,7 @@ export default function AdvancedMediaSelector({
                                             onChange={(e) => handleAudioVolumeChange(Number(e.target.value))}
                                             className="w-full"
                                         />
-                                        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                        <p className="text-xs text-ds-soft mt-1">
                                             💡 Se combina con el Volumen Global de la sección "Configuración Global"
                                         </p>
                                     </div>
@@ -278,15 +278,15 @@ export default function AdvancedMediaSelector({
 
             {/* Opciones para AUDIO */}
             {primaryType === 'audio' && (
-                <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4 space-y-4">
+                <div className="bg-ds-surface border border-ds-border rounded-lg p-4 space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-[#64748b]" />
+                            <ImageIcon className="w-4 h-4 text-ds-soft" />
                             <div>
-                                <label className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                                <label className="text-xs font-bold text-ds-text block">
                                     Agregar Imagen de Fondo
                                 </label>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-xs text-ds-soft">
                                     Muestra una imagen mientras reproduce el audio
                                 </p>
                             </div>
@@ -298,7 +298,7 @@ export default function AdvancedMediaSelector({
                                 onChange={(e) => handleImageToggle(e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+                            <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                         </label>
                     </div>
 
@@ -316,15 +316,15 @@ export default function AdvancedMediaSelector({
 
             {/* Opciones para IMAGEN */}
             {primaryType === 'image' && (
-                <div className="bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4 space-y-4">
+                <div className="bg-ds-surface border border-ds-border rounded-lg p-4 space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Music className="w-4 h-4 text-[#64748b]" />
+                            <Music className="w-4 h-4 text-ds-soft" />
                             <div>
-                                <label className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] block">
+                                <label className="text-xs font-bold text-ds-text block">
                                     Agregar Audio
                                 </label>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                <p className="text-xs text-ds-soft">
                                     Reproduce audio mientras muestra la imagen
                                 </p>
                             </div>
@@ -336,7 +336,7 @@ export default function AdvancedMediaSelector({
                                 onChange={(e) => handleAudioToggle(e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#94a3b8] dark:peer-focus:ring-[#64748b] rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#64748b]"></div>
+                            <div className="w-11 h-6 bg-ds-raised peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ds-faint rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-ds-border after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-ds-surface after:border-ds-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-ds-border peer-checked:bg-ds-accent"></div>
                         </label>
                     </div>
 
@@ -351,7 +351,7 @@ export default function AdvancedMediaSelector({
                             />
 
                             <div>
-                                <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-2">
+                                <label className="text-xs font-bold text-ds-soft block mb-2">
                                     🎚️ Volumen Individual: {value.audioVolume ?? 100}%
                                 </label>
                                 <input
@@ -362,7 +362,7 @@ export default function AdvancedMediaSelector({
                                     onChange={(e) => handleAudioVolumeChange(Number(e.target.value))}
                                     className="w-full"
                                 />
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-1">
+                                <p className="text-xs text-ds-soft mt-1">
                                     💡 Se combina con el Volumen Global de la sección "Configuración Global"
                                 </p>
                             </div>
@@ -373,11 +373,11 @@ export default function AdvancedMediaSelector({
 
             {/* Resumen de configuración */}
             {value.primaryUrl && (
-                <div className="bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-xl p-4">
-                    <h5 className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] mb-2">
+                <div className="bg-ds-bg border border-ds-border rounded-lg p-4">
+                    <h5 className="text-xs font-bold text-ds-text mb-2">
                         📋 Resumen de configuración
                     </h5>
-                    <ul className="text-xs text-[#64748b] dark:text-[#94a3b8] space-y-1">
+                    <ul className="text-xs text-ds-soft space-y-1">
                         <li>• Archivo principal: {primaryType}</li>
                         {primaryType === 'video' && value.muteVideo && <li>• Video silenciado</li>}
                         {value.hasAudio && value.audioUrl && <li>• Con audio complementario ({value.audioVolume}% vol)</li>}

@@ -44,35 +44,35 @@ function StatCard({
     isLoading: boolean;
 }) {
     const colorClasses: Record<string, string> = {
-        blue: 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800',
-        green: 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-800',
-        purple: 'from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800',
-        amber: 'from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-800',
+        blue: 'from-ds-accent/10 to-ds-accent/10 border-ds-accent ',
+        green: 'from-ds-accent/10 to-ds-accent/10 border-ds-accent ',
+        purple: 'from-ds-accent/10 to-ds-accent/10 border-ds-accent ',
+        amber: 'from-ds-accent/10 to-ds-accent/10 border-ds-accent ',
     };
 
     const iconColorClasses: Record<string, string> = {
-        blue: 'text-blue-600 dark:text-blue-400',
-        green: 'text-green-600 dark:text-green-400',
-        purple: 'text-purple-600 dark:text-purple-400',
-        amber: 'text-amber-600 dark:text-amber-400',
+        blue: 'text-ds-accent-text ',
+        green: 'text-ds-accent-text ',
+        purple: 'text-ds-accent-text ',
+        amber: 'text-ds-accent-text ',
     };
 
     return (
-        <div className={`p-5 bg-gradient-to-br ${colorClasses[color]} rounded-xl border`}>
+        <div className={`p-5 bg-gradient-to-br ${colorClasses[color]} rounded-lg border`}>
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-2">
+                    <p className="text-xs font-bold text-ds-soft uppercase tracking-wider mb-2">
                         {title}
                     </p>
                     {isLoading ? (
-                        <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-8 w-24 bg-ds-raised rounded animate-pulse" />
                     ) : (
-                        <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">
+                        <p className="text-2xl font-black text-ds-text">
                             {value}
                         </p>
                     )}
                 </div>
-                <div className={`p-2.5 rounded-lg bg-white/50 dark:bg-black/20`}>
+                <div className={`p-2.5 rounded-lg bg-ds-surface/50 `}>
                     <Icon className={`w-5 h-5 ${iconColorClasses[color]}`} />
                 </div>
             </div>
@@ -122,26 +122,26 @@ export default function OverviewTab({ data, isLoading }: OverviewTabProps) {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Events Timeline */}
-                <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-5">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+                <div className="bg-ds-bg rounded-lg border border-ds-border p-5">
+                    <h3 className="text-sm font-bold text-ds-text mb-4">
                         {t('overview.eventsPerDay', 'Eventos por Día')}
                     </h3>
                     {isLoading ? (
-                        <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-48 bg-ds-raised rounded animate-pulse" />
                     ) : data?.eventsPerDay && data.eventsPerDay.length > 0 ? (
                         <div className="space-y-2">
                             {data.eventsPerDay.slice(-7).map((day, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                    <span className="text-xs font-mono text-[#64748b] dark:text-[#94a3b8] w-16">
+                                    <span className="text-xs font-mono text-ds-soft w-16">
                                         {new Date(day.date).toLocaleDateString(locale, { day: '2-digit', month: 'short' })}
                                     </span>
-                                    <div className="flex-1 h-6 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                    <div className="flex-1 h-6 bg-ds-bg rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                                            className="h-full bg-ds-accent rounded-full transition-all duration-500"
                                             style={{ width: `${(day.count / maxCount) * 100}%` }}
                                         />
                                     </div>
-                                    <span className="text-xs font-bold text-[#1e293b] dark:text-[#f8fafc] w-10 text-right">
+                                    <span className="text-xs font-bold text-ds-text w-10 text-right">
                                         {day.count}
                                     </span>
                                 </div>
@@ -149,7 +149,7 @@ export default function OverviewTab({ data, isLoading }: OverviewTabProps) {
                         </div>
                     ) : (
                         <div className="h-48 flex items-center justify-center">
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-sm text-ds-soft">
                                 {t('timerEvents.noEvents', 'Sin datos en este período')}
                             </p>
                         </div>
@@ -157,29 +157,29 @@ export default function OverviewTab({ data, isLoading }: OverviewTabProps) {
                 </div>
 
                 {/* Event Types Distribution */}
-                <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-5">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+                <div className="bg-ds-bg rounded-lg border border-ds-border p-5">
+                    <h3 className="text-sm font-bold text-ds-text mb-4">
                         {t('overview.topEventTypes', 'Tipos de Eventos')}
                     </h3>
                     {isLoading ? (
-                        <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-48 bg-ds-raised rounded animate-pulse" />
                     ) : data?.topEventTypes && data.topEventTypes.length > 0 ? (
                         <div className="space-y-3">
                             {data.topEventTypes.map((event, i) => {
                                 const total = data.topEventTypes.reduce((acc, e) => acc + e.count, 0);
                                 const percentage = ((event.count / total) * 100).toFixed(1);
-                                const colors = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-amber-500', 'bg-indigo-500'];
+                                const colors = ['bg-ds-accent', 'bg-ds-accent', 'bg-ds-accent', 'bg-ds-warn', 'bg-ds-accent'];
 
                                 return (
                                     <div key={i} className="flex items-center gap-3">
                                         <div className={`w-3 h-3 rounded-full ${colors[i % colors.length]}`} />
-                                        <span className="flex-1 text-sm text-[#1e293b] dark:text-[#f8fafc] capitalize">
+                                        <span className="flex-1 text-sm text-ds-text capitalize">
                                             {event.type}
                                         </span>
-                                        <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                                        <span className="text-xs font-bold text-ds-soft">
                                             {event.count}
                                         </span>
-                                        <span className="text-xs text-[#94a3b8] dark:text-[#64748b] w-12 text-right">
+                                        <span className="text-xs text-ds-soft w-12 text-right">
                                             {percentage}%
                                         </span>
                                     </div>
@@ -188,7 +188,7 @@ export default function OverviewTab({ data, isLoading }: OverviewTabProps) {
                         </div>
                     ) : (
                         <div className="h-48 flex items-center justify-center">
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-sm text-ds-soft">
                                 {t('timerEvents.noEvents', 'Sin datos en este período')}
                             </p>
                         </div>

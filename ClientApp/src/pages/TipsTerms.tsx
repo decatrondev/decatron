@@ -8,17 +8,17 @@ export default function TipsTerms() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 rounded-full bg-pub-accent flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-8 h-8 text-white" />
+                        <FileText className="w-8 h-8 text-ds-text" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
-                    <p className="text-gray-400">Decatron Tips & Donations</p>
-                    <p className="text-sm text-gray-500 mt-2">Last updated: February 2026</p>
+                    <h1 className="text-3xl font-bold text-ds-text mb-2">Terms of Service</h1>
+                    <p className="text-ds-soft">Decatron Tips & Donations</p>
+                    <p className="text-sm text-ds-soft mt-2">Last updated: February 2026</p>
                 </div>
 
                 {/* Content */}
-                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 md:p-8 space-y-6 text-gray-300">
+                <div className="bg-pub-surface/90 border border-pub-border backdrop-blur-sm rounded-lg p-6 md:p-8 space-y-6 text-ds-soft">
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">1. Acceptance of Terms</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">1. Acceptance of Terms</h2>
                         <p>
                             By making a donation through the Decatron Tips platform, you agree to these
                             Terms of Service. If you do not agree to these terms, please do not use
@@ -27,7 +27,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">2. Nature of Donations</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">2. Nature of Donations</h2>
                         <p className="mb-3">
                             <strong>Donations are voluntary contributions</strong> made to support content creators.
                             By making a donation, you acknowledge that:
@@ -41,7 +41,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">3. Eligibility</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">3. Eligibility</h2>
                         <p>To use this service, you must:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4 mt-3">
                             <li>Be at least 18 years of age</li>
@@ -52,7 +52,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">4. User Conduct</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">4. User Conduct</h2>
                         <p className="mb-3">When using our donation service, you agree NOT to:</p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>Send messages containing hate speech, harassment, or discriminatory content</li>
@@ -67,7 +67,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">5. Payment Processing</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">5. Payment Processing</h2>
                         <p className="mb-3">
                             All payments are processed through PayPal. By making a donation, you also agree
                             to PayPal's{' '}
@@ -75,7 +75,7 @@ export default function TipsTerms() {
                                 href="https://www.paypal.com/us/legalhub/useragreement-full"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-pub-accent-hi hover:text-white underline"
+                                className="text-pub-accent-hi hover:text-ds-text underline"
                             >
                                 User Agreement
                             </a>.
@@ -87,7 +87,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">6. Refund Policy</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">6. Refund Policy</h2>
                         <p className="mb-3">
                             <strong>All donations are final and non-refundable.</strong> As donations are
                             voluntary gifts to content creators, we cannot process refunds except in cases of:
@@ -102,7 +102,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">7. Display of Donations</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">7. Display of Donations</h2>
                         <p>
                             By making a donation with a message, you grant the content creator and Decatron
                             permission to display your chosen name and message publicly on their stream
@@ -111,7 +111,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">8. Disclaimer of Warranties</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">8. Disclaimer of Warranties</h2>
                         <p>
                             The donation service is provided "as is" without warranties of any kind.
                             We do not guarantee uninterrupted service or that donations will always
@@ -120,7 +120,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">9. Limitation of Liability</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">9. Limitation of Liability</h2>
                         <p>
                             Decatron shall not be liable for any indirect, incidental, special, or
                             consequential damages arising from your use of the donation service.
@@ -129,7 +129,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">10. Streamer Responsibility</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">10. Streamer Responsibility</h2>
                         <p>
                             Content creators using Decatron Tips are independent users of our platform.
                             Decatron is not responsible for the actions, content, or behavior of any
@@ -139,7 +139,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">11. Modifications</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">11. Modifications</h2>
                         <p>
                             We reserve the right to modify these terms at any time. Continued use of
                             the service after changes constitutes acceptance of the modified terms.
@@ -147,7 +147,7 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">12. Governing Law</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">12. Governing Law</h2>
                         <p>
                             These terms shall be governed by and construed in accordance with applicable
                             laws. Any disputes shall be resolved through appropriate legal channels.
@@ -155,12 +155,12 @@ export default function TipsTerms() {
                     </section>
 
                     <section>
-                        <h2 className="text-xl font-semibold text-white mb-3">13. Contact</h2>
+                        <h2 className="text-xl font-semibold text-ds-text mb-3">13. Contact</h2>
                         <p>
                             For questions about these terms, please contact us at:{' '}
                             <a
                                 href="mailto:support@decatron.net"
-                                className="text-pub-accent-hi hover:text-white underline"
+                                className="text-pub-accent-hi hover:text-ds-text underline"
                             >
                                 support@decatron.net
                             </a>
@@ -172,11 +172,11 @@ export default function TipsTerms() {
                 <div className="text-center mt-6 space-y-4">
                     <Link
                         to="/tip/privacy"
-                        className="text-pub-accent-hi hover:text-white underline"
+                        className="text-pub-accent-hi hover:text-ds-text underline"
                     >
                         View Privacy Policy
                     </Link>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-ds-soft text-sm">
                         Powered by Decatron
                     </p>
                 </div>

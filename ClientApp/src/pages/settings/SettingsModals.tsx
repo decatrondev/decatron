@@ -9,7 +9,7 @@ export default function SettingsModals({ s }: { s: SettingsCtx }) {
     return (
         <>
                     {showAddUserModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-ds-surface rounded-lg p-6 max-w-md w-full border border-ds-border">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-xl font-black text-ds-text">{t('settings:accessManagement.addUserModal.title')}</h3>
@@ -89,7 +89,7 @@ export default function SettingsModals({ s }: { s: SettingsCtx }) {
                     )}
 
                     {editAccess && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-ds-surface rounded-lg p-6 max-w-md w-full border border-ds-border">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
@@ -162,7 +162,7 @@ export default function SettingsModals({ s }: { s: SettingsCtx }) {
                     )}
 
                     {confirmModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                        <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                             <div className="bg-ds-surface rounded-lg p-6 max-w-md w-full border border-ds-border">
                                 <h3 className="text-xl font-black text-ds-text">{confirmModal.title}</h3>
                                 <p className="text-ds-soft my-4">{confirmModal.message}</p>

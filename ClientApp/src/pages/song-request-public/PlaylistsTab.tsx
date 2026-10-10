@@ -32,19 +32,19 @@ export default function PlaylistsTab({ channel, activePlaylistId }: { channel: s
         return () => window.removeEventListener('hashchange', openFromHash);
     }, [playlists]);
 
-    if (!loaded) return <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">{t('songRequestPublic.loading')}</p>;
-    if (playlists.length === 0) return <p className="text-sm 3xl:text-base 4xl:text-lg text-[#71717a]">{t('songRequestPublic.noPlaylists')}</p>;
+    if (!loaded) return <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">{t('songRequestPublic.loading')}</p>;
+    if (playlists.length === 0) return <p className="text-sm 3xl:text-base 4xl:text-lg text-ds-soft">{t('songRequestPublic.noPlaylists')}</p>;
     return (
         <div className="space-y-2">
             {playlists.map(p => (
                 <div key={p.id} id={`playlist-${p.id}`} className="border border-pub-border-soft rounded-lg scroll-mt-6">
                     <button onClick={() => setOpenId(prev => (prev === p.id ? null : p.id))} className="w-full flex items-center justify-between gap-3 px-4 py-3 4xl:py-4 text-left hover:bg-pub-surface rounded-lg transition-colors">
                         <span className="flex items-center gap-2 min-w-0">
-                            <span className="text-white font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{p.name}</span>
-                            {p.isActive && <span className="shrink-0 px-1.5 py-0.5 rounded border border-amber-400/50 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-amber-300">▶ {t('songRequestPublic.playing')}</span>}
+                            <span className="text-ds-text font-semibold text-sm 3xl:text-base 4xl:text-xl truncate">{p.name}</span>
+                            {p.isActive && <span className="shrink-0 px-1.5 py-0.5 rounded border border-ds-warn/40 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-ds-warn">▶ {t('songRequestPublic.playing')}</span>}
                             {p.open && <span className="shrink-0 px-1.5 py-0.5 rounded border border-pub-accent/40 font-mono text-[10px] 3xl:text-xs 4xl:text-sm uppercase tracking-wider text-pub-accent-hi">{t('songRequestPublic.collaborative')}</span>}
                         </span>
-                        <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a] shrink-0">
+                        <span className="font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft shrink-0">
                             {t('songRequestPublic.songs', { count: p.count })} {openId === p.id ? '▴' : '▾'}
                         </span>
                     </button>

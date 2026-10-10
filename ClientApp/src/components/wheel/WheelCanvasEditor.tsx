@@ -280,7 +280,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
                             />
                         )
                     ) : (
-                        <span className="w-full h-full flex items-center justify-center text-[20px] text-[#64748b] border-2 border-dashed border-[#4b5563]">
+                        <span className="w-full h-full flex items-center justify-center text-[20px] text-ds-soft border-2 border-dashed border-ds-border">
                             {t('wheel.canvas.noImageYet')}
                         </span>
                     )}
@@ -352,14 +352,14 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
     );
     const colorInput = (value: string, onChange: (v: string) => void) => (
         <input type="color" value={value} onChange={e => onChange(e.target.value)}
-            className="w-14 h-9 rounded-lg bg-transparent border border-[#374151] cursor-pointer" />
+            className="w-14 h-9 rounded-lg bg-transparent border border-ds-border cursor-pointer" />
     );
 
     const extra = (id: string) => {
         const botonCubrir = (
             <button
                 onClick={() => onRectChange(id, { x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT })}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
             >
                 <Maximize2 className="w-4 h-4" /> {t('wheel.canvas.coverAll')}
             </button>
@@ -420,7 +420,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
                             <input type="text" className={inputClass} value={p.template}
                                 onChange={e => editarPieza(p.id, { template: e.target.value })} />
                         ))}
-                        <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('wheel.canvas.varsHelp')}</p>
+                        <p className="text-xs 3xl:text-sm text-ds-soft">{t('wheel.canvas.varsHelp')}</p>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {([['fontSize', 8, 400], ['weight', 100, 900], ['outline', 0, 16], ['padding', 0, 200], ['radius', 0, 200]] as const).map(([campo, min, max]) => (
@@ -485,7 +485,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
                                         {labeled(t('wheel.canvas.f_videoVolume'), numero(p.videoVolume, 0, 100, n => editarPieza(p.id, { videoVolume: n })))}
                                     </div>
                                 )}
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('wheel.canvas.videoNote')}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft">{t('wheel.canvas.videoNote')}</p>
                             </div>
                         )}
                     </div>
@@ -493,7 +493,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
 
                 <button
                     onClick={() => quitarPieza(p.id)}
-                    className="px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20 transition-colors flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-danger-solid/10 border border-ds-danger/40 text-ds-danger hover:bg-ds-danger-solid/20 transition-colors flex items-center gap-1.5"
                 >
                     <Trash2 className="w-4 h-4" />
                     {t('wheel.canvas.removePiece')}
@@ -507,17 +507,17 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
     // el lienzo bajo el cursor.
     const notice = (
         <div className="space-y-2">
-            <p className="text-xs 3xl:text-sm text-[#94a3b8] bg-[#262626] border border-[#374151] rounded-lg px-3 py-2 min-h-[4.5rem] md:min-h-[3rem]">
+            <p className="text-xs 3xl:text-sm text-ds-soft bg-ds-bg border border-ds-border rounded-lg px-3 py-2 min-h-[4.5rem] md:min-h-[3rem]">
                 {/* Cada clave entera en su propia llamada: la auditoria de i18n las busca
                     con una expresion regular y una armada con ternaria no la ve. */}
                 {automatico ? t('wheel.canvas.autoNote') : t('wheel.canvas.fixedNote')}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs 3xl:text-sm text-[#64748b]">{t('wheel.canvas.size')}</span>
+                <span className="text-xs 3xl:text-sm text-ds-soft">{t('wheel.canvas.size')}</span>
                 <button
                     onClick={() => onVisual({ layout: null })}
                     disabled={automatico}
-                    className="ml-auto px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#262626] border border-[#374151] text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-40 transition-colors flex items-center gap-1.5"
+                    className="ml-auto px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-bg border border-ds-border text-ds-soft hover:text-ds-text disabled:opacity-40 transition-colors flex items-center gap-1.5"
                 >
                     <RotateCcw className="w-4 h-4" />
                     {t('wheel.canvas.reset')}
@@ -530,7 +530,7 @@ export default function WheelCanvasEditor({ visual, onVisual, segments, t }: Pro
         <button
             onClick={onClick}
             disabled={disabled}
-            className="px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] disabled:opacity-40 transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised disabled:opacity-40 transition-colors flex items-center gap-1.5"
         >
             {icon}{label}
         </button>

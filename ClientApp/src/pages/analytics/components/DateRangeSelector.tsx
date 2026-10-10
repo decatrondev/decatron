@@ -43,9 +43,9 @@ export default function DateRangeSelector({ value, onChange, maxDays = 30 }: Dat
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-[#f8fafc] hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-ds-text hover:bg-ds-surface transition-colors"
             >
-                <Calendar className="w-4 h-4 text-[#64748b] dark:text-[#94a3b8]" />
+                <Calendar className="w-4 h-4 text-ds-soft" />
                 <span className="text-sm font-medium">
                     {formatDate(value.from)} - {formatDate(value.to)}
                 </span>
@@ -57,12 +57,12 @@ export default function DateRangeSelector({ value, onChange, maxDays = 30 }: Dat
                         className="fixed inset-0 z-10"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] rounded-xl shadow-xl z-20 overflow-hidden">
-                        <div className="p-3 border-b border-[#e2e8f0] dark:border-[#374151]">
-                            <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">
+                    <div className="absolute right-0 mt-2 w-56 bg-ds-surface border border-ds-border rounded-lg z-20 overflow-hidden">
+                        <div className="p-3 border-b border-ds-border">
+                            <p className="text-xs font-bold text-ds-soft uppercase tracking-wider">
                                 Rango de Fechas
                             </p>
-                            <p className="text-[10px] text-[#94a3b8] dark:text-[#64748b] mt-1">
+                            <p className="text-[10px] text-ds-soft mt-1">
                                 Tu plan permite hasta {maxDays} días
                             </p>
                         </div>
@@ -73,8 +73,8 @@ export default function DateRangeSelector({ value, onChange, maxDays = 30 }: Dat
                                     onClick={() => handlePreset(preset.days)}
                                     className={`w-full px-4 py-2.5 text-left text-sm rounded-lg transition-colors
                                         ${currentDays === preset.days
-                                            ? 'bg-[#2563eb]/10 text-[#2563eb] font-semibold'
-                                            : 'text-[#1e293b] dark:text-[#f8fafc] hover:bg-[#f8fafc] dark:hover:bg-[#262626]'
+                                            ? 'bg-ds-accent/10 text-ds-accent-text font-semibold'
+                                            : 'text-ds-text hover:bg-ds-bg '
                                         }`}
                                 >
                                     Últimos {preset.label}

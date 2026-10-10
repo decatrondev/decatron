@@ -110,7 +110,7 @@ export default function SongRequestPublicPage() {
     };
 
     return (
-        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-ds-text relative overflow-x-hidden">
             <div
                 className="pointer-events-none fixed inset-0 opacity-[0.04]"
                 style={{
@@ -132,14 +132,14 @@ export default function SongRequestPublicPage() {
                         <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-pub-accent-hi/80">
                             {t('songRequestPublic.title')}
                         </p>
-                        <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-white truncate">
+                        <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-ds-text truncate">
                             {displayName || channelName}
                         </h1>
                     </div>
                 </header>
 
                 {status === 'loading' && (
-                    <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">{t('songRequestPublic.loading')}</p>
+                    <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">{t('songRequestPublic.loading')}</p>
                 )}
                 {status === 'notfound' && <Notice text={t('songRequestPublic.notFound', { channel: channelName })} tone="error" />}
                 {status === 'error' && <Notice text={t('songRequestPublic.error')} tone="error" />}
@@ -155,8 +155,8 @@ export default function SongRequestPublicPage() {
                             {state.stopped
                                 ? <Chip tone="amber">{t('songRequestPublic.stopped')}</Chip>
                                 : state.paused && <Chip tone="amber">{t('songRequestPublic.paused')}</Chip>}
-                            <span className={`flex items-center gap-1.5 ml-auto ${connected ? 'text-emerald-400' : 'text-[#52525b]'}`}>
-                                <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-[#52525b]'}`} />
+                            <span className={`flex items-center gap-1.5 ml-auto ${connected ? 'text-ds-ok' : 'text-ds-soft'}`}>
+                                <span className={`w-2 h-2 rounded-full ${connected ? 'bg-ds-ok animate-pulse' : 'bg-[#52525b]'}`} />
                                 {t('songRequestPublic.live')}
                             </span>
                         </div>
@@ -171,7 +171,7 @@ export default function SongRequestPublicPage() {
                                     onClick={() => setTab(id)}
                                     className={`shrink-0 px-2.5 sm:px-4 py-2.5 4xl:px-6 4xl:py-3.5 font-mono text-[11px] sm:text-xs 3xl:text-sm 4xl:text-base uppercase tracking-wider sm:tracking-widest border-b-2 -mb-px transition-colors ${tab === id
                                         ? 'border-pub-accent text-pub-accent-hi'
-                                        : 'border-transparent text-[#71717a] hover:text-[#d4d4d8]'}`}
+                                        : 'border-transparent text-ds-soft hover:text-ds-text'}`}
                                 >
                                     {tabLabel[id]}
                                 </button>

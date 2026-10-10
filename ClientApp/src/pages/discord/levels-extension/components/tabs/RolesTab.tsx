@@ -15,11 +15,11 @@ interface RolesTabProps {
   onAddRole: (data: any) => void;
 }
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
-const labelClass = 'text-sm font-bold text-gray-700 dark:text-gray-300';
-const inputClass = 'w-full px-4 py-2.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent';
-const btnPrimary = 'px-4 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white font-bold rounded-xl';
-const btnSecondary = 'px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151]';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
+const labelClass = 'text-sm font-bold text-ds-soft ';
+const inputClass = 'w-full px-4 py-2.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent';
+const btnPrimary = 'px-4 py-2 bg-ds-accent text-ds-on-accent font-bold rounded-lg';
+const btnSecondary = 'px-4 py-2 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border ';
 
 // Inline editable field that saves on blur
 function EditableField({ value, onChange, type = 'text', className, min }: { value: string | number; onChange: (val: string) => void; type?: string; className?: string; min?: number }) {
@@ -65,9 +65,9 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
       <div className={cardClass}>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
-            <Crown className="w-5 h-5 text-[#f59e0b]" />
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Roles por Nivel</h3>
-            <span className="px-2 py-0.5 bg-[#f8fafc] dark:bg-[#374151]/50 rounded-lg text-xs font-bold text-[#64748b]">
+            <Crown className="w-5 h-5 text-ds-accent-text" />
+            <h3 className="text-lg font-black text-ds-text">Roles por Nivel</h3>
+            <span className="px-2 py-0.5 bg-ds-bg rounded-lg text-xs font-bold text-ds-soft">
               {roles.length} roles
             </span>
           </div>
@@ -78,7 +78,7 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
                 Crear Roles Base
               </button>
             )}
-            <button onClick={onSyncDiscord} className={`${btnSecondary} flex items-center gap-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151]/70 transition-colors`}>
+            <button onClick={onSyncDiscord} className={`${btnSecondary} flex items-center gap-2 hover:bg-ds-raised transition-colors`}>
               <RefreshCw className="w-4 h-4" />
               Sincronizar con Discord
             </button>
@@ -88,12 +88,12 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
                 Sync Usuarios
               </button>
             )}
-            <button onClick={onCleanupDiscord} className={`${btnSecondary} flex items-center gap-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151]/70 transition-colors text-amber-600`} title="Elimina roles con ✦ en Discord que ya no estan en la BD">
+            <button onClick={onCleanupDiscord} className={`${btnSecondary} flex items-center gap-2 hover:bg-ds-raised transition-colors text-ds-warn`} title="Elimina roles con ✦ en Discord que ya no estan en la BD">
               <RefreshCw className="w-4 h-4" />
               Limpiar Discord
             </button>
             {roles.length > 0 && (
-              <button onClick={onDeleteAll} className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold rounded-xl border border-red-200 dark:border-red-800 flex items-center gap-2 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+              <button onClick={onDeleteAll} className="px-4 py-2 bg-ds-danger/10 text-ds-danger font-bold rounded-lg border border-ds-danger/40 flex items-center gap-2 hover:bg-ds-danger/10 transition-colors">
                 <Trash2 className="w-4 h-4" />
                 Eliminar Todos
               </button>
@@ -103,11 +103,11 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
       </div>
 
       {/* Important notice */}
-      <div className="bg-amber-50 dark:bg-amber-900/10 rounded-2xl p-4 border border-amber-200 dark:border-amber-800/50 flex gap-3">
+      <div className="bg-ds-warn/10 rounded-lg p-4 border border-ds-warn/40 flex gap-3">
         <span className="text-xl flex-shrink-0">⚠️</span>
         <div>
-          <p className="text-sm font-bold text-amber-800 dark:text-amber-300">Importante: Jerarquia de roles</p>
-          <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+          <p className="text-sm font-bold text-ds-warn">Importante: Jerarquia de roles</p>
+          <p className="text-xs text-ds-warn mt-1">
             Para que el bot pueda asignar roles, el rol <strong>"Decatron"</strong> debe estar <strong>arriba</strong> de todos los roles que quieras gestionar.
             Ve a <strong>Discord → Ajustes del servidor → Roles</strong> y arrastra el rol "Decatron" lo mas arriba posible (debajo de tu rol de Owner).
           </p>
@@ -117,9 +117,9 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
       {/* Empty State */}
       {roles.length === 0 && (
         <div className={`${cardClass} text-center py-12`}>
-          <Crown className="w-12 h-12 text-[#e2e8f0] dark:text-[#374151] mx-auto mb-4" />
-          <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No hay roles configurados</h4>
-          <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-6 max-w-md mx-auto">
+          <Crown className="w-12 h-12 text-ds-text mx-auto mb-4" />
+          <h4 className="text-lg font-bold text-ds-text mb-2">No hay roles configurados</h4>
+          <p className="text-sm text-ds-soft mb-6 max-w-md mx-auto">
             Crea roles base para empezar o agrega roles personalizados que se asignaran automaticamente al subir de nivel.
           </p>
           <button onClick={onCreateDefaults} className={`${btnPrimary} flex items-center gap-2 mx-auto`}>
@@ -135,7 +135,7 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
+                <tr className="border-b border-ds-border">
                   <th className={`${labelClass} text-left pb-3 pl-2`}>Color</th>
                   <th className={`${labelClass} text-left pb-3`}>Nivel</th>
                   <th className={`${labelClass} text-left pb-3`}>Nombre</th>
@@ -145,17 +145,17 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
               </thead>
               <tbody>
                 {sortedRoles.map(role => (
-                  <tr key={role.id} className="border-b border-[#e2e8f0]/50 dark:border-[#374151]/50 last:border-0">
+                  <tr key={role.id} className="border-b border-ds-border/50 last:border-0">
                     <td className="py-3 pl-2">
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-8 h-8 rounded-full border-2 border-white dark:border-[#1B1C1D] shadow-sm"
+                          className="w-8 h-8 rounded-full border-2 border-ds-border"
                           style={{ backgroundColor: role.roleColor }}
                         />
                         <EditableField
                           value={role.roleColor}
                           onChange={val => onUpdateRole(role.id, { roleColor: val })}
-                          className="w-20 px-2 py-1 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent"
+                          className="w-20 px-2 py-1 bg-ds-bg border border-ds-border rounded-lg text-xs text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent"
                         />
                       </div>
                     </td>
@@ -165,23 +165,23 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
                         min={1}
                         value={role.levelRequired}
                         onChange={val => onUpdateRole(role.id, { levelRequired: parseInt(val) || 1 })}
-                        className="w-20 px-3 py-1.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent"
+                        className="w-20 px-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent"
                       />
                     </td>
                     <td className="py-3">
                       <EditableField
                         value={role.roleName}
                         onChange={val => onUpdateRole(role.id, { roleName: val })}
-                        className="w-full max-w-[200px] px-3 py-1.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-[#2563eb] focus:border-transparent"
+                        className="w-full max-w-[200px] px-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text focus:ring-2 focus:ring-ds-accent focus:border-transparent"
                       />
                     </td>
                     <td className="py-3">
                       {role.createdInDiscord ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-ds-ok/10 text-ds-ok">
                           Sincronizado
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
+                        <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-ds-warn/10 text-ds-warn">
                           Pendiente
                         </span>
                       )}
@@ -189,7 +189,7 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
                     <td className="py-3 pr-2 text-right">
                       <button
                         onClick={() => onDeleteRole(role.id)}
-                        className="p-2 text-[#ef4444] hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        className="p-2 text-ds-danger hover:bg-ds-danger/10 rounded-lg transition-colors"
                         title="Eliminar rol"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -207,14 +207,14 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
       {!showAddForm ? (
         <button
           onClick={() => setShowAddForm(true)}
-          className={`${btnSecondary} flex items-center gap-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151]/70 transition-colors w-full justify-center`}
+          className={`${btnSecondary} flex items-center gap-2 hover:bg-ds-raised transition-colors w-full justify-center`}
         >
           <Plus className="w-4 h-4" />
           Agregar Rol
         </button>
       ) : (
         <div className={cardClass}>
-          <h4 className="text-base font-bold text-gray-900 dark:text-white mb-4">Nuevo Rol</h4>
+          <h4 className="text-base font-bold text-ds-text mb-4">Nuevo Rol</h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className={labelClass}>Nombre</label>
@@ -240,7 +240,7 @@ export default function RolesTab({ roles, guildId, onCreateDefaults, onSyncDisco
               <label className={labelClass}>Color</label>
               <div className="flex items-center gap-2 mt-2">
                 <div
-                  className="w-10 h-10 rounded-full border-2 border-[#e2e8f0] dark:border-[#374151] shrink-0"
+                  className="w-10 h-10 rounded-full border-2 border-ds-border shrink-0"
                   style={{ backgroundColor: newRole.roleColor }}
                 />
                 <input

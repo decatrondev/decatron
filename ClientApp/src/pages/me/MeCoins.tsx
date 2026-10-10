@@ -78,13 +78,13 @@ function formatDate(dateStr: string): string {
 }
 
 const TYPE_BADGES: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-    purchase: { label: 'Compra', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <ShoppingBag className="w-3 h-3" /> },
-    admin_gift: { label: 'Regalo Admin', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: <Gift className="w-3 h-3" /> },
-    admin_remove: { label: 'Removido', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: <ArrowDownLeft className="w-3 h-3" /> },
-    transfer_in: { label: 'Recibido', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <ArrowDownLeft className="w-3 h-3" /> },
-    transfer_out: { label: 'Enviado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <ArrowUpRight className="w-3 h-3" /> },
-    marketplace_buy: { label: 'Marketplace', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <ShoppingBag className="w-3 h-3" /> },
-    referral_bonus: { label: 'Referido', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: <Users className="w-3 h-3" /> },
+    purchase: { label: 'Compra', color: 'bg-ds-accent/20 text-ds-ok border-ds-ok/40', icon: <ShoppingBag className="w-3 h-3" /> },
+    admin_gift: { label: 'Regalo Admin', color: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30', icon: <Gift className="w-3 h-3" /> },
+    admin_remove: { label: 'Removido', color: 'bg-ds-danger-solid/20 text-ds-danger border-ds-danger/40', icon: <ArrowDownLeft className="w-3 h-3" /> },
+    transfer_in: { label: 'Recibido', color: 'bg-ds-accent/20 text-ds-ok border-ds-ok/40', icon: <ArrowDownLeft className="w-3 h-3" /> },
+    transfer_out: { label: 'Enviado', color: 'bg-ds-warn/20 text-ds-warn border-ds-warn/40', icon: <ArrowUpRight className="w-3 h-3" /> },
+    marketplace_buy: { label: 'Marketplace', color: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30', icon: <ShoppingBag className="w-3 h-3" /> },
+    referral_bonus: { label: 'Referido', color: 'bg-ds-accent/20 text-ds-accent-text border-ds-accent/30', icon: <Users className="w-3 h-3" /> },
 };
 
 export default function MeCoins() {
@@ -459,7 +459,7 @@ export default function MeCoins() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+                <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text" />
             </div>
         );
     }
@@ -468,8 +468,8 @@ export default function MeCoins() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-black text-[#1e293b] dark:text-[#f8fafc]">{currencyName}</h1>
-                <p className="text-[#64748b] dark:text-[#94a3b8] mt-2">Tu moneda en la plataforma Decatron</p>
+                <h1 className="text-3xl font-black text-ds-text">{currencyName}</h1>
+                <p className="text-ds-soft mt-2">Tu moneda en la plataforma Decatron</p>
             </div>
 
             {/* Confirmación del comprobante antes de cobrar */}
@@ -490,33 +490,33 @@ export default function MeCoins() {
             {/* Toast fijo, visible sin importar el scroll. Fondo sólido a propósito: con
                 fondo semitransparente y texto claro, en tema claro no se leía. */}
             {captureMessage && (
-                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-xl shadow-2xl font-semibold text-white ${captureMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed bottom-6 right-6 z-50 max-w-sm flex items-start gap-2 px-4 py-3 rounded-lg font-semibold text-ds-on-accent ${captureMessage.type === 'success' ? 'bg-ds-accent' : 'bg-ds-danger-solid'}`}>
                     {captureMessage.type === 'success' ? <Check className="w-5 h-5 shrink-0" /> : <X className="w-5 h-5 shrink-0" />}
                     <p>{captureMessage.text}</p>
                 </div>
             )}
 
             {/* Balance Card */}
-            <div className="bg-gradient-to-r from-[#1a1b1e] to-[#2d2f36] rounded-2xl p-6 border border-[#374151] shadow-lg">
+            <div className="bg-gradient-to-r from-[#1a1b1e] to-[#2d2f36] rounded-lg p-6 border border-ds-border">
                 <div className="flex items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-[#eab308]/20 flex items-center justify-center flex-shrink-0">
                         <Coins className="w-8 h-8 text-[#eab308]" />
                     </div>
                     <div>
-                        <p className="text-sm text-[#94a3b8]">Tu Balance</p>
-                        <p className="text-4xl font-black text-white">{formatNumber(balance?.balance ?? 0)}</p>
-                        <p className="text-sm text-[#94a3b8]">{currencyName}</p>
+                        <p className="text-sm text-ds-soft">Tu Balance</p>
+                        <p className="text-4xl font-black text-ds-text">{formatNumber(balance?.balance ?? 0)}</p>
+                        <p className="text-sm text-ds-soft">{currencyName}</p>
                     </div>
                 </div>
             </div>
 
             {/* Coupon Section */}
-            <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
+            <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
                 <div className="flex items-center gap-2 mb-3">
                     <Ticket className="w-5 h-5 text-[#eab308]" />
-                    <h2 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">Codigo de descuento</h2>
+                    <h2 className="text-lg font-black text-ds-text">Codigo de descuento</h2>
                 </div>
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Si tienes un codigo de descuento, ingresalo aqui para ver los precios rebajados.</p>
+                <p className="text-sm text-ds-soft mb-4">Si tienes un codigo de descuento, ingresalo aqui para ver los precios rebajados.</p>
 
                 <div className="flex items-center gap-3">
                     <input
@@ -526,12 +526,12 @@ export default function MeCoins() {
                         onKeyDown={(e) => { if (e.key === 'Enter') handleValidateCoupon(); }}
                         placeholder="Ingresa tu codigo"
                         disabled={!!validatedCoupon}
-                        className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308] disabled:opacity-50 font-mono tracking-wider"
+                        className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308] disabled:opacity-50 font-mono tracking-wider"
                     />
                     {validatedCoupon ? (
                         <button
                             onClick={clearCoupon}
-                            className="flex items-center gap-2 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-all font-semibold text-sm"
+                            className="flex items-center gap-2 px-4 py-3 bg-ds-danger-solid/20 hover:bg-ds-danger-solid/30 text-ds-danger border border-ds-danger/40 rounded-lg transition-all font-semibold text-sm"
                         >
                             <X className="w-4 h-4" />
                             Quitar
@@ -540,7 +540,7 @@ export default function MeCoins() {
                         <button
                             onClick={handleValidateCoupon}
                             disabled={validatingCoupon || !couponCode.trim()}
-                            className="flex items-center gap-2 px-6 py-3 bg-[#eab308] hover:bg-yellow-600 text-black rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-6 py-3 bg-[#eab308] hover:bg-ds-warn text-ds-text rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {validatingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                             Validar
@@ -549,13 +549,13 @@ export default function MeCoins() {
                 </div>
 
                 {couponError && (
-                    <div className="mt-3 rounded-lg p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-semibold">
+                    <div className="mt-3 rounded-lg p-3 bg-ds-danger-solid/10 border border-ds-danger/40 text-ds-danger text-sm font-semibold">
                         {couponError}
                     </div>
                 )}
 
                 {validatedCoupon && (
-                    <div className="mt-3 rounded-lg p-3 bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-semibold flex items-center gap-2">
+                    <div className="mt-3 rounded-lg p-3 bg-ds-accent/10 border border-ds-ok/40 text-ds-ok text-sm font-semibold flex items-center gap-2">
                         <Check className="w-4 h-4 flex-shrink-0" />
                         <span>
                             Codigo aplicado: {' '}
@@ -570,18 +570,18 @@ export default function MeCoins() {
             {/* Packages Section */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
-                    <ShoppingBag className="w-5 h-5 text-[#2563eb]" />
-                    <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Paquetes</h2>
+                    <ShoppingBag className="w-5 h-5 text-ds-accent-text" />
+                    <h2 className="text-xl font-black text-ds-text">Paquetes</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {packages.map((pkg) => (
                         <div
                             key={pkg.id}
-                            className={`bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border transition-all hover:shadow-lg ${pkg.isOffer ? 'border-[#eab308]/50' : 'border-[#e2e8f0] dark:border-[#374151]'}`}
+                            className={`bg-ds-surface rounded-lg p-6 border transition-all ${pkg.isOffer ? 'border-[#eab308]/50' : 'border-ds-border '}`}
                         >
                             <div className="flex items-start justify-between mb-3">
                                 <div>
-                                    <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc]">{pkg.name}</h3>
+                                    <h3 className="text-lg font-black text-ds-text">{pkg.name}</h3>
                                     <div className="flex items-center gap-2 mt-1">
                                         {pkg.isOffer && (
                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[#eab308]/20 text-[#eab308] border border-[#eab308]/30">
@@ -590,7 +590,7 @@ export default function MeCoins() {
                                             </span>
                                         )}
                                         {pkg.firstPurchaseOnly && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-[#2563eb]/20 text-[#3b82f6] border border-[#2563eb]/30">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold rounded-full bg-ds-accent/20 text-ds-accent-text border border-ds-accent/30">
                                                 <Star className="w-3 h-3" />
                                                 PRIMERA COMPRA
                                             </span>
@@ -601,12 +601,12 @@ export default function MeCoins() {
                             </div>
 
                             <div className="mb-4">
-                                <p className="text-3xl font-black text-[#1e293b] dark:text-white">
+                                <p className="text-3xl font-black text-ds-text">
                                     {formatNumber(pkg.coins)}
-                                    <span className="text-sm font-normal text-[#64748b] dark:text-[#94a3b8] ml-1">monedas</span>
+                                    <span className="text-sm font-normal text-ds-soft ml-1">monedas</span>
                                 </p>
                                 {pkg.bonusCoins > 0 && (
-                                    <p className="text-sm font-bold text-green-400">+{formatNumber(pkg.bonusCoins)} bonus</p>
+                                    <p className="text-sm font-bold text-ds-ok">+{formatNumber(pkg.bonusCoins)} bonus</p>
                                 )}
                             </div>
 
@@ -622,21 +622,21 @@ export default function MeCoins() {
                                                 </span>
                                             </div>
                                         )}
-                                        <div className="flex items-center justify-between pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
+                                        <div className="flex items-center justify-between pt-4 border-t border-ds-border">
                                             <div>
                                                 {discount && discount.finalPrice < pkg.priceUsd ? (
                                                     <div className="flex items-center gap-2">
-                                                        <p className="text-sm text-[#64748b] line-through">${pkg.priceUsd} USD</p>
-                                                        <p className="text-xl font-black text-green-400">${discount.finalPrice.toFixed(2)} USD</p>
+                                                        <p className="text-sm text-ds-soft line-through">${pkg.priceUsd} USD</p>
+                                                        <p className="text-xl font-black text-ds-ok">${discount.finalPrice.toFixed(2)} USD</p>
                                                     </div>
                                                 ) : (
-                                                    <p className="text-xl font-black text-[#2563eb]">${pkg.priceUsd} USD</p>
+                                                    <p className="text-xl font-black text-ds-accent-text">${pkg.priceUsd} USD</p>
                                                 )}
                                             </div>
                                             <button
                                                 onClick={() => handleBuy(pkg.id)}
                                                 disabled={purchasing === pkg.id}
-                                                className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {purchasing === pkg.id ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -652,16 +652,16 @@ export default function MeCoins() {
                         </div>
                     ))}
                     {packages.length === 0 && (
-                        <div className="col-span-2 text-center py-8 text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="col-span-2 text-center py-8 text-ds-soft">
                             No hay paquetes disponibles en este momento.
                         </div>
                     )}
                 </div>
 
                 {/* Custom Amount */}
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] mt-4">
-                    <h3 className="text-lg font-black text-[#1e293b] dark:text-[#f8fafc] mb-1">Cantidad personalizada</h3>
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Elige cuantas monedas quieres. Sin bonus. $1 = 100 coins.</p>
+                <div className="bg-ds-surface rounded-lg p-6 border border-ds-border mt-4">
+                    <h3 className="text-lg font-black text-ds-text mb-1">Cantidad personalizada</h3>
+                    <p className="text-sm text-ds-soft mb-4">Elige cuantas monedas quieres. Sin bonus. $1 = 100 coins.</p>
                     <div className="flex items-center gap-3">
                         <div className="flex-1 relative">
                             <input
@@ -672,20 +672,20 @@ export default function MeCoins() {
                                 value={customCoins}
                                 onChange={(e) => setCustomCoins(e.target.value)}
                                 placeholder="100 - 5,000"
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[#64748b]">coins</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ds-soft">coins</span>
                         </div>
                         <div className="text-center min-w-[80px]">
-                            <p className="text-lg font-black text-[#2563eb]">
+                            <p className="text-lg font-black text-ds-accent-text">
                                 ${customCoins && parseInt(customCoins) >= 100 ? (parseInt(customCoins) / 100).toFixed(2) : '0.00'}
                             </p>
-                            <p className="text-xs text-[#64748b]">USD</p>
+                            <p className="text-xs text-ds-soft">USD</p>
                         </div>
                         <button
                             onClick={handleBuyCustom}
                             disabled={purchasingCustom || !customCoins || parseInt(customCoins) < 100 || parseInt(customCoins) > 5000}
-                            className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {purchasingCustom ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
                             Comprar
@@ -697,21 +697,21 @@ export default function MeCoins() {
             {/* Transfer Section */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
-                    <Send className="w-5 h-5 text-[#2563eb]" />
-                    <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Transferir Coins</h2>
+                    <Send className="w-5 h-5 text-ds-accent-text" />
+                    <h2 className="text-xl font-black text-ds-text">Transferir Coins</h2>
                 </div>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Envia coins a otro usuario de la plataforma.</p>
+                <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                    <p className="text-sm text-ds-soft mb-4">Envia coins a otro usuario de la plataforma.</p>
 
                     {transferResult && (
-                        <div className={`rounded-xl p-3 border mb-4 ${transferResult.type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                        <div className={`rounded-lg p-3 border mb-4 ${transferResult.type === 'success' ? 'bg-ds-accent/10 border-ds-ok/40 text-ds-ok' : 'bg-ds-danger-solid/10 border-ds-danger/40 text-ds-danger'}`}>
                             <p className="font-semibold text-sm">{transferResult.text}</p>
                         </div>
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                         <div className="relative">
-                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Usuario</label>
+                            <label className="block text-xs text-ds-soft mb-1 font-semibold">Usuario</label>
                             <input
                                 type="text"
                                 value={transferUsername}
@@ -719,26 +719,26 @@ export default function MeCoins() {
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                 onFocus={() => { if (userSuggestions.length > 0) setShowSuggestions(true); }}
                                 placeholder="Buscar usuario..."
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
                             />
                             {showSuggestions && userSuggestions.length > 0 && (
-                                <div className="absolute z-50 top-full mt-1 w-full bg-white dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                <div className="absolute z-50 top-full mt-1 w-full bg-ds-surface border border-ds-border rounded-lg max-h-48 overflow-y-auto">
                                     {userSuggestions.map((u) => (
                                         <button
                                             key={u.id}
                                             onClick={() => selectUser(u)}
-                                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#f1f5f9] dark:hover:bg-[#374151] transition-colors text-left"
+                                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-ds-raised transition-colors text-left"
                                         >
                                             {u.profileImage ? (
                                                 <img src={u.profileImage} alt="" className="w-7 h-7 rounded-full" />
                                             ) : (
-                                                <div className="w-7 h-7 rounded-full bg-[#374151] flex items-center justify-center text-xs font-bold text-white">
+                                                <div className="w-7 h-7 rounded-full bg-ds-raised flex items-center justify-center text-xs font-bold text-ds-text">
                                                     {(u.displayName || u.login || '?')[0].toUpperCase()}
                                                 </div>
                                             )}
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-[#1e293b] dark:text-white truncate">{u.displayName || u.login}</p>
-                                                <p className="text-xs text-[#64748b] truncate">
+                                                <p className="text-sm font-medium text-ds-text truncate">{u.displayName || u.login}</p>
+                                                <p className="text-xs text-ds-soft truncate">
                                                     {u.login && `@${u.login}`}
                                                     {u.discordUsername && u.login && ' · '}
                                                     {u.discordUsername && `Discord: ${u.discordUsername}`}
@@ -750,24 +750,24 @@ export default function MeCoins() {
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Cantidad</label>
+                            <label className="block text-xs text-ds-soft mb-1 font-semibold">Cantidad</label>
                             <input
                                 type="number"
                                 min="1"
                                 value={transferAmount}
                                 onChange={(e) => setTransferAmount(e.target.value)}
                                 placeholder="Cantidad de coins"
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Mensaje (opcional)</label>
+                            <label className="block text-xs text-ds-soft mb-1 font-semibold">Mensaje (opcional)</label>
                             <input
                                 type="text"
                                 value={transferMessage}
                                 onChange={(e) => setTransferMessage(e.target.value)}
                                 placeholder="Mensaje opcional"
-                                className="w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                                className="w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent"
                             />
                         </div>
                     </div>
@@ -775,7 +775,7 @@ export default function MeCoins() {
                         <button
                             onClick={handleTransfer}
                             disabled={transferring || !transferUsername.trim() || !transferAmount || parseInt(transferAmount) <= 0}
-                            className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             Transferir
@@ -788,35 +788,35 @@ export default function MeCoins() {
             {referralData && (
                 <div>
                     <div className="flex items-center gap-2 mb-4">
-                        <Users className="w-5 h-5 text-[#2563eb]" />
-                        <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Referidos</h2>
+                        <Users className="w-5 h-5 text-ds-accent-text" />
+                        <h2 className="text-xl font-black text-ds-text">Referidos</h2>
                     </div>
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">Invita amigos y ambos reciben coins cuando se completa el referido.</p>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <p className="text-sm text-ds-soft mb-4">Invita amigos y ambos reciben coins cuando se completa el referido.</p>
 
                         {referralMessage && (
-                            <div className={`rounded-xl p-3 border mb-4 ${referralMessage.type === 'success' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                            <div className={`rounded-lg p-3 border mb-4 ${referralMessage.type === 'success' ? 'bg-ds-accent/10 border-ds-ok/40 text-ds-ok' : 'bg-ds-danger-solid/10 border-ds-danger/40 text-ds-danger'}`}>
                                 <p className="font-semibold text-sm">{referralMessage.text}</p>
                             </div>
                         )}
 
                         {/* My referral code */}
                         <div className="mb-5">
-                            <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Tu codigo de referido</label>
+                            <label className="block text-xs text-ds-soft mb-1 font-semibold">Tu codigo de referido</label>
                             <div className="flex items-center gap-3">
-                                <div className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg font-mono text-lg tracking-wider text-[#1e293b] dark:text-white font-bold">
+                                <div className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg font-mono text-lg tracking-wider text-ds-text font-bold">
                                     {referralData.referralCode}
                                 </div>
                                 <button
                                     onClick={copyReferralCode}
-                                    className="flex items-center gap-2 px-4 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm"
+                                    className="flex items-center gap-2 px-4 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm"
                                 >
                                     <Copy className="w-4 h-4" />
                                     Copiar
                                 </button>
                                 <button
                                     onClick={copyReferralLink}
-                                    className="flex items-center gap-2 px-4 py-3 bg-[#374151] hover:bg-[#4b5563] text-white rounded-lg transition-all font-semibold text-sm"
+                                    className="flex items-center gap-2 px-4 py-3 bg-ds-raised hover:bg-ds-raised text-ds-text rounded-lg transition-all font-semibold text-sm"
                                 >
                                     <Link className="w-4 h-4" />
                                     Link
@@ -826,29 +826,29 @@ export default function MeCoins() {
 
                         {/* Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
-                                <p className="text-2xl font-black text-[#1e293b] dark:text-white">{referralData.totalReferred}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Total Referidos</p>
+                            <div className="bg-ds-bg rounded-lg p-3 text-center border border-ds-border">
+                                <p className="text-2xl font-black text-ds-text">{referralData.totalReferred}</p>
+                                <p className="text-xs text-ds-soft font-semibold">Total Referidos</p>
                             </div>
-                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
-                                <p className="text-2xl font-black text-green-400">{referralData.completedReferred}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Completados</p>
+                            <div className="bg-ds-bg rounded-lg p-3 text-center border border-ds-border">
+                                <p className="text-2xl font-black text-ds-ok">{referralData.completedReferred}</p>
+                                <p className="text-xs text-ds-soft font-semibold">Completados</p>
                             </div>
-                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
+                            <div className="bg-ds-bg rounded-lg p-3 text-center border border-ds-border">
                                 <p className="text-2xl font-black text-[#eab308]">{referralData.pendingReferred}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Pendientes</p>
+                                <p className="text-xs text-ds-soft font-semibold">Pendientes</p>
                             </div>
-                            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-lg p-3 text-center border border-[#e2e8f0] dark:border-[#374151]">
-                                <p className="text-2xl font-black text-[#2563eb]">{formatNumber(referralData.totalBonusEarned)}</p>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] font-semibold">Bonus Ganado</p>
+                            <div className="bg-ds-bg rounded-lg p-3 text-center border border-ds-border">
+                                <p className="text-2xl font-black text-ds-accent-text">{formatNumber(referralData.totalBonusEarned)}</p>
+                                <p className="text-xs text-ds-soft font-semibold">Bonus Ganado</p>
                             </div>
                         </div>
 
                         {/* Apply referral code (if not yet referred) */}
                         {!referralData.hasBeenReferred && (
-                            <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                <label className="block text-xs text-[#64748b] dark:text-[#94a3b8] mb-1 font-semibold">Aplicar codigo de referido</label>
-                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-2">Si alguien te invito, ingresa su codigo aqui.</p>
+                            <div className="pt-4 border-t border-ds-border">
+                                <label className="block text-xs text-ds-soft mb-1 font-semibold">Aplicar codigo de referido</label>
+                                <p className="text-xs text-ds-soft mb-2">Si alguien te invito, ingresa su codigo aqui.</p>
                                 <div className="flex items-center gap-3">
                                     <input
                                         type="text"
@@ -856,12 +856,12 @@ export default function MeCoins() {
                                         onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
                                         onKeyDown={(e) => { if (e.key === 'Enter') handleApplyReferral(); }}
                                         placeholder="REF-XXXXX"
-                                        className="flex-1 px-4 py-3 bg-[#f8fafc] dark:bg-[#262626] border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-[#1e293b] dark:text-white placeholder:text-gray-400 focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] font-mono tracking-wider"
+                                        className="flex-1 px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text placeholder:text-ds-soft focus:border-ds-accent focus:outline-none focus:ring-1 focus:ring-ds-accent font-mono tracking-wider"
                                     />
                                     <button
                                         onClick={handleApplyReferral}
                                         disabled={applyingReferral || !referralInput.trim()}
-                                        className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex items-center gap-2 px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {applyingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                         Aplicar
@@ -871,8 +871,8 @@ export default function MeCoins() {
                         )}
 
                         {referralData.hasBeenReferred && (
-                            <div className="pt-4 border-t border-[#e2e8f0] dark:border-[#374151]">
-                                <div className="flex items-center gap-2 text-sm text-green-400 font-semibold">
+                            <div className="pt-4 border-t border-ds-border">
+                                <div className="flex items-center gap-2 text-sm text-ds-ok font-semibold">
                                     <Check className="w-4 h-4" />
                                     Ya tienes un codigo de referido aplicado
                                 </div>
@@ -885,30 +885,30 @@ export default function MeCoins() {
             {/* Transaction History */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
-                    <History className="w-5 h-5 text-[#2563eb]" />
-                    <h2 className="text-xl font-black text-[#1e293b] dark:text-[#f8fafc]">Historial de Transacciones</h2>
+                    <History className="w-5 h-5 text-ds-accent-text" />
+                    <h2 className="text-xl font-black text-ds-text">Historial de Transacciones</h2>
                 </div>
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
+                <div className="bg-ds-surface rounded-lg border border-ds-border overflow-hidden">
                     {history.length > 0 ? (
                         <>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                                            <th className="text-left px-4 py-3 text-[#64748b] dark:text-[#94a3b8] font-semibold">Fecha</th>
-                                            <th className="text-left px-4 py-3 text-[#64748b] dark:text-[#94a3b8] font-semibold">Tipo</th>
-                                            <th className="text-right px-4 py-3 text-[#64748b] dark:text-[#94a3b8] font-semibold">Monto</th>
-                                            <th className="text-right px-4 py-3 text-[#64748b] dark:text-[#94a3b8] font-semibold hidden sm:table-cell">Balance</th>
-                                            <th className="text-left px-4 py-3 text-[#64748b] dark:text-[#94a3b8] font-semibold hidden md:table-cell">Descripcion</th>
+                                        <tr className="border-b border-ds-border">
+                                            <th className="text-left px-4 py-3 text-ds-soft font-semibold">Fecha</th>
+                                            <th className="text-left px-4 py-3 text-ds-soft font-semibold">Tipo</th>
+                                            <th className="text-right px-4 py-3 text-ds-soft font-semibold">Monto</th>
+                                            <th className="text-right px-4 py-3 text-ds-soft font-semibold hidden sm:table-cell">Balance</th>
+                                            <th className="text-left px-4 py-3 text-ds-soft font-semibold hidden md:table-cell">Descripcion</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {history.map((tx, idx) => {
-                                            const badge = TYPE_BADGES[tx.type] || { label: tx.type, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: null };
+                                            const badge = TYPE_BADGES[tx.type] || { label: tx.type, color: 'bg-ds-faint/20 text-ds-soft border-ds-border/30', icon: null };
                                             const isPositive = tx.amount > 0;
                                             return (
-                                                <tr key={tx.id ?? idx} className="border-b border-[#e2e8f0] dark:border-[#374151] last:border-b-0">
-                                                    <td className="px-4 py-3 text-[#1e293b] dark:text-[#f8fafc] whitespace-nowrap">
+                                                <tr key={tx.id ?? idx} className="border-b border-ds-border last:border-b-0">
+                                                    <td className="px-4 py-3 text-ds-text whitespace-nowrap">
                                                         {formatDate(tx.createdAt ?? tx.created_at)}
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -917,13 +917,13 @@ export default function MeCoins() {
                                                             {badge.label}
                                                         </span>
                                                     </td>
-                                                    <td className={`px-4 py-3 text-right font-bold whitespace-nowrap ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                                                    <td className={`px-4 py-3 text-right font-bold whitespace-nowrap ${isPositive ? 'text-ds-ok' : 'text-ds-danger'}`}>
                                                         {isPositive ? '+' : ''}{formatNumber(tx.amount)}
                                                     </td>
-                                                    <td className="px-4 py-3 text-right text-[#1e293b] dark:text-[#f8fafc] font-semibold hidden sm:table-cell">
+                                                    <td className="px-4 py-3 text-right text-ds-text font-semibold hidden sm:table-cell">
                                                         {formatNumber(tx.balanceAfter ?? 0)}
                                                     </td>
-                                                    <td className="px-4 py-3 text-[#64748b] dark:text-[#94a3b8] hidden md:table-cell">
+                                                    <td className="px-4 py-3 text-ds-soft hidden md:table-cell">
                                                         {tx.description || '-'}
                                                     </td>
                                                 </tr>
@@ -933,11 +933,11 @@ export default function MeCoins() {
                                 </table>
                             </div>
                             {hasMoreHistory && (
-                                <div className="p-4 text-center border-t border-[#e2e8f0] dark:border-[#374151]">
+                                <div className="p-4 text-center border-t border-ds-border">
                                     <button
                                         onClick={loadMoreHistory}
                                         disabled={loadingHistory}
-                                        className="px-6 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
+                                        className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg transition-all font-semibold text-sm disabled:opacity-50"
                                     >
                                         {loadingHistory ? (
                                             <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
@@ -948,7 +948,7 @@ export default function MeCoins() {
                             )}
                         </>
                     ) : (
-                        <div className="text-center py-12 text-[#64748b] dark:text-[#94a3b8]">
+                        <div className="text-center py-12 text-ds-soft">
                             <History className="w-10 h-10 mx-auto mb-2 opacity-50" />
                             <p>No hay transacciones aun.</p>
                         </div>

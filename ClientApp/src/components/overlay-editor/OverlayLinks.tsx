@@ -72,17 +72,17 @@ export function LinkRow({ url, copyLabel, copiedLabel, name, hint, recommended, 
         <div>
             {(name || loaded) && (
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                    {name && <span className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]">{name}</span>}
-                    {recommended && <span className="px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#2563eb] dark:text-[#93c5fd]">{t('overlayLinks.recommended')}</span>}
+                    {name && <span className="text-sm 3xl:text-base font-bold text-ds-text">{name}</span>}
+                    {recommended && <span className="px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold bg-ds-accent/10 text-ds-accent-text">{t('overlayLinks.recommended')}</span>}
                     {loaded && (
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold ${connected ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8]'}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-500' : 'bg-[#94a3b8]'}`} />
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] 3xl:text-xs font-bold ${connected ? 'bg-ds-ok/10 text-ds-ok ' : 'bg-ds-raised text-ds-soft '}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-ds-accent' : 'bg-ds-faint'}`} />
                             {connected ? t('overlayLinks.connected') : t('overlayLinks.notConnected')}
                         </span>
                     )}
                 </div>
             )}
-            {hint && <p className="text-xs 3xl:text-sm text-[#64748b] dark:text-[#94a3b8] mb-2">{hint}</p>}
+            {hint && <p className="text-xs 3xl:text-sm text-ds-soft mb-2">{hint}</p>}
             <div className="flex flex-col sm:flex-row gap-2">
                 <input className={`${inputClass} font-mono`} readOnly value={url} onFocus={e => e.currentTarget.select()} />
                 <div className="flex gap-2">
@@ -96,9 +96,9 @@ export function LinkRow({ url, copyLabel, copiedLabel, name, hint, recommended, 
 
 export function Warning({ title, text }: { title: string; text: string }) {
     return (
-        <div role="alert" className="mt-5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3">
-            <p className="text-sm 3xl:text-base font-bold text-amber-800 dark:text-amber-300">{title}</p>
-            <p className="text-sm 3xl:text-base text-amber-800/90 dark:text-amber-200/90 mt-1">{text}</p>
+        <div role="alert" className="mt-5 rounded-lg border border-ds-warn/40 bg-ds-warn/10 px-4 py-3">
+            <p className="text-sm 3xl:text-base font-bold text-ds-warn">{title}</p>
+            <p className="text-sm 3xl:text-base text-ds-warn/90 mt-1">{text}</p>
         </div>
     );
 }

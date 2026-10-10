@@ -65,12 +65,12 @@ export function ThemeTab(props: DesignProps & { templates?: TemplateStore }) {
                         <button
                             key={p.id}
                             onClick={() => set(applyThemePreset(layout, p))}
-                            className="text-left p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all"
+                            className="text-left p-3 rounded-lg border border-ds-border hover:border-ds-accent transition-all"
                         >
-                            <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-black/10">
+                            <div className="flex h-8 rounded-lg overflow-hidden mb-2 border border-ds-border/10">
                                 {p.swatch.map((c, i) => <span key={i} className="flex-1" style={{ background: c === '#00000000' ? 'repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 10px 10px' : c }} />)}
                             </div>
-                            <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc]" style={{ fontFamily: `'${p.font}', system-ui` }}>{t(`musicOverlay.theme.presets.${p.id}`)}</p>
+                            <p className="text-sm 3xl:text-base font-bold text-ds-text" style={{ fontFamily: `'${p.font}', system-ui` }}>{t(`musicOverlay.theme.presets.${p.id}`)}</p>
                         </button>
                     ))}
                 </div>
@@ -114,31 +114,31 @@ function TemplatesCard({ layout, onChange, elementIds, templates: store }: Desig
             ) : (
                 <form className="flex gap-2 mb-4" onSubmit={e => { e.preventDefault(); saveTemplate(); }}>
                     <input value={name} onChange={e => setName(e.target.value)} placeholder={t('musicOverlay.templates.namePlaceholder')} className={inputClass} maxLength={60} />
-                    <button type="submit" disabled={!name.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white disabled:opacity-50 shrink-0">
+                    <button type="submit" disabled={!name.trim()} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm 3xl:text-base font-bold bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent disabled:opacity-50 shrink-0">
                         <Save className="w-4 h-4" /> {t('musicOverlay.templates.save')}
                     </button>
                 </form>
             )}
             {templates.length === 0 ? (
-                <p className="text-sm 3xl:text-base text-[#94a3b8]">{t('musicOverlay.templates.empty')}</p>
+                <p className="text-sm 3xl:text-base text-ds-soft">{t('musicOverlay.templates.empty')}</p>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {templates.map(tpl => (
-                        <div key={tpl.id} className="flex items-center gap-2 p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
+                        <div key={tpl.id} className="flex items-center gap-2 p-3 rounded-lg border border-ds-border">
                             <span className="text-lg">{tpl.icon}</span>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{tpl.name}</p>
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{tpl.layout.canvas.width}×{tpl.layout.canvas.height}</p>
+                                <p className="text-sm 3xl:text-base font-bold text-ds-text truncate">{tpl.name}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft">{tpl.layout.canvas.width}×{tpl.layout.canvas.height}</p>
                             </div>
                             <button
                                 onClick={() => onChange(onlyOffered(structuredClone(tpl.layout), elementIds))}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]"
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
                             >
                                 <Check className="w-3.5 h-3.5" /> {t('musicOverlay.templates.apply')}
                             </button>
                             <button
                                 onClick={() => { if (window.confirm(t('musicOverlay.templates.deleteConfirm', { name: tpl.name }))) store.onChange(templates.filter(x => x.id !== tpl.id)); }}
-                                className="p-1.5 rounded-lg text-[#94a3b8] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                className="p-1.5 rounded-lg text-ds-soft hover:text-ds-danger hover:bg-ds-danger/10"
                                 title={t('musicOverlay.templates.delete')}
                             >
                                 <Trash2 className="w-4 h-4" />
@@ -168,7 +168,7 @@ export function ElementsTab(props: DesignProps & { labels?: OverlayLabels }) {
     const extra = (id: ElementId) => {
         switch (id) {
             case 'video':
-                return <p className="text-xs 3xl:text-sm text-[#94a3b8]">{t('musicOverlay.elementOptions.videoHint')}</p>;
+                return <p className="text-xs 3xl:text-sm text-ds-soft">{t('musicOverlay.elementOptions.videoHint')}</p>;
             case 'requester':
                 return <Field label={t('musicOverlay.elementOptions.label')} hint={t('musicOverlay.elementOptions.requesterLabelHint')}><input className={inputClass} value={e.requester.options.label ?? ''} placeholder={props.labels?.requestedBy} onChange={ev => setOptions('requester', { label: ev.target.value })} maxLength={60} /></Field>;
             case 'next':
@@ -221,7 +221,7 @@ export function ElementsTab(props: DesignProps & { labels?: OverlayLabels }) {
             {props.header}
             <VideoCoverNotice layout={layout} coverHidden={coverHidden} onDismiss={() => setCoverHidden(false)} />
             <Card title={t('musicOverlay.elementsTab.title')} description={t('musicOverlay.elementsTab.description')}>
-                <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                <div className="divide-y divide-ds-border">
                     {ids.map(id => {
                         const options = extra(id);
                         return (
@@ -262,13 +262,13 @@ export function TypographyTab(props: DesignProps) {
                         <button
                             key={id}
                             onClick={() => setSelected(id)}
-                            className={`px-3 py-1.5 rounded-lg text-sm 3xl:text-base font-bold transition-colors ${id === selected ? 'bg-[#2563eb] text-white' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'} ${layout.elements[id].enabled ? '' : 'opacity-50'}`}
+                            className={`px-3 py-1.5 rounded-lg text-sm 3xl:text-base font-bold transition-colors ${id === selected ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft hover:bg-ds-raised '} ${layout.elements[id].enabled ? '' : 'opacity-50'}`}
                         >
                             {t(`musicOverlay.elements.${id}`)}
                         </button>
                     ))}
                 </div>
-                {!layout.elements[selected].enabled && <p className="text-xs 3xl:text-sm text-amber-600 dark:text-amber-400 mb-4">{t('musicOverlay.typography.hiddenNote')}</p>}
+                {!layout.elements[selected].enabled && <p className="text-xs 3xl:text-sm text-ds-warn mb-4">{t('musicOverlay.typography.hiddenNote')}</p>}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Field label={t('musicOverlay.typography.font')}>
@@ -276,7 +276,7 @@ export function TypographyTab(props: DesignProps) {
                             <select className={inputClass} value={style.fontFamily} onChange={e => setText({ fontFamily: e.target.value })} style={{ fontFamily: `'${style.fontFamily}'` }}>
                                 {FONT_FAMILIES.map(f => <option key={f} value={f} style={{ fontFamily: `'${f}'` }}>{f}</option>)}
                             </select>
-                            <button onClick={applyFontToAll} className="px-3 py-2 rounded-lg text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151] shrink-0" title={t('musicOverlay.typography.applyAllHint')}>
+                            <button onClick={applyFontToAll} className="px-3 py-2 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised shrink-0" title={t('musicOverlay.typography.applyAllHint')}>
                                 {t('musicOverlay.typography.applyAll')}
                             </button>
                         </div>
@@ -321,7 +321,7 @@ export function AnimationsTab(props: DesignProps) {
                         <button
                             key={n}
                             onClick={() => setAnim({ songChange: n })}
-                            className={`px-3 py-2.5 rounded-xl text-sm 3xl:text-base font-bold border transition-colors ${a.songChange === n ? 'border-[#2563eb] bg-[#eff6ff] dark:bg-[#1e3a8a]/30 text-[#2563eb] dark:text-[#93c5fd]' : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8] hover:border-[#2563eb]'}`}
+                            className={`px-3 py-2.5 rounded-lg text-sm 3xl:text-base font-bold border transition-colors ${a.songChange === n ? 'border-ds-accent bg-ds-accent/10 text-ds-accent-text ' : 'border-ds-border text-ds-soft hover:border-ds-accent'}`}
                         >
                             {t(`musicOverlay.animations.names.${n}`)}
                         </button>
@@ -333,7 +333,7 @@ export function AnimationsTab(props: DesignProps) {
                     <Toggle checked={a.hideWhenIdle} onChange={v => setAnim({ hideWhenIdle: v })} label={t('musicOverlay.animations.hideWhenIdle')} hint={t('musicOverlay.animations.hideWhenIdleHint')} />
                     <Toggle checked={a.freezeWhenPaused} onChange={v => setAnim({ freezeWhenPaused: v })} label={t('musicOverlay.animations.freezeWhenPaused')} />
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-4">{t('musicOverlay.animations.previewHint')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-4">{t('musicOverlay.animations.previewHint')}</p>
             </Card>
             <ShowHideCard title={t('musicOverlay.animations.enterTitle')} description={t('musicOverlay.animations.enterDescription')} value={a.enter} onChange={v => setAnim({ enter: v })} />
             <ShowHideCard title={t('musicOverlay.animations.exitTitle')} description={t('musicOverlay.animations.exitDescription')} value={a.exit} onChange={v => setAnim({ exit: v })} />
@@ -347,11 +347,11 @@ function ShowHideCard({ title, description, value, onChange }: { title: string; 
     const types: ShowHideAnimation['type'][] = ['none', 'fade', 'slide', 'bounce', 'zoom'];
     const directions: Direction[] = ['left', 'right', 'top', 'bottom'];
     const easings: Easing[] = ['ease', 'ease-out', 'ease-in', 'ease-in-out', 'linear'];
-    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-[#2563eb] text-white' : 'text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#262626]'}`;
+    const seg = (active: boolean) => `px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold transition-colors ${active ? 'bg-ds-accent text-ds-on-accent' : 'text-ds-soft hover:bg-ds-raised '}`;
     return (
         <Card title={title} description={description}>
             <div className="space-y-4">
-                <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-[#f8fafc] dark:bg-[#111] w-fit">
+                <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-ds-bg w-fit">
                     {types.map(ty => <button key={ty} className={seg(value.type === ty)} onClick={() => set({ type: ty })}>{t(`musicOverlay.animations.showHide.${ty}`)}</button>)}
                 </div>
                 {value.type !== 'none' && (
@@ -401,10 +401,10 @@ export function EditorTab(props: DesignProps & { labels: OverlayLabels; sample: 
                     {presets.map(p => {
                         const l = p.build();
                         return (
-                            <button key={p.id} onClick={() => applyLayout(p.build)} className="p-3 rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb] hover:shadow-md transition-all text-left">
+                            <button key={p.id} onClick={() => applyLayout(p.build)} className="p-3 rounded-lg border border-ds-border hover:border-ds-accent transition-all text-left">
                                 <LayoutThumb layout={l} />
-                                <p className="text-sm 3xl:text-base font-bold text-[#1e293b] dark:text-[#f8fafc] mt-2">{t(`musicOverlay.editor.layouts.${p.id}`)}</p>
-                                <p className="text-xs 3xl:text-sm text-[#94a3b8]">{contentBounds(l).width}×{contentBounds(l).height}</p>
+                                <p className="text-sm 3xl:text-base font-bold text-ds-text mt-2">{t(`musicOverlay.editor.layouts.${p.id}`)}</p>
+                                <p className="text-xs 3xl:text-sm text-ds-soft">{contentBounds(l).width}×{contentBounds(l).height}</p>
                             </button>
                         );
                     })}

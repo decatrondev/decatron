@@ -62,7 +62,7 @@ export default function ChannelTab({ s }: { s: SettingsCtx }) {
                     title={viewerIsOwner ? t('settings:accessLevels.owner') : t('settings:accessLevels.controlTotal')}
                     description={t('settings:systemInfo.accessLevelDescription')}
                 >
-                    <span className="px-3 py-1 bg-ds-accent text-white text-xs 4xl:text-sm font-bold rounded">
+                    <span className="px-3 py-1 bg-ds-accent text-ds-on-accent text-xs 4xl:text-sm font-bold rounded">
                         {viewerIsOwner ? t('settings:accessLevels.owner') : t('settings:accessLevels.controlTotal')}
                     </span>
                 </SettingsRow>

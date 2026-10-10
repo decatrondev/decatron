@@ -25,16 +25,16 @@ interface ModerationTabProps {
 }
 
 const severityColors: Record<string, string> = {
-    leve: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    medio: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    severo: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+    leve: 'bg-ds-warn/10 text-ds-warn ',
+    medio: 'bg-ds-warn/10 text-ds-warn ',
+    severo: 'bg-ds-danger/10 text-ds-danger '
 };
 
 const actionColors: Record<string, string> = {
-    warn: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    timeout: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    ban: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    delete: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+    warn: 'bg-ds-warn/10 text-ds-warn ',
+    timeout: 'bg-ds-warn/10 text-ds-warn ',
+    ban: 'bg-ds-danger/10 text-ds-danger ',
+    delete: 'bg-ds-bg text-ds-soft '
 };
 
 export default function ModerationTab({ data, isLoading, dateRange }: ModerationTabProps) {
@@ -85,57 +85,57 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
         <div className="space-y-6">
             {/* Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <p className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-1">
+                <div className="p-5 bg-ds-accent/10 rounded-lg border border-ds-accent">
+                    <p className="text-xs font-bold text-ds-accent-text uppercase tracking-wider mb-1">
                         {t('moderation.totalActions', 'Total Acciones')}
                     </p>
                     {isLoading ? (
-                        <div className="h-8 w-20 bg-blue-200 dark:bg-blue-800 rounded animate-pulse" />
+                        <div className="h-8 w-20 bg-ds-accent/10 rounded animate-pulse" />
                     ) : (
-                        <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{stats.total}</p>
+                        <p className="text-2xl font-black text-ds-text">{stats.total}</p>
                     )}
                 </div>
-                <div className="p-5 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl border border-red-200 dark:border-red-800">
-                    <p className="text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider mb-1">
+                <div className="p-5 bg-ds-danger/10 rounded-lg border border-ds-danger/40">
+                    <p className="text-xs font-bold text-ds-danger uppercase tracking-wider mb-1">
                         {t('moderation.severeActions', 'Severas')}
                     </p>
                     {isLoading ? (
-                        <div className="h-8 w-20 bg-red-200 dark:bg-red-800 rounded animate-pulse" />
+                        <div className="h-8 w-20 bg-ds-danger/10 rounded animate-pulse" />
                     ) : (
-                        <p className="text-2xl font-black text-red-600 dark:text-red-400">{stats.severe}</p>
+                        <p className="text-2xl font-black text-ds-danger">{stats.severe}</p>
                     )}
                 </div>
-                <div className="p-5 bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                    <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider mb-1">
+                <div className="p-5 bg-ds-bg rounded-lg border border-ds-border">
+                    <p className="text-xs font-bold text-ds-soft uppercase tracking-wider mb-1">
                         {t('moderation.uniqueWords', 'Palabras Únicas')}
                     </p>
                     {isLoading ? (
-                        <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-8 w-20 bg-ds-raised rounded animate-pulse" />
                     ) : (
-                        <p className="text-2xl font-black text-[#1e293b] dark:text-[#f8fafc]">{stats.uniqueWords}</p>
+                        <p className="text-2xl font-black text-ds-text">{stats.uniqueWords}</p>
                     )}
                 </div>
             </div>
 
             {/* Top Words */}
             {stats.topWords.length > 0 && (
-                <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-5">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc] mb-4">
+                <div className="bg-ds-bg rounded-lg border border-ds-border p-5">
+                    <h3 className="text-sm font-bold text-ds-text mb-4">
                         {t('moderation.topWords', 'Top Palabras Detectadas')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {stats.topWords.map(({ word, count }, index) => (
                             <div
                                 key={word}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#1B1C1D] rounded-lg border border-[#e2e8f0] dark:border-[#374151]"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-ds-surface rounded-lg border border-ds-border"
                             >
-                                <span className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+                                <span className="text-xs font-bold text-ds-soft">
                                     #{index + 1}
                                 </span>
-                                <span className="text-sm font-mono text-[#1e293b] dark:text-[#f8fafc]">
+                                <span className="text-sm font-mono text-ds-text">
                                     {word}
                                 </span>
-                                <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-[#64748b] dark:text-[#94a3b8]">
+                                <span className="text-xs px-1.5 py-0.5 bg-ds-bg rounded text-ds-soft">
                                     {count}
                                 </span>
                             </div>
@@ -145,9 +145,9 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
             )}
 
             {/* Table */}
-            <div className="bg-[#f8fafc] dark:bg-[#262626] rounded-xl border border-[#e2e8f0] dark:border-[#374151] overflow-hidden">
-                <div className="p-4 border-b border-[#e2e8f0] dark:border-[#374151]">
-                    <h3 className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">
+            <div className="bg-ds-bg rounded-lg border border-ds-border overflow-hidden">
+                <div className="p-4 border-b border-ds-border">
+                    <h3 className="text-sm font-bold text-ds-text">
                         {t('moderation.historyTitle', 'Historial de Moderación')}
                     </h3>
                 </div>
@@ -155,13 +155,13 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
                 {isLoading ? (
                     <div className="p-4 space-y-2">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                            <div key={i} className="h-12 bg-ds-raised rounded animate-pulse" />
                         ))}
                     </div>
                 ) : paginatedData.length > 0 ? (
                     <>
                         {/* Table Header */}
-                        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-gray-100 dark:bg-gray-800 text-xs font-bold text-[#64748b] dark:text-[#94a3b8] uppercase tracking-wider">
+                        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-ds-bg text-xs font-bold text-ds-soft uppercase tracking-wider">
                             <div className="col-span-2">{t('moderation.date', 'Fecha')}</div>
                             <div className="col-span-2">{t('moderation.username', 'Usuario')}</div>
                             <div className="col-span-3">{t('moderation.word', 'Palabra')}</div>
@@ -171,15 +171,15 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
                         </div>
 
                         {/* Table Body */}
-                        <div className="divide-y divide-[#e2e8f0] dark:divide-[#374151]">
+                        <div className="divide-y divide-ds-border">
                             {paginatedData.map((log) => (
-                                <div key={log.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 hover:bg-white dark:hover:bg-[#1B1C1D] transition-colors">
+                                <div key={log.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 hover:bg-ds-surface transition-colors">
                                     {/* Mobile header */}
                                     <div className="md:hidden flex items-center justify-between mb-2">
-                                        <span className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                        <span className="text-sm font-semibold text-ds-text">
                                             {log.username}
                                         </span>
-                                        <span className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+                                        <span className="text-xs text-ds-soft">
                                             {new Date(log.createdAt).toLocaleString(locale, {
                                                 day: '2-digit',
                                                 month: 'short',
@@ -190,7 +190,7 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
                                     </div>
 
                                     {/* Desktop: Date */}
-                                    <div className="hidden md:block col-span-2 text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="hidden md:block col-span-2 text-sm text-ds-text">
                                         {new Date(log.createdAt).toLocaleString(locale, {
                                             day: '2-digit',
                                             month: 'short',
@@ -200,13 +200,13 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
                                     </div>
 
                                     {/* Desktop: Username */}
-                                    <div className="hidden md:block col-span-2 text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">
+                                    <div className="hidden md:block col-span-2 text-sm font-semibold text-ds-text">
                                         {log.username}
                                     </div>
 
                                     {/* Word */}
                                     <div className="md:col-span-3">
-                                        <span className="text-sm font-mono text-[#64748b] dark:text-[#94a3b8] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
+                                        <span className="text-sm font-mono text-ds-soft bg-ds-bg px-2 py-0.5 rounded">
                                             {log.detectedWord}
                                         </span>
                                     </div>
@@ -223,7 +223,7 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
                                                 {log.actionTaken}
                                             </span>
                                         </div>
-                                        <div className="md:col-span-1 text-sm text-[#1e293b] dark:text-[#f8fafc]">
+                                        <div className="md:col-span-1 text-sm text-ds-text">
                                             {log.strikeLevel}/3
                                         </div>
                                     </div>
@@ -243,8 +243,8 @@ export default function ModerationTab({ data, isLoading, dateRange }: Moderation
                     </>
                 ) : (
                     <div className="p-12 text-center">
-                        <Shield className="w-12 h-12 text-[#94a3b8] dark:text-[#64748b] mx-auto mb-4" />
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <Shield className="w-12 h-12 text-ds-soft mx-auto mb-4" />
+                        <p className="text-sm text-ds-soft">
                             {t('moderation.noActions', 'No hay acciones de moderación en este período')}
                         </p>
                     </div>

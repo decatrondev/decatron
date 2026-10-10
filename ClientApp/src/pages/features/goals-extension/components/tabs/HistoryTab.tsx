@@ -111,7 +111,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-ds-accent rounded-lg flex items-center justify-center">
-                            <History className="w-5 h-5 text-ds-text" />
+                            <History className="w-5 h-5 text-ds-on-accent" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-ds-text">

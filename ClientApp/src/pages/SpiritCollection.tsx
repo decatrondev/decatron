@@ -57,7 +57,7 @@ export default function SpiritCollection() {
             <PageTitle eyebrow={t('collection.collected_by')} title={`@${username}`} />
 
             {loading ? (
-                <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">...</p>
+                <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">...</p>
             ) : (
                 <>
                     <ProgressPanel items={collection} />
@@ -73,8 +73,8 @@ export default function SpiritCollection() {
 
                     <section className="mt-12 rounded-lg border border-pub-border bg-pub-surface p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-5">
                         <div className="flex-1 text-center sm:text-left">
-                            <p className="text-lg 3xl:text-xl font-black text-white">{t('public.cta_title')}</p>
-                            <p className="text-sm 3xl:text-base text-[#a1a1aa] mt-1">{t('public.cta_body')}</p>
+                            <p className="text-lg 3xl:text-xl font-black text-ds-text">{t('public.cta_title')}</p>
+                            <p className="text-sm 3xl:text-base text-ds-soft mt-1">{t('public.cta_body')}</p>
                         </div>
                         <a href="/login" className={`${primaryButton} whitespace-nowrap`}>{t('public.cta_button')}</a>
                     </section>

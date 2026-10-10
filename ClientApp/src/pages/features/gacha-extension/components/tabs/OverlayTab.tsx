@@ -87,7 +87,7 @@ export const OverlayTab: React.FC = () => {
             {/* Header */}
             <div className="flex items-center gap-3 pb-4 border-b border-ds-border">
                 <div className="p-3 bg-ds-accent rounded-lg">
-                    <Monitor className="w-6 h-6 text-ds-text" />
+                    <Monitor className="w-6 h-6 text-ds-on-accent" />
                 </div>
                 <div>
                     <h2 className="text-2xl font-black text-ds-text">Overlay</h2>

@@ -8,7 +8,7 @@ export default function VideoCoverNotice({ layout, coverHidden, onDismiss }: { l
     const overlap = videoCoversOverlap(layout);
     if (!coverHidden && !overlap) return null;
     return (
-        <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm 3xl:text-base">
+        <div className="flex items-start gap-3 p-4 rounded-lg border border-ds-warn/40 bg-ds-warn/10 text-ds-warn text-sm 3xl:text-base">
             <span className="text-lg leading-none">⚠️</span>
             <p className="flex-1">{overlap ? t('musicOverlay.videoCover.overlap') : t('musicOverlay.videoCover.hidden')}</p>
             {coverHidden && !overlap && onDismiss && (

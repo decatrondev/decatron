@@ -150,8 +150,8 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
 
     if (!data) {
         return error
-            ? <p className="text-sm font-semibold text-red-600 dark:text-red-400">{error}</p>
-            : <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Cargando…</p>;
+            ? <p className="text-sm font-semibold text-ds-danger">{error}</p>
+            : <p className="text-sm text-ds-soft">Cargando…</p>;
     }
 
     const platforms = (['twitch', 'kick'] as const).filter(p => data.linked[p]);
@@ -166,8 +166,8 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                             key={v}
                             onClick={() => setView(v)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${view === v
-                                ? 'bg-[#2563eb] text-white'
-                                : 'bg-white dark:bg-[#1B1C1D] border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc]'}`}
+                                ? 'bg-ds-accent text-ds-on-accent'
+                                : 'bg-ds-surface border border-ds-border text-ds-text '}`}
                         >
                             {v === 'channel' ? 'Mi canal' : 'Catálogo global'}
                         </button>
@@ -176,7 +176,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
             )}
 
             {error && (
-                <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm font-semibold">
+                <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-ds-danger/10 text-ds-danger text-sm font-semibold">
                     <span className="flex items-center gap-2"><AlertCircle className="w-4 h-4 shrink-0" />{error}</span>
                     <button onClick={() => setError(null)} aria-label="Cerrar"><X className="w-4 h-4" /></button>
                 </div>
@@ -186,7 +186,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                 ? <CatalogEditor bots={data.bots.filter(b => !b.isCustom)} onChanged={load} onError={setError} />
                 : (
                     <>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                        <p className="text-sm text-ds-soft">
                             Estos bots no cuentan como personas en tu canal. Todos los del catálogo vienen activos; apaga los que
                             no uses o cambia qué se les hace. Los bots de competencia y moderación se ocultan del todo; los de
                             música, alertas y utilidad siguen visibles en el overlay pero no cuentan ni ejecutan comandos.
@@ -194,14 +194,14 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
 
                         <div className="flex flex-wrap items-center gap-3">
                             {platforms.length > 1 && (
-                                <div className="flex gap-1 p-1 rounded-lg bg-[#e2e8f0] dark:bg-[#374151]">
+                                <div className="flex gap-1 p-1 rounded-lg bg-ds-raised">
                                     {platforms.map(p => (
                                         <button
                                             key={p}
                                             onClick={() => setPlatform(p)}
                                             className={`px-3 py-1.5 rounded-md text-sm font-bold ${platform === p
-                                                ? 'bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] shadow'
-                                                : 'text-[#64748b] dark:text-[#94a3b8]'}`}
+                                                ? 'bg-ds-surface text-ds-text shadow'
+                                                : 'text-ds-soft '}`}
                                         >
                                             {PLATFORM_LABELS[p]}
                                         </button>
@@ -209,17 +209,17 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                 </div>
                             )}
                             <div className="relative flex-1 min-w-[12rem]">
-                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b] dark:text-[#94a3b8]" />
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ds-soft" />
                                 <input
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Buscar bot"
-                                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
                                 />
                             </div>
                             <button
                                 onClick={() => setAdding(a => !a)}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-semibold text-sm"
+                                className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-semibold text-sm"
                             >
                                 <Plus className="w-4 h-4" />
                                 Agregar bot
@@ -241,8 +241,8 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                     key={c}
                                     onClick={() => setCategory(c)}
                                     className={`px-3 py-1 rounded-full text-xs font-bold border transition-colors ${category === c
-                                        ? 'bg-[#2563eb] border-[#2563eb] text-white'
-                                        : 'border-[#e2e8f0] dark:border-[#374151] text-[#64748b] dark:text-[#94a3b8]'}`}
+                                        ? 'bg-ds-accent border-ds-accent text-ds-on-accent'
+                                        : 'border-ds-border text-ds-soft '}`}
                                 >
                                     {c === 'all' ? 'Todas' : `${CATEGORY_LABELS[c] ?? c} (${counts[c]})`}
                                 </button>
@@ -250,7 +250,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                             {category !== 'all' && visible.length > 0 && (
                                 <button
                                     onClick={() => toggleCategory(category, !allOfCategoryOn)}
-                                    className="ml-auto text-xs font-bold text-[#2563eb] dark:text-[#3b82f6] hover:underline"
+                                    className="ml-auto text-xs font-bold text-ds-accent-text hover:underline"
                                 >
                                     {allOfCategoryOn ? 'Apagar toda la categoría' : 'Activar toda la categoría'}
                                 </button>
@@ -263,28 +263,28 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                 return (
                                     <div
                                         key={keyOf(b)}
-                                        className={`bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] ${b.enabled ? '' : 'opacity-60'}`}
+                                        className={`bg-ds-surface rounded-lg border border-ds-border ${b.enabled ? '' : 'opacity-60'}`}
                                     >
                                         <div className="flex items-center gap-3 p-4">
-                                            <Bot className="w-5 h-5 shrink-0 text-[#2563eb]" />
+                                            <Bot className="w-5 h-5 shrink-0 text-ds-accent-text" />
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{b.displayName}</span>
-                                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#e2e8f0] dark:bg-[#374151] text-[#475569] dark:text-[#cbd5e1]">
+                                                    <span className="font-bold text-ds-text truncate">{b.displayName}</span>
+                                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-raised text-ds-soft">
                                                         {CATEGORY_LABELS[b.category] ?? b.category}
                                                     </span>
                                                     {b.isCustom && (
-                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#2563eb]/10 text-[#2563eb] dark:text-[#3b82f6]">Propio</span>
+                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-accent/10 text-ds-accent-text">Propio</span>
                                                     )}
                                                     {b.customized && (
-                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">Ajustado</span>
+                                                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-ds-warn/10 text-ds-warn">Ajustado</span>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-[#64748b] dark:text-[#94a3b8] truncate">@{b.username}</p>
+                                                <p className="text-xs text-ds-soft truncate">@{b.username}</p>
                                             </div>
                                             <button
                                                 onClick={() => setExpanded(open ? null : keyOf(b))}
-                                                className="p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#374151]"
+                                                className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised"
                                                 aria-label={open ? 'Ocultar efectos' : 'Ver efectos'}
                                                 aria-expanded={open}
                                             >
@@ -293,7 +293,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                             {b.isCustom && (
                                                 <button
                                                     onClick={() => removeCustom(b)}
-                                                    className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                    className="p-2 rounded-lg text-ds-danger hover:bg-ds-danger/10"
                                                     aria-label={`Quitar a ${b.displayName}`}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -309,12 +309,12 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                         </div>
 
                                         {open && (
-                                            <div className="px-4 pb-4 pt-3 border-t border-[#e2e8f0] dark:border-[#374151] space-y-3">
+                                            <div className="px-4 pb-4 pt-3 border-t border-ds-border space-y-3">
                                                 {EFFECTS.map(fx => (
                                                     <div key={fx.key} className="flex items-center justify-between gap-3">
                                                         <div className="min-w-0">
-                                                            <p className="text-sm font-semibold text-[#1e293b] dark:text-[#f8fafc]">{fx.label}</p>
-                                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{fx.hint}</p>
+                                                            <p className="text-sm font-semibold text-ds-text">{fx.label}</p>
+                                                            <p className="text-xs text-ds-soft">{fx.hint}</p>
                                                         </div>
                                                         <FilterSwitch
                                                             on={b.effects[fx.key]}
@@ -327,7 +327,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                                                 {b.customized && (
                                                     <button
                                                         onClick={() => saveEntry(b, { reset: true }, {})}
-                                                        className="flex items-center gap-2 text-xs font-bold text-[#2563eb] dark:text-[#3b82f6] hover:underline"
+                                                        className="flex items-center gap-2 text-xs font-bold text-ds-accent-text hover:underline"
                                                     >
                                                         <RotateCcw className="w-3.5 h-3.5" />
                                                         Volver a los efectos por defecto
@@ -341,7 +341,7 @@ export default function BotListManager({ compact = false }: { compact?: boolean 
                         </div>
 
                         {visible.length === 0 && (
-                            <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                            <p className="text-sm text-ds-soft">
                                 {search ? 'Ningún bot coincide con la búsqueda.' : 'No hay bots en esta categoría.'}
                             </p>
                         )}
@@ -377,27 +377,27 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
     };
 
     return (
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 space-y-3">
-            <p className="text-sm font-bold text-[#1e293b] dark:text-[#f8fafc]">Agregar un bot de {PLATFORM_LABELS[platform]}</p>
+        <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-3">
+            <p className="text-sm font-bold text-ds-text">Agregar un bot de {PLATFORM_LABELS[platform]}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                     placeholder="Usuario (ej. minightbot)"
                     maxLength={40}
-                    className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-transparent text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                    className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
                 />
                 <input
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     placeholder="Nombre (opcional)"
                     maxLength={100}
-                    className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-transparent text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                    className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
                 />
                 <select
                     value={category}
                     onChange={e => setCategory(e.target.value)}
-                    className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                    className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
                 >
                     {categories.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c] ?? c}</option>)}
                 </select>
@@ -405,7 +405,7 @@ function AddCustomForm({ platform, categories, onDone, onError }: {
             <button
                 onClick={submit}
                 disabled={saving || !username.trim()}
-                className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 disabled:opacity-60 text-white rounded-lg font-semibold text-sm"
+                className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover disabled:opacity-60 text-ds-on-accent rounded-lg font-semibold text-sm"
             >
                 {saving ? 'Agregando…' : 'Agregar'}
             </button>
@@ -456,12 +456,12 @@ function CatalogEditor({ bots, onChanged, onError }: {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">
+                <p className="text-sm text-ds-soft">
                     Lo que cambies aquí aplica a todos los canales. Cada canal puede apagar un bot o ajustar sus efectos.
                 </p>
                 <button
                     onClick={() => startEdit(null)}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-semibold text-sm whitespace-nowrap"
+                    className="flex items-center gap-2 px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-semibold text-sm whitespace-nowrap"
                 >
                     <Plus className="w-4 h-4" />
                     Agregar al catálogo
@@ -469,12 +469,12 @@ function CatalogEditor({ bots, onChanged, onError }: {
             </div>
 
             {editing !== null && (
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151] p-4 space-y-3">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-4 space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <select
                             value={form.platform}
                             onChange={e => setForm({ ...form, platform: e.target.value as BotPlatform })}
-                            className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                            className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
                         >
                             {(Object.keys(PLATFORM_LABELS) as BotPlatform[]).map(p => <option key={p} value={p}>{PLATFORM_LABELS[p]}</option>)}
                         </select>
@@ -483,19 +483,19 @@ function CatalogEditor({ bots, onChanged, onError }: {
                             onChange={e => setForm({ ...form, username: e.target.value })}
                             placeholder="Usuario"
                             maxLength={40}
-                            className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-transparent text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                            className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
                         />
                         <input
                             value={form.displayName}
                             onChange={e => setForm({ ...form, displayName: e.target.value })}
                             placeholder="Nombre"
                             maxLength={100}
-                            className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-transparent text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                            className="px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
                         />
                         <select
                             value={form.category}
                             onChange={e => setForm({ ...form, category: e.target.value })}
-                            className="px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                            className="px-3 py-2 rounded-lg border border-ds-border bg-ds-surface text-ds-text text-sm"
                         >
                             {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                         </select>
@@ -505,29 +505,29 @@ function CatalogEditor({ bots, onChanged, onError }: {
                         onChange={e => setForm({ ...form, notes: e.target.value })}
                         placeholder="Notas (opcional)"
                         maxLength={300}
-                        className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] bg-transparent text-[#1e293b] dark:text-[#f8fafc] text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-ds-border bg-transparent text-ds-text text-sm"
                     />
                     <div className="flex gap-2">
-                        <button onClick={save} className="px-4 py-2 bg-[#2563eb] hover:bg-blue-700 text-white rounded-lg font-semibold text-sm">Guardar</button>
-                        <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg border border-[#e2e8f0] dark:border-[#374151] text-[#1e293b] dark:text-[#f8fafc] font-semibold text-sm">Cancelar</button>
+                        <button onClick={save} className="px-4 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent rounded-lg font-semibold text-sm">Guardar</button>
+                        <button onClick={() => setEditing(null)} className="px-4 py-2 rounded-lg border border-ds-border text-ds-text font-semibold text-sm">Cancelar</button>
                     </div>
                 </div>
             )}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                 {bots.map(b => (
-                    <div key={b.catalogId} className="flex items-center gap-3 p-4 bg-white dark:bg-[#1B1C1D] rounded-xl border border-[#e2e8f0] dark:border-[#374151]">
-                        <Bot className="w-5 h-5 shrink-0 text-[#2563eb]" />
+                    <div key={b.catalogId} className="flex items-center gap-3 p-4 bg-ds-surface rounded-lg border border-ds-border">
+                        <Bot className="w-5 h-5 shrink-0 text-ds-accent-text" />
                         <div className="min-w-0 flex-1">
-                            <p className="font-bold text-[#1e293b] dark:text-[#f8fafc] truncate">{b.displayName}</p>
-                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] truncate">
+                            <p className="font-bold text-ds-text truncate">{b.displayName}</p>
+                            <p className="text-xs text-ds-soft truncate">
                                 {PLATFORM_LABELS[b.platform]} · @{b.username} · {CATEGORY_LABELS[b.category] ?? b.category}
                             </p>
                         </div>
-                        <button onClick={() => startEdit(b)} className="p-2 rounded-lg text-[#64748b] dark:text-[#94a3b8] hover:bg-[#f1f5f9] dark:hover:bg-[#374151]" aria-label={`Editar a ${b.displayName}`}>
+                        <button onClick={() => startEdit(b)} className="p-2 rounded-lg text-ds-soft hover:bg-ds-raised" aria-label={`Editar a ${b.displayName}`}>
                             <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => remove(b)} className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20" aria-label={`Quitar a ${b.displayName} del catálogo`}>
+                        <button onClick={() => remove(b)} className="p-2 rounded-lg text-ds-danger hover:bg-ds-danger/10" aria-label={`Quitar a ${b.displayName} del catálogo`}>
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>

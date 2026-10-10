@@ -132,7 +132,7 @@ export default function OverlayCanvasEditor({
                 actions={
                     <button
                         onClick={() => setSnap(s => !s)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold ${snap ? 'bg-[#2563eb] text-white' : 'bg-[#f1f5f9] dark:bg-[#262626] text-[#64748b] dark:text-[#94a3b8]'}`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold ${snap ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-raised text-ds-soft '}`}
                     >
                         <Grid3x3 className="w-4 h-4" /> {t('overlayEditor.snap')}
                     </button>
@@ -142,7 +142,7 @@ export default function OverlayCanvasEditor({
                     ref={host}
                     tabIndex={0}
                     onKeyDown={onKeyDown}
-                    className="w-full rounded-xl border border-[#e2e8f0] dark:border-[#374151] outline-none focus:ring-2 focus:ring-[#2563eb]/40 overflow-hidden"
+                    className="w-full rounded-lg border border-ds-border outline-none focus:ring-2 focus:ring-ds-accent/40 overflow-hidden"
                     style={{ background: CHECKER_BG }}
                 >
                     <div ref={canvasRef} style={{ width: cw * scale, height: ch * scale, position: 'relative', margin: '0 auto' }}>
@@ -158,11 +158,11 @@ export default function OverlayCanvasEditor({
                                         key={e.id}
                                         onPointerDown={startDrag(e, null)}
                                         style={{ position: 'absolute', left: e.x, top: e.y, width: e.width, height: e.height, cursor: 'move', zIndex: isSel && !noRaise?.includes(e.id) ? 50 : e.zIndex ?? 10 }}
-                                        className={`group ${isSel ? 'outline outline-2 outline-[#3b82f6]' : 'outline outline-1 outline-dashed outline-white/40 hover:outline-white/80'}`}
+                                        className={`group ${isSel ? 'outline outline-2 outline-ds-accent' : 'outline outline-1 outline-dashed outline-ds-border/40 hover:outline-ds-border/80'}`}
                                     >
                                         {/* La etiqueta va encima de la caja si hay lugar; la de los no elegidos solo al pasar el mouse, para que no tapen a otros */}
                                         <span
-                                            className={`absolute left-0 px-1.5 py-0.5 text-[11px] font-bold pointer-events-none whitespace-nowrap ${isSel ? 'bg-[#3b82f6] text-white' : 'bg-black/60 text-white/80 opacity-0 group-hover:opacity-100'} ${e.y * scale >= LABEL_PX ? 'rounded-t' : 'rounded-br'}`}
+                                            className={`absolute left-0 px-1.5 py-0.5 text-[11px] font-bold pointer-events-none whitespace-nowrap ${isSel ? 'bg-ds-accent text-ds-on-accent' : 'bg-ds-input/60 text-ds-on-accent/80 opacity-0 group-hover:opacity-100'} ${e.y * scale >= LABEL_PX ? 'rounded-t' : 'rounded-br'}`}
                                             style={e.y * scale >= LABEL_PX
                                                 ? { bottom: '100%', transform: `scale(${1 / scale})`, transformOrigin: 'bottom left' }
                                                 : { top: 0, transform: `scale(${1 / scale})`, transformOrigin: 'top left' }}
@@ -173,7 +173,7 @@ export default function OverlayCanvasEditor({
                                             <span
                                                 key={h}
                                                 onPointerDown={startDrag(e, h)}
-                                                className="absolute bg-white border-2 border-[#3b82f6] rounded-sm"
+                                                className="absolute bg-ds-surface border-2 border-ds-accent rounded-sm"
                                                 style={{
                                                     width: 12 / scale, height: 12 / scale,
                                                     left: h.includes('w') ? -6 / scale : undefined, right: h.includes('e') ? -6 / scale : undefined,
@@ -188,27 +188,27 @@ export default function OverlayCanvasEditor({
                         </div>
                     </div>
                 </div>
-                <p className="text-xs 3xl:text-sm text-[#94a3b8] mt-2">{t('overlayEditor.keyboardHint')}</p>
+                <p className="text-xs 3xl:text-sm text-ds-soft mt-2">{t('overlayEditor.keyboardHint')}</p>
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <Card title={t('overlayEditor.layers')} actions={layersActions}>
                     <div className="space-y-1">
                         {elements.map(e => (
-                            <div key={e.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${e.id === sel?.id ? 'bg-[#eff6ff] dark:bg-[#1e3a8a]/30' : 'hover:bg-[#f8fafc] dark:hover:bg-[#262626]'}`}>
+                            <div key={e.id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${e.id === sel?.id ? 'bg-ds-accent/10 ' : 'hover:bg-ds-bg '}`}>
                                 {onToggle && e.toggleable !== false && (
                                     <button
                                         onClick={() => onToggle(e.id, !e.enabled)}
-                                        className="p-1 text-[#64748b] dark:text-[#94a3b8] hover:text-[#1e293b] dark:hover:text-white"
+                                        className="p-1 text-ds-soft hover:text-ds-text"
                                         title={e.enabled ? t('overlayEditor.hide') : t('overlayEditor.show')}
                                     >
                                         {e.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4 opacity-50" />}
                                     </button>
                                 )}
-                                <button onClick={() => setSelected(e.id)} className={`flex-1 min-w-0 truncate text-left text-sm 3xl:text-base ${e.enabled ? 'text-[#1e293b] dark:text-[#f8fafc] font-semibold' : 'text-[#94a3b8]'}`}>
+                                <button onClick={() => setSelected(e.id)} className={`flex-1 min-w-0 truncate text-left text-sm 3xl:text-base ${e.enabled ? 'text-ds-text font-semibold' : 'text-ds-soft'}`}>
                                     {e.label}
                                 </button>
-                                <span className="font-mono text-[11px] 3xl:text-xs text-[#94a3b8] shrink-0">{e.x},{e.y} · {e.width}×{e.height}</span>
+                                <span className="font-mono text-[11px] 3xl:text-xs text-ds-soft shrink-0">{e.x},{e.y} · {e.width}×{e.height}</span>
                             </div>
                         ))}
                     </div>
@@ -225,7 +225,7 @@ export default function OverlayCanvasEditor({
                             </div>
                             <button
                                 onClick={() => onRectChange(sel.id, { x: Math.round((cw - sel.width) / 2) })}
-                                className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-[#f1f5f9] dark:bg-[#262626] text-[#475569] dark:text-[#cbd5e1] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]"
+                                className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs 3xl:text-sm font-bold bg-ds-raised text-ds-soft hover:bg-ds-raised"
                             >
                                 <AlignHorizontalJustifyCenter className="w-4 h-4" /> {t('overlayEditor.centerH')}
                             </button>

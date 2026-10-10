@@ -213,58 +213,58 @@ export default function ApplicationCreate() {
                 <ToastContainer toasts={toasts} />
 
                 <div className="max-w-2xl mx-auto">
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-8 text-center border border-[#e2e8f0] dark:border-[#374151]">
-                        <div className="w-20 h-20 mx-auto mb-6 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center">
-                            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+                    <div className="bg-ds-surface rounded-lg p-8 text-center border border-ds-border">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-ds-ok/10 rounded-lg flex items-center justify-center">
+                            <CheckCircle className="w-10 h-10 text-ds-ok" />
                         </div>
-                        <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Aplicacion creada</h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] mb-8">
-                            Tu aplicacion <strong className="text-gray-900 dark:text-white">{createdApp.name}</strong> esta lista.
+                        <h1 className="text-2xl font-black text-ds-text mb-2">Aplicacion creada</h1>
+                        <p className="text-ds-soft mb-8">
+                            Tu aplicacion <strong className="text-ds-text">{createdApp.name}</strong> esta lista.
                         </p>
 
                         {/* Credentials */}
-                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-6 mb-8 text-left">
-                            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-4">
+                        <div className="bg-ds-warn/10 border border-ds-warn/40 rounded-lg p-6 mb-8 text-left">
+                            <div className="flex items-center gap-2 text-ds-warn mb-4">
                                 <AlertTriangle className="w-5 h-5" />
                                 <span className="font-bold text-sm">Guarda tus credenciales ahora</span>
                             </div>
-                            <p className="text-amber-600 dark:text-amber-300/80 text-sm mb-6">
+                            <p className="text-ds-warn text-sm mb-6">
                                 El client secret no se mostrara de nuevo. Guardalo en un lugar seguro.
                             </p>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-medium text-[#64748b] dark:text-[#94a3b8] block mb-1">Client ID</label>
-                                    <div className="flex items-center gap-2 bg-white dark:bg-[#1B1C1D] rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
-                                        <code className="flex-1 text-sm font-mono text-[#2563eb] break-all">
+                                    <label className="text-xs font-medium text-ds-soft block mb-1">Client ID</label>
+                                    <div className="flex items-center gap-2 bg-ds-surface rounded-lg p-3 border border-ds-border">
+                                        <code className="flex-1 text-sm font-mono text-ds-accent-text break-all">
                                             {createdApp.client_id}
                                         </code>
                                         <button
                                             onClick={() => copyToClipboard(createdApp.client_id, 'Client ID')}
-                                            className="p-1.5 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg transition-colors"
+                                            className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
                                         >
-                                            <Copy className="w-4 h-4 text-[#64748b]" />
+                                            <Copy className="w-4 h-4 text-ds-soft" />
                                         </button>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-medium text-[#64748b] dark:text-[#94a3b8] block mb-1">Client Secret</label>
-                                    <div className="flex items-center gap-2 bg-white dark:bg-[#1B1C1D] rounded-xl p-3 border border-[#e2e8f0] dark:border-[#374151]">
-                                        <code className="flex-1 text-sm font-mono text-amber-700 dark:text-amber-400 break-all">
+                                    <label className="text-xs font-medium text-ds-soft block mb-1">Client Secret</label>
+                                    <div className="flex items-center gap-2 bg-ds-surface rounded-lg p-3 border border-ds-border">
+                                        <code className="flex-1 text-sm font-mono text-ds-warn break-all">
                                             {showSecret ? createdApp.client_secret : '••••••••••••••••••••••••••••••••'}
                                         </code>
                                         <button
                                             onClick={() => setShowSecret(!showSecret)}
-                                            className="p-1.5 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg transition-colors"
+                                            className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
                                         >
-                                            {showSecret ? <EyeOff className="w-4 h-4 text-[#64748b]" /> : <Eye className="w-4 h-4 text-[#64748b]" />}
+                                            {showSecret ? <EyeOff className="w-4 h-4 text-ds-soft" /> : <Eye className="w-4 h-4 text-ds-soft" />}
                                         </button>
                                         <button
                                             onClick={() => copyToClipboard(createdApp.client_secret, 'Client Secret')}
-                                            className="p-1.5 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-lg transition-colors"
+                                            className="p-1.5 hover:bg-ds-bg rounded-lg transition-colors"
                                         >
-                                            <Copy className="w-4 h-4 text-[#64748b]" />
+                                            <Copy className="w-4 h-4 text-ds-soft" />
                                         </button>
                                     </div>
                                 </div>
@@ -274,13 +274,13 @@ export default function ApplicationCreate() {
                         <div className="flex gap-3 justify-center">
                             <button
                                 onClick={() => navigate('/developer')}
-                                className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
+                                className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors"
                             >
                                 Ir al Portal
                             </button>
                             <Link
                                 to="/docs/api"
-                                className="px-6 py-3 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] dark:text-[#94a3b8] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151] transition-colors flex items-center gap-2 hover:text-[#2563eb]"
+                                className="px-6 py-3 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border transition-colors flex items-center gap-2 hover:text-ds-accent-text"
                             >
                                 <ExternalLink className="w-4 h-4" />
                                 Ver API Docs
@@ -301,21 +301,21 @@ export default function ApplicationCreate() {
                 <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate('/developer')}
-                        className="p-2 hover:bg-[#f8fafc] dark:hover:bg-[#374151] rounded-xl transition-colors"
+                        className="p-2 hover:bg-ds-bg rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-[#64748b]" />
+                        <ArrowLeft className="w-5 h-5 text-ds-soft" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-black text-gray-900 dark:text-white">Nueva Aplicacion</h1>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Registra una nueva aplicacion OAuth</p>
+                        <h1 className="text-2xl font-black text-ds-text">Nueva Aplicacion</h1>
+                        <p className="text-sm text-ds-soft">Registra una nueva aplicacion OAuth</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Basic Info */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                            <Code2 className="w-5 h-5 text-[#2563eb]" />
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h2 className="text-lg font-bold text-ds-text mb-6 flex items-center gap-2">
+                            <Code2 className="w-5 h-5 text-ds-accent-text" />
                             Informacion de la App
                         </h2>
 
@@ -325,7 +325,7 @@ export default function ApplicationCreate() {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className={`w-full bg-[#f8fafc] dark:bg-[#374151]/50 border ${errors.name ? 'border-red-400' : 'border-[#e2e8f0] dark:border-[#374151]'} rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent placeholder-[#94a3b8]`}
+                                    className={`w-full bg-ds-bg border ${errors.name ? 'border-ds-danger/40' : 'border-ds-border '} rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent placeholder-ds-soft`}
                                     placeholder="Mi Bot"
                                 />
                             </FormField>
@@ -335,7 +335,7 @@ export default function ApplicationCreate() {
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={3}
-                                    className="w-full bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent resize-none placeholder-[#94a3b8]"
+                                    className="w-full bg-ds-bg border border-ds-border rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent resize-none placeholder-ds-soft"
                                     placeholder="Descripcion breve de tu aplicacion..."
                                 />
                             </FormField>
@@ -346,7 +346,7 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={websiteUrl}
                                         onChange={(e) => setWebsiteUrl(e.target.value)}
-                                        className={`w-full bg-[#f8fafc] dark:bg-[#374151]/50 border ${errors.websiteUrl ? 'border-red-400' : 'border-[#e2e8f0] dark:border-[#374151]'} rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent placeholder-[#94a3b8]`}
+                                        className={`w-full bg-ds-bg border ${errors.websiteUrl ? 'border-ds-danger/40' : 'border-ds-border '} rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent placeholder-ds-soft`}
                                         placeholder="https://miapp.com"
                                     />
                                 </FormField>
@@ -355,7 +355,7 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={iconUrl}
                                         onChange={(e) => setIconUrl(e.target.value)}
-                                        className={`w-full bg-[#f8fafc] dark:bg-[#374151]/50 border ${errors.iconUrl ? 'border-red-400' : 'border-[#e2e8f0] dark:border-[#374151]'} rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent placeholder-[#94a3b8]`}
+                                        className={`w-full bg-ds-bg border ${errors.iconUrl ? 'border-ds-danger/40' : 'border-ds-border '} rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent placeholder-ds-soft`}
                                         placeholder="https://miapp.com/icon.png"
                                     />
                                 </FormField>
@@ -364,12 +364,12 @@ export default function ApplicationCreate() {
                     </div>
 
                     {/* Redirect URIs */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-[#2563eb]" />
-                            Redirect URIs <span className="text-red-400 text-sm">*</span>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h2 className="text-lg font-bold text-ds-text mb-2 flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-ds-accent-text" />
+                            Redirect URIs <span className="text-ds-danger text-sm">*</span>
                         </h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-4">
+                        <p className="text-sm text-ds-soft mb-4">
                             OAuth redirigira a los usuarios a estas URIs despues de autorizar.
                             Deben usar HTTPS (localhost exento para desarrollo).
                         </p>
@@ -381,14 +381,14 @@ export default function ApplicationCreate() {
                                         type="url"
                                         value={uri}
                                         onChange={(e) => updateRedirectUri(index, e.target.value)}
-                                        className="flex-1 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent font-mono text-sm placeholder-[#94a3b8]"
+                                        className="flex-1 bg-ds-bg border border-ds-border rounded-lg px-4 py-3 text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent focus:border-transparent font-mono text-sm placeholder-ds-soft"
                                         placeholder="https://miapp.com/callback"
                                     />
                                     {redirectUris.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeRedirectUri(index)}
-                                            className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors text-red-400"
+                                            className="p-2.5 hover:bg-ds-danger/10 rounded-lg transition-colors text-ds-danger"
                                         >
                                             <X className="w-5 h-5" />
                                         </button>
@@ -399,38 +399,38 @@ export default function ApplicationCreate() {
                         <button
                             type="button"
                             onClick={addRedirectUri}
-                            className="mt-3 flex items-center gap-2 text-sm text-[#2563eb] hover:text-blue-700 font-medium"
+                            className="mt-3 flex items-center gap-2 text-sm text-ds-accent-text hover:text-ds-accent-text font-medium"
                         >
                             <Plus className="w-4 h-4" />
                             Agregar otra URI
                         </button>
-                        {errors.redirectUris && <p className="text-red-500 text-sm mt-2">{errors.redirectUris}</p>}
+                        {errors.redirectUris && <p className="text-ds-danger text-sm mt-2">{errors.redirectUris}</p>}
                     </div>
 
                     {/* Scopes */}
-                    <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151]">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-[#2563eb]" />
-                            Scopes <span className="text-red-400 text-sm">*</span>
+                    <div className="bg-ds-surface rounded-lg p-6 border border-ds-border">
+                        <h2 className="text-lg font-bold text-ds-text mb-2 flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-ds-accent-text" />
+                            Scopes <span className="text-ds-danger text-sm">*</span>
                         </h2>
-                        <p className="text-sm text-[#64748b] dark:text-[#94a3b8] mb-6">
+                        <p className="text-sm text-ds-soft mb-6">
                             Selecciona los permisos que necesita tu aplicacion. Los usuarios deberan aprobarlos.
                         </p>
 
                         {loadingScopes ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin text-[#2563eb]" />
+                                <Loader2 className="w-6 h-6 animate-spin text-ds-accent-text" />
                             </div>
                         ) : scopesData ? (
                             <div className="space-y-6">
                                 {Object.entries(scopesData).map(([category, data]) => {
-                                    const dotColor = category === 'read' ? 'bg-blue-500' : category === 'write' ? 'bg-orange-500' : 'bg-red-500';
+                                    const dotColor = category === 'read' ? 'bg-ds-accent' : category === 'write' ? 'bg-ds-warn' : 'bg-ds-danger-solid';
                                     return (
                                         <div key={category}>
-                                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                            <h3 className="text-sm font-bold text-ds-text mb-3 flex items-center gap-2">
                                                 <span className={`w-2 h-2 rounded-full ${dotColor}`}></span>
                                                 {data.name}
-                                                <span className="text-xs text-[#64748b] dark:text-[#94a3b8] font-normal">
+                                                <span className="text-xs text-ds-soft font-normal">
                                                     — {data.description}
                                                 </span>
                                             </h3>
@@ -438,23 +438,23 @@ export default function ApplicationCreate() {
                                                 {data.scopes.map((scopeInfo) => (
                                                     <label
                                                         key={scopeInfo.scope}
-                                                        className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                                                        className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
                                                             selectedScopes.has(scopeInfo.scope)
-                                                                ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-[#2563eb]'
-                                                                : 'bg-[#f8fafc] dark:bg-[#374151]/50 border-2 border-transparent hover:border-[#e2e8f0] dark:hover:border-[#374151]'
+                                                                ? 'bg-ds-accent/10 border-2 border-ds-accent'
+                                                                : 'bg-ds-bg border-2 border-transparent hover:border-ds-border '
                                                         }`}
                                                     >
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedScopes.has(scopeInfo.scope)}
                                                             onChange={() => toggleScope(scopeInfo.scope)}
-                                                            className="mt-0.5 accent-[#2563eb]"
+                                                            className="mt-0.5 accent-ds-accent"
                                                         />
                                                         <div className="flex-1 min-w-0">
-                                                            <code className="text-xs text-[#2563eb] font-mono font-medium">
+                                                            <code className="text-xs text-ds-accent-text font-mono font-medium">
                                                                 {scopeInfo.scope}
                                                             </code>
-                                                            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mt-0.5">
+                                                            <p className="text-xs text-ds-soft mt-0.5">
                                                                 {scopeInfo.description}
                                                             </p>
                                                         </div>
@@ -466,9 +466,9 @@ export default function ApplicationCreate() {
                                 })}
                             </div>
                         ) : (
-                            <p className="text-red-500">Error al cargar scopes</p>
+                            <p className="text-ds-danger">Error al cargar scopes</p>
                         )}
-                        {errors.scopes && <p className="text-red-500 text-sm mt-4">{errors.scopes}</p>}
+                        {errors.scopes && <p className="text-ds-danger text-sm mt-4">{errors.scopes}</p>}
                     </div>
 
                     {/* Submit */}
@@ -476,14 +476,14 @@ export default function ApplicationCreate() {
                         <button
                             type="button"
                             onClick={() => navigate('/developer')}
-                            className="px-6 py-3 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:text-gray-900 dark:hover:text-white transition-colors"
+                            className="px-6 py-3 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border hover:text-ds-text transition-colors"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>
@@ -507,11 +507,11 @@ export default function ApplicationCreate() {
 function FormField({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                {label} {required && <span className="text-red-400">*</span>}
+            <label className="block text-sm font-medium text-ds-text mb-2">
+                {label} {required && <span className="text-ds-danger">*</span>}
             </label>
             {children}
-            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+            {error && <p className="text-ds-danger text-sm mt-1">{error}</p>}
         </div>
     );
 }
@@ -522,10 +522,10 @@ function ToastContainer({ toasts }: { toasts: Toast[] }) {
             {toasts.map(toast => (
                 <div
                     key={toast.id}
-                    className={`px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-white text-sm font-medium ${
-                        toast.type === 'success' ? 'bg-green-600' :
-                        toast.type === 'error' ? 'bg-red-600' :
-                        'bg-[#2563eb]'
+                    className={`px-4 py-3 rounded-lg flex items-center gap-2 text-ds-text text-sm font-medium ${
+                        toast.type === 'success' ? 'bg-ds-accent' :
+                        toast.type === 'error' ? 'bg-ds-danger-solid' :
+                        'bg-ds-accent'
                     }`}
                 >
                     {toast.type === 'success' && <CheckCircle className="w-4 h-4" />}

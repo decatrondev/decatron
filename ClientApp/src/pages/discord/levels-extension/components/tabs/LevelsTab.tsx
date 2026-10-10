@@ -12,7 +12,7 @@ const DIFFICULTY_MULTIPLIERS: Record<string, number> = {
   hardcore: 2.0,
 };
 
-const cardClass = 'bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg';
+const cardClass = 'bg-ds-surface rounded-lg p-6 border border-ds-border ';
 
 function calculateRequiredXp(level: number, difficulty: number): number {
   return Math.round(100 * level * level * difficulty);
@@ -83,41 +83,41 @@ export default function LevelsTab({ config }: LevelsTabProps) {
     <div className="space-y-6">
       {/* Simulator */}
       <div className={cardClass}>
-        <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Simulador de Niveles</h3>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-5">
+        <h3 className="text-lg font-black text-ds-text mb-1">Simulador de Niveles</h3>
+        <p className="text-xs text-ds-soft mb-5">
           Calcula cuanto tiempo toma llegar a un nivel con tu configuracion actual
         </p>
 
         <div className="flex items-center gap-4 mb-6">
-          <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Nivel objetivo:</label>
+          <label className="text-sm font-bold text-ds-soft">Nivel objetivo:</label>
           <input
             type="range"
             min={1}
             max={100}
             value={simulateLevel}
             onChange={e => setSimulateLevel(parseInt(e.target.value))}
-            className="flex-1 h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-lg appearance-none cursor-pointer accent-[#2563eb]"
+            className="flex-1 h-2 bg-ds-raised rounded-lg appearance-none cursor-pointer accent-ds-accent"
           />
-          <span className="text-2xl font-black text-[#2563eb] w-12 text-right">{simulateLevel}</span>
+          <span className="text-2xl font-black text-ds-accent-text w-12 text-right">{simulateLevel}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-center">
-            <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">XP TOTAL NECESARIO</p>
-            <p className="text-2xl font-black text-gray-900 dark:text-white">{formatNumber(simData.totalXp)}</p>
+          <div className="p-4 bg-ds-bg rounded-lg text-center">
+            <p className="text-[10px] font-bold text-ds-soft mb-1">XP TOTAL NECESARIO</p>
+            <p className="text-2xl font-black text-ds-text">{formatNumber(simData.totalXp)}</p>
           </div>
-          <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-center">
-            <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">TIEMPO ESTIMADO</p>
-            <p className="text-2xl font-black text-[#2563eb]">~{Math.round(simData.days)} dias</p>
-            <p className="text-[10px] text-[#64748b]">(~2h activo/dia)</p>
+          <div className="p-4 bg-ds-bg rounded-lg text-center">
+            <p className="text-[10px] font-bold text-ds-soft mb-1">TIEMPO ESTIMADO</p>
+            <p className="text-2xl font-black text-ds-accent-text">~{Math.round(simData.days)} dias</p>
+            <p className="text-[10px] text-ds-soft">(~2h activo/dia)</p>
           </div>
-          <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl text-center">
-            <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">MENSAJES NECESARIOS</p>
-            <p className="text-2xl font-black text-gray-900 dark:text-white">{formatNumber(Math.round(simData.messages))}</p>
+          <div className="p-4 bg-ds-bg rounded-lg text-center">
+            <p className="text-[10px] font-bold text-ds-soft mb-1">MENSAJES NECESARIOS</p>
+            <p className="text-2xl font-black text-ds-text">{formatNumber(Math.round(simData.messages))}</p>
           </div>
         </div>
 
-        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-xs text-[#64748b] dark:text-[#94a3b8]">
+        <div className="mt-4 p-3 bg-ds-accent/10 rounded-lg text-xs text-ds-soft">
           Basado en: {config.xpMin}-{config.xpMax} XP/msg, cooldown {config.cooldownSeconds}s, dificultad {config.difficultyPreset}
           {config.difficultyPreset !== 'normal' && ` (${difficulty}x)`}
         </div>
@@ -126,13 +126,13 @@ export default function LevelsTab({ config }: LevelsTabProps) {
       {/* Config */}
       <div className={cardClass}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-black text-gray-900 dark:text-white">Tabla de Niveles</h3>
+          <h3 className="text-lg font-black text-ds-text">Tabla de Niveles</h3>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-[#64748b]">Mostrar hasta nivel:</label>
+            <label className="text-xs text-ds-soft">Mostrar hasta nivel:</label>
             <select
               value={maxLevel}
               onChange={e => setMaxLevel(parseInt(e.target.value))}
-              className="px-3 py-1.5 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-white [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+              className="px-3 py-1.5 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -146,12 +146,12 @@ export default function LevelsTab({ config }: LevelsTabProps) {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#e2e8f0] dark:border-[#374151]">
-                <th className="text-left text-xs font-bold text-[#64748b] pb-3">Nivel</th>
-                <th className="text-right text-xs font-bold text-[#64748b] pb-3">XP para este nivel</th>
-                <th className="text-right text-xs font-bold text-[#64748b] pb-3">XP total acumulado</th>
-                <th className="text-right text-xs font-bold text-[#64748b] pb-3">Tiempo estimado</th>
-                <th className="text-right text-xs font-bold text-[#64748b] pb-3">Barra</th>
+              <tr className="border-b border-ds-border">
+                <th className="text-left text-xs font-bold text-ds-soft pb-3">Nivel</th>
+                <th className="text-right text-xs font-bold text-ds-soft pb-3">XP para este nivel</th>
+                <th className="text-right text-xs font-bold text-ds-soft pb-3">XP total acumulado</th>
+                <th className="text-right text-xs font-bold text-ds-soft pb-3">Tiempo estimado</th>
+                <th className="text-right text-xs font-bold text-ds-soft pb-3">Barra</th>
               </tr>
             </thead>
             <tbody>
@@ -162,26 +162,26 @@ export default function LevelsTab({ config }: LevelsTabProps) {
                 return (
                   <tr
                     key={row.level}
-                    className={`border-b border-[#e2e8f0]/30 dark:border-[#374151]/30 ${isHighlight ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                    className={`border-b border-ds-border/30 ${isHighlight ? 'bg-ds-accent/10 ' : ''}`}
                   >
                     <td className="py-2.5">
-                      <span className={`font-black ${isHighlight ? 'text-[#2563eb]' : 'text-gray-900 dark:text-white'}`}>
+                      <span className={`font-black ${isHighlight ? 'text-ds-accent-text' : 'text-ds-text '}`}>
                         {row.level}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right text-sm text-gray-700 dark:text-gray-300">
+                    <td className="py-2.5 text-right text-sm text-ds-soft">
                       {formatNumber(row.required)}
                     </td>
-                    <td className="py-2.5 text-right text-sm font-bold text-gray-900 dark:text-white">
+                    <td className="py-2.5 text-right text-sm font-bold text-ds-text">
                       {formatNumber(row.totalXp)}
                     </td>
-                    <td className="py-2.5 text-right text-sm text-[#64748b]">
+                    <td className="py-2.5 text-right text-sm text-ds-soft">
                       {row.estimatedTime}
                     </td>
                     <td className="py-2.5 pl-4 w-32">
-                      <div className="w-full h-2 bg-[#e2e8f0] dark:bg-[#374151] rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-ds-raised rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#2563eb] to-[#3b82f6] rounded-full transition-all"
+                          className="h-full bg-ds-accent rounded-full transition-all"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -193,7 +193,7 @@ export default function LevelsTab({ config }: LevelsTabProps) {
           </table>
         </div>
 
-        <p className="mt-4 text-xs text-[#64748b] dark:text-[#94a3b8]">
+        <p className="mt-4 text-xs text-ds-soft">
           Formula: XP = 100 × nivel² × {difficulty} (dificultad). Tiempo estimado asumiendo ~2 horas de actividad diaria.
         </p>
       </div>

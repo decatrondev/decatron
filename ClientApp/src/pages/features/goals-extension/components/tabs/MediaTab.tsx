@@ -11,7 +11,7 @@ export const MediaTab: React.FC = () => {
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-ds-accent rounded-lg flex items-center justify-center">
-                        <FolderOpen className="w-5 h-5 text-ds-text" />
+                        <FolderOpen className="w-5 h-5 text-ds-on-accent" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-ds-text">

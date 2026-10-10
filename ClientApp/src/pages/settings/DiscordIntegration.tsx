@@ -101,7 +101,7 @@ export default function DiscordIntegration() {
     return (
         <div className="p-4 bg-ds-bg rounded-lg border border-ds-border">
             <div className="flex items-center gap-4 mb-3">
-                <div className="p-3 bg-ds-accent rounded-lg text-white">
+                <div className="p-3 bg-ds-accent rounded-lg text-ds-on-accent">
                     <MessageSquare className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
@@ -146,7 +146,7 @@ export default function DiscordIntegration() {
 
             {/* Guild picker modal */}
             {showGuildPicker && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-ds-surface rounded-lg p-6 max-w-md w-full border border-ds-border">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-black text-ds-text">Selecciona un servidor</h3>

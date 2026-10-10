@@ -74,7 +74,7 @@ export const IntegrationsTab: React.FC = () => {
             <div className="bg-ds-surface rounded-lg border border-ds-border p-6">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-gradient-to-r from-ds-accent to-fuchsia-600 rounded-lg">
-                        <Link2 className="w-6 h-6 text-ds-text" />
+                        <Link2 className="w-6 h-6 text-ds-on-accent" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-ds-text">Integraciones</h2>

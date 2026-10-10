@@ -8,9 +8,9 @@ import MediaGallery from '../../../../../components/timer/MediaGallery';
 export default function GoodbyeTab({ config, onConfigChange, channels, guildName }: GoodbyeTabProps) {
   const [showGallery, setShowGallery] = useState(false);
 
-  const selectCls = "w-full pl-9 pr-4 py-3 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2563eb] appearance-none [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D] [&>option]:text-gray-900 [&>option]:dark:text-white";
-  const inputCls = "w-full px-4 py-3 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb]";
-  const cardCls = "rounded-2xl border border-[#e2e8f0] dark:border-[#374151] bg-white dark:bg-[#1B1C1D] p-6 shadow-lg";
+  const selectCls = "w-full pl-9 pr-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text focus:outline-none focus:ring-2 focus:ring-ds-accent appearance-none [&>option]:bg-ds-surface [&>option]:text-ds-text ";
+  const inputCls = "w-full px-4 py-3 bg-ds-bg border border-ds-border rounded-lg text-ds-text text-sm focus:outline-none focus:ring-2 focus:ring-ds-accent";
+  const cardCls = "rounded-lg border border-ds-border bg-ds-surface p-6 ";
 
   const imageModes: { value: ImageMode; label: string; icon: React.ReactNode; desc: string }[] = [
     { value: 'avatar', label: 'Avatar', icon: <UserMinus className="w-4 h-4" />, desc: 'Avatar del miembro' },
@@ -24,25 +24,25 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
       <div className={cardCls}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-ds-bg rounded-lg flex items-center justify-center">
               <span className="text-lg">💨</span>
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white">Mensajes de Despedida</h3>
-              <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">Envia un mensaje automatico cuando alguien sale del servidor</p>
+              <h3 className="font-bold text-ds-text">Mensajes de Despedida</h3>
+              <p className="text-xs text-ds-soft">Envia un mensaje automatico cuando alguien sale del servidor</p>
             </div>
           </div>
           <button
             onClick={() => onConfigChange({ enabled: !config.enabled })}
-            className={`relative w-14 h-7 rounded-full transition-all ${config.enabled ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]' : 'bg-gray-300 dark:bg-gray-600'}`}
+            className={`relative w-14 h-7 rounded-full transition-all ${config.enabled ?'bg-ds-accent' :'bg-ds-raised'}`}
           >
-            <div className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-transform ${config.enabled ? 'translate-x-7' : 'translate-x-0.5'}`} />
+            <div className={`absolute top-0.5 w-6 h-6 bg-ds-surface rounded-full transition-transform ${config.enabled ? 'translate-x-7' : 'translate-x-0.5'}`} />
           </button>
         </div>
 
         {!config.enabled && (
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700/30">
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">
+          <div className="mt-4 p-3 bg-ds-surface rounded-lg border border-ds-border">
+            <p className="text-xs text-ds-soft">
               Los mensajes de despedida estan desactivados.
             </p>
           </div>
@@ -53,11 +53,11 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
         <>
           {/* Canal */}
           <div className={cardCls}>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+            <label className="text-xs font-bold text-ds-soft block mb-3">
               Canal de Discord
             </label>
             <div className="relative">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748b]" />
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ds-soft" />
               <select
                 value={config.channelId || ''}
                 onChange={(e) => onConfigChange({ channelId: e.target.value || null })}
@@ -68,20 +68,20 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
               </select>
             </div>
             {!config.channelId && (
-              <p className="text-xs text-orange-500 mt-2">Selecciona un canal para enviar los mensajes de despedida</p>
+              <p className="text-xs text-ds-warn mt-2">Selecciona un canal para enviar los mensajes de despedida</p>
             )}
           </div>
 
           {/* Mensaje */}
           <div className={cardCls}>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8]">
+              <label className="text-xs font-bold text-ds-soft">
                 Mensaje de Despedida
               </label>
               {config.message === '' && (
                 <button
                   onClick={() => onConfigChange({ message: GOODBYE_MESSAGE_TEMPLATES[0] })}
-                  className="text-xs px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-[#2563eb] rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                  className="text-xs px-2.5 py-1 bg-ds-accent/10 text-ds-accent-text rounded-lg hover:bg-ds-accent/10 transition-colors"
                 >
                   Usar predefinido
                 </button>
@@ -100,7 +100,7 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
 
             {/* Templates */}
             <div className="mt-3">
-              <p className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] mb-2">Plantillas sugeridas</p>
+              <p className="text-xs font-bold text-ds-soft mb-2">Plantillas sugeridas</p>
               <div className="space-y-1.5">
                 {GOODBYE_MESSAGE_TEMPLATES.map((tpl, i) => (
                   <button
@@ -108,8 +108,8 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
                     onClick={() => onConfigChange({ message: tpl })}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all ${
                       config.message === tpl
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-[#2563eb] border border-[#2563eb]/30'
-                        : 'bg-[#f8fafc] dark:bg-[#374151]/30 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]/50 border border-transparent'
+                        ? 'bg-ds-accent/10 text-ds-accent-text border border-ds-accent/30'
+                        : 'bg-ds-bg text-ds-soft hover:bg-ds-raised border border-transparent'
                     }`}
                   >
                     {tpl}
@@ -121,7 +121,7 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
 
           {/* Color */}
           <div className={cardCls}>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+            <label className="text-xs font-bold text-ds-soft block mb-3">
               Color del Embed
             </label>
             <div className="flex items-center gap-3">
@@ -129,23 +129,23 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
                 type="color"
                 value={config.embedColor}
                 onChange={(e) => onConfigChange({ embedColor: e.target.value })}
-                className="w-10 h-10 rounded-lg border border-[#e2e8f0] dark:border-[#374151] cursor-pointer"
+                className="w-10 h-10 rounded-lg border border-ds-border cursor-pointer"
               />
               <input
                 type="text"
                 value={config.embedColor}
                 onChange={(e) => onConfigChange({ embedColor: e.target.value })}
-                className="w-24 px-3 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-[#2563eb]"
+                className="w-24 px-3 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text font-mono focus:outline-none focus:ring-2 focus:ring-ds-accent"
               />
               <div className="flex gap-1.5 flex-wrap">
                 {GOODBYE_COLOR_PRESETS.map(({ color }) => (
                   <button
                     key={color}
                     onClick={() => onConfigChange({ embedColor: color })}
-                    className={`w-7 h-7 rounded-full border-2 shadow-sm transition-transform ${
+                    className={`w-7 h-7 rounded-full border-2 transition-transform ${
                       config.embedColor === color
-                        ? 'border-gray-900 dark:border-white scale-110'
-                        : 'border-white dark:border-[#374151] hover:scale-105'
+                        ? 'border-ds-border scale-110'
+                        : 'border-ds-border hover:scale-105'
                     }`}
                     style={{ backgroundColor: color }}
                     title={color}
@@ -157,7 +157,7 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
 
           {/* Imagen */}
           <div className={cardCls}>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+            <label className="text-xs font-bold text-ds-soft block mb-3">
               Imagen del Embed
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -165,17 +165,17 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
                 <button
                   key={opt.value}
                   onClick={() => onConfigChange({ imageMode: opt.value })}
-                  className={`p-3 rounded-xl text-center transition-all border-2 ${
+                  className={`p-3 rounded-lg text-center transition-all border-2 ${
                     config.imageMode === opt.value
-                      ? 'border-[#2563eb] bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-[#e2e8f0] dark:border-[#374151] hover:border-[#2563eb]'
+                      ? 'border-ds-accent bg-ds-accent/10 '
+                      : 'border-ds-border hover:border-ds-accent'
                   }`}
                 >
-                  <div className={`mx-auto mb-1 ${config.imageMode === opt.value ? 'text-[#2563eb]' : 'text-[#64748b]'}`}>
+                  <div className={`mx-auto mb-1 ${config.imageMode === opt.value ? 'text-ds-accent-text' : 'text-ds-soft'}`}>
                     {opt.icon}
                   </div>
-                  <span className="text-xs font-medium text-gray-900 dark:text-white">{opt.label}</span>
-                  <p className="text-[10px] text-[#64748b] mt-0.5">{opt.desc}</p>
+                  <span className="text-xs font-medium text-ds-text">{opt.label}</span>
+                  <p className="text-[10px] text-ds-soft mt-0.5">{opt.desc}</p>
                 </button>
               ))}
             </div>
@@ -191,15 +191,15 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
                 />
                 <button
                   onClick={() => setShowGallery(true)}
-                  className="w-full px-4 py-2.5 border-2 border-dashed border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-[#64748b] hover:border-[#2563eb] hover:text-[#2563eb] transition-colors"
+                  className="w-full px-4 py-2.5 border-2 border-dashed border-ds-border rounded-lg text-sm text-ds-soft hover:border-ds-accent hover:text-ds-accent-text transition-colors"
                 >
                   Abrir galeria de imagenes
                 </button>
                 {config.imageUrl && (
-                  <div className="flex items-center gap-3 p-2 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
+                  <div className="flex items-center gap-3 p-2 bg-ds-bg rounded-lg">
                     <img src={config.imageUrl} alt="" className="w-20 h-12 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <span className="flex-1 text-xs text-[#64748b] truncate">{config.imageUrl}</span>
-                    <button onClick={() => onConfigChange({ imageUrl: null })} className="p-1 text-red-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                    <span className="flex-1 text-xs text-ds-soft truncate">{config.imageUrl}</span>
+                    <button onClick={() => onConfigChange({ imageUrl: null })} className="p-1 text-ds-danger hover:text-ds-danger"><X className="w-4 h-4" /></button>
                   </div>
                 )}
               </div>
@@ -208,7 +208,7 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
 
           {/* Opciones */}
           <div className={cardCls}>
-            <label className="text-xs font-bold text-[#64748b] dark:text-[#94a3b8] block mb-3">
+            <label className="text-xs font-bold text-ds-soft block mb-3">
               Opciones del Mensaje
             </label>
             <ToggleOption
@@ -223,11 +223,11 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
 
       {/* Gallery modal */}
       {showGallery && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto border border-[#e2e8f0] dark:border-[#374151]">
+        <div className="fixed inset-0 bg-ds-input/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-ds-surface rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto border border-ds-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-black text-gray-900 dark:text-white">Seleccionar imagen</h3>
-              <button onClick={() => setShowGallery(false)} className="text-[#64748b] hover:text-gray-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
+              <h3 className="text-lg font-black text-ds-text">Seleccionar imagen</h3>
+              <button onClick={() => setShowGallery(false)} className="text-ds-soft hover:text-ds-text"><X className="w-5 h-5" /></button>
             </div>
             <MediaGallery
               selectedFileType="image"
@@ -245,16 +245,16 @@ export default function GoodbyeTab({ config, onConfigChange, channels, guildName
 
 function ToggleOption({ checked, onChange, label, desc }: { checked: boolean; onChange: (v: boolean) => void; label: string; desc: string }) {
   return (
-    <label className="flex items-center gap-3 p-3 bg-[#f8fafc] dark:bg-[#374151]/50 rounded-xl cursor-pointer hover:bg-[#e2e8f0] dark:hover:bg-[#374151]/70 transition-colors">
+    <label className="flex items-center gap-3 p-3 bg-ds-bg rounded-lg cursor-pointer hover:bg-ds-raised transition-colors">
       <div className="relative">
         <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
-        <div className={`w-10 h-5 rounded-full transition-all ${checked ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6]' : 'bg-gray-300 dark:bg-gray-600'}`}>
-          <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+        <div className={`w-10 h-5 rounded-full transition-all ${checked ?'bg-ds-accent' :'bg-ds-raised'}`}>
+          <div className={`absolute top-0.5 w-4 h-4 bg-ds-surface rounded-full transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
         </div>
       </div>
       <div>
-        <span className="text-sm font-medium text-gray-900 dark:text-white">{label}</span>
-        <p className="text-xs text-[#64748b] dark:text-[#94a3b8]">{desc}</p>
+        <span className="text-sm font-medium text-ds-text">{label}</span>
+        <p className="text-xs text-ds-soft">{desc}</p>
       </div>
     </label>
   );

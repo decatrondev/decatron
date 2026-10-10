@@ -276,7 +276,7 @@ export default function TournamentPublicPage() {
 
                     {isLive && (
                         <aside id="stream" className="lg:sticky lg:top-24">
-                            <div className="aspect-video bg-black" style={{ boxShadow: '0 0 0 1px var(--t-line)' }}>
+                            <div className="aspect-video bg-ds-input" style={{ boxShadow: '0 0 0 1px var(--t-line)' }}>
                                 <iframe
                                     src={`https://player.twitch.tv/?channel=${channelName}&parent=${window.location.hostname}&muted=true&autoplay=false`}
                                     title={`${channelName} en Twitch`}

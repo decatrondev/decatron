@@ -106,7 +106,7 @@ export function CanvasEditor({ width, height, items, onMove, snap = 10, showGrid
                     ))}
                 </div>
             </div>
-            <div className="text-[11px] text-[#6b7280] mt-1.5">
+            <div className="text-[11px] text-ds-soft mt-1.5">
                 {width}×{height} · escala {Math.round(scale * 100)}% · arrastra la tarjeta para ubicarla{snap ? ` · snap ${snap}px` : ''}
             </div>
         </div>

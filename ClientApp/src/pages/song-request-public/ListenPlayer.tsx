@@ -342,7 +342,7 @@ export function useListenPlayer(channel: string, code: string, items: PublicPlay
 
 type ListenController = ReturnType<typeof useListenPlayer>;
 
-const iconBtn = 'p-2.5 4xl:p-3 rounded-full text-[#d4d4d8] hover:text-white hover:bg-pub-raised transition-colors disabled:opacity-40';
+const iconBtn = 'p-2.5 4xl:p-3 rounded-full text-ds-text hover:text-ds-text hover:bg-pub-raised transition-colors disabled:opacity-40';
 
 /** El reproductor con sus controles (la lista de canciones va aparte). */
 export function ListenPlayerView({ controller, hasPlayable }: { controller: ListenController; hasPlayable: boolean }) {
@@ -352,21 +352,21 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
     const volumeBeforeMute = useRef(80);
 
     return (
-        <div className="mb-6 4xl:mb-10 rounded-xl border border-pub-border bg-pub-surface overflow-hidden">
-            <div className="aspect-video w-full bg-black max-h-[60vh] mx-auto">
+        <div className="mb-6 4xl:mb-10 rounded-lg border border-pub-border bg-pub-surface overflow-hidden">
+            <div className="aspect-video w-full bg-ds-input max-h-[60vh] mx-auto">
                 <div ref={c.host} className="w-full h-full" />
             </div>
 
             <div className="p-4 4xl:p-6 space-y-3 4xl:space-y-4">
                 <div className="min-w-0">
-                    <p className="text-white font-bold text-base 3xl:text-lg 4xl:text-2xl break-words">
+                    <p className="text-ds-text font-bold text-base 3xl:text-lg 4xl:text-2xl break-words">
                         {c.now ? c.now.track.title : (hasPlayable ? t('songRequestPublic.listen.pressPlay') : t('songRequestPublic.listen.nothingToPlay'))}
                     </p>
-                    {c.now && <p className="text-sm 3xl:text-base 4xl:text-xl text-[#a1a1aa] truncate">{c.now.track.artist}</p>}
+                    {c.now && <p className="text-sm 3xl:text-base 4xl:text-xl text-ds-soft truncate">{c.now.track.artist}</p>}
                 </div>
 
                 {/* Progreso */}
-                <div className="flex items-center gap-3 font-mono text-xs 3xl:text-sm 4xl:text-base text-[#71717a]">
+                <div className="flex items-center gap-3 font-mono text-xs 3xl:text-sm 4xl:text-base text-ds-soft">
                     <span className="w-12 text-right tabular-nums">{formatDuration(Math.floor(c.position)) || '0:00'}</span>
                     <input
                         type="range"
@@ -391,7 +391,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                             <SkipBack className="w-5 h-5 4xl:w-6 4xl:h-6" />
                         </button>
                         <button
-                            className="p-3 4xl:p-4 rounded-full bg-pub-accent text-white hover:bg-pub-accent-hover transition-colors disabled:opacity-40"
+                            className="p-3 4xl:p-4 rounded-full bg-pub-accent text-ds-text hover:bg-pub-accent-hover transition-colors disabled:opacity-40"
                             onClick={c.toggle}
                             disabled={!hasPlayable}
                             title={c.playing ? t('songRequestPublic.listen.pause') : t('songRequestPublic.listen.play')}
@@ -424,7 +424,7 @@ export function ListenPlayerView({ controller, hasPlayable }: { controller: List
                     </div>
                 </div>
 
-                {isMobile && <p className="text-xs 3xl:text-sm text-amber-300">{t('songRequestPublic.listen.mobileNote')}</p>}
+                {isMobile && <p className="text-xs 3xl:text-sm text-ds-warn">{t('songRequestPublic.listen.mobileNote')}</p>}
             </div>
         </div>
     );

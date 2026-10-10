@@ -68,8 +68,8 @@ export default function DiscordLevels() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563eb] mx-auto mb-3" />
-          <p className="text-sm text-[#64748b]">Cargando configuracion...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-ds-accent-text mx-auto mb-3" />
+          <p className="text-sm text-ds-soft">Cargando configuracion...</p>
         </div>
       </div>
     );
@@ -78,10 +78,10 @@ export default function DiscordLevels() {
   if (!hasMinimumLevel('control_total')) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
-          <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-red-600 dark:text-red-400 mb-2">Acceso denegado</h2>
-          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-[#2563eb] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">
+        <div className="bg-ds-danger/10 border border-ds-danger/40 rounded-lg p-8 max-w-md text-center">
+          <Lock className="w-16 h-16 text-ds-accent-text mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-ds-danger mb-2">Acceso denegado</h2>
+          <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-colors">
             Volver
           </button>
         </div>
@@ -95,29 +95,29 @@ export default function DiscordLevels() {
       case 'general':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Estadisticas</h3>
+            <h3 className="text-lg font-black text-ds-text mb-1">Estadisticas</h3>
             <div className="grid grid-cols-1 gap-3">
-              <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-                <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">USUARIOS CON XP</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">{stats.totalUsers}</p>
+              <div className="p-4 bg-ds-bg rounded-lg">
+                <p className="text-[10px] font-bold text-ds-soft mb-1">USUARIOS CON XP</p>
+                <p className="text-2xl font-black text-ds-text">{stats.totalUsers}</p>
               </div>
-              <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-                <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">NIVEL PROMEDIO</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">{stats.avgLevel}</p>
+              <div className="p-4 bg-ds-bg rounded-lg">
+                <p className="text-[10px] font-bold text-ds-soft mb-1">NIVEL PROMEDIO</p>
+                <p className="text-2xl font-black text-ds-text">{stats.avgLevel}</p>
               </div>
-              <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-                <p className="text-[10px] font-bold text-[#64748b] dark:text-[#94a3b8] mb-1">TOTAL MENSAJES</p>
-                <p className="text-2xl font-black text-gray-900 dark:text-white">{stats.totalMessages.toLocaleString()}</p>
+              <div className="p-4 bg-ds-bg rounded-lg">
+                <p className="text-[10px] font-bold text-ds-soft mb-1">TOTAL MENSAJES</p>
+                <p className="text-2xl font-black text-ds-text">{stats.totalMessages.toLocaleString()}</p>
               </div>
             </div>
             {activeBoost && (
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+              <div className="p-4 bg-ds-warn/10 rounded-lg border border-ds-warn/40">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
-                  <p className="text-sm font-bold text-amber-700 dark:text-amber-400">BOOST ACTIVO</p>
+                  <Zap className="w-4 h-4 text-ds-accent-text" />
+                  <p className="text-sm font-bold text-ds-warn">BOOST ACTIVO</p>
                 </div>
-                <p className="text-2xl font-black text-amber-600 dark:text-amber-300">{activeBoost.multiplier}x XP</p>
-                <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-1">
+                <p className="text-2xl font-black text-ds-warn">{activeBoost.multiplier}x XP</p>
+                <p className="text-xs text-ds-warn/70 mt-1">
                   Por {activeBoost.activatedByUsername}
                 </p>
               </div>
@@ -128,34 +128,34 @@ export default function DiscordLevels() {
       case 'levels':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Config Actual</h3>
-            <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl space-y-2">
+            <h3 className="text-lg font-black text-ds-text mb-1">Config Actual</h3>
+            <div className="p-4 bg-ds-bg rounded-lg space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-[#64748b]">Dificultad</span>
-                <span className="font-bold text-gray-900 dark:text-white">{config.difficultyPreset}</span>
+                <span className="text-ds-soft">Dificultad</span>
+                <span className="font-bold text-ds-text">{config.difficultyPreset}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-[#64748b]">XP por mensaje</span>
-                <span className="font-bold text-gray-900 dark:text-white">{config.xpMin}-{config.xpMax}</span>
+                <span className="text-ds-soft">XP por mensaje</span>
+                <span className="font-bold text-ds-text">{config.xpMin}-{config.xpMax}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-[#64748b]">Cooldown</span>
-                <span className="font-bold text-gray-900 dark:text-white">{config.cooldownSeconds}s</span>
+                <span className="text-ds-soft">Cooldown</span>
+                <span className="font-bold text-ds-text">{config.cooldownSeconds}s</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-[#64748b]">Max XP/hora</span>
-                <span className="font-bold text-gray-900 dark:text-white">{config.maxXpPerHour}</span>
+                <span className="text-ds-soft">Max XP/hora</span>
+                <span className="font-bold text-ds-text">{config.maxXpPerHour}</span>
               </div>
             </div>
-            <p className="text-xs text-[#64748b]">Cambia la dificultad en tab General para ver como afecta la tabla de niveles</p>
+            <p className="text-xs text-ds-soft">Cambia la dificultad en tab General para ver como afecta la tabla de niveles</p>
           </div>
         );
 
       case 'roles':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Preview de Roles</h3>
-            <p className="text-xs text-[#64748b] dark:text-[#94a3b8] mb-3">Asi se ven los roles en Discord</p>
+            <h3 className="text-lg font-black text-ds-text mb-1">Preview de Roles</h3>
+            <p className="text-xs text-ds-soft mb-3">Asi se ven los roles en Discord</p>
             <div className="space-y-1.5">
               {roles.map(role => (
                 <div key={role.id} className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: `${role.roleColor}15` }}>
@@ -163,11 +163,11 @@ export default function DiscordLevels() {
                   <span className="text-sm font-medium" style={{ color: role.roleColor }}>
                     {role.roleName}
                   </span>
-                  <span className="text-[10px] text-[#64748b] ml-auto">Lvl {role.levelRequired}</span>
+                  <span className="text-[10px] text-ds-soft ml-auto">Lvl {role.levelRequired}</span>
                 </div>
               ))}
               {roles.length === 0 && (
-                <p className="text-sm text-[#64748b] text-center py-4">Sin roles</p>
+                <p className="text-sm text-ds-soft text-center py-4">Sin roles</p>
               )}
             </div>
           </div>
@@ -176,20 +176,20 @@ export default function DiscordLevels() {
       case 'moderation':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Info</h3>
+            <h3 className="text-lg font-black text-ds-text mb-1">Info</h3>
             {activeBoost ? (
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
-                <p className="text-sm font-bold text-amber-700 dark:text-amber-400">{activeBoost.multiplier}x Boost Activo</p>
-                <p className="text-xs text-amber-600/70 mt-1">Expira: {new Date(activeBoost.expiresAt).toLocaleString()}</p>
+              <div className="p-4 bg-ds-warn/10 rounded-lg border border-ds-warn/40">
+                <p className="text-sm font-bold text-ds-warn">{activeBoost.multiplier}x Boost Activo</p>
+                <p className="text-xs text-ds-warn/70 mt-1">Expira: {new Date(activeBoost.expiresAt).toLocaleString()}</p>
               </div>
             ) : (
-              <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-                <p className="text-sm text-[#64748b]">Sin boost activo</p>
+              <div className="p-4 bg-ds-bg rounded-lg">
+                <p className="text-sm text-ds-soft">Sin boost activo</p>
               </div>
             )}
-            <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-              <p className="text-[10px] font-bold text-[#64748b] mb-1">USUARIOS REGISTRADOS</p>
-              <p className="text-xl font-black text-gray-900 dark:text-white">{usersTotal}</p>
+            <div className="p-4 bg-ds-bg rounded-lg">
+              <p className="text-[10px] font-bold text-ds-soft mb-1">USUARIOS REGISTRADOS</p>
+              <p className="text-xl font-black text-ds-text">{usersTotal}</p>
             </div>
           </div>
         );
@@ -197,9 +197,9 @@ export default function DiscordLevels() {
       case 'testing':
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Resultado</h3>
-            <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-              <p className="text-sm text-[#64748b]">Envia un test para ver el resultado aqui</p>
+            <h3 className="text-lg font-black text-ds-text mb-1">Resultado</h3>
+            <div className="p-4 bg-ds-bg rounded-lg">
+              <p className="text-sm text-ds-soft">Envia un test para ver el resultado aqui</p>
             </div>
           </div>
         );
@@ -207,9 +207,9 @@ export default function DiscordLevels() {
       default:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Info</h3>
-            <div className="p-4 bg-[#f8fafc] dark:bg-[#374151]/30 rounded-xl">
-              <p className="text-sm text-[#64748b]">Selecciona un tab para ver mas informacion</p>
+            <h3 className="text-lg font-black text-ds-text mb-1">Info</h3>
+            <div className="p-4 bg-ds-bg rounded-lg">
+              <p className="text-sm text-ds-soft">Selecciona un tab para ver mas informacion</p>
             </div>
           </div>
         );
@@ -217,17 +217,17 @@ export default function DiscordLevels() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#111214] p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-ds-bg p-4 sm:p-6 lg:p-8">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-6 border border-[#e2e8f0] dark:border-[#374151] shadow-lg mb-6">
+        <div className="bg-ds-surface rounded-lg p-6 border border-ds-border mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-14 h-14 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 bg-ds-warn/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-2xl">⚡</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white">Sistema de XP & Niveles</h1>
-              <p className="text-sm text-[#64748b] dark:text-[#94a3b8]">Configura el sistema de gamificacion de tu servidor</p>
+              <h1 className="text-2xl font-black text-ds-text">Sistema de XP & Niveles</h1>
+              <p className="text-sm text-ds-soft">Configura el sistema de gamificacion de tu servidor</p>
             </div>
 
             <div className="flex items-center gap-3 flex-shrink-0">
@@ -235,15 +235,15 @@ export default function DiscordLevels() {
                 <select
                   value={selectedGuild.guildId}
                   onChange={(e) => handleGuildChange(e.target.value)}
-                  className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151]/50 border border-[#e2e8f0] dark:border-[#374151] rounded-xl text-sm text-gray-900 dark:text-white [&>option]:bg-white [&>option]:dark:bg-[#1B1C1D]"
+                  className="px-4 py-2 bg-ds-bg border border-ds-border rounded-lg text-sm text-ds-text [&>option]:bg-ds-surface"
                 >
                   {linkedGuilds.map(g => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
                 </select>
               )}
-              <button onClick={handleReset} className="px-4 py-2 bg-[#f8fafc] dark:bg-[#374151] text-[#64748b] font-medium rounded-xl border border-[#e2e8f0] dark:border-[#374151] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]/80 transition-colors" title="Restaurar valores por defecto">
+              <button onClick={handleReset} className="px-4 py-2 bg-ds-bg text-ds-soft font-medium rounded-lg border border-ds-border hover:bg-ds-raised transition-colors" title="Restaurar valores por defecto">
                 <RotateCcw className="w-4 h-4" />
               </button>
-              <button onClick={handleSave} disabled={saving || !selectedGuild} className="px-6 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#1d4ed8] hover:to-[#2563eb] text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-blue-500/20">
+              <button onClick={handleSave} disabled={saving || !selectedGuild} className="px-6 py-2 bg-ds-accent hover:bg-ds-accent-hover text-ds-on-accent font-bold rounded-lg transition-all disabled:opacity-50 flex items-center gap-2 shadow-blue-500/20">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                 Guardar
               </button>
@@ -251,10 +251,10 @@ export default function DiscordLevels() {
           </div>
 
           {saveMessage && (
-            <div className={`mt-4 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium ${
+            <div className={`mt-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium ${
               saveMessage.type === 'success'
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                ? 'bg-ds-ok/10 text-ds-ok '
+                : 'bg-ds-danger/10 text-ds-danger '
             }`}>
               {saveMessage.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
               {saveMessage.text}
@@ -263,8 +263,8 @@ export default function DiscordLevels() {
         </div>
 
         {!selectedGuild ? (
-          <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl p-12 text-center border border-[#e2e8f0] dark:border-[#374151]">
-            <p className="text-[#64748b]">Vincula un servidor desde la pagina de Discord</p>
+          <div className="bg-ds-surface rounded-lg p-12 text-center border border-ds-border">
+            <p className="text-ds-soft">Vincula un servidor desde la pagina de Discord</p>
           </div>
         ) : (
           <>
@@ -273,16 +273,16 @@ export default function DiscordLevels() {
               {/* Left: Editor (2/3) */}
               <div className="xl:col-span-2 space-y-6">
                 {/* Tab navigation */}
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-4 shadow-lg">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-4">
                   <div className="flex flex-wrap gap-2">
                     {LEVELS_TABS.map(tab => (
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                        className={`px-5 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                           activeTab === tab.id
-                            ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white shadow-lg shadow-blue-500/20'
-                            : 'bg-[#f8fafc] dark:bg-[#374151]/50 text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#374151]'
+                            ? 'bg-ds-accent text-ds-on-accent shadow-blue-500/20'
+                            : 'bg-ds-bg text-ds-soft hover:bg-ds-raised '
                         }`}
                       >
                         {tab.icon} {tab.label}
@@ -375,7 +375,7 @@ export default function DiscordLevels() {
 
               {/* Right: Sidebar (1/3) */}
               <div className="xl:col-span-1">
-                <div className="bg-white dark:bg-[#1B1C1D] rounded-2xl border border-[#e2e8f0] dark:border-[#374151] p-6 shadow-lg sticky top-6">
+                <div className="bg-ds-surface rounded-lg border border-ds-border p-6 sticky top-6">
                   {renderSidebar()}
                 </div>
               </div>

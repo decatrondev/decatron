@@ -69,7 +69,7 @@ export const BannersTab: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-ds-border">
                 <div className="flex items-center gap-3">
                     <div className="p-3 bg-ds-accent rounded-lg">
-                        <Image className="w-6 h-6 text-ds-text" />
+                        <Image className="w-6 h-6 text-ds-on-accent" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-ds-text">Banners</h2>

@@ -25,11 +25,11 @@ interface Me {
 }
 
 const STATUS_TONE: Record<string, string> = {
-    approved: 'text-emerald-400 border-emerald-400/30',
-    hidden: 'text-[#a1a1aa] border-[#3f3f46]',
-    pending: 'text-amber-400 border-amber-400/30',
-    rejected: 'text-red-400 border-red-400/30',
-    removed: 'text-red-400 border-red-400/30',
+    approved: 'text-ds-ok border-ds-ok/40',
+    hidden: 'text-ds-soft border-[#3f3f46]',
+    pending: 'text-ds-warn border-ds-warn/40',
+    rejected: 'text-ds-danger border-ds-danger/40',
+    removed: 'text-ds-danger border-ds-danger/40',
 };
 
 export default function ChannelEmotesPublic() {
@@ -111,7 +111,7 @@ export default function ChannelEmotesPublic() {
         : null;
 
     return (
-        <div className="min-h-screen bg-pub-bg text-[#d4d4d8] relative overflow-x-hidden">
+        <div className="min-h-screen bg-pub-bg text-ds-text relative overflow-x-hidden">
             <div className="relative max-w-3xl 3xl:max-w-5xl 4xl:max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16 4xl:py-24">
                 <header className="flex items-center gap-4 4xl:gap-6 mb-8 4xl:mb-12">
                     {data?.channel.avatarUrl
@@ -119,13 +119,13 @@ export default function ChannelEmotesPublic() {
                         : <div className="w-14 h-14 3xl:w-16 3xl:h-16 4xl:w-20 4xl:h-20 rounded-full bg-pub-raised border-2 border-pub-border shrink-0" />}
                     <div className="min-w-0">
                         <p className="font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-pub-accent-hi/80">{t('public.label')}</p>
-                        <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-white truncate">{data?.channel.displayName ?? channel}</h1>
+                        <h1 className="text-2xl sm:text-3xl 3xl:text-4xl 4xl:text-5xl font-black text-ds-text truncate">{data?.channel.displayName ?? channel}</h1>
                     </div>
                 </header>
 
-                {status === 'loading' && <p className="font-mono text-sm 3xl:text-base text-[#71717a] animate-pulse">{t('public.loading')}</p>}
-                {status === 'notfound' && <p className="font-mono text-sm 3xl:text-base text-[#a1a1aa]">{t('public.notFound')}</p>}
-                {status === 'error' && <p className="font-mono text-sm 3xl:text-base text-red-400">{t('public.error')}</p>}
+                {status === 'loading' && <p className="font-mono text-sm 3xl:text-base text-ds-soft animate-pulse">{t('public.loading')}</p>}
+                {status === 'notfound' && <p className="font-mono text-sm 3xl:text-base text-ds-soft">{t('public.notFound')}</p>}
+                {status === 'error' && <p className="font-mono text-sm 3xl:text-base text-ds-danger">{t('public.error')}</p>}
 
                 {status === 'ok' && data && (
                     <>
@@ -134,27 +134,27 @@ export default function ChannelEmotesPublic() {
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder={t('public.search')}
-                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-xl bg-pub-surface border border-pub-border text-white text-sm 3xl:text-base focus:outline-none focus:border-pub-accent/60"
+                                className="flex-1 min-w-[12rem] px-4 py-2.5 rounded-lg bg-pub-surface border border-pub-border text-ds-text text-sm 3xl:text-base focus:outline-none focus:border-pub-accent/60"
                             />
-                            <span className="font-mono text-xs 3xl:text-sm text-[#71717a]">{t('public.count', { count: data.emotes.length })}</span>
+                            <span className="font-mono text-xs 3xl:text-sm text-ds-soft">{t('public.count', { count: data.emotes.length })}</span>
                         </div>
 
                         {data.emotes.length === 0 ? (
-                            <p className="font-mono text-sm 3xl:text-base text-[#71717a] py-8">{t('public.empty')}</p>
+                            <p className="font-mono text-sm 3xl:text-base text-ds-soft py-8">{t('public.empty')}</p>
                         ) : (
                             <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] 3xl:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] 4xl:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
                                 {shown.map(e => (
-                                    <div key={e.id} className="group relative rounded-xl border border-pub-border bg-pub-surface p-3 flex flex-col items-center gap-2 hover:border-pub-accent/40 transition-colors">
+                                    <div key={e.id} className="group relative rounded-lg border border-pub-border bg-pub-surface p-3 flex flex-col items-center gap-2 hover:border-pub-accent/40 transition-colors">
                                         <button type="button" onClick={() => copy(e.name)} className="flex flex-col items-center gap-2 w-full" title={t('public.clickToCopy')}>
                                             <EmoteThumb src={e.urls.x2} name={e.name} height={48} bg="dark" />
-                                            <span className="font-mono text-xs 3xl:text-sm font-bold text-white truncate max-w-full">{copied === e.name ? t('public.copied') : e.name}</span>
+                                            <span className="font-mono text-xs 3xl:text-sm font-bold text-ds-text truncate max-w-full">{copied === e.name ? t('public.copied') : e.name}</span>
                                         </button>
-                                        <span className="text-[10px] 3xl:text-xs text-[#71717a] truncate max-w-full">{t('panel.by', { user: e.uploadedBy })}</span>
+                                        <span className="text-[10px] 3xl:text-xs text-ds-soft truncate max-w-full">{t('panel.by', { user: e.uploadedBy })}</span>
                                         <button
                                             type="button"
                                             onClick={() => report(e)}
                                             disabled={reported.has(e.id)}
-                                            className="absolute top-1.5 right-1.5 p-1 rounded-md text-[#52525b] hover:text-red-400 opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-100 disabled:text-red-400 transition-opacity"
+                                            className="absolute top-1.5 right-1.5 p-1 rounded-md text-ds-soft hover:text-ds-danger opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-100 disabled:text-ds-danger transition-opacity"
                                             title={reported.has(e.id) ? t('public.reported') : t('public.report')}
                                             aria-label={t('public.report')}
                                         >
@@ -166,56 +166,56 @@ export default function ChannelEmotesPublic() {
                         )}
 
                         <section className="mt-12">
-                            <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#a1a1aa] font-bold">
+                            <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-ds-soft font-bold">
                                 <span className="text-pub-accent-hi">#</span>{t('public.uploadTitle')}
                             </h2>
 
                             {!loggedIn && (
                                 modeAllowsViewers ? (
-                                    <div className="rounded-2xl border border-pub-border bg-pub-surface p-5 space-y-3">
+                                    <div className="rounded-lg border border-pub-border bg-pub-surface p-5 space-y-3">
                                         <p className="text-sm 3xl:text-base">{t(`public.invite.${data.uploadMode}`)}</p>
-                                        <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-xl bg-pub-accent hover:bg-pub-accent-hover text-white font-bold text-sm 3xl:text-base">{t('public.login')}</a>
+                                        <a href={loginUrl} className="inline-block px-6 py-2.5 rounded-lg bg-pub-accent hover:bg-pub-accent-hover text-ds-text font-bold text-sm 3xl:text-base">{t('public.login')}</a>
                                     </div>
                                 ) : (
-                                    <p className="text-sm 3xl:text-base text-[#a1a1aa]">{t(`public.cannot.${data.uploadMode}`)}</p>
+                                    <p className="text-sm 3xl:text-base text-ds-soft">{t(`public.cannot.${data.uploadMode}`)}</p>
                                 )
                             )}
 
                             {loggedIn && me && (
                                 <div className="space-y-5">
                                     {me.canUpload && (
-                                        <p className="text-sm 3xl:text-base text-[#a1a1aa]">{me.autoApprove ? t('public.willPublish') : t('public.willReview', { left: me.pendingLeft })}</p>
+                                        <p className="text-sm 3xl:text-base text-ds-soft">{me.autoApprove ? t('public.willPublish') : t('public.willReview', { left: me.pendingLeft })}</p>
                                     )}
                                     <UploadForm tone="public" allowZeroWidth={false} onSubmit={upload} disabledReason={disabledReason} />
                                 </div>
                             )}
-                            {loggedIn && !me && <p className="font-mono text-sm text-[#71717a] animate-pulse">{t('public.loading')}</p>}
+                            {loggedIn && !me && <p className="font-mono text-sm text-ds-soft animate-pulse">{t('public.loading')}</p>}
                         </section>
 
                         {loggedIn && me && me.mine.length > 0 && (
                             <section className="mt-10">
-                                <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-[#a1a1aa] font-bold">
+                                <h2 className="flex items-center gap-2 mb-3 font-mono text-xs 3xl:text-sm 4xl:text-base uppercase tracking-widest text-ds-soft font-bold">
                                     <span className="text-pub-accent-hi">#</span>{t('public.mineTitle')}
                                 </h2>
                                 <div className="space-y-2">
                                     {me.mine.map(e => (
-                                        <div key={e.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-pub-border bg-pub-surface p-3">
+                                        <div key={e.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-pub-border bg-pub-surface p-3">
                                             {e.status !== 'removed' && e.status !== 'rejected'
                                                 ? <EmoteThumb src={e.urls.x2} name={e.name} height={36} bg="dark" />
                                                 : <span className="w-12 h-12 rounded-lg bg-pub-raised shrink-0" />}
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-mono text-sm font-bold text-white truncate">{e.name}</p>
-                                                <p className="text-xs text-[#71717a]">{formatBytes(e.bytes)}{e.reason ? ` · ${e.reason}` : ''}</p>
+                                                <p className="font-mono text-sm font-bold text-ds-text truncate">{e.name}</p>
+                                                <p className="text-xs text-ds-soft">{formatBytes(e.bytes)}{e.reason ? ` · ${e.reason}` : ''}</p>
                                             </div>
                                             <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-mono font-bold ${STATUS_TONE[e.status]}`}>{t(`public.mineStatus.${e.status}`)}</span>
-                                            <button type="button" onClick={() => removeMine(e)} className="p-2 rounded-lg text-[#71717a] hover:text-red-400" aria-label={t('panel.delete')}><Trash2 className="w-4 h-4" /></button>
+                                            <button type="button" onClick={() => removeMine(e)} className="p-2 rounded-lg text-ds-soft hover:text-ds-danger" aria-label={t('panel.delete')}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                     ))}
                                 </div>
                             </section>
                         )}
 
-                        <p className="mt-12 text-xs 3xl:text-sm text-[#52525b]">{t('public.chatNote')}</p>
+                        <p className="mt-12 text-xs 3xl:text-sm text-ds-soft">{t('public.chatNote')}</p>
                     </>
                 )}
             </div>
